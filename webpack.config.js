@@ -6,7 +6,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 module.exports = {
-  entry: './obs-viewer.js',
+  entry: './app.js',
   devtool: 'source-map',
   mode: 'development',
   optimization: {

@@ -95,10 +95,6 @@ body {
   display: block;
   margin-bottom: 5px;
 }
-#header a {
-  color: #1E4193;
-  text-decoration: none;
-}
 #logo img {
   float: left;
   margin-right: 10px;
@@ -145,13 +141,16 @@ body {
   padding-left: 7px;
   margin-top: 0;
 }
-.nav-links a {
+a {
   color: #337ab7;
   text-decoration: none;
 }
-.nav-links a:focus, .nav-links a:hover {
+a:focus, a:hover {
   text-decoration: underline;
   color: rgb(51, 51, 51);
+}
+.nav-links a.current {
+  font-weight: bold;
 }
 /* End of styles for the navigation links */
 
