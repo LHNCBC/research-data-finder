@@ -5,7 +5,6 @@
 # customizations.
 #     You may set variables before sourcing this to change execution
 # of it.
-
 # Use the globally installed node and its modules
 NODE_DIR=node-v10.14.1-linux-x64
 # Set path
