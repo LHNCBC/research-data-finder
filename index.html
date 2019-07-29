@@ -62,43 +62,42 @@
 
     <div id=content>
 
-    <h1></h1>
+      <p>This is a tool that allows you to view a FHIR server's Observation
+      resources that are coded with the selected LOINC tests.</p>
 
-    <p>This is a tool that allows you to view a FHIR server's Observation
-    resources that are coded with the selected LOINC tests.</p>
+      <label for=settings>Settings:</label>
+      <div id=settings>
+        <table>
+          <tbody>
+          <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
+            value="https://lforms-fhir.nlm.nih.gov/baseR4"></td></tr>
 
-    <label for=settings>Settings:</label>
-    <div id=settings>
-      <table>
-        <tbody>
-        <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
-          value="https://lforms-fhir.nlm.nih.gov/baseR4"></td></tr>
+          <tr><th>Selected tests:</th><td>
+          <input type=text id=loincTests placeholder="LOINC tests"></td><td>Note: Not all
+          of these will have matches in the selected FHIR server</td></tr>
 
-        <tr><th>Selected tests:</th><td>
-        <input type=text id=loincTests placeholder="LOINC tests"></td><td>Note: Not all
-        of these will have matches in the selected FHIR server</td></tr>
-
-        <tr><th>Limit per patient per test:</th><td><input type=number id=perPatientPerTest value=1>
-        </td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <button id=load onclick="app.loadObs()">Load Data</button>
-    <p style="display: none" id="noResults">No matching Observations found.</p>
-    <div id=results style="display: none">
-      <div style="display:none"><!-- only needed for screenshots currently-->
-      Export to: <button id="exportCSV" onclick="window.alert('Not yet suppprted')">CSV</button>
-      <button id="exportOncor" onclick="window.alert('Not yet suppprted')">MyResearch.ONCOR</button>
+          <tr><th>Limit per patient per test:</th><td><input type=number id=perPatientPerTest value=1>
+          </td></tr>
+          </tbody>
+        </table>
       </div>
-      <table>
-        <thead>
-          <tr><th>Patient</th><th>Date</th><th>Time</th><th>Test
-          Name</th><th>Value</th><th>Unit</th><th>FHIR Observation</th>
-        </thead>
-        <tbody id="resultsTBody">
-        </tbody>
-      </table>
+
+      <button id=load onclick="app.loadObs()">Load Data</button>
+      <p style="display: none" id="noResults">No matching Observations found.</p>
+      <div id=results style="display: none">
+        <div style="display:none"><!-- only needed for screenshots currently-->
+        Export to: <button id="exportCSV" onclick="window.alert('Not yet suppprted')">CSV</button>
+        <button id="exportOncor" onclick="window.alert('Not yet suppprted')">MyResearch.ONCOR</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Patient</th><th>Date</th><th>Time</th><th>Test
+            Name</th><th>Value</th><th>Unit</th><th>FHIR Observation</th>
+          </thead>
+          <tbody id="resultsTBody">
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- page footer -->
