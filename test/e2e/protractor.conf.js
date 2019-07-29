@@ -10,7 +10,7 @@ exports.config = {
 
   // A base URL for your application under test. Calls to protractor.get()
   // with relative paths will be prepended with this.
-  baseUrl: 'http://localhost:8080',
+  baseUrl: 'http://localhost:4029',
 
   // If true, only chromedriver will be started, not a standalone selenium.
   // Tests for browsers other than chrome will not run.

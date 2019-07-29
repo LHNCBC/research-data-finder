@@ -5,6 +5,17 @@ const TerserJSPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
+/**
+ *  Returns the hostname without the domain name.
+ */
+function getShortHostname() {
+  let host = require('os').hostname() || 'localhost';
+  if (host.indexOf('.') === -1)
+    host = host.split('.')[0];
+  return host;
+}
+var shortHostname = getShortHostname();
+
 module.exports = {
   entry: './app.js',
   devtool: 'source-map',
@@ -50,5 +61,11 @@ module.exports = {
         ]
       }
     ]
+  },
+  devServer: {
+    host: '0.0.0.0',
+    port: 4029,
+    writeToDisk: true, // write generated asset files
+    public: shortHostname
   }
 }
