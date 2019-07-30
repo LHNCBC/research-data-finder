@@ -15,6 +15,7 @@ function getShortHostname() {
   return host;
 }
 var shortHostname = getShortHostname();
+var port = 4029;
 
 module.exports = {
   entry: './app.js',
@@ -64,8 +65,8 @@ module.exports = {
   },
   devServer: {
     host: '0.0.0.0',
-    port: 4029,
+    port: port,
     writeToDisk: true, // write generated asset files
-    public: shortHostname
+    public: shortHostname+':'+port
   }
 }
