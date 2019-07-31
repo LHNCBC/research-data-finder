@@ -1,0 +1,189 @@
+/**
+ * App-wide Styles
+ */
+
+.alert {
+  border: 2px solid red;
+  border-radius: 4px;
+  font-weight: bold;
+  padding: 1em;
+  margin-left: 10%;
+  margin-right: 10%;
+  margin-top: 1em;
+}
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.42857;
+  /* jQuery's offset() is confused when the position is set to relative (by
+   * angular-material) */
+  position: static;
+}
+
+.lf-form-table .lf-form-table-row.section-header.level1 {
+  background-color: rgb(67,115,156);
+  color: white;
+}
+
+.lf-form-body .lf-form-table-row.level1.target-show td {
+  color: #E8F2FC;
+}
+
+a.external:after {
+  content: url(/assets/images/icon-external-link.png);
+  margin: 0 0 0 5px;
+}
+
+label {font-weight: bold; width: 30em;}
+
+.autocomp_selected, input {width: 30em}
+
+#content {padding: 1em}
+
+th, td {padding: 0.5em; text-align: left}
+
+h1 {font-size: 36px}
+h1, h2 {
+  margin-left: 0; margin-top: 0; margin-bottom: 5px;
+  line-height: 1.1;
+  font-weight: 500;
+}
+p {margin-top: 0; margin-bottom: 10px}
+
+input {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  border-radius: 7px;
+  border: 2px solid #17b4e3;
+}
+
+#perPatientPerTest {
+  width: 4em;
+}
+
+#settings {
+  border: 1px solid #17b4e3;
+  margin-bottom: 0.5em;
+}
+
+#load {margin-bottom: 0.5em;}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Styles for the header */
+body {
+  margin: 0;
+}
+#header {
+  position: relative;
+  font-size: 12px;
+  font-family: 'Droid Sans',Arial,Helvetica,sans-serif;
+  color: #202020;
+  border-top: 2px solid #0BACB6;
+  border-bottom: 7px solid #17b4e3;
+  line-height: normal;
+  padding-bottom: 22px;
+}
+#logo {
+  position: relative;
+  top: 5px;
+  font-size: 18px;
+  display: block;
+  margin-bottom: 5px;
+}
+#logo img {
+  float: left;
+  margin-right: 10px;
+  margin-left: 20px;
+  border-right: 1px solid #0BACB6;
+  padding-right: 0.75em;
+}
+#logo, #log img {
+  display: block;
+}
+#logo .site-name-slogan {
+  font-size: 14px;
+  position: relative;
+  top: 10px;
+  left: -2px;
+}
+#logo .site-name-slogan span {
+  display: block;
+  font-size: 24px;
+  position: relative;
+  left: -2px;
+}
+#logo .site-name-slogan .slogan {
+  color: #202020;
+  font-size: 12px;
+  position: relative;
+  left: 1px;
+}
+#siteNameBox {
+  margin-top: 2.2em;
+}
+#siteName {
+  font-size: 300%;
+}
+/* End of styles for the header */
+
+/* Styles for the navigation links */
+.nav-links {
+  border-bottom: 1px solid black;
+  background-color: #ebf5ff;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  font-size: 12px;
+  padding-left: 7px;
+  margin-top: 0;
+}
+a {
+  color: #337ab7;
+  text-decoration: none;
+}
+a:focus, a:hover {
+  text-decoration: underline;
+  color: rgb(51, 51, 51);
+}
+.nav-links a.current {
+  font-weight: bold;
+}
+/* End of styles for the navigation links */
+
+/* Styles for the footer */
+#fine-print {
+  border-top: 2px solid #0BACB6;
+  clear: left;
+  text-align: center;
+  font-size: 12px;
+  padding-top: 10px;
+}
+ul.horz-list li {
+  list-style-type: none;
+  display: inline;
+  padding-left: 8px;
+  padding-right: 10px;
+  border-right: 1px solid #999;
+}
+ul.horz-list li.last-item {
+  border-right: none;
+}
+#usagov {
+  vertical-align: bottom;
+}
+/* Add some space above the footer.  For some reason adding a margin-top
+   does not work, perhaps because of a float, so instead we add padding to the
+   floated element.
+ */
+.col-md-9 {
+  padding-bottom: 1em;
+}
+
+/* End of styles for the footer */
+
+
+

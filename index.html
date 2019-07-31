@@ -1,0 +1,132 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LHC-Forms</title>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-59GQ6JK');</script>
+    <!-- End Google Tag Manager -->
+
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <link href="https://fonts.googleapis.com/css?family=Droid+Sans:400,700"
+     rel="stylesheet" type="text/css">
+    <!--link href="autocomplete-lhc/autocomplete-lhc.min.css"
+     rel="stylesheet" type="text/css"> -->
+    <link
+     href="https://clinicaltables.nlm.nih.gov/autocomplete-lhc-versions/18.0.1/autocomplete-lhc.min.css"
+     rel="stylesheet" />
+  </head>
+  <body>
+
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-59GQ6JK" height="0" width="0" style="display:none;visibility:hidden" title="googletagmanager"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <!--[if lt IE 9]>
+    <p class=alert><b>Note:</b> It appears you are using an unsupported
+     version of the IE browser. This website will not work properly with
+     IE 8 or below.</p>
+    <![endif]-->
+
+    <!-- page header -->
+    <div id="header">
+      <a href="http://lhncbc.nlm.nih.gov" title="Lister Hill Center" id="logo">
+        <img src="lhncbc.jpg" alt="Lister Hill Center" />
+      </a>
+      <div id="siteNameBox">
+        <span id=siteName>FHIR Observation Viewer</span><br>
+        <span id=tagline>An <a
+         href="https://github.com/lhncbc/fhir-obs-viewer">open source</a> viewer
+         for FHIR Observations from the National Library of Medicine</span>
+      </div>
+    </div>
+    <!-- end page header -->
+    <ul class="nav-links horz-list">
+      <li><a href="https://lhncbc.nlm.nih.gov/project/lhc-forms" target="_blank">LHC-Forms
+       Project</a></li>
+      <li><a href="https://lhcforms.nlm.nih.gov" target="_blank">LHC-Forms Demo</a></li>
+      <li><a href="https://lhcformbuilder.nlm.nih.gov" target="_blank">Form Builder</a></li>
+      <li><a href="https://clinicaltables.nlm.nih.gov"
+       target="_blank">Clinical Table Search
+       Service</a></li>
+      <li><a id="sdcPageLink" href="https://lhcforms.nlm.nih.gov/sdc">FHIR SDC SMART App</a></li>
+      <li class="last-item"><a id="fhirLink" class=current href="https://lhcforms.nlm.nih.gov/fhir">FHIR Tools</a></li>
+    </ul>
+
+
+    <div id=content>
+
+      <p>This is a tool that allows you to view a FHIR server's Observation
+      resources that are coded with the selected LOINC tests.</p>
+
+      <label for=settings>Settings:</label>
+      <div id=settings>
+        <table>
+          <tbody>
+          <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
+            value="https://lforms-fhir.nlm.nih.gov/baseR4"></td></tr>
+
+          <tr><th>Selected tests:</th><td>
+          <input type=text id=loincTests placeholder="LOINC tests"></td><td>Note: Not all
+          of these will have matches in the selected FHIR server</td></tr>
+
+          <tr><th>Limit per patient per test:</th><td><input type=number id=perPatientPerTest value=1>
+          </td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button id=load onclick="app.loadObs()">Load Data</button>
+      <p style="display: none" id="noResults">No matching Observations found.</p>
+      <div id=results style="display: none">
+        <div style="display:none"><!-- only needed for screenshots currently-->
+        Export to: <button id="exportCSV" onclick="window.alert('Not yet suppprted')">CSV</button>
+        <button id="exportOncor" onclick="window.alert('Not yet suppprted')">MyResearch.ONCOR</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Patient</th><th>Date</th><th>Time</th><th>Test
+            Name</th><th>Value</th><th>Unit</th><th>FHIR Observation</th>
+          </thead>
+          <tbody id="resultsTBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- page footer -->
+    <div id="fine-print">
+      <ul class="horz-list">
+        <li><a title="NLM copyright information"  href="http://www.nlm.nih.gov/copyright.html">Copyright</a></li>
+        <li><a title="NLM privacy policy" href="http://www.nlm.nih.gov/privacy.html">Privacy</a></li>
+        <li><a title="NLM accessibility" href="http://www.nlm.nih.gov/accessibility.html" >Accessibility</a></li>
+        <li><a title="NIH Freedom of Information Act office"  href="http://www.nih.gov/icd/od/foia/index.htm"
+         >Freedom of Information Act</a></li>
+        <li class="last-item"><a title="USA.gov" href="http://www.usa.gov/"><img
+              src="USAgov.gif" alt="USA.gov" id="usagov"></a></li>
+      </ul>
+      <ul class="horz-list">
+        <li><a title="U.S. National Library of Medicine" href="http://www.nlm.nih.gov/"
+         >U.S. National Library of Medicine</a></li>
+        <li><a title="U.S. National Institutes of Health" href="http://www.nih.gov/"
+         >U.S. National Institutes of Health</a></li>
+        <li class="last-item"><a title="U.S. Department of Health and Human Services"  href="http://www.hhs.gov/"
+         >U.S. Department of Health and Human Services</a></li>
+      </ul>
+    </div>
+    <!-- end page footer -->
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+     integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+     crossorigin="anonymous"></script>
+    <script
+     src=https://clinicaltables.nlm.nih.gov/autocomplete-lhc-versions/18.0.1/autocomplete-lhc.min.js></script>
+    <!--script src="autocomplete-lhc/autocomplete-lhc.min.js"></script>-->
+  </body>
+</html>
