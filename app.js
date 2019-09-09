@@ -22,20 +22,35 @@ for (var i=0, len=selectedTests.length; i<len; ++i) {
   loincAC.addToSelectedArea(testData[0]);
 }
 
+// Category list
+new Def.Autocompleter.Prefetch('categories', ['Social History', 'Vital Signs', 'Imaging', 'Laboratory', 'Procedure', 'Survey', 'Exam', 'Therapy',
+  'Activity'], {codes: ['social-history', 'vital-signs', 'laboratory', 'procedure', 'survey', 'exam', 'therapy', 'activity']});
+
 var noResultsMsg = document.getElementById('noResults');
 var resultsSection = document.getElementById('results');
+var catLimitRow = document.getElementById('catSel');
+var testLimitRow = document.getElementById('testSel');
 
+/**
+ *  Used to show a message when there are no results to display.
+ */
 function showNonResultsMsg(msg) {
   noResultsMsg.innerText=msg;
   noResultsMsg.style.display = '';
   resultsSection.style.display = 'none';
 }
 
+/**
+ *  Enables the display of the results portion of the page.
+ */
 function showResults() {
   noResultsMsg.style.display = 'none';
   resultsSection.style.display = '';
 }
 
+/**
+ *  Handles the request to load the observations.
+ */
 export function loadObs() {
   var perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
   var codes=loincAC.getSelectedCodes();
@@ -125,6 +140,12 @@ export function loadObs() {
   });
 }
 
+/**
+ *  Gets the response content from a URL.  The callback will be called with the
+ *  status and response text.
+ * @param url the URL whose data is to be retrieved.
+ * @param callback the function to receive the request status and data.
+ */
 function getURL(url, callback) {
   var oReq = new XMLHttpRequest();
   oReq.onreadystatechange = function () {
@@ -136,6 +157,10 @@ function getURL(url, callback) {
 }
 
 
+/**
+ *  Creates a element with the given tagName and (optional) textContent, and
+ *  adds it to the given parent element.
+ */
 function createElem(tagName, parent, textContent) {
   var elem = document.createElement(tagName);
   if (textContent != undefined)
@@ -144,3 +169,21 @@ function createElem(tagName, parent, textContent) {
   return elem;
 }
 
+/**
+ *  Handles the request to change the limit type selection (category or test
+ *  type).
+ * @param ev the change event
+ */
+function setLimitType(ev) {
+  var elem = ev.target;
+  var isCatLimit = elem.id === 'limit1';
+  testLimitRow.style.display = isCatLimit ? 'none' : '';
+}
+
+var categoryRadio = document.getElementById('limit1');
+categoryRadio.addEventListener('change', setLimitType);
+document.getElementById('limit2').addEventListener('change', setLimitType);
+
+// On a page reload, the browser sometimes remembers the last setting of a radio
+// button group.  Make sure the first option is the one selected.
+categoryRadio.click();

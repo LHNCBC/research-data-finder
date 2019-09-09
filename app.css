@@ -37,7 +37,7 @@ a.external:after {
 
 label {font-weight: bold; width: 30em;}
 
-.autocomp_selected, input {width: 30em}
+.autocomp_selected, input[type=text] {width: 30em}
 
 #content {padding: 1em}
 

@@ -72,9 +72,18 @@
           <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
             value="https://lforms-fhir.nlm.nih.gov/baseR4"></td></tr>
 
-          <tr><th>Selected tests:</th><td>
+          <tr><th>Limit observations by:</th><td>
+            <input type="radio" name="limitType" id="limit1"
+            value="category" checked><label for="limit1">Category</label>
+            <input type="radio" name="limitType" id="limit2"
+            value="test"> <label for="limit2">Test</label></td></tr>
+
+          <tr id="testSel"><th>Selected tests:</th><td>
           <input type=text id=loincTests placeholder="LOINC tests"></td><td>Note: Not all
           of these will have matches in the selected FHIR server</td></tr>
+
+          <tr id="catSel"><th>Selected Observation categories:</th><td>
+          <input type=text id=categories></td></tr>
 
           <tr><th>Limit per patient per test:</th><td><input type=number id=perPatientPerTest value=1>
           </td></tr>
