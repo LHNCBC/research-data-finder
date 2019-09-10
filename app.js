@@ -35,6 +35,7 @@ for (var i=0, len=selectedTests.length; i<len; ++i) {
 // Category list
 var categoryAC = new Def.Autocompleter.Prefetch('categories', catData.display,
   {codes: catData.codes});
+categoryAC.setFieldToListValue('Vital Signs');
 
 /**
  *  Used to show a message when there are no results to display.

@@ -17,9 +17,6 @@ describe('Observation Viewer', function() {
   it('should load observations filtered by category', function () {
     setAngularSite(false);
     browser.get('/');
-    $('#categories').sendKeys('vital');
-    $('#categories').sendKeys(protractor.Key.ARROW_DOWN);
-    $('#categories').sendKeys(protractor.Key.TAB);
     $('#load').click();
     browser.wait(EC.visibilityOf($('#results')));
   });
