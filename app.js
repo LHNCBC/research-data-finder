@@ -10,6 +10,7 @@ var noResultsMsg = document.getElementById('noResults');
 var resultsSection = document.getElementById('results');
 var catLimitRow = document.getElementById('catSel');
 var testLimitRow = document.getElementById('testSel');
+var loadButton = document.getElementById('load');
 var categoryLimits = true;
 
 new Def.Autocompleter.Prefetch('fhirServer', [
@@ -81,6 +82,7 @@ function patientNameStr(res) {
  *  Handles the request to load the observations.
  */
 export function loadObs() {
+  loadButton.disabled = true;
   var perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
   var serverURL = document.getElementById('fhirServer').value;
   var patientToCodeToCount = {};
@@ -188,9 +190,10 @@ export function loadObs() {
             }
           }
         }
-        console.log("Processed response in "+(new Date() - startProcessingTime));
       }
+      console.log("Processed response in "+(new Date() - startProcessingTime));
     }
+    loadButton.disabled = false;
   });
 }
 
