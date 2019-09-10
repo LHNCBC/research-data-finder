@@ -64,10 +64,10 @@ module.exports = {
     ]
   },
   devServer: {
-    //host: '0.0.0.0',
-    host: 'localhost',
+    host: '0.0.0.0',
+    //host: 'localhost',
     port: port,
     writeToDisk: true, // write generated asset files
-    //public: shortHostname+':'+port
+    public: shortHostname+':'+port
   }
 }

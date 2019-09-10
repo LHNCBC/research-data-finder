@@ -3,6 +3,15 @@ import './app.css';
 import './USAgov.gif';
 import './lhncbc.jpg';
 
+// "Real" imports
+import * as catData from './categoryList';
+
+var noResultsMsg = document.getElementById('noResults');
+var resultsSection = document.getElementById('results');
+var catLimitRow = document.getElementById('catSel');
+var testLimitRow = document.getElementById('testSel');
+var categoryLimits = true;
+
 new Def.Autocompleter.Prefetch('fhirServer', [
   'https://lforms-fhir.nlm.nih.gov/baseR4',
   'https://lforms-fhir.nlm.nih.gov/baseDstu3']);
@@ -23,13 +32,8 @@ for (var i=0, len=selectedTests.length; i<len; ++i) {
 }
 
 // Category list
-new Def.Autocompleter.Prefetch('categories', ['Social History', 'Vital Signs', 'Imaging', 'Laboratory', 'Procedure', 'Survey', 'Exam', 'Therapy',
-  'Activity'], {codes: ['social-history', 'vital-signs', 'laboratory', 'procedure', 'survey', 'exam', 'therapy', 'activity']});
-
-var noResultsMsg = document.getElementById('noResults');
-var resultsSection = document.getElementById('results');
-var catLimitRow = document.getElementById('catSel');
-var testLimitRow = document.getElementById('testSel');
+var categoryAC = new Def.Autocompleter.Prefetch('categories', catData.display,
+  {codes: catData.codes});
 
 /**
  *  Used to show a message when there are no results to display.
@@ -48,43 +52,92 @@ function showResults() {
   resultsSection.style.display = '';
 }
 
+
+/**
+ *  Builds a patient name string from a Patient resource.
+ * @param res the Patient resource
+ * @return the name string, or null if one could not be constructed.
+ */
+function patientNameStr(res) {
+  var rtn = null;
+  if (res.name && res.name.length > 0) {
+    var nameStr = '';
+    var name = res.name[0];
+    if (name.given && name.given.length > 0)
+      nameStr = name.given[0];
+    if (name.family) {
+      if (nameStr.length > 0)
+        nameStr += ' ';
+      nameStr += name.family;
+    }
+    if (nameStr.length > 0)
+      rtn = nameStr;
+  }
+  return rtn;
+}
+
+
 /**
  *  Handles the request to load the observations.
  */
 export function loadObs() {
   var perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
-  var codes=loincAC.getSelectedCodes();
-  if (!codes || !codes.length > 0)
-    noResultsMsg
   var serverURL = document.getElementById('fhirServer').value;
   var patientToCodeToCount = {};
-  var url = serverURL + '/Observation?_format=application/json&_sort=patient,code,-date';
+  var url = serverURL + '/Observation?_format=application/json&'+
+    '_sort=patient,code,-date&_include=Observation:patient';
+  var codes, field, count;
+  if (categoryLimits) {
+    codes=categoryAC.getSelectedCodes();
+    field='category';
+    count = 1000;
+  }
+  else { // test codes instead of categories
+    codes=loincAC.getSelectedCodes();
+    field='code';
+    count = 5000;
+  }
   if (codes && codes.length > 0) {
-    var count = 5000;
-    url += '&code=' + codes.join(',');
+    url += '&'+field+'=' + codes.join(',');
     showNonResultsMsg('Searching...');
   }
   else {
-    count = 1000;
-    showNonResultsMsg('Searching across all Observations without specifying tests.  This could take a while...');
+    count = 100;
+    showNonResultsMsg('Searching across all Observations without specifying '+
+      'tests or categories.  This could take a while...');
   }
   url += '&_count='+count;
   getURL(url, function(status, data) {
     if (status != 200)
       showNonResultsMsg('Could not load data for selected codes');
     else {
+      var startProcessingTime = new Date();
       data = JSON.parse(data);
       if (!data.entry)
         showNonResultsMsg('No matching Observations found.');
       else {
+        // Separate Observations from Patients, and create name strings for the Patients
+        var obs=[]
+        var pRefToName = {};
+        for (var i=0, len=data.entry.length; i<len; ++i) {
+          var res = data.entry[i].resource;
+          if (res.resourceType === 'Observation')
+            obs.push(res);
+          else { // assume Patient for now
+            var pName = patientNameStr(res);
+            if (pName)
+              pRefToName['Patient/'+res.id] = pName;
+          }
+        }
+
         showResults();
         var tbody = document.getElementById('resultsTBody');
         tbody.innerHTML = ''; // clear previous results
-        for (var i=0, len=data.entry.length; i<len; ++i) {
+        for (var i=0, len=obs.length; i<len; ++i) {
           // Per Clem, we will only show perPatientPerTest results per patient
           // per test.
-          var res = data.entry[i].resource;
-          var patient = res.subject.display;
+          var res = obs[i];
+          var patient = res.subject.display || pRefToName[res.subject.reference];
           if (!patient)
             patient = res.subject.reference;
           var codeToCount = patientToCodeToCount[patient] ||
@@ -135,6 +188,7 @@ export function loadObs() {
             }
           }
         }
+        console.log("Processed response in "+(new Date() - startProcessingTime));
       }
     }
   });
@@ -149,9 +203,12 @@ export function loadObs() {
 function getURL(url, callback) {
   var oReq = new XMLHttpRequest();
   oReq.onreadystatechange = function () {
-    if (oReq.readyState === 4)
+    if (oReq.readyState === 4) {
+      console.log("AJAX call returned in "+(new Date() - startAjaxTime));
       callback(oReq.status, oReq.responseText);
+    }
   }
+  var startAjaxTime = new Date();
   oReq.open("GET", url);
   oReq.send();
 }
@@ -174,15 +231,24 @@ function createElem(tagName, parent, textContent) {
  *  type).
  * @param ev the change event
  */
-function setLimitType(ev) {
-  var elem = ev.target;
-  var isCatLimit = elem.id === 'limit1';
-  testLimitRow.style.display = isCatLimit ? 'none' : '';
+function handleLimitSelection(ev) {
+  setLimitType(ev.target.id === 'limit1');
 }
 
+/**
+ *  Sets the limit type (category or test) and adjusts the display.
+ * @param isCategory true if categories are to be used.
+ */
+function setLimitType(isCategory) {
+  categoryLimits = isCategory;
+  testLimitRow.style.display = categoryLimits ? 'none' : '';
+  catLimitRow.style.display = categoryLimits ? '' : 'none';
+}
+setLimitType(true);
+
 var categoryRadio = document.getElementById('limit1');
-categoryRadio.addEventListener('change', setLimitType);
-document.getElementById('limit2').addEventListener('change', setLimitType);
+categoryRadio.addEventListener('change', handleLimitSelection);
+document.getElementById('limit2').addEventListener('change', handleLimitSelection);
 
 // On a page reload, the browser sometimes remembers the last setting of a radio
 // button group.  Make sure the first option is the one selected.

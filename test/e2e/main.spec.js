@@ -14,11 +14,20 @@ function execCmd(cmdStr) {
 }
 
 describe('Observation Viewer', function() {
-  it('should load observations', function () {
+  it('should load observations filtered by category', function () {
     setAngularSite(false);
     browser.get('/');
-    $('#fhirLink').click();
-    element(by.cssContainingText('a', 'Observation Viewer')).click();
+    $('#categories').sendKeys('vital');
+    $('#categories').sendKeys(protractor.Key.ARROW_DOWN);
+    $('#categories').sendKeys(protractor.Key.TAB);
+    $('#load').click();
+    browser.wait(EC.visibilityOf($('#results')));
+  });
+
+  it('should load observations filtered by tests', function () {
+    setAngularSite(false);
+    browser.get('/');
+    $('#limit2').click();
     $('#load').click();
     browser.wait(EC.visibilityOf($('#results')));
   });

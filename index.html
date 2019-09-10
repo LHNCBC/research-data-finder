@@ -79,11 +79,10 @@
             value="test"> <label for="limit2">Test</label></td></tr>
 
           <tr id="testSel"><th>Selected tests:</th><td>
-          <input type=text id=loincTests placeholder="LOINC tests"></td><td>Note: Not all
-          of these will have matches in the selected FHIR server</td></tr>
+          <input type=text id=loincTests placeholder="LOINC tests"></td><td>Note:  A given FHIR server will only have matches for some subset of these values.</td></tr>
 
           <tr id="catSel"><th>Selected Observation categories:</th><td>
-          <input type=text id=categories></td></tr>
+          <input type=text id=categories autocomplete=off></td><td>Note:  A given FHIR server will only have matches for some subset of these values.</td></tr>
 
           <tr><th>Limit per patient per test:</th><td><input type=number id=perPatientPerTest value=1>
           </td></tr>
