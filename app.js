@@ -12,6 +12,7 @@ var catLimitRow = document.getElementById('catSel');
 var testLimitRow = document.getElementById('testSel');
 var loadButton = document.getElementById('load');
 var categoryLimits = true;
+var ajaxCache = {}; // url to XMLHttpRequest
 
 new Def.Autocompleter.Prefetch('fhirServer', [
   'https://lforms-fhir.nlm.nih.gov/baseR4',
@@ -110,7 +111,7 @@ export function loadObs() {
       'tests or categories.  This could take a while...');
   }
   url += '&_count='+count;
-  getURL(url, function(status, data) {
+  getURLWithCache(url, function(status, data) {
     if (status != 200)
       showNonResultsMsg('Could not load data for selected codes');
     else {
@@ -202,19 +203,42 @@ export function loadObs() {
  *  Gets the response content from a URL.  The callback will be called with the
  *  status and response text.
  * @param url the URL whose data is to be retrieved.
- * @param callback the function to receive the request status and data.
+ * @param callback the function to receive the reponse.  The callback will be
+ *  passed the request status, the response text, and the XMLHttpRequest object.
+ * @return the XMLHttpRequest object
  */
 function getURL(url, callback) {
   var oReq = new XMLHttpRequest();
   oReq.onreadystatechange = function () {
     if (oReq.readyState === 4) {
       console.log("AJAX call returned in "+(new Date() - startAjaxTime));
-      callback(oReq.status, oReq.responseText);
+      callback(oReq.status, oReq.responseText, oReq);
     }
   }
   var startAjaxTime = new Date();
   oReq.open("GET", url);
   oReq.send();
+}
+
+
+/**
+ *  Like getURL, but uses a cache if the URL has been requested before.
+ * @param url the URL whose data is to be retrieved.
+ * @param callback the function to receive the reponse.  The callback will be
+ *  passed the request status, the response text, and the XMLHttpRequest object.
+ */
+function getURLWithCache(url, callback) {
+  var cachedReq = ajaxCache[url];
+  if (cachedReq) {
+    console.log("Using cached data");
+    callback(cachedReq.status, cachedReq.responseText, cachedReq);
+  }
+  else {
+    getURL(url, function(status, text, req) {
+      ajaxCache[url] = req;
+      callback(status, text, req);
+    });
+  }
 }
 
 
