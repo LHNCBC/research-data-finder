@@ -102,7 +102,7 @@ export function loadObs() {
     count = 5000;
   }
   if (codes && codes.length > 0) {
-    url += '&'+field+'=' + codes.join(',');
+    url += '&'+field+'=' + codes.map(s=>encodeURIComponent(s)).join(',');
     showNonResultsMsg('Searching...');
   }
   else {
