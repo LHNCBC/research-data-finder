@@ -60,11 +60,27 @@ module.exports = {
             }
           }
         ]
+      },
+      {
+        test: /\.m?js$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [['@babel/preset-env',
+              {
+                "targets": {
+                  "browsers": "ie >= 10"
+                }
+              }
+            ]]
+          }
+        }
       }
     ]
   },
   devServer: {
     host: '0.0.0.0',
+    //host: 'localhost',
     port: port,
     writeToDisk: true, // write generated asset files
     public: shortHostname+':'+port

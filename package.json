@@ -1,10 +1,10 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A viewer for Observation resources on a FHIR server",
   "main": "obs-viewer.js",
   "scripts": {
-    "test": "protractor test/e2e/protractor.conf.js",
+    "test": "webpack-dev-server & protractor test/e2e/protractor.conf.js; kill %1",
     "build": "webpack",
     "start": "webpack-dev-server --open"
   },
@@ -18,6 +18,9 @@
   "author": "plynch@mail.nih.gov",
   "license": "MIT",
   "devDependencies": {
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
+    "babel-loader": "^8.0.6",
     "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^3.1.0",
     "extract-loader": "^3.1.0",

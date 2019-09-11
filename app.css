@@ -37,7 +37,7 @@ a.external:after {
 
 label {font-weight: bold; width: 30em;}
 
-.autocomp_selected, input {width: 30em}
+.autocomp_selected, input[type=text] {width: 30em}
 
 #content {padding: 1em}
 
@@ -66,6 +66,9 @@ input {
 #settings {
   border: 1px solid #17b4e3;
   margin-bottom: 0.5em;
+}
+#settings table tr th:first-child {
+  width: 250px; /* keep width from shifting when tests are selected */
 }
 
 #load {margin-bottom: 0.5em;}
@@ -184,6 +187,3 @@ ul.horz-list li.last-item {
 }
 
 /* End of styles for the footer */
-
-
-
