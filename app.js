@@ -272,12 +272,9 @@ function setLimitType(isCategory) {
   testLimitRow.style.display = categoryLimits ? 'none' : '';
   catLimitRow.style.display = categoryLimits ? '' : 'none';
 }
-setLimitType(true);
+setLimitType(false);
 
 var categoryRadio = document.getElementById('limit1');
 categoryRadio.addEventListener('change', handleLimitSelection);
 document.getElementById('limit2').addEventListener('change', handleLimitSelection);
 
-// On a page reload, the browser sometimes remembers the last setting of a radio
-// button group.  Make sure the first option is the one selected.
-categoryRadio.click();
