@@ -20,7 +20,7 @@ var port = 4029;
 module.exports = {
   entry: './app.js',
   devtool: 'source-map',
-  mode: 'development',
+  mode: 'production',
   optimization: {
     minimizer: [new TerserJSPlugin({sourceMap: true}), new OptimizeCSSAssetsPlugin({})],
   },

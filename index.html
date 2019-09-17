@@ -73,10 +73,11 @@
             value="https://lforms-fhir.nlm.nih.gov/baseR4"></td></tr>
 
           <tr><th>Limit observations by:</th><td>
-            <input type="radio" name="limitType" id="limit1"
-            value="category" checked><label for="limit1">Category</label>
-            <input type="radio" name="limitType" id="limit2"
-            value="test"> <label for="limit2">Test</label></td></tr>
+            <input type="radio" name="limitType" id="limit2" autocomplete=off
+            value="test" checked> <label for="limit2">Test</label>
+            <input type="radio" name="limitType" id="limit1" autocomplete=off
+            value="category"><label for="limit1">Category</label>
+          </td></tr>
 
           <tr id="testSel"><th>Selected tests:</th><td>
           <input type=text id=loincTests placeholder="LOINC tests"></td><td>Note:  A given FHIR server will only have matches for some subset of these values.</td></tr>

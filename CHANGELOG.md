@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.0.2] - 2019-09-17
+### Changed
+- Set the default test/category radio button selection to 'test'
+
 ## [1.0.1] - 2019-09-10
 ### Added
 - Support for searching by categories.  The category list includes a mixture of
