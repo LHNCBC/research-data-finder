@@ -221,7 +221,7 @@ export function downloadObs() {
       return toArray(row.cells).map(cell => {
         const cellText = cell.innerText;
 
-        if (/["\n\s]/.test(cellText)) {
+        if (/["\s]/.test(cellText)) {
           return '"' + cellText.replace(/"/, '""') + '"';
         } else {
           return cellText;
