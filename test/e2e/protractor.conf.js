@@ -29,7 +29,18 @@ exports.config = {
   // For a full list of available capabilities, see
   // https://github.com/SeleniumHQ/selenium/blob/master/javascript/webdriver/capabilities.js
   capabilities: {
-    'browserName': 'chrome'
+    'browserName': 'chrome',
+    'chromeOptions': {
+      // Set download path and avoid prompting for download even though
+      // this is already the default on Chrome but for completeness
+      prefs: {
+        'download': {
+          'prompt_for_download': false,
+          'default_directory': __dirname + '/downloads',
+          'directory_upgrade': true
+        }
+      }
+    }
   },
 
   // Fix the port number so we can restrict access to it via iptables

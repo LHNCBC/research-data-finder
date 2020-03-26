@@ -4,6 +4,7 @@
   "description": "A viewer for Observation resources on a FHIR server",
   "main": "obs-viewer.js",
   "scripts": {
+    "update-webdriver": "node node_modules/protractor/bin/webdriver-manager update --versions.chrome $(google-chrome --version |awk '{print $NF}')",
     "test": "webpack-dev-server & protractor test/e2e/protractor.conf.js; kill %1",
     "build": "webpack",
     "start": "webpack-dev-server --open"
