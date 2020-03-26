@@ -51,7 +51,7 @@ describe('Observation Viewer', function() {
 
       expect(columnsCount > 0 && cellsInRowCount.every(cellsCount => cellsCount === columnsCount)).toBe(true);
 
-      // Make sure the browser doesn't have to rename the download.
+      // Cleanup
       fs.unlinkSync(filename);
     });
   });
