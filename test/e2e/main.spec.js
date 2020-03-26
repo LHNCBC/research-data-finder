@@ -1,17 +1,7 @@
 'use strict';
 
-// Save original config to restore after the tests.
-var path = require('path');
-var EC = protractor.ExpectedConditions;
-
-/**
- * Utility method to run a shell command
- * @param cmdStr {String} String to execute on the shell.
- * @returns {void}
- */
-function execCmd(cmdStr) {
-  require('child_process').execSync(cmdStr);
-}
+const os = require("os"),
+  EC = protractor.ExpectedConditions;
 
 describe('Observation Viewer', function() {
   beforeAll(function () {
@@ -39,7 +29,7 @@ describe('Observation Viewer', function() {
     $('#load').click();
     browser.wait(EC.visibilityOf($('#results')));
 
-    const filename = __dirname + '/downloads/observations.csv';
+    const filename = os.tmpdir() + '/observations.csv';
     const fs = require('fs');
 
     if (fs.existsSync(filename)) {
@@ -60,6 +50,9 @@ describe('Observation Viewer', function() {
         columnsCount = cellsInRowCount[0];
 
       expect(columnsCount > 0 && cellsInRowCount.every(cellsCount => cellsCount === columnsCount)).toBe(true);
+
+      // Make sure the browser doesn't have to rename the download.
+      fs.unlinkSync(filename);
     });
   });
 });
