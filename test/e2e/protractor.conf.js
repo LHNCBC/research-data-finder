@@ -3,6 +3,8 @@
 
 'use strict';
 
+const os = require("os");
+
 exports.config = {
   // The timeout for each script run on the browser. This should be longer
   // than the maximum time your application needs to stabilize between tasks.
@@ -29,7 +31,18 @@ exports.config = {
   // For a full list of available capabilities, see
   // https://github.com/SeleniumHQ/selenium/blob/master/javascript/webdriver/capabilities.js
   capabilities: {
-    'browserName': 'chrome'
+    'browserName': 'chrome',
+    'chromeOptions': {
+      // Set download path and avoid prompting for download even though
+      // this is already the default on Chrome but for completeness
+      prefs: {
+        'download': {
+          'prompt_for_download': false,
+          'default_directory': os.tmpdir(),
+          'directory_upgrade': true
+        }
+      }
+    }
   },
 
   // Fix the port number so we can restrict access to it via iptables

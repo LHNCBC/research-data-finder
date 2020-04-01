@@ -5,12 +5,14 @@ import './lhncbc.jpg';
 
 // "Real" imports
 import * as catData from './categoryList';
+import { saveAs } from 'file-saver';
 
 var noResultsMsg = document.getElementById('noResults');
 var resultsSection = document.getElementById('results');
 var catLimitRow = document.getElementById('catSel');
 var testLimitRow = document.getElementById('testSel');
 var loadButton = document.getElementById('load');
+var downloadButton = document.getElementById('download');
 var categoryLimits = true;
 var ajaxCache = {}; // url to XMLHttpRequest
 
@@ -45,6 +47,7 @@ function showNonResultsMsg(msg) {
   noResultsMsg.innerText=msg;
   noResultsMsg.style.display = '';
   resultsSection.style.display = 'none';
+  downloadButton.style.display = 'none';
 }
 
 /**
@@ -53,6 +56,7 @@ function showNonResultsMsg(msg) {
 function showResults() {
   noResultsMsg.style.display = 'none';
   resultsSection.style.display = '';
+  downloadButton.style.display = '';
 }
 
 
@@ -197,6 +201,35 @@ export function loadObs() {
     }
     loadButton.disabled = false;
   });
+}
+
+/**
+ * Converts ArrayLike to Array
+ * @param {ArrayLike} arrayLike
+ * @return {Array}
+ */
+function toArray(arrayLike) {
+  return Array.prototype.slice.call(arrayLike);
+}
+
+/**
+ *  Handles the request to download the observations.
+ */
+export function downloadObs() {
+  const rows = document.querySelector('#results table').rows,
+    blob = new Blob([toArray(rows).map(row => {
+      return toArray(row.cells).map(cell => {
+        const cellText = cell.innerText;
+
+        if (/["\s]/.test(cellText)) {
+          return '"' + cellText.replace(/"/, '""') + '"';
+        } else {
+          return cellText;
+        }
+      }).join(',');
+    }).join('\n')], {type: 'text/plain;charset=utf-8', endings: 'native'});
+
+  saveAs(blob, 'observations.csv');
 }
 
 /**

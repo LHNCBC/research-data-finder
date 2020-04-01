@@ -1,9 +1,10 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "A viewer for Observation resources on a FHIR server",
   "main": "obs-viewer.js",
   "scripts": {
+    "update-webdriver": "node node_modules/protractor/bin/webdriver-manager update --versions.chrome $(google-chrome --version |awk '{print $NF}')",
     "test": "webpack-dev-server & protractor test/e2e/protractor.conf.js; kill %1",
     "build": "webpack",
     "start": "webpack-dev-server --open"
@@ -25,6 +26,7 @@
     "css-loader": "^3.1.0",
     "extract-loader": "^3.1.0",
     "file-loader": "^4.1.0",
+    "file-saver": "^2.0.2",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
     "jasmine-spec-reporter": "^4.2.1",

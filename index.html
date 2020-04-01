@@ -6,11 +6,24 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>LHC-Forms</title>
+    <title>LHC FHIR Tools</title>
 
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-59GQ6JK');</script>
     <!-- End Google Tag Manager -->
+
+
+    <style id="antiClickjack">
+      body{display:none !important;}
+    </style>
+    <script type="text/javascript">
+      if (self === top) {
+        var antiClickjack = document.getElementById("antiClickjack");
+        antiClickjack.parentNode.removeChild(antiClickjack);
+      } else {
+        top.location = self.location;
+      }
+    </script>
 
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
@@ -18,14 +31,14 @@
      rel="stylesheet" type="text/css">
     <!--link href="autocomplete-lhc/autocomplete-lhc.min.css"
      rel="stylesheet" type="text/css"> -->
-    <link
-     href="https://clinicaltables.nlm.nih.gov/autocomplete-lhc-versions/18.0.1/autocomplete-lhc.min.css"
-     rel="stylesheet" />
+    <link href="https://clinicaltables.nlm.nih.gov/autocomplete-lhc-versions/18.0.1/autocomplete-lhc.min.css"
+          integrity="sha384-JjNQGLGKwnlylBNqm5Al8cA7jt1nF5dHsagzjEEE85ZHogKi96zVUB2wehoMQAZ9" crossorigin="anonymous"
+          rel="stylesheet">
   </head>
   <body>
 
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-59GQ6JK" height="0" width="0" style="display:none;visibility:hidden" title="googletagmanager"></iframe></noscript>
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-59GQ6JK" height="0" width="0" style="display:none;visibility:hidden" title="googletagmanager" sandbox></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
 
     <!--[if lt IE 9]>
@@ -48,15 +61,13 @@
     </div>
     <!-- end page header -->
     <ul class="nav-links horz-list">
-      <li><a href="https://lhncbc.nlm.nih.gov/project/lhc-forms" target="_blank">LHC-Forms
-       Project</a></li>
-      <li><a href="https://lhcforms.nlm.nih.gov" target="_blank">LHC-Forms Demo</a></li>
-      <li><a href="https://lhcformbuilder.nlm.nih.gov" target="_blank">Form Builder</a></li>
-      <li><a href="https://clinicaltables.nlm.nih.gov"
-       target="_blank">Clinical Table Search
-       Service</a></li>
-      <li><a id="sdcPageLink" href="https://lhcforms.nlm.nih.gov/sdc">FHIR SDC SMART App</a></li>
-      <li class="last-item"><a id="fhirLink" class=current href="https://lhcforms.nlm.nih.gov/fhir">FHIR Tools</a></li>
+      <li><a id="fhirLink" class=current href="https://lhcforms.nlm.nih.gov">FHIR Tools</a></li><!--
+      --><li><a href="https://lhcforms.nlm.nih.gov/lhcforms">LHC-Forms Demo</a></li><!--
+      --><li><a href="https://lhcformbuilder.nlm.nih.gov" target="_blank" rel="noopener noreferrer">Form Builder</a></li><!--
+      --><li><a href="https://clinicaltables.nlm.nih.gov"
+       target="_blank" rel="noopener noreferrer">Clinical Table Search
+       Service</a></li><!--
+      --><li class="last-item"><a id="sdcPageLink" href="https://lhcforms.nlm.nih.gov/sdc">FHIR SDC SMART App</a></li>
     </ul>
 
 
@@ -72,7 +83,7 @@
           <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
             value="https://lforms-fhir.nlm.nih.gov/baseR4"></td></tr>
 
-          <tr><th>Limit observations by:</th><td>
+          <tr style="display: none;"><th>Limit observations by:</th><td>
             <input type="radio" name="limitType" id="limit2" autocomplete=off
             value="test" checked> <label for="limit2">Test</label>
             <input type="radio" name="limitType" id="limit1" autocomplete=off
@@ -92,6 +103,7 @@
       </div>
 
       <button id=load onclick="app.loadObs()">Load Data</button>
+      <button id=download onclick="app.downloadObs()" style="display: none;">Download (in CSV format)</button>
       <p style="display: none" id="noResults">No matching Observations found.</p>
       <div id=results style="display: none">
         <div style="display:none"><!-- only needed for screenshots currently-->
@@ -134,8 +146,9 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"
      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
      crossorigin="anonymous"></script>
-    <script
-     src=https://clinicaltables.nlm.nih.gov/autocomplete-lhc-versions/18.0.1/autocomplete-lhc.min.js></script>
+    <script src="https://clinicaltables.nlm.nih.gov/autocomplete-lhc-versions/18.0.1/autocomplete-lhc.min.js"
+            integrity="sha384-97pV55KQmT9umpp1rrDmKVzSX4lAtCtTH9tqXhEdu30Gzi4PIFefS/WUOWVcwBdU"
+            crossorigin="anonymous"></script>
     <!--script src="autocomplete-lhc/autocomplete-lhc.min.js"></script>-->
   </body>
 </html>
