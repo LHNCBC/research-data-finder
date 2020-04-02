@@ -5,7 +5,7 @@
   "main": "obs-viewer.js",
   "scripts": {
     "update-webdriver": "node node_modules/protractor/bin/webdriver-manager update --versions.chrome $(google-chrome --version |awk '{print $NF}')",
-    "test": "webpack-dev-server & protractor test/e2e/protractor.conf.js; kill %1",
+    "test": "webpack-dev-server & sleep 1; protractor test/e2e/protractor.conf.js; s=$?; kill %1; exit $s",
     "build": "webpack",
     "start": "webpack-dev-server --open"
   },
