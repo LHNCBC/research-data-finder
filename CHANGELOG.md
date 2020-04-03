@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.2.0] - 2020-04-03
+### Changed
+- Added output fields
+
 ## [1.1.0] - 2020-03-20
 ### Changed
 - Added button to download observations in CSV format.
