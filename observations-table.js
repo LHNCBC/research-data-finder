@@ -8,16 +8,16 @@ export class ObservationsTable {
     this.viewCellsTemplate = [
       {
         title: 'Patient Id',
-        text: row => row.subject.reference.replace(/^Patient\//, '')
+        text: obs => obs.subject.reference.replace(/^Patient\//, '')
       },
       {
         title: 'Patient',
-        text: row => this.getPatientName(row)
+        text: obs => this.getPatientName(obs)
       },
       {
         title: 'Date',
-        text: row => {
-          const date = row.effectiveDateTime,
+        text: obs => {
+          const date = obs.effectiveDateTime,
             tIndex = date.indexOf('T');
 
           return tIndex >= 0 ? date.slice(0, tIndex) : date;
@@ -25,8 +25,8 @@ export class ObservationsTable {
       },
       {
         title: 'Time',
-        text: row => {
-          const date = row.effectiveDateTime,
+        text: obs => {
+          const date = obs.effectiveDateTime,
             tIndex = date.indexOf('T');
 
           return tIndex >= 0 ? date.slice(tIndex + 1) : '';
@@ -34,29 +34,29 @@ export class ObservationsTable {
       },
       {
         title: 'Test Name',
-        text: row => row.code.text || row.code.coding[0].display
+        text: obs => obs.code.text || obs.code.coding[0].display
       },
       {
         title: 'Value',
-        text: row => this.getObservationValue(row).value
+        text: obs => this.getObservationValue(obs).value
       },
       {
         title: 'Unit',
-        text: row => this.getObservationValue(row).unit
+        text: obs => this.getObservationValue(obs).unit
       },
       {
         title: 'FHIR Observation',
-        text: row => {
-          const id = row.id,
-            href = this.serverURL + '/Observation/' + row.id;
+        text: obs => {
+          const id = obs.id,
+            href = this.serverURL + '/Observation/' + obs.id;
 
           return `<a href="${href}" target="_blank">${id}</a>`;
         }
       },
       {
         title: 'Interpretation',
-        text: row => {
-          const codeableConcept = row.interpretation && row.interpretation[0];
+        text: obs => {
+          const codeableConcept = obs.interpretation && obs.interpretation[0];
 
 
 
@@ -73,7 +73,7 @@ export class ObservationsTable {
       if (desc.title === 'FHIR Observation') {
         return {
           title: desc.title,
-          text: row => row.id,
+          text: obs => obs.id,
         }
       } else {
         return desc;
@@ -127,22 +127,22 @@ export class ObservationsTable {
 
   /**
    * Returns the patient name from Observation
-   * @param {Object} row
+   * @param {Object} obs
    * @return {string}
    */
-  getPatientName(row) {
-    const patientRef = row.subject.reference;
+  getPatientName(obs) {
+    const patientRef = obs.subject.reference;
 
-    return row.subject.display || this.pRefToName[patientRef] || patientRef
+    return obs.subject.display || this.pRefToName[patientRef] || patientRef
   }
 
   /**
    * Returns Observation code
-   * @param {Object} row
+   * @param {Object} obs
    * @return {string|null}
    */
-  getObservationCode(row) {
-    const codeableConcept = row.code;
+  getObservationCode(obs) {
+    const codeableConcept = obs.code;
 
     return codeableConcept && codeableConcept.coding &&
       codeableConcept.coding.length > 0 &&
@@ -151,19 +151,19 @@ export class ObservationsTable {
 
   /**
    * Returns Observation value/unit
-   * @param {Object} row
+   * @param {Object} obs
    * @return {{value: string, unit: string}}
    */
-  getObservationValue(row) {
+  getObservationValue(obs) {
     let result = {
       value: '',
       unit: ''
     };
 
-    Object.keys(row).some(key => {
-      const valueFinded = reValueKey.test(key);
-      if (valueFinded) {
-        const value = row[key];
+    Object.keys(obs).some(key => {
+      const valueFound = reValueKey.test(key);
+      if (valueFound) {
+        const value = obs[key];
         if (key === 'valueQuantity') {
           result = {
             value: value.value,
@@ -175,7 +175,7 @@ export class ObservationsTable {
           result.value = value
         }
       }
-      return valueFinded;
+      return valueFound;
     });
 
     return result;
@@ -224,10 +224,10 @@ export class ObservationsTable {
     // Prepare data for show & download
     this.serverURL = serverURL;
     this.data = this.getObservations(data)
-      .filter(row => {
+      .filter(obs => {
         // Per Clem, we will only show perPatientPerTest results per patient per test.
-        const patient = this.getPatientName(row), // TODO: maybe better to use row.subject.reference?
-          codeStr = this.getObservationCode(row);
+        const patient = this.getPatientName(obs), // TODO: maybe better to use obs.subject.reference?
+          codeStr = this.getObservationCode(obs);
         let codeToCount = patientToCodeToCount[patient] || (patientToCodeToCount[patient]={});
 
         // For now skip Observations without a code in the first coding.
@@ -242,8 +242,8 @@ export class ObservationsTable {
       });
 
     // Update table
-    this.body.innerHTML = '<tr>' + this.data.map(row => {
-      return '<td>' + this.viewCellsTemplate.map(cell => cell.text(row)).join('</td><td>') + '</td>';
+    this.body.innerHTML = '<tr>' + this.data.map(obs => {
+      return '<td>' + this.viewCellsTemplate.map(cell => cell.text(obs)).join('</td><td>') + '</td>';
     }).join('</tr><tr>') + '</tr>';
   }
 
@@ -253,9 +253,9 @@ export class ObservationsTable {
    */
   getBlob() {
     const header = this.exportCellsTemplate.map(cell => cell.title).join(','),
-      rows = this.data.map(row => {
+      rows = this.data.map(obs => {
         return this.exportCellsTemplate.map(cell => {
-          const cellText = cell.text(row);
+          const cellText = cell.text(obs);
 
           if (/["\s]/.test(cellText)) {
             return '"' + cellText.replace(/"/, '""') + '"';
