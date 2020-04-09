@@ -6,6 +6,7 @@ import './lhncbc.jpg';
 // "Real" imports
 import * as catData from './categoryList';
 import { saveAs } from 'file-saver';
+import { ObservationsTable } from './observations-table'
 
 var noResultsMsg = document.getElementById('noResults');
 var resultsSection = document.getElementById('results');
@@ -60,29 +61,7 @@ function showResults() {
 }
 
 
-/**
- *  Builds a patient name string from a Patient resource.
- * @param res the Patient resource
- * @return the name string, or null if one could not be constructed.
- */
-function patientNameStr(res) {
-  var rtn = null;
-  if (res.name && res.name.length > 0) {
-    var nameStr = '';
-    var name = res.name[0];
-    if (name.given && name.given.length > 0)
-      nameStr = name.given[0];
-    if (name.family) {
-      if (nameStr.length > 0)
-        nameStr += ' ';
-      nameStr += name.family;
-    }
-    if (nameStr.length > 0)
-      rtn = nameStr;
-  }
-  return rtn;
-}
-
+const observationsTable = new ObservationsTable('resultsTable')
 
 /**
  *  Handles the request to load the observations.
@@ -91,7 +70,6 @@ export function loadObs() {
   loadButton.disabled = true;
   var perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
   var serverURL = document.getElementById('fhirServer').value;
-  var patientToCodeToCount = {};
   var url = serverURL + '/Observation?_format=application/json&'+
     '_sort=patient,code,-date&_include=Observation:patient';
   var codes, field, count;
@@ -124,78 +102,8 @@ export function loadObs() {
       if (!data.entry)
         showNonResultsMsg('No matching Observations found.');
       else {
-        // Separate Observations from Patients, and create name strings for the Patients
-        var obs=[]
-        var pRefToName = {};
-        for (var i=0, len=data.entry.length; i<len; ++i) {
-          var res = data.entry[i].resource;
-          if (res.resourceType === 'Observation')
-            obs.push(res);
-          else { // assume Patient for now
-            var pName = patientNameStr(res);
-            if (pName)
-              pRefToName['Patient/'+res.id] = pName;
-          }
-        }
-
         showResults();
-        var tbody = document.getElementById('resultsTBody');
-        tbody.innerHTML = ''; // clear previous results
-        for (var i=0, len=obs.length; i<len; ++i) {
-          // Per Clem, we will only show perPatientPerTest results per patient
-          // per test.
-          var res = obs[i];
-          var patient = res.subject.display || pRefToName[res.subject.reference];
-          if (!patient)
-            patient = res.subject.reference;
-          var codeToCount = patientToCodeToCount[patient] ||
-            (patientToCodeToCount[patient]={});
-          var codeStr;
-          var codeableConcept = res.code;
-          // For now skip Observations without a code in the first coding.
-          if (codeableConcept && codeableConcept.coding &&
-              codeableConcept.coding.length > 0 &&
-              codeableConcept.coding[0].code) {
-            codeStr = codeableConcept.coding[0].code;
-            var codeCount = codeToCount[codeStr] || (codeToCount[codeStr] = 0);
-            if (codeCount < perPatientPerTest) {
-              ++codeToCount[codeStr];
-              var row = createElem('tr', tbody);
-              createElem('td', row, patient);
-              var date = res.effectiveDateTime;
-              var time = '';
-              var tIndex = date.indexOf('T');
-              if (tIndex >= 0) {
-                time = date.slice(tIndex+1);
-                date = date.slice(0, tIndex);
-              }
-              createElem('td', row, date);
-              createElem('td', row, time);
-              var obsName = codeableConcept.text || codeableConcept.coding[0].display;
-              createElem('td', row, obsName);
-              var resKeys = Object.keys(res);
-              var valKey = undefined;
-              for (var j=0, jLen=resKeys.length; j<jLen && !valKey; ++j) {
-                if (resKeys[j].match(/^value/))
-                  valKey = resKeys[j];
-              }
-              var value = res[valKey];
-              var unit = '';
-              if (valKey == 'valueQuantity') {
-                unit = value.unit;
-                value = value.value;
-              }
-              else if (valKey == 'valueCodeableConcept' && value.coding && value.coding.length)
-                value = value.text || value.coding[0].display;
-              createElem('td', row, value);
-              createElem('td', row, unit);
-              var obsCell = createElem('td', row);
-              var obsLink = createElem('a', obsCell, res.id);
-              obsLink.setAttribute('href', serverURL + '/Observation/'+res.id);
-              obsLink.setAttribute('target', '_blank');
-            }
-          }
-        }
+        observationsTable.fill(data, perPatientPerTest, serverURL);
       }
       console.log("Processed response in "+(new Date() - startProcessingTime));
     }
@@ -204,32 +112,10 @@ export function loadObs() {
 }
 
 /**
- * Converts ArrayLike to Array
- * @param {ArrayLike} arrayLike
- * @return {Array}
- */
-function toArray(arrayLike) {
-  return Array.prototype.slice.call(arrayLike);
-}
-
-/**
  *  Handles the request to download the observations.
  */
 export function downloadObs() {
-  const rows = document.querySelector('#results table').rows,
-    blob = new Blob([toArray(rows).map(row => {
-      return toArray(row.cells).map(cell => {
-        const cellText = cell.innerText;
-
-        if (/["\s]/.test(cellText)) {
-          return '"' + cellText.replace(/"/, '""') + '"';
-        } else {
-          return cellText;
-        }
-      }).join(',');
-    }).join('\n')], {type: 'text/plain;charset=utf-8', endings: 'native'});
-
-  saveAs(blob, 'observations.csv');
+  saveAs(observationsTable.getBlob(), 'observations.csv');
 }
 
 /**
@@ -274,18 +160,6 @@ function getURLWithCache(url, callback) {
   }
 }
 
-
-/**
- *  Creates a element with the given tagName and (optional) textContent, and
- *  adds it to the given parent element.
- */
-function createElem(tagName, parent, textContent) {
-  var elem = document.createElement(tagName);
-  if (textContent != undefined)
-    elem.innerText = textContent;
-  parent.appendChild(elem);
-  return elem;
-}
 
 /**
  *  Handles the request to change the limit type selection (category or test
