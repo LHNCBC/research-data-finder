@@ -226,9 +226,9 @@ export class ObservationsTable {
     this.data = this.getObservations(data)
       .filter(obs => {
         // Per Clem, we will only show perPatientPerTest results per patient per test.
-        const patient = this.getPatientName(obs), // TODO: maybe better to use obs.subject.reference?
+        const patientRef = obs.subject.reference,
           codeStr = this.getObservationCode(obs);
-        let codeToCount = patientToCodeToCount[patient] || (patientToCodeToCount[patient]={});
+        let codeToCount = patientToCodeToCount[patientRef] || (patientToCodeToCount[patientRef]={});
 
         // For now skip Observations without a code in the first coding.
         if (codeStr) {
