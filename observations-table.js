@@ -50,7 +50,7 @@ export class ObservationsTable {
           const id = obs.id,
             href = this.serverURL + '/Observation/' + obs.id;
 
-          return `<a href="${href}" target="_blank">${id}</a>`;
+          return `<a href="${href}" target="_blank" rel="noopener noreferrer">${id}</a>`;
         }
       },
       {

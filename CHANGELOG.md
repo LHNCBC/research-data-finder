@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.2.1] - 2020-04-09
+### Changed
+- separate configurations for production and development
+
 ## [1.2.0] - 2020-04-03
 ### Changed
 - Added output fields
