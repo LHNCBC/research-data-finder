@@ -181,40 +181,13 @@ export class ObservationsTable {
     return result;
   }
 
-  /**
-   * Separate Observations from Patients, and create name strings for the Patients
-   * @param {Object} data
-   * @return {Array}
-   */
-  getObservations(data) {
-    let obs = [];
-    let pRefToName = {};
-
-    this.pRefToName = pRefToName;
-
-    for (let i = 0, len = data.entry.length; i < len; ++i) {
-      const res = data.entry[i].resource;
-
-      if (res.resourceType === 'Observation') {
-        obs.push(res);
-      } else { // assume Patient for now
-        const pName = this.patientNameStr(res);
-
-        if (pName)
-          pRefToName['Patient/' + res.id] = pName;
-      }
-    }
-
-    return obs;
-  }
-
   updateHeader() {
     this.header.innerHTML = `<tr><th>${this.viewCellsTemplate.map(cell => cell.title).join('</th><th>')}</th></tr>`;
   }
 
   /**
    * Fill HTML table with observations data
-   * @param {Object} data - result of request to server for observations
+   * @param {{patients: Object[], observations: Object[]}} data - result of requests to server for observations and patients
    * @param {number} perPatientPerTest - limit per patient per test
    * @param {string} serverURL - usable for making links
    */
@@ -223,7 +196,11 @@ export class ObservationsTable {
 
     // Prepare data for show & download
     this.serverURL = serverURL;
-    this.data = this.getObservations(data)
+    this.pRefToName = data.patients.reduce((refs, patient) => {
+      refs[`${patient.resourceType}/${patient.id}`] = this.patientNameStr(patient);
+      return refs;
+    },{});
+    this.data = data.observations
       .filter(obs => {
         // Per Clem, we will only show perPatientPerTest results per patient per test.
         const patientRef = obs.subject.reference,

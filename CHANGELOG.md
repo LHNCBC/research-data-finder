@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.3.0] - 2020-04-14
+### Changed
+- Issues queries per each selected patient
+- Added the ability to automatically combine requests in a batch
+- No cache used for http errors
+
 ## [1.2.1] - 2020-04-09
 ### Changed
 - separate configurations for production and development

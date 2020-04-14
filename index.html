@@ -77,7 +77,7 @@
       resources that are coded with the selected LOINC tests.</p>
 
       <label for=settings>Settings:</label>
-      <div id=settings>
+      <div id="settings" class="section">
         <table>
           <tbody>
           <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
@@ -97,6 +97,16 @@
           <input type=text id=categories autocomplete=off></td><td>Note:  A given FHIR server will only have matches for some subset of these values.</td></tr>
 
           <tr><th>Limit per patient per test:</th><td><input type=number id=perPatientPerTest value=1>
+          </td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <label for="patientSelection">Patient Selection</label>
+      <div id="patientSelection" class="section">
+        <table>
+          <tbody>
+          <tr><th>Maximum number of patients:</th><td><input type="number" id="maxPatientCount" value="10">
           </td></tr>
           </tbody>
         </table>

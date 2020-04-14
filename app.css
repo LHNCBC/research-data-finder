@@ -63,11 +63,11 @@ input {
   width: 4em;
 }
 
-#settings {
+.section {
   border: 1px solid #17b4e3;
   margin-bottom: 0.5em;
 }
-#settings table tr th:first-child {
+.section table tr th:first-child {
   width: 250px; /* keep width from shifting when tests are selected */
 }
 

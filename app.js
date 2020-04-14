@@ -7,6 +7,7 @@ import './lhncbc.jpg';
 import * as catData from './categoryList';
 import { saveAs } from 'file-saver';
 import { ObservationsTable } from './observations-table'
+import { FhirClient } from "./fhir-client";
 
 var noResultsMsg = document.getElementById('noResults');
 var resultsSection = document.getElementById('results');
@@ -15,7 +16,6 @@ var testLimitRow = document.getElementById('testSel');
 var loadButton = document.getElementById('load');
 var downloadButton = document.getElementById('download');
 var categoryLimits = true;
-var ajaxCache = {}; // url to XMLHttpRequest
 
 new Def.Autocompleter.Prefetch('fhirServer', [
   'https://lforms-fhir.nlm.nih.gov/baseR4',
@@ -60,6 +60,14 @@ function showResults() {
   downloadButton.style.display = '';
 }
 
+/**
+ * Used to show loading progress
+ * @param {number} percents
+ */
+function showProgress(percents) {
+  showNonResultsMsg(` Loading observations ${percents}%`);
+}
+
 
 const observationsTable = new ObservationsTable('resultsTable')
 
@@ -68,46 +76,69 @@ const observationsTable = new ObservationsTable('resultsTable')
  */
 export function loadObs() {
   loadButton.disabled = true;
-  var perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
-  var serverURL = document.getElementById('fhirServer').value;
-  var url = serverURL + '/Observation?_format=application/json&'+
-    '_sort=patient,code,-date&_include=Observation:patient';
-  var codes, field, count;
+  const maxPatientCount = document.getElementById('maxPatientCount').value,
+    serverUrl = document.getElementById('fhirServer').value,
+    client = new FhirClient({serverUrl}),
+    perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
+
+  let urlSuffix = '', codes, field;
   if (categoryLimits) {
     codes=categoryAC.getSelectedCodes();
     field='category';
-    count = 1000;
   }
   else { // test codes instead of categories
     codes=loincAC.getSelectedCodes();
     field='code';
-    count = 5000;
   }
   if (codes && codes.length > 0) {
-    url += '&'+field+'=' + codes.map(s=>encodeURIComponent(s)).join(',');
-    showNonResultsMsg('Searching...');
+    urlSuffix += '&'+field+'=' + codes.map(s=>encodeURIComponent(s)).join(',');
   }
-  else {
-    count = 100;
-    showNonResultsMsg('Searching across all Observations without specifying '+
-      'tests or categories.  This could take a while...');
-  }
-  url += '&_count='+count;
-  getURLWithCache(url, function(status, data) {
-    if (status != 200)
-      showNonResultsMsg('Could not load data for selected codes');
-    else {
-      var startProcessingTime = new Date();
-      data = JSON.parse(data);
-      if (!data.entry)
-        showNonResultsMsg('No matching Observations found.');
+  showNonResultsMsg('Searching patients...');
+
+
+  client.getWithCache(`Patient?_format=application/json&_count=${maxPatientCount}&_elements=name`, function(status, data) {
+    if (status !== 200) {
+      showNonResultsMsg('Could not load Patient list');
+      loadButton.disabled = false;
+    } else {
+      if (!data.entry || !data.entry.length)
+        showNonResultsMsg('No matching Patients found.');
       else {
-        showResults();
-        observationsTable.fill(data, perPatientPerTest, serverURL);
+        let progress = 0,
+            allObservations = [],
+            patients = data.entry,
+            error = false;
+
+        showProgress(0);
+
+        for(let index = 0; index < patients.length; ++index) {
+          const patient = patients[index];
+
+          client.getWithCache(
+            `Observation?subject:reference=Patient/${patient.resource.id}&_format=application/json` +
+            `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` + urlSuffix,
+            (status, observations) => {
+              if (status !== 200) {
+                client.clearPendingRequests();
+                loadButton.disabled = false;
+                error = true;
+                showNonResultsMsg('Could not load observation list');
+              } else if (!error) {
+                showProgress(Math.floor(++progress * 100 / patients.length));
+                allObservations[index] = (observations.entry || []).map(item => item.resource);
+                if (progress === patients.length) {
+                  observationsTable.fill({
+                    patients: patients.map(item => item.resource),
+                    observations: [].concat.apply([], allObservations)
+                  }, perPatientPerTest, serverUrl);
+                  loadButton.disabled = false;
+                  showResults();
+                }
+              }
+            });
+        }
       }
-      console.log("Processed response in "+(new Date() - startProcessingTime));
     }
-    loadButton.disabled = false;
   });
 }
 
@@ -117,49 +148,6 @@ export function loadObs() {
 export function downloadObs() {
   saveAs(observationsTable.getBlob(), 'observations.csv');
 }
-
-/**
- *  Gets the response content from a URL.  The callback will be called with the
- *  status and response text.
- * @param url the URL whose data is to be retrieved.
- * @param callback the function to receive the reponse.  The callback will be
- *  passed the request status, the response text, and the XMLHttpRequest object.
- * @return the XMLHttpRequest object
- */
-function getURL(url, callback) {
-  var oReq = new XMLHttpRequest();
-  oReq.onreadystatechange = function () {
-    if (oReq.readyState === 4) {
-      console.log("AJAX call returned in "+(new Date() - startAjaxTime));
-      callback(oReq.status, oReq.responseText, oReq);
-    }
-  }
-  var startAjaxTime = new Date();
-  oReq.open("GET", url);
-  oReq.send();
-}
-
-
-/**
- *  Like getURL, but uses a cache if the URL has been requested before.
- * @param url the URL whose data is to be retrieved.
- * @param callback the function to receive the reponse.  The callback will be
- *  passed the request status, the response text, and the XMLHttpRequest object.
- */
-function getURLWithCache(url, callback) {
-  var cachedReq = ajaxCache[url];
-  if (cachedReq) {
-    console.log("Using cached data");
-    callback(cachedReq.status, cachedReq.responseText, cachedReq);
-  }
-  else {
-    getURL(url, function(status, text, req) {
-      ajaxCache[url] = req;
-      callback(status, text, req);
-    });
-  }
-}
-
 
 /**
  *  Handles the request to change the limit type selection (category or test
