@@ -62,10 +62,10 @@ function showResults() {
 
 /**
  * Used to show loading progress
- * @param {number} percents
+ * @param {number} percent
  */
-function showProgress(percents) {
-  showNonResultsMsg(` Loading observations ${percents}%`);
+function showProgress(percent) {
+  showNonResultsMsg(` Loading observations ${percent}%`);
 }
 
 
