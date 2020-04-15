@@ -188,7 +188,7 @@ export class ObservationsTable {
    * Fill HTML table with observations data
    * @param {{patients: Object[], observations: Object[]}} data - result of requests to server for observations and patients
    * @param {number} perPatientPerTest - limit per patient per test
-   * @param {string} serviceBaseUrl - usable for making links
+   * @param {string} serviceBaseUrl - the Service Base URL of the FHIR server from which data is being pulled
    */
   fill(data, perPatientPerTest, serviceBaseUrl) {
     let patientToCodeToCount = {};

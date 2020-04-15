@@ -15,7 +15,7 @@ const noResultsMsg = document.getElementById('noResults'),
   testLimitRow = document.getElementById('testSel'),
   loadButton = document.getElementById('load'),
   downloadButton = document.getElementById('download'),
-  performanceTuning = document.getElementById('performaceTuning');
+  performanceTuning = document.getElementById('performanceTuning');
 
 let categoryLimits = true;
 
