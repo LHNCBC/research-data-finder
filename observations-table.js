@@ -106,23 +106,22 @@ export class ObservationsTable {
    * @return {string|null}
    */
   patientNameStr(res) {
-    let rtn = null;
+    let rtn;
+    const name = res.name && res.name[0];
 
-    if (res.name && res.name.length > 0) {
-      let nameStr = '';
-      const name = res.name[0];
+    if (name) {
+      const given = name.given || [],
+        firstName = given[0] || '',
+        lasName = name.family || '';
+      let middleName = given[1] || '';
 
-      if (name.given && name.given.length > 0)
-        nameStr = name.given[0];
-      if (name.family) {
-        if (nameStr.length > 0)
-          nameStr += ' ';
-        nameStr += name.family;
+      if (middleName.length === 1) {
+        middleName += '.';
       }
-      if (nameStr.length > 0)
-        rtn = nameStr;
+      rtn = [firstName, middleName, lasName].filter(item => item).join(' ');
     }
-    return rtn;
+
+    return rtn || null;
   }
 
   /**
