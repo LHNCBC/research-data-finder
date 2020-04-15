@@ -48,7 +48,7 @@ export class ObservationsTable {
         title: 'FHIR Observation',
         text: obs => {
           const id = obs.id,
-            href = this.serverURL + '/Observation/' + obs.id;
+            href = this.serviceBaseUrl + '/Observation/' + obs.id;
 
           return `<a href="${href}" target="_blank" rel="noopener noreferrer">${id}</a>`;
         }
@@ -189,13 +189,13 @@ export class ObservationsTable {
    * Fill HTML table with observations data
    * @param {{patients: Object[], observations: Object[]}} data - result of requests to server for observations and patients
    * @param {number} perPatientPerTest - limit per patient per test
-   * @param {string} serverURL - usable for making links
+   * @param {string} serviceBaseUrl - usable for making links
    */
-  fill(data, perPatientPerTest, serverURL) {
+  fill(data, perPatientPerTest, serviceBaseUrl) {
     let patientToCodeToCount = {};
 
     // Prepare data for show & download
-    this.serverURL = serverURL;
+    this.serviceBaseUrl = serviceBaseUrl;
     this.pRefToName = data.patients.reduce((refs, patient) => {
       refs[`${patient.resourceType}/${patient.id}`] = this.patientNameStr(patient);
       return refs;

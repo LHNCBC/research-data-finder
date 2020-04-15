@@ -6,13 +6,13 @@ export class FhirClient {
   /**
    * Requests are executed or combined depending on the parameters passed to this method.
    * @constructor
-   * @param {string} serverUrl
+   * @param {string} serviceBaseUrl - FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
    * @param {number} maxRequestsPerBatch - the maximum number of requests that can be combined (1 - turn off combined requests)
    * @param {number} maxActiveRequests - the maximum number of requests that can be executed simultaneously
    * @param {number} batchTimeout - the time in milliseconds between requests that can be combined
    */
-  constructor({serverUrl = '', maxRequestsPerBatch = 5, maxActiveRequests = 3, batchTimeout = 20}) {
-    this._serverUrl = serverUrl;
+  constructor({serviceBaseUrl = '', maxRequestsPerBatch = 5, maxActiveRequests = 3, batchTimeout = 20}) {
+    this._serviceBaseUrl = serviceBaseUrl;
     this._pending = [];
     this._batchTimeoutId = null;
     this._batchTimeout = batchTimeout;
@@ -75,7 +75,7 @@ export class FhirClient {
         }
       }
       let startAjaxTime = new Date();
-      oReq.open("POST", `${this._serverUrl}?&_format=application/json`);
+      oReq.open("POST", `${this._serviceBaseUrl}?&_format=application/json`);
       oReq.setRequestHeader('Content-Type', 'application/json');
       oReq.send(body);
       ++this._activeReq;
@@ -92,7 +92,7 @@ export class FhirClient {
         }
       }
 
-      oReq.open("GET", `${this._serverUrl}/${url}`);
+      oReq.open("GET", `${this._serviceBaseUrl}/${url}`);
       oReq.send();
       ++this._activeReq;
     }
@@ -110,7 +110,7 @@ export class FhirClient {
    *  passed the request status, the response text, and the XMLHttpRequest object.
    */
   getWithCache(url, callback) {
-    const cacheKey = `${this._serverUrl}/${url}`,
+    const cacheKey = `${this._serviceBaseUrl}/${url}`,
       cachedReq = commonRequestCache[cacheKey];
     if (cachedReq) {
       console.log("Using cached data");

@@ -77,8 +77,8 @@ const observationsTable = new ObservationsTable('resultsTable')
 export function loadObs() {
   loadButton.disabled = true;
   const maxPatientCount = document.getElementById('maxPatientCount').value,
-    serverUrl = document.getElementById('fhirServer').value,
-    client = new FhirClient({serverUrl}),
+    serviceBaseUrl = document.getElementById('fhirServer').value,
+    client = new FhirClient({serviceBaseUrl}),
     perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
 
   let urlSuffix = '', codes, field;
@@ -130,7 +130,7 @@ export function loadObs() {
                   observationsTable.fill({
                     patients: patients.map(item => item.resource),
                     observations: [].concat.apply([], allObservations)
-                  }, perPatientPerTest, serverUrl);
+                  }, perPatientPerTest, serviceBaseUrl);
                   loadButton.disabled = false;
                   showResults();
                 }
