@@ -87,7 +87,8 @@ export class FhirClient {
         if (oReq.readyState === 4) {
           --this._activeReq;
           console.log("AJAX call returned in "+(new Date() - startAjaxTime));
-          callback(oReq.status, JSON.parse(oReq.responseText));
+          const status = oReq.status;
+          callback(status, status === 200 ? JSON.parse(oReq.responseText) : {});
           this._postPending();
         }
       }
