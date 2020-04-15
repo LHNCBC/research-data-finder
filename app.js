@@ -89,22 +89,19 @@ export function loadObs() {
     client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch, maxActiveRequests}),
     perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
 
-  let urlSuffix = '', codes, field;
+  let codes, field;
   if (categoryLimits) {
-    codes=categoryAC.getSelectedCodes();
-    field='category';
+    codes = categoryAC.getSelectedCodes();
+    field = 'category';
+  } else { // test codes instead of categories
+    codes = loincAC.getSelectedCodes();
+    field = 'code';
   }
-  else { // test codes instead of categories
-    codes=loincAC.getSelectedCodes();
-    field='code';
-  }
-  if (codes && codes.length > 0) {
-    urlSuffix += '&'+field+'=' + codes.map(s=>encodeURIComponent(s)).join(',');
-  }
+
   showNonResultsMsg('Searching patients...');
 
 
-  client.getWithCache(`Patient?_count=${maxPatientCount}&_elements=name`, function(status, data) {
+  client.getWithCache(`Patient?_count=${maxPatientCount}&_elements=name`, function (status, data) {
     if (status !== 200) {
       showNonResultsMsg('Could not load Patient list');
       loadButton.disabled = false;
@@ -112,38 +109,49 @@ export function loadObs() {
       if (!data.entry || !data.entry.length)
         showNonResultsMsg('No matching Patients found.');
       else {
-        let progress = 0,
-            allObservations = [],
-            patients = data.entry.map(item => item.resource),
-            error = false;
+        let completedRequestCount = 0,
+          allObservations = [],
+          error = false;
+        const patients = data.entry.map(item => item.resource),
+          patientCount = patients.length,
+          urlSuffixes = codes && codes.length > 0
+            ? codes.map(code => `&_count=${perPatientPerTest}&${field}=${encodeURIComponent(code)}`)
+            : [`&_count=1000`],
+          suffixCount = urlSuffixes.length,
+          totalRequestCount = patientCount * suffixCount;
 
         showProgress(0);
 
-        for(let index = 0; index < patients.length; ++index) {
-          const patient = patients[index];
+        for (let i = 0; i < patientCount; ++i) {
+          const patient = patients[i];
 
-          client.getWithCache(
-            `Observation?subject:reference=Patient/${patient.id}` +
-            `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` + urlSuffix,
-            (status, observations) => {
-              if (status !== 200) {
-                client.clearPendingRequests();
-                loadButton.disabled = false;
-                error = true;
-                showNonResultsMsg('Could not load observation list');
-              } else if (!error) {
-                showProgress(Math.floor(++progress * 100 / patients.length));
-                allObservations[index] = (observations.entry || []).map(item => item.resource);
-                if (progress === patients.length) {
-                  observationsTable.fill({
-                    patients: patients,
-                    observations: [].concat.apply([], allObservations)
-                  }, perPatientPerTest, serviceBaseUrl);
+          for (let j = 0; j < suffixCount; ++j) {
+            const urlSuffix = urlSuffixes[j],
+              index = i * suffixCount + j;
+
+            client.getWithCache(
+              `Observation?subject:reference=Patient/${patient.id}` +
+              `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` + urlSuffix,
+              (status, observations) => {
+                if (status !== 200) {
+                  client.clearPendingRequests();
                   loadButton.disabled = false;
-                  showResults();
+                  error = true;
+                  showNonResultsMsg('Could not load observation list');
+                } else if (!error) {
+                  showProgress(Math.floor(++completedRequestCount * 100 / totalRequestCount));
+                  allObservations[index] = (observations.entry || []).map(item => item.resource);
+                  if (completedRequestCount === totalRequestCount) {
+                    observationsTable.fill({
+                      patients: patients,
+                      observations: [].concat.apply([], allObservations)
+                    }, perPatientPerTest, serviceBaseUrl);
+                    loadButton.disabled = false;
+                    showResults();
+                  }
                 }
-              }
-            });
+              });
+          }
         }
       }
     }

@@ -71,9 +71,12 @@ export class FhirBatchQuery {
           --this._activeReq;
           console.log("Bach AJAX call returned in "+(new Date() - startAjaxTime));
           const status = oReq.status,
-            data = JSON.parse(oReq.responseText)
+            data = status === 200
+              ? JSON.parse(oReq.responseText).entry.map(item => item.resource)
+              : [];
+
           current.forEach(({callback}, index) => {
-            callback(status, status === 200 ? data.entry[index].resource : {})
+            callback(status, data[index] || {});
           });
           this._postPending();
         }
