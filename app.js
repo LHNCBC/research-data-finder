@@ -71,7 +71,7 @@ function showResults() {
  * @param {number} percent
  */
 function showProgress(percent) {
-  showNonResultsMsg(` Loading observations... ${percent}%`);
+  showNonResultsMsg(`Loading observations... ${percent}%`);
 }
 
 
