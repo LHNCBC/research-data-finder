@@ -1,7 +1,7 @@
 let commonRequestCache = {}; // Map from url to result JSON
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
-export class FhirClient {
+export class FhirBatchQuery {
 
   /**
    * Requests are executed or combined depending on the parameters passed to this method.

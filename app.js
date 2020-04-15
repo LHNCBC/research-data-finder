@@ -7,7 +7,7 @@ import './lhncbc.jpg';
 import * as catData from './categoryList';
 import { saveAs } from 'file-saver';
 import { ObservationsTable } from './observations-table'
-import { FhirClient } from "./fhir-client";
+import { FhirBatchQuery } from "./fhir-batch-query";
 
 const noResultsMsg = document.getElementById('noResults'),
   resultsSection = document.getElementById('results'),
@@ -86,7 +86,7 @@ export function loadObs() {
     serviceBaseUrl = document.getElementById('fhirServer').value,
     maxRequestsPerBatch = document.getElementById('maxRequestsPerBatch').value || undefined,
     maxActiveRequests = document.getElementById('maxActiveRequests').value || undefined,
-    client = new FhirClient({serviceBaseUrl, maxRequestsPerBatch, maxActiveRequests}),
+    client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch, maxActiveRequests}),
     perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
 
   let urlSuffix = '', codes, field;
@@ -158,7 +158,7 @@ export function downloadObs() {
 }
 
 export function clearCache() {
-  FhirClient.clearCache();
+  FhirBatchQuery.clearCache();
 }
 
 /**
