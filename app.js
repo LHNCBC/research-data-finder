@@ -106,7 +106,7 @@ export function loadObs() {
       else {
         let progress = 0,
             allObservations = [],
-            patients = data.entry,
+            patients = data.entry.map(item => item.resource),
             error = false;
 
         showProgress(0);
@@ -115,7 +115,7 @@ export function loadObs() {
           const patient = patients[index];
 
           client.getWithCache(
-            `Observation?subject:reference=Patient/${patient.resource.id}` +
+            `Observation?subject:reference=Patient/${patient.id}` +
             `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` + urlSuffix,
             (status, observations) => {
               if (status !== 200) {
@@ -128,7 +128,7 @@ export function loadObs() {
                 allObservations[index] = (observations.entry || []).map(item => item.resource);
                 if (progress === patients.length) {
                   observationsTable.fill({
-                    patients: patients.map(item => item.resource),
+                    patients: patients,
                     observations: [].concat.apply([], allObservations)
                   }, perPatientPerTest, serviceBaseUrl);
                   loadButton.disabled = false;
