@@ -96,7 +96,7 @@ export function loadObs() {
   showNonResultsMsg('Searching patients...');
 
 
-  client.getWithCache(`Patient?_format=application/json&_count=${maxPatientCount}&_elements=name`, function(status, data) {
+  client.getWithCache(`Patient?_count=${maxPatientCount}&_elements=name`, function(status, data) {
     if (status !== 200) {
       showNonResultsMsg('Could not load Patient list');
       loadButton.disabled = false;
@@ -115,7 +115,7 @@ export function loadObs() {
           const patient = patients[index];
 
           client.getWithCache(
-            `Observation?subject:reference=Patient/${patient.resource.id}&_format=application/json` +
+            `Observation?subject:reference=Patient/${patient.resource.id}` +
             `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` + urlSuffix,
             (status, observations) => {
               if (status !== 200) {

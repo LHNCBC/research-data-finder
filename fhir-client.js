@@ -75,8 +75,8 @@ export class FhirClient {
         }
       }
       let startAjaxTime = new Date();
-      oReq.open("POST", `${this._serviceBaseUrl}?&_format=application/json`);
-      oReq.setRequestHeader('Content-Type', 'application/json');
+      oReq.open("POST", `${this._serviceBaseUrl}`);
+      oReq.setRequestHeader('Content-Type', 'application/fhir+json');
       oReq.send(body);
       ++this._activeReq;
     } else if (this._pending.length > 0) {
@@ -93,6 +93,7 @@ export class FhirClient {
       }
 
       oReq.open("GET", `${this._serviceBaseUrl}/${url}`);
+      oReq.setRequestHeader('Content-Type', 'application/fhir+json');
       oReq.send();
       ++this._activeReq;
     }
