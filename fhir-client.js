@@ -11,7 +11,7 @@ export class FhirClient {
    * @param {number} maxActiveRequests - the maximum number of requests that can be executed simultaneously
    * @param {number} batchTimeout - the time in milliseconds between requests that can be combined
    */
-  constructor({serviceBaseUrl = '', maxRequestsPerBatch = 5, maxActiveRequests = 3, batchTimeout = 20}) {
+  constructor({serviceBaseUrl = '', maxRequestsPerBatch = 10, maxActiveRequests = 6, batchTimeout = 20}) {
     this._serviceBaseUrl = serviceBaseUrl;
     this._pending = [];
     this._batchTimeoutId = null;
@@ -19,6 +19,10 @@ export class FhirClient {
     this._maxPerBatch = maxRequestsPerBatch;
     this._maxActiveReq = maxActiveRequests;
     this._activeReq = 0;
+  }
+
+  static clearCache() {
+    commonRequestCache = {};
   }
 
   /**

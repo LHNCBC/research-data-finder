@@ -9,13 +9,19 @@ import { saveAs } from 'file-saver';
 import { ObservationsTable } from './observations-table'
 import { FhirClient } from "./fhir-client";
 
-var noResultsMsg = document.getElementById('noResults');
-var resultsSection = document.getElementById('results');
-var catLimitRow = document.getElementById('catSel');
-var testLimitRow = document.getElementById('testSel');
-var loadButton = document.getElementById('load');
-var downloadButton = document.getElementById('download');
-var categoryLimits = true;
+const noResultsMsg = document.getElementById('noResults'),
+  resultsSection = document.getElementById('results'),
+  catLimitRow = document.getElementById('catSel'),
+  testLimitRow = document.getElementById('testSel'),
+  loadButton = document.getElementById('load'),
+  downloadButton = document.getElementById('download'),
+  performanceTuning = document.getElementById('performaceTuning');
+
+let categoryLimits = true;
+
+if (/[?&]tunable(&|$)/.test(window.location.search)) {
+  performanceTuning.style.display = '';
+}
 
 new Def.Autocompleter.Prefetch('fhirServer', [
   'https://lforms-fhir.nlm.nih.gov/baseR4',
@@ -65,7 +71,7 @@ function showResults() {
  * @param {number} percent
  */
 function showProgress(percent) {
-  showNonResultsMsg(` Loading observations ${percent}%`);
+  showNonResultsMsg(` Loading observations... ${percent}%`);
 }
 
 
@@ -78,7 +84,9 @@ export function loadObs() {
   loadButton.disabled = true;
   const maxPatientCount = document.getElementById('maxPatientCount').value,
     serviceBaseUrl = document.getElementById('fhirServer').value,
-    client = new FhirClient({serviceBaseUrl}),
+    maxRequestsPerBatch = document.getElementById('maxRequestsPerBatch').value || undefined,
+    maxActiveRequests = document.getElementById('maxActiveRequests').value || undefined,
+    client = new FhirClient({serviceBaseUrl, maxRequestsPerBatch, maxActiveRequests}),
     perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
 
   let urlSuffix = '', codes, field;
@@ -147,6 +155,10 @@ export function loadObs() {
  */
 export function downloadObs() {
   saveAs(observationsTable.getBlob(), 'observations.csv');
+}
+
+export function clearCache() {
+  FhirClient.clearCache();
 }
 
 /**
