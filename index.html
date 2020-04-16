@@ -77,7 +77,7 @@
       resources that are coded with the selected LOINC tests.</p>
 
       <label for=settings>Settings:</label>
-      <div id=settings>
+      <div id="settings" class="section">
         <table>
           <tbody>
           <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
@@ -100,6 +100,36 @@
           </td></tr>
           </tbody>
         </table>
+      </div>
+
+      <label for="patientSelection">Patient Selection</label>
+      <div id="patientSelection" class="section">
+        <table>
+          <tbody>
+          <tr><th>Maximum number of patients:</th><td><input type="number" id="maxPatientCount" value="100">
+          </td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="performanceTuning" style="display: none;">
+        <label>Performance Tuning Settings</label>
+        <div class="section">
+          <table>
+            <tbody>
+            <tr>
+              <th>Requests per batch:</th>
+              <td><input type="number" id="maxRequestsPerBatch" value="10" min="1" placeholder="default value"></td>
+              <th>Maximum active requests:</th>
+              <td><input type="number" id="maxActiveRequests" value="6" min="1" placeholder="default value"></td>
+              <th>Actions:</th>
+              <td>
+                <button onclick="app.clearCache()">Clear cache</button>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <button id=load onclick="app.loadObs()">Load Data</button>

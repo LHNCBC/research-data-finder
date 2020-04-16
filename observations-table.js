@@ -48,7 +48,7 @@ export class ObservationsTable {
         title: 'FHIR Observation',
         text: obs => {
           const id = obs.id,
-            href = this.serverURL + '/Observation/' + obs.id;
+            href = this.serviceBaseUrl + '/Observation/' + obs.id;
 
           return `<a href="${href}" target="_blank" rel="noopener noreferrer">${id}</a>`;
         }
@@ -106,23 +106,22 @@ export class ObservationsTable {
    * @return {string|null}
    */
   patientNameStr(res) {
-    let rtn = null;
+    let rtn;
+    const name = res.name && res.name[0];
 
-    if (res.name && res.name.length > 0) {
-      let nameStr = '';
-      const name = res.name[0];
+    if (name) {
+      const given = name.given || [],
+        firstName = given[0] || '',
+        lasName = name.family || '';
+      let middleName = given[1] || '';
 
-      if (name.given && name.given.length > 0)
-        nameStr = name.given[0];
-      if (name.family) {
-        if (nameStr.length > 0)
-          nameStr += ' ';
-        nameStr += name.family;
+      if (middleName.length === 1) {
+        middleName += '.';
       }
-      if (nameStr.length > 0)
-        rtn = nameStr;
+      rtn = [firstName, middleName, lasName].filter(item => item).join(' ');
     }
-    return rtn;
+
+    return rtn || null;
   }
 
   /**
@@ -181,49 +180,26 @@ export class ObservationsTable {
     return result;
   }
 
-  /**
-   * Separate Observations from Patients, and create name strings for the Patients
-   * @param {Object} data
-   * @return {Array}
-   */
-  getObservations(data) {
-    let obs = [];
-    let pRefToName = {};
-
-    this.pRefToName = pRefToName;
-
-    for (let i = 0, len = data.entry.length; i < len; ++i) {
-      const res = data.entry[i].resource;
-
-      if (res.resourceType === 'Observation') {
-        obs.push(res);
-      } else { // assume Patient for now
-        const pName = this.patientNameStr(res);
-
-        if (pName)
-          pRefToName['Patient/' + res.id] = pName;
-      }
-    }
-
-    return obs;
-  }
-
   updateHeader() {
     this.header.innerHTML = `<tr><th>${this.viewCellsTemplate.map(cell => cell.title).join('</th><th>')}</th></tr>`;
   }
 
   /**
    * Fill HTML table with observations data
-   * @param {Object} data - result of request to server for observations
+   * @param {{patients: Object[], observations: Object[]}} data - result of requests to server for observations and patients
    * @param {number} perPatientPerTest - limit per patient per test
-   * @param {string} serverURL - usable for making links
+   * @param {string} serviceBaseUrl - the Service Base URL of the FHIR server from which data is being pulled
    */
-  fill(data, perPatientPerTest, serverURL) {
+  fill(data, perPatientPerTest, serviceBaseUrl) {
     let patientToCodeToCount = {};
 
     // Prepare data for show & download
-    this.serverURL = serverURL;
-    this.data = this.getObservations(data)
+    this.serviceBaseUrl = serviceBaseUrl;
+    this.pRefToName = data.patients.reduce((refs, patient) => {
+      refs[`${patient.resourceType}/${patient.id}`] = this.patientNameStr(patient);
+      return refs;
+    },{});
+    this.data = data.observations
       .filter(obs => {
         // Per Clem, we will only show perPatientPerTest results per patient per test.
         const patientRef = obs.subject.reference,
