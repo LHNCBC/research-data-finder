@@ -1,5 +1,17 @@
 const reValueKey = /^value/;
 
+export const administrativeGenderConcept = [
+  { display: 'Male', code: 'male'},
+  { display: 'Female', code: 'female'},
+  { display: 'Other', code: 'other'},
+  { display: 'Unknown', code: 'unknown'},
+];
+
+const genderMap = administrativeGenderConcept.reduce((_genderMap, item) => {
+  _genderMap[item.code] = item.display;
+  return _genderMap;
+}, {});
+
 export class ObservationsTable {
   constructor(tableId) {
     this.tableId = tableId;
@@ -13,6 +25,14 @@ export class ObservationsTable {
       {
         title: 'Patient',
         text: obs => this.getPatientName(obs)
+      },
+      {
+        title: 'Gender',
+        text: obs => genderMap[this.getPatient(obs).gender] || ''
+      },
+      {
+        title: 'Age',
+        text: obs => this.getPatientAge(obs) || ''
       },
       {
         title: 'Date',
@@ -132,7 +152,37 @@ export class ObservationsTable {
   getPatientName(obs) {
     const patientRef = obs.subject.reference;
 
-    return obs.subject.display || this.pRefToName[patientRef] || patientRef
+    return obs.subject.display || (this.refToPatient[patientRef] || {}).name || patientRef
+  }
+
+  /**
+   * Returns the patient data from Observation
+   * @param obs
+   * @return {Object}
+   */
+  getPatient(obs) {
+    return this.refToPatient[obs.subject.reference] || {};
+  }
+
+  /**
+   * Returns the patient age from Observation
+   * @param {Object} obs
+   * @return {number|undefined}
+   */
+  getPatientAge(obs) {
+    const patientRef = obs.subject.reference;
+    const birthDateStr = (this.refToPatient[patientRef] || {}).birthDate;
+
+    if (birthDateStr) {
+      const currentDate = new Date();
+      const birthDate = new Date(birthDateStr);
+      const m = currentDate.getMonth() - birthDate.getMonth();
+      let age = currentDate.getFullYear() - birthDate.getFullYear();
+      if (m < 0 || (m === 0 && currentDate.getDate() < birthDate.getDate())) {
+        --age;
+      }
+      return age;
+    }
   }
 
   /**
@@ -195,8 +245,11 @@ export class ObservationsTable {
 
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
-    this.pRefToName = data.patients.reduce((refs, patient) => {
-      refs[`${patient.resourceType}/${patient.id}`] = this.patientNameStr(patient);
+    this.refToPatient = data.patients.reduce((refs, patient) => {
+      refs[`${patient.resourceType}/${patient.id}`] = {
+        ...patient,
+        name: this.patientNameStr(patient)
+      };
       return refs;
     },{});
     this.data = data.observations

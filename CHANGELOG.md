@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.4.0] - 2020-04-23
+### Changed
+- Allowed selection of patients by gender and age
+
 ## [1.3.0] - 2020-04-14
 ### Changed
 - Issues queries per each selected patient
