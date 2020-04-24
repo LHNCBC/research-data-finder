@@ -1,13 +1,15 @@
+import * as moment from 'moment';
+
 const reValueKey = /^value/;
 
-export const administrativeGenderConcept = [
+export const administrativeGenderList = [
   { display: 'Male', code: 'male'},
   { display: 'Female', code: 'female'},
   { display: 'Other', code: 'other'},
   { display: 'Unknown', code: 'unknown'},
 ];
 
-const genderMap = administrativeGenderConcept.reduce((_genderMap, item) => {
+const genderMap = administrativeGenderList.reduce((_genderMap, item) => {
   _genderMap[item.code] = item.display;
   return _genderMap;
 }, {});
@@ -32,7 +34,7 @@ export class ObservationsTable {
       },
       {
         title: 'Age',
-        text: obs => this.getPatientAge(obs) || ''
+        text: obs => this.getPatient(obs)._age || ''
       },
       {
         title: 'Date',
@@ -120,8 +122,8 @@ export class ObservationsTable {
   }
 
   /**
-   *  Builds a patient name string from a Patient resource.
-   *  Returns the name string, or null if one could not be constructed.
+   * Builds the Patient's name string from the Patient resource.
+   * Returns the name string, or null if one could not be constructed.
    * @param {Object} res the Patient resource
    * @return {string|null}
    */
@@ -145,19 +147,19 @@ export class ObservationsTable {
   }
 
   /**
-   * Returns the patient name from Observation
+   * Returns the name of the Patient who is the subject of the Observation
    * @param {Object} obs
    * @return {string}
    */
   getPatientName(obs) {
     const patientRef = obs.subject.reference;
 
-    return obs.subject.display || (this.refToPatient[patientRef] || {}).name || patientRef
+    return obs.subject.display || (this.refToPatient[patientRef] || {})._name || patientRef
   }
 
   /**
-   * Returns the patient data from Observation
-   * @param obs
+   * Returns the Patient resource data from the Observation
+   * @param {Object} obs
    * @return {Object}
    */
   getPatient(obs) {
@@ -165,23 +167,14 @@ export class ObservationsTable {
   }
 
   /**
-   * Returns the patient age from Observation
-   * @param {Object} obs
+   * Returns the age of the Patient from the Patient Resource
+   * @param {Object} res the Patient resource
    * @return {number|undefined}
    */
-  getPatientAge(obs) {
-    const patientRef = obs.subject.reference;
-    const birthDateStr = (this.refToPatient[patientRef] || {}).birthDate;
-
+  getPatientAge(res) {
+    const birthDateStr = res.birthDate;
     if (birthDateStr) {
-      const currentDate = new Date();
-      const birthDate = new Date(birthDateStr);
-      const m = currentDate.getMonth() - birthDate.getMonth();
-      let age = currentDate.getFullYear() - birthDate.getFullYear();
-      if (m < 0 || (m === 0 && currentDate.getDate() < birthDate.getDate())) {
-        --age;
-      }
-      return age;
+      return Math.floor(moment.duration(moment().diff(new Date(birthDateStr))).asYears());
     }
   }
 
@@ -246,10 +239,9 @@ export class ObservationsTable {
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
     this.refToPatient = data.patients.reduce((refs, patient) => {
-      refs[`${patient.resourceType}/${patient.id}`] = {
-        ...patient,
-        name: this.patientNameStr(patient)
-      };
+      patient._name = this.patientNameStr(patient);
+      patient._age = this.getPatientAge(patient);
+      refs[`${patient.resourceType}/${patient.id}`] = patient;
       return refs;
     },{});
     this.data = data.observations

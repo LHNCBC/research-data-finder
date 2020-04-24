@@ -7,7 +7,7 @@ import './lhncbc.jpg';
 import * as moment from 'moment';
 import * as catData from './categoryList';
 import { saveAs } from 'file-saver';
-import { ObservationsTable, administrativeGenderConcept } from './observations-table'
+import { ObservationsTable, administrativeGenderList } from './observations-table'
 import { FhirBatchQuery } from "./fhir-batch-query";
 
 const noResultsMsg = document.getElementById('noResults'),
@@ -43,8 +43,8 @@ for (var i=0, len=selectedTests.length; i<len; ++i) {
   loincAC.addToSelectedArea(testData[0]);
 }
 
-var genderAC = new Def.Autocompleter.Prefetch('gender', administrativeGenderConcept.map(item => item.display), {
-  codes: administrativeGenderConcept.map(item => item.code),
+var genderAC = new Def.Autocompleter.Prefetch('gender', administrativeGenderList.map(item => item.display), {
+  codes: administrativeGenderList.map(item => item.code),
   maxSelect: '*'
 });
 
