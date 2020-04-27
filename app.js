@@ -4,9 +4,10 @@ import './USAgov.gif';
 import './lhncbc.jpg';
 
 // "Real" imports
+import * as moment from 'moment';
 import * as catData from './categoryList';
 import { saveAs } from 'file-saver';
-import { ObservationsTable } from './observations-table'
+import { ObservationsTable, administrativeGenderList } from './observations-table'
 import { FhirBatchQuery } from "./fhir-batch-query";
 
 const noResultsMsg = document.getElementById('noResults'),
@@ -42,6 +43,11 @@ for (var i=0, len=selectedTests.length; i<len; ++i) {
   loincAC.addToSelectedArea(testData[0]);
 }
 
+var genderAC = new Def.Autocompleter.Prefetch('gender', administrativeGenderList.map(item => item.display), {
+  codes: administrativeGenderList.map(item => item.code),
+  maxSelect: '*'
+});
+
 // Category list
 var categoryAC = new Def.Autocompleter.Prefetch('categories', catData.display,
   {codes: catData.codes});
@@ -74,6 +80,23 @@ function showProgress(percent) {
   showNonResultsMsg(`Loading observations... ${percent}%`);
 }
 
+/**
+ * Minimum date of birth in ISO-8601 format to be <age> years old
+ * @param {number} age
+ * @return {string}
+ */
+function ageToBirthDateMin(age) {
+  return moment().subtract(age+1, 'years').add(1, 'day').format('YYYY-MM-DD')
+}
+
+/**
+ * Maximum date of birth in ISO-8601 format to be <age> years old
+ * @param {number} age
+ * @return {string}
+ */
+function ageToBirthDateMax(age) {
+  return moment().subtract(age, 'years').format('YYYY-MM-DD')
+}
 
 const observationsTable = new ObservationsTable('resultsTable')
 
@@ -82,12 +105,21 @@ const observationsTable = new ObservationsTable('resultsTable')
  */
 export function loadObs() {
   loadButton.disabled = true;
-  const maxPatientCount = document.getElementById('maxPatientCount').value,
-    serviceBaseUrl = document.getElementById('fhirServer').value,
-    maxRequestsPerBatch = document.getElementById('maxRequestsPerBatch').value || undefined,
-    maxActiveRequests = document.getElementById('maxActiveRequests').value || undefined,
-    client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch, maxActiveRequests}),
-    perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
+
+  const maxPatientCount = document.getElementById('maxPatientCount').value;
+  const maxPatientCondition = maxPatientCount ? `&_count=${maxPatientCount}` : '';
+  const serviceBaseUrl = document.getElementById('fhirServer').value;
+  const genderCodes = genderAC.getSelectedCodes().join(',');
+  const genderCondition = genderCodes ? `&gender=${genderCodes}` : '';
+  const ageFrom = document.getElementById('ageFrom').value;
+  const ageTo = document.getElementById('ageTo').value;
+  const ageCondition = (ageTo ? `&birthdate=ge${ageToBirthDateMin(+ageTo)}` : '')
+    + (ageFrom ? `&birthdate=le${ageToBirthDateMax(+ageFrom)}` : '');
+  const maxRequestsPerBatch = document.getElementById('maxRequestsPerBatch').value || undefined;
+  const maxActiveRequests = document.getElementById('maxActiveRequests').value || undefined;
+  const client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch, maxActiveRequests});
+  const perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
+  const conditions = `${maxPatientCondition}${genderCondition}${ageCondition}`;
 
   let codes, field;
   if (categoryLimits) {
@@ -100,15 +132,15 @@ export function loadObs() {
 
   showNonResultsMsg('Searching patients...');
 
-
-  client.getWithCache(`Patient?_count=${maxPatientCount}&_elements=name`, function (status, data) {
+  client.getWithCache(`Patient?_elements=name,birthDate,gender${conditions}`, function (status, data) {
     if (status !== 200) {
       showNonResultsMsg('Could not load Patient list');
       loadButton.disabled = false;
     } else {
-      if (!data.entry || !data.entry.length)
+      if (!data.entry || !data.entry.length) {
         showNonResultsMsg('No matching Patients found.');
-      else {
+        loadButton.disabled = false;
+      } else {
         let completedRequestCount = 0,
           allObservations = [],
           error = false;

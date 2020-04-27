@@ -37,7 +37,9 @@ a.external:after {
 
 label {font-weight: bold; width: 30em;}
 
-.autocomp_selected, input[type=text] {width: 30em}
+.autocomp_selected {width: 30em;}
+
+input.ansList {width: 100%;}
 
 #content {padding: 1em}
 
@@ -54,9 +56,10 @@ p {margin-top: 0; margin-bottom: 10px}
 input {
   font-family: inherit;
   font-size: inherit;
-  line-height: inherit;
+  line-height: normal;
   border-radius: 7px;
   border: 2px solid #17b4e3;
+  padding-left: 0.25em;
 }
 
 #perPatientPerTest {

@@ -1,4 +1,18 @@
+import * as moment from 'moment';
+
 const reValueKey = /^value/;
+
+export const administrativeGenderList = [
+  { display: 'Male', code: 'male'},
+  { display: 'Female', code: 'female'},
+  { display: 'Other', code: 'other'},
+  { display: 'Unknown', code: 'unknown'},
+];
+
+const genderMap = administrativeGenderList.reduce((_genderMap, item) => {
+  _genderMap[item.code] = item.display;
+  return _genderMap;
+}, {});
 
 export class ObservationsTable {
   constructor(tableId) {
@@ -13,6 +27,14 @@ export class ObservationsTable {
       {
         title: 'Patient',
         text: obs => this.getPatientName(obs)
+      },
+      {
+        title: 'Gender',
+        text: obs => genderMap[this.getPatient(obs).gender] || ''
+      },
+      {
+        title: 'Age',
+        text: obs => this.getPatient(obs)._age || ''
       },
       {
         title: 'Date',
@@ -100,8 +122,8 @@ export class ObservationsTable {
   }
 
   /**
-   *  Builds a patient name string from a Patient resource.
-   *  Returns the name string, or null if one could not be constructed.
+   * Builds the Patient's name string from the Patient resource.
+   * Returns the name string, or null if one could not be constructed.
    * @param {Object} res the Patient resource
    * @return {string|null}
    */
@@ -125,14 +147,35 @@ export class ObservationsTable {
   }
 
   /**
-   * Returns the patient name from Observation
+   * Returns the name of the Patient who is the subject of the Observation
    * @param {Object} obs
    * @return {string}
    */
   getPatientName(obs) {
     const patientRef = obs.subject.reference;
 
-    return obs.subject.display || this.pRefToName[patientRef] || patientRef
+    return obs.subject.display || (this.refToPatient[patientRef] || {})._name || patientRef
+  }
+
+  /**
+   * Returns the Patient resource data from the Observation
+   * @param {Object} obs
+   * @return {Object}
+   */
+  getPatient(obs) {
+    return this.refToPatient[obs.subject.reference] || {};
+  }
+
+  /**
+   * Returns the age of the Patient from the Patient Resource
+   * @param {Object} res the Patient resource
+   * @return {number|undefined}
+   */
+  getPatientAge(res) {
+    const birthDateStr = res.birthDate;
+    if (birthDateStr) {
+      return Math.floor(moment.duration(moment().diff(new Date(birthDateStr))).asYears());
+    }
   }
 
   /**
@@ -195,8 +238,10 @@ export class ObservationsTable {
 
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
-    this.pRefToName = data.patients.reduce((refs, patient) => {
-      refs[`${patient.resourceType}/${patient.id}`] = this.patientNameStr(patient);
+    this.refToPatient = data.patients.reduce((refs, patient) => {
+      patient._name = this.patientNameStr(patient);
+      patient._age = this.getPatientAge(patient);
+      refs[`${patient.resourceType}/${patient.id}`] = patient;
       return refs;
     },{});
     this.data = data.observations

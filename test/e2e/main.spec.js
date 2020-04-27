@@ -3,7 +3,7 @@
 const os = require("os"),
   EC = protractor.ExpectedConditions;
 
-describe('Observation Viewer', function() {
+describe('Research Data Finder', function() {
   beforeAll(function () {
     setAngularSite(false);
   });

@@ -53,7 +53,7 @@
         <img src="lhncbc.jpg" alt="Lister Hill Center" />
       </a>
       <div id="siteNameBox">
-        <span id=siteName>FHIR Observation Viewer</span><br>
+        <span id=siteName>FHIR Research Data Finder</span><br>
         <span id=tagline>An <a
          href="https://github.com/lhncbc/fhir-obs-viewer">open source</a> viewer
          for FHIR Observations from the National Library of Medicine</span>
@@ -83,6 +83,17 @@
           <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
             value="https://lforms-fhir.nlm.nih.gov/baseR4"></td></tr>
 
+          <tr><th>Maximum number of patients:</th><td><input type="number" id="maxPatientCount" value="100">
+          </td></tr>
+
+          <tr><th>Select patients by gender:</th><td>
+            <input type="text" id="gender" placeholder="gender"></td></tr>
+
+          <tr><th>Select patients by age:</th><td>
+            from
+            <input type="number" id="ageFrom" placeholder="no limit">
+            to <input type="number" id="ageTo" placeholder="no limit"></td></tr>
+
           <tr style="display: none;"><th>Limit observations by:</th><td>
             <input type="radio" name="limitType" id="limit2" autocomplete=off
             value="test" checked> <label for="limit2">Test</label>
@@ -97,16 +108,6 @@
           <input type=text id=categories autocomplete=off></td><td>Note:  A given FHIR server will only have matches for some subset of these values.</td></tr>
 
           <tr><th>Limit per patient per test:</th><td><input type=number id=perPatientPerTest value=1>
-          </td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <label for="patientSelection">Patient Selection</label>
-      <div id="patientSelection" class="section">
-        <table>
-          <tbody>
-          <tr><th>Maximum number of patients:</th><td><input type="number" id="maxPatientCount" value="100">
           </td></tr>
           </tbody>
         </table>
