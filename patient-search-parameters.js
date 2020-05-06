@@ -67,6 +67,7 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
       ['Patient address: postal code', 'address-postalcode'],
       ['Patient address: state', 'address-state'],
       ['Patient\'s email', 'email'],
+      ['Patient\'s phone', 'phone'],
       ['Patient\'s family', 'family'],
       ['Patient\'s given name', 'given'],
       ['Patient name', 'name'],
@@ -75,7 +76,6 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
       ['Patient\'s identifier', 'identifier'],
       ['Patient\'s communication language', 'language'],
       ['Patients linked to the given patient', 'link'],
-      ['Patient\'s phone', 'phone'],
       ['Patient\'s telecom details', 'telecom']
     ].reduce((_patientParams, [displayName, name]) => {
       _patientParams[displayName] = {
