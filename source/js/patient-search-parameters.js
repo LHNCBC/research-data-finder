@@ -16,7 +16,6 @@ const searchName2column = {
 
 const column2resourceElementName = {
   'age': 'birthDate',
-  'given': 'name',
   'birthdate': 'birthDate',
   'death-date' : 'deceased',
   'email': 'telecom',

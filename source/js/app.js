@@ -1,7 +1,5 @@
 // Imports for webpack to find assets
-import './app.css';
-import './USAgov.gif';
-import './lhncbc.jpg';
+import '../css/app.css';
 
 // "Real" imports
 import * as catData from './categoryList';
