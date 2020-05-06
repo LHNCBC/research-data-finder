@@ -83,16 +83,8 @@
           <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
             value="https://lforms-fhir.nlm.nih.gov/baseR4"></td></tr>
 
-          <tr><th>Maximum number of patients:</th><td><input type="number" id="maxPatientCount" value="100">
+          <tr id="searchParamsAfterThisRow"><th>Maximum number of patients:</th><td><input type="number" id="maxPatientCount" value="100">
           </td></tr>
-
-          <tr><th>Select patients by gender:</th><td>
-            <input type="text" id="gender" placeholder="gender"></td></tr>
-
-          <tr><th>Select patients by age:</th><td>
-            from
-            <input type="number" id="ageFrom" placeholder="no limit">
-            to <input type="number" id="ageTo" placeholder="no limit"></td></tr>
 
           <tr style="display: none;"><th>Limit observations by:</th><td>
             <input type="radio" name="limitType" id="limit2" autocomplete=off

@@ -1,24 +1,27 @@
 import * as moment from 'moment';
+import { valueSets } from "./token-value-sets";
 
 const reValueKey = /^value/;
 
-export const administrativeGenderList = [
-  { display: 'Male', code: 'male'},
-  { display: 'Female', code: 'female'},
-  { display: 'Other', code: 'other'},
-  { display: 'Unknown', code: 'unknown'},
-];
-
-const genderMap = administrativeGenderList.reduce((_genderMap, item) => {
-  _genderMap[item.code] = item.display;
-  return _genderMap;
+const entitiesMap = Object.keys(valueSets).reduce((_entitiesMap, entityName) => {
+  _entitiesMap[entityName] = valueSets[entityName].reduce((_entityMap, item) => {
+    _entityMap[item.code] = item.display;
+    return _entityMap;
+  }, {});
+  return _entitiesMap;
 }, {});
 
 export class ObservationsTable {
   constructor(tableId) {
     this.tableId = tableId;
 
-    // Mapping for each cell in a row for display
+    // Mapping for each cell in a row for display:
+    // title - column caption
+    // columnName - if a value is specified, then this column is displayed by the condition
+    //              that this value is present in the column array for display (this._additionalColumns),
+    //              also this value specifies column name for a request to the FHIR server;
+    //              otherwise, if no value is specified, this column is constantly displayed.
+    // text - callback to get cell text/html
     this.viewCellsTemplate = [
       {
         title: 'Patient Id',
@@ -30,11 +33,38 @@ export class ObservationsTable {
       },
       {
         title: 'Gender',
-        text: obs => genderMap[this.getPatient(obs).gender] || ''
+        columnName: 'gender',
+        text: obs => entitiesMap.administrativeGenderList[this.getPatient(obs).gender] || ''
       },
       {
         title: 'Age',
+        columnName: 'age',
         text: obs => this.getPatient(obs)._age || ''
+      },
+      {
+        title: 'Birth date',
+        columnName: 'birthdate',
+        text: obs => this.getPatient(obs).birthDate || ''
+      },
+      {
+        title: 'Death date',
+        columnName: 'death-date',
+        text: obs => this.getPatient(obs).deceasedDateTime || ''
+      },
+      {
+        title: 'Address',
+        columnName: 'address',
+        text: obs => this.getPatient(obs)._address || ''
+      },
+      {
+        title: 'Telecom',
+        columnName: 'telecom',
+        text: obs => this.getPatient(obs)._telecom || ''
+      },
+      {
+        title: 'General practitioner',
+        columnName: 'general-practitioner',
+        text: obs => this.getPatient(obs)._practitionerName || ''
       },
       {
         title: 'Date',
@@ -102,7 +132,7 @@ export class ObservationsTable {
       }
     });
 
-    this.updateHeader();
+    this._additionalColumns = [];
   }
 
   /**
@@ -122,14 +152,15 @@ export class ObservationsTable {
   }
 
   /**
-   * Builds the Patient's name string from the Patient resource.
+   * Builds the human name string from an array of the HumanName elements
+   * (see https://www.hl7.org/fhir/datatypes.html#humanname).
    * Returns the name string, or null if one could not be constructed.
-   * @param {Object} res the Patient resource
+   * @param {Array} nameObj an array of the HumanName elements
    * @return {string|null}
    */
-  patientNameStr(res) {
+  humanNameStr(nameObj) {
     let rtn;
-    const name = res.name && res.name[0];
+    const name = nameObj && nameObj[0];
 
     if (name) {
       const given = name.given || [],
@@ -179,6 +210,28 @@ export class ObservationsTable {
   }
 
   /**
+   * Returns the address string of the Patient from the Patient Resource
+   * @param {Object} res the Patient resource
+   * @return {String}
+   */
+  getPatientAddress(res) {
+    //TODO: how to show multiple addresses
+    const address = res.address && res.address[0];
+    return address && address.use? `${entitiesMap.addressUse[address.use]}: ${address.line}, ${address.city}, ${address.state}, ${address.postalCode}, ${address.country}` : '';
+  }
+
+  /**
+   * Returns the html for email column of the Patient from the Patient Resource
+   * @param {Object} res the Patient resource
+   * @return {String}
+   */
+  getPatientTelecom(res) {
+    return (res.telecom || [])
+      .map(item => `${entitiesMap.addressUse[item.use] || '' + item.system }: ${item.value}`)
+      .join('<br>');
+  }
+
+  /**
    * Returns Observation code
    * @param {Object} obs
    * @return {string|null}
@@ -224,7 +277,18 @@ export class ObservationsTable {
   }
 
   updateHeader() {
-    this.header.innerHTML = `<tr><th>${this.viewCellsTemplate.map(cell => cell.title).join('</th><th>')}</th></tr>`;
+    this.header.innerHTML = `<tr><th>${this._getViewCellsTemplate().map(cell => cell.title).join('</th><th>')}</th></tr>`;
+  }
+
+  setAdditionalColumns(columns) {
+    this._additionalColumns = columns || [];
+  }
+
+  _getViewCellsTemplate() {
+    return this.viewCellsTemplate.filter(item => !item.columnName || this._additionalColumns.indexOf(item.columnName) !== -1);
+  }
+  _getExportCellsTemplate() {
+    return this.exportCellsTemplate.filter(item => !item.columnName || this._additionalColumns.indexOf(item.columnName) !== -1);
   }
 
   /**
@@ -236,11 +300,18 @@ export class ObservationsTable {
   fill(data, perPatientPerTest, serviceBaseUrl) {
     let patientToCodeToCount = {};
 
+    this.updateHeader();
+
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
     this.refToPatient = data.patients.reduce((refs, patient) => {
-      patient._name = this.patientNameStr(patient);
+      patient._name = this.humanNameStr(patient.name);
+      if (patient.generalPractitioner) {
+        patient._practitionerName = this.humanNameStr(patient.generalPractitioner.name);
+      }
       patient._age = this.getPatientAge(patient);
+      patient._address = this.getPatientAddress(patient);
+      patient._telecom = this.getPatientTelecom(patient);
       refs[`${patient.resourceType}/${patient.id}`] = patient;
       return refs;
     },{});
@@ -263,8 +334,9 @@ export class ObservationsTable {
       });
 
     // Update table
+    const viewCellsTemplate = this._getViewCellsTemplate();
     this.body.innerHTML = '<tr>' + this.data.map(obs => {
-      return '<td>' + this.viewCellsTemplate.map(cell => cell.text(obs)).join('</td><td>') + '</td>';
+      return '<td>' + viewCellsTemplate.map(cell => cell.text(obs)).join('</td><td>') + '</td>';
     }).join('</tr><tr>') + '</tr>';
   }
 
@@ -273,9 +345,10 @@ export class ObservationsTable {
    * @return {Blob}
    */
   getBlob() {
-    const header = this.exportCellsTemplate.map(cell => cell.title).join(','),
+    const cellsTemplate = this._getExportCellsTemplate();
+    const header = cellsTemplate.map(cell => cell.title).join(','),
       rows = this.data.map(obs => {
-        return this.exportCellsTemplate.map(cell => {
+        return cellsTemplate.map(cell => {
           const cellText = cell.text(obs);
 
           if (/["\s]/.test(cellText)) {

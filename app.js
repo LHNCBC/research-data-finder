@@ -4,11 +4,12 @@ import './USAgov.gif';
 import './lhncbc.jpg';
 
 // "Real" imports
-import * as moment from 'moment';
 import * as catData from './categoryList';
 import { saveAs } from 'file-saver';
-import { ObservationsTable, administrativeGenderList } from './observations-table'
+import { ObservationsTable } from './observations-table'
 import { FhirBatchQuery } from "./fhir-batch-query";
+import { SearchParameters } from "./search-parameters";
+import { PatientSearchParams } from "./patient-search-parameters";
 
 const noResultsMsg = document.getElementById('noResults'),
   resultsSection = document.getElementById('results'),
@@ -28,6 +29,8 @@ new Def.Autocompleter.Prefetch('fhirServer', [
   'https://lforms-fhir.nlm.nih.gov/baseR4',
   'https://lforms-fhir.nlm.nih.gov/baseDstu3']);
 
+const searchParams = new SearchParameters('#searchParamsAfterThisRow', PatientSearchParams);
+
 var loincAC = new Def.Autocompleter.Search('loincTests',
   'https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?type=question',
   {maxSelect: '*', matchListValue: true});
@@ -43,11 +46,6 @@ for (var i=0, len=selectedTests.length; i<len; ++i) {
   loincAC.addToSelectedArea(testData[0]);
 }
 
-var genderAC = new Def.Autocompleter.Prefetch('gender', administrativeGenderList.map(item => item.display), {
-  codes: administrativeGenderList.map(item => item.code),
-  maxSelect: '*'
-});
-
 // Category list
 var categoryAC = new Def.Autocompleter.Prefetch('categories', catData.display,
   {codes: catData.codes});
@@ -57,7 +55,7 @@ categoryAC.setFieldToListValue('Vital Signs');
  *  Used to show a message when there are no results to display.
  */
 function showNonResultsMsg(msg) {
-  noResultsMsg.innerText=msg;
+  noResultsMsg.innerHTML=msg;
   noResultsMsg.style.display = '';
   resultsSection.style.display = 'none';
   downloadButton.style.display = 'none';
@@ -81,21 +79,18 @@ function showProgress(percent) {
 }
 
 /**
- * Minimum date of birth in ISO-8601 format to be <age> years old
- * @param {number} age
+ * Returns HTML with FHIR response issue diagnostics
+ * @param {Object} data
  * @return {string}
  */
-function ageToBirthDateMin(age) {
-  return moment().subtract(age+1, 'years').add(1, 'day').format('YYYY-MM-DD')
-}
+function getErrorDiagnostic(data) {
+  if (data && data.issue && data.issue.length) {
+    const errorHtml = data.issue.map(item => item.diagnostics).join('<br>');
 
-/**
- * Maximum date of birth in ISO-8601 format to be <age> years old
- * @param {number} age
- * @return {string}
- */
-function ageToBirthDateMax(age) {
-  return moment().subtract(age, 'years').format('YYYY-MM-DD')
+    return errorHtml ? ':<br>' + errorHtml : '';
+  }
+
+  return '';
 }
 
 const observationsTable = new ObservationsTable('resultsTable')
@@ -109,17 +104,12 @@ export function loadObs() {
   const maxPatientCount = document.getElementById('maxPatientCount').value;
   const maxPatientCondition = maxPatientCount ? `&_count=${maxPatientCount}` : '';
   const serviceBaseUrl = document.getElementById('fhirServer').value;
-  const genderCodes = genderAC.getSelectedCodes().join(',');
-  const genderCondition = genderCodes ? `&gender=${genderCodes}` : '';
-  const ageFrom = document.getElementById('ageFrom').value;
-  const ageTo = document.getElementById('ageTo').value;
-  const ageCondition = (ageTo ? `&birthdate=ge${ageToBirthDateMin(+ageTo)}` : '')
-    + (ageFrom ? `&birthdate=le${ageToBirthDateMax(+ageFrom)}` : '');
   const maxRequestsPerBatch = document.getElementById('maxRequestsPerBatch').value || undefined;
   const maxActiveRequests = document.getElementById('maxActiveRequests').value || undefined;
   const client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch, maxActiveRequests});
   const perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
-  const conditions = `${maxPatientCondition}${genderCondition}${ageCondition}`;
+  const conditions = `${maxPatientCondition}${searchParams.getConditions()}`;
+  const elements = searchParams.getResourceElements(['name']).join(',');
 
   let codes, field;
   if (categoryLimits) {
@@ -132,9 +122,11 @@ export function loadObs() {
 
   showNonResultsMsg('Searching patients...');
 
-  client.getWithCache(`Patient?_elements=name,birthDate,gender${conditions}`, function (status, data) {
+  observationsTable.setAdditionalColumns(searchParams.getColumns());
+
+  client.getWithCache(`Patient?_elements=${elements}${conditions}`, function (status, data) {
     if (status !== 200) {
-      showNonResultsMsg('Could not load Patient list');
+      showNonResultsMsg(`Could not load Patient list${getErrorDiagnostic(data)}`);
       loadButton.disabled = false;
     } else {
       if (!data.entry || !data.entry.length) {
