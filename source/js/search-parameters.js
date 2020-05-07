@@ -18,7 +18,6 @@ export class SearchParameters {
     Def.Autocompleter.Event.observeListSelections(null, (eventData) => {
       const inputId = eventData.field_id;
       if (this.selectedParams[inputId]) {
-
         const autocomplete = getAutocompleterById(inputId);
         const newValue = eventData.final_val;
         const prevValue = this.selectedParams[inputId];

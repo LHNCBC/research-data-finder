@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 import { valueSets } from "./token-value-sets";
+import { humanNameToString } from "./utils";
 
 const reValueKey = /^value/;
 
@@ -61,11 +62,16 @@ export class ObservationsTable {
         columnName: 'telecom',
         text: obs => this.getPatient(obs)._telecom || ''
       },
-      {
-        title: 'General practitioner',
-        columnName: 'general-practitioner',
-        text: obs => this.getPatient(obs)._practitionerName || ''
-      },
+      // TODO: Can't just get a Practitioner name from Patient data
+      // {
+      //   title: 'General practitioner',
+      //   columnName: 'general-practitioner',
+      //   text: obs => {
+      //     const patient = this.getPatient(obs);
+      //     return patient && patient.generalPractitioner && patient.generalPractitioner[0]
+      //       && patient.generalPractitioner[0].reference || '';
+      //   }
+      // },
       {
         title: 'Date',
         text: obs => {
@@ -151,31 +157,7 @@ export class ObservationsTable {
     return document.getElementById(this.tableId).tBodies[0];
   }
 
-  /**
-   * Builds the human name string from an array of the HumanName elements
-   * (see https://www.hl7.org/fhir/datatypes.html#humanname).
-   * Returns the name string, or null if one could not be constructed.
-   * @param {Array} nameObj an array of the HumanName elements
-   * @return {string|null}
-   */
-  humanNameStr(nameObj) {
-    let rtn;
-    const name = nameObj && nameObj[0];
 
-    if (name) {
-      const given = name.given || [],
-        firstName = given[0] || '',
-        lasName = name.family || '';
-      let middleName = given[1] || '';
-
-      if (middleName.length === 1) {
-        middleName += '.';
-      }
-      rtn = [firstName, middleName, lasName].filter(item => item).join(' ');
-    }
-
-    return rtn || null;
-  }
 
   /**
    * Returns the name of the Patient who is the subject of the Observation
@@ -305,10 +287,7 @@ export class ObservationsTable {
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
     this.refToPatient = data.patients.reduce((refs, patient) => {
-      patient._name = this.humanNameStr(patient.name);
-      if (patient.generalPractitioner) {
-        patient._practitionerName = this.humanNameStr(patient.generalPractitioner.name);
-      }
+      patient._name = humanNameToString(patient.name);
       patient._age = this.getPatientAge(patient);
       patient._address = this.getPatientAddress(patient);
       patient._telecom = this.getPatientTelecom(patient);

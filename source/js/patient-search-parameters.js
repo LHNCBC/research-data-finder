@@ -1,6 +1,10 @@
+// See https://www.hl7.org/fhir/patient.html#search for description of Patient search parameters
+
 import { valueSets } from "./token-value-sets";
 import * as moment from "moment";
 import { getAutocompleterById } from "./search-parameters";
+import { FhirBatchQuery } from "./fhir-batch-query";
+import { humanNameToString } from "./utils";
 
 const searchName2column = {
   'given': 'name',
@@ -24,7 +28,12 @@ const column2resourceElementName = {
   'organization': 'managingOrganization'
 };
 
-export const PatientSearchParams = {
+export const PatientSearchParams = (function () {
+  let client;
+  return {
+    setFhirServer: serviceBaseUrl => {
+      client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch: 1});
+    },
   // Description of Patient search parameters:
   // column - this value specifies column name
   // getControlsHtml - creates controls for input parameter value(s)
@@ -56,8 +65,6 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
         '&active=' + document.getElementById(`${searchItemId}-active`).checked
     },
 
-    // TODO: https://www.hl7.org/fhir/patient.html#search
-
     // String search parameters
     ...[
       ['Patient address', 'address'],
@@ -71,10 +78,8 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
       ['Patient\'s given name', 'given'],
       ['Patient name', 'name'],
       ['Patient phonetic name', 'phonetic'],
-      // TODO: not released yet:
       ['Patient\'s identifier', 'identifier'],
       ['Patient\'s communication language', 'language'],
-      ['Patients linked to the given patient', 'link'],
       ['Patient\'s telecom details', 'telecom']
     ].reduce((_patientParams, [displayName, name]) => {
       _patientParams[displayName] = {
@@ -119,7 +124,7 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
     // Date search parameters
     ...[
       ['Patient\'s date of birth', 'birthdate'],
-      ['Patient\'s date of death', 'death-date'] //TODO as DateTime
+      ['Patient\'s date of death', 'death-date']
     ].reduce((_patientParams, [displayName, name]) => {
       _patientParams[displayName] = {
         column: mapSearchName2column(name),
@@ -142,23 +147,47 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit"></t
 
     // Reference search parameters
     ...[
-      ['Patient\'s nominated general practitioner', 'general-practitioner'],
-      ['Patient\'s managing organization', 'organization']
-    ].reduce((_patientParams, [displayName, name]) => {
+      ['Patient\'s nominated general practitioner', 'Practitioner', 'name', item => humanNameToString(item.resource.name), 'general-practitioner'],
+      ['Patients linked to the given patient', 'Patient', 'name', item => humanNameToString(item.resource.name), 'link'],
+      ['Patient\'s managing organization', 'Organization', 'name', item => item.resource.name, 'organization'],
+    ].reduce((_patientParams, [displayName, resourceName, filterName, itemToString, name]) => {
       _patientParams[displayName] = {
         column: mapSearchName2column(name),
         getControlsHtml: (searchItemId) =>
           `<input type="text" id="${searchItemId}-${name}" placeholder="${name.replace(/-/g, ' ')}">`,
         attachControls: (searchItemId) => {
-          // TODO: How to get list of possible references ??
-          // new Def.Autocompleter.Search(`${searchItemId}-${name}`,
-          //   "Some URL??", {
-          //   maxSelect: '*',
-          //   matchListValue: true
-          // });
+          new Def.Autocompleter.Search(`${searchItemId}-${name}`,
+            null, {
+              fhir: {
+                search: function (fieldVal, count) {
+                  return {
+                    then: function (success, error) {
+                      client.getWithCache(`${resourceName}?${filterName}=${fieldVal}&_count=${count}`, (status, data) => {
+                        if (status === 200) {
+                          success({
+                            "resourceType": "ValueSet",
+                            "expansion": {
+                              "total": data.total,
+                              "contains": (data.entry || []).map(item => ({
+                                code: /*resourceName + '/' + */item.resource.id,
+                                display: itemToString(item)
+                              }))
+                            }
+                          })
+                        } else {
+                          error(data);
+                        }
+                      });
+                    }
+                  };
+                }
+              },
+              maxSelect: '*',
+              matchListValue: true
+            });
         },
         detachControls: (searchItemId) => {
-          // getAutocompleterById(`${searchItemId}-${name}`).destroy();
+          getAutocompleterById(`${searchItemId}-${name}`).destroy();
         },
         getCondition: (searchItemId) => {
           const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes().join(',');
@@ -171,7 +200,7 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit"></t
   },
 
   mapColumn2resourceElementName
-};
+}})();
 
 /**
  * Maps column name from PatientSearchParam.description

@@ -95,13 +95,18 @@ export class FhirBatchQuery {
           --this._activeReq;
           console.log("AJAX call returned in "+(new Date() - startAjaxTime));
           const status = oReq.status;
-          let data;
-          try {
-            data = oReq.responseText ? JSON.parse(oReq.responseText) : {}
-          } catch (e) {
-            data = {};
+
+          if (status === 200) {
+            callback(status, JSON.parse(oReq.responseText))
+          } else {
+            let error;
+            try {
+              error = oReq.responseText ? JSON.parse(oReq.responseText) : {}
+            } catch (e) {
+              error = {};
+            }
+            callback(status, this._getErrorDiagnostic(error));
           }
-          callback(status, data);
           this._postPending();
         }
       }
@@ -111,6 +116,19 @@ export class FhirBatchQuery {
       oReq.send();
       ++this._activeReq;
     }
+  }
+
+  /**
+   * Returns text with FHIR response issue diagnostics
+   * @param {Object} data
+   * @return {string}
+   */
+  _getErrorDiagnostic(data) {
+    if (data && data.issue && data.issue.length) {
+      return data.issue.map(item => item.diagnostics).join('\n') || '';
+    }
+
+    return '';
   }
 
   clearPendingRequests() {

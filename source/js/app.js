@@ -27,6 +27,11 @@ new Def.Autocompleter.Prefetch('fhirServer', [
   'https://lforms-fhir.nlm.nih.gov/baseR4',
   'https://lforms-fhir.nlm.nih.gov/baseDstu3']);
 
+PatientSearchParams.setFhirServer(document.getElementById('fhirServer').value);
+Def.Autocompleter.Event.observeListSelections('fhirServer', function(eventData) {
+  PatientSearchParams.setFhirServer(eventData.final_val);
+});
+
 const searchParams = new SearchParameters('#searchParamsAfterThisRow', PatientSearchParams);
 
 var loincAC = new Def.Autocompleter.Search('loincTests',
@@ -76,21 +81,6 @@ function showProgress(percent) {
   showNonResultsMsg(`Loading observations... ${percent}%`);
 }
 
-/**
- * Returns HTML with FHIR response issue diagnostics
- * @param {Object} data
- * @return {string}
- */
-function getErrorDiagnostic(data) {
-  if (data && data.issue && data.issue.length) {
-    const errorHtml = data.issue.map(item => item.diagnostics).join('<br>');
-
-    return errorHtml ? ':<br>' + errorHtml : '';
-  }
-
-  return '';
-}
-
 const observationsTable = new ObservationsTable('resultsTable')
 
 /**
@@ -124,7 +114,8 @@ export function loadObs() {
 
   client.getWithCache(`Patient?_elements=${elements}${conditions}`, function (status, data) {
     if (status !== 200) {
-      showNonResultsMsg(`Could not load Patient list${getErrorDiagnostic(data)}`);
+      showNonResultsMsg(`Could not load Patient list`);
+      console.log(`FHIR search failed: ${data}`);
       loadButton.disabled = false;
     } else {
       if (!data.entry || !data.entry.length) {
