@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { valueSets } from "./token-value-sets";
+import { valueSets } from "./value-sets";
 import { humanNameToString } from "./utils";
 
 const reValueKey = /^value/;

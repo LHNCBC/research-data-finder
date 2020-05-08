@@ -1,6 +1,6 @@
 // See https://www.hl7.org/fhir/patient.html#search for description of Patient search parameters
 
-import { valueSets } from "./token-value-sets";
+import { valueSets } from "./value-sets";
 import * as moment from "moment";
 import { FhirBatchQuery } from "./fhir-batch-query";
 import { getAutocompleterById, humanNameToString } from "./utils";
@@ -66,7 +66,7 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
         }
       },
 
-      'Patient is active': {
+      'Patient\'s record is active': {
         column: 'active',
         getControlsHtml: (searchItemId) =>
           `<input id="${searchItemId}-active" type="checkbox">`,
@@ -75,6 +75,7 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
       },
 
       // String search parameters
+      // spread operator "..." is used to merge result of the "reduce" method into the parent object
       ...[
         ['Patient address', 'address'],
         ['Patient address: city', 'address-city'],
@@ -104,17 +105,18 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
       }, {}),
 
       // Search parameters with predefined value set
+      // spread operator "..." is used to merge result of the "reduce" method into the parent object
       ...[
         ['Patient address: use', 'address-use', valueSets.addressUse],
         ['Patient gender', 'gender', valueSets.administrativeGenderList]
-      ].reduce((_patientParams, [displayName, name, entities]) => {
+      ].reduce((_patientParams, [displayName, name, list]) => {
         _patientParams[displayName] = {
           column: mapSearchNameToColumn(name),
           getControlsHtml: (searchItemId) =>
             `<input type="text" id="${searchItemId}-${name}" placeholder="${name.replace(/-/g, ' ')}">`,
           attachControls: (searchItemId) => {
-            new Def.Autocompleter.Prefetch(`${searchItemId}-${name}`, entities.map(item => item.display), {
-              codes: entities.map(item => item.code),
+            new Def.Autocompleter.Prefetch(`${searchItemId}-${name}`, list.map(item => item.display), {
+              codes: list.map(item => item.code),
               maxSelect: '*',
               matchListValue: true
             });
@@ -131,6 +133,7 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
       }, {}),
 
       // Date search parameters
+      // spread operator "..." is used to merge result of the "reduce" method into the parent object
       ...[
         ['Patient\'s date of birth', 'birthdate'],
         ['Patient\'s date of death', 'death-date']
@@ -155,8 +158,9 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit"></t
 
 
       // Reference search parameters
+      // spread operator "..." is used to merge result of the "reduce" method into the parent object
       ...[
-        ['Patient\'s nominated general practitioner', 'Practitioner', 'name', item => humanNameToString(item.resource.name), 'general-practitioner'],
+        ['Patient\'s general practitioner', 'Practitioner', 'name', item => humanNameToString(item.resource.name), 'general-practitioner'],
         ['Patients linked to the given patient', 'Patient', 'name', item => humanNameToString(item.resource.name), 'link'],
         ['Patient\'s managing organization', 'Organization', 'name', item => item.resource.name, 'organization'],
       ].reduce((_patientParams, [displayName, resourceName, filterName, itemToString, name]) => {

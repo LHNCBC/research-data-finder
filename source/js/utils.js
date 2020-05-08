@@ -12,13 +12,13 @@ export function humanNameToString(nameObj) {
   if (name) {
     const given = name.given || [],
       firstName = given[0] || '',
-      lasName = name.family || '';
+      lastName = name.family || '';
     let middleName = given[1] || '';
 
     if (middleName.length === 1) {
       middleName += '.';
     }
-    rtn = [firstName, middleName, lasName].filter(item => item).join(' ');
+    rtn = [firstName, middleName, lastName].filter(item => item).join(' ');
   }
 
   return rtn || null;

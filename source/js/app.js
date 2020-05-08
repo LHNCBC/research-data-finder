@@ -58,7 +58,7 @@ categoryAC.setFieldToListValue('Vital Signs');
  *  Used to show a message when there are no results to display.
  */
 function showNonResultsMsg(msg) {
-  noResultsMsg.innerHTML=msg;
+  noResultsMsg.innerText=msg;
   noResultsMsg.style.display = '';
   resultsSection.style.display = 'none';
   downloadButton.style.display = 'none';
