@@ -1,3 +1,5 @@
+import { getAutocompleterById } from "./utils";
+
 export class SearchParameters {
   /**
    * Inserts the component after table row selected by anchorSelector
@@ -237,17 +239,6 @@ export class SearchParameters {
    * @return {Array}
    */
   getResourceElements(persistentColumns) {
-    return this.getColumns(persistentColumns).map(this.searchParams.mapColumn2resourceElementName);
+    return this.getColumns(persistentColumns).map(this.searchParams.mapColumnToResourceElementName);
   }
-}
-
-/**
- * Get autocompleter associated with an input element by its id
- * @param {string} inputId
- * @return {Object}
- */
-export function getAutocompleterById(inputId) {
-  const element = document.getElementById(inputId);
-
-  return element && element.autocomp;
 }

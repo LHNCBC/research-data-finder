@@ -2,11 +2,15 @@
 
 import { valueSets } from "./token-value-sets";
 import * as moment from "moment";
-import { getAutocompleterById } from "./search-parameters";
 import { FhirBatchQuery } from "./fhir-batch-query";
-import { humanNameToString } from "./utils";
+import { getAutocompleterById, humanNameToString } from "./utils";
 
-const searchName2column = {
+/**
+ * Mapping from search parameter names to observation table column names.
+ * If the name of the search parameter is not mentioned in this mapping,
+ * this means that the column has the same name.
+ */
+const searchNameToColumn = {
   'given': 'name',
   'phonetic': 'name',
   'address-city': 'address',
@@ -18,10 +22,15 @@ const searchName2column = {
   'email': 'telecom',
 };
 
-const column2resourceElementName = {
+/**
+ * Mapping from observation table column names to resource element names.
+ * If the column name of the observation table is not mentioned in this mapping,
+ * this means that the name of the resource element has the same name.
+ */
+const columnToResourceElementName = {
   'age': 'birthDate',
   'birthdate': 'birthDate',
-  'death-date' : 'deceased',
+  'death-date': 'deceased',
   'email': 'telecom',
   'family': 'name',
   'general-practitioner': 'generalPractitioner',
@@ -34,130 +43,129 @@ export const PatientSearchParams = (function () {
     setFhirServer: serviceBaseUrl => {
       client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch: 1});
     },
-  // Description of Patient search parameters:
-  // column - this value specifies column name
-  // getControlsHtml - creates controls for input parameter value(s)
-  // attachControls - initializes controls
-  // detachControls - removes links to controls
-  // getCondition - returns URL parameters string with search condition according to value in controls
-  // all functions have parameter searchItemId - generic id for DOM
-  description: {
-    'Patient age': {
-      column: 'age',
-      getControlsHtml: (searchItemId) => {
-        return `\
-from <input type="number" id="${searchItemId}-ageFrom" placeholder="no limit">
-to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`;
-      },
-      getCondition: (searchItemId) => {
-        const ageFrom = document.getElementById(`${searchItemId}-ageFrom`).value;
-        const ageTo = document.getElementById(`${searchItemId}-ageTo`).value;
-        return (ageTo ? `&birthdate=ge${ageToBirthDateMin(+ageTo)}` : '')
-          + (ageFrom ? `&birthdate=le${ageToBirthDateMax(+ageFrom)}` : '');
-      }
-    },
-
-    'Patient is active': {
-      column: 'active',
-      getControlsHtml: (searchItemId) =>
-        `<input id="${searchItemId}-active" type="checkbox">`,
-      getCondition: (searchItemId) =>
-        '&active=' + document.getElementById(`${searchItemId}-active`).checked
-    },
-
-    // String search parameters
-    ...[
-      ['Patient address', 'address'],
-      ['Patient address: city', 'address-city'],
-      ['Patient address: country', 'address-country'],
-      ['Patient address: postal code', 'address-postalcode'],
-      ['Patient address: state', 'address-state'],
-      ['Patient\'s email', 'email'],
-      ['Patient\'s phone', 'phone'],
-      ['Patient\'s family', 'family'],
-      ['Patient\'s given name', 'given'],
-      ['Patient name', 'name'],
-      ['Patient phonetic name', 'phonetic'],
-      ['Patient\'s identifier', 'identifier'],
-      ['Patient\'s communication language', 'language'],
-      ['Patient\'s telecom details', 'telecom']
-    ].reduce((_patientParams, [displayName, name]) => {
-      _patientParams[displayName] = {
-        column: mapSearchName2column(name),
-        getControlsHtml: (searchItemId) =>
-          `<input type="text" style="width:100%" id="${searchItemId}-${name}" placeholder="${name.replace(/-/g, ' ')}">`,
-        getCondition: (searchItemId) => {
-          const value = document.getElementById(`${searchItemId}-${name}`).value;
-          return value.trim() ? `&${name}=${value}` : '';
-        }
-      };
-      return _patientParams;
-    }, {}),
-
-    // Search parameters with predefined value set
-    ...[
-      ['Patient address: use', 'address-use', valueSets.addressUse],
-      ['Patient gender', 'gender', valueSets.administrativeGenderList]
-    ].reduce((_patientParams, [displayName, name, entities]) => {
-      _patientParams[displayName] = {
-        column: mapSearchName2column(name),
-        getControlsHtml: (searchItemId) =>
-          `<input type="text" id="${searchItemId}-${name}" placeholder="${name.replace(/-/g, ' ')}">`,
-        attachControls: (searchItemId) => {
-          new Def.Autocompleter.Prefetch(`${searchItemId}-${name}`, entities.map(item => item.display), {
-            codes: entities.map(item => item.code),
-            maxSelect: '*',
-            matchListValue: true
-          });
-        },
-        detachControls: (searchItemId) => {
-          getAutocompleterById(`${searchItemId}-${name}`).destroy();
-        },
-        getCondition: (searchItemId) => {
-          const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes().join(',');
-          return codes ? `&${name}=${codes}` : '';
-        }
-      };
-      return _patientParams;
-    }, {}),
-
-    // Date search parameters
-    ...[
-      ['Patient\'s date of birth', 'birthdate'],
-      ['Patient\'s date of death', 'death-date']
-    ].reduce((_patientParams, [displayName, name]) => {
-      _patientParams[displayName] = {
-        column: mapSearchName2column(name),
+    // Description of Patient search parameters:
+    // column - this value specifies column name of the observation table
+    // getControlsHtml - creates controls for input parameter value(s)
+    // attachControls - initializes controls
+    // detachControls - removes links to controls
+    // getCondition - returns URL parameters string with search condition according to value in controls
+    // all functions have parameter searchItemId - generic id for DOM
+    description: {
+      'Patient age': {
+        column: 'age',
         getControlsHtml: (searchItemId) => {
           return `\
-from <input type="date" id="${searchItemId}-${name}-from" placeholder="no limit">
-to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit"></td>`;
+from <input type="number" id="${searchItemId}-ageFrom" placeholder="no limit">
+to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`;
         },
         getCondition: (searchItemId) => {
-          const from = document.getElementById(`${searchItemId}-${name}-from`).value;
-          const to = document.getElementById(`${searchItemId}-${name}-to`).value;
-
-          return (from ? `&${name}=ge${from}` : '')
-            + (to ? `&${name}=le${to}` : '');
+          const ageFrom = document.getElementById(`${searchItemId}-ageFrom`).value;
+          const ageTo = document.getElementById(`${searchItemId}-ageTo`).value;
+          return (ageTo ? `&birthdate=ge${ageToBirthDateMin(+ageTo)}` : '')
+            + (ageFrom ? `&birthdate=le${ageToBirthDateMax(+ageFrom)}` : '');
         }
-      };
-      return _patientParams;
-    }, {}),
+      },
 
-
-    // Reference search parameters
-    ...[
-      ['Patient\'s nominated general practitioner', 'Practitioner', 'name', item => humanNameToString(item.resource.name), 'general-practitioner'],
-      ['Patients linked to the given patient', 'Patient', 'name', item => humanNameToString(item.resource.name), 'link'],
-      ['Patient\'s managing organization', 'Organization', 'name', item => item.resource.name, 'organization'],
-    ].reduce((_patientParams, [displayName, resourceName, filterName, itemToString, name]) => {
-      _patientParams[displayName] = {
-        column: mapSearchName2column(name),
+      'Patient is active': {
+        column: 'active',
         getControlsHtml: (searchItemId) =>
-          `<input type="text" id="${searchItemId}-${name}" placeholder="${name.replace(/-/g, ' ')}">`,
-        attachControls: (searchItemId) => {
-          new Def.Autocompleter.Search(`${searchItemId}-${name}`,
-            null, {
+          `<input id="${searchItemId}-active" type="checkbox">`,
+        getCondition: (searchItemId) =>
+          '&active=' + document.getElementById(`${searchItemId}-active`).checked
+      },
+
+      // String search parameters
+      ...[
+        ['Patient address', 'address'],
+        ['Patient address: city', 'address-city'],
+        ['Patient address: country', 'address-country'],
+        ['Patient address: postal code', 'address-postalcode'],
+        ['Patient address: state', 'address-state'],
+        ['Patient\'s email', 'email'],
+        ['Patient\'s phone', 'phone'],
+        ['Patient\'s family', 'family'],
+        ['Patient\'s given name', 'given'],
+        ['Patient name', 'name'],
+        ['Patient phonetic name', 'phonetic'],
+        ['Patient\'s identifier', 'identifier'],
+        ['Patient\'s communication language', 'language'],
+        ['Patient\'s telecom details', 'telecom']
+      ].reduce((_patientParams, [displayName, name]) => {
+        _patientParams[displayName] = {
+          column: mapSearchNameToColumn(name),
+          getControlsHtml: (searchItemId) =>
+            `<input type="text" style="width:100%" id="${searchItemId}-${name}" placeholder="${name.replace(/-/g, ' ')}">`,
+          getCondition: (searchItemId) => {
+            const value = document.getElementById(`${searchItemId}-${name}`).value;
+            return value.trim() ? `&${name}=${value}` : '';
+          }
+        };
+        return _patientParams;
+      }, {}),
+
+      // Search parameters with predefined value set
+      ...[
+        ['Patient address: use', 'address-use', valueSets.addressUse],
+        ['Patient gender', 'gender', valueSets.administrativeGenderList]
+      ].reduce((_patientParams, [displayName, name, entities]) => {
+        _patientParams[displayName] = {
+          column: mapSearchNameToColumn(name),
+          getControlsHtml: (searchItemId) =>
+            `<input type="text" id="${searchItemId}-${name}" placeholder="${name.replace(/-/g, ' ')}">`,
+          attachControls: (searchItemId) => {
+            new Def.Autocompleter.Prefetch(`${searchItemId}-${name}`, entities.map(item => item.display), {
+              codes: entities.map(item => item.code),
+              maxSelect: '*',
+              matchListValue: true
+            });
+          },
+          detachControls: (searchItemId) => {
+            getAutocompleterById(`${searchItemId}-${name}`).destroy();
+          },
+          getCondition: (searchItemId) => {
+            const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes().join(',');
+            return codes ? `&${name}=${codes}` : '';
+          }
+        };
+        return _patientParams;
+      }, {}),
+
+      // Date search parameters
+      ...[
+        ['Patient\'s date of birth', 'birthdate'],
+        ['Patient\'s date of death', 'death-date']
+      ].reduce((_patientParams, [displayName, name]) => {
+        _patientParams[displayName] = {
+          column: mapSearchNameToColumn(name),
+          getControlsHtml: (searchItemId) => {
+            return `\
+from <input type="date" id="${searchItemId}-${name}-from" placeholder="no limit">
+to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit"></td>`;
+          },
+          getCondition: (searchItemId) => {
+            const from = document.getElementById(`${searchItemId}-${name}-from`).value;
+            const to = document.getElementById(`${searchItemId}-${name}-to`).value;
+
+            return (from ? `&${name}=ge${from}` : '')
+              + (to ? `&${name}=le${to}` : '');
+          }
+        };
+        return _patientParams;
+      }, {}),
+
+
+      // Reference search parameters
+      ...[
+        ['Patient\'s nominated general practitioner', 'Practitioner', 'name', item => humanNameToString(item.resource.name), 'general-practitioner'],
+        ['Patients linked to the given patient', 'Patient', 'name', item => humanNameToString(item.resource.name), 'link'],
+        ['Patient\'s managing organization', 'Organization', 'name', item => item.resource.name, 'organization'],
+      ].reduce((_patientParams, [displayName, resourceName, filterName, itemToString, name]) => {
+        _patientParams[displayName] = {
+          column: mapSearchNameToColumn(name),
+          getControlsHtml: (searchItemId) =>
+            `<input type="text" id="${searchItemId}-${name}" placeholder="${name.replace(/-/g, ' ')}">`,
+          attachControls: (searchItemId) => {
+            new Def.Autocompleter.Search(`${searchItemId}-${name}`, null, {
               fhir: {
                 search: function (fieldVal, count) {
                   return {
@@ -185,40 +193,40 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit"></t
               maxSelect: '*',
               matchListValue: true
             });
-        },
-        detachControls: (searchItemId) => {
-          getAutocompleterById(`${searchItemId}-${name}`).destroy();
-        },
-        getCondition: (searchItemId) => {
-          const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes().join(',');
-          return codes ? `&${name}=${codes}` : '';
-        }
-      };
-      return _patientParams;
-    }, {})
+          },
+          detachControls: (searchItemId) => {
+            getAutocompleterById(`${searchItemId}-${name}`).destroy();
+          },
+          getCondition: (searchItemId) => {
+            const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes().join(',');
+            return codes ? `&${name}=${codes}` : '';
+          }
+        };
+        return _patientParams;
+      }, {})
 
-  },
+    },
 
-  mapColumn2resourceElementName
-}})();
+    mapColumnToResourceElementName: mapColumnToResourceElementName
+  }
+})();
 
 /**
- * Maps column name from PatientSearchParam.description
- * to resource element name for a request to the FHIR server
+ * Maps the observation table column name to the resource element name for a request to the FHIR server
  * @param {string} column
  * @return {string}
  */
-function mapColumn2resourceElementName(column) {
-  return column2resourceElementName[column] || column;
+function mapColumnToResourceElementName(column) {
+  return columnToResourceElementName[column] || column;
 }
 
 /**
- * Maps search param name to column name
+ * Maps search param name to observation column name
  * @param {string} column
  * @return {string}
  */
-function mapSearchName2column (column) {
-  return searchName2column[column] || column;
+function mapSearchNameToColumn(column) {
+  return searchNameToColumn[column] || column;
 }
 
 /**
@@ -227,7 +235,7 @@ function mapSearchName2column (column) {
  * @return {string}
  */
 function ageToBirthDateMin(age) {
-  return moment().subtract(age+1, 'years').add(1, 'day').format('YYYY-MM-DD')
+  return moment().subtract(age + 1, 'years').add(1, 'day').format('YYYY-MM-DD')
 }
 
 /**

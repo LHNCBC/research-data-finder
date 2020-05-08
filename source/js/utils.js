@@ -23,3 +23,14 @@ export function humanNameToString(nameObj) {
 
   return rtn || null;
 }
+
+/**
+ * Get autocompleter associated with an input element by its id
+ * @param {string} inputId
+ * @return {Object}
+ */
+export function getAutocompleterById(inputId) {
+  const element = document.getElementById(inputId);
+
+  return element && element.autocomp;
+}
