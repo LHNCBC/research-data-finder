@@ -155,12 +155,18 @@ export function loadObs() {
                   allObservations[index] = (observations.entry || []).map(item => item.resource);
                   if (completedRequestCount === totalRequestCount) {
                     reportSpan.innerText = `(loaded data in ${((new Date() - startDate)/1000).toFixed(1)} s)`;
-                    observationsTable.fill({
-                      patients: patients,
-                      observations: [].concat.apply([], allObservations)
-                    }, perPatientPerTest, serviceBaseUrl);
+
+                    const observations = [].concat(...allObservations);
+                    if (observations.length) {
+                      observationsTable.fill({
+                        patients: patients,
+                        observations
+                      }, perPatientPerTest, serviceBaseUrl);
+                      showResults();
+                    } else {
+                      showNonResultsMsg('No matching Observations found.');
+                    }
                     loadButton.disabled = false;
-                    showResults();
                   }
                 }
               });
