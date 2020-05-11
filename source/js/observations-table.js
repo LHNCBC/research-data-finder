@@ -58,9 +58,14 @@ export class ObservationsTable {
         text: obs => this.getPatient(obs)._address || ''
       },
       {
-        title: 'Telecom',
-        columnName: 'telecom',
-        text: obs => this.getPatient(obs)._telecom || ''
+        title: 'Phone',
+        columnName: 'phone',
+        text: obs => this.getPatient(obs)._phone || ''
+      },
+      {
+        title: 'Email',
+        columnName: 'email',
+        text: obs => this.getPatient(obs)._email || ''
       },
       // TODO: Can't just get a Practitioner name from Patient data
       // {
@@ -203,13 +208,18 @@ export class ObservationsTable {
   }
 
   /**
-   * Returns the html for email column of the Patient from the Patient Resource
+   * Returns the html for email/phone column of the Patient from the Patient Resource
    * @param {Object} res the Patient resource
+   * @param {String} system 'email'/'phone'
    * @return {String}
    */
-  getPatientTelecom(res) {
+  getPatientTelecom(res, system) {
     return (res.telecom || [])
-      .map(item => `${entitiesMap.addressUse[item.use] || '' + item.system }: ${item.value}`)
+      .filter(item => item.system === system)
+      .map(item => {
+        const use = entitiesMap.addressUse[item.use];
+        return `${use ? use + ':' : ''} ${item.value}`
+      })
       .join('<br>');
   }
 
@@ -290,7 +300,8 @@ export class ObservationsTable {
       patient._name = humanNameToString(patient.name);
       patient._age = this.getPatientAge(patient);
       patient._address = this.getPatientAddress(patient);
-      patient._telecom = this.getPatientTelecom(patient);
+      patient._email = this.getPatientTelecom(patient, 'email');
+      patient._phone = this.getPatientTelecom(patient, 'phone');
       refs[`${patient.resourceType}/${patient.id}`] = patient;
       return refs;
     },{});

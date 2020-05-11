@@ -17,9 +17,7 @@ const searchNameToColumn = {
   'address-country': 'address',
   'address-postalcode': 'address',
   'address-state': 'address',
-  'address-use': 'address',
-  'phone': 'telecom',
-  'email': 'telecom',
+  'address-use': 'address'
 };
 
 /**
@@ -31,6 +29,7 @@ const columnToResourceElementName = {
   'age': 'birthDate',
   'birthdate': 'birthDate',
   'death-date': 'deceased',
+  'phone': 'telecom',
   'email': 'telecom',
   'family': 'name',
   'general-practitioner': 'generalPractitioner',
