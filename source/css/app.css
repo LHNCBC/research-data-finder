@@ -160,6 +160,11 @@ a:focus, a:hover {
 }
 /* End of styles for the navigation links */
 
+/* This class is used to search for elements that should be displayed when the result should appear */
+.show-results {
+  display: none;
+}
+
 /* Styles for the footer */
 #fine-print {
   border-top: 2px solid #0BACB6;

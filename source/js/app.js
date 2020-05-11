@@ -10,11 +10,11 @@ import { SearchParameters } from "./search-parameters";
 import { PatientSearchParams } from "./patient-search-parameters";
 
 const noResultsMsg = document.getElementById('noResults'),
-  resultsSection = document.getElementById('results'),
+  resultSections = $('.show-results'),
   catLimitRow = document.getElementById('catSel'),
   testLimitRow = document.getElementById('testSel'),
   loadButton = document.getElementById('load'),
-  downloadButton = document.getElementById('download'),
+  reportSpan = document.getElementById('report'),
   performanceTuning = document.getElementById('performanceTuning');
 
 let categoryLimits = true;
@@ -60,8 +60,7 @@ categoryAC.setFieldToListValue('Vital Signs');
 function showNonResultsMsg(msg) {
   noResultsMsg.innerText=msg;
   noResultsMsg.style.display = '';
-  resultsSection.style.display = 'none';
-  downloadButton.style.display = 'none';
+  resultSections.hide();
 }
 
 /**
@@ -69,8 +68,7 @@ function showNonResultsMsg(msg) {
  */
 function showResults() {
   noResultsMsg.style.display = 'none';
-  resultsSection.style.display = '';
-  downloadButton.style.display = '';
+  resultSections.show();
 }
 
 /**
@@ -112,6 +110,7 @@ export function loadObs() {
 
   observationsTable.setAdditionalColumns(searchParams.getColumns());
 
+  const startDate = new Date();
   client.getWithCache(`Patient?_elements=${elements}${conditions}`, function (status, data) {
     if (status !== 200) {
       showNonResultsMsg(`Could not load Patient list`);
@@ -155,6 +154,7 @@ export function loadObs() {
                   showProgress(Math.floor(++completedRequestCount * 100 / totalRequestCount));
                   allObservations[index] = (observations.entry || []).map(item => item.resource);
                   if (completedRequestCount === totalRequestCount) {
+                    reportSpan.innerText = `(loaded data in ${((new Date() - startDate)/1000).toFixed(1)} s)`;
                     observationsTable.fill({
                       patients: patients,
                       observations: [].concat.apply([], allObservations)

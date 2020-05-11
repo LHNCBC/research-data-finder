@@ -69,7 +69,7 @@ export class FhirBatchQuery {
       oReq.onreadystatechange = () => {
         if (oReq.readyState === 4) {
           --this._activeReq;
-          console.log("Bach AJAX call returned in "+(new Date() - startAjaxTime));
+          console.log("Batch AJAX call returned in "+(new Date() - startAjaxTime));
           const status = oReq.status,
             data = status === 200
               ? JSON.parse(oReq.responseText).entry.map(item => item.resource)

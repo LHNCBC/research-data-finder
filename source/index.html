@@ -126,9 +126,10 @@
       </div>
 
       <button id=load onclick="app.loadObs()">Load Data</button>
-      <button id=download onclick="app.downloadObs()" style="display: none;">Download (in CSV format)</button>
+      <button onclick="app.downloadObs()" class="show-results">Download (in CSV format)</button>
+      <span id=report class="show-results"></span>
       <p style="display: none" id="noResults">No matching Observations found.</p>
-      <div id=results style="display: none">
+      <div id=results class="show-results">
         <div style="display:none"><!-- only needed for screenshots currently-->
         Export to: <button id="exportCSV" onclick="window.alert('Not yet suppprted')">CSV</button>
         <button id="exportOncor" onclick="window.alert('Not yet suppprted')">MyResearch.ONCOR</button>
