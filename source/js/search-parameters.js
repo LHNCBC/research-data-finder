@@ -225,9 +225,9 @@ export class SearchParameters {
     Object.keys(this.selectedParams).forEach((key) => {
       const paramName = this.selectedParams[key];
       const column = this.searchParams.description[paramName].column;
-      if (column) {
+      [].concat(column).forEach(column => {
         columns[column] = true;
-      }
+      });
     });
 
     return Object.keys(columns);

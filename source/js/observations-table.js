@@ -67,6 +67,14 @@ export class ObservationsTable {
         columnName: 'email',
         text: obs => this.getPatient(obs)._email || ''
       },
+      {
+        title: 'Language',
+        columnName: 'language',
+        text: obs => {
+          const communication = this.getPatient(obs).communication;
+          return communication && communication.language || '';
+        }
+      },
       // TODO: Can't just get a Practitioner name from Patient data
       // {
       //   title: 'General practitioner',

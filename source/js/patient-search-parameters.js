@@ -17,7 +17,8 @@ const searchNameToColumn = {
   'address-country': 'address',
   'address-postalcode': 'address',
   'address-state': 'address',
-  'address-use': 'address'
+  'address-use': 'address',
+  'telecom': ['phone', 'email']
 };
 
 /**
@@ -33,7 +34,8 @@ const columnToResourceElementName = {
   'email': 'telecom',
   'family': 'name',
   'general-practitioner': 'generalPractitioner',
-  'organization': 'managingOrganization'
+  'organization': 'managingOrganization',
+  'language': 'communication'
 };
 
 export const PatientSearchParams = (function () {
@@ -43,7 +45,7 @@ export const PatientSearchParams = (function () {
       client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch: 1});
     },
     // Description of Patient search parameters:
-    // column - this value specifies column name of the observation table
+    // column - this value specifies column name of the observation table to show (sometimes could be array of column names)
     // getControlsHtml - creates controls for input parameter value(s)
     // attachControls - initializes controls
     // detachControls - removes links to controls
