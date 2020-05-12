@@ -1,16 +1,8 @@
 import * as moment from 'moment';
-import { valueSets } from "./value-sets";
-import { humanNameToString } from "./utils";
+import { valueSetsMap } from "./value-sets";
+import { addressToStringArray, humanNameToString } from "./utils";
 
 const reValueKey = /^value/;
-
-const entitiesMap = Object.keys(valueSets).reduce((_entitiesMap, entityName) => {
-  _entitiesMap[entityName] = valueSets[entityName].reduce((_entityMap, item) => {
-    _entityMap[item.code] = item.display;
-    return _entityMap;
-  }, {});
-  return _entitiesMap;
-}, {});
 
 export class ObservationsTable {
   constructor(tableId) {
@@ -35,7 +27,7 @@ export class ObservationsTable {
       {
         title: 'Gender',
         columnName: 'gender',
-        text: obs => entitiesMap.administrativeGenderList[this.getPatient(obs).gender] || ''
+        text: obs => valueSetsMap.administrativeGenderList[this.getPatient(obs).gender] || ''
       },
       {
         title: 'Age',
@@ -55,17 +47,17 @@ export class ObservationsTable {
       {
         title: 'Address',
         columnName: 'address',
-        text: obs => this.getPatient(obs)._address || ''
+        text: obs => this.getPatient(obs)._address.join('<br>')
       },
       {
         title: 'Phone',
         columnName: 'phone',
-        text: obs => this.getPatient(obs)._phone || ''
+        text: obs => this.getPatient(obs)._phone.join('<br>')
       },
       {
         title: 'Email',
         columnName: 'email',
-        text: obs => this.getPatient(obs)._email || ''
+        text: obs => this.getPatient(obs)._email.join('<br>')
       },
       {
         title: 'Language',
@@ -145,7 +137,13 @@ export class ObservationsTable {
         return {
           title: desc.title,
           text: obs => obs.id,
-        }
+        };
+      } if (['phone', 'email', 'address'].indexOf(desc.columnName) !== -1) {
+        return {
+          title: desc.title,
+          columnName: desc.columnName,
+          text: obs => this.getPatient(obs)['_' + desc.columnName].join('\n')
+        };
       } else {
         return desc;
       }
@@ -205,17 +203,6 @@ export class ObservationsTable {
   }
 
   /**
-   * Returns the address string of the Patient from the Patient Resource
-   * @param {Object} res the Patient resource
-   * @return {String}
-   */
-  getPatientAddress(res) {
-    //TODO: how to show multiple addresses
-    const address = res.address && res.address[0];
-    return address && address.use? `${entitiesMap.addressUse[address.use]}: ${address.line}, ${address.city}, ${address.state}, ${address.postalCode}, ${address.country}` : '';
-  }
-
-  /**
    * Returns the html for email/phone column of the Patient from the Patient Resource
    * @param {Object} res the Patient resource
    * @param {String} system 'email'/'phone'
@@ -225,10 +212,9 @@ export class ObservationsTable {
     return (res.telecom || [])
       .filter(item => item.system === system)
       .map(item => {
-        const use = entitiesMap.addressUse[item.use];
-        return `${use ? use + ':' : ''} ${item.value}`
-      })
-      .join('<br>');
+        const use = valueSetsMap.contactPointUse[item.use];
+        return `${use ? use + ': ' : ''} ${item.value}`
+      });
   }
 
   /**
@@ -307,7 +293,7 @@ export class ObservationsTable {
     this.refToPatient = data.patients.reduce((refs, patient) => {
       patient._name = humanNameToString(patient.name);
       patient._age = this.getPatientAge(patient);
-      patient._address = this.getPatientAddress(patient);
+      patient._address = addressToStringArray(patient.address);
       patient._email = this.getPatientTelecom(patient, 'email');
       patient._phone = this.getPatientTelecom(patient, 'phone');
       refs[`${patient.resourceType}/${patient.id}`] = patient;

@@ -45,7 +45,7 @@ export const PatientSearchParams = (function () {
       client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch: 1});
     },
     // Description of Patient search parameters:
-    // column - this value specifies column name of the observation table to show (sometimes could be array of column names)
+    // column - this value specifies the column name (of the HTML table of the observation data) to show, sometimes could be array of column names
     // getControlsHtml - creates controls for input parameter value(s)
     // attachControls - initializes controls
     // detachControls - removes links to controls

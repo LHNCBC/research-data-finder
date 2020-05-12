@@ -5,6 +5,8 @@
  * @param {Array} nameObj an array of the HumanName elements
  * @return {string|null}
  */
+import { valueSetsMap } from "./value-sets";
+
 export function humanNameToString(nameObj) {
   let rtn;
   const name = nameObj && nameObj[0];
@@ -33,4 +35,20 @@ export function getAutocompleterById(inputId) {
   const element = document.getElementById(inputId);
 
   return element && element.autocomp;
+}
+
+/**
+ * Returns the array of address string from FHIR Address type
+ * @param {Object} addrObj
+ * @return {String[]}
+ */
+export function addressToStringArray(addrObj) {
+  return (addrObj || []).map(address => {
+    if (!address) {
+      return '';
+    }
+    const addressString = [address.line, address.city, address.state, address.postalCode, address.country]
+      .filter(item => item).join(', ');
+    return address.use ? `${valueSetsMap.addressUse[address.use]}: ${addressString}` : addressString;
+  });
 }
