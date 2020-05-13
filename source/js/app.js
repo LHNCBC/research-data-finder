@@ -8,9 +8,10 @@ import { ObservationsTable } from './observations-table'
 import { FhirBatchQuery } from "./fhir-batch-query";
 import { SearchParameters } from "./search-parameters";
 import { PatientSearchParams } from "./patient-search-parameters";
+import { slice } from "./utils";
 
 const noResultsMsg = document.getElementById('noResults'),
-  resultSections = $('.show-results'),
+  resultSections = document.querySelectorAll('.results'),
   catLimitRow = document.getElementById('catSel'),
   testLimitRow = document.getElementById('testSel'),
   loadButton = document.getElementById('load'),
@@ -54,13 +55,32 @@ var categoryAC = new Def.Autocompleter.Prefetch('categories', catData.display,
   {codes: catData.codes});
 categoryAC.setFieldToListValue('Vital Signs');
 
+const hiddenRegExp = /(\s*|^)hide\b/;
+/**
+ * Adds/removes css class 'hide' for elements depending on the "show" parameter
+ * @param {NodeListOf<Element>} elements
+ * @param {boolean} show
+ */
+function setVisible(elements, show) {
+  slice(elements).forEach(element => {
+    const className = element.className;
+    const isHidden = hiddenRegExp.test(className)
+    if (isHidden !== show) {
+      // nothing to change
+      return;
+    }
+
+    element.className = (isHidden ? className.replace(hiddenRegExp, '') : className) + (show ? '' : ' hide');
+  });
+}
+
 /**
  *  Used to show a message when there are no results to display.
  */
 function showNonResultsMsg(msg) {
   noResultsMsg.innerText=msg;
   noResultsMsg.style.display = '';
-  resultSections.hide();
+  setVisible(resultSections, false);
 }
 
 /**
@@ -68,7 +88,7 @@ function showNonResultsMsg(msg) {
  */
 function showResults() {
   noResultsMsg.style.display = 'none';
-  resultSections.show();
+  setVisible(resultSections, true)
 }
 
 /**

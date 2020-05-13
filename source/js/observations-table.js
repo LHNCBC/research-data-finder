@@ -138,7 +138,7 @@ export class ObservationsTable {
           title: desc.title,
           text: obs => obs.id,
         };
-      } if (['phone', 'email', 'address'].indexOf(desc.columnName) !== -1) {
+      } else if (['phone', 'email', 'address'].indexOf(desc.columnName) !== -1) {
         return {
           title: desc.title,
           columnName: desc.columnName,

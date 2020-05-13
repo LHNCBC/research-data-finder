@@ -39,7 +39,7 @@ export function getAutocompleterById(inputId) {
 
 /**
  * Returns the array of address string from FHIR Address type
- * @param {Object} addrObj
+ * @param {Object[]} addrObj
  * @return {String[]}
  */
 export function addressToStringArray(addrObj) {
@@ -52,3 +52,5 @@ export function addressToStringArray(addrObj) {
     return address.use ? `${valueSetsMap.addressUse[address.use]}: ${addressString}` : addressString;
   });
 }
+
+export const slice = Function.prototype.call.bind(Array.prototype.slice);

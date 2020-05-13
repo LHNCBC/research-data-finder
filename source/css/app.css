@@ -161,7 +161,7 @@ a:focus, a:hover {
 /* End of styles for the navigation links */
 
 /* This class is used to search for elements that should be displayed when the result should appear */
-.show-results {
+.results.hide {
   display: none;
 }
 
