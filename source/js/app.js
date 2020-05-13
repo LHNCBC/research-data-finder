@@ -57,7 +57,7 @@ categoryAC.setFieldToListValue('Vital Signs');
 
 const hiddenRegExp = /(\s*|^)hide\b/;
 /**
- * Adds/removes css class 'hide' for elements depending on the "show" parameter
+ * Adds/removes css class "hide" for elements depending on the "show" parameter
  * @param {NodeListOf<Element>} elements
  * @param {boolean} show
  */
