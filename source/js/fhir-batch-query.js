@@ -128,7 +128,7 @@ export class FhirBatchQuery {
       return data.issue.map(item => item.diagnostics).join('\n') || '';
     }
 
-    return '';
+    return 'Unknown Error';
   }
 
   clearPendingRequests() {

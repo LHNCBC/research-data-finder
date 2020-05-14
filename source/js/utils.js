@@ -1,15 +1,15 @@
+import { valueSetsMap } from "./value-sets";
+
 /**
  * Builds the human name string from an array of the HumanName elements
  * (see https://www.hl7.org/fhir/datatypes.html#humanname).
  * Returns the name string, or null if one could not be constructed.
- * @param {Array} nameObj an array of the HumanName elements
+ * @param {Object[]} nameElements - an array of the HumanName elements (now we use only the first one)
  * @return {string|null}
  */
-import { valueSetsMap } from "./value-sets";
-
-export function humanNameToString(nameObj) {
+export function humanNameToString(nameElements) {
   let rtn;
-  const name = nameObj && nameObj[0];
+  const name = nameElements && nameElements[0];
 
   if (name) {
     const given = name.given || [],
@@ -39,18 +39,19 @@ export function getAutocompleterById(inputId) {
 
 /**
  * Returns the array of address string from FHIR Address type
- * @param {Object[]} addrObj
+ * (see https://www.hl7.org/fhir/datatypes.html#address)
+ * @param {Object[]} addressElements - an array of the Address elements
  * @return {String[]}
  */
-export function addressToStringArray(addrObj) {
-  return (addrObj || []).map(address => {
+export function addressToStringArray(addressElements) {
+  return (addressElements || []).map(address => {
     if (!address) {
       return '';
     }
     const addressString = [address.line, address.city, address.state, address.postalCode, address.country]
       .filter(item => item).join(', ');
     return address.use ? `${valueSetsMap.addressUse[address.use]}: ${addressString}` : addressString;
-  });
+  }).filter(item => item);
 }
 
 export const slice = Function.prototype.call.bind(Array.prototype.slice);

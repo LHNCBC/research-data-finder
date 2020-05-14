@@ -203,10 +203,10 @@ export class ObservationsTable {
   }
 
   /**
-   * Returns the html for email/phone column of the Patient from the Patient Resource
+   * Returns a list of emails/phones for the Email/Phone table column from the Patient Resource
    * @param {Object} res the Patient resource
    * @param {String} system 'email'/'phone'
-   * @return {String}
+   * @return {String[]}
    */
   getPatientTelecom(res, system) {
     return (res.telecom || [])

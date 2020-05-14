@@ -99,7 +99,7 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
             `<input type="text" style="width:100%" id="${searchItemId}-${name}" placeholder="${name.replace(/-/g, ' ')}">`,
           getCondition: (searchItemId) => {
             const value = document.getElementById(`${searchItemId}-${name}`).value;
-            return value.trim() ? `&${name}=${value}` : '';
+            return value.trim() ? `&${name}=${encodeURIComponent(value)}` : '';
           }
         };
         return _patientParams;
@@ -127,7 +127,7 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
           },
           getCondition: (searchItemId) => {
             const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes().join(',');
-            return codes ? `&${name}=${codes}` : '';
+            return codes ? `&${name}=${encodeURIComponent(codes)}` : '';
           }
         };
         return _patientParams;
@@ -150,8 +150,8 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit"></t
             const from = document.getElementById(`${searchItemId}-${name}-from`).value;
             const to = document.getElementById(`${searchItemId}-${name}-to`).value;
 
-            return (from ? `&${name}=ge${from}` : '')
-              + (to ? `&${name}=le${to}` : '');
+            return (from ? `&${name}=ge${encodeURIComponent(from)}` : '')
+              + (to ? `&${name}=le${encodeURIComponent(to)}` : '');
           }
         };
         return _patientParams;
@@ -204,7 +204,7 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit"></t
           },
           getCondition: (searchItemId) => {
             const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes().join(',');
-            return codes ? `&${name}=${codes}` : '';
+            return codes ? `&${name}=${encodeURIComponent(codes)}` : '';
           }
         };
         return _patientParams;
