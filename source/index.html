@@ -50,7 +50,7 @@
     <!-- page header -->
     <div id="header">
       <a href="http://lhncbc.nlm.nih.gov" title="Lister Hill Center" id="logo">
-        <img src="lhncbc.jpg" alt="Lister Hill Center" />
+        <img src="images/lhncbc.jpg" alt="Lister Hill Center" />
       </a>
       <div id="siteNameBox">
         <span id=siteName>FHIR Research Data Finder</span><br>
@@ -83,16 +83,8 @@
           <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
             value="https://lforms-fhir.nlm.nih.gov/baseR4"></td></tr>
 
-          <tr><th>Maximum number of patients:</th><td><input type="number" id="maxPatientCount" value="100">
+          <tr id="searchParamsAfterThisRow"><th>Maximum number of patients:</th><td><input type="number" id="maxPatientCount" value="100">
           </td></tr>
-
-          <tr><th>Select patients by gender:</th><td>
-            <input type="text" id="gender" placeholder="gender"></td></tr>
-
-          <tr><th>Select patients by age:</th><td>
-            from
-            <input type="number" id="ageFrom" placeholder="no limit">
-            to <input type="number" id="ageTo" placeholder="no limit"></td></tr>
 
           <tr style="display: none;"><th>Limit observations by:</th><td>
             <input type="radio" name="limitType" id="limit2" autocomplete=off
@@ -134,9 +126,10 @@
       </div>
 
       <button id=load onclick="app.loadObs()">Load Data</button>
-      <button id=download onclick="app.downloadObs()" style="display: none;">Download (in CSV format)</button>
+      <button id=download onclick="app.downloadObs()" class="results hide">Download (in CSV format)</button>
+      <span id=report class="results hide"></span>
       <p style="display: none" id="noResults">No matching Observations found.</p>
-      <div id=results style="display: none">
+      <div id=results class="results hide">
         <div style="display:none"><!-- only needed for screenshots currently-->
         Export to: <button id="exportCSV" onclick="window.alert('Not yet suppprted')">CSV</button>
         <button id="exportOncor" onclick="window.alert('Not yet suppprted')">MyResearch.ONCOR</button>
@@ -159,7 +152,7 @@
         <li><a title="NIH Freedom of Information Act office"  href="http://www.nih.gov/icd/od/foia/index.htm"
          >Freedom of Information Act</a></li>
         <li class="last-item"><a title="USA.gov" href="http://www.usa.gov/"><img
-              src="USAgov.gif" alt="USA.gov" id="usagov"></a></li>
+                src="images/USAgov.gif" alt="USA.gov" id="usagov"></a></li>
       </ul>
       <ul class="horz-list">
         <li><a title="U.S. National Library of Medicine" href="http://www.nlm.nih.gov/"
@@ -175,9 +168,8 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"
      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
      crossorigin="anonymous"></script>
-    <script src="https://clinicaltables.nlm.nih.gov/autocomplete-lhc-versions/18.0.1/autocomplete-lhc.min.js"
-            integrity="sha384-97pV55KQmT9umpp1rrDmKVzSX4lAtCtTH9tqXhEdu30Gzi4PIFefS/WUOWVcwBdU"
+    <script src="https://clinicaltables.nlm.nih.gov/autocomplete-lhc-versions/18.1.1/autocomplete-lhc.min.js"
+            integrity="sha384-y5lNC4qz9o7wG9yIIQQNcxxqEkWqnPit6/VnEJ9jag/gFgocblckjXdkE4NWh+0U"
             crossorigin="anonymous"></script>
-    <!--script src="autocomplete-lhc/autocomplete-lhc.min.js"></script>-->
   </body>
 </html>

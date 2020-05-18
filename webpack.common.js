@@ -6,7 +6,7 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 
 module.exports = {
-  entry: './app.js',
+  entry: './source/js/app.js',
   optimization: {
     minimizer: [new TerserJSPlugin({sourceMap: true}), new OptimizeCSSAssetsPlugin({})],
   },
@@ -19,7 +19,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       filename: 'index.html', // under output.path
-      template: 'index.html'
+      template: 'source/index.html'
     }),
     new MiniCssExtractPlugin({
       filename: 'app.[contenthash].css',

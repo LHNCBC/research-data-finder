@@ -69,7 +69,7 @@ export class FhirBatchQuery {
       oReq.onreadystatechange = () => {
         if (oReq.readyState === 4) {
           --this._activeReq;
-          console.log("Bach AJAX call returned in "+(new Date() - startAjaxTime));
+          console.log("Batch AJAX call returned in "+(new Date() - startAjaxTime));
           const status = oReq.status,
             data = status === 200
               ? JSON.parse(oReq.responseText).entry.map(item => item.resource)
@@ -95,7 +95,18 @@ export class FhirBatchQuery {
           --this._activeReq;
           console.log("AJAX call returned in "+(new Date() - startAjaxTime));
           const status = oReq.status;
-          callback(status, status === 200 ? JSON.parse(oReq.responseText) : {});
+
+          if (status === 200) {
+            callback(status, JSON.parse(oReq.responseText))
+          } else {
+            let error;
+            try {
+              error = oReq.responseText ? JSON.parse(oReq.responseText) : {}
+            } catch (e) {
+              error = {};
+            }
+            callback(status, this._getErrorDiagnostic(error));
+          }
           this._postPending();
         }
       }
@@ -105,6 +116,19 @@ export class FhirBatchQuery {
       oReq.send();
       ++this._activeReq;
     }
+  }
+
+  /**
+   * Returns text with FHIR response issue diagnostics
+   * @param {Object} data
+   * @return {string}
+   */
+  _getErrorDiagnostic(data) {
+    if (data && data.issue && data.issue.length) {
+      return data.issue.map(item => item.diagnostics).join('\n') || '';
+    }
+
+    return 'Unknown Error';
   }
 
   clearPendingRequests() {

@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.5.0] - 2020-05-06
+### Changed
+- Allowed searching of any searchable Patient field
+- Added display of data loading time
+
 ## [1.4.0] - 2020-04-23
 ### Changed
 - Allowed selection of patients by gender and age

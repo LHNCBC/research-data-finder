@@ -1,24 +1,20 @@
 import * as moment from 'moment';
+import { valueSetsMap } from "./value-sets";
+import { addressToStringArray, humanNameToString } from "./utils";
 
 const reValueKey = /^value/;
-
-export const administrativeGenderList = [
-  { display: 'Male', code: 'male'},
-  { display: 'Female', code: 'female'},
-  { display: 'Other', code: 'other'},
-  { display: 'Unknown', code: 'unknown'},
-];
-
-const genderMap = administrativeGenderList.reduce((_genderMap, item) => {
-  _genderMap[item.code] = item.display;
-  return _genderMap;
-}, {});
 
 export class ObservationsTable {
   constructor(tableId) {
     this.tableId = tableId;
 
-    // Mapping for each cell in a row for display
+    // Mapping for each cell in a row for display:
+    // title - column caption
+    // columnName - if a value is specified, then this column is displayed by the condition
+    //              that this value is present in the column array for display (this._additionalColumns),
+    //              also this value specifies column name for a request to the FHIR server;
+    //              otherwise, if no value is specified, this column is constantly displayed.
+    // text - callback to get cell text/html
     this.viewCellsTemplate = [
       {
         title: 'Patient Id',
@@ -30,12 +26,57 @@ export class ObservationsTable {
       },
       {
         title: 'Gender',
-        text: obs => genderMap[this.getPatient(obs).gender] || ''
+        columnName: 'gender',
+        text: obs => valueSetsMap.administrativeGenderList[this.getPatient(obs).gender] || ''
       },
       {
         title: 'Age',
+        columnName: 'age',
         text: obs => this.getPatient(obs)._age || ''
       },
+      {
+        title: 'Birth date',
+        columnName: 'birthdate',
+        text: obs => this.getPatient(obs).birthDate || ''
+      },
+      {
+        title: 'Death date',
+        columnName: 'death-date',
+        text: obs => this.getPatient(obs).deceasedDateTime || ''
+      },
+      {
+        title: 'Address',
+        columnName: 'address',
+        text: obs => this.getPatient(obs)._address.join('<br>')
+      },
+      {
+        title: 'Phone',
+        columnName: 'phone',
+        text: obs => this.getPatient(obs)._phone.join('<br>')
+      },
+      {
+        title: 'Email',
+        columnName: 'email',
+        text: obs => this.getPatient(obs)._email.join('<br>')
+      },
+      {
+        title: 'Language',
+        columnName: 'language',
+        text: obs => {
+          const communication = this.getPatient(obs).communication;
+          return communication && communication.language || '';
+        }
+      },
+      // TODO: Can't just get a Practitioner name from Patient data
+      // {
+      //   title: 'General practitioner',
+      //   columnName: 'general-practitioner',
+      //   text: obs => {
+      //     const patient = this.getPatient(obs);
+      //     return patient && patient.generalPractitioner && patient.generalPractitioner[0]
+      //       && patient.generalPractitioner[0].reference || '';
+      //   }
+      // },
       {
         title: 'Date',
         text: obs => {
@@ -96,13 +137,19 @@ export class ObservationsTable {
         return {
           title: desc.title,
           text: obs => obs.id,
-        }
+        };
+      } else if (['phone', 'email', 'address'].indexOf(desc.columnName) !== -1) {
+        return {
+          title: desc.title,
+          columnName: desc.columnName,
+          text: obs => this.getPatient(obs)['_' + desc.columnName].join('\n')
+        };
       } else {
         return desc;
       }
     });
 
-    this.updateHeader();
+    this._additionalColumns = [];
   }
 
   /**
@@ -121,30 +168,7 @@ export class ObservationsTable {
     return document.getElementById(this.tableId).tBodies[0];
   }
 
-  /**
-   * Builds the Patient's name string from the Patient resource.
-   * Returns the name string, or null if one could not be constructed.
-   * @param {Object} res the Patient resource
-   * @return {string|null}
-   */
-  patientNameStr(res) {
-    let rtn;
-    const name = res.name && res.name[0];
 
-    if (name) {
-      const given = name.given || [],
-        firstName = given[0] || '',
-        lasName = name.family || '';
-      let middleName = given[1] || '';
-
-      if (middleName.length === 1) {
-        middleName += '.';
-      }
-      rtn = [firstName, middleName, lasName].filter(item => item).join(' ');
-    }
-
-    return rtn || null;
-  }
 
   /**
    * Returns the name of the Patient who is the subject of the Observation
@@ -176,6 +200,21 @@ export class ObservationsTable {
     if (birthDateStr) {
       return Math.floor(moment.duration(moment().diff(new Date(birthDateStr))).asYears());
     }
+  }
+
+  /**
+   * Returns a list of emails/phones for the Email/Phone table column from the Patient Resource
+   * @param {Object} res the Patient resource
+   * @param {String} system 'email'/'phone'
+   * @return {String[]}
+   */
+  getPatientTelecom(res, system) {
+    return (res.telecom || [])
+      .filter(item => item.system === system)
+      .map(item => {
+        const use = valueSetsMap.contactPointUse[item.use];
+        return `${use ? use + ': ' : ''} ${item.value}`
+      });
   }
 
   /**
@@ -224,7 +263,18 @@ export class ObservationsTable {
   }
 
   updateHeader() {
-    this.header.innerHTML = `<tr><th>${this.viewCellsTemplate.map(cell => cell.title).join('</th><th>')}</th></tr>`;
+    this.header.innerHTML = `<tr><th>${this._getViewCellsTemplate().map(cell => cell.title).join('</th><th>')}</th></tr>`;
+  }
+
+  setAdditionalColumns(columns) {
+    this._additionalColumns = columns || [];
+  }
+
+  _getViewCellsTemplate() {
+    return this.viewCellsTemplate.filter(item => !item.columnName || this._additionalColumns.indexOf(item.columnName) !== -1);
+  }
+  _getExportCellsTemplate() {
+    return this.exportCellsTemplate.filter(item => !item.columnName || this._additionalColumns.indexOf(item.columnName) !== -1);
   }
 
   /**
@@ -236,11 +286,16 @@ export class ObservationsTable {
   fill(data, perPatientPerTest, serviceBaseUrl) {
     let patientToCodeToCount = {};
 
+    this.updateHeader();
+
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
     this.refToPatient = data.patients.reduce((refs, patient) => {
-      patient._name = this.patientNameStr(patient);
+      patient._name = humanNameToString(patient.name);
       patient._age = this.getPatientAge(patient);
+      patient._address = addressToStringArray(patient.address);
+      patient._email = this.getPatientTelecom(patient, 'email');
+      patient._phone = this.getPatientTelecom(patient, 'phone');
       refs[`${patient.resourceType}/${patient.id}`] = patient;
       return refs;
     },{});
@@ -263,8 +318,9 @@ export class ObservationsTable {
       });
 
     // Update table
+    const viewCellsTemplate = this._getViewCellsTemplate();
     this.body.innerHTML = '<tr>' + this.data.map(obs => {
-      return '<td>' + this.viewCellsTemplate.map(cell => cell.text(obs)).join('</td><td>') + '</td>';
+      return '<td>' + viewCellsTemplate.map(cell => cell.text(obs)).join('</td><td>') + '</td>';
     }).join('</tr><tr>') + '</tr>';
   }
 
@@ -273,9 +329,10 @@ export class ObservationsTable {
    * @return {Blob}
    */
   getBlob() {
-    const header = this.exportCellsTemplate.map(cell => cell.title).join(','),
+    const cellsTemplate = this._getExportCellsTemplate();
+    const header = cellsTemplate.map(cell => cell.title).join(','),
       rows = this.data.map(obs => {
-        return this.exportCellsTemplate.map(cell => {
+        return cellsTemplate.map(cell => {
           const cellText = cell.text(obs);
 
           if (/["\s]/.test(cellText)) {
