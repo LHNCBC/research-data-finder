@@ -124,22 +124,23 @@ export function referenceParameters(descriptions, searchNameToColumn) {
             search: function (fieldVal, count) {
               return {
                 then: function (success, error) {
-                  getCurrentClient().getWithCache(`${resourceName}?${filterName}=${fieldVal}&_count=${count}`, (status, data) => {
-                    if (status === 200) {
-                      success({
-                        "resourceType": "ValueSet",
-                        "expansion": {
-                          "total": data.total,
-                          "contains": (data.entry || []).map(item => ({
-                            code: /*resourceName + '/' + */item.resource.id,
-                            display: itemToString(item)
-                          }))
-                        }
-                      })
-                    } else {
-                      error(data);
-                    }
-                  });
+                  getCurrentClient().getWithCache(`${resourceName}?${filterName}=${fieldVal}&_count=${count}`)
+                    .then(({status, data}) => {
+                      if (status === 200) {
+                        success({
+                          "resourceType": "ValueSet",
+                          "expansion": {
+                            "total": data.total,
+                            "contains": (data.entry || []).map(item => ({
+                              code: /*resourceName + '/' + */item.resource.id,
+                              display: itemToString(item)
+                            }))
+                          }
+                        })
+                      } else {
+                        error(data);
+                      }
+                    });
                 }
               };
             }
