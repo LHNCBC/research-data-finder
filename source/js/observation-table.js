@@ -1,10 +1,10 @@
 import * as moment from 'moment';
-import { valueSetsMap } from "./value-sets";
-import { addressToStringArray, humanNameToString } from "./utils";
+import { valueSetsMap } from "./common/value-sets";
+import { addressToStringArray, humanNameToString } from "./common/utils";
 
 const reValueKey = /^value/;
 
-export class ObservationsTable {
+export class ObservationTable {
   constructor(tableId) {
     this.tableId = tableId;
 
