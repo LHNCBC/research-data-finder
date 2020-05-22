@@ -127,24 +127,24 @@ export function loadObs() {
   const startDate = new Date();
   getPatients(client)
     .then((patientResources) => {
+      const patientCount = patientResources.length;
+
       reportSpan.innerText = `(loaded data in ${((new Date() - startDate) / 1000).toFixed(1)} s)`;
       loadButton.disabled = false;
-      if (patientResources.length) {
-        let completedRequestCount = 0,
-          allObservations = [],
-          error = false;
-        const patients = patientResources,
-          patientCount = patients.length,
-          urlSuffixes = codes && codes.length > 0
-            ? codes.map(code => `&_count=${perPatientPerTest}&${field}=${encodeURIComponent(code)}`)
-            : [`&_count=1000`],
-          suffixCount = urlSuffixes.length,
-          totalRequestCount = patientCount * suffixCount;
+      if (patientCount) {
+        let completedRequestCount = 0;
+        let allObservations = [];
+        let error = false;
+        const urlSuffixes = codes && codes.length > 0
+          ? codes.map(code => `&_count=${perPatientPerTest}&${field}=${encodeURIComponent(code)}`)
+          : [`&_count=1000`];
+        const suffixCount = urlSuffixes.length;
+        const totalRequestCount = patientCount * suffixCount;
 
         showProgress('Loading observations', 0);
 
         for (let i = 0; i < patientCount; ++i) {
-          const patient = patients[i];
+          const patient = patientResources[i];
 
           for (let j = 0; j < suffixCount; ++j) {
             const urlSuffix = urlSuffixes[j],
@@ -168,7 +168,7 @@ export function loadObs() {
                     const observations = [].concat(...allObservations);
                     if (observations.length) {
                       observationsTable.fill({
-                        patients: patients,
+                        patients: patientResources,
                         observations
                       }, perPatientPerTest, serviceBaseUrl);
                       showResults();
@@ -209,17 +209,15 @@ function getPatients(client) {
     showNonResultsMsg('Calculating patients count...');
 
     Promise.all([
-      // "_total=accurate" - because "_total=estimate" sometimes doesn't work
-      // "_count=-1" - we don't need any data, we only need the total number of records, but "_count=0" doesn't work
-      encounterConditions ? client.getWithCache(`${PATIENT}?_total=accurate&_count=-1&_elements=id&${patientConditions}`) : null,
-      encounterConditions ? client.getWithCache(`${ENCOUNTER}?_total=accurate&_count=-1&_elements=id&${encounterConditions}`) : null
+      encounterConditions ? client.getWithCache(`${PATIENT}?_summary=count&${patientConditions}`) : null,
+      encounterConditions ? client.getWithCache(`${ENCOUNTER}?_summary=count&${encounterConditions}`) : null
     ]).then(([patients, encounters]) => {
       showProgress('Searching patients', 0);
 
       if (patients && patients.data.total === 0 || encounters && encounters.data.total === 0) {
         showNonResultsMsg('No matching Patients found.');
         resolve([]);
-      } else if (encounters && encounters.data.total < patients.data.total) {
+      } else if (encounterConditions && encounters.data.total < patients.data.total) {
         let loaded = 0, processedPatients = {};
 
         // load encounters then load patients from encounter subjects
@@ -249,12 +247,12 @@ function getPatients(client) {
         client.resourcesMapFilter(client.getWithCache(
           `${PATIENT}?_count=${maxPatientCount}&_elements=${elements}&${patientConditions}`
         ), maxPatientCount, patient => {
-          if (!encounters) {
+          if (!encounterConditions) {
             showNonResultsMsg(`Calculating patients count...${Math.floor(Math.min(maxPatientCount, ++loaded) * 100 / maxPatientCount)}%`);
             return true;
           }
           return new Promise((resolve, reject) => {
-            client.getWithCache(`${ENCOUNTER}?_total=estimate&_count=-1&${encounterConditions}&subject:Patient=${patient.id}`)
+            client.getWithCache(`${ENCOUNTER}?_summary=count&${encounterConditions}&subject:Patient=${patient.id}`)
               .then(({data}) => {
                 const meetsTheConditions = data.total > 0
                 if (meetsTheConditions) {
