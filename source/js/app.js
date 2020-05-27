@@ -221,9 +221,9 @@ function getPatients(client) {
         let loaded = 0, processedPatients = {};
 
         // load encounters then load patients from encounter subjects
-        client.resourcesMapFilter(client.getWithCache(
-          `${ENCOUNTER}?_count=${maxPatientCount}&_elements=subject&${encounterConditions}`
-        ), maxPatientCount, encounter => {
+        client.resourcesMapFilter(
+          `${ENCOUNTER}?_elements=subject&${encounterConditions}`,
+          maxPatientCount, encounter => {
           const patientId = /^Patient\/(.*)/.test(encounter.subject.reference) && RegExp.$1;
           if (processedPatients[patientId]) {
             return false;
@@ -244,9 +244,9 @@ function getPatients(client) {
       } else {
         // load patients with filter by encounters if necessary
         let loaded = 0;
-        client.resourcesMapFilter(client.getWithCache(
-          `${PATIENT}?_count=${maxPatientCount}&_elements=${elements}&${patientConditions}`
-        ), maxPatientCount, patient => {
+        client.resourcesMapFilter(
+          `${PATIENT}?_elements=${elements}&${patientConditions}`,
+          maxPatientCount, patient => {
           if (!encounterConditions) {
             showNonResultsMsg(`Calculating patients count...${Math.floor(Math.min(maxPatientCount, ++loaded) * 100 / maxPatientCount)}%`);
             return true;

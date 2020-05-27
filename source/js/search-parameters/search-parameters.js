@@ -62,8 +62,6 @@ export class SearchParameters {
   }
 
 
-  //  The three methods below are used to generate identifiers for various parts of the markup for search parameter
-
   /**
    * Generates an identifier for a table row
    * from a generic identifier for a search parameter
@@ -210,6 +208,8 @@ export class SearchParameters {
    * Adds a new row with search parameter to the table of search parameters
    */
   addParam() {
+    // searchItemId is the unique virtual identifier of the controls group for each search parameter.
+    // Used as part of HTML element identifiers and for storing data associated with a search parameter.
     const searchItemId = this.item_prefix+(++this.item_generator);
     const paramResourceNameSelectorId = this.getParamResourceSelectorId(searchItemId);
     const rowId = this.getParamRowId(searchItemId);

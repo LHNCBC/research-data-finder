@@ -1,3 +1,5 @@
+import { updateUrlWithParam } from "./utils";
+
 let commonRequestCache = {}; // Map from url to result JSON
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
@@ -111,6 +113,8 @@ export class FhirBatchQuery {
         logPrefix: 'Batch'
       }).then(({status, data}) => {
         current.forEach(({resolve, reject}, index) => {
+          // See Batch/Transaction response description here:
+          // https://www.hl7.org/fhir/http.html#transaction-response
           const entry = data.entry[index];
           const status = /^(\d+)\s/.test(entry.response.status) && parseInt(RegExp.$1);
           if (this.isOK(status)) {
@@ -221,34 +225,59 @@ export class FhirBatchQuery {
     });
   }
 
-  getNextPageUrl(respond, newCount) {
+  /**
+   * Returns optimal page size to use with resourceMapFilter.
+   * This value should be so minimal as not to load a lot of unnecessary data,
+   * but sufficient to allow parallel loading of data to speed up the process.
+   * @return {number}
+   */
+  getOptimalPageSize() {
+    return this._maxPerBatch*this._maxActiveReq*2;
+  }
+
+  /**
+   * Extracts next page URL from a response (see: https://www.hl7.org/fhir/http.html#paging)
+   * @param {Object} response
+   * @return {string|false}
+   */
+  getNextPageUrl(response) {
     let result;
-    return respond.link
-      .some(
-        link => link.relation === 'next'
-        && (result = newCount ? link.url.replace(/([&?])_count=\d*/, '$1_count='+newCount) : link.url)
-      )
-      && result;
+    return response.link.some(link => link.relation === 'next' && (result = link.url)) && result;
   }
 
   /**
    * The map/filter function for resources.
    * @callback ResourceMapFilterCallback
    * @param {Object} resource
-   * @return {Promise<boolean>}
+   * @return {Promise<boolean|Object>}
    */
 
   /**
    * Returns the promise of resources(or mapped values) that meet the condition specified in a filter(map) function.
-   * @param {Object} firstRequest - request for first page of resources
+   * @param {string|Promise} url - URL to get resources
    * @param {number} count - the target number of resources
    * @param {ResourceMapFilterCallback} filterMapFunction - the resourcesFilter method calls the filterFunction
    *                                 one time for each resource to determine whether the element should
-   *                                 be included in the resulting array (returns true), skipped (returns false)
-   *                                 or replaced with new value(returns new value)
+   *                                 be included in the resulting array (returns Promise<true>), skipped (returns Promise<false>)
+   *                                 or replaced with new value(returns Promise<Object>)
    * @return {Promise<Array>}
    */
-  resourcesMapFilter(firstRequest, count, filterMapFunction) {
+  resourcesMapFilter(url, count, filterMapFunction) {
+    return this._resourcesMapFilter(
+      this.getWithCache(updateUrlWithParam(url, '_count', this.getOptimalPageSize())),
+      count,
+      filterMapFunction);
+  }
+
+  /**
+   * A private method that is called from a public method resourcesMapFilter.
+   * @param {Promise} firstRequest - promise to return the first page of resources
+   * @param {number} count - see public method resourcesMapFilter
+   * @param {ResourceMapFilterCallback} filterMapFunction - see public method resourcesMapFilter
+   * @return {Promise<Array>}
+   * @private
+   */
+  _resourcesMapFilter(firstRequest, count, filterMapFunction) {
     return new Promise((resolve, reject) => {
       firstRequest.then(({data}) => {
         const resources = data.entry.map(entry => entry.resource);
@@ -259,10 +288,10 @@ export class FhirBatchQuery {
               .map((res, index) => match[index] === true ? res : match[index])
               .filter(res => res !== false);
             const newCount = count - result.length;
-            const nextPageUrl = this.getNextPageUrl(data, Math.floor((this._maxPerBatch*this._maxActiveReq*2)*newCount/count));
+            const nextPageUrl = this.getNextPageUrl(data);
 
             if (result.length < count && nextPageUrl) {
-              this.resourcesMapFilter(this.getWithCache(nextPageUrl), newCount, filterMapFunction).then(nextPage => {
+              this._resourcesMapFilter(this.getWithCache(nextPageUrl), newCount, filterMapFunction).then(nextPage => {
                 resolve(result.concat(nextPage))
               }, reject);
             } else {
