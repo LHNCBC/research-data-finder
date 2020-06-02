@@ -41,7 +41,7 @@ export const EncounterSearchParameters = {
     // String search parameters:
     // [<display name>, <placeholder>, <search parameter name>]
     ...stringParameters([
-      // TODO: These parameters should use autompleter or something like that, but for now they use input type=text:
+      // TODO: These parameters should use autocompleter or something like that, but for now they use input type=text:
       ['Account', 'Accounts for billing for an Encounter', 'account'],
       ['Appointment(reference)', 'Accounts for billing for an Encounter', 'appointment'],
       ['Based on', 'The ServiceRequest that initiated this encounter', 'based-on'],
