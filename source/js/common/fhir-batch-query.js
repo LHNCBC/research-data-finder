@@ -255,7 +255,10 @@ export class FhirBatchQuery {
   resourcesMapFilter(url, count, filterMapFunction) {
     // The value (this._maxPerBatch*this._maxActiveReq*2) is the optimal page size to get resources for filtering/mapping:
     // this value should be so minimal as not to load a lot of unnecessary data, but sufficient to allow parallel
-    // loading of data to speed up the process
+    // loading of data to speed up the process.
+    // For example, if we want to load Patients whose Encounters meet certain criteria,
+    // we will load Encounters in portions of the specified optimal page size, and for each Encounter,
+    // load the Patient and add it to the result (if it is not already in it) until we get the target number of Patients.
     return this._resourcesMapFilter(
       this.getWithCache(updateUrlWithParam(url, '_count', this._maxPerBatch*this._maxActiveReq*2)),
       count,
