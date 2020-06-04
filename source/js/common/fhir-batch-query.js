@@ -226,16 +226,6 @@ export class FhirBatchQuery {
   }
 
   /**
-   * Returns optimal page size to use with resourceMapFilter.
-   * This value should be so minimal as not to load a lot of unnecessary data,
-   * but sufficient to allow parallel loading of data to speed up the process.
-   * @return {number}
-   */
-  getOptimalPageSize() {
-    return this._maxPerBatch*this._maxActiveReq*2;
-  }
-
-  /**
    * Extracts next page URL from a response (see: https://www.hl7.org/fhir/http.html#paging)
    * @param {Object} response
    * @return {string|false}
@@ -263,8 +253,11 @@ export class FhirBatchQuery {
    * @return {Promise<Array>}
    */
   resourcesMapFilter(url, count, filterMapFunction) {
+    // The value (this._maxPerBatch*this._maxActiveReq*2) is the optimal page size to get resources for filtering/mapping:
+    // this value should be so minimal as not to load a lot of unnecessary data, but sufficient to allow parallel
+    // loading of data to speed up the process
     return this._resourcesMapFilter(
-      this.getWithCache(updateUrlWithParam(url, '_count', this.getOptimalPageSize())),
+      this.getWithCache(updateUrlWithParam(url, '_count', this._maxPerBatch*this._maxActiveReq*2)),
       count,
       filterMapFunction);
   }
