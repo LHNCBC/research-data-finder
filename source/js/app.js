@@ -151,7 +151,7 @@ export function loadObs() {
               index = i * suffixCount + j;
 
             client.getWithCache(
-              `Observation?subject:reference=Patient/${patient.id}` +
+              `Observation?subject=Patient/${patient.id}` +
               `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` + urlSuffix)
               .then(({status, data}) => {
                 if (status !== 200) {
