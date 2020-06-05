@@ -2,13 +2,13 @@
 import '../css/app.css';
 
 // "Real" imports
-import * as catData from './categoryList';
+import * as catData from './common/category-list';
 import { saveAs } from 'file-saver';
-import { ObservationsTable } from './observations-table'
-import { FhirBatchQuery } from "./fhir-batch-query";
-import { SearchParameters } from "./search-parameters";
-import { PatientSearchParams } from "./patient-search-parameters";
-import { slice } from "./utils";
+import { ObservationTable } from './observation-table'
+import { FhirBatchQuery } from "./common/fhir-batch-query";
+import { SearchParameters, PatientSearchParameters, PATIENT, ENCOUNTER } from "./search-parameters";
+import { slice } from "./common/utils";
+import { EncounterSearchParameters } from "./search-parameters";
 
 const noResultsMsg = document.getElementById('noResults'),
   resultSections = document.querySelectorAll('.results'),
@@ -28,12 +28,11 @@ new Def.Autocompleter.Prefetch('fhirServer', [
   'https://lforms-fhir.nlm.nih.gov/baseR4',
   'https://lforms-fhir.nlm.nih.gov/baseDstu3']);
 
-PatientSearchParams.setFhirServer(document.getElementById('fhirServer').value);
+const searchParams = new SearchParameters('#searchParamsAfterThisRow', [PatientSearchParameters, EncounterSearchParameters]);
+searchParams.setFhirServer(document.getElementById('fhirServer').value);
 Def.Autocompleter.Event.observeListSelections('fhirServer', function(eventData) {
-  PatientSearchParams.setFhirServer(eventData.final_val);
+  searchParams.setFhirServer(eventData.final_val);
 });
-
-const searchParams = new SearchParameters('#searchParamsAfterThisRow', PatientSearchParams);
 
 var loincAC = new Def.Autocompleter.Search('loincTests',
   'https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?type=question',
@@ -93,13 +92,14 @@ function showResults() {
 
 /**
  * Used to show loading progress
+ * @param {string} message
  * @param {number} percent
  */
-function showProgress(percent) {
-  showNonResultsMsg(`Loading observations... ${percent}%`);
+function showProgress(message, percent) {
+  showNonResultsMsg(`${message}... ${percent}%`);
 }
 
-const observationsTable = new ObservationsTable('resultsTable')
+const observationsTable = new ObservationTable('resultsTable')
 
 /**
  *  Handles the request to load the observations.
@@ -107,15 +107,11 @@ const observationsTable = new ObservationsTable('resultsTable')
 export function loadObs() {
   loadButton.disabled = true;
 
-  const maxPatientCount = document.getElementById('maxPatientCount').value;
-  const maxPatientCondition = maxPatientCount ? `&_count=${maxPatientCount}` : '';
   const serviceBaseUrl = document.getElementById('fhirServer').value;
   const maxRequestsPerBatch = document.getElementById('maxRequestsPerBatch').value || undefined;
   const maxActiveRequests = document.getElementById('maxActiveRequests').value || undefined;
   const client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch, maxActiveRequests});
   const perPatientPerTest = document.getElementById('perPatientPerTest').value || Number.POSITIVE_INFINITY;
-  const conditions = `${maxPatientCondition}${searchParams.getConditions()}`;
-  const elements = searchParams.getResourceElements(['name']).join(',');
 
   let codes, field;
   if (categoryLimits) {
@@ -126,60 +122,53 @@ export function loadObs() {
     field = 'code';
   }
 
-  showNonResultsMsg('Searching patients...');
-
   observationsTable.setAdditionalColumns(searchParams.getColumns());
 
   const startDate = new Date();
-  client.getWithCache(`Patient?_elements=${elements}${conditions}`, function (status, data) {
-    if (status !== 200) {
-      showNonResultsMsg(`Could not load Patient list`);
-      console.log(`FHIR search failed: ${data}`);
-      loadButton.disabled = false;
-    } else {
-      if (!data.entry || !data.entry.length) {
-        showNonResultsMsg('No matching Patients found.');
-        loadButton.disabled = false;
-      } else {
-        let completedRequestCount = 0,
-          allObservations = [],
-          error = false;
-        const patients = data.entry.map(item => item.resource),
-          patientCount = patients.length,
-          urlSuffixes = codes && codes.length > 0
-            ? codes.map(code => `&_count=${perPatientPerTest}&${field}=${encodeURIComponent(code)}`)
-            : [`&_count=1000`],
-          suffixCount = urlSuffixes.length,
-          totalRequestCount = patientCount * suffixCount;
+  getPatients(client)
+    .then((patientResources) => {
+      const patientCount = patientResources.length;
 
-        showProgress(0);
+      reportSpan.innerText = `(loaded data in ${((new Date() - startDate) / 1000).toFixed(1)} s)`;
+      loadButton.disabled = false;
+      if (patientCount) {
+        let completedRequestCount = 0;
+        let allObservations = [];
+        let error = false;
+        const urlSuffixes = codes && codes.length > 0
+          ? codes.map(code => `&_count=${perPatientPerTest}&${field}=${encodeURIComponent(code)}`)
+          : [`&_count=1000`];
+        const suffixCount = urlSuffixes.length;
+        const totalRequestCount = patientCount * suffixCount;
+
+        showProgress('Loading observations', 0);
 
         for (let i = 0; i < patientCount; ++i) {
-          const patient = patients[i];
+          const patient = patientResources[i];
 
           for (let j = 0; j < suffixCount; ++j) {
             const urlSuffix = urlSuffixes[j],
               index = i * suffixCount + j;
 
             client.getWithCache(
-              `Observation?subject:reference=Patient/${patient.id}` +
-              `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` + urlSuffix,
-              (status, observations) => {
+              `Observation?subject=Patient/${patient.id}` +
+              `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` + urlSuffix)
+              .then(({status, data}) => {
                 if (status !== 200) {
                   client.clearPendingRequests();
                   loadButton.disabled = false;
                   error = true;
                   showNonResultsMsg('Could not load observation list');
                 } else if (!error) {
-                  showProgress(Math.floor(++completedRequestCount * 100 / totalRequestCount));
-                  allObservations[index] = (observations.entry || []).map(item => item.resource);
+                  showProgress('Loading observations', Math.floor(++completedRequestCount * 100 / totalRequestCount));
+                  allObservations[index] = (data.entry || []).map(item => item.resource);
                   if (completedRequestCount === totalRequestCount) {
                     reportSpan.innerText = `(loaded data in ${((new Date() - startDate)/1000).toFixed(1)} s)`;
 
                     const observations = [].concat(...allObservations);
                     if (observations.length) {
                       observationsTable.fill({
-                        patients: patients,
+                        patients: patientResources,
                         observations
                       }, perPatientPerTest, serviceBaseUrl);
                       showResults();
@@ -192,8 +181,92 @@ export function loadObs() {
               });
           }
         }
+      } else {
+        showNonResultsMsg('No matching Patients found.');
       }
-    }
+    }, ({error}) => {
+      showNonResultsMsg(`Could not load Patient list`);
+      console.log(`FHIR search failed: ${error}`);
+    })
+    .finally(() => {
+      loadButton.disabled = false;
+    });
+}
+
+/**
+ * Loads list of patients resources using search parameters.
+ * @param {FhirBatchQuery} client
+ * @return {Promise<Array>}
+ */
+function getPatients(client) {
+  const maxPatientCount = document.getElementById('maxPatientCount').value;
+  const patientConditions = `${searchParams.getConditions(PATIENT)}`;
+  const encounterConditions = `${searchParams.getConditions(ENCOUNTER)}`;
+  const elements = searchParams.getResourceElements(PATIENT,['name']).join(',');
+
+  return new Promise((resolve, reject) => {
+
+    showNonResultsMsg('Calculating patients count...');
+
+    Promise.all([
+      encounterConditions ? client.getWithCache(`${PATIENT}?_summary=count&${patientConditions}`) : null,
+      encounterConditions ? client.getWithCache(`${ENCOUNTER}?_summary=count&${encounterConditions}`) : null
+    ]).then(([patients, encounters]) => {
+      showProgress('Searching patients', 0);
+
+      if (patients && patients.data.total === 0 || encounters && encounters.data.total === 0) {
+        showNonResultsMsg('No matching Patients found.');
+        resolve([]);
+      } else if (encounterConditions && encounters.data.total < patients.data.total) {
+        let loaded = 0, processedPatients = {};
+
+        // load encounters then load patients from encounter subjects
+        client.resourcesMapFilter(
+          `${ENCOUNTER}?_elements=subject&${encounterConditions}`,
+          maxPatientCount, encounter => {
+          const patientId = /^Patient\/(.*)/.test(encounter.subject.reference) && RegExp.$1;
+          if (processedPatients[patientId]) {
+            return false;
+          }
+          processedPatients[patientId] = true;
+          return new Promise((resolve, reject) => {
+            client.getWithCache(
+              `${PATIENT}?_elements=${elements}&${patientConditions}&_id=${patientId}`
+            ).then(({data}) => {
+              const patientResource = data.entry && data.entry[0] && data.entry[0].resource
+              if (patientResource) {
+                showProgress('Searching patients', Math.floor(Math.min(maxPatientCount, ++loaded) * 100 / maxPatientCount));
+              }
+              resolve(patientResource || false);
+            }, reject);
+          })
+        }).then(resolve, reject);
+      } else {
+        // load patients with filter by encounters if necessary
+        let loaded = 0;
+        client.resourcesMapFilter(
+          `${PATIENT}?_elements=${elements}&${patientConditions}`,
+          maxPatientCount, patient => {
+          if (!encounterConditions) {
+            showNonResultsMsg(`Calculating patients count...${Math.floor(Math.min(maxPatientCount, ++loaded) * 100 / maxPatientCount)}%`);
+            return true;
+          }
+          return new Promise((resolve, reject) => {
+            client.getWithCache(`${ENCOUNTER}?_summary=count&${encounterConditions}&subject:Patient=${patient.id}`)
+              .then(({data}) => {
+                const meetsTheConditions = data.total > 0
+                if (meetsTheConditions) {
+                  showProgress('Searching patients', Math.floor(Math.min(maxPatientCount, ++loaded) * 100 / maxPatientCount));
+                }
+                resolve(meetsTheConditions);
+              }, reject);
+          });
+        }).then(resolve, reject);
+      }
+    }, ({error}) => {
+      showNonResultsMsg(`Could not calculate patients/encounters count`);
+      console.log(`FHIR search failed: ${error}`);
+    });
   });
 }
 

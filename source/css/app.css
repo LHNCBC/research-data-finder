@@ -35,7 +35,7 @@ a.external:after {
   margin: 0 0 0 5px;
 }
 
-label {font-weight: bold; width: 30em;}
+th label {font-weight: bold; width: 30em;}
 
 .autocomp_selected {width: 30em;}
 
@@ -53,7 +53,7 @@ h1, h2 {
 }
 p {margin-top: 0; margin-bottom: 10px}
 
-input {
+input[type="text"] {
   font-family: inherit;
   font-size: inherit;
   line-height: normal;
@@ -194,4 +194,12 @@ ul.horz-list li.last-item {
   padding-bottom: 1em;
 }
 
+.boolean-param {
+  display: flex;
+  align-items: center;
+}
+
+.boolean-param input {
+  margin: 0 3px;
+}
 /* End of styles for the footer */
