@@ -6,9 +6,6 @@ const os = require("os"),
 describe('Research Data Finder', function() {
   beforeAll(function () {
     setAngularSite(false);
-  });
-
-  beforeEach(function () {
     browser.get('/');
   });
 
@@ -19,17 +16,19 @@ describe('Research Data Finder', function() {
   //   browser.wait(EC.visibilityOf($('#results')));
   // });
 
-  it('should load observations filtered by tests', function () {
+  it('should load Patients', function () {
+    $('#loadPatients').click();
+    browser.wait(EC.visibilityOf($('#loadObservations')));
+  });
+
+  it('should load Observations filtered by tests', function () {
     // TODO: Temporarily commented because it does not work yet
     // $('#limit2').click();
-    $('#load').click();
+    $('#loadObservations').click();
     browser.wait(EC.visibilityOf($('#results')));
   });
 
   it('should download observations', function () {
-    $('#load').click();
-    browser.wait(EC.visibilityOf($('#results')));
-
     const filename = os.tmpdir() + '/observations.csv';
     const fs = require('fs');
 

@@ -1,5 +1,5 @@
-import { FhirBatchQuery } from "../common/fhir-batch-query";
-import { getAutocompleterById } from "../common/utils";
+import { FhirBatchQuery } from '../common/fhir-batch-query';
+import { getAutocompleterById } from '../common/utils';
 
 // Common FhirBatchQuery to execute queries from search parameter controls
 let client;

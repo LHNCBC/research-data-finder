@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.7.0] - 2020-06-16
+### Added
+- Separate Patient selection section
+- Statistical data loading information
+
 ## [1.6.0] - 2020-05-14
 ### Changed
 - Allowed searching of any searchable Encounter field

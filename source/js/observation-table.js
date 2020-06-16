@@ -1,6 +1,5 @@
-import * as moment from 'moment';
-import { valueSetsMap } from "./common/value-sets";
-import { addressToStringArray, humanNameToString } from "./common/utils";
+import { valueSetsMap } from './common/value-sets';
+import { addressToStringArray, getPatientAge, getPatientTelecom, humanNameToString } from './common/utils';
 
 const reValueKey = /^value/;
 
@@ -122,7 +121,6 @@ export class ObservationTable {
           const codeableConcept = obs.interpretation && obs.interpretation[0];
 
 
-
           return codeableConcept && (codeableConcept.text ||
             codeableConcept.coding && codeableConcept.coding.length > 0 && (
               codeableConcept.coding[0].display || codeableConcept.coding[0].code
@@ -153,24 +151,6 @@ export class ObservationTable {
   }
 
   /**
-   * Get thead element for update table header.
-   * @return {HTMLElement}
-   */
-  get header() {
-    return document.getElementById(this.tableId).tHead;
-  }
-
-  /**
-   * Get tbody element for fill table.
-   * @return {HTMLElement}
-   */
-  get body() {
-    return document.getElementById(this.tableId).tBodies[0];
-  }
-
-
-
-  /**
    * Returns the name of the Patient who is the subject of the Observation
    * @param {Object} obs
    * @return {string}
@@ -188,33 +168,6 @@ export class ObservationTable {
    */
   getPatient(obs) {
     return this.refToPatient[obs.subject.reference] || {};
-  }
-
-  /**
-   * Returns the age of the Patient from the Patient Resource
-   * @param {Object} res the Patient resource
-   * @return {number|undefined}
-   */
-  getPatientAge(res) {
-    const birthDateStr = res.birthDate;
-    if (birthDateStr) {
-      return Math.floor(moment.duration(moment().diff(new Date(birthDateStr))).asYears());
-    }
-  }
-
-  /**
-   * Returns a list of emails/phones for the Email/Phone table column from the Patient Resource
-   * @param {Object} res the Patient resource
-   * @param {String} system 'email'/'phone'
-   * @return {String[]}
-   */
-  getPatientTelecom(res, system) {
-    return (res.telecom || [])
-      .filter(item => item.system === system)
-      .map(item => {
-        const use = valueSetsMap.contactPointUse[item.use];
-        return `${use ? use + ': ' : ''} ${item.value}`
-      });
   }
 
   /**
@@ -262,8 +215,8 @@ export class ObservationTable {
     return result;
   }
 
-  updateHeader() {
-    this.header.innerHTML = `<tr><th>${this._getViewCellsTemplate().map(cell => cell.title).join('</th><th>')}</th></tr>`;
+  getHeader() {
+    return `<thead><tr><th>${this._getViewCellsTemplate().map(cell => cell.title).join('</th><th>')}</th></tr></thead>`;
   }
 
   setAdditionalColumns(columns) {
@@ -286,16 +239,14 @@ export class ObservationTable {
   fill(data, perPatientPerTest, serviceBaseUrl) {
     let patientToCodeToCount = {};
 
-    this.updateHeader();
-
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
     this.refToPatient = data.patients.reduce((refs, patient) => {
       patient._name = humanNameToString(patient.name);
-      patient._age = this.getPatientAge(patient);
+      patient._age = getPatientAge(patient);
       patient._address = addressToStringArray(patient.address);
-      patient._email = this.getPatientTelecom(patient, 'email');
-      patient._phone = this.getPatientTelecom(patient, 'phone');
+      patient._email = getPatientTelecom(patient, 'email');
+      patient._phone = getPatientTelecom(patient, 'phone');
       refs[`${patient.resourceType}/${patient.id}`] = patient;
       return refs;
     },{});
@@ -319,9 +270,11 @@ export class ObservationTable {
 
     // Update table
     const viewCellsTemplate = this._getViewCellsTemplate();
-    this.body.innerHTML = '<tr>' + this.data.map(obs => {
-      return '<td>' + viewCellsTemplate.map(cell => cell.text(obs)).join('</td><td>') + '</td>';
-    }).join('</tr><tr>') + '</tr>';
+
+    document.getElementById(this.tableId).innerHTML = this.getHeader()
+      + '<tbody><tr>' + this.data.map(obs => {
+        return '<td>' + viewCellsTemplate.map(cell => cell.text(obs)).join('</td><td>') + '</td>';
+      }).join('</tr><tr>') + '</tr></tbody>';
   }
 
   /**

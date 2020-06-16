@@ -1,5 +1,5 @@
-import { getAutocompleterById } from "../common/utils";
-import { setFhirServerForSearchParameters } from "./common-descriptions";
+import { getAutocompleterById } from '../common/utils';
+import { setFhirServerForSearchParameters } from './common-descriptions';
 
 export class SearchParameters {
   /**
@@ -198,10 +198,10 @@ export class SearchParameters {
     const anchorElement = document.querySelector(anchorSelector);
 
     anchorElement.insertAdjacentHTML('afterend', `\
-<tr id="${this.internalId}"><td>
-  <button id="${this.buttonId}" class="add-search-param-button">Add search condition</button>
-</td></tr>`);
-    $(`#${this.buttonId}`).click(() => this.addParam());
+<div id="${this.internalId}">
+  <button id="${this.buttonId}" class="add-search-param-button">Add a search criterion</button>
+</div>`);
+    document.getElementById(this.buttonId).onclick = (() => this.addParam());
   }
 
   /**
@@ -222,12 +222,12 @@ export class SearchParameters {
     this.selectedResources[searchItemId] = paramResourceName;
 
     document.getElementById(this.internalId).insertAdjacentHTML('beforebegin', `\
-<tr id="${rowId}">
-  <td><input type="text" id="${paramResourceNameSelectorId}" value="${paramResourceName}"></td>
-  <td><input type="text" id="${searchItemId}" value="${paramName}"></td>
-  <td id="${searchItemContentId}"></td>
-  <td><button id="${removeButtonId}">remove</button></td>
-</tr>`);
+<div id="${rowId}" class="search-parameter">
+  <input type="text" id="${paramResourceNameSelectorId}" value="${paramResourceName}">
+  <input type="text" id="${searchItemId}" value="${paramName}">
+  <div id="${searchItemContentId}"></div>
+  <button id="${removeButtonId}">remove</button>
+</div>`);
     new Def.Autocompleter.Prefetch(paramResourceNameSelectorId, [], {
       matchListValue: true
     });
@@ -238,7 +238,7 @@ export class SearchParameters {
     this.updateAllSearchParamSelectors();
     this.createControlsForSearchParam(searchItemId);
     if (!this.getAvailableResourceNames().length) {
-      $(`#${this.buttonId}`).prop('disabled', true);
+      document.getElementById(this.buttonId).disabled = true;
     }
   }
 
@@ -249,14 +249,14 @@ export class SearchParameters {
   addRemoveBtnListener(searchItemId) {
     const removeButtonId = this.getRemoveButtonId(searchItemId);
 
-    $('#' + removeButtonId).click(() => {
+    document.getElementById(removeButtonId).onclick = (() => {
       const row = document.getElementById(this.getParamRowId(searchItemId));
       const availableResourceName = this.selectedResources[searchItemId];
       const availableParam = this.selectedParams[searchItemId];
       this.removeControlsForSearchParam(searchItemId)
       row.parentElement.removeChild(row);
       delete this.selectedParams[searchItemId];
-      $(`#${this.buttonId}`).prop('disabled', false);
+      document.getElementById(this.buttonId).disabled = false;
       this.freeAvailableItem(availableResourceName, availableParam);
       this.updateAllSearchParamSelectors();
     });

@@ -42,6 +42,14 @@ th label {font-weight: bold; width: 30em;}
 input.ansList {width: 100%;}
 
 #content {padding: 1em}
+#content > p {
+  margin-top: 10px;
+  margin-bottom: 0
+}
+
+#content > p:first-child {
+  margin-top: 0;
+}
 
 th, td {padding: 0.5em; text-align: left}
 
@@ -51,28 +59,143 @@ h1, h2 {
   line-height: 1.1;
   font-weight: 500;
 }
-p {margin-top: 0; margin-bottom: 10px}
 
-input[type="text"] {
+input {
   font-family: inherit;
   font-size: inherit;
   line-height: normal;
   border-radius: 7px;
   border: 2px solid #17b4e3;
   padding-left: 0.25em;
+  outline-style: none; /* removes border change when focusing in input in Chrome */
 }
 
 #perPatientPerTest {
   width: 4em;
 }
 
+/* Styles for the collapsible section */
 .section {
+  position: relative;
   border: 1px solid #17b4e3;
-  margin-bottom: 0.5em;
+  border-radius: 7px;
+  margin-top: 14px;
+  margin-bottom: 7px;
+  padding-top: 10px;
 }
-.section table tr th:first-child {
-  width: 250px; /* keep width from shifting when tests are selected */
+
+.section_collapsed {
+  padding: 0;
+  margin-top: 14px;
+  margin-bottom: 17px;
 }
+
+.section_collapsed + .section {
+  margin-top: 25px;
+}
+
+.section_collapsed .section__header {
+  margin-top: -10px;
+}
+
+.section_collapsed .section__toolbar,
+.section_collapsed .section__body {
+  display: none;
+}
+
+.section__header {
+  cursor: pointer;
+  position: sticky;
+  margin-top: -20px;
+  top: 0;
+  height: 10px;
+}
+
+.section__title {
+  cursor: pointer;
+  position: sticky;
+  /*width: fit-content;*/
+  /*display: block;*/
+  top: 0;
+  background-color: #fff;
+  padding: 3px 5px;
+  color: #337ab7;
+  margin-left: 10px;
+  margin-top: -20px;
+}
+
+.section__title::after {
+  content: url('../images/chevron-up.svg');
+  margin-left: 5px;
+  border: 1px solid #337ab7;
+  border-radius: 3px;
+}
+.section_collapsed .section__title::after {
+  content: url(../images/chevron-down.svg);
+}
+
+.section__header {
+  width: 100%;
+}
+
+.section__toolbar {
+  display: flex;
+  flex-direction: row;
+  margin: 20px 7px 9px;
+}
+
+div.section__body {
+  display: flex;
+  flex-direction: column;
+}
+
+div.section__body > div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+div.section__body > div > label {
+  font-weight: bold;
+}
+
+div.section__body > div > *:not(:first-child) {
+  margin-left: 15px;
+}
+
+div.section__body > div {
+  padding: 7px 9px 0;
+}
+
+div.section__body > label {
+  padding: 15px 9px 0;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+div.section__body > div > input {
+  max-width: 30em;
+}
+
+div.section__body > .search-parameter > :first-child {
+  max-width: 100px;
+}
+
+div.section__body > .search-parameter > :nth-child(3) {
+  width: 30em;
+}
+
+div.section__body.obs-parameters > div > :first-child {
+  width: 169px;
+}
+
+table.section__body {
+  border-spacing: 0;
+}
+.section__body {
+  margin: 9px 0 7px;
+}
+/* End of styles for the collapsible section */
 
 #load {margin-bottom: 0.5em;}
 
@@ -160,10 +283,69 @@ a:focus, a:hover {
 }
 /* End of styles for the navigation links */
 
-/* This class is used to search for elements that should be displayed when the result should appear */
-.results.hide {
+/* Adding more specificity for applying CSS-rules */
+.performance-tuning.hide,
+.hide {
   display: none;
 }
+
+/* Styles for the report popup */
+.report-popup {
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.report-popup_window {
+  background-color: #ffffff;
+  margin: 15% auto;
+  padding: 20px 10px 20px 20px;
+  border-radius: 7px;
+  border: 2px solid #17b4e3;
+  width: 600px;
+  position: relative;
+}
+
+.report-popup_content {
+  margin-right: 10px;
+  flex: 1 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.report-popup_item {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+}
+
+.report-popup_item:first-child {
+  margin-top: 15px;
+}
+.report-popup_item-space {
+  flex: 1 1;
+}
+.report-popup_close-btn {
+  line-height: 0.7;
+  color: #aaa;
+  font-size: 28px;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.report-popup_close-btn:hover,
+.report-popup_close-btn:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+/* End of styles for the report popup */
 
 /* Styles for the footer */
 #fine-print {
