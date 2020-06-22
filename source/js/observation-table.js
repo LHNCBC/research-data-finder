@@ -1,5 +1,5 @@
 import { valueSetsMap } from './common/value-sets';
-import { addressToStringArray, getPatientAge, getPatientTelecom, humanNameToString } from './common/utils';
+import { addressToStringArray, getPatientAge, getPatientContactsByType, humanNameToString } from './common/utils';
 
 const reValueKey = /^value/;
 
@@ -245,8 +245,8 @@ export class ObservationTable {
       patient._name = humanNameToString(patient.name);
       patient._age = getPatientAge(patient);
       patient._address = addressToStringArray(patient.address);
-      patient._email = getPatientTelecom(patient, 'email');
-      patient._phone = getPatientTelecom(patient, 'phone');
+      patient._email = getPatientContactsByType(patient, 'email');
+      patient._phone = getPatientContactsByType(patient, 'phone');
       refs[`${patient.resourceType}/${patient.id}`] = patient;
       return refs;
     },{});

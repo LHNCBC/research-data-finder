@@ -1,4 +1,4 @@
-import { toggleClass } from './common/utils';
+import { toggleCssClass, removeCssClass, addCssClass } from './common/utils';
 
 /**
  * Enumeration of supported metrics for the report
@@ -62,7 +62,7 @@ export class Reporter {
   show() {
     this._isVisible = true;
     this._updateWindowImmediately();
-    toggleClass('#' + this._id, 'hide', false);
+    removeCssClass('#' + this._id, 'hide');
   }
 
   /**
@@ -70,7 +70,7 @@ export class Reporter {
    */
   hide() {
     this._isVisible = false;
-    toggleClass('#' + this._id, 'hide', true);
+    addCssClass('#' + this._id, 'hide');
   }
 
   /**
@@ -162,7 +162,7 @@ ${metricInfo.name}:
 </div>`;
       })
       document.querySelector(`#${this._id} .report-popup_content`).innerHTML = html;
-      toggleClass(`#${this._id} .report-popup_close-btn`, 'hide', !!this._info.currentProcess);
+      toggleCssClass(`#${this._id} .report-popup_close-btn`, 'hide', !!this._info.currentProcess);
     });
   }
 

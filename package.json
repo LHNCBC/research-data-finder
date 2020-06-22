@@ -5,7 +5,10 @@
   "main": "obs-viewer.js",
   "scripts": {
     "update-webdriver": "node node_modules/protractor/bin/webdriver-manager update --versions.chrome $(google-chrome --version |awk '{print $NF}')",
-    "test": "webpack-dev-server --config webpack.development.js & sleep 1; protractor test/e2e/protractor.conf.js; s=$?; kill %1; exit $s",
+    "test:unit": "jest",
+    "test:e2e": "webpack-dev-server --config webpack.development.js & sleep 5; protractor test/e2e/protractor.conf.js; s=$?; kill %1; exit $s",
+    "pretest": "npm run update-webdriver",
+    "test": "npm run test:unit && npm run test:e2e",
     "build": "webpack --config webpack.production.js",
     "start": "webpack-dev-server --open --config webpack.development.js"
   },
@@ -21,6 +24,7 @@
   "devDependencies": {
     "@babel/core": "^7.6.0",
     "@babel/preset-env": "^7.6.0",
+    "babel-jest": "^24.1.0",
     "babel-loader": "^8.0.6",
     "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^3.1.0",
@@ -30,6 +34,7 @@
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
     "jasmine-spec-reporter": "^4.2.1",
+    "jest": "^24.1.0",
     "mini-css-extract-plugin": "^0.8.0",
     "moment": "^2.24.0",
     "optimize-css-assets-webpack-plugin": "^5.0.3",

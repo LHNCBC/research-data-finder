@@ -8,7 +8,7 @@ import { saveAs } from 'file-saver';
 import { ObservationTable } from './observation-table'
 import { FhirBatchQuery } from "./common/fhir-batch-query";
 import { SearchParameters, PatientSearchParameters, PATIENT, ENCOUNTER } from './search-parameters';
-import { toggleClass } from './common/utils';
+import { toggleCssClass, addCssClass, removeCssClass } from './common/utils';
 import { EncounterSearchParameters } from './search-parameters';
 import { Reporter, Metric } from './reporter';
 import { PatientTable } from './patient-table';
@@ -24,7 +24,7 @@ const reportObservationsSpan = document.getElementById('reportObservations');
 let categoryLimits = true;
 
 if (/[?&]tunable(&|$)/.test(window.location.search)) {
-  toggleClass('.performance-tuning', 'hide', false);
+  removeCssClass('.performance-tuning', 'hide');
 }
 
 new Def.Autocompleter.Prefetch('fhirServer', [
@@ -73,21 +73,20 @@ categoryAC.setFieldToListValue('Vital Signs');
 function showMessageIfNoPatientList(msg) {
   const nonResultsMsgElement = document.getElementById('noPatients');
   nonResultsMsgElement.innerText=msg;
-  toggleClass('#noPatients', 'hide', !msg);
-  toggleClass('#noPatients ~ *', 'hide', true);
+  toggleCssClass('#noPatients', 'hide', !msg);
+  addCssClass('#patientsArea', 'hide');
 }
 
 /**
- * Shows the Patient list area and updates the number of Patients in the area header
+ * Shows the Patient list area and updates the number of PatresultObservationsients in the area header
  * @param {number} count - number of Patients
  */
 function showListOfPatients(count) {
-  toggleClass('#noPatients', 'hide', true);
-  toggleClass('#noPatients ~ *', 'hide', false);
-  toggleClass('#noObservations, #noObservations ~ *', 'hide', true);
-  toggleClass(document.querySelector('#patientTable').closest('.section'), 'section_collapsed', true);
+  addCssClass('#noPatients', 'hide');
+  removeCssClass('#patientsArea', 'hide');
+  addCssClass('#observationsArea', 'hide');
+  addCssClass(document.querySelector('#patientTable').closest('.section'), 'section_collapsed');
   document.getElementById('patientsCount').innerText = count;
-  toggleClass('#noObservations ~ * .section', 'section_collapsed', false);
   reportObservationsSpan.innerHTML = '';
 }
 
@@ -111,8 +110,8 @@ function showPatientProgress(message, percent) {
 function showMessageIfNoObservationList(msg) {
   const nonResultsMsgElement = document.getElementById('noObservations');
   nonResultsMsgElement.innerText=msg;
-  toggleClass('#noObservations', 'hide', false);
-  toggleClass('#noObservations ~ *', 'hide', true);
+  removeCssClass('#noObservations', 'hide');
+  addCssClass('#observationsArea', 'hide');
 }
 
 /**
@@ -120,9 +119,9 @@ function showMessageIfNoObservationList(msg) {
  * @param {number} count - number of Observations
  */
 function showListOfObservations(count) {
-  toggleClass('#noObservations', 'hide', true);
-  toggleClass('#noObservations ~ *', 'hide', false);
-  toggleClass(document.querySelector('#resultsTable').closest('.section'), 'section_collapsed', false);
+  addCssClass('#noObservations', 'hide');
+  removeCssClass('#observationsArea', 'hide');
+  removeCssClass(document.querySelector('#resultsTable').closest('.section'), 'section_collapsed');
   document.getElementById('observationsCount').innerText = count;
 }
 
@@ -185,7 +184,7 @@ export function loadPatients() {
     data => {
       patientResources = data;
       reportPatientsSpan.innerHTML = `(<a href="#" onclick="app.showPatientsReport();return false;">loaded data in ${((new Date() - startDate) / 1000).toFixed(1)} s</a>)`;
-      toggleClass('#reportPatients', 'hide', false);
+      removeCssClass('#reportPatients', 'hide');
 
       if (patientResources.length) {
         patientTable.fill(patientResources, fhirClient.getServiceBaseUrl());
@@ -276,6 +275,8 @@ export function loadObs() {
               } else {
                 showMessageIfNoObservationList('No matching Observations found.');
               }
+              loadPatientsButton.disabled = false;
+              loadObservationsButton.disabled = false;
             }
           }
         }, ({status}) => {
@@ -285,11 +286,9 @@ export function loadObs() {
             // Show message if request is not aborted
             showMessageIfNoObservationList('Could not load observation list');
           }
-        })
-        .finally(() => {
           loadPatientsButton.disabled = false;
           loadObservationsButton.disabled = false;
-        });
+        })
     }
   }
 }

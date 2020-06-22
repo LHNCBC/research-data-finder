@@ -25,7 +25,7 @@ describe('Research Data Finder', function() {
     // TODO: Temporarily commented because it does not work yet
     // $('#limit2').click();
     $('#loadObservations').click();
-    browser.wait(EC.visibilityOf($('#results')));
+    browser.wait(EC.visibilityOf($('#resultsTable')));
   });
 
   it('should download observations', function () {

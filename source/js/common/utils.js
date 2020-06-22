@@ -76,7 +76,7 @@ export function getPatientAge(res) {
  * @param {String} system 'email'/'phone'
  * @return {String[]}
  */
-export function getPatientTelecom(res, system) {
+export function getPatientContactsByType(res, system) {
   return (res.telecom || [])
     .filter(item => item.system === system)
     .map(item => {
@@ -116,7 +116,7 @@ export function updateUrlWithParam(url, name, value) {
  * @param {boolean} [state] - true - add CSS class, false - remove CSS class, other value is to invert the CSS class presence
  * @return {boolean|undefined}
  */
-export function toggleClass(selector, cssClass, state) {
+export function toggleCssClass(selector, cssClass, state) {
   let resultState;
   const elements = selector instanceof HTMLElement
     ? [selector]
@@ -124,9 +124,9 @@ export function toggleClass(selector, cssClass, state) {
       selector instanceof NodeList || selector instanceof Array
       ? selector
       : document.querySelectorAll(selector));
+  const hiddenRegExp = new RegExp(`(\\s+|^)${cssClass}\\b`);
 
   elements.forEach(element => {
-    const hiddenRegExp = new RegExp(`(\\s*|^)${cssClass}\\b`);
     const className = element.className;
     const currentState = hiddenRegExp.test(className)
     if (currentState === state) {
@@ -135,9 +135,29 @@ export function toggleClass(selector, cssClass, state) {
       return;
     }
 
-    element.className = (currentState ? className.replace(hiddenRegExp, '') : className) + (!currentState ? ' ' + cssClass : '');
+    element.className = currentState
+      ? className.replace(hiddenRegExp, '')
+      : className + ' ' + cssClass;
     resultState = !currentState;
   });
 
   return resultState;
+}
+
+/**
+ * Adds the CSS class for element(s) corresponding to the "selector".
+ * @param {string|NodeList|Array<HTMLElement>|HTMLElement} selector - CSS selector, HTMLElement or HTMLElement collection
+ * @param {string} cssClass - CSS class
+ */
+export function addCssClass(selector, cssClass) {
+  toggleCssClass(selector, cssClass, true);
+}
+
+/**
+ * Removes the CSS class for element(s) corresponding to the "selector".
+ * @param {string|NodeList|Array<HTMLElement>|HTMLElement} selector - CSS selector, HTMLElement or HTMLElement collection
+ * @param {string} cssClass - CSS class
+ */
+export function removeCssClass(selector, cssClass) {
+  toggleCssClass(selector, cssClass, false);
 }

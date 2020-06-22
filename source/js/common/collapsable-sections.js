@@ -1,4 +1,4 @@
-import { slice, toggleClass } from "./utils";
+import { slice, toggleCssClass } from "./utils";
 
 /**
  * Adds the ability to collapse for each section
@@ -18,7 +18,7 @@ slice(document.querySelectorAll('.section')).forEach(element => {
  */
 window.toggleSection = function(sectionHeader) {
   const sectionElement = sectionHeader.closest('.section');
-  const isCollapsed = toggleClass(sectionElement, 'section_collapsed');
+  const isCollapsed = toggleCssClass(sectionElement, 'section_collapsed');
 
   if (isCollapsed) {
     const rect = sectionElement.getBoundingClientRect();
