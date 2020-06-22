@@ -88,6 +88,7 @@ input {
   padding: 0;
   margin-top: 14px;
   margin-bottom: 17px;
+  height: 1px;
 }
 
 .section_collapsed + .section {
@@ -108,7 +109,7 @@ input {
   position: sticky;
   margin-top: -20px;
   top: 0;
-  height: 10px;
+  height: 20px;
 }
 
 .section__title {
@@ -124,14 +125,14 @@ input {
   margin-top: -20px;
 }
 
-.section__title::after {
-  content: url('../images/chevron-up.svg');
-  margin-left: 5px;
+.section__title::before {
+  content: url('../images/triangle-down.svg');
+  margin-right: 5px;
   border: 1px solid #337ab7;
   border-radius: 3px;
 }
-.section_collapsed .section__title::after {
-  content: url(../images/chevron-down.svg);
+.section_collapsed .section__title::before {
+  content: url(../images/triangle-right.svg);
 }
 
 .section__header {

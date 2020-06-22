@@ -6,7 +6,7 @@ import { slice, toggleClass } from "./utils";
 slice(document.querySelectorAll('.section')).forEach(element => {
   if (!element.querySelector('.section__header')) {
     element.insertAdjacentHTML('afterbegin', `
-<div class="section__header" onclick="toggleSection(this)">&nbsp;</div>`);
+<div class="section__header" onclick="toggleSection(this)"></div>`);
     const titleElement = element.querySelector('.section__title');
     element.querySelector('.section__header').appendChild(titleElement);
   }

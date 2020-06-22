@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="1 0 20 16" width="16" height="16">
+    <!-- This is modified version of https://primer.style/octicons/triangle-right-24 -->
+    <path fill="#337ab7"
+          d="M15.146 12.354l-5.792 5.792a.5.5 0 01-.854-.353V6.207a.5.5 0 01.854-.353l5.792 5.792a.5.5 0 010 .708z"></path>
+</svg>
