@@ -78,7 +78,7 @@ function showMessageIfNoPatientList(msg) {
 }
 
 /**
- * Shows the Patient list area and updates the number of PatresultObservationsients in the area header
+ * Shows the Patient list area and updates the number of Patients in the area header
  * @param {number} count - number of Patients
  */
 function showListOfPatients(count) {
