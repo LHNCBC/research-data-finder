@@ -76,71 +76,102 @@
       <p>This is a tool that allows you to view a FHIR server's Observation
       resources that are coded with the selected LOINC tests.</p>
 
-      <label for=settings>Settings:</label>
-      <div id="settings" class="section">
-        <table>
-          <tbody>
-          <tr><th>FHIR server:</th><td><input type="text" id=fhirServer
-            value="https://lforms-fhir.nlm.nih.gov/baseR4"></td></tr>
-
-          <tr id="searchParamsAfterThisRow"><th>Maximum number of patients:</th><td><input type="number" id="maxPatientCount" value="100">
-          </td></tr>
-
-          <tr style="display: none;"><th>Limit observations by:</th><td>
-            <input type="radio" name="limitType" id="limit2" autocomplete=off
-            value="test" checked> <label for="limit2">Test</label>
-            <input type="radio" name="limitType" id="limit1" autocomplete=off
-            value="category"><label for="limit1">Category</label>
-          </td></tr>
-
-          <tr id="testSel"><th>Selected tests:</th><td>
-          <input type=text id=loincTests placeholder="LOINC tests"></td><td>Note:  A given FHIR server will only have matches for some subset of these values.</td></tr>
-
-          <tr id="catSel"><th>Selected Observation categories:</th><td>
-          <input type=text id=categories autocomplete=off></td><td>Note:  A given FHIR server will only have matches for some subset of these values.</td></tr>
-
-          <tr><th>Limit per patient per test:</th><td><input type=number id=perPatientPerTest value=1>
-          </td></tr>
-          </tbody>
-        </table>
+      <div class="section">
+        <label class="section__title">Settings</label>
+        <div class="section__body">
+          <div>
+            <label>FHIR server:</label>
+            <input type="text" id=fhirServer value="https://lforms-fhir.nlm.nih.gov/baseR4">
+          </div>
+          <label class="performance-tuning hide">Performance Tuning Settings:</label>
+          <div class="performance-tuning hide">
+            <label>Requests per batch:</label>
+            <input type="number" id="maxRequestsPerBatch" value="10" min="1" placeholder="default value">
+            <label>Maximum active requests:</label>
+            <input type="number" id="maxActiveRequests" value="6" min="1" placeholder="default value">
+            <label>Actions:</label>
+            <button onclick="app.clearCache()">Clear cache</button>
+          </div>
+        </div>
       </div>
 
-      <div id="performanceTuning" style="display: none;">
-        <label>Performance Tuning Settings</label>
+      <div class="section">
+        <label class="section__title">Patient selection criteria</label>
+        <div class="section__body">
+          <div id="searchParamsAfterThisRow">
+            <label>Maximum number of patients:</label>
+            <input type="number" id="maxPatientCount" value="100">
+          </div>
+        </div>
+      </div>
+
+      <button id=loadPatients onclick="app.loadPatients()">Load Patients</button>
+      <span id=reportPatients class="hide"></span>
+
+      <p id="noPatients" class="hide"></p>
+
+      <div id="patientsArea" class="hide">
         <div class="section">
-          <table>
+          <label class="section__title">Selected Patients [<span id="patientsCount">0</span>]</label>
+          <table id="patientTable" class="section__body">
+            <thead>
+            </thead>
             <tbody>
-            <tr>
-              <th>Requests per batch:</th>
-              <td><input type="number" id="maxRequestsPerBatch" value="10" min="1" placeholder="default value"></td>
-              <th>Maximum active requests:</th>
-              <td><input type="number" id="maxActiveRequests" value="6" min="1" placeholder="default value"></td>
-              <th>Actions:</th>
-              <td>
-                <button onclick="app.clearCache()">Clear cache</button>
-              </td>
-            </tr>
             </tbody>
           </table>
         </div>
+
+        <div class="section">
+          <label class="section__title">Observations selection criteria</label>
+          <div class="section__body obs-parameters">
+            <div style="display: none;">
+              <label>Limit observations by:</label>
+              <input type="radio" name="limitType" id="limit2" autocomplete=off
+                     value="test" checked> <label for="limit2">Test</label>
+              <input type="radio" name="limitType" id="limit1" autocomplete=off
+                     value="category"><label for="limit1">Category</label>
+            </div>
+
+
+            <div id="testSel">
+              <label>Selected tests:</label>
+              <input type=text id=loincTests placeholder="LOINC tests">
+              <span>Note:  A given FHIR server will only have matches for some subset of these values.</span>
+            </div>
+
+            <div id="catSel">
+              <label>Selected Observation categories:</label>
+              <input type=text id=categories autocomplete=off>
+              <span>Note:  A given FHIR server will only have matches for some subset of these values.</span>
+            </div>
+
+            <div>
+              <label>Limit per patient per test:</label>
+              <input type=number id=perPatientPerTest value=1>
+            </div>
+          </div>
+        </div>
+        <button id="loadObservations" onclick="app.loadObs()">Load Observations</button>
+        <span id="reportObservations"></span>
+
+        <p id="noObservations" class="hide"></p>
+        <div id="observationsArea" class="hide">
+          <div class="section">
+            <label class="section__title">Selected Observations [<span id="observationsCount">0</span>]</label>
+            <div class="section__toolbar">
+              <button id=download onclick="app.downloadObs()" >Download (in CSV format)</button>
+            </div>
+
+            <table id="resultsTable" class="section__body">
+              <thead>
+              </thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      <button id=load onclick="app.loadObs()">Load Data</button>
-      <button id=download onclick="app.downloadObs()" class="results hide">Download (in CSV format)</button>
-      <span id=report class="results hide"></span>
-      <p style="display: none" id="noResults">No matching Observations found.</p>
-      <div id=results class="results hide">
-        <div style="display:none"><!-- only needed for screenshots currently-->
-        Export to: <button id="exportCSV" onclick="window.alert('Not yet suppprted')">CSV</button>
-        <button id="exportOncor" onclick="window.alert('Not yet suppprted')">MyResearch.ONCOR</button>
-        </div>
-        <table id="resultsTable">
-          <thead>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
-      </div>
     </div>
 
     <!-- page footer -->

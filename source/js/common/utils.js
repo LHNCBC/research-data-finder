@@ -1,4 +1,8 @@
-import { valueSetsMap } from "./value-sets";
+import { valueSetsMap } from './value-sets';
+import * as moment from 'moment';
+
+// Binding the function Array.prototype.slice.call for convert Array-like objects/collections to a new Array
+export const slice = Function.prototype.call.bind(Array.prototype.slice);
 
 /**
  * Builds the human name string from an array of the HumanName elements
@@ -55,10 +59,37 @@ export function addressToStringArray(addressElements) {
 }
 
 /**
+ * Returns the age of the Patient from the Patient Resource
+ * @param {Object} res the Patient resource
+ * @return {number|undefined}
+ */
+export function getPatientAge(res) {
+  const birthDateStr = res.birthDate;
+  if (birthDateStr) {
+    return Math.floor(moment.duration(moment().diff(new Date(birthDateStr))).asYears());
+  }
+}
+
+/**
+ * Returns a list of emails/phones for the Email/Phone table column from the Patient Resource
+ * @param {Object} res the Patient resource
+ * @param {String} system 'email'/'phone'
+ * @return {String[]}
+ */
+export function getPatientContactsByType(res, system) {
+  return (res.telecom || [])
+    .filter(item => item.system === system)
+    .map(item => {
+      const use = valueSetsMap.contactPointUse[item.use];
+      return `${use ? use + ': ' : ''} ${item.value}`
+    });
+}
+
+/**
  * Adds/replaces URL parameter. Returns updated URL.
  * @param {string} url
  * @param {string} name - parameter name
- * @param {string} value - parameter value
+ * @param {string|number} value - parameter value
  * @return {string}
  */
 export function updateUrlWithParam(url, name, value) {
@@ -74,4 +105,59 @@ export function updateUrlWithParam(url, name, value) {
   return params ? urlWithoutParams + '?' + params : urlWithoutParams;
 }
 
-export const slice = Function.prototype.call.bind(Array.prototype.slice);
+/**
+ * Adds/removes the CSS class for element(s) corresponding to the "selector"
+ * depending on the "state" parameter boolean value.
+ * If the "state" parameter value is not specified (or not boolean value),
+ * this means that the presence of the CSS class should be inverted.
+ * Returns new "state" of the last element corresponding to the "selector".
+ * @param {string|NodeList|Array<HTMLElement>|HTMLElement} selector - CSS selector, HTMLElement or HTMLElement collection
+ * @param {string} cssClass - CSS class
+ * @param {boolean} [state] - true - add CSS class, false - remove CSS class, other value is to invert the CSS class presence
+ * @return {boolean|undefined}
+ */
+export function toggleCssClass(selector, cssClass, state) {
+  let resultState;
+  const elements = selector instanceof HTMLElement
+    ? [selector]
+    : slice(
+      selector instanceof NodeList || selector instanceof Array
+      ? selector
+      : document.querySelectorAll(selector));
+  const hiddenRegExp = new RegExp(`(\\s+|^)${cssClass}\\b`);
+
+  elements.forEach(element => {
+    const className = element.className;
+    const currentState = hiddenRegExp.test(className)
+    if (currentState === state) {
+      resultState = currentState;
+      // nothing to change
+      return;
+    }
+
+    element.className = currentState
+      ? className.replace(hiddenRegExp, '')
+      : className + ' ' + cssClass;
+    resultState = !currentState;
+  });
+
+  return resultState;
+}
+
+/**
+ * Adds the CSS class for element(s) corresponding to the "selector".
+ * @param {string|NodeList|Array<HTMLElement>|HTMLElement} selector - CSS selector, HTMLElement or HTMLElement collection
+ * @param {string} cssClass - CSS class
+ */
+export function addCssClass(selector, cssClass) {
+  toggleCssClass(selector, cssClass, true);
+}
+
+/**
+ * Removes the CSS class for element(s) corresponding to the "selector".
+ * @param {string|NodeList|Array<HTMLElement>|HTMLElement} selector - CSS selector, HTMLElement or HTMLElement collection
+ * @param {string} cssClass - CSS class
+ */
+export function removeCssClass(selector, cssClass) {
+  toggleCssClass(selector, cssClass, false);
+}

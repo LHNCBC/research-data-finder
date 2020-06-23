@@ -1,4 +1,4 @@
-import { updateUrlWithParam } from "./utils";
+import { updateUrlWithParam } from './utils';
 
 let commonRequestCache = {}; // Map from url to result JSON
 
@@ -20,7 +20,11 @@ export class FhirBatchQuery {
     this._batchTimeout = batchTimeout;
     this._maxPerBatch = maxRequestsPerBatch;
     this._maxActiveReq = maxActiveRequests;
-    this._activeReq = 0;
+    this._activeReq = [];
+  }
+
+  getServiceBaseUrl() {
+    return this._serviceBaseUrl;
   }
 
   static clearCache() {
@@ -58,7 +62,13 @@ export class FhirBatchQuery {
 
       oReq.onreadystatechange = () => {
         if (oReq.readyState === 4) {
-          --this._activeReq;
+          const currentRequestIndex = this._activeReq.indexOf(oReq);
+          if (currentRequestIndex !== -1) {
+            this._activeReq.splice(currentRequestIndex, 1);
+          } else {
+            // if aborted due to clearPendingRequests
+            reject({status: 0, error: 'Abort'});
+          }
           console.log(`${logPrefix ? logPrefix + ' ' : ''}AJAX call returned in ${(new Date() - startAjaxTime)}`);
           const status = oReq.status;
 
@@ -80,7 +90,7 @@ export class FhirBatchQuery {
       oReq.open(method, url);
       oReq.setRequestHeader('Content-Type', contentType);
       oReq.send(body);
-      ++this._activeReq;
+      this._activeReq.push(oReq);
     });
   }
 
@@ -89,7 +99,7 @@ export class FhirBatchQuery {
    * @private
    */
   _postPending() {
-    if(this._activeReq >= this._maxActiveReq) {
+    if(this._activeReq.length >= this._maxActiveReq) {
       return;
     }
 
@@ -149,6 +159,10 @@ export class FhirBatchQuery {
 
   clearPendingRequests() {
     this._pending.length = 0;
+    this._activeReq.forEach(request => {
+      request.abort()
+    });
+    this._activeReq = [];
   }
 
   getFullUrl(url) {
@@ -250,9 +264,10 @@ export class FhirBatchQuery {
    *                                 one time for each resource to determine whether the element should
    *                                 be included in the resulting array (returns Promise<true>), skipped (returns Promise<false>)
    *                                 or replaced with new value(returns Promise<Object>)
+   * @param {number} [pageSize] - page size for resources loading
    * @return {Promise<Array>}
    */
-  resourcesMapFilter(url, count, filterMapFunction) {
+  resourcesMapFilter(url, count, filterMapFunction, pageSize) {
     // The value (this._maxPerBatch*this._maxActiveReq*2) is the optimal page size to get resources for filtering/mapping:
     // this value should be so minimal as not to load a lot of unnecessary data, but sufficient to allow parallel
     // loading of data to speed up the process.
@@ -260,7 +275,7 @@ export class FhirBatchQuery {
     // we will load Encounters in portions of the specified optimal page size, and for each Encounter,
     // load the Patient and add it to the result (if it is not already in it) until we get the target number of Patients.
     return this._resourcesMapFilter(
-      this.getWithCache(updateUrlWithParam(url, '_count', this._maxPerBatch*this._maxActiveReq*2)),
+      this.getWithCache(updateUrlWithParam(url, '_count', pageSize || this._maxPerBatch*this._maxActiveReq*2)),
       count,
       filterMapFunction);
   }
