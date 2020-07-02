@@ -60,6 +60,17 @@ module.exports = {
             ]]
           }
         }
+      },
+      {
+        test: /search-parameters.json$/,
+        use: [
+          {
+            loader: path.resolve('source/js/search-parameters/definitions/webpack-loader.js'),
+            options: {
+              resourceNames: ['Patient', 'Encounter', 'Observation', 'Condition', 'MedicationDispense']
+            }
+          }
+        ]
       }
     ]
   }

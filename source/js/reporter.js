@@ -1,33 +1,6 @@
 import { toggleCssClass, removeCssClass, addCssClass } from './common/utils';
 
 /**
- * Enumeration of supported metrics for the report
- */
-export const Metric = Object.freeze({
-  ENCOUNTER_COUNT: 'The number of Encounters satisfying the search criteria',
-  ENCOUNTER: 'Encounter resources loaded',
-  PATIENT_COUNT: 'The number of Patients satisfying the search criteria',
-  PATIENT: 'Patient resources loaded',
-  PATIENT_CHECKED: 'Patient resources checked',
-  OBSERVATION_REQUESTS: 'Requests for Observation resources',
-  OBSERVATION: 'Observation resources loaded'
-});
-
-/**
- * Defines which metric should have a duration
- * @type {{[Metric]: boolean}}
- */
-const calculateDuration = {
-  [Metric.ENCOUNTER_COUNT]: true,
-  [Metric.ENCOUNTER]: true,
-  [Metric.PATIENT_COUNT]: true,
-  [Metric.PATIENT]: true,
-  [Metric.PATIENT_CHECKED]: true,
-  [Metric.OBSERVATION_REQUESTS]: true,
-  // [Metric.OBSERVATION]: true
-}
-
-/**
  * Class for creating a popup with a report
  */
 export class Reporter {
@@ -143,7 +116,7 @@ export class Reporter {
         }
       }
 
-      if (typeof this._info.duration === 'number' && this._info.stat.filter(item => calculateDuration[item.name]).length !== 1) {
+      if (typeof this._info.duration === 'number' && this._info.stat.filter(item => typeof item.duration === 'number').length !== 1) {
         html += `
 <label class="report-popup_item">
 Overall time:
@@ -152,13 +125,13 @@ ${(this._info.duration / 1000).toFixed(1)} s
 </label>`;
       }
 
-      this._info.stat.forEach(metricInfo => {
-        const duration = calculateDuration[metricInfo.name] ? ` in ${(metricInfo.duration / 1000).toFixed(1)} s` : '';
+      this._info.stat.forEach(measurement => {
+        const duration = typeof measurement.duration === 'number' ? ` in ${(measurement.duration / 1000).toFixed(1)} s` : '';
         html += `\
 <div class="report-popup_item">
-${metricInfo.name}:
+${measurement.name}:
 <span class="report-popup_item-space"></span>
-<label>${metricInfo.count}${duration}</label>
+<label>${measurement.count}${duration}</label>
 </div>`;
       })
       document.querySelector(`#${this._id} .report-popup_content`).innerHTML = html;
@@ -182,55 +155,43 @@ ${metricInfo.name}:
   }
 
   /**
-   * Record start of measurement
-   * @param {Metric} name
-   */
-  startProcess(name) {
-    if (!this._getMeasurement(name)) {
-      this._info._index[name] = this._info.stat.length;
-      this._info.stat.push({
-        name: name,
-        count: 0,
-        startTime: Date.now(),
-        ...(calculateDuration[name] ? {duration: 0} : {})
-      });
-      this._updateWindow();
-    }
-  }
-
-  /**
-   * Record current measurement status
-   * @param {Metric} name
+   * Records the start of metric measurement. Returns an object to control the measurement.
+   * @param {string} name
+   * @param {boolean} calculateDuration
    * @param {number} count
+   * @return {{updateCount: (function(number): void), incrementCount: (function(number): void)}}
    */
-  updateProcess(name, count) {
-    let measurement = this._getMeasurement(name);
+  addMetric({name, calculateDuration = true, count = 0}) {
+    const measurement = {
+      name,
+      count,
+      startTime: Date.now(),
+      ...(calculateDuration ? {duration: 0} : {})
+    };
 
-    measurement.count = count;
-    if (calculateDuration[name]) {
-      measurement.duration = Date.now() - measurement.startTime;
-    }
+    this._info.stat.push(measurement);
     this._updateWindow();
-  }
 
-  /**
-   * Get current measurement status
-   * @param {Metric} name
-   */
-  _getMeasurement(name) {
-    let index = this._info._index[name];
-    if (typeof index === 'number') {
-      return this._info.stat[index];
+    let updateCount = (count) => {
+      measurement.count = count;
+      if (calculateDuration) {
+        measurement.duration = Date.now() - measurement.startTime;
+      }
+      this._updateWindow();
+    };
+
+    return {
+      /**
+       * Set current measurement count
+       * @param {number} count
+       */
+      updateCount,
+      /**
+       * Increment current measurement count
+       * @param {number} inc
+       */
+      incrementCount: (inc) =>
+        updateCount(measurement.count + (typeof inc === 'number' ? inc : 1))
     }
   }
-
-  /**
-   * Increment current measurement count
-   * @param {Metric} name
-   * @param {number} [inc]
-   */
-  incrementCount(name, inc) {
-    this.updateProcess(name, this._getMeasurement(name).count + (typeof inc === 'number' ? inc : 1));
-  }
-
 }

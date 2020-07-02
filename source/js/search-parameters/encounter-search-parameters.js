@@ -1,4 +1,4 @@
-// See https://www.hl7.org/fhir/encounter.html#Encounter for description of Encounter search parameters
+// See https://www.hl7.org/fhir/encounter.html#search for description of Encounter search parameters
 
 import { valueSets } from "../common/value-sets";
 import { humanNameToString } from "../common/utils";

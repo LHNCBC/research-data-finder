@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.8.0] - 2020-07-02
+### Added
+- Allowed searching of any searchable Condition, Observation or MedicationDispense field
+
 ## [1.7.0] - 2020-06-16
 ### Added
 - Separate Patient selection section

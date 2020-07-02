@@ -263,11 +263,24 @@ export class SearchParameters {
   }
 
   /**
-   * Returns a string of URL parameters with all search conditions from all controls
+   * Returns an array of objects, each of which contains a resource name
+   * and a string of URL parameters with search criteria for this resource
+   * @return {Array}
+   */
+  getAllCriteria() {
+    return Object.keys(this.availableParams)
+      .map(resourceName => ({
+        resourceName: resourceName,
+        criteria: this.getCriteriaFor(resourceName)
+      }));
+  }
+
+  /**
+   * Returns a string of URL parameters with all search criteria from all controls
    * @param {string} resourceName - the name of the resource for which you want to get search parameters
    * @return {string}
    */
-  getConditions(resourceName) {
+  getCriteriaFor(resourceName) {
     let conditions = [];
 
     Object.keys(this.selectedParams).forEach((key) => {
@@ -317,8 +330,10 @@ export class SearchParameters {
    * @return {Array}
    */
   getResourceElements(resourceName, persistentColumns) {
+    const columnToResourceElementName = this.searchParams[resourceName].columnToResourceElementName || {};
+
     return this.getColumns(resourceName, persistentColumns)
-      .map(column => this.searchParams[resourceName].columnToResourceElementName[column] || column);
+      .map(column => columnToResourceElementName[column] || column);
   }
 
   setFhirServer(serviceBaseUrl) {

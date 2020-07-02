@@ -70,6 +70,10 @@ input {
   outline-style: none; /* removes border change when focusing in input in Chrome */
 }
 
+[placeholder]{
+  text-overflow:ellipsis;
+}
+
 #perPatientPerTest {
   width: 4em;
 }
@@ -179,7 +183,7 @@ div.section__body > div > input {
 }
 
 div.section__body > .search-parameter > :first-child {
-  max-width: 100px;
+  max-width: 150px;
 }
 
 div.section__body > .search-parameter > :nth-child(3) {

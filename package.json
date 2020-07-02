@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "A viewer for Observation resources on a FHIR server",
   "main": "obs-viewer.js",
   "scripts": {
@@ -35,6 +35,7 @@
     "html-webpack-plugin": "^3.2.0",
     "jasmine-spec-reporter": "^4.2.1",
     "jest": "^24.1.0",
+    "loader-utils": "^1.4.0",
     "mini-css-extract-plugin": "^0.8.0",
     "moment": "^2.24.0",
     "optimize-css-assets-webpack-plugin": "^5.0.3",
