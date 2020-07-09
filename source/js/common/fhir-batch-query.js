@@ -291,7 +291,7 @@ export class FhirBatchQuery {
   _resourcesMapFilter(firstRequest, count, filterMapFunction) {
     return new Promise((resolve, reject) => {
       firstRequest.then(({data}) => {
-        const resources = data.entry.map(entry => entry.resource);
+        const resources = (data.entry || []).map(entry => entry.resource);
 
         Promise.all(resources.map(resource => filterMapFunction(resource)))
           .then(match => {
