@@ -321,7 +321,7 @@ function getPatients() {
     showPatientProgress('Calculating resources count');
 
     const numberOfResources = resourceSummaries.length > 1 ? patientsReporter.addMetric({
-        name: 'Requesting the number of resources satisfying the search criteria'
+        name: 'Searches to find the following counts'
       }) : null;
     Promise
       .all(resourceSummaries.length > 1
@@ -337,7 +337,7 @@ function getPatients() {
           resourceSummaries.sort((x, y) => Math.sign(x.total - y.total));
           resourceSummaries.forEach((resourceSummary) => {
             patientsReporter.addMetric({
-              name: `* The number of ${resourceSummary.resourceType} satisfying the search criteria`,
+              name: `* Number of matching ${resourceSummary.resourceType} resources`,
               calculateDuration: false,
               count: resourceSummary.total
             });
