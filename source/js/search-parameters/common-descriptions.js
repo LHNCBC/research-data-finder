@@ -77,14 +77,14 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit" tit
 
 /**
  * Generates search parameters from data imported from FHIR specification on build step by webpack loader.
- * Available resource names are specified in webpack.common.js
- * @param {string} resourceName - resource name for which you want to generate search parameters
+ * Available resource types are specified in webpack.common.js
+ * @param {string} resourceType - resource type for which you want to generate search parameters
  * @param {Object} searchNameToColumn - mapping from search parameter names to HTML table column names
  * @param {Array<string>} skip - an array of search parameter names to skip, if you want to define them manually
  * @return {Object}
  */
-export function defaultParameters(resourceName, {searchNameToColumn = {}, skip = []} = {}) {
-  return searchParameterDefinitions[resourceName].reduce((_parameters, item) => {
+export function defaultParameters(resourceType, {searchNameToColumn = {}, skip = []} = {}) {
+  return searchParameterDefinitions[resourceType].reduce((_parameters, item) => {
     if(skip.indexOf(item.name) === -1) {
       const displayName = item.name.charAt(0).toUpperCase() + item.name.substring(1).replace(/-/g, ' ');
       const placeholder = item.description;
@@ -200,7 +200,7 @@ export function dateParameters(descriptions, searchNameToColumn) {
  * @param {Array[]} descriptions - an array of descriptions, each of which is an array containing the following elements:
  *                  displayName - parameter display name,
  *                  placeholder - placeholder for input field,
- *                  resourceName - FHIR resource name,
+ *                  resourceType - FHIR resource type,
  *                  filterName - query parameter name for filtering resources by string,
  *                  itemToString - function to convert an resource item to a string,
  *                  name - name of search parameter to construct result query string
@@ -208,7 +208,7 @@ export function dateParameters(descriptions, searchNameToColumn) {
  * @return {Object}
  */
 export function referenceParameters(descriptions, searchNameToColumn) {
-  return descriptions.reduce((_parameters, [displayName, placeholder, resourceName, filterName, itemToString, name]) => {
+  return descriptions.reduce((_parameters, [displayName, placeholder, resourceType, filterName, itemToString, name]) => {
     _parameters[displayName] = {
       column: searchNameToColumn[name] || name,
       getControlsHtml: (searchItemId) =>
@@ -219,7 +219,7 @@ export function referenceParameters(descriptions, searchNameToColumn) {
             search: function (fieldVal, count) {
               return {
                 then: function (success, error) {
-                  getCurrentClient().getWithCache(`${resourceName}?${filterName}=${fieldVal}&_count=${count}`)
+                  getCurrentClient().getWithCache(`${resourceType}?${filterName}=${fieldVal}&_count=${count}`)
                     .then(({status, data}) => {
                       if (status === 200) {
                         success({
@@ -227,7 +227,7 @@ export function referenceParameters(descriptions, searchNameToColumn) {
                           "expansion": {
                             "total": data.total,
                             "contains": (data.entry || []).map(item => ({
-                              code: /*resourceName + '/' + */item.resource.id,
+                              code: /*resourceType + '/' + */item.resource.id,
                               display: itemToString(item)
                             }))
                           }

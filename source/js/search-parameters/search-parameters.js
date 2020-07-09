@@ -12,8 +12,8 @@ export class SearchParameters {
     this.internalId = 'searchParam';
     this.availableParams = {};
     this.searchParams = searchParamGroups.reduce((_searchParams, searchParamGroup) => {
-      _searchParams[searchParamGroup.resourceName] = searchParamGroup;
-      this.availableParams[searchParamGroup.resourceName] = Object.keys(searchParamGroup.description).sort();
+      _searchParams[searchParamGroup.resourceType] = searchParamGroup;
+      this.availableParams[searchParamGroup.resourceType] = Object.keys(searchParamGroup.description).sort();
       return _searchParams;
     }, {});
     this.buttonId = this.internalId+'_add_button';
@@ -36,16 +36,16 @@ export class SearchParameters {
         const prevValue = isResourceChanged ? this.selectedResources[searchItemId] : this.selectedParams[searchItemId];
         if (eventData.on_list) {
           if (newValue !== prevValue) {
-            const newResourceName = isResourceChanged ? newValue : this.selectedResources[searchItemId];
+            const newResourceType = isResourceChanged ? newValue : this.selectedResources[searchItemId];
             const newSelectedParam = isResourceChanged ? this.availableParams[newValue][0] : newValue;
-            const prevResourceName = this.selectedResources[searchItemId];
+            const prevResourceType = this.selectedResources[searchItemId];
             const prevSelectedParam = this.selectedParams[searchItemId];
 
             this.removeControlsForSearchParam(searchItemId);
             this.selectedParams[searchItemId] = newSelectedParam;
-            this.selectedResources[searchItemId] = newResourceName;
+            this.selectedResources[searchItemId] = newResourceType;
             this.createControlsForSearchParam(searchItemId);
-            this.swapAvailableItem(newResourceName, newSelectedParam, prevResourceName, prevSelectedParam);
+            this.swapAvailableItem(newResourceType, newSelectedParam, prevResourceType, prevSelectedParam);
             if (isResourceChanged) {
               getAutocompleterById(searchItemId).setFieldToListValue(newSelectedParam);
             }
@@ -73,7 +73,7 @@ export class SearchParameters {
   }
 
   /**
-   * Generates an identifier for an autocomleter is used for select resource name
+   * Generates an identifier for an autocomleter is used for select resource type
    * from a generic identifier for a search parameter
    * @param {string} searchItemId
    * @return {string}
@@ -84,7 +84,7 @@ export class SearchParameters {
 
   /**
    * Gets an identifier for a search parameter
-   * from an identifier for an autocompleter is used for select resource name
+   * from an identifier for an autocompleter is used for select resource type
    * @param {string} id
    * @return {string}
    */
@@ -138,26 +138,26 @@ export class SearchParameters {
 
   /**
    * Replace unavailableItem with availableItem in array of available search parameters
-   * @param {string} unavailableResourceName resource name for no longer available param
+   * @param {string} unavailableResourceType resource type for no longer available param
    * @param {string} unavailableParamName no longer available param
-   * @param {string} availableResourceName resource name for new available item
+   * @param {string} availableResourceType resource type for new available item
    * @param {string} availableParamName new available item
    */
-  swapAvailableItem(unavailableResourceName, unavailableParamName, availableResourceName, availableParamName) {
-    const index = this.availableParams[unavailableResourceName].indexOf(unavailableParamName);
-    this.availableParams[unavailableResourceName].splice(index, 1);
-    this.availableParams[availableResourceName].push(availableParamName);
-    this.availableParams[availableResourceName].sort();
+  swapAvailableItem(unavailableResourceType, unavailableParamName, availableResourceType, availableParamName) {
+    const index = this.availableParams[unavailableResourceType].indexOf(unavailableParamName);
+    this.availableParams[unavailableResourceType].splice(index, 1);
+    this.availableParams[availableResourceType].push(availableParamName);
+    this.availableParams[availableResourceType].sort();
   }
 
   /**
    * Push new available item to array of available search parameters
-   * @param {string} resourceName
+   * @param {string} resourceType
    * @param {string} paramName
    */
-  freeAvailableItem(resourceName, paramName) {
-    this.availableParams[resourceName].push(paramName);
-    this.availableParams[resourceName].sort();
+  freeAvailableItem(resourceType, paramName) {
+    this.availableParams[resourceType].push(paramName);
+    this.availableParams[resourceType].sort();
   }
 
   /**
@@ -168,26 +168,26 @@ export class SearchParameters {
   updateAllSearchParamSelectors(skipSearchItemId, isResourceChanged) {
     Object.keys(this.selectedParams).forEach((key) => {
       if (isResourceChanged || key !== skipSearchItemId) {
-        const paramResourceName = this.selectedResources[key];
+        const paramResourceType = this.selectedResources[key];
         const paramName = this.selectedParams[key];
 
-        getAutocompleterById(key).setList([paramName].concat(this.availableParams[paramResourceName]));
+        getAutocompleterById(key).setList([paramName].concat(this.availableParams[paramResourceType]));
         if (key !== skipSearchItemId) {
-          getAutocompleterById(this.getParamResourceSelectorId(key)).setList(this.getAvailableResourceNames(paramResourceName));
+          getAutocompleterById(this.getParamResourceSelectorId(key)).setList(this.getAvailableResourceTypes(paramResourceType));
         }
       }
     });
   }
 
   /**
-   * Returns current available resource names to select a search parameter
-   * @param {String} [firstResourceName] - this string will be first in result array if specified
+   * Returns current available resource types to select a search parameter
+   * @param {String} [firstResourceType] - this string will be first in result array if specified
    * @return {String[]}
    */
-  getAvailableResourceNames(firstResourceName) {
-    const resourceNames = Object.keys(this.availableParams)
-      .filter(resourceName => this.availableParams[resourceName].length && resourceName !== firstResourceName);
-    return (firstResourceName ? [firstResourceName] : []).concat(resourceNames.sort());
+  getAvailableResourceTypes(firstResourceType) {
+    const resourceTypes = Object.keys(this.availableParams)
+      .filter(resourceType => this.availableParams[resourceType].length && resourceType !== firstResourceType);
+    return (firstResourceType ? [firstResourceType] : []).concat(resourceTypes.sort());
   }
 
   /**
@@ -211,24 +211,24 @@ export class SearchParameters {
     // searchItemId is the unique virtual identifier of the controls group for each search parameter.
     // Used as part of HTML element identifiers and for storing data associated with a search parameter.
     const searchItemId = this.item_prefix+(++this.item_generator);
-    const paramResourceNameSelectorId = this.getParamResourceSelectorId(searchItemId);
+    const paramResourceTypeSelectorId = this.getParamResourceSelectorId(searchItemId);
     const rowId = this.getParamRowId(searchItemId);
     const searchItemContentId = this.getParamContentId(searchItemId);
     const removeButtonId = this.getRemoveButtonId(searchItemId);
-    const paramResourceName = this.getAvailableResourceNames()[0];
-    const paramName = this.availableParams[paramResourceName].shift();
+    const paramResourceType = this.getAvailableResourceTypes()[0];
+    const paramName = this.availableParams[paramResourceType].shift();
 
     this.selectedParams[searchItemId] = paramName;
-    this.selectedResources[searchItemId] = paramResourceName;
+    this.selectedResources[searchItemId] = paramResourceType;
 
     document.getElementById(this.internalId).insertAdjacentHTML('beforebegin', `\
 <div id="${rowId}" class="search-parameter">
-  <input type="text" id="${paramResourceNameSelectorId}" value="${paramResourceName}">
+  <input type="text" id="${paramResourceTypeSelectorId}" value="${paramResourceType}">
   <input type="text" id="${searchItemId}" value="${paramName}">
   <div id="${searchItemContentId}"></div>
   <button id="${removeButtonId}">remove</button>
 </div>`);
-    new Def.Autocompleter.Prefetch(paramResourceNameSelectorId, [], {
+    new Def.Autocompleter.Prefetch(paramResourceTypeSelectorId, [], {
       matchListValue: true
     });
     new Def.Autocompleter.Prefetch(searchItemId, [], {
@@ -237,7 +237,7 @@ export class SearchParameters {
     this.addRemoveBtnListener(searchItemId);
     this.updateAllSearchParamSelectors();
     this.createControlsForSearchParam(searchItemId);
-    if (!this.getAvailableResourceNames().length) {
+    if (!this.getAvailableResourceTypes().length) {
       document.getElementById(this.buttonId).disabled = true;
     }
   }
@@ -251,42 +251,42 @@ export class SearchParameters {
 
     document.getElementById(removeButtonId).onclick = (() => {
       const row = document.getElementById(this.getParamRowId(searchItemId));
-      const availableResourceName = this.selectedResources[searchItemId];
+      const availableResourceType = this.selectedResources[searchItemId];
       const availableParam = this.selectedParams[searchItemId];
       this.removeControlsForSearchParam(searchItemId)
       row.parentElement.removeChild(row);
       delete this.selectedParams[searchItemId];
       document.getElementById(this.buttonId).disabled = false;
-      this.freeAvailableItem(availableResourceName, availableParam);
+      this.freeAvailableItem(availableResourceType, availableParam);
       this.updateAllSearchParamSelectors();
     });
   }
 
   /**
-   * Returns an array of objects, each of which contains a resource name
+   * Returns an array of objects, each of which contains a resource type
    * and a string of URL parameters with search criteria for this resource
    * @return {Array}
    */
   getAllCriteria() {
     return Object.keys(this.availableParams)
-      .map(resourceName => ({
-        resourceName: resourceName,
-        criteria: this.getCriteriaFor(resourceName)
+      .map(resourceType => ({
+        resourceType: resourceType,
+        criteria: this.getCriteriaFor(resourceType)
       }));
   }
 
   /**
    * Returns a string of URL parameters with all search criteria from all controls
-   * @param {string} resourceName - the name of the resource for which you want to get search parameters
+   * @param {string} resourceType - the type of the resource for which you want to get search parameters
    * @return {string}
    */
-  getCriteriaFor(resourceName) {
+  getCriteriaFor(resourceType) {
     let conditions = [];
 
     Object.keys(this.selectedParams).forEach((key) => {
-      if (resourceName === this.selectedResources[key]) {
+      if (resourceType === this.selectedResources[key]) {
         const paramName = this.selectedParams[key];
-        const paramDescription = this.searchParams[resourceName].description[paramName];
+        const paramDescription = this.searchParams[resourceType].description[paramName];
         const condition = paramDescription.getCondition(key);
         if (condition) {
           conditions.push(condition);
@@ -299,20 +299,20 @@ export class SearchParameters {
 
   /**
    * Returns an array of columns matching the selected conditions for request
-   * @param {string} [resourceName] - resource name whose search parameters correspond to the columns
+   * @param {string} [resourceType] - resource type whose search parameters correspond to the columns
    * @param {Array} [persistentColumns] - additional columns for result array
    * @return {Array}
    */
-  getColumns(resourceName, persistentColumns) {
+  getColumns(resourceType, persistentColumns) {
     let columns = {};
 
     (persistentColumns || []).forEach(column => columns[column] = true);
 
     Object.keys(this.selectedParams).forEach((key) => {
-      const paramResourceName = this.selectedResources[key];
-      if (!resourceName || paramResourceName === resourceName) {
+      const paramResourceType = this.selectedResources[key];
+      if (!resourceType || paramResourceType === resourceType) {
         const paramName = this.selectedParams[key];
-        const paramDescription = this.searchParams[paramResourceName].description[paramName];
+        const paramDescription = this.searchParams[paramResourceType].description[paramName];
         const columnOrColumns = paramDescription.column;
         [].concat(columnOrColumns).forEach(column => {
           columns[column] = true;
@@ -325,14 +325,14 @@ export class SearchParameters {
 
   /**
    * Returns an array of unique resource element names (see https://www.hl7.org/fhir/search.html#elements)
-   * @param {string} resourceName - the name of the resource for which you want to get search parameters
+   * @param {string} resourceType - the type of the resource for which you want to get search parameters
    * @param {Array} persistentColumns - additional columns to create the resulting array
    * @return {Array}
    */
-  getResourceElements(resourceName, persistentColumns) {
-    const columnToResourceElementName = this.searchParams[resourceName].columnToResourceElementName || {};
+  getResourceElements(resourceType, persistentColumns) {
+    const columnToResourceElementName = this.searchParams[resourceType].columnToResourceElementName || {};
 
-    return this.getColumns(resourceName, persistentColumns)
+    return this.getColumns(resourceType, persistentColumns)
       .map(column => columnToResourceElementName[column] || column);
   }
 

@@ -7,8 +7,8 @@ import {
 export const OBSERVATION = 'Observation';
 
 export const ObservationSearchParameters = {
-  // The resource name (for which these search parameters) is used for retrieving entered data from the SearchParameters component
-  resourceName: OBSERVATION,
+  // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
+  resourceType: OBSERVATION,
   // Description of Observation search parameters:
   // column - this value specifies the column name (of the HTML table of the observation data) to show, sometimes could be array of column names
   // getControlsHtml - creates controls for input parameter value(s)

@@ -7,8 +7,8 @@ import {
 export const MEDICATION_DISPENSE = 'MedicationDispense';
 
 export const MedicationDispenseSearchParameters = {
-  // The resource name (for which these search parameters) is used for retrieving entered data from the SearchParameters component
-  resourceName: MEDICATION_DISPENSE,
+  // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
+  resourceType: MEDICATION_DISPENSE,
   // Description of MedicationDispense search parameters:
   // column - this value specifies the column name (of the HTML table of the observation data) to show, sometimes could be array of column names
   // getControlsHtml - creates controls for input parameter value(s)

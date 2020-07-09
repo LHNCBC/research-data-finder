@@ -314,7 +314,7 @@ export function loadObs() {
 function getPatients() {
   const maxPatientCount = document.getElementById('maxPatientCount').value;
   const elements = patientSearchParams.getResourceElements(PATIENT,['name']).join(',');
-  const resourceSummaries = patientSearchParams.getAllCriteria().filter(item => item.criteria.length || item.resourceName === PATIENT);
+  const resourceSummaries = patientSearchParams.getAllCriteria().filter(item => item.criteria.length || item.resourceType === PATIENT);
 
   return new Promise((resolve, reject) => {
 
@@ -325,7 +325,7 @@ function getPatients() {
       }) : null;
     Promise
       .all(resourceSummaries.length > 1
-        ? resourceSummaries.map(item => fhirClient.getWithCache(`${item.resourceName}?_summary=count${item.criteria}`))
+        ? resourceSummaries.map(item => fhirClient.getWithCache(`${item.resourceType}?_summary=count${item.criteria}`))
         : [])
       .then(summaries => {
         // Sort by the number of resources matching the conditions
@@ -337,7 +337,7 @@ function getPatients() {
           resourceSummaries.sort((x, y) => Math.sign(x.total - y.total));
           resourceSummaries.forEach((resourceSummary) => {
             patientsReporter.addMetric({
-              name: `* The number of ${resourceSummary.resourceName} satisfying the search criteria`,
+              name: `* The number of ${resourceSummary.resourceType} satisfying the search criteria`,
               calculateDuration: false,
               count: resourceSummary.total
             });
@@ -358,8 +358,8 @@ function getPatients() {
           // Processing resources, the number of which is less than the number of Patients.
           // (Retrieve patient identifiers corresponding to resources whose number is less than the number of Patients)
           const firstItem = resourceSummaries.shift();
-          const firstItemElements = firstItem.resourceName === PATIENT ? elements : 'subject';
-          fhirClient.resourcesMapFilter(`${firstItem.resourceName}?_elements=${firstItemElements}${firstItem.criteria}`,
+          const firstItemElements = firstItem.resourceType === PATIENT ? elements : 'subject';
+          fhirClient.resourcesMapFilter(`${firstItem.resourceType}?_elements=${firstItemElements}${firstItem.criteria}`,
             maxPatientCount, resource => {
               let patientResource, patientId;
               if (resource.resourceType === PATIENT) {
@@ -373,11 +373,11 @@ function getPatients() {
               }
               processedPatients[patientId] = true;
               return resourceSummaries.reduce((promise, item) => promise.then(() => {
-                const params = item.resourceName === PATIENT
+                const params = item.resourceType === PATIENT
                   ? `_elements=${elements}${item.criteria}&_id=${patientId}`
                   : `_summary=count${item.criteria}&subject:Patient=${patientId}`;
 
-                return fhirClient.getWithCache(`${item.resourceName}?${params}`)
+                return fhirClient.getWithCache(`${item.resourceType}?${params}`)
                   .then(({data}) => {
                     const meetsTheConditions = data.total > 0;
                     const resource = data.entry && data.entry[0] && data.entry[0].resource;
