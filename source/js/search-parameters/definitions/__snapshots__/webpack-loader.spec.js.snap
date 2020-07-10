@@ -1,0 +1,1029 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`webpack-loader for R4 produce same result 1`] = `
+Object {
+  "Condition": Array [
+    Object {
+      "description": "Code for the condition",
+      "expression": "Condition.code",
+      "name": "code",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "A unique identifier of the condition record",
+      "expression": "Condition.identifier",
+      "name": "identifier",
+      "type": "Identifier",
+      "typeDescription": Array [
+        Object {
+          "code": "Identifier",
+        },
+      ],
+    },
+    Object {
+      "description": "Who has the condition?",
+      "expression": "Condition.subject.where(resolve() is Patient)",
+      "name": "patient",
+      "type": "reference",
+    },
+    Object {
+      "description": "Abatement as age or age range",
+      "expression": "Condition.abatement.as(Age)",
+      "name": "abatement-age",
+      "type": "quantity",
+    },
+    Object {
+      "description": "Date-related abatements (dateTime and period)",
+      "expression": "Condition.abatement.as(dateTime)",
+      "name": "abatement-date",
+      "type": "date",
+    },
+    Object {
+      "description": "Abatement as a string",
+      "expression": "Condition.abatement.as(string)",
+      "name": "abatement-string",
+      "type": "string",
+    },
+    Object {
+      "description": "Person who asserts this condition",
+      "expression": "Condition.asserter",
+      "name": "asserter",
+      "type": "reference",
+    },
+    Object {
+      "description": "Anatomical location, if relevant",
+      "expression": "Condition.bodySite",
+      "name": "body-site",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "The category of the condition",
+      "expression": "Condition.category",
+      "name": "category",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "The clinical status of the condition",
+      "expression": "Condition.clinicalStatus",
+      "name": "clinical-status",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "Encounter created as part of",
+      "expression": "Condition.encounter",
+      "name": "encounter",
+      "type": "reference",
+    },
+    Object {
+      "description": "Manifestation/symptom",
+      "expression": "Condition.evidence.code",
+      "name": "evidence",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "Supporting information found elsewhere",
+      "expression": "Condition.evidence.detail",
+      "name": "evidence-detail",
+      "type": "reference",
+    },
+    Object {
+      "description": "Onsets as age or age range",
+      "expression": "Condition.onset.as(Age)",
+      "name": "onset-age",
+      "type": "quantity",
+    },
+    Object {
+      "description": "Date related onsets (dateTime and Period)",
+      "expression": "Condition.onset.as(dateTime)",
+      "name": "onset-date",
+      "type": "date",
+    },
+    Object {
+      "description": "Onsets as a string",
+      "expression": "Condition.onset.as(string)",
+      "name": "onset-info",
+      "type": "string",
+    },
+    Object {
+      "description": "Date record was first recorded",
+      "expression": "Condition.recordedDate",
+      "name": "recorded-date",
+      "type": "date",
+    },
+    Object {
+      "description": "The severity of the condition",
+      "expression": "Condition.severity",
+      "name": "severity",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "Simple summary (disease specific)",
+      "expression": "Condition.stage.summary",
+      "name": "stage",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "Who has the condition?",
+      "expression": "Condition.subject",
+      "name": "subject",
+      "type": "reference",
+    },
+    Object {
+      "description": "unconfirmed | provisional | differential | confirmed | refuted | entered-in-error",
+      "expression": "Condition.verificationStatus",
+      "name": "verification-status",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+  ],
+  "Encounter": Array [
+    Object {
+      "description": "A date within the period the Encounter lasted",
+      "expression": "Encounter.period",
+      "name": "date",
+      "type": "date",
+    },
+    Object {
+      "description": "Identifier(s) by which this encounter is known",
+      "expression": "Encounter.identifier",
+      "name": "identifier",
+      "type": "Identifier",
+      "typeDescription": Array [
+        Object {
+          "code": "Identifier",
+        },
+      ],
+    },
+    Object {
+      "description": "The patient or group present at the encounter",
+      "expression": "Encounter.subject.where(resolve() is Patient)",
+      "name": "patient",
+      "type": "reference",
+    },
+    Object {
+      "description": "Specific type of encounter",
+      "expression": "Encounter.type",
+      "name": "type",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "The set of accounts that may be used for billing for this Encounter",
+      "expression": "Encounter.account",
+      "name": "account",
+      "type": "reference",
+    },
+    Object {
+      "description": "The appointment that scheduled this encounter",
+      "expression": "Encounter.appointment",
+      "name": "appointment",
+      "type": "reference",
+    },
+    Object {
+      "description": "The ServiceRequest that initiated this encounter",
+      "expression": "Encounter.basedOn",
+      "name": "based-on",
+      "type": "reference",
+    },
+    Object {
+      "description": "Classification of patient encounter",
+      "expression": "Encounter.class",
+      "name": "class",
+      "type": "Coding",
+      "typeDescription": Array [
+        Object {
+          "code": "Coding",
+        },
+      ],
+    },
+    Object {
+      "description": "The diagnosis or procedure relevant to the encounter",
+      "expression": "Encounter.diagnosis.condition",
+      "name": "diagnosis",
+      "type": "reference",
+    },
+    Object {
+      "description": "Episode(s) of care that this encounter should be recorded against",
+      "expression": "Encounter.episodeOfCare",
+      "name": "episode-of-care",
+      "type": "reference",
+    },
+    Object {
+      "description": "Length of encounter in days",
+      "expression": "Encounter.length",
+      "name": "length",
+      "type": "quantity",
+    },
+    Object {
+      "description": "Location the encounter takes place",
+      "expression": "Encounter.location.location",
+      "name": "location",
+      "type": "reference",
+    },
+    Object {
+      "description": "Time period during which the patient was present at the location",
+      "expression": "Encounter.location.period",
+      "name": "location-period",
+      "type": "date",
+    },
+    Object {
+      "description": "Another Encounter this encounter is part of",
+      "expression": "Encounter.partOf",
+      "name": "part-of",
+      "type": "reference",
+    },
+    Object {
+      "description": "Persons involved in the encounter other than the patient",
+      "expression": "Encounter.participant.individual",
+      "name": "participant",
+      "type": "reference",
+    },
+    Object {
+      "description": "Role of participant in encounter",
+      "expression": "Encounter.participant.type",
+      "name": "participant-type",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "Persons involved in the encounter other than the patient",
+      "expression": "Encounter.participant.individual.where(resolve() is Practitioner)",
+      "name": "practitioner",
+      "type": "reference",
+    },
+    Object {
+      "description": "Coded reason the encounter takes place",
+      "expression": "Encounter.reasonCode",
+      "name": "reason-code",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "Reason the encounter takes place (reference)",
+      "expression": "Encounter.reasonReference",
+      "name": "reason-reference",
+      "type": "reference",
+    },
+    Object {
+      "description": "The organization (facility) responsible for this encounter",
+      "expression": "Encounter.serviceProvider",
+      "name": "service-provider",
+      "type": "reference",
+    },
+    Object {
+      "description": "Wheelchair, translator, stretcher, etc.",
+      "expression": "Encounter.hospitalization.specialArrangement",
+      "name": "special-arrangement",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "planned | arrived | triaged | in-progress | onleave | finished | cancelled +",
+      "expression": "Encounter.status",
+      "name": "status",
+      "type": "code",
+      "typeDescription": Array [
+        Object {
+          "code": "code",
+        },
+      ],
+    },
+    Object {
+      "description": "The patient or group present at the encounter",
+      "expression": "Encounter.subject",
+      "name": "subject",
+      "type": "reference",
+    },
+  ],
+  "MedicationDispense": Array [
+    Object {
+      "description": "Returns dispenses of this medicine code",
+      "expression": "MedicationDispense.medication as CodeableConcept)",
+      "name": "code",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+        Object {
+          "code": "Reference",
+          "targetProfile": Array [
+            "http://hl7.org/fhir/StructureDefinition/Medication",
+          ],
+        },
+      ],
+    },
+    Object {
+      "description": "Returns dispenses with this external identifier",
+      "expression": "MedicationDispense.identifier",
+      "name": "identifier",
+      "type": "Identifier",
+      "typeDescription": Array [
+        Object {
+          "code": "Identifier",
+        },
+      ],
+    },
+    Object {
+      "description": "The identity of a patient to list dispenses  for",
+      "expression": "MedicationDispense.subject.where(resolve() is Patient)",
+      "name": "patient",
+      "type": "reference",
+    },
+    Object {
+      "description": "Returns dispenses of this medicine resource",
+      "expression": "MedicationDispense.medication as Reference)",
+      "name": "medication",
+      "type": "reference",
+    },
+    Object {
+      "description": "Returns dispenses with a specified dispense status",
+      "expression": "MedicationDispense.status",
+      "name": "status",
+      "type": "code",
+      "typeDescription": Array [
+        Object {
+          "code": "code",
+        },
+      ],
+    },
+    Object {
+      "description": "Returns dispenses with a specific context (episode or episode of care)",
+      "expression": "MedicationDispense.context",
+      "name": "context",
+      "type": "reference",
+    },
+    Object {
+      "description": "Returns dispenses that should be sent to a specific destination",
+      "expression": "MedicationDispense.destination",
+      "name": "destination",
+      "type": "reference",
+    },
+    Object {
+      "description": "Returns dispenses performed by a specific individual",
+      "expression": "MedicationDispense.performer.actor",
+      "name": "performer",
+      "type": "reference",
+    },
+    Object {
+      "description": "Multiple Resources: 
+
+* [MedicationDispense](medicationdispense.html): The identity of a prescription to list dispenses from",
+      "expression": "MedicationDispense.authorizingPrescription",
+      "name": "prescription",
+      "type": "reference",
+    },
+    Object {
+      "description": "The identity of a receiver to list dispenses for",
+      "expression": "MedicationDispense.receiver",
+      "name": "receiver",
+      "type": "reference",
+    },
+    Object {
+      "description": "Returns dispenses with the specified responsible party",
+      "expression": "MedicationDispense.substitution.responsibleParty",
+      "name": "responsibleparty",
+      "type": "reference",
+    },
+    Object {
+      "description": "The identity of a patient for whom to list dispenses",
+      "expression": "MedicationDispense.subject",
+      "name": "subject",
+      "type": "reference",
+    },
+    Object {
+      "description": "Returns dispenses of a specific type",
+      "expression": "MedicationDispense.type",
+      "name": "type",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "Returns dispenses handed over on this date",
+      "expression": "MedicationDispense.whenHandedOver",
+      "name": "whenhandedover",
+      "type": "date",
+    },
+    Object {
+      "description": "Returns dispenses prepared on this date",
+      "expression": "MedicationDispense.whenPrepared",
+      "name": "whenprepared",
+      "type": "date",
+    },
+  ],
+  "Observation": Array [
+    Object {
+      "description": "The code of the observation type",
+      "expression": "Observation.code",
+      "name": "code",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "Obtained date/time. If the obtained element is a period, a date that falls in the period",
+      "expression": "Observation.effective",
+      "name": "date",
+      "type": "date",
+    },
+    Object {
+      "description": "The unique id for a particular observation",
+      "expression": "Observation.identifier",
+      "name": "identifier",
+      "type": "Identifier",
+      "typeDescription": Array [
+        Object {
+          "code": "Identifier",
+        },
+      ],
+    },
+    Object {
+      "description": "The subject that the observation is about (if patient)",
+      "expression": "Observation.subject.where(resolve() is Patient)",
+      "name": "patient",
+      "type": "reference",
+    },
+    Object {
+      "description": "Encounter related to the observation",
+      "expression": "Observation.encounter",
+      "name": "encounter",
+      "type": "reference",
+    },
+    Object {
+      "description": "Reference to the service request.",
+      "expression": "Observation.basedOn",
+      "name": "based-on",
+      "type": "reference",
+    },
+    Object {
+      "description": "The classification of the type of observation",
+      "expression": "Observation.category",
+      "name": "category",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "The code of the observation type or component type",
+      "expression": "Observation.code",
+      "name": "combo-code",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "The reason why the expected value in the element Observation.value[x] or Observation.component.value[x] is missing.",
+      "expression": "Observation.dataAbsentReason",
+      "name": "combo-data-absent-reason",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "The value or component value of the observation, if the value is a CodeableConcept",
+      "expression": "Observation.value as CodeableConcept)",
+      "name": "combo-value-concept",
+      "type": "Quantity",
+      "typeDescription": Array [
+        Object {
+          "code": "Quantity",
+        },
+        Object {
+          "code": "CodeableConcept",
+        },
+        Object {
+          "code": "string",
+        },
+        Object {
+          "code": "boolean",
+        },
+        Object {
+          "code": "integer",
+        },
+        Object {
+          "code": "Range",
+        },
+        Object {
+          "code": "Ratio",
+        },
+        Object {
+          "code": "SampledData",
+        },
+        Object {
+          "code": "time",
+        },
+        Object {
+          "code": "dateTime",
+        },
+        Object {
+          "code": "Period",
+        },
+      ],
+    },
+    Object {
+      "description": "The value or component value of the observation, if the value is a Quantity, or a SampledData (just search on the bounds of the values in sampled data)",
+      "expression": "Observation.value as Quantity)",
+      "name": "combo-value-quantity",
+      "type": "quantity",
+    },
+    Object {
+      "description": "The component code of the observation type",
+      "expression": "Observation.component.code",
+      "name": "component-code",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "The reason why the expected value in the element Observation.component.value[x] is missing.",
+      "expression": "Observation.component.dataAbsentReason",
+      "name": "component-data-absent-reason",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "The value of the component observation, if the value is a CodeableConcept",
+      "expression": "Observation.component.value as CodeableConcept)",
+      "name": "component-value-concept",
+      "type": "Quantity",
+      "typeDescription": Array [
+        Object {
+          "code": "Quantity",
+        },
+        Object {
+          "code": "CodeableConcept",
+        },
+        Object {
+          "code": "string",
+        },
+        Object {
+          "code": "boolean",
+        },
+        Object {
+          "code": "integer",
+        },
+        Object {
+          "code": "Range",
+        },
+        Object {
+          "code": "Ratio",
+        },
+        Object {
+          "code": "SampledData",
+        },
+        Object {
+          "code": "time",
+        },
+        Object {
+          "code": "dateTime",
+        },
+        Object {
+          "code": "Period",
+        },
+      ],
+    },
+    Object {
+      "description": "The value of the component observation, if the value is a Quantity, or a SampledData (just search on the bounds of the values in sampled data)",
+      "expression": "Observation.component.value as Quantity)",
+      "name": "component-value-quantity",
+      "type": "quantity",
+    },
+    Object {
+      "description": "The reason why the expected value in the element Observation.value[x] is missing.",
+      "expression": "Observation.dataAbsentReason",
+      "name": "data-absent-reason",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "Related measurements the observation is made from",
+      "expression": "Observation.derivedFrom",
+      "name": "derived-from",
+      "type": "reference",
+    },
+    Object {
+      "description": "The Device that generated the observation data.",
+      "expression": "Observation.device",
+      "name": "device",
+      "type": "reference",
+    },
+    Object {
+      "description": "The focus of an observation when the focus is not the patient of record.",
+      "expression": "Observation.focus",
+      "name": "focus",
+      "type": "reference",
+    },
+    Object {
+      "description": "Related resource that belongs to the Observation group",
+      "expression": "Observation.hasMember",
+      "name": "has-member",
+      "type": "reference",
+    },
+    Object {
+      "description": "The method used for the observation",
+      "expression": "Observation.method",
+      "name": "method",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "Part of referenced event",
+      "expression": "Observation.partOf",
+      "name": "part-of",
+      "type": "reference",
+    },
+    Object {
+      "description": "Who performed the observation",
+      "expression": "Observation.performer",
+      "name": "performer",
+      "type": "reference",
+    },
+    Object {
+      "description": "Specimen used for this observation",
+      "expression": "Observation.specimen",
+      "name": "specimen",
+      "type": "reference",
+    },
+    Object {
+      "description": "The status of the observation",
+      "expression": "Observation.status",
+      "name": "status",
+      "type": "code",
+      "typeDescription": Array [
+        Object {
+          "code": "code",
+        },
+      ],
+    },
+    Object {
+      "description": "The subject that the observation is about",
+      "expression": "Observation.subject",
+      "name": "subject",
+      "type": "reference",
+    },
+    Object {
+      "description": "The value of the observation, if the value is a CodeableConcept",
+      "expression": "Observation.value as CodeableConcept)",
+      "name": "value-concept",
+      "type": "Quantity",
+      "typeDescription": Array [
+        Object {
+          "code": "Quantity",
+        },
+        Object {
+          "code": "CodeableConcept",
+        },
+        Object {
+          "code": "string",
+        },
+        Object {
+          "code": "boolean",
+        },
+        Object {
+          "code": "integer",
+        },
+        Object {
+          "code": "Range",
+        },
+        Object {
+          "code": "Ratio",
+        },
+        Object {
+          "code": "SampledData",
+        },
+        Object {
+          "code": "time",
+        },
+        Object {
+          "code": "dateTime",
+        },
+        Object {
+          "code": "Period",
+        },
+      ],
+    },
+    Object {
+      "description": "The value of the observation, if the value is a date or period of time",
+      "expression": "Observation.value as dateTime)",
+      "name": "value-date",
+      "type": "date",
+    },
+    Object {
+      "description": "The value of the observation, if the value is a Quantity, or a SampledData (just search on the bounds of the values in sampled data)",
+      "expression": "Observation.value as Quantity)",
+      "name": "value-quantity",
+      "type": "quantity",
+    },
+    Object {
+      "description": "The value of the observation, if the value is a string, and also searches in CodeableConcept.text",
+      "expression": "Observation.value as string)",
+      "name": "value-string",
+      "type": "string",
+    },
+    Object {
+      "description": "Code and coded value parameter pair",
+      "expression": "Observation.value as string)",
+      "name": "code-value-concept",
+      "type": "composite",
+    },
+    Object {
+      "description": "Code and date/time value parameter pair",
+      "expression": "Observation.value as string)",
+      "name": "code-value-date",
+      "type": "composite",
+    },
+    Object {
+      "description": "Code and quantity value parameter pair",
+      "expression": "Observation.value as string)",
+      "name": "code-value-quantity",
+      "type": "composite",
+    },
+    Object {
+      "description": "Code and string value parameter pair",
+      "expression": "Observation.value as string)",
+      "name": "code-value-string",
+      "type": "composite",
+    },
+    Object {
+      "description": "Code and coded value parameter pair, including in components",
+      "expression": "Observation",
+      "name": "combo-code-value-concept",
+      "type": "composite",
+    },
+    Object {
+      "description": "Code and quantity value parameter pair, including in components",
+      "expression": "Observation",
+      "name": "combo-code-value-quantity",
+      "type": "composite",
+    },
+    Object {
+      "description": "Component code and component coded value parameter pair",
+      "expression": "Observation.component",
+      "name": "component-code-value-concept",
+      "type": "composite",
+    },
+    Object {
+      "description": "Component code and component quantity value parameter pair",
+      "expression": "Observation.component",
+      "name": "component-code-value-quantity",
+      "type": "composite",
+    },
+  ],
+  "Patient": Array [
+    Object {
+      "description": "Whether the patient record is active",
+      "expression": "Patient.active",
+      "name": "active",
+      "type": "boolean",
+      "typeDescription": Array [
+        Object {
+          "code": "boolean",
+        },
+      ],
+    },
+    Object {
+      "description": "A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text",
+      "expression": "Patient.address",
+      "name": "address",
+      "type": "string",
+    },
+    Object {
+      "description": "A city specified in an address",
+      "expression": "Patient.address.city",
+      "name": "address-city",
+      "type": "string",
+    },
+    Object {
+      "description": "A country specified in an address",
+      "expression": "Patient.address.country",
+      "name": "address-country",
+      "type": "string",
+    },
+    Object {
+      "description": "A postalCode specified in an address",
+      "expression": "Patient.address.postalCode",
+      "name": "address-postalcode",
+      "type": "string",
+    },
+    Object {
+      "description": "A state specified in an address",
+      "expression": "Patient.address.state",
+      "name": "address-state",
+      "type": "string",
+    },
+    Object {
+      "description": "A use code specified in an address",
+      "expression": "Patient.address.use",
+      "name": "address-use",
+      "type": "code",
+      "typeDescription": Array [
+        Object {
+          "code": "code",
+        },
+      ],
+    },
+    Object {
+      "description": "The patient's date of birth",
+      "expression": "Patient.birthDate",
+      "name": "birthdate",
+      "type": "date",
+    },
+    Object {
+      "description": "The date of death has been provided and satisfies this search value",
+      "expression": "Patient.deceased as dateTime)",
+      "name": "death-date",
+      "type": "date",
+    },
+    Object {
+      "description": "This patient has been marked as deceased, or as a death date entered",
+      "expression": "Patient.deceased.exists() and Patient.deceased != false",
+      "name": "deceased",
+      "type": "boolean",
+    },
+    Object {
+      "description": "A value in an email contact",
+      "expression": "Patient.telecom.where(system='email')",
+      "name": "email",
+      "type": "string",
+    },
+    Object {
+      "description": "A portion of the family name of the patient",
+      "expression": "Patient.name.family",
+      "name": "family",
+      "type": "string",
+    },
+    Object {
+      "description": "Gender of the patient",
+      "expression": "Patient.gender",
+      "name": "gender",
+      "type": "code",
+      "typeDescription": Array [
+        Object {
+          "code": "code",
+        },
+      ],
+    },
+    Object {
+      "description": "Patient's nominated general practitioner, not the organization that manages the record",
+      "expression": "Patient.generalPractitioner",
+      "name": "general-practitioner",
+      "type": "reference",
+    },
+    Object {
+      "description": "A portion of the given name of the patient",
+      "expression": "Patient.name.given",
+      "name": "given",
+      "type": "string",
+    },
+    Object {
+      "description": "A patient identifier",
+      "expression": "Patient.identifier",
+      "name": "identifier",
+      "type": "Identifier",
+      "typeDescription": Array [
+        Object {
+          "code": "Identifier",
+        },
+      ],
+    },
+    Object {
+      "description": "Language code (irrespective of use value)",
+      "expression": "Patient.communication.language",
+      "name": "language",
+      "type": "CodeableConcept",
+      "typeDescription": Array [
+        Object {
+          "code": "CodeableConcept",
+        },
+      ],
+    },
+    Object {
+      "description": "All patients linked to the given patient",
+      "expression": "Patient.link.other",
+      "name": "link",
+      "type": "reference",
+    },
+    Object {
+      "description": "A server defined search that may match any of the string fields in the HumanName, including family, give, prefix, suffix, suffix, and/or text",
+      "expression": "Patient.name",
+      "name": "name",
+      "type": "string",
+    },
+    Object {
+      "description": "The organization that is the custodian of the patient record",
+      "expression": "Patient.managingOrganization",
+      "name": "organization",
+      "type": "reference",
+    },
+    Object {
+      "description": "A value in a phone contact",
+      "expression": "Patient.telecom.where(system='phone')",
+      "name": "phone",
+      "type": "string",
+    },
+    Object {
+      "description": "A portion of either family or given name using some kind of phonetic matching algorithm",
+      "expression": "Patient.name",
+      "name": "phonetic",
+      "type": "string",
+    },
+    Object {
+      "description": "The value in any kind of telecom details of the patient",
+      "expression": "Patient.telecom",
+      "name": "telecom",
+      "type": "ContactPoint",
+      "typeDescription": Array [
+        Object {
+          "code": "ContactPoint",
+        },
+      ],
+    },
+  ],
+}
+`;

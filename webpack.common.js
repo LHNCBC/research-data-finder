@@ -66,9 +66,7 @@ module.exports = {
         use: [
           {
             loader: path.resolve('source/js/search-parameters/definitions/webpack-loader.js'),
-            options: {
-              resourceTypes: ['Patient', 'Encounter', 'Observation', 'Condition', 'MedicationDispense']
-            }
+            options: require(path.resolve('source/js/search-parameters/definitions/webpack-options.json'))
           }
         ]
       }

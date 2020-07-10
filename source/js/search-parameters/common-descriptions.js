@@ -1,6 +1,6 @@
 import { FhirBatchQuery } from '../common/fhir-batch-query';
 import { getAutocompleterById } from '../common/utils';
-import { default as searchParameterDefinitions } from './definitions/search-parameters.json';
+import { default as searchParameterDefinitions } from './definitions/R4/search-parameters.json';
 
 // Common FhirBatchQuery to execute queries from search parameter controls
 let client;
