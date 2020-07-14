@@ -46,7 +46,7 @@ const columnToResourceElementName = {
 
 export const PATIENT = 'Patient';
 
-export const PatientSearchParameters = {
+export const PatientSearchParameters = () => ({
   // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
   resourceType: PATIENT,
   // Description of Patient search parameters:
@@ -126,7 +126,7 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
   },
 
   columnToResourceElementName
-};
+});
 
 /**
  * Minimum date of birth in ISO-8601 format to be <age> years old

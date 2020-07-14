@@ -6,7 +6,7 @@ import {
 
 export const OBSERVATION = 'Observation';
 
-export const ObservationSearchParameters = {
+export const ObservationSearchParameters = () => ({
   // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
   resourceType: OBSERVATION,
   // Description of Observation search parameters:
@@ -20,4 +20,4 @@ export const ObservationSearchParameters = {
     // Default search parameters:
     ...defaultParameters(OBSERVATION)
   }
-};
+});

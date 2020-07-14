@@ -25,6 +25,11 @@ module.exports = {
       filename: 'app.[contenthash].css',
     })
   ],
+  resolve: {
+    alias: {
+      definitions: path.resolve(__dirname, 'source/js/search-parameters/definitions/index.json'),
+    }
+  },
   module: {
     rules: [
       {
@@ -37,7 +42,7 @@ module.exports = {
       },
       {
         test: /\.(png|svg|jpg|gif)$/,
-         use: [
+        use: [
           {
             loader: 'file-loader',
             options: {
@@ -62,7 +67,7 @@ module.exports = {
         }
       },
       {
-        test: /search-parameters.json$/,
+        test: /definitions\/index.json$/,
         use: [
           {
             loader: path.resolve('source/js/search-parameters/definitions/webpack-loader.js'),

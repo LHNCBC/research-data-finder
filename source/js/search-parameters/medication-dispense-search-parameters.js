@@ -6,7 +6,7 @@ import {
 
 export const MEDICATION_DISPENSE = 'MedicationDispense';
 
-export const MedicationDispenseSearchParameters = {
+export const MedicationDispenseSearchParameters = () => ({
   // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
   resourceType: MEDICATION_DISPENSE,
   // Description of MedicationDispense search parameters:
@@ -20,4 +20,4 @@ export const MedicationDispenseSearchParameters = {
     // Default search parameters:
     ...defaultParameters(MEDICATION_DISPENSE),
   }
-};
+});

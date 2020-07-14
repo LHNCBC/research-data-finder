@@ -26,10 +26,17 @@ function getDescription(resourceType, description) {
   return result.trim();
 }
 
-module.exports = function loader(source) {
+/**
+ * Extract search parameters configuration from JSON FHIR Definitions (part of FHIR specification)
+ * @param {string} directoryPath - directory where JSON files are located
+ * @param {Array<string>} resourceTypes - list of resource types for which you want to get search parameters configuration
+ * @return {{}}
+ */
+function getSearchParametersConfig(directoryPath, resourceTypes) {
   const profiles = {
-    resources: JSON.parse(fs.readFileSync(this.context + '/profiles-resources.json').toString()),
-    types:  JSON.parse(fs.readFileSync(this.context + '/profiles-types.json').toString())
+    parameters: JSON.parse(fs.readFileSync(directoryPath + '/search-parameters.json').toString()),
+    resources: JSON.parse(fs.readFileSync(directoryPath + '/profiles-resources.json').toString()),
+    types:  JSON.parse(fs.readFileSync(directoryPath + '/profiles-types.json').toString())
   };
 
   /**
@@ -81,12 +88,10 @@ module.exports = function loader(source) {
     }
   }
 
-  const { resourceTypes } = getOptions(this);
-  const input = JSON.parse(source);
   let result = {};
 
   resourceTypes.forEach(resourceType => {
-    result[resourceType] = input.entry
+    result[resourceType] = profiles.parameters.entry
       .filter(item => item.resource.base.indexOf(resourceType) !== -1)
       .map(item => {
         new RegExp(`(${resourceType}\.[^|]*)( as ([^\\s)]*)|)`).test(item.resource.expression);
@@ -102,6 +107,18 @@ module.exports = function loader(source) {
         return param;
       });
   });
+
+  return result;
+}
+
+module.exports = function loader(source) {
+  const index = JSON.parse(source);
+  const { resourceTypes } = getOptions(this);
+
+  const result = Object.keys(index).reduce((acc,version) => {
+    acc[version] = getSearchParametersConfig(this.context + '/' + index[version], resourceTypes)
+    return acc;
+  }, {})
 
   return JSON.stringify(result);
 }

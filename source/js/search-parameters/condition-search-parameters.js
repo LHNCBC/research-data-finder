@@ -6,7 +6,7 @@ import {
 
 export const CONDITION = 'Condition';
 
-export const ConditionSearchParameters = {
+export const ConditionSearchParameters = () => ({
   // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
   resourceType: CONDITION,
   // Description of Condition search parameters:
@@ -20,4 +20,4 @@ export const ConditionSearchParameters = {
     // Default search parameters:
     ...defaultParameters(CONDITION)
   }
-};
+});

@@ -27,7 +27,7 @@ const columnToResourceElementName = {
 
 export const ENCOUNTER = 'Encounter';
 
-export const EncounterSearchParameters = {
+export const EncounterSearchParameters = () => ({
   // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
   resourceType: ENCOUNTER,
   // Description of Encounter search parameters:
@@ -92,4 +92,4 @@ export const EncounterSearchParameters = {
   },
 
   columnToResourceElementName
-};
+});

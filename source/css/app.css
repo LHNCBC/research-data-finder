@@ -39,7 +39,9 @@ th label {font-weight: bold; width: 30em;}
 
 .autocomp_selected {width: 30em;}
 
-input.ansList {width: 100%;}
+input#fhirServer, input.ansList {
+  width: 100%;
+}
 
 #content {padding: 1em}
 #content > p {

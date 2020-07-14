@@ -6,7 +6,7 @@ import './common/polyfills';
 import * as catData from './common/category-list';
 import { saveAs } from 'file-saver';
 import { ObservationTable } from './observation-table'
-import { FhirBatchQuery } from "./common/fhir-batch-query";
+import { FhirBatchQuery, HTTP_ABORT } from "./common/fhir-batch-query";
 import {
   SearchParameters,
   PatientSearchParameters, PATIENT,
@@ -33,28 +33,18 @@ if (/[?&]tunable(&|$)/.test(window.location.search)) {
   removeCssClass('.performance-tuning', 'hide');
 }
 
-new Def.Autocompleter.Prefetch('fhirServer', [
-  'https://lforms-fhir.nlm.nih.gov/baseR4',
-  'https://lforms-fhir.nlm.nih.gov/baseDstu3']);
-
 // An instance of report popup component for collecting statistical information about Patient selection
 const patientsReporter = new Reporter();
 // An instance of report popup component for collecting statistical information about Observation selection
 const observationsReporter = new Reporter();
 let fhirClient = getFhirClient();
-const patientSearchParams = new SearchParameters(
-  '#patientSearchParamsAfterThisRow',
-  [
-    PatientSearchParameters,
-    EncounterSearchParameters,
-    ConditionSearchParameters,
-    MedicationDispenseSearchParameters,
-    ObservationSearchParameters
-  ]);
-patientSearchParams.setFhirServer(document.getElementById('fhirServer').value);
-Def.Autocompleter.Event.observeListSelections('fhirServer', function(eventData) {
-  patientSearchParams.setFhirServer(eventData.final_val);
+let patientSearchParams = createPatientSearchParameters(document.getElementById('fhirServer').value);
+document.getElementById('fhirServer').addEventListener('change', function() {
+  patientSearchParams && patientSearchParams.dispose();
+  patientSearchParams = createPatientSearchParameters(this.value);
 
+  loadPatientsButton.disabled = true;
+  patientSearchParams.initialize.then(() => loadPatientsButton.disabled = false);
   // Clear visible Patient list data
   showMessageIfNoPatientList('');
   reportPatientsSpan.innerHTML = '';
@@ -185,6 +175,24 @@ function getFhirClient() {
 }
 
 /**
+ * Creates the section with Patient search parameters
+ *
+ * @return {SearchParameters}
+ */
+function createPatientSearchParameters(serviceBaseUrl) {
+  return new SearchParameters(
+    '#patientSearchParamsAfterThisRow',
+    serviceBaseUrl,
+    [
+      PatientSearchParameters,
+      EncounterSearchParameters,
+      ConditionSearchParameters,
+      MedicationDispenseSearchParameters,
+      ObservationSearchParameters
+    ]);
+}
+
+/**
  * Handles the request to load the Patient list
  */
 export function loadPatients() {
@@ -210,7 +218,7 @@ export function loadPatients() {
       }
     },
     ({status, error}) => {
-      if (status !== 0) {
+      if (status !== HTTP_ABORT) {
         // Show message if request is not aborted
         showMessageIfNoPatientList(`Could not load Patient list`);
         console.log(`FHIR search failed: ${error}`);
@@ -295,7 +303,7 @@ export function loadObs() {
           }
         }, ({status}) => {
           hasError = true;
-          if (status !== 0) {
+          if (status !== HTTP_ABORT) {
             fhirClient.clearPendingRequests();
             // Show message if request is not aborted
             showMessageIfNoObservationList('Could not load observation list');

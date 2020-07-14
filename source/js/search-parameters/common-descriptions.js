@@ -1,12 +1,24 @@
 import { FhirBatchQuery } from '../common/fhir-batch-query';
 import { getAutocompleterById } from '../common/utils';
-import { default as searchParameterDefinitions } from './definitions/R4/search-parameters.json';
+import { default as searchParameterDefinitions } from 'definitions';
 
 // Common FhirBatchQuery to execute queries from search parameter controls
 let client;
 
+// FHIR version
+let fhirVersion;
+
 export function setFhirServerForSearchParameters(serviceBaseUrl) {
-  client = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch: 1});
+  client = null;
+  const newClient = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch: 1});
+  return newClient.getWithCache('metadata').then(({data}) => {
+    fhirVersion = data.fhirVersion;
+    if (!searchParameterDefinitions[fhirVersion]) {
+      return Promise.reject({error: 'Unsupported FHIR version: ' + fhirVersion})
+    } else {
+      client = newClient;
+    }
+  })
 }
 
 export function getCurrentClient() {
@@ -84,7 +96,7 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit" tit
  * @return {Object}
  */
 export function defaultParameters(resourceType, {searchNameToColumn = {}, skip = []} = {}) {
-  return searchParameterDefinitions[resourceType].reduce((_parameters, item) => {
+  return searchParameterDefinitions[fhirVersion][resourceType].reduce((_parameters, item) => {
     if(skip.indexOf(item.name) === -1) {
       const displayName = item.name.charAt(0).toUpperCase() + item.name.substring(1).replace(/-/g, ' ');
       const placeholder = item.description;

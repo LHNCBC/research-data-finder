@@ -2,6 +2,9 @@ import { updateUrlWithParam } from './utils';
 
 let commonRequestCache = {}; // Map from url to result JSON
 
+// The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
+export const HTTP_ABORT = -1;
+
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
 export class FhirBatchQuery {
 
@@ -67,7 +70,7 @@ export class FhirBatchQuery {
             this._activeReq.splice(currentRequestIndex, 1);
           } else {
             // if aborted due to clearPendingRequests
-            reject({status: 0, error: 'Abort'});
+            reject({status: HTTP_ABORT, error: 'Abort'});
           }
           console.log(`${logPrefix ? logPrefix + ' ' : ''}AJAX call returned in ${(new Date() - startAjaxTime)}`);
           const status = oReq.status;

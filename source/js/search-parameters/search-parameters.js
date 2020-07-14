@@ -5,62 +5,79 @@ export class SearchParameters {
   /**
    * Inserts the component after table row selected by anchorSelector
    * @param {string} anchorSelector
+   * @param {string} serviceBaseUrl - FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
    * @param {Object[]} searchParamGroups Array of objects describing the search parameters
    *                   (see patient-search-parameters.js for an example object)
    */
-  constructor(anchorSelector, searchParamGroups) {
-    this.internalId = 'searchParam';
-    this.availableParams = {};
-    this.searchParams = searchParamGroups.reduce((_searchParams, searchParamGroup) => {
-      _searchParams[searchParamGroup.resourceType] = searchParamGroup;
-      this.availableParams[searchParamGroup.resourceType] = Object.keys(searchParamGroup.description).sort();
-      return _searchParams;
-    }, {});
-    this.buttonId = this.internalId+'_add_button';
-    this.item_prefix = this.internalId + '_param_';
-    this.item_generator = 0;
-    this.selectedParams = {};
-   this.selectedResources = {};
+  constructor(anchorSelector, serviceBaseUrl, searchParamGroups) {
+    this.initialize = setFhirServerForSearchParameters(serviceBaseUrl).then(() => {
+      this.internalId = 'searchParam';
+      this.availableParams = {};
+      this.searchParams = searchParamGroups.reduce((_searchParams, searchParamGroupFactory) => {
+        const searchParamGroup = searchParamGroupFactory();
+        _searchParams[searchParamGroup.resourceType] = searchParamGroup;
+        this.availableParams[searchParamGroup.resourceType] = Object.keys(searchParamGroup.description).sort();
+        return _searchParams;
+      }, {});
+      this.buttonId = this.internalId + '_add_button';
+      this.item_prefix = this.internalId + '_param_';
+      this.item_generator = 0;
+      this.selectedParams = {};
+      this.selectedResources = {};
 
-    this.addButton(anchorSelector);
+      this.addButton(anchorSelector);
 
-    Def.Autocompleter.Event.observeListSelections(null, (eventData) => {
-      const inputId = eventData.field_id;
-      const searchItemIdFromResourceSelectorId = this.getSearchItemIdFromResourceSelectorId(inputId)
-      const isResourceChanged = !!searchItemIdFromResourceSelectorId;
-      const searchItemId = searchItemIdFromResourceSelectorId || this.selectedParams[inputId] && inputId;
+      Def.Autocompleter.Event.observeListSelections(null, (eventData) => {
+        const inputId = eventData.field_id;
+        const searchItemIdFromResourceSelectorId = this.getSearchItemIdFromResourceSelectorId(inputId)
+        const isResourceChanged = !!searchItemIdFromResourceSelectorId;
+        const searchItemId = searchItemIdFromResourceSelectorId || this.selectedParams[inputId] && inputId;
 
-      if (searchItemId) {
-        const autocomplete = getAutocompleterById(inputId);
-        const newValue = eventData.final_val;
-        const prevValue = isResourceChanged ? this.selectedResources[searchItemId] : this.selectedParams[searchItemId];
-        if (eventData.on_list) {
-          if (newValue !== prevValue) {
-            const newResourceType = isResourceChanged ? newValue : this.selectedResources[searchItemId];
-            const newSelectedParam = isResourceChanged ? this.availableParams[newValue][0] : newValue;
-            const prevResourceType = this.selectedResources[searchItemId];
-            const prevSelectedParam = this.selectedParams[searchItemId];
+        if (searchItemId) {
+          const autocomplete = getAutocompleterById(inputId);
+          const newValue = eventData.final_val;
+          const prevValue = isResourceChanged ? this.selectedResources[searchItemId] : this.selectedParams[searchItemId];
+          if (eventData.on_list) {
+            if (newValue !== prevValue) {
+              const newResourceType = isResourceChanged ? newValue : this.selectedResources[searchItemId];
+              const newSelectedParam = isResourceChanged ? this.availableParams[newValue][0] : newValue;
+              const prevResourceType = this.selectedResources[searchItemId];
+              const prevSelectedParam = this.selectedParams[searchItemId];
 
-            this.removeControlsForSearchParam(searchItemId);
-            this.selectedParams[searchItemId] = newSelectedParam;
-            this.selectedResources[searchItemId] = newResourceType;
-            this.createControlsForSearchParam(searchItemId);
-            this.swapAvailableItem(newResourceType, newSelectedParam, prevResourceType, prevSelectedParam);
-            if (isResourceChanged) {
-              getAutocompleterById(searchItemId).setFieldToListValue(newSelectedParam);
+              this.removeControlsForSearchParam(searchItemId);
+              this.selectedParams[searchItemId] = newSelectedParam;
+              this.selectedResources[searchItemId] = newResourceType;
+              this.createControlsForSearchParam(searchItemId);
+              this.swapAvailableItem(newResourceType, newSelectedParam, prevResourceType, prevSelectedParam);
+              if (isResourceChanged) {
+                getAutocompleterById(searchItemId).setFieldToListValue(newSelectedParam);
+              }
+              this.updateAllSearchParamSelectors(searchItemId, isResourceChanged);
             }
-            this.updateAllSearchParamSelectors(searchItemId, isResourceChanged);
-          }
-        } else {
-          // Restore the previous value if the user hasn't finally selected the correct value
-          if(!newValue) {
-            autocomplete.setFieldToListValue(prevValue);
+          } else {
+            // Restore the previous value if the user hasn't finally selected the correct value
+            if (!newValue) {
+              autocomplete.setFieldToListValue(prevValue);
+            }
           }
         }
-      }
+      });
+    }, e => {
+      alert(e.error);
+      return Promise.reject(e);
     });
   }
 
+  /**
+   * Removes all controls and related data
+   */
+  dispose() {
+    const addBtn = document.getElementById(this.buttonId);
+    if (addBtn) {
+      addBtn.parentElement.removeChild(addBtn);
+      Object.keys(this.selectedParams, searchItemId => this.removeParam(searchItemId))
+    }
+  }
 
   /**
    * Generates an identifier for a table row
@@ -249,17 +266,24 @@ export class SearchParameters {
   addRemoveBtnListener(searchItemId) {
     const removeButtonId = this.getRemoveButtonId(searchItemId);
 
-    document.getElementById(removeButtonId).onclick = (() => {
-      const row = document.getElementById(this.getParamRowId(searchItemId));
-      const availableResourceType = this.selectedResources[searchItemId];
-      const availableParam = this.selectedParams[searchItemId];
-      this.removeControlsForSearchParam(searchItemId)
-      row.parentElement.removeChild(row);
-      delete this.selectedParams[searchItemId];
-      document.getElementById(this.buttonId).disabled = false;
-      this.freeAvailableItem(availableResourceType, availableParam);
-      this.updateAllSearchParamSelectors();
-    });
+    document.getElementById(removeButtonId).onclick = (() => this.removeParam(searchItemId));
+  }
+
+  /**
+   * Removes a row with search parameter from the table of search parameters
+   * @param {string} searchItemId a generic identifier for a search parameter
+   */
+  removeParam(searchItemId) {
+    const row = document.getElementById(this.getParamRowId(searchItemId));
+    const availableResourceType = this.selectedResources[searchItemId];
+    const availableParam = this.selectedParams[searchItemId];
+
+    this.removeControlsForSearchParam(searchItemId)
+    row.parentElement.removeChild(row);
+    delete this.selectedParams[searchItemId];
+    document.getElementById(this.buttonId).disabled = false;
+    this.freeAvailableItem(availableResourceType, availableParam);
+    this.updateAllSearchParamSelectors();
   }
 
   /**
@@ -334,9 +358,5 @@ export class SearchParameters {
 
     return this.getColumns(resourceType, persistentColumns)
       .map(column => columnToResourceElementName[column] || column);
-  }
-
-  setFhirServer(serviceBaseUrl) {
-    setFhirServerForSearchParameters(serviceBaseUrl);
   }
 }
