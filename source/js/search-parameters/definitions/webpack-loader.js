@@ -115,10 +115,12 @@ module.exports = function loader(source) {
   const index = JSON.parse(source);
   const { resourceTypes } = getOptions(this);
 
-  const result = Object.keys(index).reduce((acc,version) => {
-    acc[version] = getSearchParametersConfig(this.context + '/' + index[version], resourceTypes)
+  index.configByVersionName = Object.values(index.versionNameByNumber).reduce((acc,versionName) => {
+    if (!acc[versionName]) {
+      acc[versionName] = getSearchParametersConfig(this.context + '/' + versionName, resourceTypes);
+    }
     return acc;
   }, {})
 
-  return JSON.stringify(result);
+  return JSON.stringify(index);
 }

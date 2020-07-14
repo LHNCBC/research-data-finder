@@ -175,7 +175,7 @@ function getFhirClient() {
 }
 
 /**
- * Creates the section with Patient search parameters
+ * Creates the section with search parameters for patients selection
  *
  * @return {SearchParameters}
  */

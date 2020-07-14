@@ -13,7 +13,7 @@ export function setFhirServerForSearchParameters(serviceBaseUrl) {
   const newClient = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch: 1});
   return newClient.getWithCache('metadata').then(({data}) => {
     fhirVersion = data.fhirVersion;
-    if (!searchParameterDefinitions[fhirVersion]) {
+    if (!searchParameterDefinitions.versionNameByNumber[fhirVersion]) {
       return Promise.reject({error: 'Unsupported FHIR version: ' + fhirVersion})
     } else {
       client = newClient;
@@ -96,7 +96,9 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit" tit
  * @return {Object}
  */
 export function defaultParameters(resourceType, {searchNameToColumn = {}, skip = []} = {}) {
-  return searchParameterDefinitions[fhirVersion][resourceType].reduce((_parameters, item) => {
+  const versionName = searchParameterDefinitions.versionNameByNumber[fhirVersion];
+
+  return searchParameterDefinitions.configByVersionName[versionName][resourceType].reduce((_parameters, item) => {
     if(skip.indexOf(item.name) === -1) {
       const displayName = item.name.charAt(0).toUpperCase() + item.name.substring(1).replace(/-/g, ' ');
       const placeholder = item.description;
