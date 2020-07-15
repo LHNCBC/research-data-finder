@@ -25,11 +25,6 @@ module.exports = {
       filename: 'app.[contenthash].css',
     })
   ],
-  resolve: {
-    alias: {
-      definitions: path.resolve(__dirname, 'source/js/search-parameters/definitions/index.json'),
-    }
-  },
   module: {
     rules: [
       {
