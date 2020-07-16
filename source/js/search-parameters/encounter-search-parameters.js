@@ -1,4 +1,4 @@
-// See https://www.hl7.org/fhir/encounter.html#Encounter for description of Encounter search parameters
+// See https://www.hl7.org/fhir/encounter.html#search for description of Encounter search parameters
 
 import { valueSets } from "../common/value-sets";
 import { humanNameToString } from "../common/utils";
@@ -27,9 +27,9 @@ const columnToResourceElementName = {
 
 export const ENCOUNTER = 'Encounter';
 
-export const EncounterSearchParameters = {
-  // The resource name (for which these search parameters) is used for retrieving entered data from the SearchParameters component
-  resourceName: ENCOUNTER,
+export const EncounterSearchParameters = () => ({
+  // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
+  resourceType: ENCOUNTER,
   // Description of Encounter search parameters:
   // column - this value specifies the column name (of the HTML table of the observation data) to show, sometimes could be array of column names
   // getControlsHtml - creates controls for input parameter value(s)
@@ -82,7 +82,7 @@ export const EncounterSearchParameters = {
 
 
     // Reference search parameters:
-    // [<display name>, <placeholder>, <resource name>, <resource param filter name>, <map function>, <search parameter name>]
+    // [<display name>, <placeholder>, <resource type>, <resource param filter name>, <map function>, <search parameter name>]
     // TODO: It is unclear which criteria should be used for parameters of reference type
     // TODO: We need a separate search form or a set of search parameters for each parameter of the reference type?
     ...referenceParameters([
@@ -92,4 +92,4 @@ export const EncounterSearchParameters = {
   },
 
   columnToResourceElementName
-};
+});

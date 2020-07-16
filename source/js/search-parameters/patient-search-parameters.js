@@ -46,9 +46,9 @@ const columnToResourceElementName = {
 
 export const PATIENT = 'Patient';
 
-export const PatientSearchParameters = {
-  // The resource name (for which these search parameters) is used for retrieving entered data from the SearchParameters component
-  resourceName: PATIENT,
+export const PatientSearchParameters = () => ({
+  // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
+  resourceType: PATIENT,
   // Description of Patient search parameters:
   // column - this value specifies the column name (of the HTML table of the observation data) to show, sometimes could be array of column names
   // getControlsHtml - creates controls for input parameter value(s)
@@ -116,7 +116,7 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
 
 
     // Reference search parameters:
-    // [<display name>, <placeholder>, <resource name>, <resource param filter name>, <map function>, <search parameter name>]
+    // [<display name>, <placeholder>, <resource type>, <resource param filter name>, <map function>, <search parameter name>]
     ...referenceParameters([
       ['General practitioner', 'Patient\'s nominated general practitioner', 'Practitioner', 'name', item => humanNameToString(item.resource.name), 'general-practitioner'],
       ['Linked patients', 'All patients linked to the given patient', 'Patient', 'name', item => humanNameToString(item.resource.name), 'link'],
@@ -126,7 +126,7 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
   },
 
   columnToResourceElementName
-};
+});
 
 /**
  * Minimum date of birth in ISO-8601 format to be <age> years old

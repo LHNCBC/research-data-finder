@@ -37,7 +37,7 @@ module.exports = {
       },
       {
         test: /\.(png|svg|jpg|gif)$/,
-         use: [
+        use: [
           {
             loader: 'file-loader',
             options: {
@@ -60,6 +60,15 @@ module.exports = {
             ]]
           }
         }
+      },
+      {
+        test: /definitions\/index.json$/,
+        use: [
+          {
+            loader: path.resolve('source/js/search-parameters/definitions/webpack-loader.js'),
+            options: require(path.resolve('source/js/search-parameters/definitions/webpack-options.json'))
+          }
+        ]
       }
     ]
   }

@@ -1,0 +1,3 @@
+{
+  "resourceTypes": ["Patient", "Encounter", "Observation", "Condition", "MedicationDispense"]
+}

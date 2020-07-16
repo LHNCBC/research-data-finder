@@ -39,7 +39,9 @@ th label {font-weight: bold; width: 30em;}
 
 .autocomp_selected {width: 30em;}
 
-input.ansList {width: 100%;}
+input#fhirServer, input.ansList {
+  width: 100%;
+}
 
 #content {padding: 1em}
 #content > p {
@@ -68,6 +70,10 @@ input {
   border: 2px solid #17b4e3;
   padding-left: 0.25em;
   outline-style: none; /* removes border change when focusing in input in Chrome */
+}
+
+[placeholder]{
+  text-overflow:ellipsis;
 }
 
 #perPatientPerTest {
@@ -179,7 +185,7 @@ div.section__body > div > input {
 }
 
 div.section__body > .search-parameter > :first-child {
-  max-width: 100px;
+  max-width: 150px;
 }
 
 div.section__body > .search-parameter > :nth-child(3) {
@@ -307,7 +313,7 @@ a:focus, a:hover {
   padding: 20px 10px 20px 20px;
   border-radius: 7px;
   border: 2px solid #17b4e3;
-  width: 600px;
+  width: 500px;
   position: relative;
 }
 

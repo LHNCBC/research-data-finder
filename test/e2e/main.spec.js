@@ -17,7 +17,10 @@ describe('Research Data Finder', function() {
   // });
 
   it('should load Patients', function () {
-    $('#loadPatients').click();
+    const loadPatientBtn = $('#loadPatients');
+
+    browser.wait(EC.elementToBeClickable(loadPatientBtn));
+    loadPatientBtn.click();
     browser.wait(EC.visibilityOf($('#loadObservations')));
   });
 
