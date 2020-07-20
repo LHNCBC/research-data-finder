@@ -52,12 +52,7 @@ export const EncounterSearchParameters = () => ({
       ['Reason code', 'Coded reason the encounter takes place', 'reason-code'],
       ['Reason reference', 'Reason the encounter takes place (reference)', 'reason-reference'],
       ['Service provider', 'The organization (facility) responsible for this encounter', 'service-provider'],
-      ['Special arrangement', 'Wheelchair, translator, stretcher, etc.', 'special-arrangement'],
       ['Subject', 'The patient or group present at the encounter', 'subject'],
-      // TODO: How to get set of values for 'Encounter type' from this:
-      // https://lforms-fhir.nlm.nih.gov/baseR4/ValueSet?url=http://hl7.org/fhir/ValueSet/encounter-type
-      // https://www.hl7.org/fhir/codesystem-encounter-type.json.html
-      ['Type', 'Encounter type', 'type'],
       // TODO: Search by "identifier" doesn't work now, should be replaced with "_id" ??
       ['Identifier', 'encounter identifier', 'identifier'],
       ['Length', 'length of encounter in days', 'length'],
@@ -69,7 +64,8 @@ export const EncounterSearchParameters = () => ({
       ['Class', 'Classification of patient encounter', 'class', 'Encounter.class'],
       ['Participant type', 'Role of participant in encounter', 'participant-type', 'Encounter.participant.type'],
       ['Status', 'Encounter status', 'status', 'Encounter.status'],
-
+      ['Type', 'Encounter type', 'type', 'Encounter.type'],
+      ['Special arrangement', 'Wheelchair, translator, stretcher, etc.', 'special-arrangement', 'Encounter.hospitalization.specialArrangement']
     ], searchNameToColumn),
 
     // Date search parameters:
