@@ -178,7 +178,6 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
     const include = compose && compose.include;
     if (include) {
       result = result.concat(...include.map(i => {
-        //if (i.system === 'http://snomed.info/sct') debugger;
         const valueSet = getValueSet(i);
         if (!valueSet) {
           console.log('Can\'t find:', i);
@@ -223,14 +222,12 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
             ? getDescription(resourceType, item.resource.description)
             : item.resource.description.trim()
         };
-        // if (RegExp.$1.trim() === 'Condition.severity') debugger;
         if (param.type === 'token') {
           Object.assign(param, getTypeByExpression(param.expression));
         }
         if (param.valueSet && !result.valueSets[param.valueSet])  {
           const valueSet = getValueSet({ url: param.valueSet });
           result.valueSetByPath[param.path] = param.valueSet;
-          // console.log('>>>', param.path, param.valueSet)
           result.valueSets[param.valueSet] = valueSet instanceof Array
             ? valueSet.sort((a,b) => a.display.localeCompare(b.display))
             : valueSet;
@@ -246,7 +243,6 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
     if (param.valueSet && !result.valueSets[param.valueSet])  {
       const valueSet = getValueSet({ url: param.valueSet });
       result.valueSetByPath[param.path] = param.valueSet;
-      // console.log('>>>', param.path, param.valueSet)
       result.valueSets[param.valueSet] = valueSet instanceof Array
         ? valueSet.sort((a,b) => a.display.localeCompare(b.display))
         : valueSet;
