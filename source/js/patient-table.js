@@ -1,5 +1,5 @@
-import { valueSetsMap } from './common/value-sets';
 import { addressToStringArray, getPatientAge, getPatientContactsByType, humanNameToString } from './common/utils';
+import { getCurrentDefinitions } from './search-parameters/common-descriptions';
 
 export class PatientTable {
   constructor(tableId) {
@@ -24,7 +24,7 @@ export class PatientTable {
       {
         title: 'Gender',
         columnName: 'gender',
-        text: pat => valueSetsMap.administrativeGenderList[pat.gender] || ''
+        text: pat => this.valueSetMapByPath['Patient.gender'][pat.gender] || ''
       },
       {
         title: 'Age',
@@ -90,12 +90,13 @@ export class PatientTable {
   fill(data, serviceBaseUrl) {
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
+    this.valueSetMapByPath = getCurrentDefinitions().valueSetMapByPath;
     this.data = data.map((patient) => {
       patient._name = humanNameToString(patient.name);
       patient._age = getPatientAge(patient);
-      patient._address = addressToStringArray(patient.address);
-      patient._email = getPatientContactsByType(patient, 'email');
-      patient._phone = getPatientContactsByType(patient, 'phone');
+      patient._address = addressToStringArray(this.valueSetMapByPath, patient.address);
+      patient._email = getPatientContactsByType(this.valueSetMapByPath, patient, 'email');
+      patient._phone = getPatientContactsByType(this.valueSetMapByPath, patient, 'phone');
       return patient;
     });
 

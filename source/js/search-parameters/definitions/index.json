@@ -3,5 +3,6 @@
     "4.0.0": "R4",
     "4.0.1": "R4"
   },
-  "configByVersionName": {}
+  "configByVersionName": {},
+  "versionByNumber": {}
 }

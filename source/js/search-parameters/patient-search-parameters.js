@@ -2,7 +2,6 @@
 
 import * as moment from "moment";
 
-import { valueSets } from "../common/value-sets";
 import { humanNameToString } from "../common/utils";
 import {
   dateParameters,
@@ -96,15 +95,15 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
       ['Phonetic name', 'a portion of either family or given name using some kind of phonetic matching algorithm', 'phonetic'],
       // TODO: Search by "identifier" doesn't work now, should be replaced with "_id" ??
       ['Identifier', 'a patient identifier', 'identifier'],
-      ['Communication language', 'language code (irrespective of use value)', 'language'],
       ['Telecom details', 'the value in any kind of telecom details of the patient', 'telecom']
     ], searchNameToColumn),
 
     // Search parameters with predefined value set:
-    // [<display name>, <placeholder>, <search parameter name>, <set of values>]
+    // [<display name>, <placeholder>, <search parameter name>, <set of values|value path to get list from FHIR specification>]
     ...valueSetsParameters([
-      ['Address: use', 'A use code specified in an address', 'address-use', valueSets.addressUse],
-      ['Gender', 'Gender of the patient', 'gender', valueSets.administrativeGenderList]
+      ['Communication language', 'language code (irrespective of use value)', 'language', 'Patient.communication.language'],
+      ['Address: use', 'A use code specified in an address', 'address-use', 'Patient.address.use'],
+      ['Gender', 'Gender of the patient', 'gender', 'Patient.gender']
     ], searchNameToColumn),
 
     // Date search parameters:

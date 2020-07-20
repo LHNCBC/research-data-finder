@@ -37,7 +37,32 @@ a.external:after {
 
 th label {font-weight: bold; width: 30em;}
 
-.autocomp_selected {width: 30em;}
+.autocomp_selected {
+  padding: 0;
+  line-height: normal;
+  width: 30em;
+  border-radius: 7px;
+  border: 2px solid #17b4e3;
+}
+
+.autocomp_selected input {
+  border-radius: 0 0 7px 7px;
+  border-width: 0;
+}
+
+.autocomp_selected ul:empty {
+  display: none;
+  border-bottom: 0;
+}
+
+.autocomp_selected ul:empty+input{
+   border-radius: 7px;
+}
+.autocomp_selected ul {
+  border-bottom: 1px solid #17b4e3;
+  margin: .25em 0 0;
+  padding: 0 0.25em;
+}
 
 input#fhirServer, input.ansList {
   width: 100%;

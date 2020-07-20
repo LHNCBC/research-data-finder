@@ -1,6 +1,6 @@
 import { FhirBatchQuery } from '../common/fhir-batch-query';
 import { getAutocompleterById } from '../common/utils';
-import { default as searchParameterDefinitions } from './definitions/index.json';
+import definitionsIndex from './definitions/index.json';
 
 // Common FhirBatchQuery to execute queries from search parameter controls
 let client;
@@ -13,7 +13,7 @@ export function setFhirServerForSearchParameters(serviceBaseUrl) {
   const newClient = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch: 1});
   return newClient.getWithCache('metadata').then(({data}) => {
     fhirVersion = data.fhirVersion;
-    if (!searchParameterDefinitions.versionNameByNumber[fhirVersion]) {
+    if (!definitionsIndex.versionNameByNumber[fhirVersion]) {
       return Promise.reject({error: 'Unsupported FHIR version: ' + fhirVersion})
     } else {
       client = newClient;
@@ -23,6 +23,39 @@ export function setFhirServerForSearchParameters(serviceBaseUrl) {
 
 export function getCurrentClient() {
   return client;
+}
+
+/**
+ * Returns definitions for current FHIR version
+ * @return {Object}
+ */
+export function getCurrentDefinitions() {
+  let definitions = definitionsIndex.versionByNumber[fhirVersion];
+  if (!definitions) {
+    // prepare definitions on first request
+    const versionName = definitionsIndex.versionNameByNumber[fhirVersion];
+
+    definitions = definitionsIndex.configByVersionName[versionName];
+
+    const valueSets = definitions.valueSets;
+    const valueSetMaps = definitions.valueSetMaps = Object.keys(valueSets).reduce((_valueSetsMap, entityName) => {
+      _valueSetsMap[entityName] = typeof valueSets[entityName] === 'string'
+        ? valueSets[entityName]
+        : valueSets[entityName].reduce((_entityMap, item) => {
+          _entityMap[item.code] = item.display;
+          return _entityMap;
+        }, {});
+      return _valueSetsMap;
+    }, {});
+
+    Object.keys(definitions.valueSetByPath).forEach(path => {
+      definitions.valueSetMapByPath[path] = valueSetMaps[definitions.valueSetByPath[path]];
+      definitions.valueSetByPath[path] = valueSets[definitions.valueSetByPath[path]];
+    })
+    definitionsIndex.versionByNumber[fhirVersion] = definitions;
+  }
+
+  return definitions;
 }
 
 /**
@@ -88,6 +121,40 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit" tit
 }
 
 /**
+ * Generates ValueSet parameter description
+ * @param {string} placeholder - placeholder for input field,
+ * @param {string} name - name of search parameter to construct result query string
+ * @param {Object} column - HTML table column name
+ * @param {Array<{display: string, code: string}>|string} list - array of predefined values or value path to get list from FHIR specification
+ * @return {Object}
+ */
+function valuesetParameterDescription({placeholder, name, column, list}) {
+  if (typeof list === 'string') {
+    list = getCurrentDefinitions().valueSetByPath[list];
+  }
+  return {
+    column: column,
+    getControlsHtml: (searchItemId) =>
+      `<input type="text" id="${searchItemId}-${name}" placeholder="${placeholder}">`,
+    attachControls: (searchItemId) => {
+      new Def.Autocompleter.Prefetch(`${searchItemId}-${name}`, list.map(item => item.display), {
+        codes: list.map(item => item.code),
+        maxSelect: '*',
+        matchListValue: true
+      });
+    },
+    detachControls: (searchItemId) => {
+      getAutocompleterById(`${searchItemId}-${name}`).destroy();
+    },
+    getCondition: (searchItemId) => {
+      const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes()
+        .map(code => encodeURIComponent(code)).join(',');
+      return codes ? `&${name}=${codes}` : '';
+    }
+  };
+}
+
+/**
  * Generates search parameters from data imported from FHIR specification on build step by webpack loader.
  * Available resource types are specified in webpack.common.js
  * @param {string} resourceType - resource type for which you want to generate search parameters
@@ -96,9 +163,10 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit" tit
  * @return {Object}
  */
 export function defaultParameters(resourceType, {searchNameToColumn = {}, skip = []} = {}) {
-  const versionName = searchParameterDefinitions.versionNameByNumber[fhirVersion];
+  const definitions = getCurrentDefinitions();
+  const valueSets = definitions.valueSets;
 
-  return searchParameterDefinitions.configByVersionName[versionName][resourceType].reduce((_parameters, item) => {
+  return definitions.resources[resourceType].reduce((_parameters, item) => {
     if(skip.indexOf(item.name) === -1) {
       const displayName = item.name.charAt(0).toUpperCase() + item.name.substring(1).replace(/-/g, ' ');
       const placeholder = item.description;
@@ -122,12 +190,22 @@ export function defaultParameters(resourceType, {searchNameToColumn = {}, skip =
           break;
         // TODO: find a way to support other types
         default:
-          // all other criteria are considered to have a string type
-          _parameters[displayName] = stringParameterDescription({
-            placeholder,
-            name,
-            column: searchNameToColumn[name] || name
-          });
+          if (item.valueSet && valueSets[item.valueSet] instanceof Array) {
+            // Static ValueSet specified in FHIR specification
+            _parameters[displayName] = valuesetParameterDescription({
+              placeholder,
+              name,
+              column: searchNameToColumn[name] || name,
+              list: valueSets[item.valueSet]
+            });
+          } else {
+            // all other criteria are considered to have a string type
+            _parameters[displayName] = stringParameterDescription({
+              placeholder,
+              name,
+              column: searchNameToColumn[name] || name
+            });
+          }
       }
     }
 
@@ -161,31 +239,18 @@ export function stringParameters(descriptions, searchNameToColumn) {
  *                  displayName - parameter display name,
  *                  placeholder - placeholder for input field,
  *                  name - name of search parameter to construct result query string
- *                  list - array of predefined values (see value-sets.js)
+ *                  list - array of predefined values
  * @param {Object} searchNameToColumn - mapping from search parameter names to HTML table column names
  * @return {Object}
  */
 export function valueSetsParameters(descriptions, searchNameToColumn) {
   return descriptions.reduce((_parameters, [displayName, placeholder, name, list]) => {
-    _parameters[displayName] = {
+    _parameters[displayName] = valuesetParameterDescription({
+      placeholder,
+      name,
       column: searchNameToColumn[name] || name,
-      getControlsHtml: (searchItemId) =>
-        `<input type="text" id="${searchItemId}-${name}" placeholder="${placeholder}">`,
-      attachControls: (searchItemId) => {
-        new Def.Autocompleter.Prefetch(`${searchItemId}-${name}`, list.map(item => item.display), {
-          codes: list.map(item => item.code),
-          maxSelect: '*',
-          matchListValue: true
-        });
-      },
-      detachControls: (searchItemId) => {
-        getAutocompleterById(`${searchItemId}-${name}`).destroy();
-      },
-      getCondition: (searchItemId) => {
-        const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes().join(',');
-        return codes ? `&${name}=${encodeURIComponent(codes)}` : '';
-      }
-    };
+      list
+    });
     return _parameters;
   }, {});
 }
@@ -262,8 +327,9 @@ export function referenceParameters(descriptions, searchNameToColumn) {
         getAutocompleterById(`${searchItemId}-${name}`).destroy();
       },
       getCondition: (searchItemId) => {
-        const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes().join(',');
-        return codes ? `&${name}=${encodeURIComponent(codes)}` : '';
+        const codes = getAutocompleterById(`${searchItemId}-${name}`).getSelectedCodes()
+          .map(code => encodeURIComponent(code)).join(',');
+        return codes ? `&${name}=${codes}` : '';
       }
     };
     return _parameters;

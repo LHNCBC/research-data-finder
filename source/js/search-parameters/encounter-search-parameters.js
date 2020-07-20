@@ -1,6 +1,5 @@
 // See https://www.hl7.org/fhir/encounter.html#search for description of Encounter search parameters
 
-import { valueSets } from "../common/value-sets";
 import { humanNameToString } from "../common/utils";
 import {
   dateParameters,
@@ -65,11 +64,11 @@ export const EncounterSearchParameters = () => ({
     ], searchNameToColumn),
 
     // Search parameters with predefined value set:
-    // [<display name>, <placeholder>, <search parameter name>, <set of values>]
+    // [<display name>, <placeholder>, <search parameter name>, <set of values|value path to get list from FHIR specification>]
     ...valueSetsParameters([
-      ['Class', 'Classification of patient encounter', 'class', valueSets.actEncounterCode],
-      ['Participant type', 'Role of participant in encounter', 'participant-type', valueSets.participantType],
-      ['Status', 'Encounter status', 'status', valueSets.encounterStatus],
+      ['Class', 'Classification of patient encounter', 'class', 'Encounter.class'],
+      ['Participant type', 'Role of participant in encounter', 'participant-type', 'Encounter.participant.type'],
+      ['Status', 'Encounter status', 'status', 'Encounter.status'],
 
     ], searchNameToColumn),
 
