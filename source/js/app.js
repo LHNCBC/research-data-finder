@@ -342,7 +342,7 @@ function getPatients() {
             resourceSummary.total = summaries[index].data.total;
 
           });
-          resourceSummaries.sort((x, y) => Math.sign(x.total - y.total));
+          resourceSummaries.sort((x, y) => x.total - y.total);
           resourceSummaries.forEach((resourceSummary) => {
             patientsReporter.addMetric({
               name: `* Number of matching ${resourceSummary.resourceType} resources`,
