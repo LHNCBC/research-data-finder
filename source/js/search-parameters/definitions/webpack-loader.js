@@ -104,41 +104,42 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
   }
 
   /**
-   * Gets ValueSet items with filtering by includeCodes if specified and converting a tree of concepts to the flat list, if includeChildren is true
+   * Gets ValueSet items with filtering by includeCodes if specified and converting a tree of concepts to the flat list
    * @param {Array<{code: string, display: string}>} concept - concept input array, each concept can have a nested concept array
    * @param {Array<string> | null} includeCodes - if specified, then a list of concept codes that we should include
    *                                            in the result array
-   * @param {boolean} includeChildren - true if we should include nested concepts in the result Array
+   * @param {boolean} includeChildren - true if we should include nested concepts of matched concept in the result Array
    * @return {Array<{code: string, display: string}>}
    */
   function getValueSetItems(concept, includeCodes, includeChildren) {
-    if (includeCodes) {
-      return concept.reduce((acc, i) => {
-        if(includeCodes[i.code]) {
-          acc.push({
-            code: i.code,
-            display: i.display
-          });
-        }
-
-        return i.concept ? acc.concat(getValueSetItems(i.concept, includeChildren && includeCodes[i.code] ? null : includeCodes, includeChildren)) : acc;
-      }, []);
-    }
-
     return concept.reduce((acc, i) => {
-      acc.push({
-        code: i.code,
-        display: i.display
-      });
-      // TODO: i.concept ??
-      return i.concept ? acc.concat(getValueSetItems(i.concept, null, includeChildren)) : acc;
+      if (!includeCodes || includeCodes[i.code]) {
+        acc.push({
+          code: i.code,
+          display: i.display,
+        });
+      }
+
+      return i.concept
+        ? acc.concat(
+            getValueSetItems(
+              i.concept,
+              includeChildren && includeCodes && includeCodes[i.code]
+                ? null
+                : includeCodes,
+              includeChildren
+            )
+          )
+        : acc;
     }, []);
   }
 
   /**
-   * Gets ValueSet by URL.
-   * If it was not possible to get an array of items for ValueSet, then a string with a URL is returned.
-   * @param {{url:string}|...} options
+   * Gets array of all ValueSet items by URL.
+   * If it is not possible to get an array of items for ValueSet, then a string with a URL is returned.
+   * @param {{url:string}|{system: string, ...}} options - "url" is passed on the first call,
+   *        then the function calls itself recursively for each "ValueSet.compose.include" item,
+   *        its value is passed into "options" parameter
    * @return {Array<{code: string, display: string}> | string}
    */
   function getValueSet(options) {
@@ -153,11 +154,10 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
       }
       return null;
     }
-    const desc = entry.resource;
+    const valueSet = entry.resource;
     let result = [];
 
-
-    if (desc && desc.concept) {
+    if (valueSet && valueSet.concept) {
       const includeCodes = options.concept && options.concept.reduce((acc, c) => {
           acc[c.code] = true;
           return acc;
@@ -171,10 +171,10 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
           }
           return acc;
         }, {});
-      result = result.concat(getValueSetItems(desc.concept, includeCodes || filterCodes, !!filterCodes));
+      result = result.concat(getValueSetItems(valueSet.concept, includeCodes || filterCodes, !!filterCodes));
     }
 
-    const compose = desc && desc.compose;
+    const compose = valueSet && valueSet.compose;
     const include = compose && compose.include;
     if (include) {
       result = result.concat(...include.map(i => {
@@ -185,12 +185,19 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
           console.log('No values for:', valueSet);
         }
 
-        const exclude = compose.exclude && compose.exclude.find(e => e.system === i.system);
-        if(exclude && !exclude.concept) {
-          // TODO: support full exclude specification? (see http://hl7.org/fhir/valueset.html)
-          console.error('Unsupported exclude value:', options);
-        }
-        const excludeCodes = exclude && exclude.concept && exclude.concept.reduce((acc, e) => ({...acc, [e.code]: true}), {});
+        const excludes =
+          (compose.exclude &&
+            compose.exclude.filter((e) => e.system === i.system)) ||
+          [];
+        const excludeCodes = excludes.reduce((acc, exclude) => {
+          if (!exclude.concept) {
+            // TODO: support full exclude specification? (see http://hl7.org/fhir/valueset.html)
+            console.error("Unsupported exclude value:", options);
+          } else {
+            exclude.concept.forEach(e => acc[e.code] = true);
+          }
+          return acc;
+        }, {});
 
         return valueSet instanceof Array && excludeCodes ? valueSet.filter(j => !excludeCodes[j.code]) : valueSet;
       }).filter(i => i instanceof Array));
@@ -225,6 +232,7 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
         if (param.type === 'token') {
           Object.assign(param, getTypeByExpression(param.expression));
         }
+        // Find value set for search parameter
         if (param.valueSet && !result.valueSets[param.valueSet])  {
           const valueSet = getValueSet({ url: param.valueSet });
           result.valueSetByPath[param.path] = param.valueSet;
@@ -237,7 +245,14 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
   });
 
 
-  // Find value sets for additional expressions
+  // Some times we need additional value sets that no search parameters refers to.
+  // For example,
+  // We need value set for "Patient.telecom.use"
+  // for displaying Patient phone/email in HTML table.
+  // To get it, we should specify this path in option "additionalExpressions"
+  // see "source/js/search-parameters/definitions/webpack-options.json"
+  //
+  // Find value sets for additional expressions:
   additionalExpressions.forEach(expression => {
     const param = getTypeByExpression(expression);
     if (param.valueSet && !result.valueSets[param.valueSet])  {
@@ -256,12 +271,19 @@ module.exports = function loader(source) {
   const index = JSON.parse(source);
   const { resourceTypes, additionalExpressions } = getOptions(this);
 
-  index.configByVersionName = Object.values(index.versionNameByNumber).reduce((acc,versionName) => {
-    if (!acc[versionName]) {
-      acc[versionName] = getSearchParametersConfig(this.context + '/' + versionName, resourceTypes, additionalExpressions);
-    }
-    return acc;
-  }, {})
+  index.configByVersionName = Object.values(index.versionNameByVersionNumberRegex).reduce(
+    (acc, versionName) => {
+      if (!acc[versionName]) {
+        acc[versionName] = getSearchParametersConfig(
+          this.context + "/" + versionName,
+          resourceTypes,
+          additionalExpressions
+        );
+      }
+      return acc;
+    },
+    {}
+  );
 
   return JSON.stringify(index);
-}
+};

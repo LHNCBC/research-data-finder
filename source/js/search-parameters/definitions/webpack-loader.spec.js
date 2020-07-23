@@ -1,3 +1,5 @@
+import { getVersionNameByNumber } from '../common-descriptions';
+
 const fs = require('fs')
 const loader = require('./webpack-loader');
 
@@ -11,7 +13,15 @@ describe('webpack-loader for R4', function () {
 
     // See https://jestjs.io/docs/en/snapshot-testing for details
     ['resources', 'valueSets', 'valueSetByPath', 'valueSetMaps', 'valueSetMapByPath']
-      .forEach(prop => expect(data.configByVersionName[data.versionNameByNumber['4.0.0']][prop]).toMatchSnapshot());
-    expect(data.versionNameByNumber['4.0.0']).toBe(data.versionNameByNumber['4.0.1']);
+      .forEach((prop) =>
+        expect(
+          data.configByVersionName[getVersionNameByNumber("4.0.0")][prop]
+        ).toMatchSnapshot()
+      );
+
+    expect(getVersionNameByNumber["4.0.0"]).toBe(
+      getVersionNameByNumber["4.0.1"]
+    );
+
   });
 });

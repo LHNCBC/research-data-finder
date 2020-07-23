@@ -8,17 +8,46 @@ let client;
 // FHIR version
 let fhirVersion;
 
+/**
+ * Returns version name by version number or null if version number is not supported.
+ * @example
+ * // calling a function as shown below will return this string: 'R4'
+ * getVersionNameByNumber('4.0.1')
+ * @param versionNumber
+ * @return {string|null}
+ */
+export function getVersionNameByNumber(versionNumber) {
+  let versionName = null;
+
+  Object.keys(definitionsIndex.versionNameByVersionNumberRegex).some(versionRegEx => {
+    if(new RegExp(versionRegEx).test(versionNumber)) {
+      versionName = definitionsIndex.versionNameByVersionNumberRegex[versionRegEx];
+      return true;
+    }
+  });
+
+  return versionName;
+}
+
+/**
+ * Sets FHIR REST API Service Base URL for search parameters.
+ * This URL uses to create internal FhirBatchQuery instance
+ * which uses when search parameter autocompleter requests
+ * for a list of possible values (see function referenceParameters below).
+ * @param {string} serviceBaseUrl
+ * @return {Promise}
+ */
 export function setFhirServerForSearchParameters(serviceBaseUrl) {
   client = null;
   const newClient = new FhirBatchQuery({serviceBaseUrl, maxRequestsPerBatch: 1});
   return newClient.getWithCache('metadata').then(({data}) => {
     fhirVersion = data.fhirVersion;
-    if (!definitionsIndex.versionNameByNumber[fhirVersion]) {
+    if (!getVersionNameByNumber(fhirVersion)) {
       return Promise.reject({error: 'Unsupported FHIR version: ' + fhirVersion})
     } else {
       client = newClient;
     }
-  })
+  });
 }
 
 export function getCurrentClient() {
@@ -30,13 +59,11 @@ export function getCurrentClient() {
  * @return {Object}
  */
 export function getCurrentDefinitions() {
-  let definitions = definitionsIndex.versionByNumber[fhirVersion];
-  if (!definitions) {
+  const versionName = getVersionNameByNumber(fhirVersion);
+  const definitions = definitionsIndex.configByVersionName[versionName];
+
+  if (!definitions.initialized) {
     // prepare definitions on first request
-    const versionName = definitionsIndex.versionNameByNumber[fhirVersion];
-
-    definitions = definitionsIndex.configByVersionName[versionName];
-
     const valueSets = definitions.valueSets;
     const valueSetMaps = definitions.valueSetMaps = Object.keys(valueSets).reduce((_valueSetsMap, entityName) => {
       _valueSetsMap[entityName] = typeof valueSets[entityName] === 'string'
@@ -52,7 +79,7 @@ export function getCurrentDefinitions() {
       definitions.valueSetMapByPath[path] = valueSetMaps[definitions.valueSetByPath[path]];
       definitions.valueSetByPath[path] = valueSets[definitions.valueSetByPath[path]];
     })
-    definitionsIndex.versionByNumber[fhirVersion] = definitions;
+    definitions.initialized = true;
   }
 
   return definitions;
@@ -239,7 +266,7 @@ export function stringParameters(descriptions, searchNameToColumn) {
  *                  displayName - parameter display name,
  *                  placeholder - placeholder for input field,
  *                  name - name of search parameter to construct result query string
- *                  list - array of predefined values
+ *                  list - array of predefined values or value path to get list from FHIR specification
  * @param {Object} searchNameToColumn - mapping from search parameter names to HTML table column names
  * @return {Object}
  */
