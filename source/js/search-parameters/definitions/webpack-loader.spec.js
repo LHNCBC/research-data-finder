@@ -20,7 +20,7 @@ describe('webpack-loader for R4', function () {
       );
   });
 
-  it('matches the version number and name', function () {
+  it('translates a FHIR Version number to a release name', function () {
     expect(getVersionNameByNumber("4.0.0")).toBe('R4');
     expect(getVersionNameByNumber("4.0.1")).toBe('R4');
     expect(getVersionNameByNumber("4.0.9")).toBe('R4');

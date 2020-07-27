@@ -104,12 +104,15 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
   }
 
   /**
-   * Gets ValueSet items with filtering by includeCodes if specified and converting a tree of concepts to the flat list
+   * Gets ValueSet/CodeSystem items array from concept array, with filtering by
+   * includeCodes, and converting a CodeSystem tree of concepts to the flat list.
    * @param {string} system - value set code system
-   * @param {Array<{code: string, display: string}>} concept - concept input array, each concept can have a nested concept array
-   * @param {Array<string> | null} includeCodes - if specified, then a list of concept codes that we should include
-   *                                            in the result array
-   * @param {boolean} includeChildren - true if we should include nested concepts of matched concept in the result Array
+   * @param {Array<{code: string, display: string}>} concept - concept input
+   *        array, each concept can have a nested concept array
+   * @param {Array<string> | null} [includeCodes] - if specified, then a list
+   *        of concept codes that we should include in the result array
+   * @param {boolean} includeChildren - true if we should include nested
+   *        concepts of matched concept in the result Array
    * @return {Array<{code: string, display: string}>}
    */
   function getValueSetItems(system, concept, includeCodes, includeChildren) {
@@ -138,12 +141,16 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
   }
 
   /**
-   * Gets array of all ValueSet items by URL.
-   * If it is not possible to get an array of items for ValueSet, then a string with a URL is returned.
-   * @param {{url:string}|{system: string, ...}} options - "url" is passed on the first call,
-   *        then the function calls itself recursively for each "ValueSet.compose.include" item,
-   *        its value is passed into "options" parameter
-   * @return {Array<{code: string, display: string}> | string}
+   * Gets an array of all ValueSet(CodeSystem) items by URL.
+   * If it is not possible to fill an array of items for ValueSet(CodeSystem),
+   * then a string with a URL is returned. If ValueSet/CodeSystem is not
+   * described in specification then result will be null.
+   * @param {{url:string}|{system: string, ...}} options - "url" is passed on
+   *        the first call, then if the "url" points to a ValueSet the function
+   *        calls itself recursively for each "ValueSet.compose.include" item
+   *        which could point to another ValueSet or CodeSystem, this item value
+   *        is passed into the "options" parameter.
+   * @return {Array<{code: string, display: string}> | string | null}
    */
   function getValueSet(options) {
     const url = (options.url || options.system).split('|')[0];
