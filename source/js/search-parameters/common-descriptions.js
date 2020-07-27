@@ -32,8 +32,8 @@ export function getVersionNameByNumber(versionNumber) {
 /**
  * Sets FHIR REST API Service Base URL for search parameters.
  * This URL uses to create internal FhirBatchQuery instance
- * which uses when search parameter autocompleter requests
- * for a list of possible values (see function referenceParameters below).
+ * which is used when a search parameter autocompleter requests
+ * a list of possible values (see function referenceParameters below).
  * @param {string} serviceBaseUrl
  * @return {Promise}
  */

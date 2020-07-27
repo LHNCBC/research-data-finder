@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`webpack-loader for R4 produce same result 1`] = `
+exports[`webpack-loader for R4 produces same result 1`] = `
 Object {
   "Condition": Array [
     Object {
@@ -1096,7 +1096,7 @@ Object {
 }
 `;
 
-exports[`webpack-loader for R4 produce same result 2`] = `
+exports[`webpack-loader for R4 produces same result 2`] = `
 Object {
   "http://hl7.org/fhir/ValueSet/address-use|4.0.1": Array [
     Object {
@@ -1896,7 +1896,7 @@ Object {
 }
 `;
 
-exports[`webpack-loader for R4 produce same result 3`] = `
+exports[`webpack-loader for R4 produces same result 3`] = `
 Object {
   "Condition.bodySite": "http://hl7.org/fhir/ValueSet/body-site",
   "Condition.category": "http://hl7.org/fhir/ValueSet/condition-category",
@@ -1927,6 +1927,6 @@ Object {
 }
 `;
 
-exports[`webpack-loader for R4 produce same result 4`] = `Object {}`;
+exports[`webpack-loader for R4 produces same result 4`] = `Object {}`;
 
-exports[`webpack-loader for R4 produce same result 5`] = `Object {}`;
+exports[`webpack-loader for R4 produces same result 5`] = `Object {}`;

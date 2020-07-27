@@ -4,7 +4,7 @@ const fs = require('fs')
 const loader = require('./webpack-loader');
 
 describe('webpack-loader for R4', function () {
-  it('produce same result', function () {
+  it('produces same result', function () {
     const data = JSON.parse(loader.call({
         context: __dirname,
         query: require('./webpack-options.json')
@@ -18,10 +18,11 @@ describe('webpack-loader for R4', function () {
           data.configByVersionName[getVersionNameByNumber("4.0.0")][prop]
         ).toMatchSnapshot()
       );
+  });
 
-    expect(getVersionNameByNumber["4.0.0"]).toBe(
-      getVersionNameByNumber["4.0.1"]
-    );
-
+  it('matches the version number and name', function () {
+    expect(getVersionNameByNumber("4.0.0")).toBe('R4');
+    expect(getVersionNameByNumber("4.0.1")).toBe('R4');
+    expect(getVersionNameByNumber("4.0.9")).toBe('R4');
   });
 });
