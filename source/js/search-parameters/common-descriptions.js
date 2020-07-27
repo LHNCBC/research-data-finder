@@ -165,7 +165,7 @@ function valuesetParameterDescription({placeholder, name, column, list}) {
       `<input type="text" id="${searchItemId}-${name}" placeholder="${placeholder}">`,
     attachControls: (searchItemId) => {
       new Def.Autocompleter.Prefetch(`${searchItemId}-${name}`, list.map(item => item.display), {
-        codes: list.map(item => item.code),
+        codes: list.map(item => (item.system ? item.system + '|' : '') + item.code),
         maxSelect: '*',
         matchListValue: true
       });

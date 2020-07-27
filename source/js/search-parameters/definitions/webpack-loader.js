@@ -105,17 +105,19 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
 
   /**
    * Gets ValueSet items with filtering by includeCodes if specified and converting a tree of concepts to the flat list
+   * @param {string} system - value set code system
    * @param {Array<{code: string, display: string}>} concept - concept input array, each concept can have a nested concept array
    * @param {Array<string> | null} includeCodes - if specified, then a list of concept codes that we should include
    *                                            in the result array
    * @param {boolean} includeChildren - true if we should include nested concepts of matched concept in the result Array
    * @return {Array<{code: string, display: string}>}
    */
-  function getValueSetItems(concept, includeCodes, includeChildren) {
+  function getValueSetItems(system, concept, includeCodes, includeChildren) {
     return concept.reduce((acc, i) => {
       if (!includeCodes || includeCodes[i.code]) {
         acc.push({
           code: i.code,
+          system,
           display: i.display,
         });
       }
@@ -123,6 +125,7 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
       return i.concept
         ? acc.concat(
             getValueSetItems(
+              system,
               i.concept,
               includeChildren && includeCodes && includeCodes[i.code]
                 ? null
@@ -149,6 +152,7 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
       if (options.concept) {
         return options.concept.map(options => ({
           code: options.code,
+          system: url,
           display: options.display
         }));
       }
@@ -171,7 +175,7 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
           }
           return acc;
         }, {});
-      result = result.concat(getValueSetItems(valueSet.concept, includeCodes || filterCodes, !!filterCodes));
+      result = result.concat(getValueSetItems(url, valueSet.concept, includeCodes || filterCodes, !!filterCodes));
     }
 
     const compose = valueSet && valueSet.compose;
@@ -203,7 +207,16 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
       }).filter(i => i instanceof Array));
     }
 
-    return result.length ? result : url;
+
+    if (result.length) {
+      if (!result.some(item => item.system !== result[0].system)) {
+        // If there is only one coding system, remove it as unnecessary
+        result.forEach(item => delete item.system);
+      }
+      return result;
+    }
+
+    return url;
   }
 
   let result = {
