@@ -333,7 +333,9 @@ function getPatients() {
       }) : null;
     Promise
       .all(resourceSummaries.length > 1
-        ? resourceSummaries.map(item => fhirClient.getWithCache(`${item.resourceType}?_summary=count${item.criteria}`))
+        ? resourceSummaries.map(item => fhirClient.getWithCache(
+          `${item.resourceType}?_total=accurate&_summary=count${item.criteria}`
+        ))
         : [])
       .then(summaries => {
         // Sort by the number of resources matching the conditions
@@ -383,7 +385,7 @@ function getPatients() {
               return resourceSummaries.reduce((promise, item) => promise.then(() => {
                 const params = item.resourceType === PATIENT
                   ? `_elements=${elements}${item.criteria}&_id=${patientId}`
-                  : `_summary=count${item.criteria}&subject:Patient=${patientId}`;
+                  : `_total=accurate&_summary=count${item.criteria}&subject:Patient=${patientId}`;
 
                 return fhirClient.getWithCache(`${item.resourceType}?${params}`)
                   .then(({data}) => {
