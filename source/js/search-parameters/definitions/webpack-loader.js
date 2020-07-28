@@ -104,7 +104,7 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
   }
 
   /**
-   * Gets ValueSet/CodeSystem items array from concept array, with filtering by
+   * Gets ValueSet or CodeSystem items array from concept array, with filtering by
    * includeCodes, and converting a CodeSystem tree of concepts to the flat list.
    * @param {string} system - value set code system
    * @param {Array<{code: string, display: string}>} concept - concept input
@@ -141,7 +141,7 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
   }
 
   /**
-   * Gets an array of all ValueSet(CodeSystem) items by URL.
+   * Gets an array of all ValueSet or CodeSystem items by URL.
    * If it is not possible to fill an array of items for ValueSet(CodeSystem),
    * then a string with a URL is returned. If ValueSet/CodeSystem is not
    * described in specification then result will be null.
@@ -165,10 +165,13 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
       }
       return null;
     }
-    const valueSet = entry.resource;
+
+    // resource is a ValueSet or CodeSystem resource
+    const resource = entry.resource;
     let result = [];
 
-    if (valueSet && valueSet.concept) {
+    if (resource && resource.concept) {
+      // if resource is CodeSystem:
       const includeCodes = options.concept && options.concept.reduce((acc, c) => {
           acc[c.code] = true;
           return acc;
@@ -182,18 +185,19 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
           }
           return acc;
         }, {});
-      result = result.concat(getValueSetItems(url, valueSet.concept, includeCodes || filterCodes, !!filterCodes));
+      result = result.concat(getValueSetItems(url, resource.concept, includeCodes || filterCodes, !!filterCodes));
     }
 
-    const compose = valueSet && valueSet.compose;
+    const compose = resource && resource.compose;
     const include = compose && compose.include;
     if (include) {
+      // if resource is a ValueSet and has included ValueSets or CodeSystems:
       result = result.concat(...include.map(i => {
-        const valueSet = getValueSet(i);
-        if (!valueSet) {
+        const items = getValueSet(i);
+        if (!items) {
           console.log('Can\'t find:', i);
-        } else if (!(valueSet instanceof Array)) {
-          console.log('No values for:', valueSet);
+        } else if (!(items instanceof Array)) {
+          console.log('No values for:', items);
         }
 
         const excludes =
@@ -210,7 +214,7 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
           return acc;
         }, {});
 
-        return valueSet instanceof Array && excludeCodes ? valueSet.filter(j => !excludeCodes[j.code]) : valueSet;
+        return items instanceof Array && excludeCodes ? items.filter(j => !excludeCodes[j.code]) : items;
       }).filter(i => i instanceof Array));
     }
 

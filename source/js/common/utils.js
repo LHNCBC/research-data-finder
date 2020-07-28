@@ -49,7 +49,7 @@ export function getAutocompleterById(inputId) {
  * // calling a function as shown below will return this array:
  * // [
  * //   'Home: 49 Meadow St, Mounds, OK, 74047, USA',
- * //   'Work: 27 South Ave, Tulsa, OK, 74126, USA'
+ * //   'Work: 27 South Ave, Tulsa, OK, 74126, USA',
  * //   'Billing: 1 Hill St, Tulsa, OK, 74108, USA'
  * // ]
  * addressToStringArray(
