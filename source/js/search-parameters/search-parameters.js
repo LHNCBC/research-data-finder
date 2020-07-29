@@ -1,5 +1,5 @@
 import { getAutocompleterById } from '../common/utils';
-import { setFhirServerForSearchParameters } from './common-descriptions';
+import { getSearchParamGroupFactoryByResourceType, setFhirServerForSearchParameters } from './common-descriptions';
 
 export class SearchParameters {
   /**
@@ -8,12 +8,16 @@ export class SearchParameters {
    * @param {string} serviceBaseUrl - FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
    * @param {Object[]} searchParamGroups Array of objects describing the search parameters
    *                   (see patient-search-parameters.js for an example object)
+   *                   or strings with resource types.
    */
   constructor(anchorSelector, serviceBaseUrl, searchParamGroups) {
     this.initialize = setFhirServerForSearchParameters(serviceBaseUrl).then(() => {
       this.internalId = 'searchParam';
       this.availableParams = {};
-      this.searchParams = searchParamGroups.reduce((_searchParams, searchParamGroupFactory) => {
+      this.searchParams = searchParamGroups.reduce((_searchParams, item) => {
+        const searchParamGroupFactory = typeof item === 'string' ?
+          getSearchParamGroupFactoryByResourceType(item)
+          : item;
         const searchParamGroup = searchParamGroupFactory();
         _searchParams[searchParamGroup.resourceType] = searchParamGroup;
         this.availableParams[searchParamGroup.resourceType] = Object.keys(searchParamGroup.description).sort();

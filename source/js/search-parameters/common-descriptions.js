@@ -29,6 +29,29 @@ export function getVersionNameByNumber(versionNumber) {
   return versionName;
 }
 
+const _searchParamGroupFactoriesByResourceTypes = {};
+
+/**
+ * Generates search parameters description by resource type from data imported
+ * from FHIR specification on build step by webpack loader.
+ * Available resource types are specified in webpack.common.js
+ * @param {string} resourceType - resource type for which you want to generate
+ *                 search parameters
+ * @return {Function}
+ */
+export function getSearchParamGroupFactoryByResourceType(resourceType) {
+  let factory = _searchParamGroupFactoriesByResourceTypes[resourceType];
+  if (!factory) {
+    factory = _searchParamGroupFactoriesByResourceTypes[resourceType] = () => ({
+      resourceType: resourceType,
+      description: {
+        ...defaultParameters(resourceType),
+      },
+    });
+  }
+  return factory;
+}
+
 /**
  * Sets FHIR REST API Service Base URL for search parameters.
  * This URL uses to create internal FhirBatchQuery instance

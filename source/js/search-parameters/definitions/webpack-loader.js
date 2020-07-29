@@ -121,7 +121,7 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
         acc.push({
           code: i.code,
           system,
-          display: i.display,
+          display: i.display || i.code,
         });
       }
 
@@ -153,14 +153,20 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
    * @return {Array<{code: string, display: string}> | string | null}
    */
   function getValueSet(options) {
+    if (options.valueSet) {
+      return [].concat.apply(
+        [],
+        options.valueSet.map((i) => getValueSet({ url: i })).filter((i) => i)
+      );
+    }
     const url = (options.url || options.system).split('|')[0];
     const entry = (profiles.valueSets.entry.find(i => i.fullUrl === url || i.resource.url === url) || profiles.v3CodeSystems.entry.find(i => i.fullUrl === url || i.resource.url === url));
     if (!entry) {
       if (options.concept) {
-        return options.concept.map(options => ({
-          code: options.code,
+        return options.concept.map(i => ({
+          code: i.code,
           system: url,
-          display: options.display
+          display: i.display || i.code
         }));
       }
       return null;

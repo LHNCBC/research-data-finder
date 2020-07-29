@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.10.0] - 2020-07-29
+### Added
+- Allow other resources to be used to select patients
+
 ## [1.9.0] - 2020-07-20
 ### Changed
 - Resource ValueSets are built from the FHIR spec downloads
