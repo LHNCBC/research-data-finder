@@ -210,7 +210,7 @@ div.section__body > div > input {
 }
 
 div.section__body > .search-parameter > :first-child {
-  max-width: 150px;
+  max-width: 180px;
 }
 
 div.section__body > .search-parameter > :nth-child(3) {
