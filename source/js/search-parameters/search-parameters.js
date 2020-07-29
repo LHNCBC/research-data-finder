@@ -90,6 +90,16 @@ export class SearchParameters {
   }
 
   /**
+   * Gets an identifier for a search parameter
+   * from an identifier for a table row
+   * @param {string} id
+   * @return {string}
+   */
+  getSearchItemFromRowId(id) {
+    return /^(.*)_row$/.test(id) && this.selectedResources[RegExp.$1] && RegExp.$1;
+  }
+
+  /**
    * Generates an identifier for an autocomleter is used for select resource type
    * from a generic identifier for a search parameter
    * @param {string} searchItemId
@@ -232,7 +242,14 @@ export class SearchParameters {
     const rowId = this.getParamRowId(searchItemId);
     const searchItemContentId = this.getParamContentId(searchItemId);
     const removeButtonId = this.getRemoveButtonId(searchItemId);
-    const paramResourceType = this.getAvailableResourceTypes()[0];
+    const prevElement = document.getElementById(this.internalId).previousElementSibling;
+    const prevResourceTypeSelector = prevElement
+      ? document.getElementById(this.getParamResourceSelectorId(this.getSearchItemFromRowId(prevElement.id)))
+      : null;
+    const availableResourceTypes = this.getAvailableResourceTypes();
+    const paramResourceType = prevResourceTypeSelector && availableResourceTypes.indexOf(prevResourceTypeSelector).value !== -1
+      ? prevResourceTypeSelector.value
+      : this.getAvailableResourceTypes()[0];
     const paramName = this.availableParams[paramResourceType].shift();
 
     this.selectedParams[searchItemId] = paramName;

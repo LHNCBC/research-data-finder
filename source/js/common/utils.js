@@ -1,4 +1,3 @@
-import { valueSetsMap } from './value-sets';
 import * as moment from 'moment';
 
 // Binding the function Array.prototype.slice.call for convert Array-like objects/collections to a new Array
@@ -44,17 +43,60 @@ export function getAutocompleterById(inputId) {
 /**
  * Returns the array of address string from FHIR Address type
  * (see https://www.hl7.org/fhir/datatypes.html#address)
+ * @param {Object} valueSetMapByPath - map from path to value set map
  * @param {Object[]} addressElements - an array of the Address elements
+ * @example usage of addressToStringArray
+ * // calling a function as shown below will return this array:
+ * // [
+ * //   'Home: 49 Meadow St, Mounds, OK, 74047, USA',
+ * //   'Work: 27 South Ave, Tulsa, OK, 74126, USA',
+ * //   'Billing: 1 Hill St, Tulsa, OK, 74108, USA'
+ * // ]
+ * addressToStringArray(
+ *   {
+ *     "Patient.address.use": {
+ *       home: "Home",
+ *       work: "Work",
+ *       billing: "Billing",
+ *     },
+ *   },
+ *   [
+ *     {
+ *       use: "home",
+ *       line: "49 Meadow St",
+ *       city: "Mounds",
+ *       state: "OK",
+ *       postalCode: "74047",
+ *       country: "USA",
+ *     },
+ *     {
+ *       use: "work",
+ *       line: "27 South Ave",
+ *       city: "Tulsa",
+ *       state: "OK",
+ *       postalCode: "74126",
+ *       country: "USA",
+ *     },
+ *     {
+ *       use: "billing",
+ *       line: "1 Hill St",
+ *       city: "Tulsa",
+ *       state: "OK",
+ *       postalCode: "74108",
+ *       country: "USA",
+ *     }
+ *   ]
+ * );
  * @return {String[]}
  */
-export function addressToStringArray(addressElements) {
+export function addressToStringArray(valueSetMapByPath, addressElements) {
   return (addressElements || []).map(address => {
     if (!address) {
       return '';
     }
     const addressString = [address.line, address.city, address.state, address.postalCode, address.country]
       .filter(item => item).join(', ');
-    return address.use ? `${valueSetsMap.addressUse[address.use]}: ${addressString}` : addressString;
+    return address.use ? `${valueSetMapByPath['Patient.address.use'][address.use]}: ${addressString}` : addressString;
   }).filter(item => item);
 }
 
@@ -72,15 +114,16 @@ export function getPatientAge(res) {
 
 /**
  * Returns a list of emails/phones for the Email/Phone table column from the Patient Resource
+ * @param {Object} valueSetMapByPath - map from path to value set map
  * @param {Object} res the Patient resource
  * @param {String} system 'email'/'phone'
  * @return {String[]}
  */
-export function getPatientContactsByType(res, system) {
+export function getPatientContactsByType(valueSetMapByPath, res, system) {
   return (res.telecom || [])
     .filter(item => item.system === system)
     .map(item => {
-      const use = valueSetsMap.contactPointUse[item.use];
+      const use = valueSetMapByPath['Patient.telecom.use'][item.use];
       return `${use ? use + ': ' : ''} ${item.value}`
     });
 }

@@ -1,23 +1,26 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`webpack-loader for R4 produce same result 1`] = `
+exports[`webpack-loader for R4 produces same result 1`] = `
 Object {
   "Condition": Array [
     Object {
       "description": "Code for the condition",
       "expression": "Condition.code",
       "name": "code",
+      "path": "Condition.code",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/condition-code",
     },
     Object {
       "description": "A unique identifier of the condition record",
       "expression": "Condition.identifier",
       "name": "identifier",
+      "path": "Condition.identifier",
       "type": "Identifier",
       "typeDescription": Array [
         Object {
@@ -59,34 +62,40 @@ Object {
       "description": "Anatomical location, if relevant",
       "expression": "Condition.bodySite",
       "name": "body-site",
+      "path": "Condition.bodySite",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/body-site",
     },
     Object {
       "description": "The category of the condition",
       "expression": "Condition.category",
       "name": "category",
+      "path": "Condition.category",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/condition-category",
     },
     Object {
       "description": "The clinical status of the condition",
       "expression": "Condition.clinicalStatus",
       "name": "clinical-status",
+      "path": "Condition.clinicalStatus",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/condition-clinical|4.0.1",
     },
     Object {
       "description": "Encounter created as part of",
@@ -98,12 +107,14 @@ Object {
       "description": "Manifestation/symptom",
       "expression": "Condition.evidence.code",
       "name": "evidence",
+      "path": "Condition.evidence.code",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/manifestation-or-symptom",
     },
     Object {
       "description": "Supporting information found elsewhere",
@@ -139,23 +150,27 @@ Object {
       "description": "The severity of the condition",
       "expression": "Condition.severity",
       "name": "severity",
+      "path": "Condition.severity",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/condition-severity",
     },
     Object {
       "description": "Simple summary (disease specific)",
       "expression": "Condition.stage.summary",
       "name": "stage",
+      "path": "Condition.stage.summary",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/condition-stage",
     },
     Object {
       "description": "Who has the condition?",
@@ -167,12 +182,14 @@ Object {
       "description": "unconfirmed | provisional | differential | confirmed | refuted | entered-in-error",
       "expression": "Condition.verificationStatus",
       "name": "verification-status",
+      "path": "Condition.verificationStatus",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/condition-ver-status|4.0.1",
     },
   ],
   "Encounter": Array [
@@ -186,6 +203,7 @@ Object {
       "description": "Identifier(s) by which this encounter is known",
       "expression": "Encounter.identifier",
       "name": "identifier",
+      "path": "Encounter.identifier",
       "type": "Identifier",
       "typeDescription": Array [
         Object {
@@ -203,12 +221,14 @@ Object {
       "description": "Specific type of encounter",
       "expression": "Encounter.type",
       "name": "type",
+      "path": "Encounter.type",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/encounter-type",
     },
     Object {
       "description": "The set of accounts that may be used for billing for this Encounter",
@@ -232,12 +252,14 @@ Object {
       "description": "Classification of patient encounter",
       "expression": "Encounter.class",
       "name": "class",
+      "path": "Encounter.class",
       "type": "Coding",
       "typeDescription": Array [
         Object {
           "code": "Coding",
         },
       ],
+      "valueSet": "http://terminology.hl7.org/ValueSet/v3-ActEncounterCode",
     },
     Object {
       "description": "The diagnosis or procedure relevant to the encounter",
@@ -285,12 +307,14 @@ Object {
       "description": "Role of participant in encounter",
       "expression": "Encounter.participant.type",
       "name": "participant-type",
+      "path": "Encounter.participant.type",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/encounter-participant-type",
     },
     Object {
       "description": "Persons involved in the encounter other than the patient",
@@ -302,12 +326,14 @@ Object {
       "description": "Coded reason the encounter takes place",
       "expression": "Encounter.reasonCode",
       "name": "reason-code",
+      "path": "Encounter.reasonCode",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/encounter-reason",
     },
     Object {
       "description": "Reason the encounter takes place (reference)",
@@ -325,23 +351,27 @@ Object {
       "description": "Wheelchair, translator, stretcher, etc.",
       "expression": "Encounter.hospitalization.specialArrangement",
       "name": "special-arrangement",
+      "path": "Encounter.hospitalization.specialArrangement",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/encounter-special-arrangements",
     },
     Object {
       "description": "planned | arrived | triaged | in-progress | onleave | finished | cancelled +",
       "expression": "Encounter.status",
       "name": "status",
+      "path": "Encounter.status",
       "type": "code",
       "typeDescription": Array [
         Object {
           "code": "code",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/encounter-status|4.0.1",
     },
     Object {
       "description": "The patient or group present at the encounter",
@@ -355,6 +385,7 @@ Object {
       "description": "Returns dispenses of this medicine code",
       "expression": "MedicationDispense.medication as CodeableConcept)",
       "name": "code",
+      "path": "MedicationDispense.medication",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
@@ -367,11 +398,13 @@ Object {
           ],
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/medication-codes",
     },
     Object {
       "description": "Returns dispenses with this external identifier",
       "expression": "MedicationDispense.identifier",
       "name": "identifier",
+      "path": "MedicationDispense.identifier",
       "type": "Identifier",
       "typeDescription": Array [
         Object {
@@ -395,12 +428,14 @@ Object {
       "description": "Returns dispenses with a specified dispense status",
       "expression": "MedicationDispense.status",
       "name": "status",
+      "path": "MedicationDispense.status",
       "type": "code",
       "typeDescription": Array [
         Object {
           "code": "code",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/medicationdispense-status|4.0.1",
     },
     Object {
       "description": "Returns dispenses with a specific context (episode or episode of care)",
@@ -450,12 +485,14 @@ Object {
       "description": "Returns dispenses of a specific type",
       "expression": "MedicationDispense.type",
       "name": "type",
+      "path": "MedicationDispense.type",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://terminology.hl7.org/ValueSet/v3-ActPharmacySupplyType",
     },
     Object {
       "description": "Returns dispenses handed over on this date",
@@ -475,12 +512,14 @@ Object {
       "description": "The code of the observation type",
       "expression": "Observation.code",
       "name": "code",
+      "path": "Observation.code",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/observation-codes",
     },
     Object {
       "description": "Obtained date/time. If the obtained element is a period, a date that falls in the period",
@@ -492,6 +531,7 @@ Object {
       "description": "The unique id for a particular observation",
       "expression": "Observation.identifier",
       "name": "identifier",
+      "path": "Observation.identifier",
       "type": "Identifier",
       "typeDescription": Array [
         Object {
@@ -521,39 +561,46 @@ Object {
       "description": "The classification of the type of observation",
       "expression": "Observation.category",
       "name": "category",
+      "path": "Observation.category",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/observation-category",
     },
     Object {
       "description": "The code of the observation type or component type",
       "expression": "Observation.code",
       "name": "combo-code",
+      "path": "Observation.code",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/observation-codes",
     },
     Object {
       "description": "The reason why the expected value in the element Observation.value[x] or Observation.component.value[x] is missing.",
       "expression": "Observation.dataAbsentReason",
       "name": "combo-data-absent-reason",
+      "path": "Observation.dataAbsentReason",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/data-absent-reason",
     },
     Object {
       "description": "The value or component value of the observation, if the value is a CodeableConcept",
       "expression": "Observation.value as CodeableConcept)",
       "name": "combo-value-concept",
+      "path": "Observation.value",
       "type": "Quantity",
       "typeDescription": Array [
         Object {
@@ -601,28 +648,33 @@ Object {
       "description": "The component code of the observation type",
       "expression": "Observation.component.code",
       "name": "component-code",
+      "path": "Observation.component.code",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/observation-codes",
     },
     Object {
       "description": "The reason why the expected value in the element Observation.component.value[x] is missing.",
       "expression": "Observation.component.dataAbsentReason",
       "name": "component-data-absent-reason",
+      "path": "Observation.component.dataAbsentReason",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/data-absent-reason",
     },
     Object {
       "description": "The value of the component observation, if the value is a CodeableConcept",
       "expression": "Observation.component.value as CodeableConcept)",
       "name": "component-value-concept",
+      "path": "Observation.component.value",
       "type": "Quantity",
       "typeDescription": Array [
         Object {
@@ -670,12 +722,14 @@ Object {
       "description": "The reason why the expected value in the element Observation.value[x] is missing.",
       "expression": "Observation.dataAbsentReason",
       "name": "data-absent-reason",
+      "path": "Observation.dataAbsentReason",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/data-absent-reason",
     },
     Object {
       "description": "Related measurements the observation is made from",
@@ -705,12 +759,14 @@ Object {
       "description": "The method used for the observation",
       "expression": "Observation.method",
       "name": "method",
+      "path": "Observation.method",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/observation-methods",
     },
     Object {
       "description": "Part of referenced event",
@@ -734,12 +790,14 @@ Object {
       "description": "The status of the observation",
       "expression": "Observation.status",
       "name": "status",
+      "path": "Observation.status",
       "type": "code",
       "typeDescription": Array [
         Object {
           "code": "code",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/observation-status|4.0.1",
     },
     Object {
       "description": "The subject that the observation is about",
@@ -751,6 +809,7 @@ Object {
       "description": "The value of the observation, if the value is a CodeableConcept",
       "expression": "Observation.value as CodeableConcept)",
       "name": "value-concept",
+      "path": "Observation.value",
       "type": "Quantity",
       "typeDescription": Array [
         Object {
@@ -860,6 +919,7 @@ Object {
       "description": "Whether the patient record is active",
       "expression": "Patient.active",
       "name": "active",
+      "path": "Patient.active",
       "type": "boolean",
       "typeDescription": Array [
         Object {
@@ -901,12 +961,14 @@ Object {
       "description": "A use code specified in an address",
       "expression": "Patient.address.use",
       "name": "address-use",
+      "path": "Patient.address.use",
       "type": "code",
       "typeDescription": Array [
         Object {
           "code": "code",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/address-use|4.0.1",
     },
     Object {
       "description": "The patient's date of birth",
@@ -942,12 +1004,14 @@ Object {
       "description": "Gender of the patient",
       "expression": "Patient.gender",
       "name": "gender",
+      "path": "Patient.gender",
       "type": "code",
       "typeDescription": Array [
         Object {
           "code": "code",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/administrative-gender|4.0.1",
     },
     Object {
       "description": "Patient's nominated general practitioner, not the organization that manages the record",
@@ -965,6 +1029,7 @@ Object {
       "description": "A patient identifier",
       "expression": "Patient.identifier",
       "name": "identifier",
+      "path": "Patient.identifier",
       "type": "Identifier",
       "typeDescription": Array [
         Object {
@@ -976,12 +1041,14 @@ Object {
       "description": "Language code (irrespective of use value)",
       "expression": "Patient.communication.language",
       "name": "language",
+      "path": "Patient.communication.language",
       "type": "CodeableConcept",
       "typeDescription": Array [
         Object {
           "code": "CodeableConcept",
         },
       ],
+      "valueSet": "http://hl7.org/fhir/ValueSet/languages",
     },
     Object {
       "description": "All patients linked to the given patient",
@@ -1017,6 +1084,7 @@ Object {
       "description": "The value in any kind of telecom details of the patient",
       "expression": "Patient.telecom",
       "name": "telecom",
+      "path": "Patient.telecom",
       "type": "ContactPoint",
       "typeDescription": Array [
         Object {
@@ -1027,3 +1095,838 @@ Object {
   ],
 }
 `;
+
+exports[`webpack-loader for R4 produces same result 2`] = `
+Object {
+  "http://hl7.org/fhir/ValueSet/address-use|4.0.1": Array [
+    Object {
+      "code": "billing",
+      "display": "Billing",
+    },
+    Object {
+      "code": "home",
+      "display": "Home",
+    },
+    Object {
+      "code": "old",
+      "display": "Old / Incorrect",
+    },
+    Object {
+      "code": "temp",
+      "display": "Temporary",
+    },
+    Object {
+      "code": "work",
+      "display": "Work",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/administrative-gender|4.0.1": Array [
+    Object {
+      "code": "female",
+      "display": "Female",
+    },
+    Object {
+      "code": "male",
+      "display": "Male",
+    },
+    Object {
+      "code": "other",
+      "display": "Other",
+    },
+    Object {
+      "code": "unknown",
+      "display": "Unknown",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/body-site": "http://hl7.org/fhir/ValueSet/body-site",
+  "http://hl7.org/fhir/ValueSet/condition-category": Array [
+    Object {
+      "code": "encounter-diagnosis",
+      "display": "Encounter Diagnosis",
+    },
+    Object {
+      "code": "problem-list-item",
+      "display": "Problem List Item",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/condition-clinical|4.0.1": Array [
+    Object {
+      "code": "active",
+      "display": "Active",
+    },
+    Object {
+      "code": "inactive",
+      "display": "Inactive",
+    },
+    Object {
+      "code": "recurrence",
+      "display": "Recurrence",
+    },
+    Object {
+      "code": "relapse",
+      "display": "Relapse",
+    },
+    Object {
+      "code": "remission",
+      "display": "Remission",
+    },
+    Object {
+      "code": "resolved",
+      "display": "Resolved",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/condition-code": "http://hl7.org/fhir/ValueSet/condition-code",
+  "http://hl7.org/fhir/ValueSet/condition-severity": "http://hl7.org/fhir/ValueSet/condition-severity",
+  "http://hl7.org/fhir/ValueSet/condition-stage": "http://hl7.org/fhir/ValueSet/condition-stage",
+  "http://hl7.org/fhir/ValueSet/condition-ver-status|4.0.1": Array [
+    Object {
+      "code": "confirmed",
+      "display": "Confirmed",
+    },
+    Object {
+      "code": "differential",
+      "display": "Differential",
+    },
+    Object {
+      "code": "entered-in-error",
+      "display": "Entered in Error",
+    },
+    Object {
+      "code": "provisional",
+      "display": "Provisional",
+    },
+    Object {
+      "code": "refuted",
+      "display": "Refuted",
+    },
+    Object {
+      "code": "unconfirmed",
+      "display": "Unconfirmed",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/contact-point-use|4.0.1": Array [
+    Object {
+      "code": "home",
+      "display": "Home",
+    },
+    Object {
+      "code": "mobile",
+      "display": "Mobile",
+    },
+    Object {
+      "code": "old",
+      "display": "Old",
+    },
+    Object {
+      "code": "temp",
+      "display": "Temp",
+    },
+    Object {
+      "code": "work",
+      "display": "Work",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/data-absent-reason": Array [
+    Object {
+      "code": "as-text",
+      "display": "As Text",
+    },
+    Object {
+      "code": "asked-declined",
+      "display": "Asked But Declined",
+    },
+    Object {
+      "code": "asked-unknown",
+      "display": "Asked But Unknown",
+    },
+    Object {
+      "code": "error",
+      "display": "Error",
+    },
+    Object {
+      "code": "masked",
+      "display": "Masked",
+    },
+    Object {
+      "code": "negative-infinity",
+      "display": "Negative Infinity (NINF)",
+    },
+    Object {
+      "code": "not-a-number",
+      "display": "Not a Number (NaN)",
+    },
+    Object {
+      "code": "not-applicable",
+      "display": "Not Applicable",
+    },
+    Object {
+      "code": "not-asked",
+      "display": "Not Asked",
+    },
+    Object {
+      "code": "not-performed",
+      "display": "Not Performed",
+    },
+    Object {
+      "code": "not-permitted",
+      "display": "Not Permitted",
+    },
+    Object {
+      "code": "positive-infinity",
+      "display": "Positive Infinity (PINF)",
+    },
+    Object {
+      "code": "temp-unknown",
+      "display": "Temporarily Unknown",
+    },
+    Object {
+      "code": "unknown",
+      "display": "Unknown",
+    },
+    Object {
+      "code": "unsupported",
+      "display": "Unsupported",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/encounter-participant-type": Array [
+    Object {
+      "code": "ADM",
+      "display": "admitter",
+    },
+    Object {
+      "code": "ATND",
+      "display": "attender",
+    },
+    Object {
+      "code": "CALLBCK",
+      "display": "callback contact",
+    },
+    Object {
+      "code": "CON",
+      "display": "consultant",
+    },
+    Object {
+      "code": "DIS",
+      "display": "discharger",
+    },
+    Object {
+      "code": "emergency",
+      "display": "Emergency",
+    },
+    Object {
+      "code": "ESC",
+      "display": "escort",
+    },
+    Object {
+      "code": "PART",
+      "display": "Participation",
+    },
+    Object {
+      "code": "PPRF",
+      "display": "primary performer",
+    },
+    Object {
+      "code": "REF",
+      "display": "referrer",
+    },
+    Object {
+      "code": "SPRF",
+      "display": "secondary performer",
+    },
+    Object {
+      "code": "translator",
+      "display": "Translator",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/encounter-reason": "http://hl7.org/fhir/ValueSet/encounter-reason",
+  "http://hl7.org/fhir/ValueSet/encounter-special-arrangements": Array [
+    Object {
+      "code": "add-bed",
+      "display": "Additional bedding",
+    },
+    Object {
+      "code": "att",
+      "display": "Attendant",
+    },
+    Object {
+      "code": "dog",
+      "display": "Guide dog",
+    },
+    Object {
+      "code": "int",
+      "display": "Interpreter",
+    },
+    Object {
+      "code": "wheel",
+      "display": "Wheelchair",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/encounter-status|4.0.1": Array [
+    Object {
+      "code": "arrived",
+      "display": "Arrived",
+    },
+    Object {
+      "code": "cancelled",
+      "display": "Cancelled",
+    },
+    Object {
+      "code": "entered-in-error",
+      "display": "Entered in Error",
+    },
+    Object {
+      "code": "finished",
+      "display": "Finished",
+    },
+    Object {
+      "code": "in-progress",
+      "display": "In Progress",
+    },
+    Object {
+      "code": "onleave",
+      "display": "On Leave",
+    },
+    Object {
+      "code": "planned",
+      "display": "Planned",
+    },
+    Object {
+      "code": "triaged",
+      "display": "Triaged",
+    },
+    Object {
+      "code": "unknown",
+      "display": "Unknown",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/encounter-type": Array [
+    Object {
+      "code": "ADMS",
+      "display": "Annual diabetes mellitus screening",
+    },
+    Object {
+      "code": "BD/BM-clin",
+      "display": "Bone drilling/bone marrow punction in clinic",
+    },
+    Object {
+      "code": "CCS60",
+      "display": "Infant colon screening - 60 minutes",
+    },
+    Object {
+      "code": "OKI",
+      "display": "Outpatient Kenacort injection",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/languages": Array [
+    Object {
+      "code": "ar",
+      "display": "Arabic",
+    },
+    Object {
+      "code": "bn",
+      "display": "Bengali",
+    },
+    Object {
+      "code": "zh",
+      "display": "Chinese",
+    },
+    Object {
+      "code": "zh-CN",
+      "display": "Chinese (China)",
+    },
+    Object {
+      "code": "zh-HK",
+      "display": "Chinese (Hong Kong)",
+    },
+    Object {
+      "code": "zh-SG",
+      "display": "Chinese (Singapore)",
+    },
+    Object {
+      "code": "zh-TW",
+      "display": "Chinese (Taiwan)",
+    },
+    Object {
+      "code": "hr",
+      "display": "Croatian",
+    },
+    Object {
+      "code": "cs",
+      "display": "Czech",
+    },
+    Object {
+      "code": "da",
+      "display": "Danish",
+    },
+    Object {
+      "code": "nl",
+      "display": "Dutch",
+    },
+    Object {
+      "code": "nl-BE",
+      "display": "Dutch (Belgium)",
+    },
+    Object {
+      "code": "nl-NL",
+      "display": "Dutch (Netherlands)",
+    },
+    Object {
+      "code": "en",
+      "display": "English",
+    },
+    Object {
+      "code": "en-AU",
+      "display": "English (Australia)",
+    },
+    Object {
+      "code": "en-CA",
+      "display": "English (Canada)",
+    },
+    Object {
+      "code": "en-GB",
+      "display": "English (Great Britain)",
+    },
+    Object {
+      "code": "en-IN",
+      "display": "English (India)",
+    },
+    Object {
+      "code": "en-NZ",
+      "display": "English (New Zeland)",
+    },
+    Object {
+      "code": "en-SG",
+      "display": "English (Singapore)",
+    },
+    Object {
+      "code": "en-US",
+      "display": "English (United States)",
+    },
+    Object {
+      "code": "fi",
+      "display": "Finnish",
+    },
+    Object {
+      "code": "fr",
+      "display": "French",
+    },
+    Object {
+      "code": "fr-BE",
+      "display": "French (Belgium)",
+    },
+    Object {
+      "code": "fr-FR",
+      "display": "French (France)",
+    },
+    Object {
+      "code": "fr-CH",
+      "display": "French (Switzerland)",
+    },
+    Object {
+      "code": "fy",
+      "display": "Frysian",
+    },
+    Object {
+      "code": "fy-NL",
+      "display": "Frysian (Netherlands)",
+    },
+    Object {
+      "code": "de",
+      "display": "German",
+    },
+    Object {
+      "code": "de-AT",
+      "display": "German (Austria)",
+    },
+    Object {
+      "code": "de-DE",
+      "display": "German (Germany)",
+    },
+    Object {
+      "code": "de-CH",
+      "display": "German (Switzerland)",
+    },
+    Object {
+      "code": "el",
+      "display": "Greek",
+    },
+    Object {
+      "code": "hi",
+      "display": "Hindi",
+    },
+    Object {
+      "code": "it",
+      "display": "Italian",
+    },
+    Object {
+      "code": "it-IT",
+      "display": "Italian (Italy)",
+    },
+    Object {
+      "code": "it-CH",
+      "display": "Italian (Switzerland)",
+    },
+    Object {
+      "code": "ja",
+      "display": "Japanese",
+    },
+    Object {
+      "code": "ko",
+      "display": "Korean",
+    },
+    Object {
+      "code": "no",
+      "display": "Norwegian",
+    },
+    Object {
+      "code": "no-NO",
+      "display": "Norwegian (Norway)",
+    },
+    Object {
+      "code": "pl",
+      "display": "Polish",
+    },
+    Object {
+      "code": "pt",
+      "display": "Portuguese",
+    },
+    Object {
+      "code": "pt-BR",
+      "display": "Portuguese (Brazil)",
+    },
+    Object {
+      "code": "pa",
+      "display": "Punjabi",
+    },
+    Object {
+      "code": "ru",
+      "display": "Russian",
+    },
+    Object {
+      "code": "ru-RU",
+      "display": "Russian (Russia)",
+    },
+    Object {
+      "code": "sr",
+      "display": "Serbian",
+    },
+    Object {
+      "code": "sr-RS",
+      "display": "Serbian (Serbia)",
+    },
+    Object {
+      "code": "es",
+      "display": "Spanish",
+    },
+    Object {
+      "code": "es-AR",
+      "display": "Spanish (Argentina)",
+    },
+    Object {
+      "code": "es-ES",
+      "display": "Spanish (Spain)",
+    },
+    Object {
+      "code": "es-UY",
+      "display": "Spanish (Uruguay)",
+    },
+    Object {
+      "code": "sv",
+      "display": "Swedish",
+    },
+    Object {
+      "code": "sv-SE",
+      "display": "Swedish (Sweden)",
+    },
+    Object {
+      "code": "te",
+      "display": "Telegu",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/manifestation-or-symptom": "http://hl7.org/fhir/ValueSet/manifestation-or-symptom",
+  "http://hl7.org/fhir/ValueSet/medication-codes": "http://hl7.org/fhir/ValueSet/medication-codes",
+  "http://hl7.org/fhir/ValueSet/medicationdispense-status|4.0.1": Array [
+    Object {
+      "code": "cancelled",
+      "display": "Cancelled",
+    },
+    Object {
+      "code": "completed",
+      "display": "Completed",
+    },
+    Object {
+      "code": "declined",
+      "display": "Declined",
+    },
+    Object {
+      "code": "entered-in-error",
+      "display": "Entered in Error",
+    },
+    Object {
+      "code": "in-progress",
+      "display": "In Progress",
+    },
+    Object {
+      "code": "on-hold",
+      "display": "On Hold",
+    },
+    Object {
+      "code": "preparation",
+      "display": "Preparation",
+    },
+    Object {
+      "code": "stopped",
+      "display": "Stopped",
+    },
+    Object {
+      "code": "unknown",
+      "display": "Unknown",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/observation-category": Array [
+    Object {
+      "code": "activity",
+      "display": "Activity",
+    },
+    Object {
+      "code": "exam",
+      "display": "Exam",
+    },
+    Object {
+      "code": "imaging",
+      "display": "Imaging",
+    },
+    Object {
+      "code": "laboratory",
+      "display": "Laboratory",
+    },
+    Object {
+      "code": "procedure",
+      "display": "Procedure",
+    },
+    Object {
+      "code": "social-history",
+      "display": "Social History",
+    },
+    Object {
+      "code": "survey",
+      "display": "Survey",
+    },
+    Object {
+      "code": "therapy",
+      "display": "Therapy",
+    },
+    Object {
+      "code": "vital-signs",
+      "display": "Vital Signs",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/observation-codes": "http://hl7.org/fhir/ValueSet/observation-codes",
+  "http://hl7.org/fhir/ValueSet/observation-methods": "http://hl7.org/fhir/ValueSet/observation-methods",
+  "http://hl7.org/fhir/ValueSet/observation-status|4.0.1": Array [
+    Object {
+      "code": "amended",
+      "display": "Amended",
+    },
+    Object {
+      "code": "cancelled",
+      "display": "Cancelled",
+    },
+    Object {
+      "code": "corrected",
+      "display": "Corrected",
+    },
+    Object {
+      "code": "entered-in-error",
+      "display": "Entered in Error",
+    },
+    Object {
+      "code": "final",
+      "display": "Final",
+    },
+    Object {
+      "code": "preliminary",
+      "display": "Preliminary",
+    },
+    Object {
+      "code": "registered",
+      "display": "Registered",
+    },
+    Object {
+      "code": "unknown",
+      "display": "Unknown",
+    },
+  ],
+  "http://terminology.hl7.org/ValueSet/v3-ActEncounterCode": Array [
+    Object {
+      "code": "AMB",
+      "display": "ambulatory",
+    },
+    Object {
+      "code": "EMER",
+      "display": "emergency",
+    },
+    Object {
+      "code": "FLD",
+      "display": "field",
+    },
+    Object {
+      "code": "HH",
+      "display": "home health",
+    },
+    Object {
+      "code": "ACUTE",
+      "display": "inpatient acute",
+    },
+    Object {
+      "code": "IMP",
+      "display": "inpatient encounter",
+    },
+    Object {
+      "code": "NONAC",
+      "display": "inpatient non-acute",
+    },
+    Object {
+      "code": "OBSENC",
+      "display": "observation encounter",
+    },
+    Object {
+      "code": "PRENC",
+      "display": "pre-admission",
+    },
+    Object {
+      "code": "SS",
+      "display": "short stay",
+    },
+    Object {
+      "code": "VR",
+      "display": "virtual",
+    },
+  ],
+  "http://terminology.hl7.org/ValueSet/v3-ActPharmacySupplyType": Array [
+    Object {
+      "code": "DF",
+      "display": "Daily Fill",
+    },
+    Object {
+      "code": "EM",
+      "display": "Emergency Supply",
+    },
+    Object {
+      "code": "FF",
+      "display": "First Fill",
+    },
+    Object {
+      "code": "FFC",
+      "display": "First Fill - Complete",
+    },
+    Object {
+      "code": "FFP",
+      "display": "First Fill - Part Fill",
+    },
+    Object {
+      "code": "FFSS",
+      "display": "first fill, partial strength",
+    },
+    Object {
+      "code": "FS",
+      "display": "Floor stock",
+    },
+    Object {
+      "code": "MS",
+      "display": "Manufacturer Sample",
+    },
+    Object {
+      "code": "RF",
+      "display": "Refill",
+    },
+    Object {
+      "code": "RFC",
+      "display": "Refill - Complete",
+    },
+    Object {
+      "code": "RFP",
+      "display": "Refill - Part Fill",
+    },
+    Object {
+      "code": "RFF",
+      "display": "Refill (First fill this facility)",
+    },
+    Object {
+      "code": "RFCS",
+      "display": "refill complete partial strength",
+    },
+    Object {
+      "code": "RFPS",
+      "display": "refill part fill partial strength",
+    },
+    Object {
+      "code": "RFS",
+      "display": "refill partial strength",
+    },
+    Object {
+      "code": "RFFS",
+      "display": "refill partial strength (first fill this facility)",
+    },
+    Object {
+      "code": "SO",
+      "display": "Script Owing",
+    },
+    Object {
+      "code": "TB",
+      "display": "Trial Balance",
+    },
+    Object {
+      "code": "TBS",
+      "display": "trial balance partial strength",
+    },
+    Object {
+      "code": "TF",
+      "display": "Trial Fill",
+    },
+    Object {
+      "code": "UD",
+      "display": "Unit Dose",
+    },
+    Object {
+      "code": "UDE",
+      "display": "unit dose equivalent",
+    },
+  ],
+}
+`;
+
+exports[`webpack-loader for R4 produces same result 3`] = `
+Object {
+  "Condition.bodySite": "http://hl7.org/fhir/ValueSet/body-site",
+  "Condition.category": "http://hl7.org/fhir/ValueSet/condition-category",
+  "Condition.clinicalStatus": "http://hl7.org/fhir/ValueSet/condition-clinical|4.0.1",
+  "Condition.code": "http://hl7.org/fhir/ValueSet/condition-code",
+  "Condition.evidence.code": "http://hl7.org/fhir/ValueSet/manifestation-or-symptom",
+  "Condition.severity": "http://hl7.org/fhir/ValueSet/condition-severity",
+  "Condition.stage.summary": "http://hl7.org/fhir/ValueSet/condition-stage",
+  "Condition.verificationStatus": "http://hl7.org/fhir/ValueSet/condition-ver-status|4.0.1",
+  "Encounter.class": "http://terminology.hl7.org/ValueSet/v3-ActEncounterCode",
+  "Encounter.hospitalization.specialArrangement": "http://hl7.org/fhir/ValueSet/encounter-special-arrangements",
+  "Encounter.participant.type": "http://hl7.org/fhir/ValueSet/encounter-participant-type",
+  "Encounter.reasonCode": "http://hl7.org/fhir/ValueSet/encounter-reason",
+  "Encounter.status": "http://hl7.org/fhir/ValueSet/encounter-status|4.0.1",
+  "Encounter.type": "http://hl7.org/fhir/ValueSet/encounter-type",
+  "MedicationDispense.medication": "http://hl7.org/fhir/ValueSet/medication-codes",
+  "MedicationDispense.status": "http://hl7.org/fhir/ValueSet/medicationdispense-status|4.0.1",
+  "MedicationDispense.type": "http://terminology.hl7.org/ValueSet/v3-ActPharmacySupplyType",
+  "Observation.category": "http://hl7.org/fhir/ValueSet/observation-category",
+  "Observation.code": "http://hl7.org/fhir/ValueSet/observation-codes",
+  "Observation.dataAbsentReason": "http://hl7.org/fhir/ValueSet/data-absent-reason",
+  "Observation.method": "http://hl7.org/fhir/ValueSet/observation-methods",
+  "Observation.status": "http://hl7.org/fhir/ValueSet/observation-status|4.0.1",
+  "Patient.address.use": "http://hl7.org/fhir/ValueSet/address-use|4.0.1",
+  "Patient.communication.language": "http://hl7.org/fhir/ValueSet/languages",
+  "Patient.gender": "http://hl7.org/fhir/ValueSet/administrative-gender|4.0.1",
+  "Patient.telecom.use": "http://hl7.org/fhir/ValueSet/contact-point-use|4.0.1",
+}
+`;
+
+exports[`webpack-loader for R4 produces same result 4`] = `Object {}`;
+
+exports[`webpack-loader for R4 produces same result 5`] = `Object {}`;

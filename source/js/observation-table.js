@@ -1,5 +1,5 @@
-import { valueSetsMap } from './common/value-sets';
 import { addressToStringArray, getPatientAge, getPatientContactsByType, humanNameToString } from './common/utils';
+import { getCurrentDefinitions } from './search-parameters/common-descriptions';
 
 const reValueKey = /^value/;
 
@@ -26,7 +26,7 @@ export class ObservationTable {
       {
         title: 'Gender',
         columnName: 'gender',
-        text: obs => valueSetsMap.administrativeGenderList[this.getPatient(obs).gender] || ''
+        text: obs => this.valueSetMapByPath['Patient.gender'][this.getPatient(obs).gender] || ''
       },
       {
         title: 'Age',
@@ -238,15 +238,17 @@ export class ObservationTable {
    */
   fill(data, perPatientPerTest, serviceBaseUrl) {
     let patientToCodeToCount = {};
+    const valueSetMapByPath = getCurrentDefinitions().valueSetMapByPath
 
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
+    this.valueSetMapByPath = valueSetMapByPath;
     this.refToPatient = data.patients.reduce((refs, patient) => {
       patient._name = humanNameToString(patient.name);
       patient._age = getPatientAge(patient);
-      patient._address = addressToStringArray(patient.address);
-      patient._email = getPatientContactsByType(patient, 'email');
-      patient._phone = getPatientContactsByType(patient, 'phone');
+      patient._address = addressToStringArray(valueSetMapByPath, patient.address);
+      patient._email = getPatientContactsByType(valueSetMapByPath, patient, 'email');
+      patient._phone = getPatientContactsByType(valueSetMapByPath, patient, 'phone');
       refs[`${patient.resourceType}/${patient.id}`] = patient;
       return refs;
     },{});

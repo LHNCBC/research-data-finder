@@ -1,3 +1,4 @@
 {
-  "resourceTypes": ["Patient", "Encounter", "Observation", "Condition", "MedicationDispense"]
+  "resourceTypes": ["Patient", "Encounter", "Observation", "Condition", "MedicationDispense"],
+  "additionalExpressions": ["Patient.telecom.use"]
 }
