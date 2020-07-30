@@ -145,11 +145,12 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
    * If it is not possible to fill an array of items for ValueSet(CodeSystem),
    * then a string with a URL is returned. If ValueSet/CodeSystem is not
    * described in specification then result will be null.
-   * @param {{url:string}|{system: string, ...}} options - "url" is passed on
-   *        the first call, then if the "url" points to a ValueSet the function
-   *        calls itself recursively for each "ValueSet.compose.include" item
-   *        which could point to another ValueSet or CodeSystem, this item value
-   *        is passed into the "options" parameter.
+   * @param {{url:string}|{valueSet: Array<string>}|{system: string, ...}} options
+   *        "url" is passed on the first call, then if the "url" points to a ValueSet
+   *        the function calls itself recursively for each "ValueSet.compose.include"
+   *        item (see http://hl7.org/fhir/valueset.html#resource) which could point to another
+   *        ValueSet or CodeSystem, this item value is passed into the "options"
+   *        parameter.
    * @return {Array<{code: string, display: string}> | string | null}
    */
   function getValueSet(options) {
