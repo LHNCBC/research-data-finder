@@ -251,7 +251,7 @@ export class SearchParameters {
       ? document.getElementById(this.getParamResourceSelectorId(this.getSearchItemFromRowId(prevElement.id)))
       : null;
     const availableResourceTypes = this.getAvailableResourceTypes();
-    const paramResourceType = prevResourceTypeSelector && availableResourceTypes.indexOf(prevResourceTypeSelector).value !== -1
+    const paramResourceType = prevResourceTypeSelector && availableResourceTypes.indexOf(prevResourceTypeSelector.value) !== -1
       ? prevResourceTypeSelector.value
       : this.getAvailableResourceTypes()[0];
     const paramName = this.availableParams[paramResourceType].shift();
