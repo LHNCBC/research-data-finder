@@ -150,9 +150,8 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
    *        the function calls itself recursively for each "ValueSet.compose.include"
    *        item (see http://hl7.org/fhir/valueset.html#resource) which could point to another
    *        ValueSet or CodeSystem. This item value is passed into the "options" parameter.
-   *        If "options.valueSet" is passed, the function calls itself for each "options.valueSet"
-   *        item which points to another ValueSet. In this case, item value is passed into
-   *        the "options.url" parameter.
+   *        If "options.valueSet" is provided, that it is an array of URLs, and the function
+   *        will turn that into a series of recursive calls with "options.url" set.
    * @param {string} options.url - canonical identifier for value set, represented as a URI (globally unique)
    * @param {Array<string>} options.valueSet - array of canonical value set identifiers
    *        Example of resource which uses "compose.include[].valueSet": http://hl7.org/fhir/valueset-security-labels.json.html
