@@ -10,20 +10,31 @@ export class Reporter {
     this._id = 'stat-popup';
     if (!document.getElementById(this._id)) {
       const id = this._id;
-      document.body.insertAdjacentHTML('beforeend', `\
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        `\
 <div id="${id}" class="report-popup hide">
   <div class="report-popup_window">
     <div class="report-popup_content">
     </div>
     <div class="report-popup_close-btn">&times;</div>
   </div>
-</div>`);
-      document.querySelector(`#${id} .report-popup_close-btn`).addEventListener('click', () => this.hide());
-      document.querySelector(`#${id}`).addEventListener('mousedown', event => {
-        if (event.target === event.currentTarget && document.querySelector(`#${id} .report-popup_close-btn.hide`) === null) {
-          this.hide();
-        }
-      });
+</div>`
+      );
+      document
+        .querySelector(`#${id} .report-popup_close-btn`)
+        .addEventListener('click', () => this.hide());
+      document
+        .querySelector(`#${id}`)
+        .addEventListener('mousedown', (event) => {
+          if (
+            event.target === event.currentTarget &&
+            document.querySelector(`#${id} .report-popup_close-btn.hide`) ===
+              null
+          ) {
+            this.hide();
+          }
+        });
     }
 
     this.clear();
@@ -100,12 +111,12 @@ export class Reporter {
    * @private
    */
   _updateWindowImmediately() {
-    if(!this._isVisible) {
+    if (!this._isVisible) {
       return;
     }
     window.cancelAnimationFrame(this._updateHandle);
     this._updateHandle = window.requestAnimationFrame(() => {
-      let html='';
+      let html = '';
       if (this._info.currentProcess) {
         if (this._info.currentProcess.percent !== undefined) {
           html += `\
@@ -116,7 +127,11 @@ export class Reporter {
         }
       }
 
-      if (typeof this._info.duration === 'number' && this._info.stat.filter(item => typeof item.duration === 'number').length !== 1) {
+      if (
+        typeof this._info.duration === 'number' &&
+        this._info.stat.filter((item) => typeof item.duration === 'number')
+          .length !== 1
+      ) {
         html += `
 <label class="report-popup_item">
 Overall time:
@@ -125,17 +140,26 @@ ${(this._info.duration / 1000).toFixed(1)} s
 </label>`;
       }
 
-      this._info.stat.forEach(measurement => {
-        const duration = typeof measurement.duration === 'number' ? ` in ${(measurement.duration / 1000).toFixed(1)} s` : '';
+      this._info.stat.forEach((measurement) => {
+        const duration =
+          typeof measurement.duration === 'number'
+            ? ` in ${(measurement.duration / 1000).toFixed(1)} s`
+            : '';
         html += `\
 <div class="report-popup_item">
 ${measurement.name}:
 <span class="report-popup_item-space"></span>
 <label>${measurement.count}${duration}</label>
 </div>`;
-      })
-      document.querySelector(`#${this._id} .report-popup_content`).innerHTML = html;
-      toggleCssClass(`#${this._id} .report-popup_close-btn`, 'hide', !!this._info.currentProcess);
+      });
+      document.querySelector(
+        `#${this._id} .report-popup_content`
+      ).innerHTML = html;
+      toggleCssClass(
+        `#${this._id} .report-popup_close-btn`,
+        'hide',
+        !!this._info.currentProcess
+      );
     });
   }
 
@@ -144,7 +168,7 @@ ${measurement.name}:
    * @private
    */
   _updateWindow() {
-    if(this._updateScheduled || !this._isVisible) {
+    if (this._updateScheduled || !this._isVisible) {
       return;
     }
 
@@ -161,12 +185,12 @@ ${measurement.name}:
    * @param {number} count
    * @return {{updateCount: (function(number): void), incrementCount: (function(number): void)}}
    */
-  addMetric({name, calculateDuration = true, count = 0}) {
+  addMetric({ name, calculateDuration = true, count = 0 }) {
     const measurement = {
       name,
       count,
       startTime: Date.now(),
-      ...(calculateDuration ? {duration: 0} : {})
+      ...(calculateDuration ? { duration: 0 } : {})
     };
 
     this._info.stat.push(measurement);
@@ -192,6 +216,6 @@ ${measurement.name}:
        */
       incrementCount: (inc) =>
         updateCount(measurement.count + (typeof inc === 'number' ? inc : 1))
-    }
+    };
   }
 }

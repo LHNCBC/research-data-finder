@@ -7,7 +7,6 @@ export const HTTP_ABORT = -1;
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
 export class FhirBatchQuery {
-
   /**
    * Requests are executed or combined depending on the parameters passed to this method.
    * @constructor
@@ -16,7 +15,12 @@ export class FhirBatchQuery {
    * @param {number} maxActiveRequests - the maximum number of requests that can be executed simultaneously
    * @param {number} batchTimeout - the time in milliseconds between requests that can be combined
    */
-  constructor({serviceBaseUrl = '', maxRequestsPerBatch = 10, maxActiveRequests = 6, batchTimeout = 20}) {
+  constructor({
+    serviceBaseUrl = '',
+    maxRequestsPerBatch = 10,
+    maxActiveRequests = 6,
+    batchTimeout = 20
+  }) {
     this._serviceBaseUrl = serviceBaseUrl;
     this._pending = [];
     this._batchTimeoutId = null;
@@ -43,10 +47,13 @@ export class FhirBatchQuery {
    */
   get(url) {
     return new Promise((resolve, reject) => {
-      this._pending.push({url, resolve, reject});
+      this._pending.push({ url, resolve, reject });
       if (this._pending.length < this._maxPerBatch) {
         clearTimeout(this._batchTimeoutId);
-        this._batchTimeoutId = setTimeout(() => this._postPending(), this._batchTimeout)
+        this._batchTimeoutId = setTimeout(
+          () => this._postPending(),
+          this._batchTimeout
+        );
       } else {
         this._postPending();
       }
@@ -58,7 +65,13 @@ export class FhirBatchQuery {
    * @private
    * @return {Promise}
    */
-  _request({method = 'GET', url, body, contentType = 'application/fhir+json', logPrefix = ''}) {
+  _request({
+    method = 'GET',
+    url,
+    body,
+    contentType = 'application/fhir+json',
+    logPrefix = ''
+  }) {
     return new Promise((resolve, reject) => {
       const oReq = new XMLHttpRequest(),
         startAjaxTime = new Date();
@@ -70,25 +83,29 @@ export class FhirBatchQuery {
             this._activeReq.splice(currentRequestIndex, 1);
           } else {
             // if aborted due to clearPendingRequests
-            reject({status: HTTP_ABORT, error: 'Abort'});
+            reject({ status: HTTP_ABORT, error: 'Abort' });
           }
-          console.log(`${logPrefix ? logPrefix + ' ' : ''}AJAX call returned in ${(new Date() - startAjaxTime)}`);
+          console.log(
+            `${logPrefix ? logPrefix + ' ' : ''}AJAX call returned in ${
+              new Date() - startAjaxTime
+            }`
+          );
           const status = oReq.status;
 
           if (this.isOK(status)) {
-            resolve({status, data: JSON.parse(oReq.responseText)})
+            resolve({ status, data: JSON.parse(oReq.responseText) });
           } else {
             let error;
             try {
-              error = oReq.responseText ? JSON.parse(oReq.responseText) : {}
+              error = oReq.responseText ? JSON.parse(oReq.responseText) : {};
             } catch (e) {
               error = {};
             }
-            reject({status, error: this._getErrorDiagnostic(error)});
+            reject({ status, error: this._getErrorDiagnostic(error) });
           }
           this._postPending();
         }
-      }
+      };
 
       oReq.open(method, url);
       oReq.setRequestHeader('Content-Type', contentType);
@@ -102,7 +119,7 @@ export class FhirBatchQuery {
    * @private
    */
   _postPending() {
-    if(this._activeReq.length >= this._maxActiveReq) {
+    if (this._activeReq.length >= this._maxActiveReq) {
       return;
     }
 
@@ -111,9 +128,9 @@ export class FhirBatchQuery {
         body = JSON.stringify({
           resourceType: 'Bundle',
           type: 'batch',
-          entry: current.map(({url}) => ({
+          entry: current.map(({ url }) => ({
             request: {
-              method: "GET",
+              method: 'GET',
               url: this.getRelativeUrl(url)
             }
           }))
@@ -124,26 +141,33 @@ export class FhirBatchQuery {
         url: this._serviceBaseUrl,
         body,
         logPrefix: 'Batch'
-      }).then(({status, data}) => {
-        current.forEach(({resolve, reject}, index) => {
-          // See Batch/Transaction response description here:
-          // https://www.hl7.org/fhir/http.html#transaction-response
-          const entry = data.entry[index];
-          const status = /^(\d+)\s/.test(entry.response.status) && parseInt(RegExp.$1);
-          if (this.isOK(status)) {
-            resolve({status, data: entry.resource || {}});
-          } else {
-            reject({status, error: this._getErrorDiagnostic(entry.response.outcome)});
-          }
-        });
-      }, ({status, error}) => {
-        current.forEach(({reject}) => {
-          reject({status, error: error});
-        });
-      });
+      }).then(
+        ({ data }) => {
+          current.forEach(({ resolve, reject }, index) => {
+            // See Batch/Transaction response description here:
+            // https://www.hl7.org/fhir/http.html#transaction-response
+            const entry = data.entry[index];
+            const status =
+              /^(\d+)\s/.test(entry.response.status) && parseInt(RegExp.$1);
+            if (this.isOK(status)) {
+              resolve({ status, data: entry.resource || {} });
+            } else {
+              reject({
+                status,
+                error: this._getErrorDiagnostic(entry.response.outcome)
+              });
+            }
+          });
+        },
+        ({ status, error }) => {
+          current.forEach(({ reject }) => {
+            reject({ status, error: error });
+          });
+        }
+      );
     } else if (this._pending.length > 0) {
-      const {url, resolve, reject} = this._pending.pop()
-      this._request({url}).then(resolve, reject);
+      const { url, resolve, reject } = this._pending.pop();
+      this._request({ url }).then(resolve, reject);
     }
   }
 
@@ -154,7 +178,7 @@ export class FhirBatchQuery {
    */
   _getErrorDiagnostic(data) {
     if (data && data.issue && data.issue.length) {
-      return data.issue.map(item => item.diagnostics).join('\n') || '';
+      return data.issue.map((item) => item.diagnostics).join('\n') || '';
     }
 
     return 'Unknown Error';
@@ -162,18 +186,22 @@ export class FhirBatchQuery {
 
   clearPendingRequests() {
     this._pending.length = 0;
-    this._activeReq.forEach(request => {
-      request.abort()
+    this._activeReq.forEach((request) => {
+      request.abort();
     });
     this._activeReq = [];
   }
 
   getFullUrl(url) {
-    return /^http[s]{0,1}:\/\//.test(url) ? url : `${this._serviceBaseUrl}/${url}`;
+    return /^http[s]{0,1}:\/\//.test(url)
+      ? url
+      : `${this._serviceBaseUrl}/${url}`;
   }
 
   getRelativeUrl(url) {
-    return url.indexOf(this._serviceBaseUrl) === 0 ? url.substr(this._serviceBaseUrl.length+1) : url;
+    return url.indexOf(this._serviceBaseUrl) === 0
+      ? url.substr(this._serviceBaseUrl.length + 1)
+      : url;
   }
 
   /**
@@ -197,10 +225,9 @@ export class FhirBatchQuery {
       const fullUrl = this.getFullUrl(url),
         cachedReq = commonRequestCache[fullUrl];
       if (cachedReq) {
-        console.log("Using cached data");
+        console.log('Using cached data');
         resolve(cachedReq);
-      }
-      else {
+      } else {
         this.get(fullUrl).then((result) => {
           commonRequestCache[fullUrl] = result;
           resolve(result);
@@ -218,16 +245,14 @@ export class FhirBatchQuery {
    */
   searchWithCache(url) {
     return new Promise((resolve, reject) => {
-      const
-        [_url, params] = this.getFullUrl(url).split('?'),
+      const [_url, params] = this.getFullUrl(url).split('?'),
         newUrl = `${_url}/_search`,
         cacheKey = `${newUrl}?${params}`,
         cachedReq = commonRequestCache[cacheKey];
       if (cachedReq) {
-        console.log("Using cached data");
+        console.log('Using cached data');
         resolve(cachedReq);
-      }
-      else {
+      } else {
         // Can't batch POST-requests with a "Content-Type: application/x-www-form-urlencoded"
         this._request({
           method: 'POST',
@@ -249,7 +274,11 @@ export class FhirBatchQuery {
    */
   getNextPageUrl(response) {
     let result;
-    return response.link.some(link => link.relation === 'next' && (result = link.url)) && result;
+    return (
+      response.link.some(
+        (link) => link.relation === 'next' && (result = link.url)
+      ) && result
+    );
   }
 
   /**
@@ -278,9 +307,16 @@ export class FhirBatchQuery {
     // we will load Encounters in portions of the specified optimal page size, and for each Encounter,
     // load the Patient and add it to the result (if it is not already in it) until we get the target number of Patients.
     return this._resourcesMapFilter(
-      this.getWithCache(updateUrlWithParam(url, '_count', pageSize || this._maxPerBatch*this._maxActiveReq*2)),
+      this.getWithCache(
+        updateUrlWithParam(
+          url,
+          '_count',
+          pageSize || this._maxPerBatch * this._maxActiveReq * 2
+        )
+      ),
       count,
-      filterMapFunction);
+      filterMapFunction
+    );
   }
 
   /**
@@ -293,32 +329,35 @@ export class FhirBatchQuery {
    */
   _resourcesMapFilter(firstRequest, count, filterMapFunction) {
     return new Promise((resolve, reject) => {
-      firstRequest.then(({data}) => {
-        const resources = (data.entry || []).map(entry => entry.resource);
+      firstRequest.then(({ data }) => {
+        const resources = (data.entry || []).map((entry) => entry.resource);
 
-        Promise.all(resources.map(resource => filterMapFunction(resource)))
-          .then(match => {
-            const result = resources
-              .map((res, index) => match[index] === true ? res : match[index])
-              .filter(res => res !== false);
-            const newCount = count - result.length;
-            const nextPageUrl = this.getNextPageUrl(data);
+        Promise.all(
+          resources.map((resource) => filterMapFunction(resource))
+        ).then((match) => {
+          const result = resources
+            .map((res, index) => (match[index] === true ? res : match[index]))
+            .filter((res) => res !== false);
+          const newCount = count - result.length;
+          const nextPageUrl = this.getNextPageUrl(data);
 
-            if (result.length < count && nextPageUrl) {
-              this._resourcesMapFilter(this.getWithCache(nextPageUrl), newCount, filterMapFunction).then(nextPage => {
-                resolve(result.concat(nextPage))
-              }, reject);
-            } else {
-
-              if (result.length > count) {
-                // Remove extra entries
-                result.length = count;
-              }
-              resolve(result);
+          if (result.length < count && nextPageUrl) {
+            this._resourcesMapFilter(
+              this.getWithCache(nextPageUrl),
+              newCount,
+              filterMapFunction
+            ).then((nextPage) => {
+              resolve(result.concat(nextPage));
+            }, reject);
+          } else {
+            if (result.length > count) {
+              // Remove extra entries
+              result.length = count;
             }
-          }, reject);
+            resolve(result);
+          }
+        }, reject);
       }, reject);
     });
   }
-
 }

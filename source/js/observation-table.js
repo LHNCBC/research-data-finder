@@ -1,4 +1,9 @@
-import { addressToStringArray, getPatientAge, getPatientContactsByType, humanNameToString } from './common/utils';
+import {
+  addressToStringArray,
+  getPatientAge,
+  getPatientContactsByType,
+  humanNameToString
+} from './common/utils';
 import { getCurrentDefinitions } from './search-parameters/common-descriptions';
 
 const reValueKey = /^value/;
@@ -17,53 +22,56 @@ export class ObservationTable {
     this.viewCellsTemplate = [
       {
         title: 'Patient Id',
-        text: obs => obs.subject.reference.replace(/^Patient\//, '')
+        text: (obs) => obs.subject.reference.replace(/^Patient\//, '')
       },
       {
         title: 'Patient',
-        text: obs => this.getPatientName(obs)
+        text: (obs) => this.getPatientName(obs)
       },
       {
         title: 'Gender',
         columnName: 'gender',
-        text: obs => this.valueSetMapByPath['Patient.gender'][this.getPatient(obs).gender] || ''
+        text: (obs) =>
+          this.valueSetMapByPath['Patient.gender'][
+            this.getPatient(obs).gender
+          ] || ''
       },
       {
         title: 'Age',
         columnName: 'age',
-        text: obs => this.getPatient(obs)._age || ''
+        text: (obs) => this.getPatient(obs)._age || ''
       },
       {
         title: 'Birth date',
         columnName: 'birthdate',
-        text: obs => this.getPatient(obs).birthDate || ''
+        text: (obs) => this.getPatient(obs).birthDate || ''
       },
       {
         title: 'Death date',
         columnName: 'death-date',
-        text: obs => this.getPatient(obs).deceasedDateTime || ''
+        text: (obs) => this.getPatient(obs).deceasedDateTime || ''
       },
       {
         title: 'Address',
         columnName: 'address',
-        text: obs => this.getPatient(obs)._address.join('<br>')
+        text: (obs) => this.getPatient(obs)._address.join('<br>')
       },
       {
         title: 'Phone',
         columnName: 'phone',
-        text: obs => this.getPatient(obs)._phone.join('<br>')
+        text: (obs) => this.getPatient(obs)._phone.join('<br>')
       },
       {
         title: 'Email',
         columnName: 'email',
-        text: obs => this.getPatient(obs)._email.join('<br>')
+        text: (obs) => this.getPatient(obs)._email.join('<br>')
       },
       {
         title: 'Language',
         columnName: 'language',
-        text: obs => {
+        text: (obs) => {
           const communication = this.getPatient(obs).communication;
-          return communication && communication.language || '';
+          return (communication && communication.language) || '';
         }
       },
       // TODO: Can't just get a Practitioner name from Patient data
@@ -78,7 +86,7 @@ export class ObservationTable {
       // },
       {
         title: 'Date',
-        text: obs => {
+        text: (obs) => {
           const date = obs.effectiveDateTime,
             tIndex = date.indexOf('T');
 
@@ -87,7 +95,7 @@ export class ObservationTable {
       },
       {
         title: 'Time',
-        text: obs => {
+        text: (obs) => {
           const date = obs.effectiveDateTime,
             tIndex = date.indexOf('T');
 
@@ -96,19 +104,19 @@ export class ObservationTable {
       },
       {
         title: 'Test Name',
-        text: obs => obs.code.text || obs.code.coding[0].display
+        text: (obs) => obs.code.text || obs.code.coding[0].display
       },
       {
         title: 'Value',
-        text: obs => this.getObservationValue(obs).value
+        text: (obs) => this.getObservationValue(obs).value
       },
       {
         title: 'Unit',
-        text: obs => this.getObservationValue(obs).unit
+        text: (obs) => this.getObservationValue(obs).unit
       },
       {
         title: 'FHIR Observation',
-        text: obs => {
+        text: (obs) => {
           const id = obs.id,
             href = this.serviceBaseUrl + '/Observation/' + obs.id;
 
@@ -117,30 +125,36 @@ export class ObservationTable {
       },
       {
         title: 'Interpretation',
-        text: obs => {
+        text: (obs) => {
           const codeableConcept = obs.interpretation && obs.interpretation[0];
 
-
-          return codeableConcept && (codeableConcept.text ||
-            codeableConcept.coding && codeableConcept.coding.length > 0 && (
-              codeableConcept.coding[0].display || codeableConcept.coding[0].code
-            )) || '';
+          return (
+            (codeableConcept &&
+              (codeableConcept.text ||
+                (codeableConcept.coding &&
+                  codeableConcept.coding.length > 0 &&
+                  (codeableConcept.coding[0].display ||
+                    codeableConcept.coding[0].code)))) ||
+            ''
+          );
         }
       }
     ];
 
     // Mapping for each cell in a row for export to CSV-file
-    this.exportCellsTemplate = this.viewCellsTemplate.map(desc => {
+    this.exportCellsTemplate = this.viewCellsTemplate.map((desc) => {
       if (desc.title === 'FHIR Observation') {
         return {
           title: desc.title,
-          text: obs => obs.id,
+          text: (obs) => obs.id
         };
-      } else if (['phone', 'email', 'address'].indexOf(desc.columnName) !== -1) {
+      } else if (
+        ['phone', 'email', 'address'].indexOf(desc.columnName) !== -1
+      ) {
         return {
           title: desc.title,
           columnName: desc.columnName,
-          text: obs => this.getPatient(obs)['_' + desc.columnName].join('\n')
+          text: (obs) => this.getPatient(obs)['_' + desc.columnName].join('\n')
         };
       } else {
         return desc;
@@ -158,7 +172,11 @@ export class ObservationTable {
   getPatientName(obs) {
     const patientRef = obs.subject.reference;
 
-    return obs.subject.display || (this.refToPatient[patientRef] || {})._name || patientRef
+    return (
+      obs.subject.display ||
+      (this.refToPatient[patientRef] || {})._name ||
+      patientRef
+    );
   }
 
   /**
@@ -178,9 +196,13 @@ export class ObservationTable {
   getObservationCode(obs) {
     const codeableConcept = obs.code;
 
-    return codeableConcept && codeableConcept.coding &&
-      codeableConcept.coding.length > 0 &&
-      codeableConcept.coding[0].code || null;
+    return (
+      (codeableConcept &&
+        codeableConcept.coding &&
+        codeableConcept.coding.length > 0 &&
+        codeableConcept.coding[0].code) ||
+      null
+    );
   }
 
   /**
@@ -194,7 +216,7 @@ export class ObservationTable {
       unit: ''
     };
 
-    Object.keys(obs).some(key => {
+    Object.keys(obs).some((key) => {
       const valueFound = reValueKey.test(key);
       if (valueFound) {
         const value = obs[key];
@@ -203,10 +225,14 @@ export class ObservationTable {
             value: value.value,
             unit: value.unit
           };
-        } else if (key === 'valueCodeableConcept' && value.coding && value.coding.length) {
+        } else if (
+          key === 'valueCodeableConcept' &&
+          value.coding &&
+          value.coding.length
+        ) {
           result.value = value.text || value.coding[0].display;
         } else {
-          result.value = value
+          result.value = value;
         }
       }
       return valueFound;
@@ -216,7 +242,9 @@ export class ObservationTable {
   }
 
   getHeader() {
-    return `<thead><tr><th>${this._getViewCellsTemplate().map(cell => cell.title).join('</th><th>')}</th></tr></thead>`;
+    return `<thead><tr><th>${this._getViewCellsTemplate()
+      .map((cell) => cell.title)
+      .join('</th><th>')}</th></tr></thead>`;
   }
 
   setAdditionalColumns(columns) {
@@ -224,10 +252,18 @@ export class ObservationTable {
   }
 
   _getViewCellsTemplate() {
-    return this.viewCellsTemplate.filter(item => !item.columnName || this._additionalColumns.indexOf(item.columnName) !== -1);
+    return this.viewCellsTemplate.filter(
+      (item) =>
+        !item.columnName ||
+        this._additionalColumns.indexOf(item.columnName) !== -1
+    );
   }
   _getExportCellsTemplate() {
-    return this.exportCellsTemplate.filter(item => !item.columnName || this._additionalColumns.indexOf(item.columnName) !== -1);
+    return this.exportCellsTemplate.filter(
+      (item) =>
+        !item.columnName ||
+        this._additionalColumns.indexOf(item.columnName) !== -1
+    );
   }
 
   /**
@@ -238,7 +274,7 @@ export class ObservationTable {
    */
   fill(data, perPatientPerTest, serviceBaseUrl) {
     let patientToCodeToCount = {};
-    const valueSetMapByPath = getCurrentDefinitions().valueSetMapByPath
+    const valueSetMapByPath = getCurrentDefinitions().valueSetMapByPath;
 
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
@@ -246,37 +282,58 @@ export class ObservationTable {
     this.refToPatient = data.patients.reduce((refs, patient) => {
       patient._name = humanNameToString(patient.name);
       patient._age = getPatientAge(patient);
-      patient._address = addressToStringArray(valueSetMapByPath, patient.address);
-      patient._email = getPatientContactsByType(valueSetMapByPath, patient, 'email');
-      patient._phone = getPatientContactsByType(valueSetMapByPath, patient, 'phone');
+      patient._address = addressToStringArray(
+        valueSetMapByPath,
+        patient.address
+      );
+      patient._email = getPatientContactsByType(
+        valueSetMapByPath,
+        patient,
+        'email'
+      );
+      patient._phone = getPatientContactsByType(
+        valueSetMapByPath,
+        patient,
+        'phone'
+      );
       refs[`${patient.resourceType}/${patient.id}`] = patient;
       return refs;
-    },{});
-    this.data = data.observations
-      .filter(obs => {
-        // Per Clem, we will only show perPatientPerTest results per patient per test.
-        const patientRef = obs.subject.reference,
-          codeStr = this.getObservationCode(obs);
-        let codeToCount = patientToCodeToCount[patientRef] || (patientToCodeToCount[patientRef]={});
+    }, {});
+    this.data = data.observations.filter((obs) => {
+      // Per Clem, we will only show perPatientPerTest results per patient per test.
+      const patientRef = obs.subject.reference,
+        codeStr = this.getObservationCode(obs);
+      let codeToCount =
+        patientToCodeToCount[patientRef] ||
+        (patientToCodeToCount[patientRef] = {});
 
-        // For now skip Observations without a code in the first coding.
-        if (codeStr) {
-          const codeCount = codeToCount[codeStr] || (codeToCount[codeStr] = 0);
-          if (codeCount < perPatientPerTest) {
-            ++codeToCount[codeStr];
-            return true;
-          }
+      // For now skip Observations without a code in the first coding.
+      if (codeStr) {
+        const codeCount = codeToCount[codeStr] || (codeToCount[codeStr] = 0);
+        if (codeCount < perPatientPerTest) {
+          ++codeToCount[codeStr];
+          return true;
         }
-        return false;
-      });
+      }
+      return false;
+    });
 
     // Update table
     const viewCellsTemplate = this._getViewCellsTemplate();
 
-    document.getElementById(this.tableId).innerHTML = this.getHeader()
-      + '<tbody><tr>' + this.data.map(obs => {
-        return '<td>' + viewCellsTemplate.map(cell => cell.text(obs)).join('</td><td>') + '</td>';
-      }).join('</tr><tr>') + '</tr></tbody>';
+    document.getElementById(this.tableId).innerHTML =
+      this.getHeader() +
+      '<tbody><tr>' +
+      this.data
+        .map((obs) => {
+          return (
+            '<td>' +
+            viewCellsTemplate.map((cell) => cell.text(obs)).join('</td><td>') +
+            '</td>'
+          );
+        })
+        .join('</tr><tr>') +
+      '</tr></tbody>';
   }
 
   /**
@@ -285,20 +342,24 @@ export class ObservationTable {
    */
   getBlob() {
     const cellsTemplate = this._getExportCellsTemplate();
-    const header = cellsTemplate.map(cell => cell.title).join(','),
-      rows = this.data.map(obs => {
-        return cellsTemplate.map(cell => {
-          const cellText = cell.text(obs);
+    const header = cellsTemplate.map((cell) => cell.title).join(','),
+      rows = this.data.map((obs) => {
+        return cellsTemplate
+          .map((cell) => {
+            const cellText = cell.text(obs);
 
-          if (/["\s]/.test(cellText)) {
-            return '"' + cellText.replace(/"/, '""') + '"';
-          } else {
-            return cellText;
-          }
-        }).join(',');
+            if (/["\s]/.test(cellText)) {
+              return '"' + cellText.replace(/"/, '""') + '"';
+            } else {
+              return cellText;
+            }
+          })
+          .join(',');
       });
 
-    return new Blob([[header].concat(rows).join('\n')],
-      {type: 'text/plain;charset=utf-8', endings: 'native'});
+    return new Blob([[header].concat(rows).join('\n')], {
+      type: 'text/plain;charset=utf-8',
+      endings: 'native'
+    });
   }
 }

@@ -1,8 +1,6 @@
 // See https://www.hl7.org/fhir/condition.html#search for description of Condition search parameters
 
-import {
-  defaultParameters
-} from "./common-descriptions";
+import { defaultParameters } from './common-descriptions';
 
 export const CONDITION = 'Condition';
 
