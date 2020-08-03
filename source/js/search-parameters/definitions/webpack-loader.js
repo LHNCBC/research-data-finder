@@ -83,7 +83,20 @@ function getSearchParametersConfig(
     }
 
     const path = expression.split(' ')[0];
-    return { path, ...getTypeByPath(path.split('.')) };
+    const typeDesc = { path, ...getTypeByPath(path.split('.')) };
+
+    // Find value set for expression
+    if (typeDesc.valueSet) {
+      if (!result.valueSets[typeDesc.valueSet]) {
+        const valueSet = getValueSet({ url: typeDesc.valueSet });
+        result.valueSets[typeDesc.valueSet] =
+          valueSet instanceof Array
+            ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
+            : valueSet;
+      }
+      result.valueSetByPath[typeDesc.path] = typeDesc.valueSet;
+    }
+    return typeDesc;
   }
 
   /**
@@ -325,15 +338,6 @@ function getSearchParametersConfig(
         if (param.type === 'token') {
           Object.assign(param, getTypeByExpression(param.expression));
         }
-        // Find value set for search parameter
-        if (param.valueSet && !result.valueSets[param.valueSet]) {
-          const valueSet = getValueSet({ url: param.valueSet });
-          result.valueSetByPath[param.path] = param.valueSet;
-          result.valueSets[param.valueSet] =
-            valueSet instanceof Array
-              ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
-              : valueSet;
-        }
         return param;
       });
   });
@@ -347,15 +351,7 @@ function getSearchParametersConfig(
   //
   // Find value sets for additional expressions:
   additionalExpressions.forEach((expression) => {
-    const param = getTypeByExpression(expression);
-    if (param.valueSet && !result.valueSets[param.valueSet]) {
-      const valueSet = getValueSet({ url: param.valueSet });
-      result.valueSetByPath[param.path] = param.valueSet;
-      result.valueSets[param.valueSet] =
-        valueSet instanceof Array
-          ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
-          : valueSet;
-    }
+    getTypeByExpression(expression);
   });
 
   return result;

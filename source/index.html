@@ -86,9 +86,13 @@
           <label class="performance-tuning hide">Performance Tuning Settings:</label>
           <div class="performance-tuning hide">
             <label>Requests per batch:</label>
-            <input type="number" id="maxRequestsPerBatch" value="10" min="1" placeholder="default value">
+            <div>
+              <input type="number" id="maxRequestsPerBatch" value="10" min="1" placeholder="default value">
+            </div>
             <label>Maximum active requests:</label>
-            <input type="number" id="maxActiveRequests" value="6" min="1" placeholder="default value">
+            <div>
+              <input type="number" id="maxActiveRequests" value="6" min="1" placeholder="default value">
+            </div>
             <label>Actions:</label>
             <button onclick="app.clearCache()">Clear cache</button>
           </div>

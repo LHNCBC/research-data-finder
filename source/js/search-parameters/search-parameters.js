@@ -1,4 +1,4 @@
-import { getAutocompleterById } from '../common/utils';
+import { getAutocompleterById, toggleCssClass } from '../common/utils';
 import {
   getSearchParamGroupFactoryByResourceType,
   setFhirServerForSearchParameters
@@ -294,7 +294,11 @@ export class SearchParameters {
     anchorElement.insertAdjacentHTML(
       'afterend',
       `\
-<div id="${this.internalId}">
+<div id="${this.internalId}" class="search-parameter-list search-parameter-list_empty">
+    <label>AND</label> - criteria are combined with logical AND
+    <div class="section__body"></div>
+</div>
+<div>
   <button id="${this.buttonId}" class="add-search-param-button">Add a search criterion</button>
 </div>`
     );
@@ -314,12 +318,13 @@ export class SearchParameters {
     const rowId = this.getParamRowId(searchItemId);
     const searchItemContentId = this.getParamContentId(searchItemId);
     const removeButtonId = this.getRemoveButtonId(searchItemId);
-    const prevElement = document.getElementById(this.internalId)
-      .previousElementSibling;
-    const prevResourceTypeSelector = prevElement
+    const prevRowElement = document
+      .getElementById(this.internalId)
+      .querySelector('.section__body >:last-child');
+    const prevResourceTypeSelector = prevRowElement
       ? document.getElementById(
           this.getParamResourceSelectorId(
-            this.getSearchItemFromRowId(prevElement.id)
+            this.getSearchItemFromRowId(prevRowElement.id)
           )
         )
       : null;
@@ -334,16 +339,19 @@ export class SearchParameters {
     this.selectedParams[searchItemId] = paramName;
     this.selectedResources[searchItemId] = paramResourceType;
 
-    document.getElementById(this.internalId).insertAdjacentHTML(
-      'beforebegin',
-      `\
+    document
+      .getElementById(this.internalId)
+      .querySelector('.section__body')
+      .insertAdjacentHTML(
+        'beforeend',
+        `\
 <div id="${rowId}" class="search-parameter">
   <input type="text" id="${paramResourceTypeSelectorId}" value="${paramResourceType}">
   <input type="text" id="${searchItemId}" value="${paramName}">
   <div id="${searchItemContentId}"></div>
   <button id="${removeButtonId}">remove</button>
 </div>`
-    );
+      );
     new Def.Autocompleter.Prefetch(paramResourceTypeSelectorId, [], {
       matchListValue: true
     });
@@ -351,7 +359,7 @@ export class SearchParameters {
       matchListValue: true
     });
     this.addRemoveBtnListener(searchItemId);
-    this.updateAllSearchParamSelectors();
+    this.onParamsCountChanged();
     this.createControlsForSearchParam(searchItemId);
     if (!this.getAvailableResourceTypes().length) {
       document.getElementById(this.buttonId).disabled = true;
@@ -383,7 +391,17 @@ export class SearchParameters {
     delete this.selectedParams[searchItemId];
     document.getElementById(this.buttonId).disabled = false;
     this.freeAvailableItem(availableResourceType, availableParam);
+    this.onParamsCountChanged();
+  }
+
+  onParamsCountChanged() {
     this.updateAllSearchParamSelectors();
+    const isParamsListEmpty = Object.keys(this.selectedParams).length === 0;
+    toggleCssClass(
+      `#${this.internalId}`,
+      'search-parameter-list_empty',
+      isParamsListEmpty
+    );
   }
 
   /**
