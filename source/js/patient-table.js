@@ -1,4 +1,9 @@
-import { addressToStringArray, getPatientAge, getPatientContactsByType, humanNameToString } from './common/utils';
+import {
+  addressToStringArray,
+  getPatientAge,
+  getPatientContactsByType,
+  humanNameToString
+} from './common/utils';
 import { getCurrentDefinitions } from './search-parameters/common-descriptions';
 
 export class PatientTable {
@@ -15,53 +20,54 @@ export class PatientTable {
     this.viewCellsTemplate = [
       {
         title: 'Patient Id',
-        text: pat => pat.id
+        text: (pat) => pat.id
       },
       {
         title: 'Patient',
-        text: pat => pat._name
+        text: (pat) => pat._name
       },
       {
         title: 'Gender',
         columnName: 'gender',
-        text: pat => this.valueSetMapByPath['Patient.gender'][pat.gender] || ''
+        text: (pat) =>
+          this.valueSetMapByPath['Patient.gender'][pat.gender] || ''
       },
       {
         title: 'Age',
         columnName: 'age',
-        text: pat => pat._age || ''
+        text: (pat) => pat._age || ''
       },
       {
         title: 'Birth date',
         columnName: 'birthdate',
-        text: pat => pat.birthDate || ''
+        text: (pat) => pat.birthDate || ''
       },
       {
         title: 'Death date',
         columnName: 'death-date',
-        text: pat => pat.deceasedDateTime || ''
+        text: (pat) => pat.deceasedDateTime || ''
       },
       {
         title: 'Address',
         columnName: 'address',
-        text: pat => pat._address.join('<br>')
+        text: (pat) => pat._address.join('<br>')
       },
       {
         title: 'Phone',
         columnName: 'phone',
-        text: pat => pat._phone.join('<br>')
+        text: (pat) => pat._phone.join('<br>')
       },
       {
         title: 'Email',
         columnName: 'email',
-        text: pat => pat._email.join('<br>')
+        text: (pat) => pat._email.join('<br>')
       },
       {
         title: 'Language',
         columnName: 'language',
-        text: pat => {
+        text: (pat) => {
           const communication = pat.communication;
-          return communication && communication.language || '';
+          return (communication && communication.language) || '';
         }
       }
     ];
@@ -70,7 +76,9 @@ export class PatientTable {
   }
 
   getHeader() {
-    return`<thead><tr><th>${this._getViewCellsTemplate().map(cell => cell.title).join('</th><th>')}</th></tr></thead>`;
+    return `<thead><tr><th>${this._getViewCellsTemplate()
+      .map((cell) => cell.title)
+      .join('</th><th>')}</th></tr></thead>`;
   }
 
   setAdditionalColumns(columns) {
@@ -78,9 +86,12 @@ export class PatientTable {
   }
 
   _getViewCellsTemplate() {
-    return this.viewCellsTemplate.filter(item => !item.columnName || this._additionalColumns.indexOf(item.columnName) !== -1);
+    return this.viewCellsTemplate.filter(
+      (item) =>
+        !item.columnName ||
+        this._additionalColumns.indexOf(item.columnName) !== -1
+    );
   }
-
 
   /**
    * Fill HTML table with observations data
@@ -94,18 +105,38 @@ export class PatientTable {
     this.data = data.map((patient) => {
       patient._name = humanNameToString(patient.name);
       patient._age = getPatientAge(patient);
-      patient._address = addressToStringArray(this.valueSetMapByPath, patient.address);
-      patient._email = getPatientContactsByType(this.valueSetMapByPath, patient, 'email');
-      patient._phone = getPatientContactsByType(this.valueSetMapByPath, patient, 'phone');
+      patient._address = addressToStringArray(
+        this.valueSetMapByPath,
+        patient.address
+      );
+      patient._email = getPatientContactsByType(
+        this.valueSetMapByPath,
+        patient,
+        'email'
+      );
+      patient._phone = getPatientContactsByType(
+        this.valueSetMapByPath,
+        patient,
+        'phone'
+      );
       return patient;
     });
 
     // Update table
     const viewCellsTemplate = this._getViewCellsTemplate();
 
-    document.getElementById(this.tableId).innerHTML = this.getHeader()
-      + '<tbody><tr>' + this.data.map(obs => {
-        return '<td>' + viewCellsTemplate.map(cell => cell.text(obs)).join('</td><td>') + '</td>';
-      }).join('</tr><tr>') + '</tr></tbody>';
+    document.getElementById(this.tableId).innerHTML =
+      this.getHeader() +
+      '<tbody><tr>' +
+      this.data
+        .map((obs) => {
+          return (
+            '<td>' +
+            viewCellsTemplate.map((cell) => cell.text(obs)).join('</td><td>') +
+            '</td>'
+          );
+        })
+        .join('</tr><tr>') +
+      '</tr></tbody>';
   }
 }

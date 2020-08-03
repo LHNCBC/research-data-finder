@@ -1,8 +1,6 @@
 // See https://www.hl7.org/fhir/medicationdispense.html#search for description of MedicationDispense search parameters
 
-import {
-  defaultParameters
-} from "./common-descriptions";
+import { defaultParameters } from './common-descriptions';
 
 export const MEDICATION_DISPENSE = 'MedicationDispense';
 
@@ -18,6 +16,6 @@ export const MedicationDispenseSearchParameters = () => ({
   // all functions have parameter searchItemId - generic id for DOM
   description: {
     // Default search parameters:
-    ...defaultParameters(MEDICATION_DISPENSE),
+    ...defaultParameters(MEDICATION_DISPENSE)
   }
 });

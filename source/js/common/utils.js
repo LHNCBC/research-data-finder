@@ -23,7 +23,7 @@ export function humanNameToString(nameElements) {
     if (middleName.length === 1) {
       middleName += '.';
     }
-    rtn = [firstName, middleName, lastName].filter(item => item).join(' ');
+    rtn = [firstName, middleName, lastName].filter((item) => item).join(' ');
   }
 
   return rtn || null;
@@ -90,14 +90,27 @@ export function getAutocompleterById(inputId) {
  * @return {String[]}
  */
 export function addressToStringArray(valueSetMapByPath, addressElements) {
-  return (addressElements || []).map(address => {
-    if (!address) {
-      return '';
-    }
-    const addressString = [address.line, address.city, address.state, address.postalCode, address.country]
-      .filter(item => item).join(', ');
-    return address.use ? `${valueSetMapByPath['Patient.address.use'][address.use]}: ${addressString}` : addressString;
-  }).filter(item => item);
+  return (addressElements || [])
+    .map((address) => {
+      if (!address) {
+        return '';
+      }
+      const addressString = [
+        address.line,
+        address.city,
+        address.state,
+        address.postalCode,
+        address.country
+      ]
+        .filter((item) => item)
+        .join(', ');
+      return address.use
+        ? `${
+            valueSetMapByPath['Patient.address.use'][address.use]
+          }: ${addressString}`
+        : addressString;
+    })
+    .filter((item) => item);
 }
 
 /**
@@ -108,7 +121,9 @@ export function addressToStringArray(valueSetMapByPath, addressElements) {
 export function getPatientAge(res) {
   const birthDateStr = res.birthDate;
   if (birthDateStr) {
-    return Math.floor(moment.duration(moment().diff(new Date(birthDateStr))).asYears());
+    return Math.floor(
+      moment.duration(moment().diff(new Date(birthDateStr))).asYears()
+    );
   }
 }
 
@@ -121,10 +136,10 @@ export function getPatientAge(res) {
  */
 export function getPatientContactsByType(valueSetMapByPath, res, system) {
   return (res.telecom || [])
-    .filter(item => item.system === system)
-    .map(item => {
+    .filter((item) => item.system === system)
+    .map((item) => {
       const use = valueSetMapByPath['Patient.telecom.use'][item.use];
-      return `${use ? use + ': ' : ''} ${item.value}`
+      return `${use ? use + ': ' : ''} ${item.value}`;
     });
 }
 
@@ -141,9 +156,11 @@ export function updateUrlWithParam(url, name, value) {
     return url;
   }
   const urlWithoutParams = RegExp.$1;
-  const params = (RegExp.$3 || '').split('&')
-    .filter(item => item && item.split('=')[0] !== name)
-    .concat(`${name}=${encodeURIComponent(value)}`).join('&');
+  const params = (RegExp.$3 || '')
+    .split('&')
+    .filter((item) => item && item.split('=')[0] !== name)
+    .concat(`${name}=${encodeURIComponent(value)}`)
+    .join('&');
 
   return params ? urlWithoutParams + '?' + params : urlWithoutParams;
 }
@@ -161,17 +178,19 @@ export function updateUrlWithParam(url, name, value) {
  */
 export function toggleCssClass(selector, cssClass, state) {
   let resultState;
-  const elements = selector instanceof HTMLElement
-    ? [selector]
-    : slice(
-      selector instanceof NodeList || selector instanceof Array
-      ? selector
-      : document.querySelectorAll(selector));
+  const elements =
+    selector instanceof HTMLElement
+      ? [selector]
+      : slice(
+          selector instanceof NodeList || selector instanceof Array
+            ? selector
+            : document.querySelectorAll(selector)
+        );
   const hiddenRegExp = new RegExp(`(\\s+|^)${cssClass}\\b`);
 
-  elements.forEach(element => {
+  elements.forEach((element) => {
     const className = element.className;
-    const currentState = hiddenRegExp.test(className)
+    const currentState = hiddenRegExp.test(className);
     if (currentState === state) {
       resultState = currentState;
       // nothing to change

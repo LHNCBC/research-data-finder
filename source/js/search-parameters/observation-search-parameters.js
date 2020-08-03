@@ -1,8 +1,6 @@
 // See https://www.hl7.org/fhir/observation.html#search for description of Observation search parameters
 
-import {
-  defaultParameters
-} from "./common-descriptions";
+import { defaultParameters } from './common-descriptions';
 
 export const OBSERVATION = 'Observation';
 

@@ -3,7 +3,7 @@
  * This loader fills result object with data from "search-parameters.json" from https://www.hl7.org/fhir/downloads.html
  * Also uses "profiles-types.json", "profiles-resources.json", "valuesets.json" and "v3-codesystems.json" from the same directory.
  */
-const { getOptions }  = require('loader-utils');
+const { getOptions } = require('loader-utils');
 const fs = require('fs');
 
 /**
@@ -13,12 +13,12 @@ const fs = require('fs');
  * @return {string}
  */
 function getDescription(resourceType, description) {
-  const descriptions = description.split('\r\n')
+  const descriptions = description.split('\r\n');
   const reDescription = new RegExp(`\\[${resourceType}][^:]*:\\s*(.*)`);
   let result = descriptions[0];
   if (descriptions.length > 1) {
     for (let i = 0; i < descriptions.length; ++i) {
-      if(reDescription.test(descriptions[i])) {
+      if (reDescription.test(descriptions[i])) {
         result = RegExp.$1;
         break;
       }
@@ -34,13 +34,27 @@ function getDescription(resourceType, description) {
  * @param {Array<string>} additionalExpressions - list of additional expressions to extract value sets
  * @return {{}}
  */
-function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpressions) {
+function getSearchParametersConfig(
+  directoryPath,
+  resourceTypes,
+  additionalExpressions
+) {
   const profiles = {
-    parameters: JSON.parse(fs.readFileSync(directoryPath + '/search-parameters.json').toString()),
-    resources: JSON.parse(fs.readFileSync(directoryPath + '/profiles-resources.json').toString()),
-    types:  JSON.parse(fs.readFileSync(directoryPath + '/profiles-types.json').toString()),
-    valueSets:  JSON.parse(fs.readFileSync(directoryPath + '/valuesets.json').toString()),
-    v3CodeSystems:  JSON.parse(fs.readFileSync(directoryPath + '/v3-codesystems.json').toString())
+    parameters: JSON.parse(
+      fs.readFileSync(directoryPath + '/search-parameters.json').toString()
+    ),
+    resources: JSON.parse(
+      fs.readFileSync(directoryPath + '/profiles-resources.json').toString()
+    ),
+    types: JSON.parse(
+      fs.readFileSync(directoryPath + '/profiles-types.json').toString()
+    ),
+    valueSets: JSON.parse(
+      fs.readFileSync(directoryPath + '/valuesets.json').toString()
+    ),
+    v3CodeSystems: JSON.parse(
+      fs.readFileSync(directoryPath + '/v3-codesystems.json').toString()
+    )
   };
 
   /**
@@ -60,12 +74,12 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
   function getTypeByExpression(expression) {
     // only one expression at this moment has substring ".exists()"
     if (expression.indexOf('.exists()') !== -1) {
-      return {type: 'boolean'};
+      return { type: 'boolean' };
     }
 
     // we can't parse expressions with "where" now; therefore, we will treat them as having a string type
     if (expression.indexOf('.where(') !== -1) {
-      return {type: 'string'};
+      return { type: 'string' };
     }
 
     const path = expression.split(' ')[0];
@@ -84,20 +98,31 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
         type: resourceType
       };
     }
-    const entry = profiles.resources.entry.find(i => i.resource.id === resourceType)
-      || profiles.types.entry.find(i => i.resource.id === resourceType);
+    const entry =
+      profiles.resources.entry.find((i) => i.resource.id === resourceType) ||
+      profiles.types.entry.find((i) => i.resource.id === resourceType);
     const resource = entry.resource;
     const expression = resourceType + '.' + path[0];
-    const desc = resource.snapshot.element.filter(i => i.id === expression)[0] || resource.snapshot.element.filter(i => i.id.indexOf(expression) === 0)[0];
+    const desc =
+      resource.snapshot.element.filter((i) => i.id === expression)[0] ||
+      resource.snapshot.element.filter(
+        (i) => i.id.indexOf(expression) === 0
+      )[0];
     const type = desc.type[0].code;
     if (path.length === 1) {
       return {
         type,
         typeDescription: desc.type,
-        ...(desc.binding && desc.binding.valueSet ? {valueSet: desc.binding.valueSet} : {})
+        ...(desc.binding && desc.binding.valueSet
+          ? { valueSet: desc.binding.valueSet }
+          : {})
       };
     } else if (type === 'BackboneElement') {
-      return getTypeByPath([resourceType, path[0]+'.'+path[1], ...path.slice(2)]);
+      return getTypeByPath([
+        resourceType,
+        path[0] + '.' + path[1],
+        ...path.slice(2)
+      ]);
     } else {
       return getTypeByPath([desc.type[0].code, ...path.slice(1)]);
     }
@@ -121,7 +146,7 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
         acc.push({
           code: i.code,
           system,
-          display: i.display || i.code,
+          display: i.display || i.code
         });
       }
 
@@ -173,10 +198,16 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
       );
     }
     const url = (options.url || options.system).split('|')[0];
-    const entry = (profiles.valueSets.entry.find(i => i.fullUrl === url || i.resource.url === url) || profiles.v3CodeSystems.entry.find(i => i.fullUrl === url || i.resource.url === url));
+    const entry =
+      profiles.valueSets.entry.find(
+        (i) => i.fullUrl === url || i.resource.url === url
+      ) ||
+      profiles.v3CodeSystems.entry.find(
+        (i) => i.fullUrl === url || i.resource.url === url
+      );
     if (!entry) {
       if (options.concept) {
-        return options.concept.map(i => ({
+        return options.concept.map((i) => ({
           code: i.code,
           system: url,
           display: i.display || i.code
@@ -191,11 +222,15 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
 
     if (resource && resource.concept) {
       // if resource is CodeSystem:
-      const includeCodes = options.concept && options.concept.reduce((acc, c) => {
+      const includeCodes =
+        options.concept &&
+        options.concept.reduce((acc, c) => {
           acc[c.code] = true;
           return acc;
         }, {});
-      const filterCodes = options.filter && options.filter.reduce((acc, f) => {
+      const filterCodes =
+        options.filter &&
+        options.filter.reduce((acc, f) => {
           if (f.property !== 'concept' || f.op !== 'is-a' || !f.value) {
             // TODO: support full include specification? (see http://hl7.org/fhir/valueset.html)
             console.error('Unsupported filter value:', options);
@@ -204,44 +239,56 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
           }
           return acc;
         }, {});
-      result = result.concat(getValueSetItems(url, resource.concept, includeCodes || filterCodes, !!filterCodes));
+      result = result.concat(
+        getValueSetItems(
+          url,
+          resource.concept,
+          includeCodes || filterCodes,
+          !!filterCodes
+        )
+      );
     }
 
     const compose = resource && resource.compose;
     const include = compose && compose.include;
     if (include) {
       // if resource is a ValueSet and has included ValueSets or CodeSystems:
-      result = result.concat(...include.map(i => {
-        const items = getValueSet(i);
-        if (!items) {
-          console.log('Can\'t find:', i);
-        } else if (!(items instanceof Array)) {
-          console.log('No values for:', items);
-        }
+      result = result.concat(
+        ...include
+          .map((i) => {
+            const items = getValueSet(i);
+            if (!items) {
+              console.log("Can't find:", i);
+            } else if (!(items instanceof Array)) {
+              console.log('No values for:', items);
+            }
 
-        const excludes =
-          (compose.exclude &&
-            compose.exclude.filter((e) => e.system === i.system)) ||
-          [];
-        const excludeCodes = excludes.reduce((acc, exclude) => {
-          if (!exclude.concept) {
-            // TODO: support full exclude specification? (see http://hl7.org/fhir/valueset.html)
-            console.error("Unsupported exclude value:", options);
-          } else {
-            exclude.concept.forEach(e => acc[e.code] = true);
-          }
-          return acc;
-        }, {});
+            const excludes =
+              (compose.exclude &&
+                compose.exclude.filter((e) => e.system === i.system)) ||
+              [];
+            const excludeCodes = excludes.reduce((acc, exclude) => {
+              if (!exclude.concept) {
+                // TODO: support full exclude specification? (see http://hl7.org/fhir/valueset.html)
+                console.error('Unsupported exclude value:', options);
+              } else {
+                exclude.concept.forEach((e) => (acc[e.code] = true));
+              }
+              return acc;
+            }, {});
 
-        return items instanceof Array && excludeCodes ? items.filter(j => !excludeCodes[j.code]) : items;
-      }).filter(i => i instanceof Array));
+            return items instanceof Array && excludeCodes
+              ? items.filter((j) => !excludeCodes[j.code])
+              : items;
+          })
+          .filter((i) => i instanceof Array)
+      );
     }
 
-
     if (result.length) {
-      if (!result.some(item => item.system !== result[0].system)) {
+      if (!result.some((item) => item.system !== result[0].system)) {
         // If there is only one coding system, remove it as unnecessary
-        result.forEach(item => delete item.system);
+        result.forEach((item) => delete item.system);
       }
       return result;
     }
@@ -256,37 +303,40 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
     // see method getCurrentDefinitions (common-descriptions.js) for details
     valueSetByPath: {},
     valueSetMaps: {},
-    valueSetMapByPath: {},
+    valueSetMapByPath: {}
   };
 
-  resourceTypes.forEach(resourceType => {
+  resourceTypes.forEach((resourceType) => {
     result.resources[resourceType] = profiles.parameters.entry
-      .filter(item => item.resource.base.indexOf(resourceType) !== -1)
-      .map(item => {
-        new RegExp(`(${resourceType}\\.[^|]*)( as ([^\\s)]*)|)`).test(item.resource.expression);
+      .filter((item) => item.resource.base.indexOf(resourceType) !== -1)
+      .map((item) => {
+        new RegExp(`(${resourceType}\\.[^|]*)( as ([^\\s)]*)|)`).test(
+          item.resource.expression
+        );
         const param = {
           name: item.resource.name,
-          type: RegExp.$3 && RegExp.$3.trim() || item.resource.type,
+          type: (RegExp.$3 && RegExp.$3.trim()) || item.resource.type,
           expression: RegExp.$1.trim(),
-          description: item.resource.base.length > 1
-            ? getDescription(resourceType, item.resource.description)
-            : item.resource.description.trim()
+          description:
+            item.resource.base.length > 1
+              ? getDescription(resourceType, item.resource.description)
+              : item.resource.description.trim()
         };
         if (param.type === 'token') {
           Object.assign(param, getTypeByExpression(param.expression));
         }
         // Find value set for search parameter
-        if (param.valueSet && !result.valueSets[param.valueSet])  {
+        if (param.valueSet && !result.valueSets[param.valueSet]) {
           const valueSet = getValueSet({ url: param.valueSet });
           result.valueSetByPath[param.path] = param.valueSet;
-          result.valueSets[param.valueSet] = valueSet instanceof Array
-            ? valueSet.sort((a,b) => a.display.localeCompare(b.display))
-            : valueSet;
+          result.valueSets[param.valueSet] =
+            valueSet instanceof Array
+              ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
+              : valueSet;
         }
         return param;
       });
   });
-
 
   // Some times we need additional value sets that no search parameters refers to.
   // For example,
@@ -296,14 +346,15 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
   // see "source/js/search-parameters/definitions/webpack-options.json"
   //
   // Find value sets for additional expressions:
-  additionalExpressions.forEach(expression => {
+  additionalExpressions.forEach((expression) => {
     const param = getTypeByExpression(expression);
-    if (param.valueSet && !result.valueSets[param.valueSet])  {
+    if (param.valueSet && !result.valueSets[param.valueSet]) {
       const valueSet = getValueSet({ url: param.valueSet });
       result.valueSetByPath[param.path] = param.valueSet;
-      result.valueSets[param.valueSet] = valueSet instanceof Array
-        ? valueSet.sort((a,b) => a.display.localeCompare(b.display))
-        : valueSet;
+      result.valueSets[param.valueSet] =
+        valueSet instanceof Array
+          ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
+          : valueSet;
     }
   });
 
@@ -314,19 +365,18 @@ module.exports = function loader(source) {
   const index = JSON.parse(source);
   const { resourceTypes, additionalExpressions } = getOptions(this);
 
-  index.configByVersionName = Object.values(index.versionNameByVersionNumberRegex).reduce(
-    (acc, versionName) => {
-      if (!acc[versionName]) {
-        acc[versionName] = getSearchParametersConfig(
-          this.context + "/" + versionName,
-          resourceTypes,
-          additionalExpressions
-        );
-      }
-      return acc;
-    },
-    {}
-  );
+  index.configByVersionName = Object.values(
+    index.versionNameByVersionNumberRegex
+  ).reduce((acc, versionName) => {
+    if (!acc[versionName]) {
+      acc[versionName] = getSearchParametersConfig(
+        this.context + '/' + versionName,
+        resourceTypes,
+        additionalExpressions
+      );
+    }
+    return acc;
+  }, {});
 
   return JSON.stringify(index);
 };
