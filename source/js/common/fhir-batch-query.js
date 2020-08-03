@@ -124,7 +124,7 @@ export class FhirBatchQuery {
         url: this._serviceBaseUrl,
         body,
         logPrefix: 'Batch'
-      }).then(({status, data}) => {
+      }).then(({data}) => {
         current.forEach(({resolve, reject}, index) => {
           // See Batch/Transaction response description here:
           // https://www.hl7.org/fhir/http.html#transaction-response

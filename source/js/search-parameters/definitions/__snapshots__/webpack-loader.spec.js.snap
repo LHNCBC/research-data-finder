@@ -3242,13 +3242,13 @@ Object {
     },
     Object {
       "description": "Code and coded value parameter pair, including in components",
-      "expression": "Observation",
+      "expression": "Observation.component",
       "name": "combo-code-value-concept",
       "type": "composite",
     },
     Object {
       "description": "Code and quantity value parameter pair, including in components",
-      "expression": "Observation",
+      "expression": "Observation.component",
       "name": "combo-code-value-quantity",
       "type": "composite",
     },

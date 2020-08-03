@@ -263,7 +263,7 @@ function getSearchParametersConfig(directoryPath, resourceTypes, additionalExpre
     result.resources[resourceType] = profiles.parameters.entry
       .filter(item => item.resource.base.indexOf(resourceType) !== -1)
       .map(item => {
-        new RegExp(`(${resourceType}\.[^|]*)( as ([^\\s)]*)|)`).test(item.resource.expression);
+        new RegExp(`(${resourceType}\\.[^|]*)( as ([^\\s)]*)|)`).test(item.resource.expression);
         const param = {
           name: item.resource.name,
           type: RegExp.$3 && RegExp.$3.trim() || item.resource.type,

@@ -303,7 +303,7 @@ export function loadObs() {
       fhirClient.getWithCache(
         `Observation?subject=Patient/${patient.id}` +
         `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` + urlSuffix)
-        .then(({status, data}) => {
+        .then(({data}) => {
           if (!hasError) {
             showObservationsProgress('Loading observations', Math.floor(++completedRequestCount * 100 / totalRequestCount));
             allObservations[index] = (data.entry || []).map(item => item.resource);
