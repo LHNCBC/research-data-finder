@@ -337,7 +337,10 @@ function getSearchParametersConfig(
               : item.resource.description.trim()
         };
         if (param.type === 'token') {
-          Object.assign(param, getTypeByExpression(resultConfig, param.expression));
+          Object.assign(
+            param,
+            getTypeByExpression(resultConfig, param.expression)
+          );
         }
         return param;
       });

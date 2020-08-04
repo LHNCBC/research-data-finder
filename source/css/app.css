@@ -197,7 +197,7 @@ div.section__body {
   flex-direction: column;
 }
 
-div.section__body > div:not(.search-parameter-list) {
+div.section__body > div:not(.search-parameter-list):not(.hide) {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -246,17 +246,34 @@ table.section__body {
 /* End of styles for the collapsible section */
 
 /* Styles used for the display that search parameters are combined with logical AND. */
-div.section__body > div.search-parameter {
+.search-parameter-list > div.section__body {
+  margin: 0 0 7px;
+}
+
+.search-parameter-list div.search-parameter {
+  padding-left: 0;
+}
+
+.search-parameter-list_combined > div.section__body {
+  margin: 9px 0 7px;
+}
+
+.search-parameter-list_combined div.search-parameter {
   padding-left: 2px;
   margin-left: 29px;
   position: relative;
 }
 
+.search-parameter-list__combiner,
 .search-parameter-list_empty {
   display: none;
 }
 
-.search-parameter-list > label {
+.search-parameter-list_combined > .search-parameter-list__combiner {
+  display: block;
+}
+
+.search-parameter-list_combined > .search-parameter-list__combiner > label {
   font-family: inherit;
   font-size: inherit;
   line-height: normal;
@@ -266,25 +283,25 @@ div.section__body > div.search-parameter {
   padding: 0.25em;
 }
 
-div.section__body > .search-parameter:last-child::before {
+.search-parameter-list_combined .search-parameter:last-child::before {
   border-radius: 0 0 0 4px;
 }
 
-div.section__body > .search-parameter:first-child::before {
+.search-parameter-list_combined .search-parameter:first-child::before {
   top: -6px;
   height: calc(50% + 8px);
 }
-div.section__body > .search-parameter::before {
+.search-parameter-list_combined .search-parameter::before {
   top: -1px;
   border-width: 0 0 2px 2px;
 }
-div.section__body > .search-parameter::after {
+.search-parameter-list_combined .search-parameter::after {
   top: 50%;
   border-width: 0 0 0 2px;
 }
 
-div.section__body > .search-parameter::after,
-div.section__body > .search-parameter::before {
+.search-parameter-list_combined .search-parameter::after,
+.search-parameter-list_combined .search-parameter::before {
   content: "";
   position: absolute;
   left: -10px;
@@ -294,7 +311,7 @@ div.section__body > .search-parameter::before {
   border-style: solid;
 }
 
-div.section__body > .search-parameter:last-child::after {
+.search-parameter-list_combined .search-parameter:last-child::after {
   display: none;
 }
 /* End of styles used for the display that search parameters are combined with logical AND. */

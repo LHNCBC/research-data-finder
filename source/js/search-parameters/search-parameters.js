@@ -295,7 +295,7 @@ export class SearchParameters {
       'afterend',
       `\
 <div id="${this.internalId}" class="search-parameter-list search-parameter-list_empty">
-    <label>AND</label> - criteria are combined with logical AND
+    <div class="search-parameter-list__combiner"><label>AND</label> - criteria are combined with logical AND</div>
     <div class="section__body"></div>
 </div>
 <div>
@@ -396,11 +396,17 @@ export class SearchParameters {
 
   onParamsCountChanged() {
     this.updateAllSearchParamSelectors();
-    const isParamsListEmpty = Object.keys(this.selectedParams).length === 0;
+    const paramsCount = Object.keys(this.selectedParams).length;
+    const paramListElement = document.getElementById(this.internalId);
     toggleCssClass(
-      `#${this.internalId}`,
+      paramListElement,
       'search-parameter-list_empty',
-      isParamsListEmpty
+      paramsCount === 0
+    );
+    toggleCssClass(
+      paramListElement,
+      'search-parameter-list_combined',
+      paramsCount > 1
     );
   }
 
