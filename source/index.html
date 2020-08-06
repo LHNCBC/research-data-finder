@@ -80,15 +80,19 @@
         <label class="section__title">Settings</label>
         <div class="section__body">
           <div>
-            <label>FHIR server:</label>
+            <label for="fhirServer">FHIR server:</label>
             <input type="text" id=fhirServer value="https://lforms-fhir.nlm.nih.gov/baseR4">
           </div>
           <label class="performance-tuning hide">Performance Tuning Settings:</label>
           <div class="performance-tuning hide">
-            <label>Requests per batch:</label>
-            <input type="number" id="maxRequestsPerBatch" value="10" min="1" placeholder="default value">
-            <label>Maximum active requests:</label>
-            <input type="number" id="maxActiveRequests" value="6" min="1" placeholder="default value">
+            <label for="maxRequestsPerBatch">Requests per batch:</label>
+            <div>
+              <input type="number" id="maxRequestsPerBatch" value="10" min="1" placeholder="default value">
+            </div>
+            <label for="maxActiveRequests">Maximum active requests:</label>
+            <div>
+              <input type="number" id="maxActiveRequests" value="6" min="1" placeholder="default value">
+            </div>
             <label>Actions:</label>
             <button onclick="app.clearCache()">Clear cache</button>
           </div>
@@ -99,7 +103,7 @@
         <label class="section__title">Patient selection criteria</label>
         <div class="section__body">
           <div id="patientSearchParamsAfterThisRow">
-            <label>Maximum number of patients:</label>
+            <label for="maxPatientCount">Maximum number of patients:</label>
             <input type="number" id="maxPatientCount" value="100">
           </div>
         </div>
@@ -134,19 +138,19 @@
 
 
             <div id="testSel">
-              <label>Selected tests:</label>
+              <label for="loincTests">Selected tests:</label>
               <input type=text id=loincTests placeholder="LOINC tests">
               <span>Note:  A given FHIR server will only have matches for some subset of these values.</span>
             </div>
 
             <div id="catSel">
-              <label>Selected Observation categories:</label>
+              <label for="categories">Selected Observation categories:</label>
               <input type=text id=categories autocomplete=off>
               <span>Note:  A given FHIR server will only have matches for some subset of these values.</span>
             </div>
 
             <div>
-              <label>Limit per patient per test:</label>
+              <label for="perPatientPerTest">Limit per patient per test:</label>
               <input type=number id=perPatientPerTest value=1>
             </div>
           </div>

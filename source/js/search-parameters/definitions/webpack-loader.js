@@ -68,10 +68,11 @@ function getSearchParametersConfig(
 
   /**
    * Finds type by expression
+   * @param {Object} resultConfig - webpack loader result object
    * @param {string} expression
    * @return {TypeDescriptionHash}
    */
-  function getTypeByExpression(expression) {
+  function getTypeByExpression(resultConfig, expression) {
     // only one expression at this moment has substring ".exists()"
     if (expression.indexOf('.exists()') !== -1) {
       return { type: 'boolean' };
@@ -83,7 +84,20 @@ function getSearchParametersConfig(
     }
 
     const path = expression.split(' ')[0];
-    return { path, ...getTypeByPath(path.split('.')) };
+    const typeDesc = { path, ...getTypeByPath(path.split('.')) };
+
+    // Find value set for expression
+    if (typeDesc.valueSet) {
+      if (!resultConfig.valueSets[typeDesc.valueSet]) {
+        const valueSet = getValueSet({ url: typeDesc.valueSet });
+        resultConfig.valueSets[typeDesc.valueSet] =
+          valueSet instanceof Array
+            ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
+            : valueSet;
+      }
+      resultConfig.valueSetByPath[typeDesc.path] = typeDesc.valueSet;
+    }
+    return typeDesc;
   }
 
   /**
@@ -296,7 +310,7 @@ function getSearchParametersConfig(
     return url;
   }
 
-  let result = {
+  let resultConfig = {
     resources: {},
     valueSets: {},
     // to avoid duplication of objects in memory, the properties below are filled at runtime,
@@ -307,7 +321,7 @@ function getSearchParametersConfig(
   };
 
   resourceTypes.forEach((resourceType) => {
-    result.resources[resourceType] = profiles.parameters.entry
+    resultConfig.resources[resourceType] = profiles.parameters.entry
       .filter((item) => item.resource.base.indexOf(resourceType) !== -1)
       .map((item) => {
         new RegExp(`(${resourceType}\\.[^|]*)( as ([^\\s)]*)|)`).test(
@@ -323,16 +337,10 @@ function getSearchParametersConfig(
               : item.resource.description.trim()
         };
         if (param.type === 'token') {
-          Object.assign(param, getTypeByExpression(param.expression));
-        }
-        // Find value set for search parameter
-        if (param.valueSet && !result.valueSets[param.valueSet]) {
-          const valueSet = getValueSet({ url: param.valueSet });
-          result.valueSetByPath[param.path] = param.valueSet;
-          result.valueSets[param.valueSet] =
-            valueSet instanceof Array
-              ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
-              : valueSet;
+          Object.assign(
+            param,
+            getTypeByExpression(resultConfig, param.expression)
+          );
         }
         return param;
       });
@@ -347,18 +355,10 @@ function getSearchParametersConfig(
   //
   // Find value sets for additional expressions:
   additionalExpressions.forEach((expression) => {
-    const param = getTypeByExpression(expression);
-    if (param.valueSet && !result.valueSets[param.valueSet]) {
-      const valueSet = getValueSet({ url: param.valueSet });
-      result.valueSetByPath[param.path] = param.valueSet;
-      result.valueSets[param.valueSet] =
-        valueSet instanceof Array
-          ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
-          : valueSet;
-    }
+    getTypeByExpression(resultConfig, expression);
   });
 
-  return result;
+  return resultConfig;
 }
 
 module.exports = function loader(source) {
