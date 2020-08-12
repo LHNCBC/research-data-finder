@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.11.1] - 2020-08-12
+### Fixed
+- Duplication of the search criteria component when changing the server
+- Batch tuning applies only after server change
+
 ## [1.11.0] - 2020-08-03
 ### Added
 - Display that criteria are combined with logical AND

@@ -107,10 +107,10 @@ export class SearchParameters {
   dispose() {
     const addBtn = document.getElementById(this.buttonId);
     if (addBtn) {
-      addBtn.parentElement.removeChild(addBtn);
-      Object.keys(this.selectedParams, (searchItemId) =>
+      Object.keys(this.selectedParams).forEach((searchItemId) =>
         this.removeParam(searchItemId)
       );
+      addBtn.parentElement.removeChild(addBtn);
     }
   }
 
