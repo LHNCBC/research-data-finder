@@ -54,8 +54,6 @@ document.getElementById('fhirServer').addEventListener('change', function () {
   showMessageIfNoPatientList('');
   reportPatientsSpan.innerHTML = '';
   fhirClient.clearPendingRequests();
-
-  fhirClient = getFhirClient();
 });
 
 var loincAC = new Def.Autocompleter.Search(
@@ -247,6 +245,7 @@ function createPatientSearchParameters(serviceBaseUrl) {
  * Handles the request to load the Patient list
  */
 export function loadPatients() {
+  fhirClient = getFhirClient();
   reportPatientsSpan.innerHTML = '';
   loadPatientsButton.disabled = true;
   loadObservationsButton.disabled = true;
@@ -291,6 +290,7 @@ export function loadPatients() {
  *  Handles the request to load the Observation list
  */
 export function loadObs() {
+  fhirClient = getFhirClient();
   reportObservationsSpan.innerHTML = '';
   loadPatientsButton.disabled = true;
   loadObservationsButton.disabled = true;
