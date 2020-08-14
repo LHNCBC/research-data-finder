@@ -254,6 +254,12 @@ export function loadPatients() {
 
   patientTable.setAdditionalColumns(patientSearchParams.getColumns());
 
+  const onFinally = () => {
+    patientsReporter.finalize();
+    loadPatientsButton.disabled = false;
+    loadObservationsButton.disabled = false;
+  };
+
   getPatients()
     .then(
       (data) => {
@@ -270,6 +276,7 @@ export function loadPatients() {
         } else {
           showMessageIfNoPatientList('No matching Patients found.');
         }
+        onFinally();
       },
       ({ status, error }) => {
         if (status !== HTTP_ABORT) {
@@ -277,13 +284,9 @@ export function loadPatients() {
           showMessageIfNoPatientList(`Could not load Patient list`);
           console.log(`FHIR search failed: ${error}`);
         }
+        onFinally();
       }
-    )
-    .finally(() => {
-      patientsReporter.finalize();
-      loadPatientsButton.disabled = false;
-      loadObservationsButton.disabled = false;
-    });
+    );
 }
 
 /**

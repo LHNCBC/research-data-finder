@@ -6,6 +6,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [1.11.2] - 2020-08-14
 ### Fixed
 - Issue with parse batch response
+- Issue with partial support of Promise in some Edge versions
 
 ## [1.11.1] - 2020-08-12
 ### Fixed
