@@ -147,8 +147,7 @@ export class FhirBatchQuery {
             // See Batch/Transaction response description here:
             // https://www.hl7.org/fhir/http.html#transaction-response
             const entry = data.entry[index];
-            const status =
-              /^(\d+)\s/.test(entry.response.status) && parseInt(RegExp.$1);
+            const status = parseInt(entry.response.status);
             if (this.isOK(status)) {
               resolve({ status, data: entry.resource || {} });
             } else {
