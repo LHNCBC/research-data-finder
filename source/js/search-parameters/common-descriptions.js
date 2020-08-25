@@ -1,5 +1,8 @@
 import { FhirBatchQuery } from '../common/fhir-batch-query';
-import { getAutocompleterById } from '../common/utils';
+import {
+  encodeFhirSearchParameter,
+  getAutocompleterById
+} from '../common/utils';
 import definitionsIndex from './definitions/index.json';
 
 // Common FhirBatchQuery to execute queries from search parameter controls
@@ -149,10 +152,10 @@ function stringParameterDescription({ placeholder, column, name }) {
   return {
     column,
     getControlsHtml: (searchItemId) =>
-      `<input type="text" style="width:100%" id="${searchItemId}-${name}" placeholder="${placeholder}" title="${placeholder}">`,
+      `<input type="text" id="${searchItemId}-${name}" placeholder="${placeholder}" title="${placeholder}">`,
     getCondition: (searchItemId) => {
       const value = document.getElementById(`${searchItemId}-${name}`).value;
-      return value.trim() ? `&${name}=${encodeURIComponent(value)}` : '';
+      return value.trim() ? `&${name}=${encodeFhirSearchParameter(value)}` : '';
     }
   };
 }
@@ -170,8 +173,8 @@ function dateParameterDescription({ name, column, description }) {
     getControlsHtml: (searchItemId) => {
       const title = (description && description.replace(/"/g, '&quot;')) || '';
       return `\
-from <input type="date" id="${searchItemId}-${name}-from" placeholder="no limit" title="${title}">
-to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit" title="${title}"></td>`;
+<span>from</span><input type="date" id="${searchItemId}-${name}-from" placeholder="no limit" title="${title}">
+<span>to</span><input type="date" id="${searchItemId}-${name}-to" placeholder="no limit" title="${title}">`;
     },
     getCondition: (searchItemId) => {
       const from = document.getElementById(`${searchItemId}-${name}-from`)
@@ -179,8 +182,8 @@ to <input type="date" id="${searchItemId}-${name}-to" placeholder="no limit" tit
       const to = document.getElementById(`${searchItemId}-${name}-to`).value;
 
       return (
-        (from ? `&${name}=ge${encodeURIComponent(from)}` : '') +
-        (to ? `&${name}=le${encodeURIComponent(to)}` : '')
+        (from ? `&${name}=ge${encodeFhirSearchParameter(from)}` : '') +
+        (to ? `&${name}=le${encodeFhirSearchParameter(to)}` : '')
       );
     }
   };
@@ -221,7 +224,7 @@ function valuesetParameterDescription({ placeholder, name, column, list }) {
     getCondition: (searchItemId) => {
       const codes = getAutocompleterById(`${searchItemId}-${name}`)
         .getSelectedCodes()
-        .map((code) => encodeURIComponent(code))
+        .map((code) => encodeFhirSearchParameter(code))
         .join(',');
       return codes ? `&${name}=${codes}` : '';
     }
@@ -422,7 +425,7 @@ export function referenceParameters(descriptions, searchNameToColumn) {
         getCondition: (searchItemId) => {
           const codes = getAutocompleterById(`${searchItemId}-${name}`)
             .getSelectedCodes()
-            .map((code) => encodeURIComponent(code))
+            .map((code) => encodeFhirSearchParameter(code))
             .join(',');
           return codes ? `&${name}=${codes}` : '';
         }

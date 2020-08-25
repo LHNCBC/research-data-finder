@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.12.0] - 2020-08-24
+### Changed
+- Revised Observation criteria for Patient selection
+
 ## [1.11.2] - 2020-08-14
 ### Fixed
 - Issue with parse batch response

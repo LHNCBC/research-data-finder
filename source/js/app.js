@@ -260,33 +260,33 @@ export function loadPatients() {
     loadObservationsButton.disabled = false;
   };
 
-  getPatients()
-    .then(
-      (data) => {
-        patientResources = data;
-        reportPatientsSpan.innerHTML = `(<a href="#" onclick="app.showPatientsReport();return false;">loaded data in ${(
-          (new Date() - startDate) /
-          1000
-        ).toFixed(1)} s</a>)`;
-        removeCssClass('#reportPatients', 'hide');
+  getPatients().then(
+    (data) => {
+      patientResources = data;
+      reportPatientsSpan.innerHTML = `
+(<a href="#" onclick="app.showPatientsReport();return false;">loaded data in ${(
+        (new Date() - startDate) /
+        1000
+      ).toFixed(1)} s</a>)`;
+      removeCssClass('#reportPatients', 'hide');
 
-        if (patientResources.length) {
-          patientTable.fill(patientResources, fhirClient.getServiceBaseUrl());
-          showListOfPatients(patientResources.length);
-        } else {
-          showMessageIfNoPatientList('No matching Patients found.');
-        }
-        onFinally();
-      },
-      ({ status, error }) => {
-        if (status !== HTTP_ABORT) {
-          // Show message if request is not aborted
-          showMessageIfNoPatientList(`Could not load Patient list`);
-          console.log(`FHIR search failed: ${error}`);
-        }
-        onFinally();
+      if (patientResources.length) {
+        patientTable.fill(patientResources, fhirClient.getServiceBaseUrl());
+        showListOfPatients(patientResources.length);
+      } else {
+        showMessageIfNoPatientList('No matching Patients found.');
       }
-    );
+      onFinally();
+    },
+    ({ status, error }) => {
+      if (status !== HTTP_ABORT) {
+        // Show message if request is not aborted
+        showMessageIfNoPatientList(`Could not load Patient list`);
+        console.log(`FHIR search failed: ${error}`);
+      }
+      onFinally();
+    }
+  );
 }
 
 /**
@@ -361,7 +361,8 @@ export function loadObs() {
               observationsLoaded.incrementCount(allObservations[index].length);
               if (completedRequestCount === totalRequestCount) {
                 observationsReporter.finalize();
-                reportObservationsSpan.innerHTML = `(<a href="#" onclick="app.showObservationsReport();return false;">loaded data in ${(
+                reportObservationsSpan.innerHTML = `
+(<a href="#" onclick="app.showObservationsReport();return false;">loaded data in ${(
                   (new Date() - startDate) /
                   1000
                 ).toFixed(1)} s</a>)`;
