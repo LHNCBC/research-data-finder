@@ -235,7 +235,7 @@ export function escapeFhirSearchParameter(str) {
 }
 
 /**
- * Escapes a FHIR search parameter string then encode it with encodeUriComponent
+ * Escapes a FHIR search parameter string then encode it with encodeURIComponent
  * (see https://www.hl7.org/fhir/search.html#escaping)
  * @param {string} str
  * @return {string}
