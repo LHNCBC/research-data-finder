@@ -333,7 +333,6 @@ function getAnswers(AnswerLists) {
   const existAnswerId = {};
   const existAnswerText = {};
 
-
   return []
     .concat(
       ...AnswerLists.map((i) =>
