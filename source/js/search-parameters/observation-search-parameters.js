@@ -184,14 +184,14 @@ function createTestValueControls(searchItemId, datatype, units, AnswerLists) {
   <span>to</span><input type="date" id="${searchItemId}-to" placeholder="no limit">
 </div>`;
 
+    const answers = getAnswers(AnswerLists);
+
     new Def.Autocompleter.Prefetch(
       `${searchItemId}-test-answers`,
-      [].concat(...AnswerLists.map((i) => i.answers)).map((i) => i.DisplayText),
+      answers.map((i) => i.__fullDisplayText || i.DisplayText),
       {
         maxSelect: '*',
-        codes: []
-          .concat(...AnswerLists.map((i) => i.answers))
-          .map((i) => i.AnswerStringID)
+        codes: answers.map((i) => i.AnswerStringID)
       }
     );
   } else if (datatype === 'REAL') {
@@ -309,4 +309,56 @@ function removeTestValueControls(searchItemId) {
     `${searchItemId}-test-value`
   ).innerHTML = noControlsMessage;
   delete testSpecByRowId[searchItemId];
+}
+
+/**
+ * Adds additional property __fullDisplayText to item of AnswerList if passed
+ * @param {Object|null} answer - item of AnswerList
+ */
+function addFullDisplayTextToAnswer(answer) {
+  if (answer) {
+    answer.__fullDisplayText = `[${answer.AnswerStringID}] ${answer.DisplayText}`;
+  }
+}
+
+/**
+ * Returns answer list combined from an array of AnswerLists without duplicate answers
+ * (whose text and ID might match another answer) and with additional property
+ * __fullDisplayText for ambiguous answers (whose text or ID might match another answer)
+ * @param {Array} AnswerLists
+ * @return {Array}
+ */
+function getAnswers(AnswerLists) {
+  const existSameAnswer = {};
+  const existAnswerId = {};
+  const existAnswerText = {};
+
+
+  return []
+    .concat(
+      ...AnswerLists.map((i) =>
+        i.answers.sort((x, y) => x.SequenceNo - y.SequenceNo)
+      )
+    )
+    .filter((answer) => {
+      const hash = answer.AnswerStringID + '~-~' + answer.DisplayText;
+      if (existSameAnswer[hash]) {
+        // Skip completely identical answers
+        return false;
+      }
+
+      if (
+        existAnswerId[answer.AnswerStringID] ||
+        existAnswerText[answer.DisplayText]
+      ) {
+        // Add property to ambiguous answers
+        addFullDisplayTextToAnswer(answer);
+        addFullDisplayTextToAnswer(existAnswerId[answer.AnswerStringID]);
+        addFullDisplayTextToAnswer(existAnswerText[answer.DisplayText]);
+      }
+      existSameAnswer[hash] = true;
+      existAnswerId[answer.AnswerStringID] = answer;
+      existAnswerText[answer.DisplayText] = answer;
+      return true;
+    });
 }
