@@ -10,7 +10,7 @@ import {
 export const OBSERVATION = 'Observation';
 
 const testSearchUrl =
-  'https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?type=question';
+  'https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?df=LOINC_NUM,text&type=question';
 
 const noControlsMessage = 'select a test to display controls';
 const testSpecByRowId = {};
@@ -317,7 +317,7 @@ function removeTestValueControls(searchItemId) {
  */
 function addFullDisplayTextToAnswer(answer) {
   if (answer) {
-    answer.__fullDisplayText = `[${answer.AnswerStringID}] ${answer.DisplayText}`;
+    answer.__fullDisplayText = `${answer.AnswerStringID} - ${answer.DisplayText}`;
   }
 }
 
