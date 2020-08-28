@@ -102,6 +102,7 @@ describe('Research Data Finder', function() {
       resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a') + 'Observation');
       resourceInput.sendKeys(Key.ENTER);
       testNameInput.sendKeys('body height measured');
+      testNameInput.sendKeys(Key.ARROW_DOWN);
       testNameInput.sendKeys(Key.ENTER);
       testRealValueInput.sendKeys('63');
       loadPatientsBtn.click();

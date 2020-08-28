@@ -485,7 +485,7 @@ export class SearchParameters {
         } else {
           allCriteria.push({
             resourceType: resourceType,
-            criteria: criteria.length ? `${criteria.join('')}` : ''
+            criteria: criteria.length ? criteria.join('') : ''
           });
         }
         return allCriteria;

@@ -2,7 +2,7 @@ import {
   toggleCssClass,
   addCssClass,
   removeCssClass,
-  quoteStringForRegExp,
+  escapeStringForRegExp,
   escapeFhirSearchParameter,
   encodeFhirSearchParameter
 } from './utils';
@@ -127,13 +127,13 @@ describe('utils.encodeFhirSearchParameter returns expected value for certain inp
   });
 });
 
-describe('utils.quoteStringForRegExp returns expected value for certain input', function () {
+describe('utils.escapeStringForRegExp returns expected value for certain input', function () {
   [
     ['ug/mL', 'ug\\/mL'],
     ['a{b}([c]d)$e|#?f+*^', 'a\\{b\\}\\(\\[c\\]d\\)\\$e\\|\\#\\?f\\+\\*\\^']
   ].forEach(([input, output]) => {
     it(`${input}  -->  ${output}`, function () {
-      expect(quoteStringForRegExp(input)).toBe(output);
+      expect(escapeStringForRegExp(input)).toBe(output);
     });
   });
 });

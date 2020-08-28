@@ -4,7 +4,7 @@ import {
   escapeFhirSearchParameter,
   encodeFhirSearchParameter,
   getAutocompleterById,
-  quoteStringForRegExp
+  escapeStringForRegExp
 } from '../common/utils';
 
 export const OBSERVATION = 'Observation';
@@ -57,7 +57,7 @@ export const ObservationSearchParameters = () => ({
               testAC.setURL(
                 `${testSearchUrl}&q=datatype:REAL%20AND%20units.unit:${encodeURIComponent(
                   '/' +
-                    units.map((i) => quoteStringForRegExp(i.unit)).join('|') +
+                    units.map((i) => escapeStringForRegExp(i.unit)).join('|') +
                     '/'
                 )}`
               );

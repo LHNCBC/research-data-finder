@@ -249,6 +249,6 @@ export function encodeFhirSearchParameter(str) {
  * @param {string} str
  * @return {string}
  */
-export function quoteStringForRegExp(str) {
+export function escapeStringForRegExp(str) {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
 }
