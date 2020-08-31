@@ -68,7 +68,18 @@ th label {
   padding: 0 0.25em;
 }
 
-input#fhirServer,
+.autocomp_selected li {
+  line-height: 1.42857;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  overflow-x: hidden;
+  margin-bottom: 0;
+}
+
+input#fhirServer {
+  flex: 1 1;
+}
+
 input.ansList {
   width: 100%;
 }
@@ -152,8 +163,10 @@ input {
 }
 
 .section__header {
+  z-index: 1;
   cursor: pointer;
   position: sticky;
+  width: fit-content;
   margin-top: -20px;
   top: 0;
   height: 20px;
@@ -161,9 +174,6 @@ input {
 
 .section__title {
   cursor: pointer;
-  position: sticky;
-  /*width: fit-content;*/
-  /*display: block;*/
   top: 0;
   background-color: #fff;
   padding: 3px 5px;
@@ -182,10 +192,6 @@ input {
   content: url(../images/triangle-right.svg);
 }
 
-.section__header {
-  width: 100%;
-}
-
 .section__toolbar {
   display: flex;
   flex-direction: row;
@@ -200,7 +206,7 @@ div.section__body {
 div.section__body > div:not(.search-parameter-list):not(.hide) {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
 }
 
 div.section__body > div:not(.search-parameter-list) > label {
@@ -208,7 +214,7 @@ div.section__body > div:not(.search-parameter-list) > label {
 }
 
 div.section__body > div:not(.search-parameter-list) > *:not(:first-child) {
-  margin-left: 15px;
+  margin-left: 1em;
 }
 
 div.section__body > div {
@@ -221,7 +227,8 @@ div.section__body > label {
   text-decoration: underline;
 }
 
-div.section__body > div > input {
+div.section__body > .search-parameter > .search-parameter__name {
+  flex: 1 1;
   max-width: 30em;
 }
 
@@ -230,7 +237,70 @@ div.section__body > .search-parameter > :first-child {
 }
 
 div.section__body > .search-parameter > :nth-child(3) {
-  width: 30em;
+  flex: 1 1;
+  max-width: 30em;
+}
+
+div.section__body > .search-parameter_custom > :nth-child(2) {
+  display: none;
+}
+
+div.section__body > .search-parameter_custom > .search-parameter__content {
+  width: 61em;
+  max-width: 61em;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+div.section__body > .search-parameter_custom > .search-parameter__content > :not(:first-child) {
+  margin-left: 1em;
+}
+
+div.section__body > .search-parameter_custom > .search-parameter__content > * {
+  flex: 1 1;
+  max-width: 30em;
+}
+
+.search-parameter__content > input[type="text"] {
+  width: 100%;
+}
+
+.search-parameter__test-value {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-parameter__test-value > :not(:first-child) {
+  margin-top: 0.5em;
+}
+
+.test-value,
+.test-period {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.test-period {
+  justify-content: flex-end;
+}
+
+.search-parameter__content > :not(:first-child),
+.test-value > :not(:last-child),
+.test-period > :not(:last-child) {
+  margin-right: 0.5em;
+}
+
+.test-value > input:not(.test-value__prefix):not(.test-value__modifier) {
+  flex: 1 1;
+}
+.test-value > input.test-value__prefix {
+  width: 80px;
+}
+.test-value > input.test-value__modifier {
+  width: 110px;
 }
 
 div.section__body.obs-parameters > div > :first-child {
@@ -289,24 +359,33 @@ table.section__body {
 
 .search-parameter-list_combined .search-parameter:first-child::before {
   top: -6px;
-  height: calc(50% + 8px);
+  height: 23px;
 }
 .search-parameter-list_combined .search-parameter::before {
   top: -1px;
   border-width: 0 0 2px 2px;
 }
 .search-parameter-list_combined .search-parameter::after {
-  top: 50%;
+  top: 18px;
   border-width: 0 0 0 2px;
 }
 
-.search-parameter-list_combined .search-parameter::after,
+.search-parameter-list_combined .search-parameter::after {
+  content: "";
+  position: absolute;
+  left: -10px;
+  width: 10px;
+  height: calc(100% - 18px);
+  border-color: #ccc;
+  border-style: solid;
+}
+
 .search-parameter-list_combined .search-parameter::before {
   content: "";
   position: absolute;
   left: -10px;
   width: 10px;
-  height: calc(50% + 4px);
+  height: 18px;
   border-color: #ccc;
   border-style: solid;
 }

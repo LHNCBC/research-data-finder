@@ -177,7 +177,7 @@ export function updateUrlWithParam(url, name, value) {
  * @return {boolean|undefined}
  */
 export function toggleCssClass(selector, cssClass, state) {
-  let resultState;
+  let resultState = undefined;
   const elements =
     selector instanceof HTMLElement
       ? [selector]
@@ -222,4 +222,33 @@ export function addCssClass(selector, cssClass) {
  */
 export function removeCssClass(selector, cssClass) {
   toggleCssClass(selector, cssClass, false);
+}
+
+/**
+ * Escapes a FHIR search parameter string
+ * (see https://www.hl7.org/fhir/search.html#escaping)
+ * @param {string} str
+ * @return {string}
+ */
+export function escapeFhirSearchParameter(str) {
+  return str.replace(/[$,|]/g, '\\$&');
+}
+
+/**
+ * Escapes a FHIR search parameter string then encode it with encodeURIComponent
+ * (see https://www.hl7.org/fhir/search.html#escaping)
+ * @param {string} str
+ * @return {string}
+ */
+export function encodeFhirSearchParameter(str) {
+  return encodeURIComponent(escapeFhirSearchParameter(str));
+}
+
+/**
+ * Prepares a string for insertion into a regular expression
+ * @param {string} str
+ * @return {string}
+ */
+export function escapeStringForRegExp(str) {
+  return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
 }

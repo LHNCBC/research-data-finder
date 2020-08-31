@@ -24,10 +24,13 @@ export class SearchParameters {
               ? getSearchParamGroupFactoryByResourceType(item)
               : item;
           const searchParamGroup = searchParamGroupFactory();
-          _searchParams[searchParamGroup.resourceType] = searchParamGroup;
-          this.availableParams[searchParamGroup.resourceType] = Object.keys(
-            searchParamGroup.description
-          ).sort();
+          const resourceType = searchParamGroup.resourceType;
+          _searchParams[resourceType] = searchParamGroup;
+          this.availableParams[resourceType] = this.isController(
+            searchParamGroup
+          )
+            ? []
+            : Object.keys(searchParamGroup.description).sort();
           return _searchParams;
         }, {});
         this.buttonId = this.internalId + '_add_button';
@@ -68,6 +71,9 @@ export class SearchParameters {
                 this.removeControlsForSearchParam(searchItemId);
                 this.selectedParams[searchItemId] = newSelectedParam;
                 this.selectedResources[searchItemId] = newResourceType;
+                document.getElementById(
+                  this.getParamRowId(searchItemId)
+                ).className = this.getSearchParameterClass(searchItemId);
                 this.createControlsForSearchParam(searchItemId);
                 this.swapAvailableItem(
                   newResourceType,
@@ -181,6 +187,39 @@ export class SearchParameters {
   }
 
   /**
+   * Returns true if passed Object supports search parameter controller interface
+   * (the interface to construct component for input criterion)
+   * @param {Object} searchParamGroup - object describes search parameters group
+   * @return {boolean}
+   */
+  isController(searchParamGroup) {
+    return typeof searchParamGroup.getControlsHtml === 'function';
+  }
+
+  /**
+   * Returns search parameter "controller" by generic search parameter identifier
+   * @param {string} searchItemId a generic identifier for a search parameter
+   * @returns {{
+   *   getControlsHtml: function,
+   *   attachControls: function,
+   *   detachControls: function,
+   *   getCondition: function
+   * }}
+   */
+  getSearchParamController(searchItemId) {
+    const resourceType = this.selectedResources[searchItemId];
+    const searchParamGroup = this.searchParams[resourceType];
+    const searchParamGroupCustomCtrl = this.isController(searchParamGroup)
+      ? searchParamGroup
+      : null;
+
+    return (
+      searchParamGroupCustomCtrl ||
+      searchParamGroup.description[this.selectedParams[searchItemId]]
+    );
+  }
+
+  /**
    * Creates controls for search parameter
    * @param {string} searchItemId a generic identifier for a search parameter
    */
@@ -188,9 +227,7 @@ export class SearchParameters {
     const element = document.getElementById(
       this.getParamContentId(searchItemId)
     );
-    const searchParamCtrl = this.searchParams[
-      this.selectedResources[searchItemId]
-    ].description[this.selectedParams[searchItemId]];
+    const searchParamCtrl = this.getSearchParamController(searchItemId);
 
     element.innerHTML = searchParamCtrl.getControlsHtml(searchItemId);
     searchParamCtrl.attachControls &&
@@ -205,9 +242,7 @@ export class SearchParameters {
     const element = document.getElementById(
       this.getParamContentId(searchItemId)
     );
-    const searchParamCtrl = this.searchParams[
-      this.selectedResources[searchItemId]
-    ].description[this.selectedParams[searchItemId]];
+    const searchParamCtrl = this.getSearchParamController(searchItemId);
 
     searchParamCtrl.detachControls &&
       searchParamCtrl.detachControls(searchItemId);
@@ -256,9 +291,11 @@ export class SearchParameters {
         const paramResourceType = this.selectedResources[key];
         const paramName = this.selectedParams[key];
 
-        getAutocompleterById(key).setList(
-          [paramName].concat(this.availableParams[paramResourceType])
-        );
+        if (!this.isController(this.searchParams[paramResourceType])) {
+          getAutocompleterById(key).setList(
+            [paramName].concat(this.availableParams[paramResourceType])
+          );
+        }
         if (key !== skipSearchItemId) {
           getAutocompleterById(this.getParamResourceSelectorId(key)).setList(
             this.getAvailableResourceTypes(paramResourceType)
@@ -276,7 +313,8 @@ export class SearchParameters {
   getAvailableResourceTypes(firstResourceType) {
     const resourceTypes = Object.keys(this.availableParams).filter(
       (resourceType) =>
-        this.availableParams[resourceType].length &&
+        (this.isController(this.searchParams[resourceType]) ||
+          this.availableParams[resourceType].length) &&
         resourceType !== firstResourceType
     );
     return (firstResourceType ? [firstResourceType] : []).concat(
@@ -345,10 +383,12 @@ export class SearchParameters {
       .insertAdjacentHTML(
         'beforeend',
         `\
-<div id="${rowId}" class="search-parameter">
+<div id="${rowId}" class="${this.getSearchParameterClass(searchItemId)}">
   <input type="text" id="${paramResourceTypeSelectorId}" value="${paramResourceType}">
-  <input type="text" id="${searchItemId}" value="${paramName}">
-  <div id="${searchItemContentId}"></div>
+  <div class="search-parameter__name">
+    <input type="text" id="${searchItemId}" value="${paramName}">
+  </div>
+  <div id="${searchItemContentId}" class="search-parameter__content"></div>
   <button id="${removeButtonId}">remove</button>
 </div>`
       );
@@ -375,6 +415,20 @@ export class SearchParameters {
 
     document.getElementById(removeButtonId).onclick = () =>
       this.removeParam(searchItemId);
+  }
+
+  /**
+   * Returns CSS class for search parameter HTML element
+   * @param {string} searchItemId a generic identifier for a search parameter
+   * @return {string}
+   */
+  getSearchParameterClass(searchItemId) {
+    return (
+      'search-parameter' +
+      (this.selectedParams[searchItemId] === undefined
+        ? ' search-parameter_custom'
+        : '')
+    );
   }
 
   /**
@@ -416,10 +470,28 @@ export class SearchParameters {
    * @return {Array}
    */
   getAllCriteria() {
-    return Object.keys(this.availableParams).map((resourceType) => ({
-      resourceType: resourceType,
-      criteria: this.getCriteriaFor(resourceType)
-    }));
+    return Object.keys(this.availableParams).reduce(
+      (allCriteria, resourceType) => {
+        const criteria = this.getCriteriaFor(resourceType);
+        const searchParamGroup = this.searchParams[resourceType];
+
+        if (this.isController(searchParamGroup)) {
+          allCriteria.push(
+            ...(criteria.length ? criteria : ['']).map((item) => ({
+              resourceType: resourceType,
+              criteria: item
+            }))
+          );
+        } else {
+          allCriteria.push({
+            resourceType: resourceType,
+            criteria: criteria.length ? criteria.join('') : ''
+          });
+        }
+        return allCriteria;
+      },
+      []
+    );
   }
 
   /**
@@ -432,18 +504,14 @@ export class SearchParameters {
 
     Object.keys(this.selectedParams).forEach((key) => {
       if (resourceType === this.selectedResources[key]) {
-        const paramName = this.selectedParams[key];
-        const paramDescription = this.searchParams[resourceType].description[
-          paramName
-        ];
-        const condition = paramDescription.getCondition(key);
+        const condition = this.getSearchParamController(key).getCondition(key);
         if (condition) {
           conditions.push(condition);
         }
       }
     });
 
-    return conditions.length ? `${conditions.join('')}` : '';
+    return conditions;
   }
 
   /**
@@ -459,6 +527,9 @@ export class SearchParameters {
 
     Object.keys(this.selectedParams).forEach((key) => {
       const paramResourceType = this.selectedResources[key];
+      if (this.isController(this.searchParams[paramResourceType])) {
+        return;
+      }
       if (!resourceType || paramResourceType === resourceType) {
         const paramName = this.selectedParams[key];
         const paramDescription = this.searchParams[paramResourceType]
