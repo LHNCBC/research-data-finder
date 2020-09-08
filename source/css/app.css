@@ -287,7 +287,8 @@ div.section__body > .search-parameter_custom > .search-parameter__content > * {
   justify-content: flex-end;
 }
 
-.search-parameter__content > :not(:first-child),
+.search-parameter__content > :not(.autocomp_selected):not(:last-child),
+.search-parameter__content > .boolean-param :first-child,
 .test-value > :not(:last-child),
 .test-period > :not(:last-child) {
   margin-right: 0.5em;
@@ -553,6 +554,36 @@ a:hover {
   cursor: pointer;
 }
 /* End of styles for the report popup */
+
+/* Styles to show loading status for search parameter controls */
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spinner {
+  position: relative;
+}
+.spinner * {
+  visibility: hidden;
+}
+
+.spinner:before {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  margin-left: -7px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  border-top-color: #000;
+  animation: spinner 0.6s linear infinite;
+}
+/* End of styles to show loading status for search parameter controls */
 
 /* Styles for the footer */
 #fine-print {

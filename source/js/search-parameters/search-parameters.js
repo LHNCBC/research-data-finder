@@ -293,7 +293,7 @@ export class SearchParameters {
 
         if (!this.isController(this.searchParams[paramResourceType])) {
           getAutocompleterById(key).setList(
-            [paramName].concat(this.availableParams[paramResourceType])
+            [paramName].concat(this.availableParams[paramResourceType]).sort()
           );
         }
         if (key !== skipSearchItemId) {
@@ -317,9 +317,9 @@ export class SearchParameters {
           this.availableParams[resourceType].length) &&
         resourceType !== firstResourceType
     );
-    return (firstResourceType ? [firstResourceType] : []).concat(
-      resourceTypes.sort()
-    );
+    return (firstResourceType ? [firstResourceType] : [])
+      .concat(resourceTypes)
+      .sort();
   }
 
   /**

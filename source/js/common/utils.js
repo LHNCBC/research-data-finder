@@ -225,6 +225,15 @@ export function removeCssClass(selector, cssClass) {
 }
 
 /**
+ * Returns the input string value with the first letter converted to uppercase
+ * @param {string} str - input string
+ * @return {string}
+ */
+export function capitalize(str) {
+  return str && str.charAt(0).toUpperCase() + str.substring(1);
+}
+
+/**
  * Escapes a FHIR search parameter string
  * (see https://www.hl7.org/fhir/search.html#escaping)
  * @param {string} str
