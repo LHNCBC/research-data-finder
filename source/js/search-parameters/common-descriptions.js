@@ -194,8 +194,8 @@ function dateParameterDescription({
         switchLoadingStatus(searchItemId, true);
         Promise.all(
           [
-            loadDate(fromId, resourceType, name, elementPath, true),
-            loadDate(toId, resourceType, name, elementPath, false)
+            loadDate(fromId, resourceType, name, elementPath, LOAD_DATE_MODE.MIN),
+            loadDate(toId, resourceType, name, elementPath, LOAD_DATE_MODE.MAX)
           ].map((i) =>
             // Convert reject to resolve to emulate Promise.allSettled behaviour (for IE11)
             i.catch((error) => error)
@@ -216,28 +216,35 @@ function dateParameterDescription({
   };
 }
 
+// An enumeration containing the possible modes of operation of the loadDate function
+const LOAD_DATE_MODE = Object.freeze({
+  MIN: 0,
+  MAX: 1
+});
+
 /**
- * Load default minimum/maximum date value to input field from database.
+ * Load default minimum(or maximum) date value to input field from database.
  * @param {string} inputId - input field id
  * @param {string} resourceType - resource type
  * @param {string} paramName - search parameter name
  * @param {string} resourceElementPath - resource element path
- * @param {boolean} min - true/false to fill input with minimum/maximum value
+ * @param {LOAD_DATE_MODE} mode - LOAD_DATE_MODE.MIN to fill input with minimum value,
+ *                                LOAD_DATE_MODE.MAX to fill input with maximum value.
  */
-function loadDate(inputId, resourceType, paramName, resourceElementPath, min) {
+function loadDate(inputId, resourceType, paramName, resourceElementPath, mode) {
   const elementPath = resourceElementPath.split('.');
 
   return getCurrentClient()
     .getWithCache(
       `${resourceType}?_count=1&_elements=${elementPath[0]}&_sort=${
-        (min ? '' : '-') + paramName
+        (mode === LOAD_DATE_MODE.MIN ? '' : '-') + paramName
       }`
     )
     .then(({ status, data }) => {
       if (status === 200 && data.entry && data.entry.length) {
         let value = getValueByPath(data.entry[0].resource, elementPath);
         if (value && (value.start || value.end)) {
-          value = min ? value.start || value.end : value.end || value.start;
+          value = mode === LOAD_DATE_MODE.MIN ? value.start || value.end : value.end || value.start;
         }
         const date = /^(\d{4})(-\d{2}-\d{2}|$)/.test(value)
           ? `${RegExp.$1}${RegExp.$2 || '-01-01'}`
@@ -258,7 +265,7 @@ function loadDate(inputId, resourceType, paramName, resourceElementPath, min) {
 function getValueByPath(value, path) {
   let i = 0;
   while (value && i < path.length) {
-    value = value && value[path[i]];
+    value = value[path[i]];
     i++;
   }
   return value;
