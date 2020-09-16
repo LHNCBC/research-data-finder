@@ -261,3 +261,19 @@ export function encodeFhirSearchParameter(str) {
 export function escapeStringForRegExp(str) {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
 }
+
+/**
+ * Returns the date from a date input field appended with a time string if passed
+ * @param {string} selector - css selector for getting date input field element
+ * @param {string} [timeString] - time string to add
+ * @return {string}
+ */
+export function getDateTimeFromInput(selector, timeString = null) {
+  const input = document.querySelector(selector);
+
+  if (input && input.validity.valid && input.value) {
+    return input.value + (timeString ? 'T' + timeString : '');
+  }
+
+  return '';
+}

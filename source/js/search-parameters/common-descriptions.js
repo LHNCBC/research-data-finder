@@ -3,7 +3,8 @@ import {
   encodeFhirSearchParameter,
   getAutocompleterById,
   capitalize,
-  toggleCssClass
+  toggleCssClass,
+  getDateTimeFromInput
 } from '../common/utils';
 import definitionsIndex from './definitions/index.json';
 
@@ -178,8 +179,12 @@ function dateParameterDescription({ name, column, description, elementPath, reso
     getControlsHtml: (searchItemId) => {
       const title = (description && description.replace(/"/g, '&quot;')) || '';
       return `\
-<span>from</span><input type="date" id="${searchItemId}-${name}-from" placeholder="yyyy-mm-dd" title="${title}">
-<span>to</span><input type="date" id="${searchItemId}-${name}-to" placeholder="yyyy-mm-dd" title="${title}">`;
+<span>from</span>
+<input type="date" id="${searchItemId}-${name}-from" placeholder="yyyy-mm-dd"
+       pattern="^(\\d{4}-([0][1-9]|1[0-2])-([0][1-9]|[1-2]\\d|3[01])|)$" title="${title}">
+<span>to</span>
+<input type="date" id="${searchItemId}-${name}-to" placeholder="yyyy-mm-dd"
+       pattern="^(\\d{4}-([0][1-9]|1[0-2])-([0][1-9]|[1-2]\\d|3[01])|)$" title="${title}">`;
     },
     attachControls: (searchItemId) => {
       const fromId = `${searchItemId}-${name}-from`;
@@ -187,21 +192,23 @@ function dateParameterDescription({ name, column, description, elementPath, reso
 
       if (elementPath && resourceType) {
         switchLoadingStatus(searchItemId, true);
+        const loadDatePromises = [
+          loadDate(fromId, resourceType, name, elementPath, LOAD_DATE_MODE.MIN),
+          loadDate(toId, resourceType, name, elementPath, LOAD_DATE_MODE.MAX)
+        ];
         Promise.all(
-          [
-            loadDate(fromId, resourceType, name, elementPath, LOAD_DATE_MODE.MIN),
-            loadDate(toId, resourceType, name, elementPath, LOAD_DATE_MODE.MAX)
-          ].map((i) =>
-            // Convert reject to resolve to emulate Promise.allSettled behaviour (for IE11)
-            i.catch((error) => error)
+          loadDatePromises.map((i) =>
+            // Convert reject to resolve to emulate Promise.allSettled behaviour (for Edge/IE11)
+            i.catch((error) => {
+              console.log(`Load minimum/maximum date failed: ${error}`);
+            })
           )
         ).then(() => switchLoadingStatus(searchItemId, false));
       }
     },
     getCondition: (searchItemId) => {
-      const from = document.getElementById(`${searchItemId}-${name}-from`)
-        .value;
-      const to = document.getElementById(`${searchItemId}-${name}-to`).value;
+      const from = getDateTimeFromInput(`#${searchItemId}-${name}-from`);
+      const to = getDateTimeFromInput(`#${searchItemId}-${name}-to`);
 
       return (
         (from ? `&${name}=ge${encodeFhirSearchParameter(from)}` : '') +

@@ -213,6 +213,10 @@ div.section__body > div:not(.search-parameter-list) > label {
   font-weight: bold;
 }
 
+input:invalid:not(:focus) {
+  background-color: #ffbebe;
+}
+
 div.section__body > div:not(.search-parameter-list) > *:not(:first-child) {
   margin-left: 1em;
 }
