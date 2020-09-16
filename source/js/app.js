@@ -282,7 +282,7 @@ export function loadPatients() {
       if (status !== HTTP_ABORT) {
         // Show message if request is not aborted
         showMessageIfNoPatientList(`Could not load Patient list`);
-        console.log(`FHIR search failed: ${error}`);
+        console.log(`Load Patients failed: ${error}`);
       }
       onFinally();
     }
@@ -388,10 +388,11 @@ export function loadObs() {
               }
             }
           },
-          ({ status }) => {
+          ({ status, error }) => {
             hasError = true;
             if (status !== HTTP_ABORT) {
               fhirClient.clearPendingRequests();
+              console.log(`Load Observations failed: ${error}`);
               // Show message if request is not aborted
               showMessageIfNoObservationList('Could not load observation list');
             }

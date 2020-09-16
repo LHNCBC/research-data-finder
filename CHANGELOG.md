@@ -6,7 +6,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [1.13.0] - 2020-09-08
 ### Added
 - Display of minimum and maximum values that exist in the database
-for a date range criterion
+  for a date range criterion
 
 ## [1.12.0] - 2020-08-24
 ### Changed

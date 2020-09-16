@@ -9,34 +9,33 @@ Object {
       "name": "identifier",
       "path": "Account.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Human-readable label",
       "expression": "Account.name",
       "name": "name",
+      "path": "Account.name",
       "type": "string",
     },
     Object {
       "description": "Entity managing the Account",
       "expression": "Account.owner",
       "name": "owner",
+      "path": "Account.owner",
       "type": "reference",
     },
     Object {
       "description": "The entity that caused the expenses",
       "expression": "Account.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "Account.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Transaction window",
       "expression": "Account.servicePeriod",
       "name": "period",
+      "path": "Account.servicePeriod",
       "type": "date",
     },
     Object {
@@ -45,17 +44,13 @@ Object {
       "name": "status",
       "path": "Account.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/account-status|4.0.1",
     },
     Object {
       "description": "The entity that caused the expenses",
       "expression": "Account.subject",
       "name": "subject",
+      "path": "Account.subject",
       "type": "reference",
     },
     Object {
@@ -64,11 +59,6 @@ Object {
       "name": "type",
       "path": "Account.type",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/account-type",
     },
   ],
@@ -79,11 +69,6 @@ Object {
       "name": "actuality",
       "path": "AdverseEvent.actuality",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/adverse-event-actuality|4.0.1",
     },
     Object {
@@ -92,17 +77,13 @@ Object {
       "name": "category",
       "path": "AdverseEvent.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/adverse-event-category",
     },
     Object {
       "description": "When the event occurred",
       "expression": "AdverseEvent.date",
       "name": "date",
+      "path": "AdverseEvent.date",
       "type": "date",
     },
     Object {
@@ -111,29 +92,27 @@ Object {
       "name": "event",
       "path": "AdverseEvent.event",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/adverse-event-type",
     },
     Object {
       "description": "Location where adverse event occurred",
       "expression": "AdverseEvent.location",
       "name": "location",
+      "path": "AdverseEvent.location",
       "type": "reference",
     },
     Object {
       "description": "Who recorded the adverse event",
       "expression": "AdverseEvent.recorder",
       "name": "recorder",
+      "path": "AdverseEvent.recorder",
       "type": "reference",
     },
     Object {
       "description": "Effect on the subject due to this event",
       "expression": "AdverseEvent.resultingCondition",
       "name": "resultingcondition",
+      "path": "AdverseEvent.resultingCondition",
       "type": "reference",
     },
     Object {
@@ -142,11 +121,6 @@ Object {
       "name": "seriousness",
       "path": "AdverseEvent.seriousness",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/adverse-event-seriousness",
     },
     Object {
@@ -155,29 +129,27 @@ Object {
       "name": "severity",
       "path": "AdverseEvent.severity",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/adverse-event-severity|4.0.1",
     },
     Object {
       "description": "AdverseEvent.study",
       "expression": "AdverseEvent.study",
       "name": "study",
+      "path": "AdverseEvent.study",
       "type": "reference",
     },
     Object {
       "description": "Subject impacted by event",
       "expression": "AdverseEvent.subject",
       "name": "subject",
+      "path": "AdverseEvent.subject",
       "type": "reference",
     },
     Object {
       "description": "Refers to the specific entity that caused the adverse event",
       "expression": "AdverseEvent.suspectEntity.instance",
       "name": "substance",
+      "path": "AdverseEvent.suspectEntity.instance",
       "type": "reference",
     },
   ],
@@ -186,6 +158,7 @@ Object {
       "description": "Time period plan covers",
       "expression": "CarePlan.period",
       "name": "date",
+      "path": "CarePlan.period",
       "type": "date",
     },
     Object {
@@ -194,17 +167,13 @@ Object {
       "name": "identifier",
       "path": "CarePlan.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Who the care plan is for",
       "expression": "CarePlan.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "CarePlan.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Detail type of activity",
@@ -212,35 +181,34 @@ Object {
       "name": "activity-code",
       "path": "CarePlan.activity.detail.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/procedure-code",
     },
     Object {
       "description": "Specified date occurs within period specified by CarePlan.activity.detail.scheduled[x]",
       "expression": "CarePlan.activity.detail.scheduled",
       "name": "activity-date",
+      "path": "CarePlan.activity.detail.scheduled",
       "type": "date",
     },
     Object {
       "description": "Activity details defined in specific resource",
       "expression": "CarePlan.activity.reference",
       "name": "activity-reference",
+      "path": "CarePlan.activity.reference",
       "type": "reference",
     },
     Object {
       "description": "Fulfills CarePlan",
       "expression": "CarePlan.basedOn",
       "name": "based-on",
+      "path": "CarePlan.basedOn",
       "type": "reference",
     },
     Object {
       "description": "Who's involved in plan?",
       "expression": "CarePlan.careTeam",
       "name": "care-team",
+      "path": "CarePlan.careTeam",
       "type": "reference",
     },
     Object {
@@ -249,41 +217,41 @@ Object {
       "name": "category",
       "path": "CarePlan.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/care-plan-category",
     },
     Object {
       "description": "Health issues this plan addresses",
       "expression": "CarePlan.addresses",
       "name": "condition",
+      "path": "CarePlan.addresses",
       "type": "reference",
     },
     Object {
       "description": "Encounter created as part of",
       "expression": "CarePlan.encounter",
       "name": "encounter",
+      "path": "CarePlan.encounter",
       "type": "reference",
     },
     Object {
       "description": "Desired outcome of plan",
       "expression": "CarePlan.goal",
       "name": "goal",
+      "path": "CarePlan.goal",
       "type": "reference",
     },
     Object {
       "description": "Instantiates FHIR protocol or definition",
       "expression": "CarePlan.instantiatesCanonical",
       "name": "instantiates-canonical",
+      "path": "CarePlan.instantiatesCanonical",
       "type": "reference",
     },
     Object {
       "description": "Instantiates external protocol or definition",
       "expression": "CarePlan.instantiatesUri",
       "name": "instantiates-uri",
+      "path": "CarePlan.instantiatesUri",
       "type": "uri",
     },
     Object {
@@ -292,29 +260,27 @@ Object {
       "name": "intent",
       "path": "CarePlan.intent",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/care-plan-intent|4.0.1",
     },
     Object {
       "description": "Part of referenced CarePlan",
       "expression": "CarePlan.partOf",
       "name": "part-of",
+      "path": "CarePlan.partOf",
       "type": "reference",
     },
     Object {
       "description": "Matches if the practitioner is listed as a performer in any of the \\"simple\\" activities.  (For performers of the detailed activities, chain through the activitydetail search parameter.)",
       "expression": "CarePlan.activity.detail.performer",
       "name": "performer",
+      "path": "CarePlan.activity.detail.performer",
       "type": "reference",
     },
     Object {
       "description": "CarePlan replaced by this CarePlan",
       "expression": "CarePlan.replaces",
       "name": "replaces",
+      "path": "CarePlan.replaces",
       "type": "reference",
     },
     Object {
@@ -323,17 +289,13 @@ Object {
       "name": "status",
       "path": "CarePlan.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-status|4.0.1",
     },
     Object {
       "description": "Who the care plan is for",
       "expression": "CarePlan.subject",
       "name": "subject",
+      "path": "CarePlan.subject",
       "type": "reference",
     },
   ],
@@ -342,6 +304,7 @@ Object {
       "description": "Time period team covers",
       "expression": "CareTeam.period",
       "name": "date",
+      "path": "CareTeam.period",
       "type": "date",
     },
     Object {
@@ -350,17 +313,13 @@ Object {
       "name": "identifier",
       "path": "CareTeam.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Who care team is for",
       "expression": "CareTeam.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "CareTeam.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Type of team",
@@ -368,23 +327,20 @@ Object {
       "name": "category",
       "path": "CareTeam.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/care-team-category",
     },
     Object {
       "description": "Encounter created as part of",
       "expression": "CareTeam.encounter",
       "name": "encounter",
+      "path": "CareTeam.encounter",
       "type": "reference",
     },
     Object {
       "description": "Who is involved",
       "expression": "CareTeam.participant.member",
       "name": "participant",
+      "path": "CareTeam.participant.member",
       "type": "reference",
     },
     Object {
@@ -393,17 +349,13 @@ Object {
       "name": "status",
       "path": "CareTeam.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/care-team-status|4.0.1",
     },
     Object {
       "description": "Who care team is for",
       "expression": "CareTeam.subject",
       "name": "subject",
+      "path": "CareTeam.subject",
       "type": "reference",
     },
   ],
@@ -412,6 +364,7 @@ Object {
       "description": "Account to place this charge",
       "expression": "ChargeItem.account",
       "name": "account",
+      "path": "ChargeItem.account",
       "type": "reference",
     },
     Object {
@@ -420,35 +373,34 @@ Object {
       "name": "code",
       "path": "ChargeItem.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/chargeitem-billingcodes",
     },
     Object {
       "description": "Encounter / Episode associated with event",
       "expression": "ChargeItem.context",
       "name": "context",
+      "path": "ChargeItem.context",
       "type": "reference",
     },
     Object {
       "description": "Date the charge item was entered",
       "expression": "ChargeItem.enteredDate",
       "name": "entered-date",
+      "path": "ChargeItem.enteredDate",
       "type": "date",
     },
     Object {
       "description": "Individual who was entering",
       "expression": "ChargeItem.enterer",
       "name": "enterer",
+      "path": "ChargeItem.enterer",
       "type": "reference",
     },
     Object {
       "description": "Factor overriding the associated rules",
       "expression": "ChargeItem.factorOverride",
       "name": "factor-override",
+      "path": "ChargeItem.factorOverride",
       "type": "number",
     },
     Object {
@@ -457,28 +409,26 @@ Object {
       "name": "identifier",
       "path": "ChargeItem.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "When the charged service was applied",
       "expression": "ChargeItem.occurrence",
       "name": "occurrence",
+      "path": "ChargeItem.occurrence",
       "type": "date",
     },
     Object {
       "description": "Individual service was done for/to",
       "expression": "ChargeItem.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "ChargeItem.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Individual who was performing",
       "expression": "ChargeItem.performer.actor",
       "name": "performer-actor",
+      "path": "ChargeItem.performer.actor",
       "type": "reference",
     },
     Object {
@@ -487,47 +437,48 @@ Object {
       "name": "performer-function",
       "path": "ChargeItem.performer.function",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/performer-role",
     },
     Object {
       "description": "Organization providing the charged service",
       "expression": "ChargeItem.performingOrganization",
       "name": "performing-organization",
+      "path": "ChargeItem.performingOrganization",
       "type": "reference",
     },
     Object {
       "description": "Price overriding the associated rules",
       "expression": "ChargeItem.priceOverride",
       "name": "price-override",
+      "path": "ChargeItem.priceOverride",
       "type": "quantity",
     },
     Object {
       "description": "Quantity of which the charge item has been serviced",
       "expression": "ChargeItem.quantity",
       "name": "quantity",
+      "path": "ChargeItem.quantity",
       "type": "quantity",
     },
     Object {
       "description": "Organization requesting the charged service",
       "expression": "ChargeItem.requestingOrganization",
       "name": "requesting-organization",
+      "path": "ChargeItem.requestingOrganization",
       "type": "reference",
     },
     Object {
       "description": "Which rendered service is being charged?",
       "expression": "ChargeItem.service",
       "name": "service",
+      "path": "ChargeItem.service",
       "type": "reference",
     },
     Object {
       "description": "Individual service was done for/to",
       "expression": "ChargeItem.subject",
       "name": "subject",
+      "path": "ChargeItem.subject",
       "type": "reference",
     },
   ],
@@ -536,24 +487,28 @@ Object {
       "description": "When the assessment was documented",
       "expression": "ClinicalImpression.date",
       "name": "date",
+      "path": "ClinicalImpression.date",
       "type": "date",
     },
     Object {
       "description": "Patient or group assessed",
       "expression": "ClinicalImpression.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "ClinicalImpression.subject",
+      "type": "Patient",
     },
     Object {
       "description": "The clinician performing the assessment",
       "expression": "ClinicalImpression.assessor",
       "name": "assessor",
+      "path": "ClinicalImpression.assessor",
       "type": "reference",
     },
     Object {
       "description": "Encounter created as part of",
       "expression": "ClinicalImpression.encounter",
       "name": "encounter",
+      "path": "ClinicalImpression.encounter",
       "type": "reference",
     },
     Object {
@@ -562,17 +517,13 @@ Object {
       "name": "finding-code",
       "path": "ClinicalImpression.finding.itemCodeableConcept",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/condition-code",
     },
     Object {
       "description": "What was found",
       "expression": "ClinicalImpression.finding.itemReference",
       "name": "finding-ref",
+      "path": "ClinicalImpression.finding.itemReference",
       "type": "reference",
     },
     Object {
@@ -581,28 +532,26 @@ Object {
       "name": "identifier",
       "path": "ClinicalImpression.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Record of a specific investigation",
       "expression": "ClinicalImpression.investigation.item",
       "name": "investigation",
+      "path": "ClinicalImpression.investigation.item",
       "type": "reference",
     },
     Object {
       "description": "Reference to last assessment",
       "expression": "ClinicalImpression.previous",
       "name": "previous",
+      "path": "ClinicalImpression.previous",
       "type": "reference",
     },
     Object {
       "description": "Relevant impressions of patient state",
       "expression": "ClinicalImpression.problem",
       "name": "problem",
+      "path": "ClinicalImpression.problem",
       "type": "reference",
     },
     Object {
@@ -611,23 +560,20 @@ Object {
       "name": "status",
       "path": "ClinicalImpression.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/clinicalimpression-status|4.0.1",
     },
     Object {
       "description": "Patient or group assessed",
       "expression": "ClinicalImpression.subject",
       "name": "subject",
+      "path": "ClinicalImpression.subject",
       "type": "reference",
     },
     Object {
       "description": "Information supporting the clinical impression",
       "expression": "ClinicalImpression.supportingInfo",
       "name": "supporting-info",
+      "path": "ClinicalImpression.supportingInfo",
       "type": "reference",
     },
   ],
@@ -636,6 +582,7 @@ Object {
       "description": "Request fulfilled by this communication",
       "expression": "Communication.basedOn",
       "name": "based-on",
+      "path": "Communication.basedOn",
       "type": "reference",
     },
     Object {
@@ -644,17 +591,13 @@ Object {
       "name": "category",
       "path": "Communication.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/communication-category",
     },
     Object {
       "description": "Encounter created as part of",
       "expression": "Communication.encounter",
       "name": "encounter",
+      "path": "Communication.encounter",
       "type": "reference",
     },
     Object {
@@ -663,22 +606,19 @@ Object {
       "name": "identifier",
       "path": "Communication.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Instantiates FHIR protocol or definition",
       "expression": "Communication.instantiatesCanonical",
       "name": "instantiates-canonical",
+      "path": "Communication.instantiatesCanonical",
       "type": "reference",
     },
     Object {
       "description": "Instantiates external protocol or definition",
       "expression": "Communication.instantiatesUri",
       "name": "instantiates-uri",
+      "path": "Communication.instantiatesUri",
       "type": "uri",
     },
     Object {
@@ -687,47 +627,48 @@ Object {
       "name": "medium",
       "path": "Communication.medium",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://terminology.hl7.org/ValueSet/v3-ParticipationMode",
     },
     Object {
       "description": "Part of this action",
       "expression": "Communication.partOf",
       "name": "part-of",
+      "path": "Communication.partOf",
       "type": "reference",
     },
     Object {
       "description": "Focus of message",
       "expression": "Communication.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "Communication.subject",
+      "type": "Patient",
     },
     Object {
       "description": "When received",
       "expression": "Communication.received",
       "name": "received",
+      "path": "Communication.received",
       "type": "date",
     },
     Object {
       "description": "Message recipient",
       "expression": "Communication.recipient",
       "name": "recipient",
+      "path": "Communication.recipient",
       "type": "reference",
     },
     Object {
       "description": "Message sender",
       "expression": "Communication.sender",
       "name": "sender",
+      "path": "Communication.sender",
       "type": "reference",
     },
     Object {
       "description": "When sent",
       "expression": "Communication.sent",
       "name": "sent",
+      "path": "Communication.sent",
       "type": "date",
     },
     Object {
@@ -736,17 +677,13 @@ Object {
       "name": "status",
       "path": "Communication.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/event-status|4.0.1",
     },
     Object {
       "description": "Focus of message",
       "expression": "Communication.subject",
       "name": "subject",
+      "path": "Communication.subject",
       "type": "reference",
     },
   ],
@@ -755,12 +692,14 @@ Object {
       "description": "When request transitioned to being actionable",
       "expression": "CommunicationRequest.authoredOn",
       "name": "authored",
+      "path": "CommunicationRequest.authoredOn",
       "type": "date",
     },
     Object {
       "description": "Fulfills plan or proposal",
       "expression": "CommunicationRequest.basedOn",
       "name": "based-on",
+      "path": "CommunicationRequest.basedOn",
       "type": "reference",
     },
     Object {
@@ -769,17 +708,13 @@ Object {
       "name": "category",
       "path": "CommunicationRequest.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/communication-category",
     },
     Object {
       "description": "Encounter created as part of",
       "expression": "CommunicationRequest.encounter",
       "name": "encounter",
+      "path": "CommunicationRequest.encounter",
       "type": "reference",
     },
     Object {
@@ -788,11 +723,6 @@ Object {
       "name": "group-identifier",
       "path": "CommunicationRequest.groupIdentifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Unique identifier",
@@ -800,11 +730,6 @@ Object {
       "name": "identifier",
       "path": "CommunicationRequest.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "A channel of communication",
@@ -812,24 +737,21 @@ Object {
       "name": "medium",
       "path": "CommunicationRequest.medium",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://terminology.hl7.org/ValueSet/v3-ParticipationMode",
     },
     Object {
       "description": "When scheduled",
-      "expression": "CommunicationRequest.occurrence as dateTime)",
+      "expression": "(CommunicationRequest.occurrence as dateTime)",
       "name": "occurrence",
-      "type": "date",
+      "path": "CommunicationRequest.occurrenceDateTime",
+      "type": "dateTime",
     },
     Object {
       "description": "Focus of message",
       "expression": "CommunicationRequest.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "CommunicationRequest.subject",
+      "type": "Patient",
     },
     Object {
       "description": "routine | urgent | asap | stat",
@@ -837,35 +759,34 @@ Object {
       "name": "priority",
       "path": "CommunicationRequest.priority",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-priority|4.0.1",
     },
     Object {
       "description": "Message recipient",
       "expression": "CommunicationRequest.recipient",
       "name": "recipient",
+      "path": "CommunicationRequest.recipient",
       "type": "reference",
     },
     Object {
       "description": "Request(s) replaced by this request",
       "expression": "CommunicationRequest.replaces",
       "name": "replaces",
+      "path": "CommunicationRequest.replaces",
       "type": "reference",
     },
     Object {
       "description": "Who/what is requesting service",
       "expression": "CommunicationRequest.requester",
       "name": "requester",
+      "path": "CommunicationRequest.requester",
       "type": "reference",
     },
     Object {
       "description": "Message sender",
       "expression": "CommunicationRequest.sender",
       "name": "sender",
+      "path": "CommunicationRequest.sender",
       "type": "reference",
     },
     Object {
@@ -874,17 +795,13 @@ Object {
       "name": "status",
       "path": "CommunicationRequest.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-status|4.0.1",
     },
     Object {
       "description": "Focus of message",
       "expression": "CommunicationRequest.subject",
       "name": "subject",
+      "path": "CommunicationRequest.subject",
       "type": "reference",
     },
   ],
@@ -895,11 +812,6 @@ Object {
       "name": "code",
       "path": "Condition.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/condition-code",
     },
     Object {
@@ -908,40 +820,40 @@ Object {
       "name": "identifier",
       "path": "Condition.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Who has the condition?",
       "expression": "Condition.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "Condition.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Abatement as age or age range",
       "expression": "Condition.abatement.as(Age)",
       "name": "abatement-age",
-      "type": "quantity",
+      "path": "Condition.abatementAge",
+      "type": "Age",
     },
     Object {
       "description": "Date-related abatements (dateTime and period)",
       "expression": "Condition.abatement.as(dateTime)",
       "name": "abatement-date",
-      "type": "date",
+      "path": "Condition.abatementDateTime",
+      "type": "dateTime",
     },
     Object {
       "description": "Abatement as a string",
       "expression": "Condition.abatement.as(string)",
       "name": "abatement-string",
+      "path": "Condition.abatementString",
       "type": "string",
     },
     Object {
       "description": "Person who asserts this condition",
       "expression": "Condition.asserter",
       "name": "asserter",
+      "path": "Condition.asserter",
       "type": "reference",
     },
     Object {
@@ -950,11 +862,6 @@ Object {
       "name": "body-site",
       "path": "Condition.bodySite",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/body-site",
     },
     Object {
@@ -963,11 +870,6 @@ Object {
       "name": "category",
       "path": "Condition.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/condition-category",
     },
     Object {
@@ -976,17 +878,13 @@ Object {
       "name": "clinical-status",
       "path": "Condition.clinicalStatus",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/condition-clinical|4.0.1",
     },
     Object {
       "description": "Encounter created as part of",
       "expression": "Condition.encounter",
       "name": "encounter",
+      "path": "Condition.encounter",
       "type": "reference",
     },
     Object {
@@ -995,41 +893,41 @@ Object {
       "name": "evidence",
       "path": "Condition.evidence.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/manifestation-or-symptom",
     },
     Object {
       "description": "Supporting information found elsewhere",
       "expression": "Condition.evidence.detail",
       "name": "evidence-detail",
+      "path": "Condition.evidence.detail",
       "type": "reference",
     },
     Object {
       "description": "Onsets as age or age range",
       "expression": "Condition.onset.as(Age)",
       "name": "onset-age",
-      "type": "quantity",
+      "path": "Condition.onsetAge",
+      "type": "Age",
     },
     Object {
       "description": "Date related onsets (dateTime and Period)",
       "expression": "Condition.onset.as(dateTime)",
       "name": "onset-date",
-      "type": "date",
+      "path": "Condition.onsetDateTime",
+      "type": "dateTime",
     },
     Object {
       "description": "Onsets as a string",
       "expression": "Condition.onset.as(string)",
       "name": "onset-info",
+      "path": "Condition.onsetString",
       "type": "string",
     },
     Object {
       "description": "Date record was first recorded",
       "expression": "Condition.recordedDate",
       "name": "recorded-date",
+      "path": "Condition.recordedDate",
       "type": "date",
     },
     Object {
@@ -1038,11 +936,6 @@ Object {
       "name": "severity",
       "path": "Condition.severity",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/condition-severity",
     },
     Object {
@@ -1051,17 +944,13 @@ Object {
       "name": "stage",
       "path": "Condition.stage.summary",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/condition-stage",
     },
     Object {
       "description": "Who has the condition?",
       "expression": "Condition.subject",
       "name": "subject",
+      "path": "Condition.subject",
       "type": "reference",
     },
     Object {
@@ -1070,33 +959,16 @@ Object {
       "name": "verification-status",
       "path": "Condition.verificationStatus",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/condition-ver-status|4.0.1",
     },
   ],
   "DeviceRequest": Array [
     Object {
       "description": "Code for what is being requested/ordered",
-      "expression": "DeviceRequest.code as CodeableConcept)",
+      "expression": "(DeviceRequest.code as CodeableConcept)",
       "name": "code",
-      "path": "DeviceRequest.code",
-      "type": "Reference",
-      "typeDescription": Array [
-        Object {
-          "code": "Reference",
-          "targetProfile": Array [
-            "http://hl7.org/fhir/StructureDefinition/Device",
-          ],
-        },
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
-      "valueSet": "http://hl7.org/fhir/ValueSet/device-kind",
+      "path": "DeviceRequest.codeCodeableConcept",
+      "type": "CodeableConcept",
     },
     Object {
       "description": "Business identifier for request/order",
@@ -1104,47 +976,48 @@ Object {
       "name": "identifier",
       "path": "DeviceRequest.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Individual the service is ordered for",
       "expression": "DeviceRequest.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "DeviceRequest.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Encounter during which request was created",
       "expression": "DeviceRequest.encounter",
       "name": "encounter",
+      "path": "DeviceRequest.encounter",
       "type": "reference",
     },
     Object {
       "description": "When the request transitioned to being actionable",
       "expression": "DeviceRequest.authoredOn",
       "name": "authored-on",
+      "path": "DeviceRequest.authoredOn",
       "type": "date",
     },
     Object {
       "description": "Plan/proposal/order fulfilled by this request",
       "expression": "DeviceRequest.basedOn",
       "name": "based-on",
+      "path": "DeviceRequest.basedOn",
       "type": "reference",
     },
     Object {
       "description": "Reference to resource that is being requested/ordered",
-      "expression": "DeviceRequest.code as Reference)",
+      "expression": "(DeviceRequest.code as Reference)",
       "name": "device",
-      "type": "reference",
+      "path": "DeviceRequest.codeReference",
+      "type": "Reference",
     },
     Object {
       "description": "When service should occur",
-      "expression": "DeviceRequest.occurrence as dateTime)",
+      "expression": "(DeviceRequest.occurrence as dateTime)",
       "name": "event-date",
-      "type": "date",
+      "path": "DeviceRequest.occurrenceDateTime",
+      "type": "dateTime",
     },
     Object {
       "description": "Composite request this is part of",
@@ -1152,28 +1025,26 @@ Object {
       "name": "group-identifier",
       "path": "DeviceRequest.groupIdentifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Instantiates FHIR protocol or definition",
       "expression": "DeviceRequest.instantiatesCanonical",
       "name": "instantiates-canonical",
+      "path": "DeviceRequest.instantiatesCanonical",
       "type": "reference",
     },
     Object {
       "description": "Instantiates external protocol or definition",
       "expression": "DeviceRequest.instantiatesUri",
       "name": "instantiates-uri",
+      "path": "DeviceRequest.instantiatesUri",
       "type": "uri",
     },
     Object {
       "description": "Associated insurance coverage",
       "expression": "DeviceRequest.insurance",
       "name": "insurance",
+      "path": "DeviceRequest.insurance",
       "type": "reference",
     },
     Object {
@@ -1182,29 +1053,27 @@ Object {
       "name": "intent",
       "path": "DeviceRequest.intent",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-intent|4.0.1",
     },
     Object {
       "description": "Desired performer for service",
       "expression": "DeviceRequest.performer",
       "name": "performer",
+      "path": "DeviceRequest.performer",
       "type": "reference",
     },
     Object {
       "description": "Request takes the place of referenced completed or terminated requests",
       "expression": "DeviceRequest.priorRequest",
       "name": "prior-request",
+      "path": "DeviceRequest.priorRequest",
       "type": "reference",
     },
     Object {
       "description": "Who/what is requesting service",
       "expression": "DeviceRequest.requester",
       "name": "requester",
+      "path": "DeviceRequest.requester",
       "type": "reference",
     },
     Object {
@@ -1213,17 +1082,13 @@ Object {
       "name": "status",
       "path": "DeviceRequest.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-status|4.0.1",
     },
     Object {
       "description": "Individual the service is ordered for",
       "expression": "DeviceRequest.subject",
       "name": "subject",
+      "path": "DeviceRequest.subject",
       "type": "reference",
     },
   ],
@@ -1232,12 +1097,14 @@ Object {
       "description": "Search by subject - a patient",
       "expression": "DeviceUseStatement.subject",
       "name": "patient",
+      "path": "DeviceUseStatement.subject",
       "type": "reference",
     },
     Object {
       "description": "Search by device",
       "expression": "DeviceUseStatement.device",
       "name": "device",
+      "path": "DeviceUseStatement.device",
       "type": "reference",
     },
     Object {
@@ -1246,16 +1113,12 @@ Object {
       "name": "identifier",
       "path": "DeviceUseStatement.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Search by subject",
       "expression": "DeviceUseStatement.subject",
       "name": "subject",
+      "path": "DeviceUseStatement.subject",
       "type": "reference",
     },
   ],
@@ -1266,17 +1129,13 @@ Object {
       "name": "code",
       "path": "DiagnosticReport.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/report-codes",
     },
     Object {
       "description": "The clinically relevant time of the report",
       "expression": "DiagnosticReport.effective",
       "name": "date",
+      "path": "DiagnosticReport.effective",
       "type": "date",
     },
     Object {
@@ -1285,28 +1144,26 @@ Object {
       "name": "identifier",
       "path": "DiagnosticReport.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The subject of the report if a patient",
       "expression": "DiagnosticReport.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "DiagnosticReport.subject",
+      "type": "Patient",
     },
     Object {
       "description": "The Encounter when the order was made",
       "expression": "DiagnosticReport.encounter",
       "name": "encounter",
+      "path": "DiagnosticReport.encounter",
       "type": "reference",
     },
     Object {
       "description": "Reference to the service request.",
       "expression": "DiagnosticReport.basedOn",
       "name": "based-on",
+      "path": "DiagnosticReport.basedOn",
       "type": "reference",
     },
     Object {
@@ -1315,11 +1172,6 @@ Object {
       "name": "category",
       "path": "DiagnosticReport.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/diagnostic-service-sections",
     },
     Object {
@@ -1328,47 +1180,48 @@ Object {
       "name": "conclusion",
       "path": "DiagnosticReport.conclusionCode",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/clinical-findings",
     },
     Object {
       "description": "When the report was issued",
       "expression": "DiagnosticReport.issued",
       "name": "issued",
+      "path": "DiagnosticReport.issued",
       "type": "date",
     },
     Object {
       "description": "A reference to the image source.",
       "expression": "DiagnosticReport.media.link",
       "name": "media",
+      "path": "DiagnosticReport.media.link",
       "type": "reference",
     },
     Object {
       "description": "Who is responsible for the report",
       "expression": "DiagnosticReport.performer",
       "name": "performer",
+      "path": "DiagnosticReport.performer",
       "type": "reference",
     },
     Object {
       "description": "Link to an atomic result (observation resource)",
       "expression": "DiagnosticReport.result",
       "name": "result",
+      "path": "DiagnosticReport.result",
       "type": "reference",
     },
     Object {
       "description": "Who was the source of the report",
       "expression": "DiagnosticReport.resultsInterpreter",
       "name": "results-interpreter",
+      "path": "DiagnosticReport.resultsInterpreter",
       "type": "reference",
     },
     Object {
       "description": "The specimen details",
       "expression": "DiagnosticReport.specimen",
       "name": "specimen",
+      "path": "DiagnosticReport.specimen",
       "type": "reference",
     },
     Object {
@@ -1377,17 +1230,13 @@ Object {
       "name": "status",
       "path": "DiagnosticReport.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/diagnostic-report-status|4.0.1",
     },
     Object {
       "description": "The subject of the report",
       "expression": "DiagnosticReport.subject",
       "name": "subject",
+      "path": "DiagnosticReport.subject",
       "type": "reference",
     },
   ],
@@ -1398,17 +1247,13 @@ Object {
       "name": "identifier",
       "path": "DocumentManifest.masterIdentifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The subject of the set of documents",
       "expression": "DocumentManifest.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "DocumentManifest.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Kind of document set",
@@ -1416,41 +1261,41 @@ Object {
       "name": "type",
       "path": "DocumentManifest.type",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://terminology.hl7.org/ValueSet/v3-ActCode",
     },
     Object {
       "description": "Who and/or what authored the DocumentManifest",
       "expression": "DocumentManifest.author",
       "name": "author",
+      "path": "DocumentManifest.author",
       "type": "reference",
     },
     Object {
       "description": "When this document manifest created",
       "expression": "DocumentManifest.created",
       "name": "created",
+      "path": "DocumentManifest.created",
       "type": "date",
     },
     Object {
       "description": "Human-readable description (title)",
       "expression": "DocumentManifest.description",
       "name": "description",
+      "path": "DocumentManifest.description",
       "type": "string",
     },
     Object {
       "description": "Items in manifest",
       "expression": "DocumentManifest.content",
       "name": "item",
+      "path": "DocumentManifest.content",
       "type": "reference",
     },
     Object {
       "description": "Intended to get notified about this set of documents",
       "expression": "DocumentManifest.recipient",
       "name": "recipient",
+      "path": "DocumentManifest.recipient",
       "type": "reference",
     },
     Object {
@@ -1459,22 +1304,19 @@ Object {
       "name": "related-id",
       "path": "DocumentManifest.related.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Related Resource",
       "expression": "DocumentManifest.related.ref",
       "name": "related-ref",
+      "path": "DocumentManifest.related.ref",
       "type": "reference",
     },
     Object {
       "description": "The source system/application/software",
       "expression": "DocumentManifest.source",
       "name": "source",
+      "path": "DocumentManifest.source",
       "type": "uri",
     },
     Object {
@@ -1483,17 +1325,13 @@ Object {
       "name": "status",
       "path": "DocumentManifest.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/document-reference-status|4.0.1",
     },
     Object {
       "description": "The subject of the set of documents",
       "expression": "DocumentManifest.subject",
       "name": "subject",
+      "path": "DocumentManifest.subject",
       "type": "reference",
     },
   ],
@@ -1504,17 +1342,13 @@ Object {
       "name": "identifier",
       "path": "DocumentReference.masterIdentifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Who/what is the subject of the document",
       "expression": "DocumentReference.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "DocumentReference.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Kind of document (LOINC if possible)",
@@ -1522,29 +1356,27 @@ Object {
       "name": "type",
       "path": "DocumentReference.type",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/c80-doc-typecodes",
     },
     Object {
       "description": "Context of the document  content",
       "expression": "DocumentReference.context.encounter",
       "name": "encounter",
+      "path": "DocumentReference.context.encounter",
       "type": "reference",
     },
     Object {
       "description": "Who/what authenticated the document",
       "expression": "DocumentReference.authenticator",
       "name": "authenticator",
+      "path": "DocumentReference.authenticator",
       "type": "reference",
     },
     Object {
       "description": "Who and/or what authored the document",
       "expression": "DocumentReference.author",
       "name": "author",
+      "path": "DocumentReference.author",
       "type": "reference",
     },
     Object {
@@ -1553,11 +1385,6 @@ Object {
       "name": "category",
       "path": "DocumentReference.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/document-classcodes",
     },
     Object {
@@ -1566,29 +1393,27 @@ Object {
       "name": "contenttype",
       "path": "DocumentReference.content.attachment.contentType",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/mimetypes|4.0.1",
     },
     Object {
       "description": "Organization which maintains the document",
       "expression": "DocumentReference.custodian",
       "name": "custodian",
+      "path": "DocumentReference.custodian",
       "type": "reference",
     },
     Object {
       "description": "When this document reference was created",
       "expression": "DocumentReference.date",
       "name": "date",
+      "path": "DocumentReference.date",
       "type": "date",
     },
     Object {
       "description": "Human-readable description",
       "expression": "DocumentReference.description",
       "name": "description",
+      "path": "DocumentReference.description",
       "type": "string",
     },
     Object {
@@ -1597,11 +1422,6 @@ Object {
       "name": "event",
       "path": "DocumentReference.context.event",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://terminology.hl7.org/ValueSet/v3-ActCode",
     },
     Object {
@@ -1610,11 +1430,6 @@ Object {
       "name": "facility",
       "path": "DocumentReference.context.facilityType",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/c80-facilitycodes",
     },
     Object {
@@ -1623,11 +1438,6 @@ Object {
       "name": "format",
       "path": "DocumentReference.content.format",
       "type": "Coding",
-      "typeDescription": Array [
-        Object {
-          "code": "Coding",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/formatcodes",
     },
     Object {
@@ -1636,35 +1446,34 @@ Object {
       "name": "language",
       "path": "DocumentReference.content.attachment.language",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/languages",
     },
     Object {
       "description": "Uri where the data can be found",
       "expression": "DocumentReference.content.attachment.url",
       "name": "location",
+      "path": "DocumentReference.content.attachment.url",
       "type": "uri",
     },
     Object {
       "description": "Time of service that is being documented",
       "expression": "DocumentReference.context.period",
       "name": "period",
+      "path": "DocumentReference.context.period",
       "type": "date",
     },
     Object {
       "description": "Related identifiers or resources",
       "expression": "DocumentReference.context.related",
       "name": "related",
+      "path": "DocumentReference.context.related",
       "type": "reference",
     },
     Object {
       "description": "Target of the relationship",
       "expression": "DocumentReference.relatesTo.target",
       "name": "relatesto",
+      "path": "DocumentReference.relatesTo.target",
       "type": "reference",
     },
     Object {
@@ -1673,11 +1482,6 @@ Object {
       "name": "relation",
       "path": "DocumentReference.relatesTo.code",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/document-relationship-type|4.0.1",
     },
     Object {
@@ -1686,11 +1490,6 @@ Object {
       "name": "security-label",
       "path": "DocumentReference.securityLabel",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/security-labels",
     },
     Object {
@@ -1699,11 +1498,6 @@ Object {
       "name": "setting",
       "path": "DocumentReference.context.practiceSetting",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/c80-practice-codes",
     },
     Object {
@@ -1712,23 +1506,20 @@ Object {
       "name": "status",
       "path": "DocumentReference.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/document-reference-status|4.0.1",
     },
     Object {
       "description": "Who/what is the subject of the document",
       "expression": "DocumentReference.subject",
       "name": "subject",
+      "path": "DocumentReference.subject",
       "type": "reference",
     },
     Object {
       "description": "Combination of relation and relatesTo",
       "expression": "DocumentReference.relatesTo",
       "name": "relationship",
+      "path": "DocumentReference.relatesTo",
       "type": "composite",
     },
   ],
@@ -1737,6 +1528,7 @@ Object {
       "description": "A date within the period the Encounter lasted",
       "expression": "Encounter.period",
       "name": "date",
+      "path": "Encounter.period",
       "type": "date",
     },
     Object {
@@ -1745,17 +1537,13 @@ Object {
       "name": "identifier",
       "path": "Encounter.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The patient or group present at the encounter",
       "expression": "Encounter.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "Encounter.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Specific type of encounter",
@@ -1763,29 +1551,27 @@ Object {
       "name": "type",
       "path": "Encounter.type",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/encounter-type",
     },
     Object {
       "description": "The set of accounts that may be used for billing for this Encounter",
       "expression": "Encounter.account",
       "name": "account",
+      "path": "Encounter.account",
       "type": "reference",
     },
     Object {
       "description": "The appointment that scheduled this encounter",
       "expression": "Encounter.appointment",
       "name": "appointment",
+      "path": "Encounter.appointment",
       "type": "reference",
     },
     Object {
       "description": "The ServiceRequest that initiated this encounter",
       "expression": "Encounter.basedOn",
       "name": "based-on",
+      "path": "Encounter.basedOn",
       "type": "reference",
     },
     Object {
@@ -1794,53 +1580,55 @@ Object {
       "name": "class",
       "path": "Encounter.class",
       "type": "Coding",
-      "typeDescription": Array [
-        Object {
-          "code": "Coding",
-        },
-      ],
       "valueSet": "http://terminology.hl7.org/ValueSet/v3-ActEncounterCode",
     },
     Object {
       "description": "The diagnosis or procedure relevant to the encounter",
       "expression": "Encounter.diagnosis.condition",
       "name": "diagnosis",
+      "path": "Encounter.diagnosis.condition",
       "type": "reference",
     },
     Object {
       "description": "Episode(s) of care that this encounter should be recorded against",
       "expression": "Encounter.episodeOfCare",
       "name": "episode-of-care",
+      "path": "Encounter.episodeOfCare",
       "type": "reference",
     },
     Object {
       "description": "Length of encounter in days",
       "expression": "Encounter.length",
       "name": "length",
+      "path": "Encounter.length",
       "type": "quantity",
     },
     Object {
       "description": "Location the encounter takes place",
       "expression": "Encounter.location.location",
       "name": "location",
+      "path": "Encounter.location.location",
       "type": "reference",
     },
     Object {
       "description": "Time period during which the patient was present at the location",
       "expression": "Encounter.location.period",
       "name": "location-period",
+      "path": "Encounter.location.period",
       "type": "date",
     },
     Object {
       "description": "Another Encounter this encounter is part of",
       "expression": "Encounter.partOf",
       "name": "part-of",
+      "path": "Encounter.partOf",
       "type": "reference",
     },
     Object {
       "description": "Persons involved in the encounter other than the patient",
       "expression": "Encounter.participant.individual",
       "name": "participant",
+      "path": "Encounter.participant.individual",
       "type": "reference",
     },
     Object {
@@ -1849,18 +1637,14 @@ Object {
       "name": "participant-type",
       "path": "Encounter.participant.type",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/encounter-participant-type",
     },
     Object {
       "description": "Persons involved in the encounter other than the patient",
       "expression": "Encounter.participant.individual.where(resolve() is Practitioner)",
       "name": "practitioner",
-      "type": "reference",
+      "path": "Encounter.participant.individual",
+      "type": "Practitioner",
     },
     Object {
       "description": "Coded reason the encounter takes place",
@@ -1868,23 +1652,20 @@ Object {
       "name": "reason-code",
       "path": "Encounter.reasonCode",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/encounter-reason",
     },
     Object {
       "description": "Reason the encounter takes place (reference)",
       "expression": "Encounter.reasonReference",
       "name": "reason-reference",
+      "path": "Encounter.reasonReference",
       "type": "reference",
     },
     Object {
       "description": "The organization (facility) responsible for this encounter",
       "expression": "Encounter.serviceProvider",
       "name": "service-provider",
+      "path": "Encounter.serviceProvider",
       "type": "reference",
     },
     Object {
@@ -1893,11 +1674,6 @@ Object {
       "name": "special-arrangement",
       "path": "Encounter.hospitalization.specialArrangement",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/encounter-special-arrangements",
     },
     Object {
@@ -1906,17 +1682,13 @@ Object {
       "name": "status",
       "path": "Encounter.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/encounter-status|4.0.1",
     },
     Object {
       "description": "The patient or group present at the encounter",
       "expression": "Encounter.subject",
       "name": "subject",
+      "path": "Encounter.subject",
       "type": "reference",
     },
   ],
@@ -1925,24 +1697,28 @@ Object {
       "description": "Time period when flag is active",
       "expression": "Flag.period",
       "name": "date",
+      "path": "Flag.period",
       "type": "date",
     },
     Object {
       "description": "The identity of a subject to list flags for",
       "expression": "Flag.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "Flag.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Alert relevant during encounter",
       "expression": "Flag.encounter",
       "name": "encounter",
+      "path": "Flag.encounter",
       "type": "reference",
     },
     Object {
       "description": "Flag creator",
       "expression": "Flag.author",
       "name": "author",
+      "path": "Flag.author",
       "type": "reference",
     },
     Object {
@@ -1951,16 +1727,12 @@ Object {
       "name": "identifier",
       "path": "Flag.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The identity of a subject to list flags for",
       "expression": "Flag.subject",
       "name": "subject",
+      "path": "Flag.subject",
       "type": "reference",
     },
   ],
@@ -1971,17 +1743,13 @@ Object {
       "name": "identifier",
       "path": "Goal.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Who this goal is intended for",
       "expression": "Goal.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "Goal.subject",
+      "type": "Patient",
     },
     Object {
       "description": "in-progress | improving | worsening | no-change | achieved | sustaining | not-achieved | no-progress | not-attainable",
@@ -1989,11 +1757,6 @@ Object {
       "name": "achievement-status",
       "path": "Goal.achievementStatus",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/goal-achievement",
     },
     Object {
@@ -2002,11 +1765,6 @@ Object {
       "name": "category",
       "path": "Goal.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/goal-category",
     },
     Object {
@@ -2015,29 +1773,27 @@ Object {
       "name": "lifecycle-status",
       "path": "Goal.lifecycleStatus",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/goal-status|4.0.1",
     },
     Object {
       "description": "When goal pursuit begins",
-      "expression": "Goal.start as date)",
+      "expression": "(Goal.start as date)",
       "name": "start-date",
+      "path": "Goal.startDate",
       "type": "date",
     },
     Object {
       "description": "Who this goal is intended for",
       "expression": "Goal.subject",
       "name": "subject",
+      "path": "Goal.subject",
       "type": "reference",
     },
     Object {
       "description": "Reach goal on or before",
-      "expression": "Goal.target.due as date)",
+      "expression": "(Goal.target.due as date)",
       "name": "target-date",
+      "path": "Goal.target.dueDate",
       "type": "date",
     },
   ],
@@ -2048,17 +1804,13 @@ Object {
       "name": "identifier",
       "path": "GuidanceResponse.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The identity of a patient to search for guidance response results",
       "expression": "GuidanceResponse.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "GuidanceResponse.subject",
+      "type": "Patient",
     },
     Object {
       "description": "The identifier of the request associated with the response",
@@ -2066,16 +1818,12 @@ Object {
       "name": "request",
       "path": "GuidanceResponse.requestIdentifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The subject that the guidance response is about",
       "expression": "GuidanceResponse.subject",
       "name": "subject",
+      "path": "GuidanceResponse.subject",
       "type": "reference",
     },
   ],
@@ -2084,12 +1832,14 @@ Object {
       "description": "Account that is being balanced",
       "expression": "Invoice.account",
       "name": "account",
+      "path": "Invoice.account",
       "type": "reference",
     },
     Object {
       "description": "Invoice date / posting date",
       "expression": "Invoice.date",
       "name": "date",
+      "path": "Invoice.date",
       "type": "date",
     },
     Object {
@@ -2098,22 +1848,19 @@ Object {
       "name": "identifier",
       "path": "Invoice.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Issuing Organization of Invoice",
       "expression": "Invoice.issuer",
       "name": "issuer",
+      "path": "Invoice.issuer",
       "type": "reference",
     },
     Object {
       "description": "Individual who was involved",
       "expression": "Invoice.participant.actor",
       "name": "participant",
+      "path": "Invoice.participant.actor",
       "type": "reference",
     },
     Object {
@@ -2122,22 +1869,19 @@ Object {
       "name": "participant-role",
       "path": "Invoice.participant.role",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
     },
     Object {
       "description": "Recipient(s) of goods and services",
       "expression": "Invoice.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "Invoice.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Recipient of this invoice",
       "expression": "Invoice.recipient",
       "name": "recipient",
+      "path": "Invoice.recipient",
       "type": "reference",
     },
     Object {
@@ -2146,29 +1890,27 @@ Object {
       "name": "status",
       "path": "Invoice.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/invoice-status|4.0.1",
     },
     Object {
       "description": "Recipient(s) of goods and services",
       "expression": "Invoice.subject",
       "name": "subject",
+      "path": "Invoice.subject",
       "type": "reference",
     },
     Object {
       "description": "Gross total of this Invoice",
       "expression": "Invoice.totalGross",
       "name": "totalgross",
+      "path": "Invoice.totalGross",
       "type": "quantity",
     },
     Object {
       "description": "Net total of this Invoice",
       "expression": "Invoice.totalNet",
       "name": "totalnet",
+      "path": "Invoice.totalNet",
       "type": "quantity",
     },
     Object {
@@ -2177,11 +1919,6 @@ Object {
       "name": "type",
       "path": "Invoice.type",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
     },
   ],
   "List": Array [
@@ -2191,17 +1928,13 @@ Object {
       "name": "code",
       "path": "List.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/list-example-codes",
     },
     Object {
       "description": "When the list was prepared",
       "expression": "List.date",
       "name": "date",
+      "path": "List.date",
       "type": "date",
     },
     Object {
@@ -2210,22 +1943,19 @@ Object {
       "name": "identifier",
       "path": "List.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "If all resources have the same subject",
       "expression": "List.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "List.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Context in which list created",
       "expression": "List.encounter",
       "name": "encounter",
+      "path": "List.encounter",
       "type": "reference",
     },
     Object {
@@ -2234,29 +1964,27 @@ Object {
       "name": "empty-reason",
       "path": "List.emptyReason",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/list-empty-reason",
     },
     Object {
       "description": "Actual entry",
       "expression": "List.entry.item",
       "name": "item",
+      "path": "List.entry.item",
       "type": "reference",
     },
     Object {
       "description": "The annotation  - text content (as markdown)",
       "expression": "List.note.text",
       "name": "notes",
+      "path": "List.note.text",
       "type": "string",
     },
     Object {
       "description": "Who and/or what defined the list contents (aka Author)",
       "expression": "List.source",
       "name": "source",
+      "path": "List.source",
       "type": "reference",
     },
     Object {
@@ -2265,23 +1993,20 @@ Object {
       "name": "status",
       "path": "List.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/list-status|4.0.1",
     },
     Object {
       "description": "If all resources have the same subject",
       "expression": "List.subject",
       "name": "subject",
+      "path": "List.subject",
       "type": "reference",
     },
     Object {
       "description": "Descriptive name for the list",
       "expression": "List.title",
       "name": "title",
+      "path": "List.title",
       "type": "string",
     },
   ],
@@ -2290,12 +2015,14 @@ Object {
       "description": "The date of the measure report",
       "expression": "MeasureReport.date",
       "name": "date",
+      "path": "MeasureReport.date",
       "type": "date",
     },
     Object {
       "description": "An evaluated resource referenced by the measure report",
       "expression": "MeasureReport.evaluatedResource",
       "name": "evaluated-resource",
+      "path": "MeasureReport.evaluatedResource",
       "type": "reference",
     },
     Object {
@@ -2304,34 +2031,33 @@ Object {
       "name": "identifier",
       "path": "MeasureReport.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The measure to return measure report results for",
       "expression": "MeasureReport.measure",
       "name": "measure",
+      "path": "MeasureReport.measure",
       "type": "reference",
     },
     Object {
       "description": "The identity of a patient to search for individual measure report results for",
       "expression": "MeasureReport.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "MeasureReport.subject",
+      "type": "Patient",
     },
     Object {
       "description": "The period of the measure report",
       "expression": "MeasureReport.period",
       "name": "period",
+      "path": "MeasureReport.period",
       "type": "date",
     },
     Object {
       "description": "The reporter to return measure report results for",
       "expression": "MeasureReport.reporter",
       "name": "reporter",
+      "path": "MeasureReport.reporter",
       "type": "reference",
     },
     Object {
@@ -2340,39 +2066,23 @@ Object {
       "name": "status",
       "path": "MeasureReport.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/measure-report-status|4.0.1",
     },
     Object {
       "description": "The identity of a subject to search for individual measure report results for",
       "expression": "MeasureReport.subject",
       "name": "subject",
+      "path": "MeasureReport.subject",
       "type": "reference",
     },
   ],
   "MedicationAdministration": Array [
     Object {
       "description": "Return administrations of this medication code",
-      "expression": "MedicationAdministration.medication as CodeableConcept)",
+      "expression": "(MedicationAdministration.medication as CodeableConcept)",
       "name": "code",
-      "path": "MedicationAdministration.medication",
+      "path": "MedicationAdministration.medicationCodeableConcept",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-        Object {
-          "code": "Reference",
-          "targetProfile": Array [
-            "http://hl7.org/fhir/StructureDefinition/Medication",
-          ],
-        },
-      ],
-      "valueSet": "http://hl7.org/fhir/ValueSet/medication-codes",
     },
     Object {
       "description": "Return administrations with this external identifier",
@@ -2380,46 +2090,47 @@ Object {
       "name": "identifier",
       "path": "MedicationAdministration.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The identity of a patient to list administrations  for",
       "expression": "MedicationAdministration.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "MedicationAdministration.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Return administrations that share this encounter or episode of care",
       "expression": "MedicationAdministration.context",
       "name": "context",
+      "path": "MedicationAdministration.context",
       "type": "reference",
     },
     Object {
       "description": "Return administrations with this administration device identity",
       "expression": "MedicationAdministration.device",
       "name": "device",
+      "path": "MedicationAdministration.device",
       "type": "reference",
     },
     Object {
       "description": "Date administration happened (or did not happen)",
       "expression": "MedicationAdministration.effective",
       "name": "effective-time",
+      "path": "MedicationAdministration.effective",
       "type": "date",
     },
     Object {
       "description": "Return administrations of this medication resource",
-      "expression": "MedicationAdministration.medication as Reference)",
+      "expression": "(MedicationAdministration.medication as Reference)",
       "name": "medication",
-      "type": "reference",
+      "path": "MedicationAdministration.medicationReference",
+      "type": "Reference",
     },
     Object {
       "description": "The identity of the individual who administered the medication",
       "expression": "MedicationAdministration.performer.actor",
       "name": "performer",
+      "path": "MedicationAdministration.performer.actor",
       "type": "reference",
     },
     Object {
@@ -2428,11 +2139,6 @@ Object {
       "name": "reason-given",
       "path": "MedicationAdministration.reasonCode",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/reason-medication-given-codes",
     },
     Object {
@@ -2441,17 +2147,13 @@ Object {
       "name": "reason-not-given",
       "path": "MedicationAdministration.statusReason",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/reason-medication-not-given-codes",
     },
     Object {
       "description": "The identity of a request to list administrations from",
       "expression": "MedicationAdministration.request",
       "name": "request",
+      "path": "MedicationAdministration.request",
       "type": "reference",
     },
     Object {
@@ -2460,39 +2162,23 @@ Object {
       "name": "status",
       "path": "MedicationAdministration.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/medication-admin-status|4.0.1",
     },
     Object {
       "description": "The identity of the individual or group to list administrations for",
       "expression": "MedicationAdministration.subject",
       "name": "subject",
+      "path": "MedicationAdministration.subject",
       "type": "reference",
     },
   ],
   "MedicationDispense": Array [
     Object {
       "description": "Returns dispenses of this medicine code",
-      "expression": "MedicationDispense.medication as CodeableConcept)",
+      "expression": "(MedicationDispense.medication as CodeableConcept)",
       "name": "code",
-      "path": "MedicationDispense.medication",
+      "path": "MedicationDispense.medicationCodeableConcept",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-        Object {
-          "code": "Reference",
-          "targetProfile": Array [
-            "http://hl7.org/fhir/StructureDefinition/Medication",
-          ],
-        },
-      ],
-      "valueSet": "http://hl7.org/fhir/ValueSet/medication-codes",
     },
     Object {
       "description": "Returns dispenses with this external identifier",
@@ -2500,23 +2186,20 @@ Object {
       "name": "identifier",
       "path": "MedicationDispense.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The identity of a patient to list dispenses  for",
       "expression": "MedicationDispense.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "MedicationDispense.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Returns dispenses of this medicine resource",
-      "expression": "MedicationDispense.medication as Reference)",
+      "expression": "(MedicationDispense.medication as Reference)",
       "name": "medication",
-      "type": "reference",
+      "path": "MedicationDispense.medicationReference",
+      "type": "Reference",
     },
     Object {
       "description": "Returns dispenses with a specified dispense status",
@@ -2524,29 +2207,27 @@ Object {
       "name": "status",
       "path": "MedicationDispense.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/medicationdispense-status|4.0.1",
     },
     Object {
       "description": "Returns dispenses with a specific context (episode or episode of care)",
       "expression": "MedicationDispense.context",
       "name": "context",
+      "path": "MedicationDispense.context",
       "type": "reference",
     },
     Object {
       "description": "Returns dispenses that should be sent to a specific destination",
       "expression": "MedicationDispense.destination",
       "name": "destination",
+      "path": "MedicationDispense.destination",
       "type": "reference",
     },
     Object {
       "description": "Returns dispenses performed by a specific individual",
       "expression": "MedicationDispense.performer.actor",
       "name": "performer",
+      "path": "MedicationDispense.performer.actor",
       "type": "reference",
     },
     Object {
@@ -2555,24 +2236,28 @@ Object {
 * [MedicationDispense](medicationdispense.html): The identity of a prescription to list dispenses from",
       "expression": "MedicationDispense.authorizingPrescription",
       "name": "prescription",
+      "path": "MedicationDispense.authorizingPrescription",
       "type": "reference",
     },
     Object {
       "description": "The identity of a receiver to list dispenses for",
       "expression": "MedicationDispense.receiver",
       "name": "receiver",
+      "path": "MedicationDispense.receiver",
       "type": "reference",
     },
     Object {
       "description": "Returns dispenses with the specified responsible party",
       "expression": "MedicationDispense.substitution.responsibleParty",
       "name": "responsibleparty",
+      "path": "MedicationDispense.substitution.responsibleParty",
       "type": "reference",
     },
     Object {
       "description": "The identity of a patient for whom to list dispenses",
       "expression": "MedicationDispense.subject",
       "name": "subject",
+      "path": "MedicationDispense.subject",
       "type": "reference",
     },
     Object {
@@ -2581,45 +2266,30 @@ Object {
       "name": "type",
       "path": "MedicationDispense.type",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://terminology.hl7.org/ValueSet/v3-ActPharmacySupplyType",
     },
     Object {
       "description": "Returns dispenses handed over on this date",
       "expression": "MedicationDispense.whenHandedOver",
       "name": "whenhandedover",
+      "path": "MedicationDispense.whenHandedOver",
       "type": "date",
     },
     Object {
       "description": "Returns dispenses prepared on this date",
       "expression": "MedicationDispense.whenPrepared",
       "name": "whenprepared",
+      "path": "MedicationDispense.whenPrepared",
       "type": "date",
     },
   ],
   "MedicationRequest": Array [
     Object {
       "description": "Return prescriptions of this medication code",
-      "expression": "MedicationRequest.medication as CodeableConcept)",
+      "expression": "(MedicationRequest.medication as CodeableConcept)",
       "name": "code",
-      "path": "MedicationRequest.medication",
+      "path": "MedicationRequest.medicationCodeableConcept",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-        Object {
-          "code": "Reference",
-          "targetProfile": Array [
-            "http://hl7.org/fhir/StructureDefinition/Medication",
-          ],
-        },
-      ],
-      "valueSet": "http://hl7.org/fhir/ValueSet/medication-codes",
     },
     Object {
       "description": "Return prescriptions with this external identifier",
@@ -2627,23 +2297,20 @@ Object {
       "name": "identifier",
       "path": "MedicationRequest.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Returns prescriptions for a specific patient",
       "expression": "MedicationRequest.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "MedicationRequest.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Return prescriptions for this medication reference",
-      "expression": "MedicationRequest.medication as Reference)",
+      "expression": "(MedicationRequest.medication as Reference)",
       "name": "medication",
-      "type": "reference",
+      "path": "MedicationRequest.medicationReference",
+      "type": "Reference",
     },
     Object {
       "description": "Status of the prescription",
@@ -2651,17 +2318,13 @@ Object {
       "name": "status",
       "path": "MedicationRequest.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/medicationrequest-status|4.0.1",
     },
     Object {
       "description": "Return prescriptions written on this date",
       "expression": "MedicationRequest.authoredOn",
       "name": "authoredon",
+      "path": "MedicationRequest.authoredOn",
       "type": "date",
     },
     Object {
@@ -2670,11 +2333,6 @@ Object {
       "name": "category",
       "path": "MedicationRequest.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/medicationrequest-category",
     },
     Object {
@@ -2683,6 +2341,7 @@ Object {
 * [MedicationRequest](medicationrequest.html): Returns medication request to be administered on a specific date",
       "expression": "MedicationRequest.dosageInstruction.timing.event",
       "name": "date",
+      "path": "MedicationRequest.dosageInstruction.timing.event",
       "type": "date",
     },
     Object {
@@ -2691,18 +2350,21 @@ Object {
 * [MedicationRequest](medicationrequest.html): Return prescriptions with this encounter identifier",
       "expression": "MedicationRequest.encounter",
       "name": "encounter",
+      "path": "MedicationRequest.encounter",
       "type": "reference",
     },
     Object {
       "description": "Returns prescriptions intended to be dispensed by this Organization",
       "expression": "MedicationRequest.dispenseRequest.performer",
       "name": "intended-dispenser",
+      "path": "MedicationRequest.dispenseRequest.performer",
       "type": "reference",
     },
     Object {
       "description": "Returns the intended performer of the administration of the medication request",
       "expression": "MedicationRequest.performer",
       "name": "intended-performer",
+      "path": "MedicationRequest.performer",
       "type": "reference",
     },
     Object {
@@ -2711,11 +2373,6 @@ Object {
       "name": "intended-performertype",
       "path": "MedicationRequest.performerType",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/performer-role",
     },
     Object {
@@ -2724,11 +2381,6 @@ Object {
       "name": "intent",
       "path": "MedicationRequest.intent",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/medicationrequest-intent|4.0.1",
     },
     Object {
@@ -2737,45 +2389,30 @@ Object {
       "name": "priority",
       "path": "MedicationRequest.priority",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-priority|4.0.1",
     },
     Object {
       "description": "Returns prescriptions prescribed by this prescriber",
       "expression": "MedicationRequest.requester",
       "name": "requester",
+      "path": "MedicationRequest.requester",
       "type": "reference",
     },
     Object {
       "description": "The identity of a patient to list orders  for",
       "expression": "MedicationRequest.subject",
       "name": "subject",
+      "path": "MedicationRequest.subject",
       "type": "reference",
     },
   ],
   "MedicationStatement": Array [
     Object {
       "description": "Return statements of this medication code",
-      "expression": "MedicationStatement.medication as CodeableConcept)",
+      "expression": "(MedicationStatement.medication as CodeableConcept)",
       "name": "code",
-      "path": "MedicationStatement.medication",
+      "path": "MedicationStatement.medicationCodeableConcept",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-        Object {
-          "code": "Reference",
-          "targetProfile": Array [
-            "http://hl7.org/fhir/StructureDefinition/Medication",
-          ],
-        },
-      ],
-      "valueSet": "http://hl7.org/fhir/ValueSet/medication-codes",
     },
     Object {
       "description": "Return statements with this external identifier",
@@ -2783,23 +2420,20 @@ Object {
       "name": "identifier",
       "path": "MedicationStatement.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Returns statements for a specific patient.",
       "expression": "MedicationStatement.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "MedicationStatement.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Return statements of this medication reference",
-      "expression": "MedicationStatement.medication as Reference)",
+      "expression": "(MedicationStatement.medication as Reference)",
       "name": "medication",
-      "type": "reference",
+      "path": "MedicationStatement.medicationReference",
+      "type": "Reference",
     },
     Object {
       "description": "Return statements that match the given status",
@@ -2807,11 +2441,6 @@ Object {
       "name": "status",
       "path": "MedicationStatement.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/medication-statement-status|4.0.1",
     },
     Object {
@@ -2820,41 +2449,41 @@ Object {
       "name": "category",
       "path": "MedicationStatement.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/medication-statement-category",
     },
     Object {
       "description": "Returns statements for a specific context (episode or episode of Care).",
       "expression": "MedicationStatement.context",
       "name": "context",
+      "path": "MedicationStatement.context",
       "type": "reference",
     },
     Object {
       "description": "Date when patient was taking (or not taking) the medication",
       "expression": "MedicationStatement.effective",
       "name": "effective",
+      "path": "MedicationStatement.effective",
       "type": "date",
     },
     Object {
       "description": "Returns statements that are part of another event.",
       "expression": "MedicationStatement.partOf",
       "name": "part-of",
+      "path": "MedicationStatement.partOf",
       "type": "reference",
     },
     Object {
       "description": "Who or where the information in the statement came from",
       "expression": "MedicationStatement.informationSource",
       "name": "source",
+      "path": "MedicationStatement.informationSource",
       "type": "reference",
     },
     Object {
       "description": "The identity of a patient, animal or group to list statements for",
       "expression": "MedicationStatement.subject",
       "name": "subject",
+      "path": "MedicationStatement.subject",
       "type": "reference",
     },
   ],
@@ -2865,17 +2494,13 @@ Object {
       "name": "code",
       "path": "Observation.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/observation-codes",
     },
     Object {
       "description": "Obtained date/time. If the obtained element is a period, a date that falls in the period",
       "expression": "Observation.effective",
       "name": "date",
+      "path": "Observation.effective",
       "type": "date",
     },
     Object {
@@ -2884,28 +2509,26 @@ Object {
       "name": "identifier",
       "path": "Observation.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The subject that the observation is about (if patient)",
       "expression": "Observation.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "Observation.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Encounter related to the observation",
       "expression": "Observation.encounter",
       "name": "encounter",
+      "path": "Observation.encounter",
       "type": "reference",
     },
     Object {
       "description": "Reference to the service request.",
       "expression": "Observation.basedOn",
       "name": "based-on",
+      "path": "Observation.basedOn",
       "type": "reference",
     },
     Object {
@@ -2914,11 +2537,6 @@ Object {
       "name": "category",
       "path": "Observation.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/observation-category",
     },
     Object {
@@ -2927,11 +2545,6 @@ Object {
       "name": "combo-code",
       "path": "Observation.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/observation-codes",
     },
     Object {
@@ -2940,60 +2553,21 @@ Object {
       "name": "combo-data-absent-reason",
       "path": "Observation.dataAbsentReason",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/data-absent-reason",
     },
     Object {
       "description": "The value or component value of the observation, if the value is a CodeableConcept",
-      "expression": "Observation.value as CodeableConcept)",
+      "expression": "(Observation.value as CodeableConcept)",
       "name": "combo-value-concept",
-      "path": "Observation.value",
-      "type": "Quantity",
-      "typeDescription": Array [
-        Object {
-          "code": "Quantity",
-        },
-        Object {
-          "code": "CodeableConcept",
-        },
-        Object {
-          "code": "string",
-        },
-        Object {
-          "code": "boolean",
-        },
-        Object {
-          "code": "integer",
-        },
-        Object {
-          "code": "Range",
-        },
-        Object {
-          "code": "Ratio",
-        },
-        Object {
-          "code": "SampledData",
-        },
-        Object {
-          "code": "time",
-        },
-        Object {
-          "code": "dateTime",
-        },
-        Object {
-          "code": "Period",
-        },
-      ],
+      "path": "Observation.valueCodeableConcept",
+      "type": "CodeableConcept",
     },
     Object {
       "description": "The value or component value of the observation, if the value is a Quantity, or a SampledData (just search on the bounds of the values in sampled data)",
-      "expression": "Observation.value as Quantity)",
+      "expression": "(Observation.value as Quantity)",
       "name": "combo-value-quantity",
-      "type": "quantity",
+      "path": "Observation.valueQuantity",
+      "type": "Quantity",
     },
     Object {
       "description": "The component code of the observation type",
@@ -3001,11 +2575,6 @@ Object {
       "name": "component-code",
       "path": "Observation.component.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/observation-codes",
     },
     Object {
@@ -3014,60 +2583,21 @@ Object {
       "name": "component-data-absent-reason",
       "path": "Observation.component.dataAbsentReason",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/data-absent-reason",
     },
     Object {
       "description": "The value of the component observation, if the value is a CodeableConcept",
-      "expression": "Observation.component.value as CodeableConcept)",
+      "expression": "(Observation.component.value as CodeableConcept)",
       "name": "component-value-concept",
-      "path": "Observation.component.value",
-      "type": "Quantity",
-      "typeDescription": Array [
-        Object {
-          "code": "Quantity",
-        },
-        Object {
-          "code": "CodeableConcept",
-        },
-        Object {
-          "code": "string",
-        },
-        Object {
-          "code": "boolean",
-        },
-        Object {
-          "code": "integer",
-        },
-        Object {
-          "code": "Range",
-        },
-        Object {
-          "code": "Ratio",
-        },
-        Object {
-          "code": "SampledData",
-        },
-        Object {
-          "code": "time",
-        },
-        Object {
-          "code": "dateTime",
-        },
-        Object {
-          "code": "Period",
-        },
-      ],
+      "path": "Observation.component.valueCodeableConcept",
+      "type": "CodeableConcept",
     },
     Object {
       "description": "The value of the component observation, if the value is a Quantity, or a SampledData (just search on the bounds of the values in sampled data)",
-      "expression": "Observation.component.value as Quantity)",
+      "expression": "(Observation.component.value as Quantity)",
       "name": "component-value-quantity",
-      "type": "quantity",
+      "path": "Observation.component.valueQuantity",
+      "type": "Quantity",
     },
     Object {
       "description": "The reason why the expected value in the element Observation.value[x] is missing.",
@@ -3075,35 +2605,34 @@ Object {
       "name": "data-absent-reason",
       "path": "Observation.dataAbsentReason",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/data-absent-reason",
     },
     Object {
       "description": "Related measurements the observation is made from",
       "expression": "Observation.derivedFrom",
       "name": "derived-from",
+      "path": "Observation.derivedFrom",
       "type": "reference",
     },
     Object {
       "description": "The Device that generated the observation data.",
       "expression": "Observation.device",
       "name": "device",
+      "path": "Observation.device",
       "type": "reference",
     },
     Object {
       "description": "The focus of an observation when the focus is not the patient of record.",
       "expression": "Observation.focus",
       "name": "focus",
+      "path": "Observation.focus",
       "type": "reference",
     },
     Object {
       "description": "Related resource that belongs to the Observation group",
       "expression": "Observation.hasMember",
       "name": "has-member",
+      "path": "Observation.hasMember",
       "type": "reference",
     },
     Object {
@@ -3112,29 +2641,27 @@ Object {
       "name": "method",
       "path": "Observation.method",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/observation-methods",
     },
     Object {
       "description": "Part of referenced event",
       "expression": "Observation.partOf",
       "name": "part-of",
+      "path": "Observation.partOf",
       "type": "reference",
     },
     Object {
       "description": "Who performed the observation",
       "expression": "Observation.performer",
       "name": "performer",
+      "path": "Observation.performer",
       "type": "reference",
     },
     Object {
       "description": "Specimen used for this observation",
       "expression": "Observation.specimen",
       "name": "specimen",
+      "path": "Observation.specimen",
       "type": "reference",
     },
     Object {
@@ -3143,125 +2670,97 @@ Object {
       "name": "status",
       "path": "Observation.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/observation-status|4.0.1",
     },
     Object {
       "description": "The subject that the observation is about",
       "expression": "Observation.subject",
       "name": "subject",
+      "path": "Observation.subject",
       "type": "reference",
     },
     Object {
       "description": "The value of the observation, if the value is a CodeableConcept",
-      "expression": "Observation.value as CodeableConcept)",
+      "expression": "(Observation.value as CodeableConcept)",
       "name": "value-concept",
-      "path": "Observation.value",
-      "type": "Quantity",
-      "typeDescription": Array [
-        Object {
-          "code": "Quantity",
-        },
-        Object {
-          "code": "CodeableConcept",
-        },
-        Object {
-          "code": "string",
-        },
-        Object {
-          "code": "boolean",
-        },
-        Object {
-          "code": "integer",
-        },
-        Object {
-          "code": "Range",
-        },
-        Object {
-          "code": "Ratio",
-        },
-        Object {
-          "code": "SampledData",
-        },
-        Object {
-          "code": "time",
-        },
-        Object {
-          "code": "dateTime",
-        },
-        Object {
-          "code": "Period",
-        },
-      ],
+      "path": "Observation.valueCodeableConcept",
+      "type": "CodeableConcept",
     },
     Object {
       "description": "The value of the observation, if the value is a date or period of time",
-      "expression": "Observation.value as dateTime)",
+      "expression": "(Observation.value as dateTime)",
       "name": "value-date",
-      "type": "date",
+      "path": "Observation.valueDateTime",
+      "type": "dateTime",
     },
     Object {
       "description": "The value of the observation, if the value is a Quantity, or a SampledData (just search on the bounds of the values in sampled data)",
-      "expression": "Observation.value as Quantity)",
+      "expression": "(Observation.value as Quantity)",
       "name": "value-quantity",
-      "type": "quantity",
+      "path": "Observation.valueQuantity",
+      "type": "Quantity",
     },
     Object {
       "description": "The value of the observation, if the value is a string, and also searches in CodeableConcept.text",
-      "expression": "Observation.value as string)",
+      "expression": "(Observation.value as string)",
       "name": "value-string",
+      "path": "Observation.valueString",
       "type": "string",
     },
     Object {
       "description": "Code and coded value parameter pair",
-      "expression": "Observation.value as string)",
+      "expression": "Observation",
       "name": "code-value-concept",
+      "path": "Observation",
       "type": "composite",
     },
     Object {
       "description": "Code and date/time value parameter pair",
-      "expression": "Observation.value as string)",
+      "expression": "Observation",
       "name": "code-value-date",
+      "path": "Observation",
       "type": "composite",
     },
     Object {
       "description": "Code and quantity value parameter pair",
-      "expression": "Observation.value as string)",
+      "expression": "Observation",
       "name": "code-value-quantity",
+      "path": "Observation",
       "type": "composite",
     },
     Object {
       "description": "Code and string value parameter pair",
-      "expression": "Observation.value as string)",
+      "expression": "Observation",
       "name": "code-value-string",
+      "path": "Observation",
       "type": "composite",
     },
     Object {
       "description": "Code and coded value parameter pair, including in components",
-      "expression": "Observation.component",
+      "expression": "Observation",
       "name": "combo-code-value-concept",
+      "path": "Observation",
       "type": "composite",
     },
     Object {
       "description": "Code and quantity value parameter pair, including in components",
-      "expression": "Observation.component",
+      "expression": "Observation",
       "name": "combo-code-value-quantity",
+      "path": "Observation",
       "type": "composite",
     },
     Object {
       "description": "Component code and component coded value parameter pair",
       "expression": "Observation.component",
       "name": "component-code-value-concept",
+      "path": "Observation.component",
       "type": "composite",
     },
     Object {
       "description": "Component code and component quantity value parameter pair",
       "expression": "Observation.component",
       "name": "component-code-value-quantity",
+      "path": "Observation.component",
       "type": "composite",
     },
   ],
@@ -3272,40 +2771,40 @@ Object {
       "name": "active",
       "path": "Patient.active",
       "type": "boolean",
-      "typeDescription": Array [
-        Object {
-          "code": "boolean",
-        },
-      ],
     },
     Object {
       "description": "A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text",
       "expression": "Patient.address",
       "name": "address",
+      "path": "Patient.address",
       "type": "string",
     },
     Object {
       "description": "A city specified in an address",
       "expression": "Patient.address.city",
       "name": "address-city",
+      "path": "Patient.address.city",
       "type": "string",
     },
     Object {
       "description": "A country specified in an address",
       "expression": "Patient.address.country",
       "name": "address-country",
+      "path": "Patient.address.country",
       "type": "string",
     },
     Object {
       "description": "A postalCode specified in an address",
       "expression": "Patient.address.postalCode",
       "name": "address-postalcode",
+      "path": "Patient.address.postalCode",
       "type": "string",
     },
     Object {
       "description": "A state specified in an address",
       "expression": "Patient.address.state",
       "name": "address-state",
+      "path": "Patient.address.state",
       "type": "string",
     },
     Object {
@@ -3314,41 +2813,41 @@ Object {
       "name": "address-use",
       "path": "Patient.address.use",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/address-use|4.0.1",
     },
     Object {
       "description": "The patient's date of birth",
       "expression": "Patient.birthDate",
       "name": "birthdate",
+      "path": "Patient.birthDate",
       "type": "date",
     },
     Object {
       "description": "The date of death has been provided and satisfies this search value",
-      "expression": "Patient.deceased as dateTime)",
+      "expression": "(Patient.deceased as dateTime)",
       "name": "death-date",
-      "type": "date",
+      "path": "Patient.deceasedDateTime",
+      "type": "dateTime",
     },
     Object {
       "description": "This patient has been marked as deceased, or as a death date entered",
       "expression": "Patient.deceased.exists() and Patient.deceased != false",
       "name": "deceased",
+      "path": "",
       "type": "boolean",
     },
     Object {
       "description": "A value in an email contact",
       "expression": "Patient.telecom.where(system='email')",
       "name": "email",
-      "type": "string",
+      "path": "Patient.telecom",
+      "type": "ContactPoint",
     },
     Object {
       "description": "A portion of the family name of the patient",
       "expression": "Patient.name.family",
       "name": "family",
+      "path": "Patient.name.family",
       "type": "string",
     },
     Object {
@@ -3357,23 +2856,20 @@ Object {
       "name": "gender",
       "path": "Patient.gender",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/administrative-gender|4.0.1",
     },
     Object {
       "description": "Patient's nominated general practitioner, not the organization that manages the record",
       "expression": "Patient.generalPractitioner",
       "name": "general-practitioner",
+      "path": "Patient.generalPractitioner",
       "type": "reference",
     },
     Object {
       "description": "A portion of the given name of the patient",
       "expression": "Patient.name.given",
       "name": "given",
+      "path": "Patient.name.given",
       "type": "string",
     },
     Object {
@@ -3382,11 +2878,6 @@ Object {
       "name": "identifier",
       "path": "Patient.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Language code (irrespective of use value)",
@@ -3394,41 +2885,41 @@ Object {
       "name": "language",
       "path": "Patient.communication.language",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/languages",
     },
     Object {
       "description": "All patients linked to the given patient",
       "expression": "Patient.link.other",
       "name": "link",
+      "path": "Patient.link.other",
       "type": "reference",
     },
     Object {
       "description": "A server defined search that may match any of the string fields in the HumanName, including family, give, prefix, suffix, suffix, and/or text",
       "expression": "Patient.name",
       "name": "name",
+      "path": "Patient.name",
       "type": "string",
     },
     Object {
       "description": "The organization that is the custodian of the patient record",
       "expression": "Patient.managingOrganization",
       "name": "organization",
+      "path": "Patient.managingOrganization",
       "type": "reference",
     },
     Object {
       "description": "A value in a phone contact",
       "expression": "Patient.telecom.where(system='phone')",
       "name": "phone",
-      "type": "string",
+      "path": "Patient.telecom",
+      "type": "ContactPoint",
     },
     Object {
       "description": "A portion of either family or given name using some kind of phonetic matching algorithm",
       "expression": "Patient.name",
       "name": "phonetic",
+      "path": "Patient.name",
       "type": "string",
     },
     Object {
@@ -3437,11 +2928,6 @@ Object {
       "name": "telecom",
       "path": "Patient.telecom",
       "type": "ContactPoint",
-      "typeDescription": Array [
-        Object {
-          "code": "ContactPoint",
-        },
-      ],
     },
   ],
   "Procedure": Array [
@@ -3451,17 +2937,13 @@ Object {
       "name": "code",
       "path": "Procedure.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/procedure-code",
     },
     Object {
       "description": "When the procedure was performed",
       "expression": "Procedure.performed",
       "name": "date",
+      "path": "Procedure.performed",
       "type": "date",
     },
     Object {
@@ -3470,28 +2952,26 @@ Object {
       "name": "identifier",
       "path": "Procedure.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Search by subject - a patient",
       "expression": "Procedure.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "Procedure.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Encounter created as part of",
       "expression": "Procedure.encounter",
       "name": "encounter",
+      "path": "Procedure.encounter",
       "type": "reference",
     },
     Object {
       "description": "A request for this procedure",
       "expression": "Procedure.basedOn",
       "name": "based-on",
+      "path": "Procedure.basedOn",
       "type": "reference",
     },
     Object {
@@ -3500,41 +2980,41 @@ Object {
       "name": "category",
       "path": "Procedure.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/procedure-category",
     },
     Object {
       "description": "Instantiates FHIR protocol or definition",
       "expression": "Procedure.instantiatesCanonical",
       "name": "instantiates-canonical",
+      "path": "Procedure.instantiatesCanonical",
       "type": "reference",
     },
     Object {
       "description": "Instantiates external protocol or definition",
       "expression": "Procedure.instantiatesUri",
       "name": "instantiates-uri",
+      "path": "Procedure.instantiatesUri",
       "type": "uri",
     },
     Object {
       "description": "Where the procedure happened",
       "expression": "Procedure.location",
       "name": "location",
+      "path": "Procedure.location",
       "type": "reference",
     },
     Object {
       "description": "Part of referenced event",
       "expression": "Procedure.partOf",
       "name": "part-of",
+      "path": "Procedure.partOf",
       "type": "reference",
     },
     Object {
       "description": "The reference to the practitioner",
       "expression": "Procedure.performer.actor",
       "name": "performer",
+      "path": "Procedure.performer.actor",
       "type": "reference",
     },
     Object {
@@ -3543,17 +3023,13 @@ Object {
       "name": "reason-code",
       "path": "Procedure.reasonCode",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/procedure-reason",
     },
     Object {
       "description": "The justification that the procedure was performed",
       "expression": "Procedure.reasonReference",
       "name": "reason-reference",
+      "path": "Procedure.reasonReference",
       "type": "reference",
     },
     Object {
@@ -3562,17 +3038,13 @@ Object {
       "name": "status",
       "path": "Procedure.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/event-status|4.0.1",
     },
     Object {
       "description": "Search by subject",
       "expression": "Procedure.subject",
       "name": "subject",
+      "path": "Procedure.subject",
       "type": "reference",
     },
   ],
@@ -3581,12 +3053,14 @@ Object {
       "description": "The author of the request group",
       "expression": "RequestGroup.author",
       "name": "author",
+      "path": "RequestGroup.author",
       "type": "reference",
     },
     Object {
       "description": "The date the request group was authored",
       "expression": "RequestGroup.authoredOn",
       "name": "authored",
+      "path": "RequestGroup.authoredOn",
       "type": "date",
     },
     Object {
@@ -3595,16 +3069,12 @@ Object {
       "name": "code",
       "path": "RequestGroup.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
     },
     Object {
       "description": "The encounter the request group applies to",
       "expression": "RequestGroup.encounter",
       "name": "encounter",
+      "path": "RequestGroup.encounter",
       "type": "reference",
     },
     Object {
@@ -3613,11 +3083,6 @@ Object {
       "name": "group-identifier",
       "path": "RequestGroup.groupIdentifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "External identifiers for the request group",
@@ -3625,22 +3090,19 @@ Object {
       "name": "identifier",
       "path": "RequestGroup.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "The FHIR-based definition from which the request group is realized",
       "expression": "RequestGroup.instantiatesCanonical",
       "name": "instantiates-canonical",
+      "path": "RequestGroup.instantiatesCanonical",
       "type": "reference",
     },
     Object {
       "description": "The external definition from which the request group is realized",
       "expression": "RequestGroup.instantiatesUri",
       "name": "instantiates-uri",
+      "path": "RequestGroup.instantiatesUri",
       "type": "uri",
     },
     Object {
@@ -3649,24 +3111,21 @@ Object {
       "name": "intent",
       "path": "RequestGroup.intent",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-intent|4.0.1",
     },
     Object {
       "description": "The participant in the requests in the group",
       "expression": "RequestGroup.action.participant",
       "name": "participant",
+      "path": "RequestGroup.action.participant",
       "type": "reference",
     },
     Object {
       "description": "The identity of a patient to search for request groups",
       "expression": "RequestGroup.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "RequestGroup.subject",
+      "type": "Patient",
     },
     Object {
       "description": "The priority of the request group",
@@ -3674,11 +3133,6 @@ Object {
       "name": "priority",
       "path": "RequestGroup.priority",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-priority|4.0.1",
     },
     Object {
@@ -3687,26 +3141,23 @@ Object {
       "name": "status",
       "path": "RequestGroup.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-status|4.0.1",
     },
     Object {
       "description": "The subject that the request group is about",
       "expression": "RequestGroup.subject",
       "name": "subject",
+      "path": "RequestGroup.subject",
       "type": "reference",
     },
   ],
   "RiskAssessment": Array [
     Object {
       "description": "When was assessment made?",
-      "expression": "RiskAssessment.occurrence as dateTime)",
+      "expression": "(RiskAssessment.occurrence as dateTime)",
       "name": "date",
-      "type": "date",
+      "path": "RiskAssessment.occurrenceDateTime",
+      "type": "dateTime",
     },
     Object {
       "description": "Unique identifier for the assessment",
@@ -3714,28 +3165,26 @@ Object {
       "name": "identifier",
       "path": "RiskAssessment.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Who/what does assessment apply to?",
       "expression": "RiskAssessment.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "RiskAssessment.subject",
+      "type": "Patient",
     },
     Object {
       "description": "Where was assessment performed?",
       "expression": "RiskAssessment.encounter",
       "name": "encounter",
+      "path": "RiskAssessment.encounter",
       "type": "reference",
     },
     Object {
       "description": "Condition assessed",
       "expression": "RiskAssessment.condition",
       "name": "condition",
+      "path": "RiskAssessment.condition",
       "type": "reference",
     },
     Object {
@@ -3744,22 +3193,19 @@ Object {
       "name": "method",
       "path": "RiskAssessment.method",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
     },
     Object {
       "description": "Who did assessment?",
       "expression": "RiskAssessment.performer",
       "name": "performer",
+      "path": "RiskAssessment.performer",
       "type": "reference",
     },
     Object {
       "description": "Likelihood of specified outcome",
       "expression": "RiskAssessment.prediction.probability",
       "name": "probability",
+      "path": "RiskAssessment.prediction.probability",
       "type": "number",
     },
     Object {
@@ -3768,17 +3214,13 @@ Object {
       "name": "risk",
       "path": "RiskAssessment.prediction.qualitativeRisk",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/risk-probability",
     },
     Object {
       "description": "Who/what does assessment apply to?",
       "expression": "RiskAssessment.subject",
       "name": "subject",
+      "path": "RiskAssessment.subject",
       "type": "reference",
     },
   ],
@@ -3789,11 +3231,6 @@ Object {
       "name": "code",
       "path": "ServiceRequest.code",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/procedure-code",
     },
     Object {
@@ -3802,34 +3239,33 @@ Object {
       "name": "identifier",
       "path": "ServiceRequest.identifier",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Search by subject - a patient",
       "expression": "ServiceRequest.subject.where(resolve() is Patient)",
       "name": "patient",
-      "type": "reference",
+      "path": "ServiceRequest.subject",
+      "type": "Patient",
     },
     Object {
       "description": "An encounter in which this request is made",
       "expression": "ServiceRequest.encounter",
       "name": "encounter",
+      "path": "ServiceRequest.encounter",
       "type": "reference",
     },
     Object {
       "description": "Date request signed",
       "expression": "ServiceRequest.authoredOn",
       "name": "authored",
+      "path": "ServiceRequest.authoredOn",
       "type": "date",
     },
     Object {
       "description": "What request fulfills",
       "expression": "ServiceRequest.basedOn",
       "name": "based-on",
+      "path": "ServiceRequest.basedOn",
       "type": "reference",
     },
     Object {
@@ -3838,11 +3274,6 @@ Object {
       "name": "body-site",
       "path": "ServiceRequest.bodySite",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/body-site",
     },
     Object {
@@ -3851,23 +3282,20 @@ Object {
       "name": "category",
       "path": "ServiceRequest.category",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/servicerequest-category",
     },
     Object {
       "description": "Instantiates FHIR protocol or definition",
       "expression": "ServiceRequest.instantiatesCanonical",
       "name": "instantiates-canonical",
+      "path": "ServiceRequest.instantiatesCanonical",
       "type": "reference",
     },
     Object {
       "description": "Instantiates external protocol or definition",
       "expression": "ServiceRequest.instantiatesUri",
       "name": "instantiates-uri",
+      "path": "ServiceRequest.instantiatesUri",
       "type": "uri",
     },
     Object {
@@ -3876,23 +3304,20 @@ Object {
       "name": "intent",
       "path": "ServiceRequest.intent",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-intent|4.0.1",
     },
     Object {
       "description": "When service should occur",
       "expression": "ServiceRequest.occurrence",
       "name": "occurrence",
+      "path": "ServiceRequest.occurrence",
       "type": "date",
     },
     Object {
       "description": "Requested performer",
       "expression": "ServiceRequest.performer",
       "name": "performer",
+      "path": "ServiceRequest.performer",
       "type": "reference",
     },
     Object {
@@ -3901,11 +3326,6 @@ Object {
       "name": "performer-type",
       "path": "ServiceRequest.performerType",
       "type": "CodeableConcept",
-      "typeDescription": Array [
-        Object {
-          "code": "CodeableConcept",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/participant-role",
     },
     Object {
@@ -3914,23 +3334,20 @@ Object {
       "name": "priority",
       "path": "ServiceRequest.priority",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-priority|4.0.1",
     },
     Object {
       "description": "What request replaces",
       "expression": "ServiceRequest.replaces",
       "name": "replaces",
+      "path": "ServiceRequest.replaces",
       "type": "reference",
     },
     Object {
       "description": "Who/what is requesting service",
       "expression": "ServiceRequest.requester",
       "name": "requester",
+      "path": "ServiceRequest.requester",
       "type": "reference",
     },
     Object {
@@ -3939,16 +3356,12 @@ Object {
       "name": "requisition",
       "path": "ServiceRequest.requisition",
       "type": "Identifier",
-      "typeDescription": Array [
-        Object {
-          "code": "Identifier",
-        },
-      ],
     },
     Object {
       "description": "Specimen to be tested",
       "expression": "ServiceRequest.specimen",
       "name": "specimen",
+      "path": "ServiceRequest.specimen",
       "type": "reference",
     },
     Object {
@@ -3957,17 +3370,13 @@ Object {
       "name": "status",
       "path": "ServiceRequest.status",
       "type": "code",
-      "typeDescription": Array [
-        Object {
-          "code": "code",
-        },
-      ],
       "valueSet": "http://hl7.org/fhir/ValueSet/request-status|4.0.1",
     },
     Object {
       "description": "Search by subject",
       "expression": "ServiceRequest.subject",
       "name": "subject",
+      "path": "ServiceRequest.subject",
       "type": "reference",
     },
   ],
@@ -30044,7 +29453,6 @@ Object {
       "display": "Unsupported",
     },
   ],
-  "http://hl7.org/fhir/ValueSet/device-kind": "http://hl7.org/fhir/ValueSet/device-kind",
   "http://hl7.org/fhir/ValueSet/diagnostic-report-status|4.0.1": Array [
     Object {
       "code": "amended",
@@ -30935,7 +30343,6 @@ Object {
       "display": "Unknown",
     },
   ],
-  "http://hl7.org/fhir/ValueSet/medication-codes": "http://hl7.org/fhir/ValueSet/medication-codes",
   "http://hl7.org/fhir/ValueSet/medication-statement-category": Array [
     Object {
       "code": "community",
@@ -37112,7 +36519,6 @@ Object {
   "Condition.severity": "http://hl7.org/fhir/ValueSet/condition-severity",
   "Condition.stage.summary": "http://hl7.org/fhir/ValueSet/condition-stage",
   "Condition.verificationStatus": "http://hl7.org/fhir/ValueSet/condition-ver-status|4.0.1",
-  "DeviceRequest.code": "http://hl7.org/fhir/ValueSet/device-kind",
   "DeviceRequest.intent": "http://hl7.org/fhir/ValueSet/request-intent|4.0.1",
   "DeviceRequest.status": "http://hl7.org/fhir/ValueSet/request-status|4.0.1",
   "DiagnosticReport.category": "http://hl7.org/fhir/ValueSet/diagnostic-service-sections",
@@ -37146,21 +36552,17 @@ Object {
   "List.emptyReason": "http://hl7.org/fhir/ValueSet/list-empty-reason",
   "List.status": "http://hl7.org/fhir/ValueSet/list-status|4.0.1",
   "MeasureReport.status": "http://hl7.org/fhir/ValueSet/measure-report-status|4.0.1",
-  "MedicationAdministration.medication": "http://hl7.org/fhir/ValueSet/medication-codes",
   "MedicationAdministration.reasonCode": "http://hl7.org/fhir/ValueSet/reason-medication-given-codes",
   "MedicationAdministration.status": "http://hl7.org/fhir/ValueSet/medication-admin-status|4.0.1",
   "MedicationAdministration.statusReason": "http://hl7.org/fhir/ValueSet/reason-medication-not-given-codes",
-  "MedicationDispense.medication": "http://hl7.org/fhir/ValueSet/medication-codes",
   "MedicationDispense.status": "http://hl7.org/fhir/ValueSet/medicationdispense-status|4.0.1",
   "MedicationDispense.type": "http://terminology.hl7.org/ValueSet/v3-ActPharmacySupplyType",
   "MedicationRequest.category": "http://hl7.org/fhir/ValueSet/medicationrequest-category",
   "MedicationRequest.intent": "http://hl7.org/fhir/ValueSet/medicationrequest-intent|4.0.1",
-  "MedicationRequest.medication": "http://hl7.org/fhir/ValueSet/medication-codes",
   "MedicationRequest.performerType": "http://hl7.org/fhir/ValueSet/performer-role",
   "MedicationRequest.priority": "http://hl7.org/fhir/ValueSet/request-priority|4.0.1",
   "MedicationRequest.status": "http://hl7.org/fhir/ValueSet/medicationrequest-status|4.0.1",
   "MedicationStatement.category": "http://hl7.org/fhir/ValueSet/medication-statement-category",
-  "MedicationStatement.medication": "http://hl7.org/fhir/ValueSet/medication-codes",
   "MedicationStatement.status": "http://hl7.org/fhir/ValueSet/medication-statement-status|4.0.1",
   "Observation.category": "http://hl7.org/fhir/ValueSet/observation-category",
   "Observation.code": "http://hl7.org/fhir/ValueSet/observation-codes",

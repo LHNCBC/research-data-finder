@@ -171,13 +171,8 @@ function stringParameterDescription({ placeholder, column, name }) {
  * @param {string} resourceType - resource type, e.g. 'Patient', 'Encounter'
  * @return {Object}
  */
-function dateParameterDescription({
-  name,
-  column,
-  description,
-  elementPath,
-  resourceType
-}) {
+// prettier-ignore
+function dateParameterDescription({ name, column, description, elementPath, resourceType}) {
   return {
     column,
     getControlsHtml: (searchItemId) => {
@@ -244,7 +239,10 @@ function loadDate(inputId, resourceType, paramName, resourceElementPath, mode) {
       if (status === 200 && data.entry && data.entry.length) {
         let value = getValueByPath(data.entry[0].resource, elementPath);
         if (value && (value.start || value.end)) {
-          value = mode === LOAD_DATE_MODE.MIN ? value.start || value.end : value.end || value.start;
+          value =
+            mode === LOAD_DATE_MODE.MIN
+              ? value.start || value.end
+              : value.end || value.start;
         }
         const date = /^(\d{4})(-\d{2}-\d{2}|$)/.test(value)
           ? `${RegExp.$1}${RegExp.$2 || '-01-01'}`
@@ -365,10 +363,7 @@ export function defaultParameters(
             description: item.description,
             name,
             column: searchNameToColumn[name] || name,
-            elementPath: getElementPathFromExpression(
-              resourceType,
-              item.expression
-            ),
+            elementPath: getPropertyPath(resourceType, item.path),
             resourceType
           });
           break;
@@ -405,21 +400,15 @@ export function defaultParameters(
 }
 
 /**
- * Determines resource element path by expression from resource search parameter specification.
- * @param {string} resourceType
- * @param {string} expression
+ * Determines resource property path by simple FHIRPath expression
+ * @param {string} resourceType - resource type
+ * @param {string} path - simple FHIRPath expression starting with a resource
+ *                        type with a dot-separated listing of property names
  * @return {string}
  */
-function getElementPathFromExpression(resourceType, expression) {
-  let s = new RegExp(`${resourceType}\\.([^\\s]*)`).test(expression)
-    ? RegExp.$1
-    : null;
-
-  if (/^(.*).as\((.*)\)$/.test(s)) {
-    return RegExp.$1 + capitalize(RegExp.$2);
-  }
-
-  return s;
+function getPropertyPath(resourceType, path) {
+  const searchValue = new RegExp(`^${resourceType}\\.`);
+  return path.replace(searchValue, '');
 }
 
 /**

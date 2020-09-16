@@ -3,7 +3,7 @@ import { updateUrlWithParam } from './utils';
 let commonRequestCache = {}; // Map from url to result JSON
 
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
-export const HTTP_ABORT = -1;
+export const HTTP_ABORT = 0;
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
 export class FhirBatchQuery {
