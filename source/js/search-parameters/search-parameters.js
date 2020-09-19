@@ -108,6 +108,14 @@ export class SearchParameters {
   }
 
   /**
+   * Returns root HTMLElement of the SearchParameters component
+   * @return {HTMLElement}
+   */
+  getHtmlElement() {
+    return document.getElementById(this.internalId);
+  }
+
+  /**
    * Removes all controls and related data
    */
   dispose() {

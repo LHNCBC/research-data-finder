@@ -277,3 +277,20 @@ export function getDateTimeFromInput(selector, timeString = null) {
 
   return '';
 }
+
+/**
+ * Checks if rootElement has no invalid children and focus on first invalid child if any
+ * @param rootElement
+ * @return {boolean}
+ */
+export function validate(rootElement = document) {
+  const invalidElements = rootElement.querySelectorAll('input:invalid');
+
+  if (invalidElements.length > 0) {
+    invalidElements[0].scrollIntoView();
+    invalidElements[0].focus();
+    return false;
+  }
+
+  return true;
+}

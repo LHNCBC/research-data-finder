@@ -16,7 +16,12 @@ import {
   ConditionSearchParameters,
   MedicationDispenseSearchParameters
 } from './search-parameters';
-import { toggleCssClass, addCssClass, removeCssClass } from './common/utils';
+import {
+  toggleCssClass,
+  addCssClass,
+  removeCssClass,
+  validate
+} from './common/utils';
 import { Reporter } from './reporter';
 import { PatientTable } from './patient-table';
 import './common/collapsable-sections';
@@ -245,6 +250,10 @@ function createPatientSearchParameters(serviceBaseUrl) {
  * Handles the request to load the Patient list
  */
 export function loadPatients() {
+  if (!validate(patientSearchParams.getHtmlElement())) {
+    return;
+  }
+
   fhirClient = getFhirClient();
   reportPatientsSpan.innerHTML = '';
   loadPatientsButton.disabled = true;

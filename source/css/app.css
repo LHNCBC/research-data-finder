@@ -217,6 +217,10 @@ input:invalid:not(:focus) {
   background-color: #ffbebe;
 }
 
+input:invalid:focus {
+  background-color: #fee8e9;
+}
+
 div.section__body > div:not(.search-parameter-list) > *:not(:first-child) {
   margin-left: 1em;
 }
