@@ -256,11 +256,12 @@ document
 /**
  * Logs error message for screen reader
  */
-export function check() {
+export function checkPatientCriteria() {
   const form = document.getElementById('patientCriteriaForm');
 
   if (!form.checkValidity()) {
-    const errorMsg = 'Please correct the invalid fields before loading';
+    const errorMsg =
+      'Please correct the invalid fields before loading Patients';
     Def.Autocompleter.screenReaderLog(errorMsg);
   }
 }
