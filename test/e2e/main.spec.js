@@ -1,14 +1,50 @@
 'use strict';
 
-const os = require("os"),
-  Key = protractor.Key,
-  EC = protractor.ExpectedConditions;
+const os = require("os");
+const Key = protractor.Key;
+const EC = protractor.ExpectedConditions;
 
 describe('Research Data Finder', function() {
   beforeAll(function () {
     setAngularSite(false);
     browser.get('/');
   });
+
+  const item_prefix = 'searchParam_param_';
+  let item_index = 0;
+
+  /**
+   * Search parameter id generator
+   * (see "addParam" method of "SearchParameters" class)
+   * @return {string}
+   */
+  function getNextSearchParamId() {
+    return item_prefix + ++item_index;
+  }
+
+  /**
+   * Checks if input field value containing any date
+   * @param {ElementFinder} elementFinder
+   * @return {function(): Promise<boolean>}
+   */
+  function anyDateToBePresentInInput(elementFinder) {
+    return function () {
+      return elementFinder.getAttribute('value').then(function (value) {
+        return /\d{4}-\d{2}-\d{2}/.test(value);
+      });
+    };
+  }
+
+  /**
+   * "it" function to check that Patients can be loaded
+   */
+  function checkLoadPatients() {
+    const loadPatientsBtn = $('#loadPatients');
+
+    browser.wait(EC.elementToBeClickable(loadPatientsBtn));
+    loadPatientsBtn.click();
+    browser.wait(EC.visibilityOf($('#loadObservations')));
+  }
 
   /**
    * "it" function to check that Observations can be loaded
@@ -32,7 +68,7 @@ describe('Research Data Finder', function() {
 
     $('#download').click();
 
-    browser.driver.wait(function() {
+    browser.wait(function() {
       // Wait until the file has been downloaded.
       return fs.existsSync(filename);
     }, 30000).then(function() {
@@ -50,51 +86,72 @@ describe('Research Data Finder', function() {
   }
 
   describe('without criteria(initial state)', function () {
-    it('should load Patients', function () {
-      const loadPatientsBtn = $('#loadPatients');
-
-      browser.wait(EC.elementToBeClickable(loadPatientsBtn));
-      loadPatientsBtn.click();
-      browser.wait(EC.visibilityOf($('#loadObservations')));
-    });
+    it('should load Patients', checkLoadPatients);
 
     it('should load Observations filtered by tests', checkLoadObservations);
 
     it('should download Observations', checkDownloadObservations);
   });
 
-  describe('after add a criterion to Patient resource', function () {
-    it('should load Patients filtered by criteria', function () {
-      const loadPatientsBtn = $('#loadPatients');
+  describe('add criteria to Patient resource', function () {
+    it('should load minimum and maximum values for date criterion', function () {
+      const searchParamId = getNextSearchParamId();
       const addCriterionBtn = $('#searchParam_add_button');
-      const resourceInput = $('#searchParam_param_1_resource');
-      const paramNameInput = $('#searchParam_param_1');
+      const resourceInput = $(`#${searchParamId}_resource`);
+      const paramNameInput = $(`#${searchParamId}`);
+      const fromInput = $(`#${searchParamId}-birthdate-from`);
+      const toInput = $(`#${searchParamId}-birthdate-to`);
 
       browser.wait(EC.elementToBeClickable(addCriterionBtn));
       addCriterionBtn.click();
 
       resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a') + 'Patient');
       resourceInput.sendKeys(Key.ENTER);
-      browser.wait(EC.textToBePresentInElementValue(paramNameInput, 'Active'), 2000);
+      paramNameInput.sendKeys(Key.chord(Key.CONTROL, 'a') + 'Date of birth');
+      paramNameInput.sendKeys(Key.ENTER);
 
-      browser.wait(EC.elementToBeClickable(loadPatientsBtn));
-      loadPatientsBtn.click();
-      browser.wait(EC.visibilityOf($('#loadObservations')));
+      browser.wait(
+        EC.and(
+          anyDateToBePresentInInput(fromInput),
+          anyDateToBePresentInInput(toInput)
+        ),
+        2000
+      );
     });
+
+    it('first Patient\'s parameter should be "Active"', function () {
+      const searchParamId = getNextSearchParamId();
+      const addCriterionBtn = $('#searchParam_add_button');
+      const resourceInput = $(`#${searchParamId}_resource`);
+      const paramNameInput = $(`#${searchParamId}`);
+
+      browser.wait(EC.elementToBeClickable(addCriterionBtn));
+      addCriterionBtn.click();
+
+      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a') + 'Patient');
+      resourceInput.sendKeys(Key.ENTER);
+      browser.wait(
+        EC.textToBePresentInElementValue(paramNameInput, 'Active'),
+        2000
+      );
+    });
+  });
+
+  describe('after add a criterion to Patient resource', function () {
+    it('should load Patients filtered by criteria', checkLoadPatients);
 
     it('should load Observations filtered by tests', checkLoadObservations);
 
     it('should download Observations', checkDownloadObservations);
   });
 
-  describe('after add a criterion to Observation resource', function () {
-    it('should load Patients filtered by criteria', function () {
-      const loadPatientsBtn = $('#loadPatients');
+  describe('add criteria to Observation resource', function () {
+    it('"Body height Measured" = 63', function () {
+      const searchParamId = getNextSearchParamId();
       const addCriterionBtn = $('#searchParam_add_button');
-      const loadObservationsBtn = $('#loadObservations');
-      const resourceInput = $('#searchParam_param_2_resource');
-      const testNameInput = $('#searchParam_param_2-test-name');
-      const testRealValueInput = $('#searchParam_param_2-test-real-value');
+      const resourceInput = $(`#${searchParamId}_resource`);
+      const testNameInput = $(`#${searchParamId}-test-name`);
+      const testRealValueInput = $(`#${searchParamId}-test-real-value`);
 
       browser.wait(EC.elementToBeClickable(addCriterionBtn));
       addCriterionBtn.click();
@@ -105,13 +162,11 @@ describe('Research Data Finder', function() {
       testNameInput.sendKeys(Key.ARROW_DOWN);
       testNameInput.sendKeys(Key.ENTER);
       testRealValueInput.sendKeys('63');
-      loadPatientsBtn.click();
-
-      browser.wait(EC.visibilityOf(loadObservationsBtn));
-
-      loadObservationsBtn.click();
-      browser.wait(EC.visibilityOf($('#resultsTable')));
     });
+  });
+
+  describe('after add a criterion to Observation resource', function () {
+    it('should load Patients filtered by criteria', checkLoadPatients);
 
     it('should load Observations filtered by tests', checkLoadObservations);
 
