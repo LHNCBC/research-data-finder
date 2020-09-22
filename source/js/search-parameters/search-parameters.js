@@ -345,7 +345,7 @@ export class SearchParameters {
     <div class="section__body"></div>
 </div>
 <div>
-  <button id="${this.buttonId}" class="add-search-param-button">Add a search criterion</button>
+  <button id="${this.buttonId}" type="button" class="add-search-param-button">Add a search criterion</button>
 </div>`
     );
     document.getElementById(this.buttonId).onclick = () => this.addParam();
@@ -397,7 +397,7 @@ export class SearchParameters {
     <input type="text" id="${searchItemId}" value="${paramName}">
   </div>
   <div id="${searchItemContentId}" class="search-parameter__content"></div>
-  <button id="${removeButtonId}">remove</button>
+  <button id="${removeButtonId}" type="button">remove</button>
 </div>`
       );
     new Def.Autocompleter.Prefetch(paramResourceTypeSelectorId, [], {

@@ -99,20 +99,22 @@
         </div>
       </div>
 
-      <div class="section">
-        <label class="section__title">Patient selection criteria</label>
-        <div class="section__body">
-          <div id="patientSearchParamsAfterThisRow">
-            <label for="maxPatientCount">Maximum number of patients:</label>
-            <input type="number" id="maxPatientCount" value="100">
+      <form id="patientCriteriaForm" onsubmit="app.loadPatients(); return false;">
+        <div class="section">
+          <label class="section__title">Patient selection criteria</label>
+          <div class="section__body">
+            <div id="patientSearchParamsAfterThisRow">
+              <label for="maxPatientCount">Maximum number of patients:</label>
+              <input type="number" id="maxPatientCount" value="100">
+            </div>
           </div>
         </div>
-      </div>
 
-      <button id=loadPatients onclick="app.loadPatients()">Load Patients</button>
-      <span id=reportPatients class="hide"></span>
+        <button id=loadPatients onclick="app.check()">Load Patients</button>
+        <span id=reportPatients class="hide"></span>
 
-      <p id="noPatients" class="hide"></p>
+        <p id="noPatients" class="hide"></p>
+      </form>
 
       <div id="patientsArea" class="hide">
         <div class="section">

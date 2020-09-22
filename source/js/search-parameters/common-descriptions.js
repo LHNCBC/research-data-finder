@@ -163,6 +163,23 @@ function stringParameterDescription({ placeholder, column, name }) {
   };
 }
 
+// A regular expression for check validity of date string yyyy-mm-dd
+const reDateValid = /^(\d{4}-([0][1-9]|1[0-2])-([0][1-9]|[1-2]\d|3[01])|)$/;
+
+/**
+ * Custom validation of date input field in IE
+ * (works if input with type=date is unsupported and treated as a text field)
+ */
+function dateValidatorForIE() {
+  if (!reDateValid.test(this.value)) {
+    this.setCustomValidity(
+      'Please enter a valid date in the format yyyy-mm-dd'
+    );
+  } else {
+    this.setCustomValidity('');
+  }
+}
+
 /**
  * Generates date parameter description
  * @param {string} description - title for input field,
@@ -179,16 +196,17 @@ function dateParameterDescription({ name, column, description, elementPath, reso
     getControlsHtml: (searchItemId) => {
       const title = (description && description.replace(/"/g, '&quot;')) || '';
       return `\
-<span>from</span>
-<input type="date" id="${searchItemId}-${name}-from" placeholder="yyyy-mm-dd"
-       pattern="^(\\d{4}-([0][1-9]|1[0-2])-([0][1-9]|[1-2]\\d|3[01])|)$" title="${title}">
-<span>to</span>
-<input type="date" id="${searchItemId}-${name}-to" placeholder="yyyy-mm-dd"
-       pattern="^(\\d{4}-([0][1-9]|1[0-2])-([0][1-9]|[1-2]\\d|3[01])|)$" title="${title}">`;
+<label for="${searchItemId}-${name}-from">from</label>
+<input type="date" id="${searchItemId}-${name}-from" placeholder="yyyy-mm-dd" title="${title}">
+<label for="${searchItemId}-${name}-to">to</label>
+<input type="date" id="${searchItemId}-${name}-to" placeholder="yyyy-mm-dd" title="${title}">`;
     },
     attachControls: (searchItemId) => {
       const fromId = `${searchItemId}-${name}-from`;
       const toId = `${searchItemId}-${name}-to`;
+
+      document.getElementById(fromId).addEventListener('input', dateValidatorForIE);
+      document.getElementById(toId).addEventListener('input', dateValidatorForIE);
 
       if (elementPath && resourceType) {
         switchLoadingStatus(searchItemId, true);
@@ -205,6 +223,13 @@ function dateParameterDescription({ name, column, description, elementPath, reso
           )
         ).then(() => switchLoadingStatus(searchItemId, false));
       }
+    },
+    detachControls: (searchItemId) => {
+      const fromId = `${searchItemId}-${name}-from`;
+      const toId = `${searchItemId}-${name}-to`;
+
+      document.getElementById(fromId).removeEventListener('input', dateValidatorForIE);
+      document.getElementById(toId).removeEventListener('input', dateValidatorForIE);
     },
     getCondition: (searchItemId) => {
       const from = getDateTimeFromInput(`#${searchItemId}-${name}-from`);

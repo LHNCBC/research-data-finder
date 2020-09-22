@@ -16,12 +16,7 @@ import {
   ConditionSearchParameters,
   MedicationDispenseSearchParameters
 } from './search-parameters';
-import {
-  toggleCssClass,
-  addCssClass,
-  removeCssClass,
-  validate
-} from './common/utils';
+import { toggleCssClass, addCssClass, removeCssClass } from './common/utils';
 import { Reporter } from './reporter';
 import { PatientTable } from './patient-table';
 import './common/collapsable-sections';
@@ -246,14 +241,34 @@ function createPatientSearchParameters(serviceBaseUrl) {
   );
 }
 
+// Prevents implicit submission by press Enter in input field
+document
+  .getElementById('patientCriteriaForm')
+  .addEventListener('keydown', function (event) {
+    if (
+      !(event.target instanceof HTMLTextAreaElement) &&
+      event.key === 'Enter'
+    ) {
+      event.preventDefault();
+    }
+  });
+
+/**
+ * Logs error message for screen reader
+ */
+export function check() {
+  const form = document.getElementById('patientCriteriaForm');
+
+  if (!form.checkValidity()) {
+    const errorMsg = 'Please correct the invalid fields before loading';
+    Def.Autocompleter.screenReaderLog(errorMsg);
+  }
+}
+
 /**
  * Handles the request to load the Patient list
  */
 export function loadPatients() {
-  if (!validate(patientSearchParams.getHtmlElement())) {
-    return;
-  }
-
   fhirClient = getFhirClient();
   reportPatientsSpan.innerHTML = '';
   loadPatientsButton.disabled = true;
