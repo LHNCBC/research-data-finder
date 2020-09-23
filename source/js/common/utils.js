@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import * as moment from 'moment/min/moment.min';
 
 // Binding the function Array.prototype.slice.call for convert Array-like objects/collections to a new Array
 export const slice = Function.prototype.call.bind(Array.prototype.slice);
