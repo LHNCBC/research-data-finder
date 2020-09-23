@@ -1,10 +1,10 @@
 'use strict';
 
-const os = require("os");
+const os = require('os');
 const Key = protractor.Key;
 const EC = protractor.ExpectedConditions;
 
-describe('Research Data Finder', function() {
+describe('Research Data Finder', function () {
   beforeAll(function () {
     setAngularSite(false);
     browser.get('/');
@@ -68,21 +68,29 @@ describe('Research Data Finder', function() {
 
     $('#download').click();
 
-    browser.wait(function() {
-      // Wait until the file has been downloaded.
-      return fs.existsSync(filename);
-    }, 30000).then(function() {
-      // Checks CSV file structure: the file has columns and all lines have the same number of cells.
-      const cellsInRowCount = fs.readFileSync(filename, {encoding: 'utf8'})
-          .replace(/""/g, '').replace(/"[^"]*"/g, '').split('\n')
-          .map(line => line.split(',').length),
-        columnsCount = cellsInRowCount[0];
+    browser
+      .wait(function () {
+        // Wait until the file has been downloaded.
+        return fs.existsSync(filename);
+      }, 30000)
+      .then(function () {
+        // Checks CSV file structure: the file has columns and all lines have the same number of cells.
+        const cellsInRowCount = fs
+            .readFileSync(filename, { encoding: 'utf8' })
+            .replace(/""/g, '')
+            .replace(/"[^"]*"/g, '')
+            .split('\n')
+            .map((line) => line.split(',').length),
+          columnsCount = cellsInRowCount[0];
 
-      expect(columnsCount > 0 && cellsInRowCount.every(cellsCount => cellsCount === columnsCount)).toBe(true);
+        expect(
+          columnsCount > 0 &&
+            cellsInRowCount.every((cellsCount) => cellsCount === columnsCount)
+        ).toBe(true);
 
-      // Cleanup
-      fs.unlinkSync(filename);
-    });
+        // Cleanup
+        fs.unlinkSync(filename);
+      });
   }
 
   describe('without criteria(initial state)', function () {
@@ -93,7 +101,7 @@ describe('Research Data Finder', function() {
     it('should download Observations', checkDownloadObservations);
   });
 
-  describe('add criteria to Patient resource', function () {
+  describe('when adding criteria to Patient resource', function () {
     it('should load minimum and maximum values for date criterion', function () {
       const searchParamId = getNextSearchParamId();
       const addCriterionBtn = $('#searchParam_add_button');
@@ -105,9 +113,9 @@ describe('Research Data Finder', function() {
       browser.wait(EC.elementToBeClickable(addCriterionBtn));
       addCriterionBtn.click();
 
-      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a') + 'Patient');
+      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Patient');
       resourceInput.sendKeys(Key.ENTER);
-      paramNameInput.sendKeys(Key.chord(Key.CONTROL, 'a') + 'Date of birth');
+      paramNameInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Date of birth');
       paramNameInput.sendKeys(Key.ENTER);
 
       browser.wait(
@@ -119,7 +127,7 @@ describe('Research Data Finder', function() {
       );
     });
 
-    it('first Patient\'s parameter should be "Active"', function () {
+    it('should select the first search parameter for selected resource by default', function () {
       const searchParamId = getNextSearchParamId();
       const addCriterionBtn = $('#searchParam_add_button');
       const resourceInput = $(`#${searchParamId}_resource`);
@@ -128,7 +136,7 @@ describe('Research Data Finder', function() {
       browser.wait(EC.elementToBeClickable(addCriterionBtn));
       addCriterionBtn.click();
 
-      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a') + 'Patient');
+      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Patient');
       resourceInput.sendKeys(Key.ENTER);
       browser.wait(
         EC.textToBePresentInElementValue(paramNameInput, 'Active'),
@@ -137,7 +145,7 @@ describe('Research Data Finder', function() {
     });
   });
 
-  describe('after add a criterion to Patient resource', function () {
+  describe('after adding a criteria to Patient resource', function () {
     it('should load Patients filtered by criteria', checkLoadPatients);
 
     it('should load Observations filtered by tests', checkLoadObservations);
@@ -145,8 +153,8 @@ describe('Research Data Finder', function() {
     it('should download Observations', checkDownloadObservations);
   });
 
-  describe('add criteria to Observation resource', function () {
-    it('"Body height Measured" = 63', function () {
+  describe('when adding criteria to Observation resource', function () {
+    it('should provide the ability to select a test name and test value', function () {
       const searchParamId = getNextSearchParamId();
       const addCriterionBtn = $('#searchParam_add_button');
       const resourceInput = $(`#${searchParamId}_resource`);
@@ -156,7 +164,7 @@ describe('Research Data Finder', function() {
       browser.wait(EC.elementToBeClickable(addCriterionBtn));
       addCriterionBtn.click();
 
-      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a') + 'Observation');
+      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Observation');
       resourceInput.sendKeys(Key.ENTER);
       testNameInput.sendKeys('body height measured');
       testNameInput.sendKeys(Key.ARROW_DOWN);
@@ -165,12 +173,11 @@ describe('Research Data Finder', function() {
     });
   });
 
-  describe('after add a criterion to Observation resource', function () {
+  describe('after adding a criteria to Observation resource', function () {
     it('should load Patients filtered by criteria', checkLoadPatients);
 
     it('should load Observations filtered by tests', checkLoadObservations);
 
     it('should download Observations', checkDownloadObservations);
   });
-
 });
