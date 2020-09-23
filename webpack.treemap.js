@@ -4,6 +4,8 @@ const production = require('./webpack.common.js');
 
 module.exports = merge(production, {
   plugins: [
+    // It will create an interactive treemap visualization
+    // of the contents of all your bundles
     new BundleAnalyzerPlugin(),
   ]
 });

@@ -7,7 +7,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Added
 - Display of minimum and maximum values that exist in the database
   for a date range criterion
-- npm task "build:stats" to run webpack-bundle-analyzer
+- npm task "show-webpack-treemap" to run webpack-bundle-analyzer
 ### Changed
 - Bundle size reduced by removing moment locales
 
