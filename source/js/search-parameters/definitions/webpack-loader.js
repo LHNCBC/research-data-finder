@@ -7,6 +7,15 @@ const { getOptions } = require('loader-utils');
 const fs = require('fs');
 
 /**
+ * Returns the input string value with the first letter converted to uppercase
+ * @param {string} str - input string
+ * @return {string}
+ */
+function capitalize(str) {
+  return str && str.charAt(0).toUpperCase() + str.substring(1);
+}
+
+/**
  * Extracts search parameter description for specified resource type from a description of the search parameter
  * @param {string} resourceType
  * @param {string} description
@@ -61,32 +70,20 @@ function getSearchParametersConfig(
    * @typedef TypeDescriptionHash
    * @type {Object}
    * @property {string} type - type name
-   * @property {string} [path] - path in which this type was found, if available
-   * @property {Object} [typeDescription] - full type description object useful for debugging
    * @property {string} [valueSet] - value set url
    */
 
   /**
-   * Finds type by expression
+   * Finds type description and value set by simple FHIRPath expression
    * @param {Object} resultConfig - webpack loader result object
-   * @param {string} expression
+   * @param {string} path - simple FHIRPath expression starting with a resource
+   *                        type with a dot-separated listing of property names
    * @return {TypeDescriptionHash}
    */
-  function getTypeByExpression(resultConfig, expression) {
-    // only one expression at this moment has substring ".exists()"
-    if (expression.indexOf('.exists()') !== -1) {
-      return { type: 'boolean' };
-    }
+  function getTypeDescriptionByPath(resultConfig, path) {
+    const typeDesc = { ...getTypeDescByArrayOfPropertyNames(path.split('.')) };
 
-    // we can't parse expressions with "where" now; therefore, we will treat them as having a string type
-    if (expression.indexOf('.where(') !== -1) {
-      return { type: 'string' };
-    }
-
-    const path = expression.split(' ')[0];
-    const typeDesc = { path, ...getTypeByPath(path.split('.')) };
-
-    // Find value set for expression
+    // Find value set for type description and store in webpack loader result object
     if (typeDesc.valueSet) {
       if (!resultConfig.valueSets[typeDesc.valueSet]) {
         const valueSet = getValueSet({ url: typeDesc.valueSet });
@@ -95,19 +92,19 @@ function getSearchParametersConfig(
             ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
             : valueSet;
       }
-      resultConfig.valueSetByPath[typeDesc.path] = typeDesc.valueSet;
+      resultConfig.valueSetByPath[path] = typeDesc.valueSet;
     }
     return typeDesc;
   }
 
   /**
-   * Finds a type of resource property by the property path
-   * @param {string} resourceType
-   * @param {Array<string>} path
+   * Returns type description of resource property by path specified by an array of property names
+   * @param {string} resourceType - resource type
+   * @param {Array<string>} propertyNames - array of property names
    * @return {TypeDescriptionHash}
    */
-  function getTypeByPath([resourceType, ...path]) {
-    if (!path.length) {
+  function getTypeDescByArrayOfPropertyNames([resourceType, ...propertyNames]) {
+    if (!propertyNames.length) {
       return {
         type: resourceType
       };
@@ -116,29 +113,34 @@ function getSearchParametersConfig(
       profiles.resources.entry.find((i) => i.resource.id === resourceType) ||
       profiles.types.entry.find((i) => i.resource.id === resourceType);
     const resource = entry.resource;
-    const expression = resourceType + '.' + path[0];
+    const expression = resourceType + '.' + propertyNames[0];
     const desc =
       resource.snapshot.element.filter((i) => i.id === expression)[0] ||
       resource.snapshot.element.filter(
         (i) => i.id.indexOf(expression) === 0
       )[0];
     const type = desc.type[0].code;
-    if (path.length === 1) {
+    if (desc.type.length !== 1) {
+      console.warn('Warning: Data type cannot be accurately determined');
+    }
+    if (propertyNames.length === 1) {
       return {
         type,
-        typeDescription: desc.type,
         ...(desc.binding && desc.binding.valueSet
           ? { valueSet: desc.binding.valueSet }
           : {})
       };
     } else if (type === 'BackboneElement') {
-      return getTypeByPath([
+      return getTypeDescByArrayOfPropertyNames([
         resourceType,
-        path[0] + '.' + path[1],
-        ...path.slice(2)
+        propertyNames[0] + '.' + propertyNames[1],
+        ...propertyNames.slice(2)
       ]);
     } else {
-      return getTypeByPath([desc.type[0].code, ...path.slice(1)]);
+      return getTypeDescByArrayOfPropertyNames([
+        desc.type[0].code,
+        ...propertyNames.slice(1)
+      ]);
     }
   }
 
@@ -324,23 +326,54 @@ function getSearchParametersConfig(
     resultConfig.resources[resourceType] = profiles.parameters.entry
       .filter((item) => item.resource.base.indexOf(resourceType) !== -1)
       .map((item) => {
-        new RegExp(`(${resourceType}\\.[^|]*)( as ([^\\s)]*)|)`).test(
-          item.resource.expression
-        );
+        let expression = '',
+          path = '',
+          type;
+
+        item.resource.expression.split('|').some((i) => {
+          // Select FHIRPath expression for resourceType
+          const found = new RegExp(`\\b${resourceType}\\b`).test(i);
+          if (found) {
+            expression = i.trim();
+            // Extract the type of value and property path from this expression
+            if (/(.*)\.as\(([^)]*)\)$/.test(expression)) {
+              type = RegExp.$2;
+              path = RegExp.$1 + capitalize(type);
+            } else if (
+              /(.*)\.where\(resolve\(\) is ([^)]*)\)$/.test(expression)
+            ) {
+              type = RegExp.$2;
+              path = RegExp.$1;
+            } else if (/^\((.*) as ([^)]*)\)$/.test(expression)) {
+              type = RegExp.$2;
+              path = RegExp.$1 + capitalize(type);
+              // console.log(path,'<---', type)
+            } else if (/^\((.*) is ([^)]*)\)$/.test(expression)) {
+              type = RegExp.$2;
+              path = RegExp.$1;
+            } else if (/(.*)\.where\(/.test(expression)) {
+              path = RegExp.$1;
+            } else if (/\.exists\(\)/.test(expression)) {
+              type = 'boolean';
+            } else {
+              path = expression;
+            }
+          }
+          return found;
+        });
+
         const param = {
           name: item.resource.name,
-          type: (RegExp.$3 && RegExp.$3.trim()) || item.resource.type,
-          expression: RegExp.$1.trim(),
+          type: type || item.resource.type,
+          expression,
+          path,
           description:
             item.resource.base.length > 1
               ? getDescription(resourceType, item.resource.description)
               : item.resource.description.trim()
         };
         if (param.type === 'token') {
-          Object.assign(
-            param,
-            getTypeByExpression(resultConfig, param.expression)
-          );
+          Object.assign(param, getTypeDescriptionByPath(resultConfig, path));
         }
         return param;
       });
@@ -355,7 +388,7 @@ function getSearchParametersConfig(
   //
   // Find value sets for additional expressions:
   additionalExpressions.forEach((expression) => {
-    getTypeByExpression(resultConfig, expression);
+    getTypeDescriptionByPath(resultConfig, expression);
   });
 
   return resultConfig;

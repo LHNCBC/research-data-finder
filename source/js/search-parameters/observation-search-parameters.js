@@ -4,7 +4,8 @@ import {
   escapeFhirSearchParameter,
   encodeFhirSearchParameter,
   getAutocompleterById,
-  escapeStringForRegExp
+  escapeStringForRegExp,
+  getDateTimeFromInput
 } from '../common/utils';
 
 export const OBSERVATION = 'Observation';
@@ -174,15 +175,22 @@ export const ObservationSearchParameters = () => ({
  *        currently we show all answer lists
  */
 function createTestValueControls(searchItemId, datatype, units, AnswerLists) {
+  const testPeriodHtml = `
+<div class="test-period">
+  <span>from</span>
+  <input type="date" id="${searchItemId}-from" placeholder="yyyy-mm-dd"
+         pattern="^(\\d{4}-([0][1-9]|1[0-2])-([0][1-9]|[1-2]\\d|3[01])|)$">
+  <span>to</span>
+  <input type="date" id="${searchItemId}-to" placeholder="yyyy-mm-dd"
+         pattern="^(\\d{4}-([0][1-9]|1[0-2])-([0][1-9]|[1-2]\\d|3[01])|)$">
+</div>`;
+
   if (AnswerLists && AnswerLists.length) {
     document.getElementById(`${searchItemId}-test-value`).innerHTML = `
 <div class="test-value">
   <input type="text" id="${searchItemId}-test-answers" placeholder="select answers">
 </div>
-<div class="test-period">
-  <span>from</span><input type="date" id="${searchItemId}-from" placeholder="no limit">
-  <span>to</span><input type="date" id="${searchItemId}-to" placeholder="no limit">
-</div>`;
+${testPeriodHtml}`;
 
     const answers = getAnswers(AnswerLists);
 
@@ -215,10 +223,7 @@ function createTestValueControls(searchItemId, datatype, units, AnswerLists) {
   <input type="text" id="${searchItemId}-test-value-unit" class="test-value__unit" placeholder="unit code"
     style="${valueUnits.length === 0 && 'display:none'}">
 </div>
-<div class="test-period">
-  <span>from</span><input type="date" id="${searchItemId}-from" placeholder="no limit">
-  <span>to</span><input type="date" id="${searchItemId}-to" placeholder="no limit">
-</div>`;
+${testPeriodHtml}`;
 
     new Def.Autocompleter.Prefetch(
       `${searchItemId}-test-value-prefix`,
@@ -246,10 +251,7 @@ function createTestValueControls(searchItemId, datatype, units, AnswerLists) {
   <input type="text" id="${searchItemId}-test-value-modifier" class="test-value__modifier" value="${modifiers[0][0]}">
   <input type="text" id="${searchItemId}-test-string-value" placeholder="enter string value">
 </div>
-<div class="test-period">
-  <span>from</span><input type="date" id="${searchItemId}-from" placeholder="no limit">
-  <span>to</span><input type="date" id="${searchItemId}-to" placeholder="no limit">
-</div>`;
+${testPeriodHtml}`;
     new Def.Autocompleter.Prefetch(
       `${searchItemId}-test-value-modifier`,
       modifiers.map((i) => i[0]),
@@ -268,29 +270,13 @@ function createTestValueControls(searchItemId, datatype, units, AnswerLists) {
 }
 
 /**
- * Returns the date from a date input field appended with a time string
- * @param {string} selector - css selector for getting date input field element
- * @param {string} timeString - time string to add
- * @return {string}
- */
-function getDateTimeFromInput(selector, timeString) {
-  const value = document.querySelector(selector).value;
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value + 'T' + timeString;
-  }
-
-  return value;
-}
-
-/**
  * Returns URL parameters string with a period of the test effective date
  * @param {string} searchItemId - unique generic identifier for a search parameter row
  * @return {string}
  */
 function getPeriodParams(searchItemId) {
-  const from = getDateTimeFromInput(`#${searchItemId}-from`, '00:00:00.000Z');
-  const to = getDateTimeFromInput(`#${searchItemId}-to`, '23:59:59.999Z');
+  const from = getDateTimeFromInput(`#${searchItemId}-from`);
+  const to = getDateTimeFromInput(`#${searchItemId}-to`);
 
   return (
     (from ? `&date=ge${encodeURIComponent(from)}` : '') +

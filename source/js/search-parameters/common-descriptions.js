@@ -1,7 +1,10 @@
 import { FhirBatchQuery } from '../common/fhir-batch-query';
 import {
   encodeFhirSearchParameter,
-  getAutocompleterById
+  getAutocompleterById,
+  capitalize,
+  toggleCssClass,
+  getDateTimeFromInput
 } from '../common/utils';
 import definitionsIndex from './definitions/index.json';
 
@@ -160,26 +163,77 @@ function stringParameterDescription({ placeholder, column, name }) {
   };
 }
 
+// A regular expression for check validity of date string yyyy-mm-dd
+const reDateValid = /^(\d{4}-([0][1-9]|1[0-2])-([0][1-9]|[1-2]\d|3[01])|)$/;
+
+/**
+ * Custom validation of date input field in IE
+ * (works if input with type=date is unsupported and treated as a text field)
+ */
+function dateValidatorForIE() {
+  if (!reDateValid.test(this.value)) {
+    this.setCustomValidity(
+      'Please enter a valid date in the format yyyy-mm-dd'
+    );
+  } else {
+    this.setCustomValidity('');
+  }
+}
+
 /**
  * Generates date parameter description
  * @param {string} description - title for input field,
  * @param {Object} column - HTML table column name
  * @param {string} name - name of search parameter to construct result query string
+ * @param {string} elementPath - resource element path
+ * @param {string} resourceType - resource type, e.g. 'Patient', 'Encounter'
  * @return {Object}
  */
-function dateParameterDescription({ name, column, description }) {
+// prettier-ignore
+function dateParameterDescription({ name, column, description, elementPath, resourceType}) {
   return {
     column,
     getControlsHtml: (searchItemId) => {
       const title = (description && description.replace(/"/g, '&quot;')) || '';
       return `\
-<span>from</span><input type="date" id="${searchItemId}-${name}-from" placeholder="no limit" title="${title}">
-<span>to</span><input type="date" id="${searchItemId}-${name}-to" placeholder="no limit" title="${title}">`;
+<label for="${searchItemId}-${name}-from">from</label>
+<input type="date" id="${searchItemId}-${name}-from" placeholder="yyyy-mm-dd" title="${title}">
+<label for="${searchItemId}-${name}-to">to</label>
+<input type="date" id="${searchItemId}-${name}-to" placeholder="yyyy-mm-dd" title="${title}">`;
+    },
+    attachControls: (searchItemId) => {
+      const fromId = `${searchItemId}-${name}-from`;
+      const toId = `${searchItemId}-${name}-to`;
+
+      document.getElementById(fromId).addEventListener('input', dateValidatorForIE);
+      document.getElementById(toId).addEventListener('input', dateValidatorForIE);
+
+      if (elementPath && resourceType) {
+        switchLoadingStatus(searchItemId, true);
+        const loadDatePromises = [
+          loadDate(fromId, resourceType, name, elementPath, LOAD_DATE_MODE.MIN),
+          loadDate(toId, resourceType, name, elementPath, LOAD_DATE_MODE.MAX)
+        ];
+        Promise.all(
+          loadDatePromises.map((i) =>
+            // Convert reject to resolve to emulate Promise.allSettled behaviour (for Edge/IE11)
+            i.catch((error) => {
+              console.log(`Load minimum/maximum date failed: ${error}`);
+            })
+          )
+        ).then(() => switchLoadingStatus(searchItemId, false));
+      }
+    },
+    detachControls: (searchItemId) => {
+      const fromId = `${searchItemId}-${name}-from`;
+      const toId = `${searchItemId}-${name}-to`;
+
+      document.getElementById(fromId).removeEventListener('input', dateValidatorForIE);
+      document.getElementById(toId).removeEventListener('input', dateValidatorForIE);
     },
     getCondition: (searchItemId) => {
-      const from = document.getElementById(`${searchItemId}-${name}-from`)
-        .value;
-      const to = document.getElementById(`${searchItemId}-${name}-to`).value;
+      const from = getDateTimeFromInput(`#${searchItemId}-${name}-from`);
+      const to = getDateTimeFromInput(`#${searchItemId}-${name}-to`);
 
       return (
         (from ? `&${name}=ge${encodeFhirSearchParameter(from)}` : '') +
@@ -187,6 +241,88 @@ function dateParameterDescription({ name, column, description }) {
       );
     }
   };
+}
+
+// An enumeration containing the possible modes of operation of the loadDate function
+const LOAD_DATE_MODE = Object.freeze({
+  MIN: 0,
+  MAX: 1
+});
+
+/**
+ * Load default minimum(or maximum) date value to input field from database.
+ * @param {string} inputId - input field id
+ * @param {string} resourceType - resource type
+ * @param {string} paramName - search parameter name
+ * @param {string} resourceElementPath - resource element path
+ * @param {LOAD_DATE_MODE} mode - LOAD_DATE_MODE.MIN to fill input with minimum value,
+ *                                LOAD_DATE_MODE.MAX to fill input with maximum value.
+ */
+function loadDate(inputId, resourceType, paramName, resourceElementPath, mode) {
+  const elementPath = resourceElementPath.split('.');
+
+  return getCurrentClient()
+    .getWithCache(
+      `${resourceType}?_count=1&_elements=${elementPath[0]}&_sort=${
+        (mode === LOAD_DATE_MODE.MIN ? '' : '-') + paramName
+      }`
+    )
+    .then(({ status, data }) => {
+      if (status === 200 && data.entry && data.entry.length) {
+        let value = getValueByPath(data.entry[0].resource, elementPath);
+        if (value && (value.start || value.end)) {
+          value =
+            mode === LOAD_DATE_MODE.MIN
+              ? value.start || value.end
+              : value.end || value.start;
+        }
+        const date = /^(\d{4})(-\d{2}-\d{2}|$)/.test(value)
+          ? `${RegExp.$1}${RegExp.$2 || '-01-01'}`
+          : null;
+        if (date) {
+          updateInputIfExist(inputId, date);
+        }
+      }
+    });
+}
+
+/**
+ * Returns value from Object by path
+ * @param {Object} value - input Object
+ * @param {Array} path - array of property names
+ * @return {*}
+ */
+function getValueByPath(value, path) {
+  let i = 0;
+  while (value && i < path.length) {
+    value = value[path[i]];
+    i++;
+  }
+  return value;
+}
+
+/**
+ * Changes input field value if exists
+ * @param {string} inputId
+ * @param {string} value
+ */
+function updateInputIfExist(inputId, value) {
+  const input = document.getElementById(inputId);
+  if (input) {
+    input.value = value;
+  }
+}
+
+/**
+ * Shows/hides search parameter controls with a spinner depending on the boolean parameter "loading".
+ * @param {string} searchItemId
+ * @param {boolean} loading
+ */
+function switchLoadingStatus(searchItemId, loading) {
+  const content = document.getElementById(searchItemId + '_content');
+  if (content) {
+    toggleCssClass(content, 'spinner', loading);
+  }
 }
 
 /**
@@ -248,9 +384,7 @@ export function defaultParameters(
 
   return definitions.resources[resourceType].reduce((_parameters, item) => {
     if (skip.indexOf(item.name) === -1) {
-      const displayName =
-        item.name.charAt(0).toUpperCase() +
-        item.name.substring(1).replace(/-/g, ' ');
+      const displayName = capitalize(item.name).replace(/-/g, ' ');
       const placeholder = item.description;
       const name = item.name;
 
@@ -260,7 +394,9 @@ export function defaultParameters(
           _parameters[displayName] = dateParameterDescription({
             description: item.description,
             name,
-            column: searchNameToColumn[name] || name
+            column: searchNameToColumn[name] || name,
+            elementPath: getPropertyPath(resourceType, item.path),
+            resourceType
           });
           break;
         case 'boolean':
@@ -293,6 +429,18 @@ export function defaultParameters(
 
     return _parameters;
   }, {});
+}
+
+/**
+ * Determines resource property path by simple FHIRPath expression
+ * @param {string} resourceType - resource type
+ * @param {string} path - simple FHIRPath expression starting with a resource
+ *                        type with a dot-separated listing of property names
+ * @return {string}
+ */
+function getPropertyPath(resourceType, path) {
+  const searchValue = new RegExp(`^${resourceType}\\.`);
+  return path.replace(searchValue, '');
 }
 
 /**
@@ -348,18 +496,25 @@ export function valueSetsParameters(descriptions, searchNameToColumn) {
  * @param {Array[]} descriptions - an array of descriptions, each of which is an array containing the following elements:
  *                  displayName - parameter display name,
  *                  name - name of search parameter to construct result query string
+ *                  elementPath - resource element path
  * @param {Object} searchNameToColumn - mapping from search parameter names to HTML table column names
+ * @param {string} resourceType - resource type, e.g. 'Patient', 'Encounter'
  * @return {Object}
  */
-export function dateParameters(descriptions, searchNameToColumn) {
-  return descriptions.reduce((_parameters, [displayName, name]) => {
-    _parameters[displayName] = dateParameterDescription({
-      name,
-      column: searchNameToColumn[name] || name
-    });
+export function dateParameters(descriptions, searchNameToColumn, resourceType) {
+  return descriptions.reduce(
+    (_parameters, [displayName, name, elementPath]) => {
+      _parameters[displayName] = dateParameterDescription({
+        name,
+        column: searchNameToColumn[name] || name,
+        elementPath,
+        resourceType
+      });
 
-    return _parameters;
-  }, {});
+      return _parameters;
+    },
+    {}
+  );
 }
 
 /**

@@ -1,6 +1,6 @@
 // See https://www.hl7.org/fhir/patient.html#search for description of Patient search parameters
 
-import * as moment from 'moment';
+import * as moment from 'moment/min/moment.min';
 
 import { humanNameToString } from '../common/utils';
 import {
@@ -34,7 +34,7 @@ const searchNameToColumn = {
 const columnToResourceElementName = {
   age: 'birthDate',
   birthdate: 'birthDate',
-  'death-date': 'deceased',
+  'death-date': 'deceasedDateTime',
   phone: 'telecom',
   email: 'telecom',
   family: 'name',
@@ -150,13 +150,22 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
     ),
 
     // Date search parameters:
-    // [<display name>, <search parameter name>]
+    // [<display name>, <search parameter name>, <resource element path>]
     ...dateParameters(
       [
-        ['Date of birth', 'birthdate'],
-        ['Date of death', 'death-date']
+        [
+          'Date of birth',
+          'birthdate',
+          columnToResourceElementName['birthdate']
+        ],
+        [
+          'Date of death',
+          'death-date',
+          columnToResourceElementName['death-date']
+        ]
       ],
-      searchNameToColumn
+      searchNameToColumn,
+      PATIENT
     ),
 
     // Reference search parameters:

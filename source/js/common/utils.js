@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import * as moment from 'moment/min/moment.min';
 
 // Binding the function Array.prototype.slice.call for convert Array-like objects/collections to a new Array
 export const slice = Function.prototype.call.bind(Array.prototype.slice);
@@ -225,6 +225,15 @@ export function removeCssClass(selector, cssClass) {
 }
 
 /**
+ * Returns the input string value with the first letter converted to uppercase
+ * @param {string} str - input string
+ * @return {string}
+ */
+export function capitalize(str) {
+  return str && str.charAt(0).toUpperCase() + str.substring(1);
+}
+
+/**
  * Escapes a FHIR search parameter string
  * (see https://www.hl7.org/fhir/search.html#escaping)
  * @param {string} str
@@ -251,4 +260,20 @@ export function encodeFhirSearchParameter(str) {
  */
 export function escapeStringForRegExp(str) {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
+}
+
+/**
+ * Returns the date from a date input field appended with a time string if passed
+ * @param {string} selector - css selector for getting date input field element
+ * @param {string} [timeString] - time string to add
+ * @return {string}
+ */
+export function getDateTimeFromInput(selector, timeString = null) {
+  const input = document.querySelector(selector);
+
+  if (input && input.validity.valid && input.value) {
+    return input.value + (timeString ? 'T' + timeString : '');
+  }
+
+  return '';
 }
