@@ -1,6 +1,6 @@
 // See https://www.hl7.org/fhir/patient.html#search for description of Patient search parameters
 
-import * as moment from 'moment/min/moment.min';
+import * as moment from 'moment';
 
 import { humanNameToString } from '../common/utils';
 import {

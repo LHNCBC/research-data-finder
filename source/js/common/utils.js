@@ -1,4 +1,4 @@
-import * as moment from 'moment/min/moment.min';
+import * as moment from 'moment';
 
 // Binding the function Array.prototype.slice.call for convert Array-like objects/collections to a new Array
 export const slice = Function.prototype.call.bind(Array.prototype.slice);
@@ -186,11 +186,11 @@ export function toggleCssClass(selector, cssClass, state) {
             ? selector
             : document.querySelectorAll(selector)
         );
-  const hiddenRegExp = new RegExp(`(\\s+|^)${cssClass}\\b`);
+  const hasClassRegExp = new RegExp(`(\\s+|^)${cssClass}\\b`);
 
   elements.forEach((element) => {
     const className = element.className;
-    const currentState = hiddenRegExp.test(className);
+    const currentState = hasClassRegExp.test(className);
     if (currentState === state) {
       resultState = currentState;
       // nothing to change
@@ -198,7 +198,7 @@ export function toggleCssClass(selector, cssClass, state) {
     }
 
     element.className = currentState
-      ? className.replace(hiddenRegExp, '')
+      ? className.replace(hasClassRegExp, '')
       : className + ' ' + cssClass;
     resultState = !currentState;
   });
