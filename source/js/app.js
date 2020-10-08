@@ -1,11 +1,12 @@
+// Bootstrap imports
+// TODO: optimize imports https://getbootstrap.com/docs/4.0/getting-started/webpack/#importing-styles ?
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 // Imports for webpack to find assets
 import '../css/app.css';
 
 // "Real" imports
 import './common/polyfills';
-import * as catData from './common/category-list';
-import { saveAs } from 'file-saver';
-import { ObservationTable } from './observation-table';
 import { FhirBatchQuery, HTTP_ABORT } from './common/fhir-batch-query';
 import {
   SearchParameters,
@@ -19,16 +20,10 @@ import {
 import { toggleCssClass, addCssClass, removeCssClass } from './common/utils';
 import { Reporter } from './reporter';
 import { PatientTable } from './patient-table';
-import './common/collapsable-sections';
+import { ResourceTabPane } from './resource-tab-pane';
 
-const catLimitRow = document.getElementById('catSel');
-const testLimitRow = document.getElementById('testSel');
 const loadPatientsButton = document.getElementById('loadPatients');
-const loadObservationsButton = document.getElementById('loadObservations');
 const reportPatientsSpan = document.getElementById('reportPatients');
-const reportObservationsSpan = document.getElementById('reportObservations');
-
-let categoryLimits = true;
 
 if (/[?&]tunable(&|$)/.test(window.location.search)) {
   removeCssClass('.performance-tuning', 'hide');
@@ -36,52 +31,55 @@ if (/[?&]tunable(&|$)/.test(window.location.search)) {
 
 // An instance of report popup component for collecting statistical information about Patient selection
 const patientsReporter = new Reporter();
-// An instance of report popup component for collecting statistical information about Observation selection
-const observationsReporter = new Reporter();
 let fhirClient = getFhirClient();
 let patientSearchParams = createPatientSearchParameters(
   document.getElementById('fhirServer').value
 );
 document.getElementById('fhirServer').addEventListener('change', function () {
-  patientSearchParams && patientSearchParams.dispose();
+  patientSearchParams && patientSearchParams.detachControls();
   patientSearchParams = createPatientSearchParameters(this.value);
+  resourceTabPane.clearResourceList(this.value);
 
   loadPatientsButton.disabled = true;
-  patientSearchParams.initialize.then(
-    () => (loadPatientsButton.disabled = false)
-  );
+  patientSearchParams.ready.then(() => (loadPatientsButton.disabled = false));
   // Clear visible Patient list data
   showMessageIfNoPatientList('');
   reportPatientsSpan.innerHTML = '';
   fhirClient.clearPendingRequests();
 });
 
-var loincAC = new Def.Autocompleter.Search(
-  'loincTests',
-  'https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?type=question',
-  { maxSelect: '*', matchListValue: true }
-);
-
-// Set up propulated values
-var selectedTests = [
-  ['Weight', '29463-7'],
-  ['Body height Measured', '3137-7'],
-  ['Feeling down, depressed, or hopeless?', '44255-8'],
-  ['Current smoker', '64234-8']
-];
-for (var i = 0, len = selectedTests.length; i < len; ++i) {
-  var testData = selectedTests[i];
-  // TBD -- These APIs are not documented.  We should probably add something to
-  // the autocompleter for setting the state of a search list.
-  loincAC.storeSelectedItem(testData[0], testData[1]);
-  loincAC.addToSelectedArea(testData[0]);
-}
-
-// Category list
-var categoryAC = new Def.Autocompleter.Prefetch('categories', catData.display, {
-  codes: catData.codes
-});
-categoryAC.setFieldToListValue('Vital Signs');
+// Create component for displaying resources for selected Patients
+const resourceTabPane = new ResourceTabPane({
+  callbacks: {
+    // Gets FHIR client to make requests
+    getFhirClient: () => {
+      return fhirClient;
+    },
+    /**
+     * Add HTML of the component to the page
+     * @param {string} html
+     */
+    addComponentToPage(html) {
+      document
+        .getElementById('patientsArea')
+        .insertAdjacentHTML('beforeend', html);
+    },
+    /**
+     * Handles start of resource list loading
+     */
+    onStartLoading() {
+      // Lock patients reloading
+      loadPatientsButton.disabled = true;
+    },
+    /**
+     * Handles end of resource list loading
+     */
+    onEndLoading() {
+      // Unlock patients reloading
+      loadPatientsButton.disabled = false;
+    }
+  }
+}).initialize();
 
 /**
  *  Shows a message when there are no Patient list was displayed
@@ -100,13 +98,9 @@ function showMessageIfNoPatientList(msg) {
 function showListOfPatients(count) {
   addCssClass('#noPatients', 'hide');
   removeCssClass('#patientsArea', 'hide');
-  addCssClass('#observationsArea', 'hide');
-  addCssClass(
-    document.querySelector('#patientTable').closest('.section'),
-    'section_collapsed'
-  );
+  resourceTabPane.clearResourceList();
+  addCssClass('#patientsArea > .section', 'section_collapsed');
   document.getElementById('patientsCount').innerText = count;
-  reportObservationsSpan.innerHTML = '';
 }
 
 /**
@@ -124,60 +118,22 @@ function showPatientProgress(message, percent) {
 }
 
 /**
- *  Shows a message when there are no Observation list was displayed
- */
-function showMessageIfNoObservationList(msg) {
-  const nonResultsMsgElement = document.getElementById('noObservations');
-  nonResultsMsgElement.innerText = msg;
-  removeCssClass('#noObservations', 'hide');
-  addCssClass('#observationsArea', 'hide');
-}
-
-/**
- * Shows the Observation list area and updates the number of Observations in the area header
- * @param {number} count - number of Observations
- */
-function showListOfObservations(count) {
-  addCssClass('#noObservations', 'hide');
-  removeCssClass('#observationsArea', 'hide');
-  removeCssClass(
-    document.querySelector('#resultsTable').closest('.section'),
-    'section_collapsed'
-  );
-  document.getElementById('observationsCount').innerText = count;
-}
-
-/**
  * Shows the report about loading the Patient list
  */
 export function showPatientsReport() {
   patientsReporter.show();
 }
 
-/**
- * Shows the report of loading the Observation list
- */
-export function showObservationsReport() {
-  observationsReporter.show();
-}
-
-/**
- * Shows the current progress of loading the Observation list
- * @param {string} message
- * @param {number|undefined} percent
- */
-function showObservationsProgress(message, percent) {
-  if (percent === undefined) {
-    showMessageIfNoObservationList(`${message}...`);
-  } else {
-    showMessageIfNoObservationList(`${message}... ${percent}%`);
-  }
-  observationsReporter.setProgress(message + '...', percent);
-}
-
 let patientResources;
-const patientTable = new PatientTable('patientTable');
-const observationsTable = new ObservationTable('resultsTable');
+const patientTable = new PatientTable({
+  callbacks: {
+    addComponentToPage: (html) => {
+      document
+        .querySelector('#patientsArea .section__body')
+        .insertAdjacentHTML('beforeend', html);
+    }
+  }
+}).initialize();
 
 /**
  * Gets an instance of FhirBatchQuery used to query data for Patient/Observation list
@@ -202,10 +158,16 @@ function getFhirClient() {
  * @return {SearchParameters}
  */
 function createPatientSearchParameters(serviceBaseUrl) {
-  return new SearchParameters(
-    '#patientSearchParamsAfterThisRow',
+  return new SearchParameters({
+    callbacks: {
+      addComponentToPage: (html) => {
+        document
+          .getElementById('patientSearchParamsAfterThisRow')
+          .insertAdjacentHTML('afterend', html);
+      }
+    },
     serviceBaseUrl,
-    [
+    searchParamGroups: [
       PatientSearchParameters,
       EncounterSearchParameters,
       ConditionSearchParameters,
@@ -238,7 +200,7 @@ function createPatientSearchParameters(serviceBaseUrl) {
       'RiskAssessment',
       'ServiceRequest'
     ]
-  );
+  });
 }
 
 // Prevents implicit submission by press Enter in input field
@@ -273,7 +235,6 @@ export function loadPatients() {
   fhirClient = getFhirClient();
   reportPatientsSpan.innerHTML = '';
   loadPatientsButton.disabled = true;
-  loadObservationsButton.disabled = true;
   patientsReporter.initialize();
   const startDate = new Date();
 
@@ -282,21 +243,28 @@ export function loadPatients() {
   const onFinally = () => {
     patientsReporter.finalize();
     loadPatientsButton.disabled = false;
-    loadObservationsButton.disabled = false;
   };
 
   getPatients().then(
     (data) => {
       patientResources = data;
+
+      // Pass Patients data to component to display resources
+      resourceTabPane.setPatientResources(data);
+      resourceTabPane.setPatientSearchParams(patientSearchParams);
+
       reportPatientsSpan.innerHTML = `
-(<a href="#" onclick="app.showPatientsReport();return false;">loaded data in ${(
+(<a href="#" onclick="app.showPatientsReport();return false;" onkeydown="keydownToClick(event);">loaded data in ${(
         (new Date() - startDate) /
         1000
       ).toFixed(1)} s</a>)`;
       removeCssClass('#reportPatients', 'hide');
 
       if (patientResources.length) {
-        patientTable.fill(patientResources, fhirClient.getServiceBaseUrl());
+        patientTable.fill({
+          data: patientResources,
+          serviceBaseUrl: fhirClient.getServiceBaseUrl()
+        });
         showListOfPatients(patientResources.length);
       } else {
         showMessageIfNoPatientList('No matching Patients found.');
@@ -312,121 +280,6 @@ export function loadPatients() {
       onFinally();
     }
   );
-}
-
-/**
- *  Handles the request to load the Observation list
- */
-export function loadObs() {
-  fhirClient = getFhirClient();
-  reportObservationsSpan.innerHTML = '';
-  loadPatientsButton.disabled = true;
-  loadObservationsButton.disabled = true;
-
-  const perPatientPerTest =
-    document.getElementById('perPatientPerTest').value ||
-    Number.POSITIVE_INFINITY;
-
-  let codes, field;
-  if (categoryLimits) {
-    codes = categoryAC.getSelectedCodes();
-    field = 'category';
-  } else {
-    // test codes instead of categories
-    codes = loincAC.getSelectedCodes();
-    field = 'code';
-  }
-
-  observationsTable.setAdditionalColumns(patientSearchParams.getColumns());
-
-  const startDate = new Date();
-  const patientCount = patientResources.length;
-  let completedRequestCount = 0;
-  let allObservations = [];
-  let hasError = false;
-  const urlSuffixes =
-    codes && codes.length > 0
-      ? codes.map(
-          (code) =>
-            `&_count=${perPatientPerTest}&${field}=${encodeURIComponent(code)}`
-        )
-      : [`&_count=1000`];
-  const suffixCount = urlSuffixes.length;
-  const totalRequestCount = patientCount * suffixCount;
-
-  observationsReporter.initialize();
-  showObservationsProgress('Loading observations', 0);
-  let observationsLoaded = observationsReporter.addMetric({
-    name: 'Observation resources loaded'
-  });
-
-  for (let i = 0; i < patientCount; ++i) {
-    const patient = patientResources[i];
-
-    for (let j = 0; j < suffixCount; ++j) {
-      const urlSuffix = urlSuffixes[j],
-        index = i * suffixCount + j;
-
-      fhirClient
-        .getWithCache(
-          `Observation?subject=Patient/${patient.id}` +
-            `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` +
-            urlSuffix
-        )
-        .then(
-          ({ data }) => {
-            if (!hasError) {
-              showObservationsProgress(
-                'Loading observations',
-                Math.floor((++completedRequestCount * 100) / totalRequestCount)
-              );
-              allObservations[index] = (data.entry || []).map(
-                (item) => item.resource
-              );
-              observationsLoaded.incrementCount(allObservations[index].length);
-              if (completedRequestCount === totalRequestCount) {
-                observationsReporter.finalize();
-                reportObservationsSpan.innerHTML = `
-(<a href="#" onclick="app.showObservationsReport();return false;">loaded data in ${(
-                  (new Date() - startDate) /
-                  1000
-                ).toFixed(1)} s</a>)`;
-
-                const observations = [].concat(...allObservations);
-                if (observations.length) {
-                  observationsTable.fill(
-                    {
-                      patients: patientResources,
-                      observations
-                    },
-                    perPatientPerTest,
-                    fhirClient.getServiceBaseUrl()
-                  );
-                  showListOfObservations(observations.length);
-                } else {
-                  showMessageIfNoObservationList(
-                    'No matching Observations found.'
-                  );
-                }
-                loadPatientsButton.disabled = false;
-                loadObservationsButton.disabled = false;
-              }
-            }
-          },
-          ({ status, error }) => {
-            hasError = true;
-            if (status !== HTTP_ABORT) {
-              fhirClient.clearPendingRequests();
-              console.log(`Load Observations failed: ${error}`);
-              // Show message if request is not aborted
-              showMessageIfNoObservationList('Could not load observation list');
-            }
-            loadPatientsButton.disabled = false;
-            loadObservationsButton.disabled = false;
-          }
-        );
-    }
-  }
 }
 
 /**
@@ -551,39 +404,6 @@ function getPatients() {
   });
 }
 
-/**
- *  Handles the request to download the observations.
- */
-export function downloadObs() {
-  saveAs(observationsTable.getBlob(), 'observations.csv');
-}
-
 export function clearCache() {
   FhirBatchQuery.clearCache();
 }
-
-/**
- *  Handles the request to change the limit type selection (category or test
- *  type).
- * @param ev the change event
- */
-function handleLimitSelection(ev) {
-  setLimitType(ev.target.id === 'limit1');
-}
-
-/**
- *  Sets the limit type (category or test) and adjusts the display.
- * @param isCategory true if categories are to be used.
- */
-function setLimitType(isCategory) {
-  categoryLimits = isCategory;
-  testLimitRow.style.display = categoryLimits ? 'none' : '';
-  catLimitRow.style.display = categoryLimits ? '' : 'none';
-}
-setLimitType(false);
-
-var categoryRadio = document.getElementById('limit1');
-categoryRadio.addEventListener('change', handleLimitSelection);
-document
-  .getElementById('limit2')
-  .addEventListener('change', handleLimitSelection);

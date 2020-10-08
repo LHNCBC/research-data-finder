@@ -70,6 +70,10 @@ export function getSearchParamGroupFactoryByResourceType(resourceType) {
  * @return {Promise}
  */
 export function setFhirServerForSearchParameters(serviceBaseUrl) {
+  if (client && client.getServiceBaseUrl() === serviceBaseUrl) {
+    return Promise.resolve();
+  }
+
   client = null;
   const newClient = new FhirBatchQuery({
     serviceBaseUrl,

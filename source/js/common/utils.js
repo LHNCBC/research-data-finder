@@ -277,3 +277,70 @@ export function getDateTimeFromInput(selector, timeString = null) {
 
   return '';
 }
+
+/**
+ * The Tab and Shift+Tab keys will cycle through the focusable elements within a DOM node.
+ * @param {HTMLElement} popupElement - DOM node
+ * @param {Function} onEscape - callback if ESC key pressed
+ * @return {function(): void} - returns a function to cancel the focus control
+ */
+export function trapFocusInPopup(popupElement, onEscape) {
+  const focusableEls = [].slice.call(
+    popupElement.querySelectorAll(
+      [
+        '*[tabIndex]:not([tabIndex="-1"])',
+        'a[href]:not([disabled])',
+        'button:not([disabled])',
+        'textarea:not([disabled])',
+        'input[type="text"]:not([disabled])',
+        'input[type="radio"]:not([disabled])',
+        'input[type="checkbox"]:not([disabled])',
+        'select:not([disabled])'
+      ].join(',')
+    )
+  );
+  const firstFocusableEl = focusableEls[0];
+  const lastFocusableEl = focusableEls[focusableEls.length - 1];
+  const prevFocusedElement = document.activeElement;
+
+  // Remove focus from outside of the popup
+  firstFocusableEl.focus();
+  // Don't focus inside a popup without a click or TAB
+  firstFocusableEl.blur();
+
+  function trapFn(e) {
+    const isTabPressed = e.key === 'Tab' || e.key === 'Tab';
+
+    if (!isTabPressed) {
+      if (e.key === 'Esc' || e.key === 'Escape') {
+        onEscape();
+      }
+      return;
+    }
+
+    const activeElement =
+      focusableEls.indexOf(document.activeElement) === -1
+        ? null
+        : document.activeElement;
+
+    if (e.shiftKey) {
+      if (!activeElement || activeElement === firstFocusableEl) {
+        lastFocusableEl.focus();
+        e.preventDefault();
+      }
+    } else {
+      if (!activeElement || activeElement === lastFocusableEl) {
+        firstFocusableEl.focus();
+        e.preventDefault();
+      }
+    }
+  }
+
+  document.addEventListener('keydown', trapFn);
+
+  return function () {
+    document.removeEventListener('keydown', trapFn);
+    // Restore focus after closing the popup
+    prevFocusedElement && prevFocusedElement.focus();
+  };
+}

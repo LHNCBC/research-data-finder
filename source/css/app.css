@@ -21,6 +21,92 @@ body {
   position: static;
 }
 
+/* Styles to prevent unnecessary Bootstrap changes */
+label {
+  display: inline;
+}
+
+*,
+::after,
+::before {
+  box-sizing: content-box;
+}
+
+button {
+  border-radius: 2px;
+  border-width: 1px;
+  border-style: outset;
+  padding: 2px 6px;
+  line-height: initial;
+}
+/* End of styles to prevent unnecessary Bootstrap changes */
+
+/* Styles to improve focus visibility */
+*[tabIndex]:focus {
+  outline-style: dotted;
+  outline-width: thin;
+}
+/* End of styles to improve focus visibility */
+
+/* Styles for tabs-component */
+.add-icon {
+  background: url("../images/plus.svg") no-repeat 0 0 / 19px 19px;
+  width: 19px;
+  height: 19px;
+  display: block;
+}
+
+.remove-icon {
+  background: url("../images/x.svg") no-repeat 0 0 / 14px 14px;
+  width: 16px;
+  height: 16px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.remove-icon:hover {
+  border-color: #337ab7;
+}
+
+.tabs-component > .no-tab-content,
+.tabs-component > .tab-content {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.5em 0.75em;
+  border: 1px solid #ccc;
+  border-top: 0;
+  border-radius: 0 0 7px 7px;
+  background: #fff;
+}
+
+.tabs-component > .tab-content:empty,
+.tabs-component > .tab-content:not(:empty) ~ .no-tab-content {
+  display: none;
+}
+
+.nav-tabs {
+  border-bottom-color: #ccc;
+}
+
+.nav-tabs .nav-link {
+  display: flex;
+  align-items: center;
+}
+
+.nav-tabs .nav-link.active {
+  color: #495057;
+  border-color: #ccc #ccc #fff;
+}
+
+.nav-tabs .nav-link:not(.active):hover {
+  border-color: #e9ecef #e9ecef #ccc;
+}
+/* End of styles for tabs-component */
+
 .lf-form-table .lf-form-table-row.section-header.level1 {
   background-color: rgb(67, 115, 156);
   color: white;
@@ -87,7 +173,10 @@ input.ansList {
 #content {
   padding: 1em;
 }
-#content > p {
+
+#content > p,
+form > p,
+.tab-pane > p {
   margin-top: 10px;
   margin-bottom: 0;
 }
@@ -149,7 +238,8 @@ input {
   height: 1px;
 }
 
-.section_collapsed + .section {
+.section_collapsed + .section,
+.section_collapsed + form {
   margin-top: 25px;
 }
 
@@ -168,8 +258,24 @@ input {
   position: sticky;
   width: fit-content;
   margin-top: -20px;
+  margin-left: 10px;
   top: 0;
   height: 20px;
+}
+
+.section__header .section__title {
+  border-style: dotted;
+  border-color: transparent;
+  border-width: 1px;
+  border-radius: 7px;
+}
+
+.section__header:focus {
+  outline-style: none;
+}
+
+.section__header:focus .section__title {
+  border-color: inherit;
 }
 
 .section__title {
@@ -178,7 +284,6 @@ input {
   background-color: #fff;
   padding: 3px 5px;
   color: #337ab7;
-  margin-left: 10px;
   margin-top: -20px;
 }
 
@@ -207,6 +312,10 @@ div.section__body > div:not(.search-parameter-list):not(.hide) {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
+}
+
+div.section__body > table {
+  align-self: flex-start;
 }
 
 div.section__body > div:not(.search-parameter-list) > label {
@@ -242,6 +351,14 @@ div.section__body > .search-parameter > .search-parameter__name {
 
 div.section__body > .search-parameter > :first-child {
   max-width: 180px;
+}
+
+.search-parameter-list_one-resource div.section__body > .search-parameter > :first-child {
+  display: none;
+}
+
+.search-parameter-list_one-resource div.section__body > .search-parameter > :nth-child(2) {
+  margin-left: 0;
 }
 
 div.section__body > .search-parameter > :nth-child(3) {
@@ -508,7 +625,7 @@ a:hover {
 /* Styles for the report popup */
 .report-popup {
   position: fixed;
-  z-index: 1;
+  z-index: 100;
   left: 0;
   top: 0;
   width: 100%;
@@ -553,13 +670,12 @@ a:hover {
   position: absolute;
   top: 10px;
   right: 10px;
+  cursor: pointer;
 }
 
 .report-popup_close-btn:hover,
 .report-popup_close-btn:focus {
   color: black;
-  text-decoration: none;
-  cursor: pointer;
 }
 /* End of styles for the report popup */
 

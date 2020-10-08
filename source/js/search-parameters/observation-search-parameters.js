@@ -26,7 +26,7 @@ export const ObservationSearchParameters = () => ({
    * @return {string}
    */
   getControlsHtml: (searchItemId) => `
-<input type="text" id="${searchItemId}-test-name" placeholder="LOINC tests">
+<input type="text" id="${searchItemId}-test-name" placeholder="LOINC variables – type and select one or more">
 <div id="${searchItemId}-test-value" class="search-parameter__test-value">${noControlsMessage}</div>
 `,
 

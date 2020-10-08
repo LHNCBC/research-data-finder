@@ -3,20 +3,23 @@ import {
   getSearchParamGroupFactoryByResourceType,
   setFhirServerForSearchParameters
 } from './common-descriptions';
+import { BaseComponent } from '../common/base-component';
 
-export class SearchParameters {
+export class SearchParameters extends BaseComponent {
   /**
-   * Inserts the component after table row selected by anchorSelector
-   * @param {string} anchorSelector
+   * Constructor of component
+   * @param {Object<Function>} callbacks - callback functions that the component uses for input/output
    * @param {string} serviceBaseUrl - FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
    * @param {Object[]} searchParamGroups Array of objects describing the search parameters
    *                   (see patient-search-parameters.js for an example object)
    *                   or strings with resource types.
    */
-  constructor(anchorSelector, serviceBaseUrl, searchParamGroups) {
-    this.initialize = setFhirServerForSearchParameters(serviceBaseUrl).then(
+  constructor({ callbacks, serviceBaseUrl, searchParamGroups }) {
+    super({
+      callbacks
+    });
+    this.ready = setFhirServerForSearchParameters(serviceBaseUrl).then(
       () => {
-        this.internalId = 'searchParam';
         this.availableParams = {};
         this.searchParams = searchParamGroups.reduce((_searchParams, item) => {
           const searchParamGroupFactory =
@@ -33,13 +36,13 @@ export class SearchParameters {
             : Object.keys(searchParamGroup.description).sort();
           return _searchParams;
         }, {});
-        this.buttonId = this.internalId + '_add_button';
-        this.item_prefix = this.internalId + '_param_';
+        this.buttonId = this._id + '_add_button';
+        this.item_prefix = this._id + '_param_';
         this.item_generator = 0;
         this.selectedParams = {};
         this.selectedResources = {};
 
-        this.addButton(anchorSelector);
+        this.initialize();
 
         Def.Autocompleter.Event.observeListSelections(null, (eventData) => {
           const inputId = eventData.field_id;
@@ -108,17 +111,39 @@ export class SearchParameters {
   }
 
   /**
-   * Returns root HTMLElement of the SearchParameters component
-   * @return {HTMLElement}
+   * Returns HTML for component
    */
-  getHtmlElement() {
-    return document.getElementById(this.internalId);
+  getHtml() {
+    return `\
+<div id="${this._id}" class="search-parameter-list${
+      this.getAvailableResourceTypes().length === 1
+        ? ' search-parameter-list_one-resource'
+        : ''
+    } search-parameter-list_empty">
+    <div class="search-parameter-list__combiner"><label>AND</label> - criteria are combined with logical AND</div>
+    <div class="section__body"></div>
+</div>
+<div>
+  <button id="${
+    this.buttonId
+  }" type="button" class="add-search-param-button">Add a search criterion</button>
+</div>`;
+  }
+
+  /**
+   * Initializes controls created in getHtml
+   */
+  attachControls() {
+    this.attachEvent(document.getElementById(this.buttonId), 'click', () =>
+      this.addParam()
+    );
   }
 
   /**
    * Removes all controls and related data
    */
-  dispose() {
+  detachControls() {
+    super.detachControls();
     const addBtn = document.getElementById(this.buttonId);
     if (addBtn) {
       Object.keys(this.selectedParams).forEach((searchItemId) =>
@@ -331,27 +356,6 @@ export class SearchParameters {
   }
 
   /**
-   * Adds a button to add search parameters
-   * @param {string} anchorSelector table row selector after which a row with a button will be added
-   */
-  addButton(anchorSelector) {
-    const anchorElement = document.querySelector(anchorSelector);
-
-    anchorElement.insertAdjacentHTML(
-      'afterend',
-      `\
-<div id="${this.internalId}" class="search-parameter-list search-parameter-list_empty">
-    <div class="search-parameter-list__combiner"><label>AND</label> - criteria are combined with logical AND</div>
-    <div class="section__body"></div>
-</div>
-<div>
-  <button id="${this.buttonId}" type="button" class="add-search-param-button">Add a search criterion</button>
-</div>`
-    );
-    document.getElementById(this.buttonId).onclick = () => this.addParam();
-  }
-
-  /**
    * Adds a new row with search parameter to the table of search parameters
    */
   addParam() {
@@ -365,7 +369,7 @@ export class SearchParameters {
     const searchItemContentId = this.getParamContentId(searchItemId);
     const removeButtonId = this.getRemoveButtonId(searchItemId);
     const prevRowElement = document
-      .getElementById(this.internalId)
+      .getElementById(this._id)
       .querySelector('.section__body >:last-child');
     const prevResourceTypeSelector = prevRowElement
       ? document.getElementById(
@@ -386,7 +390,7 @@ export class SearchParameters {
     this.selectedResources[searchItemId] = paramResourceType;
 
     document
-      .getElementById(this.internalId)
+      .getElementById(this._id)
       .querySelector('.section__body')
       .insertAdjacentHTML(
         'beforeend',
@@ -459,7 +463,7 @@ export class SearchParameters {
   onParamsCountChanged() {
     this.updateAllSearchParamSelectors();
     const paramsCount = Object.keys(this.selectedParams).length;
-    const paramListElement = document.getElementById(this.internalId);
+    const paramListElement = document.getElementById(this._id);
     toggleCssClass(
       paramListElement,
       'search-parameter-list_empty',

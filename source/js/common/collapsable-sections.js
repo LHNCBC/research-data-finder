@@ -3,17 +3,19 @@ import { slice, toggleCssClass } from './utils';
 /**
  * Adds the ability to collapse for each section
  */
-slice(document.querySelectorAll('.section')).forEach((element) => {
-  if (!element.querySelector('.section__header')) {
-    element.insertAdjacentHTML(
-      'afterbegin',
-      `
-<div class="section__header" onclick="toggleSection(this)"></div>`
-    );
-    const titleElement = element.querySelector('.section__title');
-    element.querySelector('.section__header').appendChild(titleElement);
-  }
-});
+export function initCollapsibleSections() {
+  slice(document.querySelectorAll('.section')).forEach((element) => {
+    if (!element.querySelector('.section__header')) {
+      element.insertAdjacentHTML(
+        'afterbegin',
+        `
+<div class="section__header" onclick="toggleSection(this);" onkeydown="keydownToClick(event)" tabindex="0"></div>`
+      );
+      const titleElement = element.querySelector('.section__title');
+      element.querySelector('.section__header').appendChild(titleElement);
+    }
+  });
+}
 
 /**
  * Click event handler for section header
@@ -28,5 +30,19 @@ window.toggleSection = function (sectionHeader) {
     if (rect.top < 0) {
       window.scrollTo(window.scrollX, window.scrollY + rect.top - 10);
     }
+  }
+};
+
+/**
+ * Converts pressing the spacebar or enter to a click event
+ * @param {KeyboardEvent} event
+ */
+window.keydownToClick = function (event) {
+  if (
+    (event.key === ' ' || event.key === 'Spacebar' || event.key === 'Enter') &&
+    event.target === event.currentTarget
+  ) {
+    event.target.click();
+    event.preventDefault();
   }
 };

@@ -5,10 +5,11 @@ import {
   humanNameToString
 } from './common/utils';
 import { getCurrentDefinitions } from './search-parameters/common-descriptions';
+import { ResourceTable } from './resource-table';
 
-export class PatientTable {
-  constructor(tableId) {
-    this.tableId = tableId;
+export class PatientTable extends ResourceTable {
+  constructor({ callbacks }) {
+    super({ callbacks });
 
     // Mapping for each cell in a row for display:
     // title - column caption
@@ -98,7 +99,7 @@ export class PatientTable {
    * @param {{patients: Object[], observations: Object[]}} data - result of requests to server for observations and patients
    * @param {string} serviceBaseUrl - the Service Base URL of the FHIR server from which data is being pulled
    */
-  fill(data, serviceBaseUrl) {
+  fill({ data, serviceBaseUrl }) {
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
     this.valueSetMapByPath = getCurrentDefinitions().valueSetMapByPath;
@@ -125,7 +126,7 @@ export class PatientTable {
     // Update table
     const viewCellsTemplate = this._getViewCellsTemplate();
 
-    document.getElementById(this.tableId).innerHTML =
+    document.getElementById(this._id).innerHTML =
       this.getHeader() +
       '<tbody><tr>' +
       this.data

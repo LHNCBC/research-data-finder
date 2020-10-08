@@ -10,7 +10,7 @@ describe('Research Data Finder', function () {
     browser.get('/');
   });
 
-  const item_prefix = 'searchParam_param_';
+  const item_prefix = 'SearchParameters-1_param_';
   let item_index = 0;
 
   /**
@@ -43,15 +43,15 @@ describe('Research Data Finder', function () {
 
     browser.wait(EC.elementToBeClickable(loadPatientsBtn));
     loadPatientsBtn.click();
-    browser.wait(EC.visibilityOf($('#loadObservations')));
+    browser.wait(EC.visibilityOf($('#ObservationTabPage-1-loadBtn')));
   }
 
   /**
    * "it" function to check that Observations can be loaded
    */
   function checkLoadObservations() {
-    $('#loadObservations').click();
-    browser.wait(EC.visibilityOf($('#resultsTable')));
+    $('#ObservationTabPage-1-loadBtn').click();
+    browser.wait(EC.visibilityOf($('#ObservationTable-1')));
   }
 
   /**
@@ -66,7 +66,7 @@ describe('Research Data Finder', function () {
       fs.unlinkSync(filename);
     }
 
-    $('#download').click();
+    $('#ObservationTabPage-1-downloadBtn').click();
 
     browser
       .wait(function () {
@@ -104,7 +104,7 @@ describe('Research Data Finder', function () {
   describe('when adding criteria to Patient resource', function () {
     it('should load minimum and maximum values for date criterion', function () {
       const searchParamId = getNextSearchParamId();
-      const addCriterionBtn = $('#searchParam_add_button');
+      const addCriterionBtn = $('#SearchParameters-1_add_button');
       const resourceInput = $(`#${searchParamId}_resource`);
       const paramNameInput = $(`#${searchParamId}`);
       const fromInput = $(`#${searchParamId}-birthdate-from`);
@@ -129,7 +129,7 @@ describe('Research Data Finder', function () {
 
     it('should select the first search parameter for selected resource by default', function () {
       const searchParamId = getNextSearchParamId();
-      const addCriterionBtn = $('#searchParam_add_button');
+      const addCriterionBtn = $('#SearchParameters-1_add_button');
       const resourceInput = $(`#${searchParamId}_resource`);
       const paramNameInput = $(`#${searchParamId}`);
 
@@ -156,7 +156,7 @@ describe('Research Data Finder', function () {
   describe('when adding criteria to Observation resource', function () {
     it('should provide the ability to select a test name and test value', function () {
       const searchParamId = getNextSearchParamId();
-      const addCriterionBtn = $('#searchParam_add_button');
+      const addCriterionBtn = $('#SearchParameters-1_add_button');
       const resourceInput = $(`#${searchParamId}_resource`);
       const testNameInput = $(`#${searchParamId}-test-name`);
       const testRealValueInput = $(`#${searchParamId}-test-real-value`);
