@@ -5,12 +5,15 @@ import {
 } from './common-descriptions';
 import { BaseComponent } from '../common/base-component';
 
+/**
+ * Component class for managing criteria
+ */
 export class SearchParameters extends BaseComponent {
   /**
    * Constructor of component
    * @param {Object<Function>} callbacks - callback functions that the component uses for input/output
    * @param {string} serviceBaseUrl - FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
-   * @param {Object[]} searchParamGroups Array of objects describing the search parameters
+   * @param {Object[]} searchParamGroups - array of objects describing the search parameters
    *                   (see patient-search-parameters.js for an example object)
    *                   or strings with resource types.
    */
@@ -18,6 +21,10 @@ export class SearchParameters extends BaseComponent {
     super({
       callbacks
     });
+    /**
+     * This promise will be resolved when component is ready to use
+     * @type {Promise<void>}
+     */
     this.ready = setFhirServerForSearchParameters(serviceBaseUrl).then(
       () => {
         this.availableParams = {};
