@@ -170,9 +170,8 @@ export class ObservationTabPage extends ResourceTabPage {
             ({ data }) => {
               if (!hasError) {
                 this.showLoadingProgress(
-                  Math.floor(
-                    (++completedRequestCount * 100) / totalRequestCount
-                  )
+                  ++completedRequestCount,
+                  totalRequestCount
                 );
                 allObservations[index] = (data.entry || []).map(
                   (item) => item.resource

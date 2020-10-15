@@ -150,15 +150,15 @@ export class ResourceTabPage extends BaseComponent {
 
   /**
    * Shows the current progress of loading the resources list
-   * @param {number|undefined} percent
+   * @param {number} completedRequestCount
+   * @param {number} [totalRequestCount] is not mandatory if completedRequestCount is 0
    */
-  showLoadingProgress(percent) {
+  showLoadingProgress(completedRequestCount, totalRequestCount) {
+    const percent = completedRequestCount
+      ? Math.floor((completedRequestCount * 100) / totalRequestCount)
+      : 0;
     const message = `Loading ${this.resourceType}s`;
-    if (percent === undefined) {
-      this.showMessageIfNoResourceList(`${message}...`);
-    } else {
-      this.showMessageIfNoResourceList(`${message}... ${percent}%`);
-    }
+    this.showMessageIfNoResourceList(`${message}... ${percent}%`);
     this.loadReporter.setProgress(message + '...', percent);
   }
 
@@ -229,7 +229,8 @@ export class ResourceTabPage extends BaseComponent {
           ({ data }) => {
             if (!hasError) {
               this.showLoadingProgress(
-                Math.floor((++completedRequestCount * 100) / totalRequestCount)
+                ++completedRequestCount,
+                totalRequestCount
               );
               bundles[index] = data;
               resourcesLoaded.incrementCount(
