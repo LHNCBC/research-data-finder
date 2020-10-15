@@ -112,6 +112,7 @@ export class SearchParameters extends BaseComponent {
 
   /**
    * Returns HTML for component
+   * @return {string}
    */
   getHtml() {
     return `\

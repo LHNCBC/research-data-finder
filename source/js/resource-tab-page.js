@@ -119,6 +119,7 @@ export class ResourceTabPage extends BaseComponent {
 
   /**
    * Returns HTML for component
+   * @return {string}
    */
   getHtml() {
     const title = capitalize(this.resourceType) + 's';

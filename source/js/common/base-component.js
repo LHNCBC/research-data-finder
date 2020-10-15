@@ -32,6 +32,7 @@ export class BaseComponent {
 
   /**
    * Returns HTML for component
+   * @return {string}
    */
   getHtml() {
     return '';
@@ -80,9 +81,10 @@ export class BaseComponent {
   }
 
   /**
-   * Create a wrapper function to call "fn" once
+   * Creates a wrapper function to call "fn" once
    * when directly accessing or when calling "detachControls"
    * @param {Function} fn
+   * @return {Function}
    */
   createDetachFn(fn) {
     const remover = () => {
@@ -99,29 +101,33 @@ export class BaseComponent {
   }
 
   /**
-   * Expands the passed identifier with a prefix with the component identifier
-   * @param {string} id
+   * Adds a prefix with the component identifier to the passed string idSuffix
+   * @param {string} idSuffix
+   * @return {string}
    */
-  generateId(id) {
-    return this._id + '-' + id;
+  generateId(idSuffix) {
+    return this._id + '-' + idSuffix;
   }
 
   /**
-   * Expands the passed identifier with a prefix with the component identifier
-   * and postfix with index number
-   * @param {string} id
+   * Adds a prefix with the component identifier and a suffix with index number
+   * to the passed string idPart
+   * @param {string} idPart
+   * @return {string}
    */
-  generateUniqueId(id) {
-    return addIndexToId(this.generateId(id));
+  generateUniqueId(idPart) {
+    return addIndexToId(this.generateId(idPart));
   }
 }
 
 const uniqueIdGenerator = {};
 /**
- * Expands the passed identifier with a postfix with index number
- * @param {string} id
+ * Adds a suffix with index number to the passed string idBase
+ * @param {string} idBase
+ * @return {string}
  */
-function addIndexToId(id) {
-  const index = (uniqueIdGenerator[id] = (uniqueIdGenerator[id] || 0) + 1);
-  return id + '-' + index;
+function addIndexToId(idBase) {
+  const index = (uniqueIdGenerator[idBase] =
+    (uniqueIdGenerator[idBase] || 0) + 1);
+  return idBase + '-' + index;
 }

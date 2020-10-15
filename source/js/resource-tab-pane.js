@@ -57,6 +57,7 @@ export class ResourceTabPane extends BaseComponent {
 
   /**
    * Returns HTML for component
+   * @return {string}
    */
   getHtml() {
     // This array of resource types is currently created manually for flexibility reasons
@@ -171,7 +172,7 @@ export class ResourceTabPane extends BaseComponent {
    * @param {string} resourceType
    */
   addTab(resourceType) {
-    const uniqTabId = this.generateUniqueId('page');
+    const uniqTabId = this.generateUniqueId('tab');
     const tabButtonId = uniqTabId + '-button';
     const tabContentId = uniqTabId + '-content';
 
