@@ -12,7 +12,10 @@ export class SearchParameters extends BaseComponent {
   /**
    * Constructor of component
    * @param {Object<Function>} callbacks - callback functions that the component uses for input/output
-   * @param {string} serviceBaseUrl - FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
+   * @param {string} serviceBaseUrl - FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root).
+   *        On instantiating the class, the metadata for the specified server will be loaded and used to
+   *        determine the FHIR version. The FHIR version is needed to get the specification of the criteria.
+   *        Use "ready" property to check that the component is ready for use.
    * @param {Object[]} searchParamGroups - array of objects describing the search parameters
    *                   (see patient-search-parameters.js for an example object)
    *                   or strings with resource types.
