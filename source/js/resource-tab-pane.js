@@ -229,6 +229,8 @@ export class ResourceTabPane extends BaseComponent {
 
     new Tab(document.getElementById(tabButtonId)).show();
 
+    this.updateCssClasses();
+
     // Adds the ability to collapse for each section
     initCollapsibleSections();
   }
@@ -264,5 +266,18 @@ export class ResourceTabPane extends BaseComponent {
     [tabButton, tabContent].forEach((el) => {
       el.parentNode.removeChild(el);
     });
+
+    this.updateCssClasses();
+  }
+
+  /**
+   * Updates CSS classes for the root element of the component
+   */
+  updateCssClasses() {
+    toggleCssClass(
+      '#' + this._id,
+      'last-tab',
+      document.querySelectorAll(`#${this._id} .tab-link`).length === 1
+    );
   }
 }

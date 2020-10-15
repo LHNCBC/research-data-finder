@@ -70,6 +70,10 @@ button {
   border-color: #337ab7;
 }
 
+.last-tab .remove-icon {
+  display: none;
+}
+
 .tabs-component > .no-tab-content,
 .tabs-component > .tab-content {
   position: relative;
