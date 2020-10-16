@@ -4,34 +4,50 @@ import * as r4_model from 'fhirpath/fhir-context/r4';
 import { capitalize } from './common/utils';
 import { BaseComponent } from './common/base-component';
 
+/**
+ * Component class for displaying a resource table of a given resource type
+ */
 export class ResourceTable extends BaseComponent {
+  /**
+   * Constructor of component
+   * @param {string} resourceType
+   * @param {Object<Function>} callbacks - callback functions:
+   *        addComponentToPage - used to add HTML of the component to the page,
+   */
   constructor({ resourceType, callbacks }) {
     super({ callbacks });
     this.resourceType = resourceType;
   }
 
+  /**
+   * Returns HTML for component
+   * @return {string}
+   */
   getHtml() {
     return `<table id="${this._id}"></table>`;
   }
 
+  /**
+   * Returns HTML for table header
+   * @return {string}
+   */
   getHeader() {
     return `<thead><tr><th>${this.searchParameters
       .map((item) => capitalize(item.name).replace(/-/g, ' '))
       .join('</th><th>')}</th></tr></thead>`;
   }
 
-  setAdditionalColumns(columns) {
-    this._additionalColumns = columns || [];
-  }
-
-  _getViewCellsTemplate() {
-    return this.viewCellsTemplate.filter(
-      (item) =>
-        !item.columnName ||
-        this._additionalColumns.indexOf(item.columnName) !== -1
-    );
-  }
-
+  /**
+   * Parse search parameter data to produce object with column descriptions:
+   * columns - array of column names,
+   * valuePath - array of functions to retrieve values for these columns
+   * TODO: one search parameter could produce two column (in the next PR)
+   * @param {Object} param - search parameter description retrieved from webpack-loader
+   * @param {Object} param.name - search parameter name
+   * @param {Object} param.expression - FHIRPath expression to retrieve the value
+   *        associated with this search parameter from resource data entry
+   * @return {{valuePaths: [function(*=, *=): *], columns: [string]}}
+   */
   parseParam(param) {
     return {
       valuePaths: [
@@ -89,6 +105,12 @@ export class ResourceTable extends BaseComponent {
       '</tbody>';
   }
 
+  /**
+   * Returns HTML for one table row
+   * @param {Object} patient - Patient resource data for which resource data entry is loaded
+   * @param {Object} resource - resource data entry
+   * @return {string}
+   */
   getRowHtml(patient, resource) {
     return (
       '<tr><td>' +

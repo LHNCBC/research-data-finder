@@ -194,12 +194,9 @@ export class ResourceTabPage extends BaseComponent {
   loadResources() {
     const fhirClient = this.callbacks.getFhirClient();
     const patientResources = this.callbacks.getPatientResources();
-    const patientSearchParams = this.callbacks.getPatientSearchParams();
     this.reportLinkSpan.innerHTML = '';
     this.callbacks.onStartLoading();
     this.loadResouresButton.disabled = true;
-
-    this.resourceTable.setAdditionalColumns(patientSearchParams.getColumns());
 
     const startDate = new Date();
     const patientCount = patientResources.length;

@@ -295,9 +295,7 @@ const focusableSelector = [
  * @return {HTMLElement[]}
  */
 export function getFocusableChildren(element) {
-  return [].slice.call(
-    element.querySelectorAll(focusableSelector)
-  );
+  return [].slice.call(element.querySelectorAll(focusableSelector));
 }
 /**
  * The Tab and Shift+Tab keys will cycle through the focusable elements within a DOM node.
