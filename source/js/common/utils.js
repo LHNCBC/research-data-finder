@@ -278,6 +278,27 @@ export function getDateTimeFromInput(selector, timeString = null) {
   return '';
 }
 
+const focusableSelector = [
+  '*[tabIndex]:not([tabIndex="-1"])',
+  'a[href]:not([disabled])',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input[type="text"]:not([disabled])',
+  'input[type="radio"]:not([disabled])',
+  'input[type="checkbox"]:not([disabled])',
+  'select:not([disabled])'
+].join(',');
+
+/**
+ * Returns focusable children of element
+ * @param {HTMLElement} element
+ * @return {HTMLElement[]}
+ */
+export function getFocusableChildren(element) {
+  return [].slice.call(
+    element.querySelectorAll(focusableSelector)
+  );
+}
 /**
  * The Tab and Shift+Tab keys will cycle through the focusable elements within a DOM node.
  * @param {HTMLElement} popupElement - DOM node
@@ -285,20 +306,7 @@ export function getDateTimeFromInput(selector, timeString = null) {
  * @return {function(): void} - returns a function to cancel the focus control
  */
 export function trapFocusInPopup(popupElement, onEscape) {
-  const focusableEls = [].slice.call(
-    popupElement.querySelectorAll(
-      [
-        '*[tabIndex]:not([tabIndex="-1"])',
-        'a[href]:not([disabled])',
-        'button:not([disabled])',
-        'textarea:not([disabled])',
-        'input[type="text"]:not([disabled])',
-        'input[type="radio"]:not([disabled])',
-        'input[type="checkbox"]:not([disabled])',
-        'select:not([disabled])'
-      ].join(',')
-    )
-  );
+  const focusableEls = getFocusableChildren(popupElement);
   const firstFocusableEl = focusableEls[0];
   const lastFocusableEl = focusableEls[focusableEls.length - 1];
   const prevFocusedElement = document.activeElement;
