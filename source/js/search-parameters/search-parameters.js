@@ -1,4 +1,8 @@
-import { getAutocompleterById, toggleCssClass } from '../common/utils';
+import {
+  getAutocompleterById,
+  getFocusableChildren,
+  toggleCssClass
+} from '../common/utils';
 import {
   getSearchParamGroupFactoryByResourceType,
   setFhirServerForSearchParameters
@@ -146,7 +150,15 @@ export class SearchParameters extends BaseComponent {
    */
   attachControls() {
     this.attachEvent(document.getElementById(this.buttonId), 'click', () =>
-      this.addParam()
+      this.addParam(false)
+    );
+    this.attachEvent(
+      document.getElementById(this.buttonId),
+      'keypress',
+      (event) => {
+        this.addParam(true);
+        event.preventDefault();
+      }
     );
   }
 
@@ -368,8 +380,10 @@ export class SearchParameters extends BaseComponent {
 
   /**
    * Adds a new row with search parameter to the table of search parameters
+   * @param {boolean} accessibilityMode - focus moves to the first field of
+   *        the new criterion
    */
-  addParam() {
+  addParam(accessibilityMode) {
     // searchItemId is the unique virtual identifier of the controls group for each search parameter.
     // Used as part of HTML element identifiers and for storing data associated with a search parameter.
     const searchItemId = this.item_prefix + ++this.item_generator;
@@ -407,12 +421,12 @@ export class SearchParameters extends BaseComponent {
         'beforeend',
         `\
 <div id="${rowId}" class="${this.getSearchParameterClass(searchItemId)}">
-  <input type="text" id="${paramResourceTypeSelectorId}" value="${paramResourceType}">
+  <input type="text" id="${paramResourceTypeSelectorId}" value="${paramResourceType}" aria-label="Resource type">
   <div class="search-parameter__name">
-    <input type="text" id="${searchItemId}" value="${paramName}">
+    <input type="text" id="${searchItemId}" value="${paramName}" aria-label="Search parameter name">
   </div>
   <div id="${searchItemContentId}" class="search-parameter__content"></div>
-  <button id="${removeButtonId}" type="button">remove</button>
+  <button id="${removeButtonId}" type="button" aria-label="Remove the search criterion before this button">remove</button>
 </div>`
       );
     new Def.Autocompleter.Prefetch(paramResourceTypeSelectorId, [], {
@@ -424,6 +438,17 @@ export class SearchParameters extends BaseComponent {
     this.addRemoveBtnListener(searchItemId);
     this.onParamsCountChanged();
     this.createControlsForSearchParam(searchItemId);
+
+    if (accessibilityMode) {
+      // Focus moves to the first field of the new criterion
+      const focusableElements = getFocusableChildren(
+        document.getElementById(rowId)
+      );
+      if (focusableElements.length > 0) {
+        focusableElements[0].focus();
+      }
+    }
+
     if (!this.getAvailableResourceTypes().length) {
       document.getElementById(this.buttonId).disabled = true;
     }
