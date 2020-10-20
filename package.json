@@ -37,7 +37,6 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-jasmine": "^4.1.1",
     "extract-loader": "^3.1.0",
-    "fhirpath": "^2.6.1",
     "file-loader": "^4.1.0",
     "file-saver": "^2.0.2",
     "html-loader": "^0.5.5",

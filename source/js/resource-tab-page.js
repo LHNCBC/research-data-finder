@@ -241,7 +241,8 @@ export class ResourceTabPage extends BaseComponent {
                   1000
                 ).toFixed(1)} s</a>)`;
 
-                if (bundles.length) {
+                const resourcesCount = resourcesLoaded.getCount();
+                if (resourcesCount) {
                   this.resourceTable.fill({
                     data: {
                       patients: patientResources,
@@ -249,7 +250,7 @@ export class ResourceTabPage extends BaseComponent {
                     },
                     serviceBaseUrl: fhirClient.getServiceBaseUrl()
                   });
-                  this.showListOfResources(resourcesLoaded.getCount());
+                  this.showListOfResources(resourcesCount);
                 } else {
                   this.showMessageIfNoResourceList(
                     `No matching ${this.resourceType}s found.`

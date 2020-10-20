@@ -361,3 +361,18 @@ export function trapFocusInPopup(popupElement, onEscape) {
     prevFocusedElement && prevFocusedElement.focus();
   };
 }
+
+/**
+ * Returns value from Object by path
+ * @param {Object} value - input Object
+ * @param {Array} path - array of property names
+ * @return {*}
+ */
+export function getValueByPath(value, path) {
+  let i = 0;
+  while (value && i < path.length) {
+    value = value[path[i]];
+    i++;
+  }
+  return value;
+}
