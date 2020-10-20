@@ -209,6 +209,7 @@ document
   .addEventListener('keydown', function (event) {
     if (
       !(event.target instanceof HTMLTextAreaElement) &&
+      !(event.target instanceof HTMLButtonElement) &&
       event.key === 'Enter'
     ) {
       event.preventDefault();

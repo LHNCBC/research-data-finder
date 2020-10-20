@@ -290,12 +290,23 @@ const focusableSelector = [
 ].join(',');
 
 /**
+ * Returns true if element is visible
+ * @param {HTMLElement} element
+ * @return {boolean}
+ */
+function isVisible(element) {
+  return window.getComputedStyle(element).display !== 'none';
+}
+
+/**
  * Returns focusable children of element
  * @param {HTMLElement} element
  * @return {HTMLElement[]}
  */
 export function getFocusableChildren(element) {
-  return [].slice.call(element.querySelectorAll(focusableSelector));
+  return [].slice
+    .call(element.querySelectorAll(focusableSelector))
+    .filter((child) => isVisible(child));
 }
 /**
  * The Tab and Shift+Tab keys will cycle through the focusable elements within a DOM node.

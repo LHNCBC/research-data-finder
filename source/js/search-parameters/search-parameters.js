@@ -156,7 +156,11 @@ export class SearchParameters extends BaseComponent {
       document.getElementById(this.buttonId),
       'keypress',
       (event) => {
-        if (event.key === ' ' || event.key === 'Spacebar') {
+        if (
+          event.key === ' ' ||
+          event.key === 'Spacebar' ||
+          event.key === 'Enter'
+        ) {
           this.addParam(true);
           event.preventDefault();
         }
