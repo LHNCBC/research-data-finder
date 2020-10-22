@@ -110,10 +110,20 @@ export class ResourceTable extends BaseComponent {
       });
     }
 
-    return {
-      columnNames: columnNames.filter((names, i) => columnValues[i].length > 0),
-      columnValues: columnValues.filter((values) => values.length > 0)
-    };
+    return columnNames.reduce(
+      (result, columnName, columnIndex) => {
+        const values = columnValues[columnIndex];
+        if (values.length > 0) {
+          result.columnNames.push(columnName);
+          result.columnValues.push(values);
+        }
+        return result;
+      },
+      {
+        columnNames: [],
+        columnValues: []
+      }
+    );
   }
 
   /**
