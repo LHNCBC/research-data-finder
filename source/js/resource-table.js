@@ -1,7 +1,5 @@
 import { getCurrentDefinitions } from './search-parameters/common-descriptions';
-import * as fhirpath from 'fhirpath';
-import * as r4_model from 'fhirpath/fhir-context/r4';
-import { capitalize } from './common/utils';
+import { capitalize, getValueByPath, humanNameToString } from './common/utils';
 import { BaseComponent } from './common/base-component';
 
 /**
@@ -12,7 +10,7 @@ export class ResourceTable extends BaseComponent {
    * Constructor of component
    * @param {string} resourceType
    * @param {Object<Function>} callbacks - callback functions:
-   *        addComponentToPage - used to add HTML of the component to the page,
+   *        addComponentToPage - used to add HTML of the component to the page
    */
   constructor({ resourceType, callbacks }) {
     super({ callbacks });
@@ -32,126 +30,182 @@ export class ResourceTable extends BaseComponent {
    * @return {string}
    */
   getHeader() {
-    return `<thead><tr><th>${this.searchParameters
-      .map((item) => capitalize(item.name).replace(/-/g, ' '))
-      .join('</th><th>')}</th></tr></thead>`;
+    return `<thead><tr><th>${this.columnNames.join(
+      '</th><th>'
+    )}</th></tr></thead>`;
   }
 
   /**
-   * Parse search parameter data to produce object with column descriptions:
-   * columns - array of column names,
-   * valuePath - array of functions to retrieve values for these columns
-   * TODO: one search parameter could produce two column (in the next PR)
+   * Prepares column data using search parameter data and resource list data.
+   * Columns without data will be excluded.
    * @param {Object} param - search parameter description retrieved from webpack-loader
-   * @param {Object} param.name - search parameter name
-   * @param {Object} param.expression - FHIRPath expression to retrieve the value
-   *        associated with this search parameter from resource data entry
-   * @return {{valuePaths: [function(*=, *=): *], columns: [string]}}
+   * @param {string} param.name - search parameter name
+   * @param {string} param.path - property path (started with resource type) to retrieve
+   *        the value associated with the search parameter from the resource data record,
+   *        with a dot as a separator
+   * @param {{ bundles: Object[], patients: Object[]}} data - result of requests
+   *        to server for resources and patients
+   * @param {Object} valueSetMapByPath - map from property path to valueSet
+   * @return {{columnNames: (string)[], columnValues: [][]}} -
+   *        columnNames - array of column names,
+   *        columnValues - array of array of values for these columns.
    */
-  parseParam(param) {
-    return {
-      valuePaths: [
-        fhirpath.compile(
-          // temporary replace unsupported part of path
-          simplifyExpression(param.expression),
-          r4_model
-        )
-      ],
-      columns: [capitalize(param.name).replace(/-/g, ' ')]
-    };
+  prepareColumnsData(param, data, valueSetMapByPath) {
+    const columnName = capitalize(param.name).replace(/-/g, ' ');
+    // Possible column names
+    const columnNames = [
+      columnName,
+      `${columnName} start`,
+      `${columnName} end`
+    ];
+    // Possible column values
+    const columnValues = [[], [], []];
+
+    // Get path in resource object (by removing the resourceType from the beginning of the path):
+    const [, ...path] = param.path.split('.');
+    const valueSet =
+      valueSetMapByPath[param.path] instanceof Object
+        ? valueSetMapByPath[param.path]
+        : null;
+
+    if (path.length > 0 && path[0] !== 'identifier') {
+      let rowIndex = 0;
+      data.bundles.forEach((bundle, patientIndex) => {
+        const patient = data.patients[patientIndex];
+        let partientName;
+        (bundle.entry || []).forEach((res) => {
+          let prop = getValueByPath(res.resource, path);
+          prop = prop && prop.length === 1 ? prop[0] : prop;
+          if (prop) {
+            if (prop.text !== undefined) {
+              columnValues[0][rowIndex] = prop.text;
+            } else if (prop.coding !== undefined || prop.code !== undefined) {
+              const item = prop.coding ? prop.coding[0] : prop;
+              columnValues[0][rowIndex] =
+                item.display || (valueSet && valueSet[item.code]) || item.code;
+            } else if (prop.display !== undefined) {
+              columnValues[0][rowIndex] = prop.display;
+            } else if (prop.start !== undefined || prop.end !== undefined) {
+              columnValues[1][rowIndex] = prop.start || '';
+              columnValues[2][rowIndex] = prop.end || '';
+            } else if (prop.value !== undefined) {
+              columnValues[0][rowIndex] = prop.value;
+            } else if (prop.reference) {
+              if (patient && /^Patient\//.test(prop.reference)) {
+                columnValues[0][rowIndex] =
+                  partientName ||
+                  (partientName = humanNameToString(patient.name));
+              } else {
+                columnValues[0][rowIndex] = prop.reference;
+              }
+            } else if (valueSet) {
+              columnValues[0][rowIndex] = valueSet[prop];
+            } else {
+              columnValues[0][rowIndex] = prop;
+            }
+          }
+          rowIndex++;
+          return prop !== undefined;
+        });
+      });
+    }
+
+    return columnNames.reduce(
+      (result, columnName, columnIndex) => {
+        const values = columnValues[columnIndex];
+        if (values.length > 0) {
+          result.columnNames.push(columnName);
+          result.columnValues.push(values);
+        }
+        return result;
+      },
+      {
+        columnNames: [],
+        columnValues: []
+      }
+    );
   }
 
   /**
    * Fill HTML table with resources data
-   * @param {{ bundles: Object[], patients: Object[]}} data - result of requests to server for resources and patients
-   * @param {string} serviceBaseUrl - the Service Base URL of the FHIR server from which data is being pulled
+   * @param {{ bundles: Object[], patients: Object[]}} data - result of requests
+   *        to server for resources and patients
+   * @param {string} serviceBaseUrl - the Service Base URL of the FHIR server
+   *        from which data is being pulled
    */
   fill({ data, serviceBaseUrl }) {
     const currentDefinitions = getCurrentDefinitions();
-    this.searchParameters = currentDefinitions.resources[this.resourceType];
+    const searchParameters = currentDefinitions.resources[this.resourceType];
+    const valueSetMapByPath = currentDefinitions.valueSetMapByPath;
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
 
-    this.data = data;
     this.columnNames = [];
-    this.columnValuePaths = [];
+    this.columnValues = [];
 
-    this.searchParameters.forEach((param) => {
-      const { valuePaths, columns } = this.parseParam(param);
-      this.columnNames.push(...columns);
-      this.columnValuePaths.push(...valuePaths);
+    searchParameters.forEach((param) => {
+      const { columnNames, columnValues } = this.prepareColumnsData(
+        param,
+        data,
+        valueSetMapByPath
+      );
+      this.columnNames.push(...columnNames);
+      this.columnValues.push(...columnValues);
     });
 
     document.getElementById(this._id).innerHTML =
-      this.getHeader() +
-      '<tbody>' +
-      this.data.bundles
-        .map((bundle, index) => {
-          const patient = data.patients[index];
-          const resources = fhirpath.evaluate(
-            bundle,
-            'Bundle.entry.resource',
-            null,
-            r4_model
-          );
-
-          return resources
-            .map((resource) => {
-              return this.getRowHtml(patient, resource);
+      this.columnNames.length > 0
+        ? this.getHeader() +
+          '<tbody>' +
+          this.columnValues[0]
+            .map((c, index) => {
+              return this.getRowHtml(index);
             })
-            .join('');
-        })
-        .join('') +
-      '</tbody>';
+            .join('') +
+          '</tbody>'
+        : '<tbody><tr><td>NO DATA</td></tr></tbody>';
   }
 
   /**
    * Returns HTML for one table row
-   * @param {Object} patient - Patient resource data for which resource data entry is loaded
-   * @param {Object} resource - resource data entry
+   * @param {number} index - row number
    * @return {string}
    */
-  getRowHtml(patient, resource) {
+  getRowHtml(index) {
     return (
       '<tr><td>' +
-      this.columnValuePaths
-        .map((path) => {
-          // TODO split columns with a date range and check
-          // TODO check the display of all resource types
-          // TODO remove empty columns
-          const data = path(resource, null)[0];
-          if (data) {
-            if (data.coding) {
-              return (
-                data.coding[0] &&
-                (data.coding[0].display || data.coding[0].code)
-              );
-            } else if (data.display) {
-              return data.display;
-            } else if (data.start || data.end) {
-              return (data.start || '') + ' - ' + (data.end || '');
-            } else if (data.value) {
-              return data.value;
-            } else if (data instanceof Object) {
-              // debugger;
-            }
-          }
-          return data;
+      this.columnValues
+        .map((column) => {
+          return column[index] || '';
         })
         .join('</td><td>') +
       '</td></tr>'
     );
   }
-}
 
-/**
- * Excludes unsupported parts from FHIRPath expression
- * @param {string} expression
- * @return {string}
- */
-function simplifyExpression(expression) {
-  return expression
-    .replace(/\.where\(resolve\(\) is [^)]*\)/, '')
-    .replace(/\.as\([^)]*\)/, '')
-    .replace(/^\((.*)\sas\s[^)]*\)/, '$1');
+  /**
+   * Creates Blob for download table
+   * @return {Blob}
+   */
+  getBlob() {
+    const header = this.columnNames.join(','),
+      rows = this.columnValues[0].map((c, index) => {
+        return this.columnValues
+          .map((values) => {
+            const cellText = values[index];
+
+            if (/["\s]/.test(cellText)) {
+              return '"' + cellText.replace(/"/, '""') + '"';
+            } else {
+              return cellText;
+            }
+          })
+          .join(',');
+      });
+
+    return new Blob([[header].concat(rows).join('\n')], {
+      type: 'text/plain;charset=utf-8',
+      endings: 'native'
+    });
+  }
 }

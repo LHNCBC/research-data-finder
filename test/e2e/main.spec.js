@@ -122,8 +122,7 @@ describe('Research Data Finder', function () {
         EC.and(
           anyDateToBePresentInInput(fromInput),
           anyDateToBePresentInInput(toInput)
-        ),
-        2000
+        )
       );
     });
 
@@ -139,8 +138,7 @@ describe('Research Data Finder', function () {
       resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Patient');
       resourceInput.sendKeys(Key.ENTER);
       browser.wait(
-        EC.textToBePresentInElementValue(paramNameInput, 'Active'),
-        2000
+        EC.textToBePresentInElementValue(paramNameInput, 'Active')
       );
     });
   });
@@ -169,6 +167,7 @@ describe('Research Data Finder', function () {
       testNameInput.sendKeys('body height measured');
       testNameInput.sendKeys(Key.ARROW_DOWN);
       testNameInput.sendKeys(Key.ENTER);
+      browser.wait(EC.presenceOf(testRealValueInput));
       testRealValueInput.sendKeys('63');
     });
   });
