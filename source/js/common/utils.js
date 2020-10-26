@@ -1,4 +1,4 @@
-import * as moment from 'moment/min/moment.min';
+import * as moment from 'moment';
 
 // Binding the function Array.prototype.slice.call for convert Array-like objects/collections to a new Array
 export const slice = Function.prototype.call.bind(Array.prototype.slice);
@@ -186,11 +186,11 @@ export function toggleCssClass(selector, cssClass, state) {
             ? selector
             : document.querySelectorAll(selector)
         );
-  const hiddenRegExp = new RegExp(`(\\s+|^)${cssClass}\\b`);
+  const hasClassRegExp = new RegExp(`(\\s+|^)${cssClass}\\b`);
 
   elements.forEach((element) => {
     const className = element.className;
-    const currentState = hiddenRegExp.test(className);
+    const currentState = hasClassRegExp.test(className);
     if (currentState === state) {
       resultState = currentState;
       // nothing to change
@@ -198,7 +198,7 @@ export function toggleCssClass(selector, cssClass, state) {
     }
 
     element.className = currentState
-      ? className.replace(hiddenRegExp, '')
+      ? className.replace(hasClassRegExp, '')
       : className + ' ' + cssClass;
     resultState = !currentState;
   });
@@ -276,4 +276,103 @@ export function getDateTimeFromInput(selector, timeString = null) {
   }
 
   return '';
+}
+
+const focusableSelector = [
+  '*[tabIndex]:not([tabIndex="-1"])',
+  'a[href]:not([disabled])',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input[type="text"]:not([disabled])',
+  'input[type="radio"]:not([disabled])',
+  'input[type="checkbox"]:not([disabled])',
+  'select:not([disabled])'
+].join(',');
+
+/**
+ * Returns true if element is visible
+ * @param {HTMLElement} element
+ * @return {boolean}
+ */
+function isVisible(element) {
+  return window.getComputedStyle(element).display !== 'none';
+}
+
+/**
+ * Returns focusable children of element
+ * @param {HTMLElement} element
+ * @return {HTMLElement[]}
+ */
+export function getFocusableChildren(element) {
+  return [].slice
+    .call(element.querySelectorAll(focusableSelector))
+    .filter((child) => isVisible(child));
+}
+/**
+ * The Tab and Shift+Tab keys will cycle through the focusable elements within a DOM node.
+ * @param {HTMLElement} popupElement - DOM node
+ * @param {Function} onEscape - callback if ESC key pressed
+ * @return {function(): void} - returns a function to cancel the focus control
+ */
+export function trapFocusInPopup(popupElement, onEscape) {
+  const focusableEls = getFocusableChildren(popupElement);
+  const firstFocusableEl = focusableEls[0];
+  const lastFocusableEl = focusableEls[focusableEls.length - 1];
+  const prevFocusedElement = document.activeElement;
+
+  // Remove focus from outside of the popup
+  firstFocusableEl.focus();
+  // Don't focus inside a popup without a click or TAB
+  firstFocusableEl.blur();
+
+  function trapFn(e) {
+    const isTabPressed = e.key === 'Tab' || e.key === 'Tab';
+
+    if (!isTabPressed) {
+      if (e.key === 'Esc' || e.key === 'Escape') {
+        onEscape();
+      }
+      return;
+    }
+
+    const activeElement =
+      focusableEls.indexOf(document.activeElement) === -1
+        ? null
+        : document.activeElement;
+
+    if (e.shiftKey) {
+      if (!activeElement || activeElement === firstFocusableEl) {
+        lastFocusableEl.focus();
+        e.preventDefault();
+      }
+    } else {
+      if (!activeElement || activeElement === lastFocusableEl) {
+        firstFocusableEl.focus();
+        e.preventDefault();
+      }
+    }
+  }
+
+  document.addEventListener('keydown', trapFn);
+
+  return function () {
+    document.removeEventListener('keydown', trapFn);
+    // Restore focus after closing the popup
+    prevFocusedElement && prevFocusedElement.focus();
+  };
+}
+
+/**
+ * Returns value from Object by path
+ * @param {Object} value - input Object
+ * @param {Array} path - array of property names
+ * @return {*}
+ */
+export function getValueByPath(value, path) {
+  let i = 0;
+  while (value && i < path.length) {
+    value = value[path[i]];
+    i++;
+  }
+  return value;
 }

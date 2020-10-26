@@ -28,9 +28,7 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
     <link href="https://fonts.googleapis.com/css?family=Droid+Sans:400,700"
-     rel="stylesheet" type="text/css">
-    <!--link href="autocomplete-lhc/autocomplete-lhc.min.css"
-     rel="stylesheet" type="text/css"> -->
+          rel="stylesheet" type="text/css">
     <link href="https://clinicaltables.nlm.nih.gov/autocomplete-lhc-versions/18.0.1/autocomplete-lhc.min.css"
           integrity="sha384-JjNQGLGKwnlylBNqm5Al8cA7jt1nF5dHsagzjEEE85ZHogKi96zVUB2wehoMQAZ9" crossorigin="anonymous"
           rel="stylesheet">
@@ -119,63 +117,9 @@
       <div id="patientsArea" class="hide">
         <div class="section">
           <label class="section__title">Selected Patients [<span id="patientsCount">0</span>]</label>
-          <table id="patientTable" class="section__body">
-            <thead>
-            </thead>
-            <tbody>
-            </tbody>
-          </table>
+          <div class="section__body"></div>
         </div>
 
-        <div class="section">
-          <label class="section__title">Observations selection criteria</label>
-          <div class="section__body obs-parameters">
-            <div style="display: none;">
-              <label>Limit observations by:</label>
-              <input type="radio" name="limitType" id="limit2" autocomplete=off
-                     value="test" checked> <label for="limit2">Test</label>
-              <input type="radio" name="limitType" id="limit1" autocomplete=off
-                     value="category"><label for="limit1">Category</label>
-            </div>
-
-
-            <div id="testSel">
-              <label for="loincTests">Selected tests:</label>
-              <input type=text id=loincTests placeholder="LOINC tests">
-              <span>Note:  A given FHIR server will only have matches for some subset of these values.</span>
-            </div>
-
-            <div id="catSel">
-              <label for="categories">Selected Observation categories:</label>
-              <input type=text id=categories autocomplete=off>
-              <span>Note:  A given FHIR server will only have matches for some subset of these values.</span>
-            </div>
-
-            <div>
-              <label for="perPatientPerTest">Limit per patient per test:</label>
-              <input type=number id=perPatientPerTest value=1>
-            </div>
-          </div>
-        </div>
-        <button id="loadObservations" onclick="app.loadObs()">Load Observations</button>
-        <span id="reportObservations"></span>
-
-        <p id="noObservations" class="hide"></p>
-        <div id="observationsArea" class="hide">
-          <div class="section">
-            <label class="section__title">Selected Observations [<span id="observationsCount">0</span>]</label>
-            <div class="section__toolbar">
-              <button id=download onclick="app.downloadObs()" >Download (in CSV format)</button>
-            </div>
-
-            <table id="resultsTable" class="section__body">
-              <thead>
-              </thead>
-              <tbody>
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
 
     </div>
@@ -202,9 +146,10 @@
     </div>
     <!-- end page footer -->
 
-    <script src="https://cdn.jsdelivr.net/npm/es6-promise/dist/es6-promise.auto.min.js"
-            integrity="sha384-BMHKx0/VGjlRtXzV+XV8JpOMXGGlnbJHQkaiKK18nfJtdCholC2z69xw1ynAteJh"
+    <script src="https://polyfill.io/v3/polyfill.min.js?version=3.53.1&features=Symbol%2CSymbol.iterator%2CArray.from%2CCustomEvent%2CPromise%7Calways%7Cgated"
+            integrity="sha384-zmY2IxEOC1bgFXEe9t1bA9TjR5LVnBl4C3Al7Eud6LyU6OyhUTtC9nFWQpWoDgqz"
             crossorigin="anonymous"></script>
+
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"
             integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
             crossorigin="anonymous"></script>

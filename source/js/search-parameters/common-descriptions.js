@@ -4,7 +4,8 @@ import {
   getAutocompleterById,
   capitalize,
   toggleCssClass,
-  getDateTimeFromInput
+  getDateTimeFromInput,
+  getValueByPath
 } from '../common/utils';
 import definitionsIndex from './definitions/index.json';
 
@@ -70,6 +71,10 @@ export function getSearchParamGroupFactoryByResourceType(resourceType) {
  * @return {Promise}
  */
 export function setFhirServerForSearchParameters(serviceBaseUrl) {
+  if (client && client.getServiceBaseUrl() === serviceBaseUrl) {
+    return Promise.resolve();
+  }
+
   client = null;
   const newClient = new FhirBatchQuery({
     serviceBaseUrl,
@@ -284,21 +289,6 @@ function loadDate(inputId, resourceType, paramName, resourceElementPath, mode) {
         }
       }
     });
-}
-
-/**
- * Returns value from Object by path
- * @param {Object} value - input Object
- * @param {Array} path - array of property names
- * @return {*}
- */
-function getValueByPath(value, path) {
-  let i = 0;
-  while (value && i < path.length) {
-    value = value[path[i]];
-    i++;
-  }
-  return value;
 }
 
 /**

@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.14.0] - 2020-10-16
+### Added
+- Allowance to choose which resource types users want to see
+  for selected patients
+
 ## [1.13.0] - 2020-09-08
 ### Added
 - Display of minimum and maximum values that exist in the database

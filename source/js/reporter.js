@@ -1,4 +1,9 @@
-import { toggleCssClass, removeCssClass, addCssClass } from './common/utils';
+import {
+  toggleCssClass,
+  removeCssClass,
+  addCssClass,
+  trapFocusInPopup
+} from './common/utils';
 
 /**
  * Class for creating a popup with a report
@@ -15,9 +20,9 @@ export class Reporter {
         `\
 <div id="${id}" class="report-popup hide">
   <div class="report-popup_window">
-    <div class="report-popup_content">
-    </div>
-    <div class="report-popup_close-btn">&times;</div>
+    <div class="report-popup_content"></div>
+    <div class="report-popup_close-btn"
+         tabindex="0" onkeydown="keydownToClick(event);">&times;</div>
   </div>
 </div>`
       );
@@ -46,7 +51,9 @@ export class Reporter {
   show() {
     this._isVisible = true;
     this._updateWindowImmediately();
-    removeCssClass('#' + this._id, 'hide');
+    const popupElement = document.getElementById(this._id);
+    removeCssClass(popupElement, 'hide');
+    this.freeFocus = trapFocusInPopup(popupElement, () => this.hide());
   }
 
   /**
@@ -55,6 +62,7 @@ export class Reporter {
   hide() {
     this._isVisible = false;
     addCssClass('#' + this._id, 'hide');
+    this.freeFocus();
   }
 
   /**
@@ -215,7 +223,14 @@ ${measurement.name}:
        * @param {number} inc
        */
       incrementCount: (inc) =>
-        updateCount(measurement.count + (typeof inc === 'number' ? inc : 1))
+        updateCount(measurement.count + (typeof inc === 'number' ? inc : 1)),
+      /**
+       * Returns current measurement count
+       * @return {number}
+       */
+      getCount: () => {
+        return measurement.count;
+      }
     };
   }
 }
