@@ -3,6 +3,16 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [1.15.0] - 2020-10-30
+### Added
+- Build/Load Cohort(Instead of Patient selection)
+## Changed
+- Filter Patients by Observation codes if no value is provided for them
+- Changed the Patient.active parameter input control from a checkbox to
+  a radio button group
+## Fixed
+- Exception that can be thrown after removing a resource type tab
+
 ## [1.14.0] - 2020-10-16
 ### Added
 - Allowance to choose which resource types users want to see

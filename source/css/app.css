@@ -42,9 +42,17 @@ button {
 /* End of styles to prevent unnecessary Bootstrap changes */
 
 /* Styles to improve focus visibility */
+input[type="radio"]:focus,
 *[tabIndex]:focus {
   outline-style: dotted;
   outline-width: thin;
+}
+
+/* removes border change when focusing in input in Chrome */
+input[type="text"],
+input[type="date"],
+input[type="number"] {
+  outline-style: none;
 }
 /* End of styles to improve focus visibility */
 
@@ -179,6 +187,7 @@ input.ansList {
 }
 
 #content > p,
+#content > div:not(.section),
 form > p,
 .tab-pane > p {
   margin-top: 10px;
@@ -214,7 +223,6 @@ input {
   border-radius: 7px;
   border: 2px solid #17b4e3;
   padding-left: 0.25em;
-  outline-style: none; /* removes border change when focusing in input in Chrome */
 }
 
 [placeholder] {
@@ -225,6 +233,42 @@ input {
   width: 4em;
 }
 
+label[for] {
+  cursor: pointer;
+}
+
+.upload-file-link {
+  cursor: pointer;
+  color: #337ab7;
+}
+
+.upload-file-link:hover {
+  text-decoration: underline;
+}
+
+input[disabled] + .upload-file-link {
+  color: #d2c9c9;
+  text-decoration: none;
+}
+
+.h-box {
+  display: flex;
+  align-items: center;
+}
+
+.h-box > *:not(:first-child) {
+  margin-left: 1em;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+}
+
+.radio-option input[type="radio"] {
+  margin: 0 0.3em 0 0;
+}
+
 /* Styles for the collapsible section */
 .section {
   position: relative;
@@ -233,6 +277,7 @@ input {
   margin-top: 14px;
   margin-bottom: 7px;
   padding-top: 10px;
+  background-color: #fafdff;
 }
 
 .section_collapsed {
@@ -240,6 +285,9 @@ input {
   margin-top: 14px;
   margin-bottom: 17px;
   height: 1px;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-bottom-width: 0;
 }
 
 .section_collapsed + .section,
@@ -248,7 +296,7 @@ input {
 }
 
 .section_collapsed .section__header {
-  margin-top: -10px;
+  margin-top: -12px;
 }
 
 .section_collapsed .section__toolbar,
@@ -261,7 +309,7 @@ input {
   cursor: pointer;
   position: sticky;
   width: fit-content;
-  margin-top: -20px;
+  margin-top: -22px;
   margin-left: 10px;
   top: 0;
   height: 20px;
@@ -288,7 +336,7 @@ input {
   background-color: #fff;
   padding: 3px 5px;
   color: #337ab7;
-  margin-top: -20px;
+  margin-top: -22px;
 }
 
 .section__title::before {
@@ -312,7 +360,7 @@ div.section__body {
   flex-direction: column;
 }
 
-div.section__body > div:not(.search-parameter-list):not(.hide) {
+div.section__body > div:not(.search-parameter-list):not(.tabs-component):not(.hide) {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -322,19 +370,19 @@ div.section__body > table {
   align-self: flex-start;
 }
 
-div.section__body > div:not(.search-parameter-list) > label {
+div.section__body > div:not(.search-parameter-list):not(.tabs-component) > label {
   font-weight: bold;
 }
 
-input:invalid:not(:focus) {
+form:not(.hide-errors) input:invalid:not(:focus) {
   background-color: #ffbebe;
 }
 
-input:invalid:focus {
+form:not(.hide-errors) input:invalid:focus {
   background-color: #fee8e9;
 }
 
-div.section__body > div:not(.search-parameter-list) > *:not(:first-child) {
+div.section__body > div:not(.search-parameter-list):not(.tabs-component) > *:not(:first-child) {
   margin-left: 1em;
 }
 
@@ -417,7 +465,6 @@ div.section__body > .search-parameter_custom > .search-parameter__content > * {
 }
 
 .search-parameter__content > :not(.autocomp_selected):not(:last-child),
-.search-parameter__content > .boolean-param :first-child,
 .test-value > :not(:last-child),
 .test-period > :not(:last-child) {
   margin-right: 0.5em;
@@ -742,12 +789,4 @@ ul.horz-list li.last-item {
   padding-bottom: 1em;
 }
 
-.boolean-param {
-  display: flex;
-  align-items: center;
-}
-
-.boolean-param input {
-  margin: 0 3px;
-}
 /* End of styles for the footer */

@@ -40,9 +40,12 @@ describe('Research Data Finder', function () {
    */
   function checkLoadPatients() {
     const loadPatientsBtn = $('#loadPatients');
+    const cohortSectionHeader = $('#patientsArea > .section:nth-of-type(2) > .section__header');
 
     browser.wait(EC.elementToBeClickable(loadPatientsBtn));
     loadPatientsBtn.click();
+    browser.wait(EC.visibilityOf(cohortSectionHeader));
+    cohortSectionHeader.click();
     browser.wait(EC.visibilityOf($('#ObservationTabPage-1-loadBtn')));
   }
 

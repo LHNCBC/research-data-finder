@@ -129,7 +129,7 @@ export const ObservationSearchParameters = () => ({
         ? `&code=${codes}&value-concept=${value}${getPeriodParams(
             searchItemId
           )}`
-        : '';
+        : `&code=${codes}`;
     } else if (datatype === 'REAL') {
       const prefix = getAutocompleterById(
         `${searchItemId}-test-value-prefix`
@@ -144,7 +144,7 @@ export const ObservationSearchParameters = () => ({
               value +
               (unit ? '||' + escapeFhirSearchParameter(unit) : '')
           )}${getPeriodParams(searchItemId)}`
-        : '';
+        : `&code=${codes}`;
     }
 
     const modifier = getAutocompleterById(
@@ -157,7 +157,7 @@ export const ObservationSearchParameters = () => ({
       ? `&code=${codes}&value-string${
           modifier ? ':' + modifier : ''
         }=${encodeURIComponent(value)}${getPeriodParams(searchItemId)}`
-      : '';
+      : `&code=${codes}`;
   }
 });
 
