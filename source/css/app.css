@@ -57,11 +57,19 @@ input[type="number"] {
 /* End of styles to improve focus visibility */
 
 /* Styles for tabs-component */
+.add-icon::before {
+  content: '\00a0';
+}
+
 .add-icon {
   background: url("../images/plus.svg") no-repeat 0 0 / 19px 19px;
   width: 19px;
-  height: 19px;
   display: block;
+}
+
+a.nav-link_only-image:hover,
+a.nav-link_only-image:focus {
+  text-decoration: none;
 }
 
 .remove-icon {
@@ -331,12 +339,9 @@ input[disabled] + .upload-file-link {
 }
 
 .section__title {
-  cursor: pointer;
-  top: 0;
   background-color: #fff;
   padding: 3px 5px;
   color: #337ab7;
-  margin-top: -22px;
 }
 
 .section__title::before {

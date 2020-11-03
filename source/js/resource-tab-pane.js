@@ -106,7 +106,7 @@ export class ResourceTabPane extends BaseComponent {
   
   <ul class="nav nav-tabs" role="tablist">
     <li id="${this._addBtnId}" class="nav-item dropdown">
-      <a class="nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+      <a class="nav-link nav-link_only-image" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
         <i class="add-icon"></i>
       </a>
       <div class="dropdown-menu">
