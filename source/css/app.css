@@ -58,7 +58,7 @@ input[type="number"] {
 
 /* Styles for tabs-component */
 .add-icon::before {
-  content: '\00a0';
+  content: "\00a0";
 }
 
 .add-icon {

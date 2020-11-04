@@ -108,56 +108,17 @@ export const ObservationSearchParameters = () => ({
    * @return {string}
    */
   getCondition: (searchItemId) => {
-    const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
+    const { datatype } = testSpecByRowId[searchItemId] || {};
     if (!datatype) {
       // No tests selected
       return '';
     }
 
-    const codes = getAutocompleterById(`${searchItemId}-test-name`)
-      .getSelectedCodes()
-      .map((code) => encodeFhirSearchParameter(code))
-      .join(',');
-
-    if (AnswerLists && AnswerLists.length) {
-      const value = getAutocompleterById(`${searchItemId}-test-answers`)
-        .getSelectedCodes()
-        .map((code) => encodeFhirSearchParameter(code))
-        .join(',');
-
-      return value
-        ? `&code=${codes}&value-concept=${value}${getPeriodParams(
-            searchItemId
-          )}`
-        : `&code=${codes}`;
-    } else if (datatype === 'REAL') {
-      const prefix = getAutocompleterById(
-        `${searchItemId}-test-value-prefix`
-      ).getSelectedCodes()[0];
-      const value = document.getElementById(`${searchItemId}-test-real-value`)
-        .value;
-      const unit =
-        document.getElementById(`${searchItemId}-test-value-unit`).value || '';
-      return value.trim()
-        ? `&code=${codes}&value-quantity=${encodeURIComponent(
-            prefix +
-              value +
-              (unit ? '||' + escapeFhirSearchParameter(unit) : '')
-          )}${getPeriodParams(searchItemId)}`
-        : `&code=${codes}`;
-    }
-
-    const modifier = getAutocompleterById(
-      `${searchItemId}-test-value-modifier`
-    ).getSelectedCodes()[0];
-    const value = escapeFhirSearchParameter(
-      document.getElementById(`${searchItemId}-test-string-value`).value
+    return (
+      getCodeParam(searchItemId) +
+      getValueParam(searchItemId) +
+      getPeriodParams(searchItemId)
     );
-    return value.trim()
-      ? `&code=${codes}&value-string${
-          modifier ? ':' + modifier : ''
-        }=${encodeURIComponent(value)}${getPeriodParams(searchItemId)}`
-      : `&code=${codes}`;
   }
 });
 
@@ -267,6 +228,67 @@ ${testPeriodHtml}`;
     units,
     AnswerLists
   };
+}
+
+/**
+ * Returns URL parameters string with a codes of the test
+ * @param {string} searchItemId - unique generic identifier for a search parameter row
+ * @return {string}
+ */
+function getCodeParam(searchItemId) {
+  const selectedCodes = getAutocompleterById(
+    `${searchItemId}-test-name`
+  ).getSelectedCodes();
+
+  return (
+    '&code=' +
+    selectedCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
+  );
+}
+
+/**
+ * Returns URL parameters string with a values of the test
+ * @param {string} searchItemId - unique generic identifier for a search parameter row
+ * @return {string}
+ */
+function getValueParam(searchItemId) {
+  const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
+
+  if (AnswerLists && AnswerLists.length) {
+    const value = getAutocompleterById(`${searchItemId}-test-answers`)
+      .getSelectedCodes()
+      .map((code) => encodeFhirSearchParameter(code))
+      .join(',');
+
+    return value ? `&value-concept=${value}` : '';
+  } else if (datatype === 'REAL') {
+    const prefix = getAutocompleterById(
+      `${searchItemId}-test-value-prefix`
+    ).getSelectedCodes()[0];
+    const value = document.getElementById(`${searchItemId}-test-real-value`)
+      .value;
+    const unit =
+      document.getElementById(`${searchItemId}-test-value-unit`).value || '';
+
+    return value.trim()
+      ? `&value-quantity=${encodeURIComponent(
+          prefix + value + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
+        )}`
+      : '';
+  }
+
+  const modifier = getAutocompleterById(
+    `${searchItemId}-test-value-modifier`
+  ).getSelectedCodes()[0];
+  const value = escapeFhirSearchParameter(
+    document.getElementById(`${searchItemId}-test-string-value`).value
+  );
+
+  return value.trim()
+    ? `&value-string${modifier ? ':' + modifier : ''}=${encodeURIComponent(
+        value
+      )}`
+    : '';
 }
 
 /**
