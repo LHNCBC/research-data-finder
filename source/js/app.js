@@ -476,7 +476,8 @@ function getPatients() {
           return resourceSummaries
             .reduce(
               (promise, item) =>
-                promise.then(() => {
+                promise.then((result) => {
+                  if (!result) return result;
                   const params =
                     item.resourceType === PATIENT
                       ? `_elements=${elements}${item.criteria}&_id=${patientId}`
@@ -497,7 +498,7 @@ function getPatients() {
                         : meetsTheConditions;
                     });
                 }),
-              Promise.resolve(patientResource ? patientResource : null)
+              Promise.resolve(patientResource ? patientResource : true)
             )
             .then((result) => {
               if (result) {
