@@ -14,6 +14,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## Fixed
 - Exception that can be thrown after removing a resource type tab
 - Results of not all queries were considered when filtering patient resources
+- Extra commas in the requests for resource tabs
 
 ## [1.14.0] - 2020-10-16
 ### Added
