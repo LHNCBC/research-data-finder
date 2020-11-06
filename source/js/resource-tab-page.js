@@ -211,7 +211,9 @@ export class ResourceTabPage extends BaseComponent {
       name: this.resourceType + ' resources loaded'
     });
 
-    const criteria = this.searchParams.getCriteriaFor(this.resourceType);
+    const criteria = this.searchParams
+      .getCriteriaFor(this.resourceType)
+      .join('');
 
     for (let index = 0; index < patientCount; ++index) {
       const patient = patientResources[index];

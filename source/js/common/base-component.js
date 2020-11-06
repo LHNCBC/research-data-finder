@@ -4,7 +4,7 @@
 export class BaseComponent {
   /**
    * Constructor
-   * @param {Object<Function>} callbacks - callback functions that the component
+   * @param {Object} callbacks - callback functions that the component
    *        uses for input/output, for example:
    *        callbacks.addComponentToPage is a required function which is used to
    *        add an HTML of the component to the page

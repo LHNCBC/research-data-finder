@@ -96,13 +96,16 @@ export class PatientTable extends ResourceTable {
 
   /**
    * Fill HTML table with observations data
-   * @param {{patients: Object[], observations: Object[]}} data - result of requests to server for observations and patients
-   * @param {string} serviceBaseUrl - the Service Base URL of the FHIR server from which data is being pulled
+   * @param {{patients: Object[], observations: Object[]}} data - result of
+   *        requests to server for observations and patients
+   * @param {string} serviceBaseUrl - the Service Base URL of the FHIR server
+   *        from which data is being pulled
    */
   fill({ data, serviceBaseUrl }) {
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
     this.valueSetMapByPath = getCurrentDefinitions().valueSetMapByPath;
+    this._data = data;
     this.data = data.map((patient) => {
       patient._name = humanNameToString(patient.name);
       patient._age = getPatientAge(patient);
@@ -139,5 +142,59 @@ export class PatientTable extends ResourceTable {
         })
         .join('</tr><tr>') +
       '</tr></tbody>';
+  }
+
+  /**
+   * Restores the state of the table to the moment when method getBlobData was called
+   * @param {Object} blobData
+   */
+  setBlobData(blobData) {
+    this.setAdditionalColumns(blobData.additionalColumns);
+    this.fill(blobData);
+  }
+
+  /**
+   * Returns data describing the state of the table
+   * @return {Object}
+   */
+  getBlobData() {
+    return {
+      data: this._data,
+      additionalColumns: this._additionalColumns,
+      serviceBaseUrl: this.serviceBaseUrl
+    };
+  }
+
+  /**
+   * Returns default Cohort filename
+   * @return {string}
+   */
+  getDefaultFileName() {
+    return `cohort-${this._data.length}.json`;
+  }
+
+  /**
+   * Checks data for errors and returns the first error if any
+   * @param {Object} blobData
+   * @param {Object} options
+   * @param {string} options.serviceBaseUrl - the Service Base URL of the FHIR
+   *        server from which data is being pulled
+   * @return {Error|null}
+   */
+  checkBlobData(blobData, options) {
+    const { data, serviceBaseUrl } = blobData;
+    const readableData =
+      serviceBaseUrl &&
+      data &&
+      data.length &&
+      data[0].resourceType === 'Patient';
+    if (!readableData) {
+      return new Error('Unreadable data.');
+    } else if (options.serviceBaseUrl !== serviceBaseUrl) {
+      return new Error(
+        'Inapplicable data, because it was downloaded from another server.'
+      );
+    }
+    return null;
   }
 }

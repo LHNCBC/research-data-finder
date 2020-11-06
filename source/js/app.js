@@ -7,6 +7,7 @@ import '../css/app.css';
 
 // "Real" imports
 import './common/polyfills';
+import { saveAs } from 'file-saver';
 import { FhirBatchQuery, HTTP_ABORT } from './common/fhir-batch-query';
 import {
   SearchParameters,
@@ -40,13 +41,43 @@ document.getElementById('fhirServer').addEventListener('change', function () {
   patientSearchParams = createPatientSearchParameters(this.value);
   resourceTabPane.clearResourceList(this.value);
 
-  loadPatientsButton.disabled = true;
-  patientSearchParams.ready.then(() => (loadPatientsButton.disabled = false));
+  onStartLoading();
+  patientSearchParams.ready.then(onEndLoading);
   // Clear visible Patient list data
   showMessageIfNoPatientList('');
   reportPatientsSpan.innerHTML = '';
   fhirClient.clearPendingRequests();
 });
+
+/**
+ * Handles start of resource list loading
+ */
+function onStartLoading() {
+  // Lock Patients reloading
+  loadPatientsButton.disabled = true;
+  document.querySelector('#cohortFile').disabled = true;
+  document.querySelector('#cohortFilename').tabIndex = -1;
+
+  // Lock Cohort switcher
+  [].slice
+    .call(document.getElementsByName('cohortOption'))
+    .forEach((option) => (option.disabled = true));
+}
+
+/**
+ * Handles end of resource list loading
+ */
+function onEndLoading() {
+  // Unlock Patients reloading
+  loadPatientsButton.disabled = false;
+  document.querySelector('#cohortFile').disabled = false;
+  document.querySelector('#cohortFilename').tabIndex = 0;
+
+  // Unlock Cohort switcher
+  [].slice
+    .call(document.getElementsByName('cohortOption'))
+    .forEach((option) => (option.disabled = false));
+}
 
 // Create component for displaying resources for selected Patients
 const resourceTabPane = new ResourceTabPane({
@@ -61,23 +92,11 @@ const resourceTabPane = new ResourceTabPane({
      */
     addComponentToPage(html) {
       document
-        .getElementById('patientsArea')
+        .querySelector('#patientsArea .section:last-child .section__body')
         .insertAdjacentHTML('beforeend', html);
     },
-    /**
-     * Handles start of resource list loading
-     */
-    onStartLoading() {
-      // Lock patients reloading
-      loadPatientsButton.disabled = true;
-    },
-    /**
-     * Handles end of resource list loading
-     */
-    onEndLoading() {
-      // Unlock patients reloading
-      loadPatientsButton.disabled = false;
-    }
+    onStartLoading,
+    onEndLoading
   }
 }).initialize();
 
@@ -124,7 +143,6 @@ export function showPatientsReport() {
   patientsReporter.show();
 }
 
-let patientResources;
 const patientTable = new PatientTable({
   callbacks: {
     addComponentToPage: (html) => {
@@ -230,12 +248,105 @@ export function checkPatientCriteria() {
 }
 
 /**
+ * Downloads Patient list data (Cohort).
+ */
+export function downloadCohort() {
+  const blob = new Blob([JSON.stringify(patientTable.getBlobData(), null, 2)], {
+    type: 'text/json;charset=utf-8',
+    endings: 'native'
+  });
+  saveAs(blob, patientTable.getDefaultFileName());
+}
+
+/**
+ * Uploads Patient list data (Cohort) on change input[type=file] value.
+ * @param {Event} event
+ */
+export function loadCohort(event) {
+  if (event.target.files.length === 1) {
+    const reader = new FileReader();
+    const filename = event.target.files[0].name;
+    reader.onload = (loadEvent) => {
+      try {
+        const data = JSON.parse(loadEvent.target.result);
+        onLoadFile(filename, data);
+      } catch (e) {
+        showMessageIfNoPatientList('Error: ' + e.message);
+      }
+    };
+    reader.readAsText(event.target.files[0]);
+  }
+  event.target.value = '';
+}
+
+/**
+ * Processes uploaded Patient list data (Cohort).
+ * @param {string} filename
+ * @param {Object} blobData
+ */
+function onLoadFile(filename, blobData) {
+  const error = patientTable.checkBlobData(blobData, {
+    serviceBaseUrl: fhirClient.getServiceBaseUrl()
+  });
+  if (error) {
+    throw error;
+  }
+  const { data, additionalColumns } = blobData;
+  document.getElementById('cohortFilename').innerText = `[${filename}]`;
+
+  // Pass Patients data to component to display resources
+  resourceTabPane.setPatientResources(data);
+  resourceTabPane.setPatientAdditionalColumns(additionalColumns);
+  showListOfPatients(data.length);
+
+  patientTable.setBlobData(blobData);
+  showListOfPatients(blobData.data.length);
+}
+
+/**
+ * Handles switching between "Build Cohort" and "Load Cohort"
+ */
+export function onChangePatientForm() {
+  clearPatients();
+  toggleCssClass(
+    '#saveCohort',
+    'hide',
+    !document.getElementById('buildCohortOption').checked
+  );
+  toggleCssClass(
+    '#patientCriteriaForm',
+    'hide',
+    !document.getElementById('buildCohortOption').checked
+  );
+  toggleCssClass(
+    '#patientLoadForm',
+    'hide',
+    !document.getElementById('loadCohortOption').checked
+  );
+}
+
+// On a page reload, the browser sometimes remembers the last setting of a radio
+// button group.  Make sure the view matches the selected option.
+setTimeout(() => {
+  onChangePatientForm();
+});
+
+/**
+ * Clear Patient list.
+ */
+function clearPatients() {
+  document.getElementById('cohortFilename').innerText = 'choose file...';
+  reportPatientsSpan.innerHTML = '';
+  showMessageIfNoPatientList('');
+}
+
+/**
  * Handles the request to load the Patient list
  */
 export function loadPatients() {
   fhirClient = getFhirClient();
-  reportPatientsSpan.innerHTML = '';
-  loadPatientsButton.disabled = true;
+  clearPatients();
+  onStartLoading();
   patientsReporter.initialize();
   const startDate = new Date();
 
@@ -243,16 +354,18 @@ export function loadPatients() {
 
   const onFinally = () => {
     patientsReporter.finalize();
-    loadPatientsButton.disabled = false;
+    onEndLoading();
   };
 
   getPatients().then(
     (data) => {
-      patientResources = data;
+      const patientResources = data;
 
       // Pass Patients data to component to display resources
       resourceTabPane.setPatientResources(data);
-      resourceTabPane.setPatientSearchParams(patientSearchParams);
+      resourceTabPane.setPatientAdditionalColumns(
+        patientSearchParams ? patientSearchParams.getColumns() : []
+      );
 
       reportPatientsSpan.innerHTML = `
 (<a href="#" onclick="app.showPatientsReport();return false;" onkeydown="keydownToClick(event);">loaded data in ${(
@@ -363,7 +476,8 @@ function getPatients() {
           return resourceSummaries
             .reduce(
               (promise, item) =>
-                promise.then(() => {
+                promise.then((result) => {
+                  if (!result) return result;
                   const params =
                     item.resourceType === PATIENT
                       ? `_elements=${elements}${item.criteria}&_id=${patientId}`
@@ -384,7 +498,7 @@ function getPatients() {
                         : meetsTheConditions;
                     });
                 }),
-              Promise.resolve(patientResource ? patientResource : null)
+              Promise.resolve(patientResource ? patientResource : true)
             )
             .then((result) => {
               if (result) {

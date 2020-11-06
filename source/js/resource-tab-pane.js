@@ -12,7 +12,7 @@ import { ObservationTabPage } from './observation-tab-page';
 export class ResourceTabPane extends BaseComponent {
   /**
    * Constructor
-   * @param {Object<Function>} callbacks - callback functions
+   * @param {Object} callbacks - callback functions
    * @param {Function} callbacks.getFhirClient - to retrieve FHIR client
    * @param {Function} callbacks.addComponentToPage - used to add HTML of the
    *                   component to the page
@@ -106,7 +106,7 @@ export class ResourceTabPane extends BaseComponent {
   
   <ul class="nav nav-tabs" role="tablist">
     <li id="${this._addBtnId}" class="nav-item dropdown">
-      <a class="nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+      <a class="nav-link nav-link_only-image" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
         <i class="add-icon"></i>
       </a>
       <div class="dropdown-menu">
@@ -131,17 +131,18 @@ export class ResourceTabPane extends BaseComponent {
   }
 
   /**
-   * Stores link to patient criteria.
-   * This data passes to ResourceTabPage via callback getPatientSearchParams.
-   * @param {SearchParameters} searchParameters
+   * Stores additional columns for Patient.
+   * This data passes to ResourceTabPage via callback getPatientAdditionalColumns.
+   * @param {Array<string>} additionalColumns
    */
-  setPatientSearchParams(searchParameters) {
-    this.patientSearchParams = searchParameters;
+  setPatientAdditionalColumns(additionalColumns) {
+    this._patientAdditionalColumns = additionalColumns;
   }
 
   /**
    * Clear resource list
-   * @package {string} serviceBaseUrl
+   * @param {string} serviceBaseUrl - the Service Base URL of the FHIR server
+   *        from which data is being pulled
    */
   clearResourceList(serviceBaseUrl) {
     this._resourceComponents.forEach((comp) =>
@@ -208,8 +209,8 @@ export class ResourceTabPane extends BaseComponent {
         getPatientResources: () => {
           return this.patientResources;
         },
-        getPatientSearchParams: () => {
-          return this.patientSearchParams;
+        getPatientAdditionalColumns: () => {
+          return this._patientAdditionalColumns;
         }
       }
     });
@@ -249,6 +250,11 @@ export class ResourceTabPane extends BaseComponent {
     this.updateDropdownMenu(resourceComponent.resourceType);
 
     resourceComponent.detachControls();
+
+    const resourceIndex = this._resourceComponents.indexOf(resourceComponent);
+    if (resourceIndex !== -1) {
+      this._resourceComponents.splice(resourceIndex, 1);
+    }
 
     if (/\bactive\b/.test(tabButton.className)) {
       const allTabButtons = [].slice.call(

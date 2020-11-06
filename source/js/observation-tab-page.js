@@ -118,7 +118,7 @@ export class ObservationTabPage extends ResourceTabPage {
   loadResources() {
     const fhirClient = this.callbacks.getFhirClient();
     const patientResources = this.callbacks.getPatientResources();
-    const patientSearchParams = this.callbacks.getPatientSearchParams();
+    const patientAdditionalColumns = this.callbacks.getPatientAdditionalColumns();
     this.reportLinkSpan.innerHTML = '';
     this.callbacks.onStartLoading();
     this.loadResouresButton.disabled = true;
@@ -130,7 +130,7 @@ export class ObservationTabPage extends ResourceTabPage {
     // test codes instead of categories
     const codes = this.loincAC.getSelectedCodes();
 
-    this.resourceTable.setAdditionalColumns(patientSearchParams.getColumns());
+    this.resourceTable.setAdditionalColumns(patientAdditionalColumns);
 
     const startDate = new Date();
     const patientCount = patientResources.length;

@@ -77,9 +77,13 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
     Active: {
       column: 'active',
       getControlsHtml: (searchItemId) =>
-        `<label class="boolean-param"><input id="${searchItemId}-active" type="checkbox">whether the patient record is active</label>`,
+        `<div class="h-box">
+<label class="radio-option"><input id="${searchItemId}-active-true" name="${searchItemId}-active" type="radio">true</label>
+<label class="radio-option"><input id="${searchItemId}-active-false" name="${searchItemId}-active" type="radio" checked>false</label>
+</div>`,
       getCondition: (searchItemId) =>
-        '&active=' + document.getElementById(`${searchItemId}-active`).checked
+        '&active=' +
+        document.getElementById(`${searchItemId}-active-true`).checked
     },
 
     // String search parameters:
