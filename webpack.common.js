@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TerserJSPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const packageJson = require('./package.json');
 
 
 module.exports = {
@@ -20,7 +21,12 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       filename: 'index.html', // under output.path
-      template: 'source/index.html'
+      // templateParameters are used by default fallback js loader (see
+      // https://github.com/jantimon/html-webpack-plugin/blob/master/docs/template-option.md):
+      templateParameters: {
+        version: packageJson.version
+      },
+      template: 'source/index.ejs'
     }),
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     new MiniCssExtractPlugin({
@@ -29,10 +35,6 @@ module.exports = {
   ],
   module: {
     rules: [
-      {
-        test: /\.(html)$/,
-        use: ['html-loader']
-      },
       {
         test: /\.css$/,
         use: [MiniCssExtractPlugin.loader, 'css-loader'],

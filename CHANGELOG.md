@@ -6,6 +6,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [2.0.0] - 2020-11-06
 ### Added
 - Save/Load Cohort criteria
+- Version number to html page
 
 ## [1.15.0] - 2020-10-30
 ### Added
