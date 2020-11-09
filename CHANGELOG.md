@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [2.0.0] - 2020-11-06
+### Added
+- Save/Load Cohort criteria
+
 ## [1.15.0] - 2020-10-30
 ### Added
 - Build/Load Cohort (instead of Patient selection)

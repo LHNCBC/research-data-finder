@@ -251,7 +251,7 @@ export function checkPatientCriteria() {
  * Downloads Patient list data (Cohort).
  */
 export function downloadCohort() {
-  const blob = new Blob([JSON.stringify(patientTable.getBlobData(), null, 2)], {
+  const blob = new Blob([JSON.stringify(patientTable.getRawData(), null, 2)], {
     type: 'text/json;charset=utf-8',
     endings: 'native'
   });
@@ -291,7 +291,7 @@ function onLoadFile(filename, blobData) {
   if (error) {
     throw error;
   }
-  const { data, additionalColumns } = blobData;
+  const { data, rawCriteria, maxPatientCount, additionalColumns } = blobData;
   document.getElementById('cohortFilename').innerText = `[${filename}]`;
 
   // Pass Patients data to component to display resources
@@ -299,7 +299,9 @@ function onLoadFile(filename, blobData) {
   resourceTabPane.setPatientAdditionalColumns(additionalColumns);
   showListOfPatients(data.length);
 
-  patientTable.setBlobData(blobData);
+  patientSearchParams.setRawCriteria(rawCriteria);
+  document.getElementById('maxPatientCount').value = maxPatientCount;
+  patientTable.setRawData(blobData);
   showListOfPatients(blobData.data.length);
 }
 
@@ -357,6 +359,9 @@ export function loadPatients() {
     onEndLoading();
   };
 
+  const rawCriteria = patientSearchParams.getRawCriteria();
+  const maxPatientCount = document.getElementById('maxPatientCount').value;
+
   getPatients().then(
     (data) => {
       const patientResources = data;
@@ -377,6 +382,8 @@ export function loadPatients() {
       if (patientResources.length) {
         patientTable.fill({
           data: patientResources,
+          rawCriteria,
+          maxPatientCount,
           serviceBaseUrl: fhirClient.getServiceBaseUrl()
         });
         showListOfPatients(patientResources.length);

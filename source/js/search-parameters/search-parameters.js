@@ -175,9 +175,7 @@ export class SearchParameters extends BaseComponent {
     super.detachControls();
     const addBtn = document.getElementById(this.buttonId);
     if (addBtn) {
-      Object.keys(this.selectedParams).forEach((searchItemId) =>
-        this.removeParam(searchItemId)
-      );
+      this.removeAllParams();
       addBtn.parentElement.removeChild(addBtn);
     }
   }
@@ -385,20 +383,11 @@ export class SearchParameters extends BaseComponent {
   }
 
   /**
-   * Adds a new row with search parameter to the table of search parameters
+   * Handles click or keypress event on the "Add a search criterion" button
    * @param {boolean} accessibilityMode - focus moves to the first field of
-   *        the new criterion
+   *        the new criterion (true on keypress event)
    */
   addParam(accessibilityMode) {
-    // searchItemId is the unique virtual identifier of the controls group for each search parameter.
-    // Used as part of HTML element identifiers and for storing data associated with a search parameter.
-    const searchItemId = this.item_prefix + ++this.item_generator;
-    const paramResourceTypeSelectorId = this.getParamResourceSelectorId(
-      searchItemId
-    );
-    const rowId = this.getParamRowId(searchItemId);
-    const searchItemContentId = this.getParamContentId(searchItemId);
-    const removeButtonId = this.getRemoveButtonId(searchItemId);
     const prevRowElement = document
       .getElementById(this._id)
       .querySelector('.section__body >:last-child');
@@ -416,6 +405,41 @@ export class SearchParameters extends BaseComponent {
         ? prevResourceTypeSelector.value
         : this.getAvailableResourceTypes()[0];
     const paramName = this.availableParams[paramResourceType].shift();
+
+    const searchItemId = this._addParam(paramResourceType, paramName);
+
+    if (accessibilityMode) {
+      // Focus moves to the first field of the new criterion
+      const focusableElements = getFocusableChildren(
+        document.getElementById(this.getParamRowId(searchItemId))
+      );
+      if (focusableElements.length > 0) {
+        focusableElements[0].focus();
+      }
+    }
+
+    if (!this.getAvailableResourceTypes().length) {
+      document.getElementById(this.buttonId).disabled = true;
+    }
+  }
+
+  /**
+   * Adds a new row with search parameter to the table of search parameters
+   * @param {string} paramResourceType - parameter resource type
+   * @param {string} paramName - parameter name
+   * @return {string} - unique generic identifier for a search parameter row
+   * @private
+   */
+  _addParam(paramResourceType, paramName) {
+    // searchItemId is the unique virtual identifier of the controls group for each search parameter.
+    // Used as part of HTML element identifiers and for storing data associated with a search parameter.
+    const searchItemId = this.item_prefix + ++this.item_generator;
+    const paramResourceTypeSelectorId = this.getParamResourceSelectorId(
+      searchItemId
+    );
+    const rowId = this.getParamRowId(searchItemId);
+    const searchItemContentId = this.getParamContentId(searchItemId);
+    const removeButtonId = this.getRemoveButtonId(searchItemId);
 
     this.selectedParams[searchItemId] = paramName;
     this.selectedResources[searchItemId] = paramResourceType;
@@ -445,19 +469,7 @@ export class SearchParameters extends BaseComponent {
     this.onParamsCountChanged();
     this.createControlsForSearchParam(searchItemId);
 
-    if (accessibilityMode) {
-      // Focus moves to the first field of the new criterion
-      const focusableElements = getFocusableChildren(
-        document.getElementById(rowId)
-      );
-      if (focusableElements.length > 0) {
-        focusableElements[0].focus();
-      }
-    }
-
-    if (!this.getAvailableResourceTypes().length) {
-      document.getElementById(this.buttonId).disabled = true;
-    }
+    return searchItemId;
   }
 
   /**
@@ -500,6 +512,15 @@ export class SearchParameters extends BaseComponent {
     document.getElementById(this.buttonId).disabled = false;
     this.freeAvailableItem(availableResourceType, availableParam);
     this.onParamsCountChanged();
+  }
+
+  /**
+   * Removes all search parameter rows.
+   */
+  removeAllParams() {
+    Object.keys(this.selectedParams).forEach((searchItemId) =>
+      this.removeParam(searchItemId)
+    );
   }
 
   onParamsCountChanged() {
@@ -566,6 +587,46 @@ export class SearchParameters extends BaseComponent {
     });
 
     return conditions;
+  }
+
+  /**
+   * Returns an object with values from criteria controls,
+   * useful for restoring the state of controls (see setRawCriteria).
+   * @return {Array}
+   */
+  getRawCriteria() {
+    let rawConditions = [];
+
+    Object.keys(this.selectedParams).forEach((key) => {
+      const resourceType = this.selectedResources[key];
+      const paramName = this.selectedParams[key];
+      const rawCondition = this.getSearchParamController(key).getRawCondition(
+        key
+      );
+      if (rawCondition) {
+        rawConditions.push({
+          resourceType,
+          paramName,
+          rawCondition
+        });
+      }
+    });
+
+    return rawConditions;
+  }
+
+  /**
+   * Restores the state of criteria controls with the object retrieved by
+   * calling getRawCriteria
+   * @param {Array} rawConditions
+   */
+  setRawCriteria(rawConditions) {
+    this.removeAllParams();
+    rawConditions.forEach(({ resourceType, paramName, rawCondition }) => {
+      const searchItemId = this._addParam(resourceType, paramName);
+      const searchParamCtrl = this.getSearchParamController(searchItemId);
+      searchParamCtrl.setRawCondition(searchItemId, rawCondition);
+    });
   }
 
   /**
