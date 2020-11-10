@@ -263,7 +263,9 @@ export class SearchParameters extends BaseComponent {
    *   getControlsHtml: function,
    *   attachControls: function,
    *   detachControls: function,
-   *   getCondition: function
+   *   getCondition: function,
+   *   getRawCondition: function,
+   *   setRawCondition: function
    * }}
    */
   getSearchParamController(searchItemId) {
@@ -271,12 +273,19 @@ export class SearchParameters extends BaseComponent {
     const searchParamGroup = this.searchParams[resourceType];
     const searchParamGroupCustomCtrl = this.isController(searchParamGroup)
       ? searchParamGroup
-      : null;
+      : searchParamGroup.description[this.selectedParams[searchItemId]];
 
-    return (
-      searchParamGroupCustomCtrl ||
-      searchParamGroup.description[this.selectedParams[searchItemId]]
-    );
+    return Object.keys(searchParamGroupCustomCtrl).reduce((result, key) => {
+      if (searchParamGroupCustomCtrl[key] instanceof Function) {
+        result[key] = searchParamGroupCustomCtrl[key].bind(
+          result,
+          searchItemId
+        );
+      } else {
+        result[key] = searchParamGroupCustomCtrl[key];
+      }
+      return result;
+    }, {});
   }
 
   /**
@@ -289,9 +298,8 @@ export class SearchParameters extends BaseComponent {
     );
     const searchParamCtrl = this.getSearchParamController(searchItemId);
 
-    element.innerHTML = searchParamCtrl.getControlsHtml(searchItemId);
-    searchParamCtrl.attachControls &&
-      searchParamCtrl.attachControls(searchItemId);
+    element.innerHTML = searchParamCtrl.getControlsHtml();
+    searchParamCtrl.attachControls && searchParamCtrl.attachControls();
   }
 
   /**
@@ -304,8 +312,7 @@ export class SearchParameters extends BaseComponent {
     );
     const searchParamCtrl = this.getSearchParamController(searchItemId);
 
-    searchParamCtrl.detachControls &&
-      searchParamCtrl.detachControls(searchItemId);
+    searchParamCtrl.detachControls && searchParamCtrl.detachControls();
     element.innerHTML = '';
   }
 
@@ -577,9 +584,11 @@ export class SearchParameters extends BaseComponent {
   getCriteriaFor(resourceType) {
     let conditions = [];
 
-    Object.keys(this.selectedParams).forEach((key) => {
-      if (resourceType === this.selectedResources[key]) {
-        const condition = this.getSearchParamController(key).getCondition(key);
+    Object.keys(this.selectedParams).forEach((searchItemId) => {
+      if (resourceType === this.selectedResources[searchItemId]) {
+        const condition = this.getSearchParamController(
+          searchItemId
+        ).getCondition();
         if (condition) {
           conditions.push(condition);
         }
@@ -597,12 +606,12 @@ export class SearchParameters extends BaseComponent {
   getRawCriteria() {
     let rawConditions = [];
 
-    Object.keys(this.selectedParams).forEach((key) => {
-      const resourceType = this.selectedResources[key];
-      const paramName = this.selectedParams[key];
-      const rawCondition = this.getSearchParamController(key).getRawCondition(
-        key
-      );
+    Object.keys(this.selectedParams).forEach((searchItemId) => {
+      const resourceType = this.selectedResources[searchItemId];
+      const paramName = this.selectedParams[searchItemId];
+      const rawCondition = this.getSearchParamController(
+        searchItemId
+      ).getRawCondition();
       if (rawCondition) {
         rawConditions.push({
           resourceType,
@@ -625,7 +634,7 @@ export class SearchParameters extends BaseComponent {
     rawConditions.forEach(({ resourceType, paramName, rawCondition }) => {
       const searchItemId = this._addParam(resourceType, paramName);
       const searchParamCtrl = this.getSearchParamController(searchItemId);
-      searchParamCtrl.setRawCondition(searchItemId, rawCondition);
+      searchParamCtrl.setRawCondition(rawCondition);
     });
   }
 
