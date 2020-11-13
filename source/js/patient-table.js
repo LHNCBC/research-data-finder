@@ -176,7 +176,7 @@ export class PatientTable extends ResourceTable {
    * @return {string}
    */
   getDefaultFileName() {
-    return `cohort-${this._data.length}.json`;
+    return `cohort-${this._rawInputData.data.length}.json`;
   }
 
   /**
