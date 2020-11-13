@@ -347,7 +347,7 @@ function getPeriodParams(searchItemId) {
 function getRawCondition(searchItemId) {
   const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
   if (!datatype) {
-    return null;
+      return undefined;
   }
   const testNames = getAutocompleterRawDataById(`${searchItemId}-test-name`);
   let conditionValue;

@@ -612,7 +612,7 @@ export class SearchParameters extends BaseComponent {
       const rawCondition = this.getSearchParamController(
         searchItemId
       ).getRawCondition();
-      if (rawCondition) {
+      if (rawCondition !== undefined) {
         rawConditions.push({
           resourceType,
           paramName,
