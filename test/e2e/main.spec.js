@@ -136,33 +136,35 @@ describe('Research Data Finder', function () {
   function checkUploadCohort() {
     const patientsCountElement = $('#patientsCount');
     const cohortFileInput = $('#cohortFile');
+    const criteriaElements = $$('.search-parameter');
+    const criteriaCount = criteriaElements.count();
 
-    patientsCountElement.getText().then(patientCountText => {
+    patientsCountElement.getText().then((patientCountText) => {
       const patientsCount = parseInt(patientCountText);
       const filename = os.tmpdir() + `/cohort-${patientsCount}.json`;
       const fs = require('fs');
 
-      // Clear Patients count element to check it after upload
-      browser.executeScript((el) => {
-        el.innerHTML = '';
-      }, patientsCountElement);
+      // Clear all Patients data to check it after upload
+      browser.refresh();
 
       // Upload file downloaded in checkDownloadCohort()
       $('#loadCohortOption').click();
       cohortFileInput.sendKeys(filename);
 
-      browser.wait(EC.visibilityOf(patientsCountElement))
-        .then(() => patientsCountElement.getText())
-        .then(function (newPatientCountText) {
-          const newPatientsCount = parseInt(newPatientCountText);
-          expect(
-            patientsCount
-          ).toBe(newPatientsCount);
+      browser.wait(EC.visibilityOf(patientsCountElement));
+      patientsCountElement.getText().then((newPatientCountText) => {
+        // Check the number of uploaded Patients
+        const newPatientsCount = parseInt(newPatientCountText);
+        expect(patientsCount).toBe(newPatientsCount);
 
-          // Cleanup
-          fs.unlinkSync(filename);
-          $('#buildCohortOption').click();
-        });
+        // Cleanup
+        fs.unlinkSync(filename);
+        $('#buildCohortOption').click();
+
+        //Check the number of uploaded Cohort criteria
+        browser.wait(EC.invisibilityOf(patientsCountElement));
+        expect(criteriaCount).toBe(criteriaElements.count());
+      });
     });
   }
 
