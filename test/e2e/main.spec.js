@@ -58,42 +58,49 @@ describe('Research Data Finder', function () {
   }
 
   /**
-   * "it" function to check that Observations can be downloaded
+   * Returns "it" function to check that resource type data can be downloaded in CSV format
+   * @param {string} resourceType
    */
-  function checkDownloadObservations() {
-    const filename = os.tmpdir() + '/observations.csv';
-    const fs = require('fs');
+  function checkDownloadDataByResourceType(resourceType) {
+    return () => {
+      const filename = os.tmpdir() + '/' + resourceType.toLowerCase() + 's.csv';
+      const fs = require('fs');
 
-    if (fs.existsSync(filename)) {
-      // Make sure the browser doesn't have to rename the download.
-      fs.unlinkSync(filename);
-    }
-
-    $('#ObservationTabPage-1-downloadBtn').click();
-
-    browser
-      .wait(function () {
-        // Wait until the file has been downloaded.
-        return fs.existsSync(filename);
-      }, 30000)
-      .then(function () {
-        // Checks CSV file structure: the file has columns and all lines have the same number of cells.
-        const cellsInRowCount = fs
-            .readFileSync(filename, { encoding: 'utf8' })
-            .replace(/""/g, '')
-            .replace(/"[^"]*"/g, '')
-            .split('\n')
-            .map((line) => line.split(',').length),
-          columnsCount = cellsInRowCount[0];
-
-        expect(
-          columnsCount > 0 &&
-            cellsInRowCount.every((cellsCount) => cellsCount === columnsCount)
-        ).toBe(true);
-
-        // Cleanup
+      if (fs.existsSync(filename)) {
+        // Make sure the browser doesn't have to rename the download.
         fs.unlinkSync(filename);
-      });
+      }
+
+      const downloadButtons = element
+        .all(by.cssContainingText('button', 'Download (in CSV format)'))
+        .filter((el) => el.isDisplayed());
+      expect(downloadButtons.count()).toBe(1);
+      downloadButtons.get(0).click();
+
+      browser
+        .wait(function () {
+          // Wait until the file has been downloaded.
+          return fs.existsSync(filename);
+        }, 30000)
+        .then(function () {
+          // Checks CSV file structure: the file has columns and all lines have the same number of cells.
+          const cellsInRowCount = fs
+              .readFileSync(filename, { encoding: 'utf8' })
+              .replace(/""/g, '')
+              .replace(/"[^"]*"/g, '')
+              .split('\n')
+              .map((line) => line.split(',').length),
+            columnsCount = cellsInRowCount[0];
+
+          expect(
+            columnsCount > 0 &&
+              cellsInRowCount.every((cellsCount) => cellsCount === columnsCount)
+          ).toBe(true);
+
+          // Cleanup
+          fs.unlinkSync(filename);
+        });
+    };
   }
 
   /**
@@ -136,7 +143,7 @@ describe('Research Data Finder', function () {
   function checkUploadCohort() {
     const patientsCountElement = $('#patientsCount');
     const cohortFileInput = $('#cohortFile');
-    const criteriaElements = $$('.search-parameter');
+    const criteriaElements = $$('#SearchParameters-1 .search-parameter');
     const criteriaCount = criteriaElements.count();
 
     patientsCountElement.getText().then((patientCountText) => {
@@ -168,12 +175,30 @@ describe('Research Data Finder', function () {
     });
   }
 
+
+  /**
+   * Select or add tab for pull data for resource type
+   * @param {string} resourceType - e.g. "Observation", "Encounter" etc.
+   */
+  function selectTabByResourceType(resourceType) {
+    $(`a[data-value="${resourceType}"]:not(.hide)`)
+      .isPresent()
+      .then((tabIsNotCreated) => {
+        if (tabIsNotCreated) {
+          $('#ResourceTabPane-1-add-btn').click();
+          $(`a[data-value="${resourceType}"]`).click();
+        } else {
+          element(by.cssContainingText('.tab-link', resourceType)).click();
+        }
+      });
+  }
+
   describe('without criteria(initial state)', function () {
     it('should load Patients', checkLoadPatients);
 
     it('should load Observations filtered by tests', checkLoadObservations);
 
-    it('should download Observations', checkDownloadObservations);
+    it('should download Observations', checkDownloadDataByResourceType('Observation'));
 
     it('should download Cohort', checkDownloadCohort);
 
@@ -227,7 +252,7 @@ describe('Research Data Finder', function () {
 
     it('should load Observations filtered by tests', checkLoadObservations);
 
-    it('should download Observations', checkDownloadObservations);
+    it('should download Observations', checkDownloadDataByResourceType('Observation'));
 
     it('should download Cohort', checkDownloadCohort);
 
@@ -260,10 +285,67 @@ describe('Research Data Finder', function () {
 
     it('should load Observations filtered by tests', checkLoadObservations);
 
-    it('should download Observations', checkDownloadObservations);
+    it('should download Observations', checkDownloadDataByResourceType('Observation'));
 
     it('should download Cohort', checkDownloadCohort);
 
     it('should upload Cohort', checkUploadCohort);
   });
+
+  describe('when adding criteria to Encounter resource', function () {
+    it('should load minimum and maximum values for date criterion', function () {
+      const searchParamId = getNextSearchParamId();
+      const addCriterionBtn = $('#SearchParameters-1_add_button');
+      const resourceInput = $(`#${searchParamId}_resource`);
+      const paramNameInput = $(`#${searchParamId}`);
+      const fromInput = $(`#${searchParamId}-date-from`);
+      const toInput = $(`#${searchParamId}-date-to`);
+
+      browser.wait(EC.elementToBeClickable(addCriterionBtn));
+      addCriterionBtn.click();
+
+      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Encounter');
+      resourceInput.sendKeys(Key.ENTER);
+      paramNameInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Date');
+      paramNameInput.sendKeys(Key.ENTER);
+
+      browser.wait(
+        EC.and(
+          anyDateToBePresentInInput(fromInput),
+          anyDateToBePresentInInput(toInput)
+        )
+      );
+    });
+  });
+
+  describe('after adding a criteria to Encounter resource', function () {
+    it('should load Patients filtered by criteria', checkLoadPatients);
+
+    it('should reuse selection criteria values from the Patient selection area', function () {
+      selectTabByResourceType('Encounter');
+      expect($$('#SearchParameters-2 .search-parameter').count()).toBe(1);
+      expect(
+        $(
+          '#SearchParameters-2 .search-parameter input[aria-label="Resource type"]'
+        ).getAttribute('value')
+      ).toBe('Encounter');
+      expect(
+        $(
+          '#SearchParameters-2 .search-parameter input[aria-label="Search parameter name"]'
+        ).getAttribute('value')
+      ).toBe('Date');
+    });
+
+    it('should load Encounters', () => {
+      $('#ResourceTabPage-1-loadBtn').click();
+      browser.wait(EC.visibilityOf($('#ResourceTable-1')));
+    })
+
+    it('should download Observations', checkDownloadDataByResourceType('Encounter'));
+
+    it('should download Cohort', checkDownloadCohort);
+
+    it('should upload Cohort', checkUploadCohort);
+  });
+
 });

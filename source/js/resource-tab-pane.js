@@ -122,21 +122,18 @@ export class ResourceTabPane extends BaseComponent {
   }
 
   /**
-   * Stores patient resources.
-   * This data passes to ResourceTabPage via callback getPatientResources.
-   * @param {Array} resources
+   * Stores context of receiving Patient resources.
+   * This data passes to ResourceTabPage via callbacks getPatientResources,
+   * getPatientAdditionalColumns and getRawCriteria.
+   * @param {Array<Object>} patientResources - array of Patient resources
+   * @param {Array<string>} additionalColumns - array of additional columns for Patient
+   * @param {Array<Object>} rawPatientCriteria - array of raw patient criteria,
+   *                        useful for restore criteria on a resource type tab page
    */
-  setPatientResources(resources) {
-    this.patientResources = resources;
-  }
-
-  /**
-   * Stores additional columns for Patient.
-   * This data passes to ResourceTabPage via callback getPatientAdditionalColumns.
-   * @param {Array<string>} additionalColumns
-   */
-  setPatientAdditionalColumns(additionalColumns) {
-    this._patientAdditionalColumns = additionalColumns;
+  setContext({ patientResources, additionalColumns, rawPatientCriteria }) {
+    this.patientResources = patientResources;
+    this.patientAdditionalColumns = additionalColumns;
+    this.rawPatientCriteria = rawPatientCriteria;
   }
 
   /**
@@ -210,7 +207,12 @@ export class ResourceTabPane extends BaseComponent {
           return this.patientResources;
         },
         getPatientAdditionalColumns: () => {
-          return this._patientAdditionalColumns;
+          return this.patientAdditionalColumns;
+        },
+        getRawCriteria: () => {
+          return this.rawPatientCriteria.filter(
+            (rawCriterion) => rawCriterion.resourceType === resourceType
+          );
         }
       }
     });

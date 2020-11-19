@@ -241,7 +241,7 @@ function dateParameterDescription({ name, column, description, elementPath, reso
           loadDate(fromId, resourceType, name, elementPath, LOAD_DATE_MODE.MIN),
           loadDate(toId, resourceType, name, elementPath, LOAD_DATE_MODE.MAX)
         ];
-        Promise.all(
+        return Promise.all(
           loadDatePromises.map((i) =>
             // Convert reject to resolve to emulate Promise.allSettled behaviour (for Edge/IE11)
             i.catch((error) => {
