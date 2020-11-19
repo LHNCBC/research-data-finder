@@ -78,7 +78,6 @@ export const ObservationSearchParameters = () => ({
           } else {
             testAC.setURL(`${testSearchUrl}&q=datatype:${datatype}`);
           }
-          testAC.urlSearch('', Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD);
           createTestValueControls(searchItemId, datatype, units, AnswerLists);
         } else {
           testAC.onComplete.apply(testAC, arguments);
@@ -93,7 +92,10 @@ export const ObservationSearchParameters = () => ({
     Def.Autocompleter.Event.observeListSelections(testInputId, (eventData) => {
       const selectedCodes = testAC.getSelectedCodes();
       if (selectedCodes.length === 1 && testAC.url.indexOf('&q=') === -1) {
-        initTestAC(searchItemId, eventData.item_code);
+        initTestAC(searchItemId, eventData.item_code, () => {
+          testAC.domCache.set('elemVal', eventData.val_typed_in);
+          testAC.urlSearch(eventData.val_typed_in, Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD);
+        });
       } else if (
         selectedCodes.length === 0 &&
         testAC.url.indexOf('&q=') !== -1
