@@ -41,6 +41,35 @@ export function getAutocompleterById(inputId) {
 }
 
 /**
+ * Returns an object with values from autocompleter, useful for restoring
+ * the state of autocompleter (see addAutocompleterRawDataById).
+ * @param {string} inputId
+ * @return {{codes: *, items: *}}
+ */
+export function getAutocompleterRawDataById(inputId) {
+  const autocompleter = getAutocompleterById(inputId);
+  const codes = autocompleter.getSelectedCodes();
+  const items = autocompleter.getSelectedItems();
+  return { codes, items };
+}
+
+/**
+ * Restores the state of autocompleter with the object retrieved by calling
+ * getRawControls. Autocompleter must be empty (just created).
+ * @param {string} inputId
+ * @param {{codes: *, items: *}} rawData
+ */
+export function addAutocompleterRawDataById(inputId, rawData) {
+  const autocompleter = getAutocompleterById(inputId);
+  const { codes, items } = rawData;
+
+  items.forEach((item, index) => {
+    autocompleter.storeSelectedItem(item, codes[index]);
+    autocompleter.addToSelectedArea(item);
+  });
+}
+
+/**
  * Returns the array of address string from FHIR Address type
  * (see https://www.hl7.org/fhir/datatypes.html#address)
  * @param {Object} valueSetMapByPath - map from path to value set map

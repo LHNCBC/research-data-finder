@@ -45,15 +45,31 @@ const columnToResourceElementName = {
 
 export const PATIENT = 'Patient';
 
+/**
+ * Returns a value from Active criterion control, useful for restoring the state
+ * of control (see setRawCondition for Active criterion).
+ * @param {string} searchItemId - unique generic identifier for a search parameter row
+ * @return {Boolean}
+ */
+const getActiveRawCondition = (searchItemId) =>
+  document.getElementById(`${searchItemId}-active-true`).checked;
+
 export const PatientSearchParameters = () => ({
-  // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
+  // The resource type (for which these search parameters) is used for retrieving
+  // entered data from the SearchParameters component
   resourceType: PATIENT,
   // Description of Patient search parameters:
-  // column - this value specifies the column name (of the HTML table of the observation data) to show, sometimes could be array of column names
+  // column - this value specifies the column name (of the HTML table of the
+  //          observation data) to show, sometimes could be array of column names
   // getControlsHtml - creates controls for input parameter value(s)
   // attachControls - initializes controls
   // detachControls - removes links to controls
-  // getCondition - returns URL parameters string with search condition according to value in controls
+  // getRawCondition - returns an object with values from criterion controls,
+  //                 useful for restoring the state of controls (see setRawCondition).
+  // setRawCondition - restores the state of controls with the object retrieved
+  //                 by calling getRawCondition
+  // getCondition - returns URL parameters string with search condition according
+  //                to value in controls
   // all functions have parameter searchItemId - generic id for DOM
   description: {
     Age: {
@@ -62,6 +78,23 @@ export const PatientSearchParameters = () => ({
         return `\
 from <input type="number" id="${searchItemId}-ageFrom" placeholder="no limit">
 to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`;
+      },
+      getRawCondition: (searchItemId) => {
+        const from = document.getElementById(`${searchItemId}-ageFrom`).from;
+        const to = document.getElementById(`${searchItemId}-ageTo`).to;
+
+        return {
+          from,
+          to
+        };
+      },
+      setRawCondition: (searchItemId, rawCondition) => {
+        const fromId = `${searchItemId}-ageFrom`;
+        const toId = `${searchItemId}-ageTo`;
+        const { from, to } = rawCondition;
+
+        document.getElementById(fromId).value = from;
+        document.getElementById(toId).value = to;
       },
       getCondition: (searchItemId) => {
         const ageFrom = document.getElementById(`${searchItemId}-ageFrom`)
@@ -81,9 +114,17 @@ to <input type="number" id="${searchItemId}-ageTo" placeholder="no limit"></td>`
 <label class="radio-option"><input id="${searchItemId}-active-true" name="${searchItemId}-active" type="radio">true</label>
 <label class="radio-option"><input id="${searchItemId}-active-false" name="${searchItemId}-active" type="radio" checked>false</label>
 </div>`,
+      getRawCondition: getActiveRawCondition,
+      setRawCondition: (searchItemId, rawCondition) => {
+        document.getElementById(
+          `${searchItemId}-active-true`
+        ).checked = rawCondition;
+        document.getElementById(
+          `${searchItemId}-active-false`
+        ).checked = !rawCondition;
+      },
       getCondition: (searchItemId) =>
-        '&active=' +
-        document.getElementById(`${searchItemId}-active-true`).checked
+        '&active=' + getActiveRawCondition(searchItemId)
     },
 
     // String search parameters:

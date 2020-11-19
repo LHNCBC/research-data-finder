@@ -98,14 +98,21 @@ export class PatientTable extends ResourceTable {
    * Fill HTML table with observations data
    * @param {{patients: Object[], observations: Object[]}} data - result of
    *        requests to server for observations and patients
+   * @param {Object} rawCriteria - control values for criteria
+   * @param {number} maxPatientCount - maximum number of patients
    * @param {string} serviceBaseUrl - the Service Base URL of the FHIR server
    *        from which data is being pulled
    */
-  fill({ data, serviceBaseUrl }) {
+  fill({ data, rawCriteria, maxPatientCount, serviceBaseUrl }) {
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
     this.valueSetMapByPath = getCurrentDefinitions().valueSetMapByPath;
-    this._data = data;
+    this._rawInputData = {
+      data,
+      rawCriteria,
+      maxPatientCount,
+      serviceBaseUrl
+    };
     this.data = data.map((patient) => {
       patient._name = humanNameToString(patient.name);
       patient._age = getPatientAge(patient);
@@ -145,23 +152,22 @@ export class PatientTable extends ResourceTable {
   }
 
   /**
-   * Restores the state of the table to the moment when method getBlobData was called
-   * @param {Object} blobData
+   * Restores the state of the table to the moment when method getRawData was called
+   * @param {Object} rawData
    */
-  setBlobData(blobData) {
-    this.setAdditionalColumns(blobData.additionalColumns);
-    this.fill(blobData);
+  setRawData(rawData) {
+    this.setAdditionalColumns(rawData.additionalColumns);
+    this.fill(rawData);
   }
 
   /**
    * Returns data describing the state of the table
    * @return {Object}
    */
-  getBlobData() {
+  getRawData() {
     return {
-      data: this._data,
       additionalColumns: this._additionalColumns,
-      serviceBaseUrl: this.serviceBaseUrl
+      ...this._rawInputData
     };
   }
 
@@ -170,7 +176,7 @@ export class PatientTable extends ResourceTable {
    * @return {string}
    */
   getDefaultFileName() {
-    return `cohort-${this._data.length}.json`;
+    return `cohort-${this._rawInputData.data.length}.json`;
   }
 
   /**
@@ -182,9 +188,11 @@ export class PatientTable extends ResourceTable {
    * @return {Error|null}
    */
   checkBlobData(blobData, options) {
-    const { data, serviceBaseUrl } = blobData;
+    const { data, rawCriteria, maxPatientCount, serviceBaseUrl } = blobData;
     const readableData =
       serviceBaseUrl &&
+      rawCriteria &&
+      maxPatientCount &&
       data &&
       data.length &&
       data[0].resourceType === 'Patient';

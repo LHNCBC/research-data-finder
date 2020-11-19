@@ -387,7 +387,7 @@ form:not(.hide-errors) input:invalid:focus {
   background-color: #fee8e9;
 }
 
-div.section__body > div:not(.search-parameter-list):not(.tabs-component) > *:not(:first-child) {
+.section__body > div:not(.search-parameter-list):not(.tabs-component) > *:not(:first-child) {
   margin-left: 1em;
 }
 
@@ -640,6 +640,11 @@ body {
 }
 #siteName {
   font-size: 300%;
+}
+#version {
+  float: right;
+  padding-right: 1em;
+  font-weight: bold;
 }
 /* End of styles for the header */
 

@@ -5,7 +5,9 @@ import {
   encodeFhirSearchParameter,
   getAutocompleterById,
   escapeStringForRegExp,
-  getDateTimeFromInput
+  getDateTimeFromInput,
+  getAutocompleterRawDataById,
+  addAutocompleterRawDataById
 } from '../common/utils';
 
 export const OBSERVATION = 'Observation';
@@ -41,8 +43,14 @@ export const ObservationSearchParameters = () => ({
       maxSelect: '*',
       matchListValue: true,
       onComplete: function () {
-        testAC.onComplete.apply(testAC, arguments);
         if (testAC.url.indexOf('&ef=datatype') !== -1) {
+          // onComplete only processes response data if hasFocus is true,
+          // we need to process this data when restoring criteria from file
+          const origHasFocus = testAC.hasFocus;
+          testAC.hasFocus = true;
+          testAC.onComplete.apply(testAC, arguments);
+          testAC.hasFocus = origHasFocus;
+
           const AnswerLists = testAC.listExtraData_.AnswerLists[0];
           const datatype = testAC.listExtraData_.datatype[0] || null;
           //"units":[[{"unit":"[in_us]"},{"unit":"cm"}]]
@@ -72,6 +80,12 @@ export const ObservationSearchParameters = () => ({
           }
           testAC.urlSearch('', Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD);
           createTestValueControls(searchItemId, datatype, units, AnswerLists);
+        } else {
+          testAC.onComplete.apply(testAC, arguments);
+        }
+        if (testAC.onCompleteOnce) {
+          testAC.onCompleteOnce();
+          delete testAC.onCompleteOnce;
         }
       }
     });
@@ -79,10 +93,7 @@ export const ObservationSearchParameters = () => ({
     Def.Autocompleter.Event.observeListSelections(testInputId, (eventData) => {
       const selectedCodes = testAC.getSelectedCodes();
       if (selectedCodes.length === 1 && testAC.url.indexOf('&q=') === -1) {
-        testAC.setURL(
-          `${testSearchUrl}&ef=datatype,units,AnswerLists&q=LOINC_NUM:${eventData.item_code}`
-        );
-        testAC.urlSearch('', Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD);
+        initTestAC(searchItemId, eventData.item_code);
       } else if (
         selectedCodes.length === 0 &&
         testAC.url.indexOf('&q=') !== -1
@@ -101,6 +112,9 @@ export const ObservationSearchParameters = () => ({
     removeTestValueControls(searchItemId);
     getAutocompleterById(`${searchItemId}-test-name`).destroy();
   },
+
+  getRawCondition,
+  setRawCondition,
 
   /**
    * Returns URL parameters string with search condition according to value in controls
@@ -121,6 +135,24 @@ export const ObservationSearchParameters = () => ({
     );
   }
 });
+
+/**
+ * Adds parameters to subsequent requests to restrict possible responses
+ * by the type of value of the test with the corresponding LOINC code.
+ * @param {string} searchItemId - unique generic identifier for a search parameter row
+ * @param {string} itemCode - LOINC code
+ * @param {Function} [onCompleteOnce] - a function that will be called once after initialization
+ */
+function initTestAC(searchItemId, itemCode, onCompleteOnce) {
+  const testAC = getAutocompleterById(`${searchItemId}-test-name`);
+  testAC.setURL(
+    `${testSearchUrl}&ef=datatype,units,AnswerLists&q=LOINC_NUM:${itemCode}`
+  );
+  if (onCompleteOnce) {
+    testAC.onCompleteOnce = onCompleteOnce;
+  }
+  testAC.urlSearch('', Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD);
+}
 
 /**
  * Creates controls for input test value.
@@ -304,6 +336,102 @@ function getPeriodParams(searchItemId) {
     (from ? `&date=ge${encodeURIComponent(from)}` : '') +
     (to ? `&date=le${encodeURIComponent(to)}` : '')
   );
+}
+
+/**
+ * Returns an object with values from criterion controls,
+ * useful for restoring the state of controls (see setRawCondition).
+ * @param {string} searchItemId - unique generic identifier for a search parameter row
+ * @return {Object|null}
+ */
+function getRawCondition(searchItemId) {
+  const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
+  if (!datatype) {
+    return undefined;
+  }
+  const testNames = getAutocompleterRawDataById(`${searchItemId}-test-name`);
+  let conditionValue;
+
+  if (AnswerLists && AnswerLists.length) {
+    conditionValue = getAutocompleterRawDataById(
+      `${searchItemId}-test-answers`
+    );
+  } else if (datatype === 'REAL') {
+    const prefix = getAutocompleterById(
+      `${searchItemId}-test-value-prefix`
+    ).getSelectedCodes();
+    const value = document.getElementById(`${searchItemId}-test-real-value`)
+      .value;
+    const unit =
+      document.getElementById(`${searchItemId}-test-value-unit`).value || '';
+
+    conditionValue = {
+      prefix,
+      value,
+      unit
+    };
+  } else {
+    const modifier = getAutocompleterById(
+      `${searchItemId}-test-value-modifier`
+    ).getSelectedCodes()[0];
+
+    const value = document.getElementById(`${searchItemId}-test-string-value`)
+      .value;
+
+    conditionValue = {
+      modifier,
+      value
+    };
+  }
+
+  const from = getDateTimeFromInput(`#${searchItemId}-from`);
+  const to = getDateTimeFromInput(`#${searchItemId}-to`);
+
+  return {
+    testNames,
+    conditionValue,
+    from,
+    to
+  };
+}
+
+/**
+ * Restores the state of controls with the object retrieved by calling getRawCondition
+ * @param {string} searchItemId - unique generic identifier for a search parameter row
+ * @param {string} rawCondition - object with values from criterion controls
+ */
+function setRawCondition(searchItemId, rawCondition) {
+  const { testNames, conditionValue, from, to } = rawCondition;
+
+  addAutocompleterRawDataById(`${searchItemId}-test-name`, testNames);
+  initTestAC(searchItemId, testNames.codes[0], () => {
+    const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
+
+    if (AnswerLists && AnswerLists.length) {
+      addAutocompleterRawDataById(
+        `${searchItemId}-test-answers`,
+        conditionValue
+      );
+    } else if (datatype === 'REAL') {
+      getAutocompleterById(`${searchItemId}-test-value-prefix`).selectByCode(
+        conditionValue.prefix
+      );
+      document.getElementById(`${searchItemId}-test-real-value`).value =
+        conditionValue.value;
+      document.getElementById(`${searchItemId}-test-value-unit`).value =
+        conditionValue.unit;
+    } else {
+      getAutocompleterById(`${searchItemId}-test-value-modifier`).selectByCode(
+        conditionValue.modifier
+      );
+
+      document.getElementById(`${searchItemId}-test-string-value`).value =
+        conditionValue.value;
+    }
+
+    document.querySelector(`#${searchItemId}-from`).value = from;
+    document.querySelector(`#${searchItemId}-to`).value = to;
+  });
 }
 
 /**

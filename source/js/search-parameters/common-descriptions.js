@@ -5,7 +5,9 @@ import {
   capitalize,
   toggleCssClass,
   getDateTimeFromInput,
-  getValueByPath
+  getValueByPath,
+  addAutocompleterRawDataById,
+  getAutocompleterRawDataById
 } from '../common/utils';
 import definitionsIndex from './definitions/index.json';
 
@@ -140,12 +142,17 @@ export function getCurrentDefinitions() {
  * @return {Object}
  */
 function booleanParameterDescription({ description, column, name }) {
+  const getRawCondition = (searchItemId) =>
+    document.getElementById(`${searchItemId}-${name}`).checked;
   return {
     column,
     getControlsHtml: (searchItemId) =>
       `<label class="boolean-param"><input id="${searchItemId}-${name}" type="checkbox">${description}</label>`,
-    getCondition: (searchItemId) =>
-      `&${name}=${document.getElementById(`${searchItemId}-${name}`).checked}`
+    getRawCondition,
+    setRawCondition: (searchItemId, rawCondition) => {
+      document.getElementById(`${searchItemId}-${name}`).checked = rawCondition;
+    },
+    getCondition: (searchItemId) => `&${name}=${getRawCondition(searchItemId)}`
   };
 }
 
@@ -157,12 +164,18 @@ function booleanParameterDescription({ description, column, name }) {
  * @return {Object}
  */
 function stringParameterDescription({ placeholder, column, name }) {
+  const getRawCondition = (searchItemId) =>
+    document.getElementById(`${searchItemId}-${name}`).value;
   return {
     column,
     getControlsHtml: (searchItemId) =>
       `<input type="text" id="${searchItemId}-${name}" placeholder="${placeholder}" title="${placeholder}">`,
+    getRawCondition,
+    setRawCondition: (searchItemId, rawCondition) => {
+      document.getElementById(`${searchItemId}-${name}`).value = rawCondition;
+    },
     getCondition: (searchItemId) => {
-      const value = document.getElementById(`${searchItemId}-${name}`).value;
+      const value = getRawCondition(searchItemId);
       return value.trim() ? `&${name}=${encodeFhirSearchParameter(value)}` : '';
     }
   };
@@ -196,6 +209,15 @@ function dateValidatorForIE() {
  */
 // prettier-ignore
 function dateParameterDescription({ name, column, description, elementPath, resourceType}) {
+  const  getRawCondition = (searchItemId) => {
+    const from = getDateTimeFromInput(`#${searchItemId}-${name}-from`);
+    const to = getDateTimeFromInput(`#${searchItemId}-${name}-to`);
+
+    return {
+      from, to
+    };
+  };
+
   return {
     column,
     getControlsHtml: (searchItemId) => {
@@ -236,9 +258,17 @@ function dateParameterDescription({ name, column, description, elementPath, reso
       document.getElementById(fromId).removeEventListener('input', dateValidatorForIE);
       document.getElementById(toId).removeEventListener('input', dateValidatorForIE);
     },
+    getRawCondition,
+    setRawCondition: (searchItemId, rawCondition) => {
+      const fromId = `${searchItemId}-${name}-from`;
+      const toId = `${searchItemId}-${name}-to`;
+      const {from, to} = rawCondition;
+
+      document.getElementById(fromId).value = from;
+      document.getElementById(toId).value = to;
+    },
     getCondition: (searchItemId) => {
-      const from = getDateTimeFromInput(`#${searchItemId}-${name}-from`);
-      const to = getDateTimeFromInput(`#${searchItemId}-${name}-to`);
+      const {from, to} = getRawCondition(searchItemId);
 
       return (
         (from ? `&${name}=ge${encodeFhirSearchParameter(from)}` : '') +
@@ -347,6 +377,10 @@ function valuesetParameterDescription({ placeholder, name, column, list }) {
     detachControls: (searchItemId) => {
       getAutocompleterById(`${searchItemId}-${name}`).destroy();
     },
+    getRawCondition: (searchItemId) =>
+      getAutocompleterRawDataById(`${searchItemId}-${name}`),
+    setRawCondition: (searchItemId, rawCondition) =>
+      addAutocompleterRawDataById(`${searchItemId}-${name}`, rawCondition),
     getCondition: (searchItemId) => {
       const codes = getAutocompleterById(`${searchItemId}-${name}`)
         .getSelectedCodes()
@@ -567,6 +601,10 @@ export function referenceParameters(descriptions, searchNameToColumn) {
         detachControls: (searchItemId) => {
           getAutocompleterById(`${searchItemId}-${name}`).destroy();
         },
+        getRawCondition: (searchItemId) =>
+          getAutocompleterRawDataById(`${searchItemId}-${name}`),
+        setRawCondition: (searchItemId, rawCondition) =>
+          addAutocompleterRawDataById(`${searchItemId}-${name}`, rawCondition),
         getCondition: (searchItemId) => {
           const codes = getAutocompleterById(`${searchItemId}-${name}`)
             .getSelectedCodes()

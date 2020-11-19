@@ -96,12 +96,88 @@ describe('Research Data Finder', function () {
       });
   }
 
+  /**
+   * "it" function to check that Cohort can be downloaded.
+   */
+  function checkDownloadCohort() {
+    $('#patientsCount').getText().then(patientCountText => {
+      const patientsCount = parseInt(patientCountText);
+      const filename = os.tmpdir() + `/cohort-${patientsCount}.json`;
+      const fs = require('fs');
+
+      if (fs.existsSync(filename)) {
+        // Make sure the browser doesn't have to rename the download.
+        fs.unlinkSync(filename);
+      }
+
+      $('#saveCohort').click();
+
+      browser
+        .wait(function () {
+          // Wait until the file has been downloaded.
+          return fs.existsSync(filename);
+        }, 30000)
+        .then(function () {
+          // Checks JSON file structure.
+          const cohortData = require(filename);
+
+          expect(
+            cohortData && cohortData.data && cohortData.data.length
+          ).toBe(patientsCount);
+
+          // Cleanup will be in checkUploadCohort()
+        });
+    });
+  }
+
+  /**
+   * "it" function to check that Cohort can be uploaded.
+   */
+  function checkUploadCohort() {
+    const patientsCountElement = $('#patientsCount');
+    const cohortFileInput = $('#cohortFile');
+    const criteriaElements = $$('.search-parameter');
+    const criteriaCount = criteriaElements.count();
+
+    patientsCountElement.getText().then((patientCountText) => {
+      const patientsCount = parseInt(patientCountText);
+      const filename = os.tmpdir() + `/cohort-${patientsCount}.json`;
+      const fs = require('fs');
+
+      // Clear all Patients data to check it after upload
+      browser.refresh();
+
+      // Upload file downloaded in checkDownloadCohort()
+      $('#loadCohortOption').click();
+      cohortFileInput.sendKeys(filename);
+
+      browser.wait(EC.visibilityOf(patientsCountElement));
+      patientsCountElement.getText().then((newPatientCountText) => {
+        // Check the number of uploaded Patients
+        const newPatientsCount = parseInt(newPatientCountText);
+        expect(patientsCount).toBe(newPatientsCount);
+
+        // Cleanup
+        fs.unlinkSync(filename);
+        $('#buildCohortOption').click();
+
+        //Check the number of uploaded Cohort criteria
+        browser.wait(EC.invisibilityOf(patientsCountElement));
+        expect(criteriaCount).toBe(criteriaElements.count());
+      });
+    });
+  }
+
   describe('without criteria(initial state)', function () {
     it('should load Patients', checkLoadPatients);
 
     it('should load Observations filtered by tests', checkLoadObservations);
 
     it('should download Observations', checkDownloadObservations);
+
+    it('should download Cohort', checkDownloadCohort);
+
+    it('should upload Cohort', checkUploadCohort);
   });
 
   describe('when adding criteria to Patient resource', function () {
@@ -152,6 +228,10 @@ describe('Research Data Finder', function () {
     it('should load Observations filtered by tests', checkLoadObservations);
 
     it('should download Observations', checkDownloadObservations);
+
+    it('should download Cohort', checkDownloadCohort);
+
+    it('should upload Cohort', checkUploadCohort);
   });
 
   describe('when adding criteria to Observation resource', function () {
@@ -181,5 +261,9 @@ describe('Research Data Finder', function () {
     it('should load Observations filtered by tests', checkLoadObservations);
 
     it('should download Observations', checkDownloadObservations);
+
+    it('should download Cohort', checkDownloadCohort);
+
+    it('should upload Cohort', checkUploadCohort);
   });
 });
