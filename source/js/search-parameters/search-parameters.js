@@ -150,21 +150,7 @@ export class SearchParameters extends BaseComponent {
    */
   attachControls() {
     this.attachEvent(document.getElementById(this.buttonId), 'click', () =>
-      this.addParam(false)
-    );
-    this.attachEvent(
-      document.getElementById(this.buttonId),
-      'keypress',
-      (event) => {
-        if (
-          event.key === ' ' ||
-          event.key === 'Spacebar' ||
-          event.key === 'Enter'
-        ) {
-          this.addParam(true);
-          event.preventDefault();
-        }
-      }
+      this.addParam()
     );
   }
 
@@ -394,10 +380,8 @@ export class SearchParameters extends BaseComponent {
 
   /**
    * Handles click or keypress event on the "Add a search criterion" button
-   * @param {boolean} accessibilityMode - focus moves to the first field of
-   *        the new criterion (true on keypress event)
    */
-  addParam(accessibilityMode) {
+  addParam() {
     const prevRowElement = document
       .getElementById(this._id)
       .querySelector('.section__body >:last-child');
@@ -417,14 +401,15 @@ export class SearchParameters extends BaseComponent {
     const paramName = this.availableParams[paramResourceType].shift();
 
     this._addParam(paramResourceType, paramName).then((searchItemId) => {
-      if (accessibilityMode) {
-        // Focus moves to the first field of the new criterion
-        const focusableElements = getFocusableChildren(
-          document.getElementById(this.getParamRowId(searchItemId))
-        );
-        if (focusableElements.length > 0) {
-          focusableElements[0].focus();
-        }
+      const addMessage =
+        'Added new row with criterion. The focus is on the first field of this row.';
+      Def.Autocompleter.screenReaderLog(addMessage);
+      // Focus moves to the first field of the new criterion
+      const focusableElements = getFocusableChildren(
+        document.getElementById(this.getParamRowId(searchItemId))
+      );
+      if (focusableElements.length > 0) {
+        focusableElements[0].focus();
       }
 
       if (!this.getAvailableResourceTypes().length) {
@@ -490,8 +475,11 @@ export class SearchParameters extends BaseComponent {
   addRemoveBtnListener(searchItemId) {
     const removeButtonId = this.getRemoveButtonId(searchItemId);
 
-    document.getElementById(removeButtonId).onclick = () =>
+    document.getElementById(removeButtonId).onclick = () => {
+      const removeMessage = 'The row with the criterion was removed.';
       this.removeParam(searchItemId);
+      Def.Autocompleter.screenReaderLog(removeMessage);
+    };
   }
 
   /**
