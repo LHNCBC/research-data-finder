@@ -3,6 +3,7 @@
 const os = require('os');
 const Key = protractor.Key;
 const EC = protractor.ExpectedConditions;
+const fs = require('fs');
 
 describe('Research Data Finder', function () {
   beforeAll(function () {
@@ -36,25 +37,61 @@ describe('Research Data Finder', function () {
   }
 
   /**
+   * Scrolls an element's parent container such that the element is visible to the user
+   * @param {ElementFinder} elementFinder - protractor object to represent the element
+   * @return {Promise}
+   */
+  function scrollIntoView(elementFinder) {
+    return elementFinder.getWebElement().then((element) =>
+      browser.executeScript(function (element) {
+        if (element.scrollIntoViewIfNeeded) {
+          element.scrollIntoViewIfNeeded(true);
+        } else {
+          element.scrollIntoView({block: 'center'});
+        }
+      }, element)
+    );
+  }
+
+  /**
+   * Scrolls an element into view and clicks on it when it becomes clickable
+   * @param {ElementFinder} elementFinder - protractor object to represent the element
+   * @return {Promise}
+   */
+  function safeClick(elementFinder) {
+    return browser
+      .wait(EC.elementToBeClickable(elementFinder))
+      .then(() =>
+        scrollIntoView(elementFinder).then(() => elementFinder.click())
+      );
+  }
+
+   /**
    * "it" function to check that Patients can be loaded
    */
   function checkLoadPatients() {
     const loadPatientsBtn = $('#loadPatients');
     const cohortSectionHeader = $('#patientsArea > .section:nth-of-type(2) > .section__header');
+    const maxPatientCountInput = $('#maxPatientCount');
+    const loadObservationsBtn = $('#ObservationTabPage-1-loadBtn');
 
-    browser.wait(EC.elementToBeClickable(loadPatientsBtn));
-    loadPatientsBtn.click();
-    browser.wait(EC.visibilityOf(cohortSectionHeader));
-    cohortSectionHeader.click();
-    browser.wait(EC.visibilityOf($('#ObservationTabPage-1-loadBtn')));
+    // Random maximum number of Patients from 50 to 100
+    maxPatientCountInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 50 + Math.floor(Math.random()*50));
+
+    safeClick(loadPatientsBtn);
+    safeClick(cohortSectionHeader);
+    browser.wait(EC.visibilityOf(loadObservationsBtn));
   }
 
   /**
    * "it" function to check that Observations can be loaded
    */
   function checkLoadObservations() {
-    $('#ObservationTabPage-1-loadBtn').click();
-    browser.wait(EC.visibilityOf($('#ObservationTable-1')));
+    const loadObservationsBtn = $('#ObservationTabPage-1-loadBtn');
+    const observationTable = $('#ObservationTable-1');
+
+    safeClick(loadObservationsBtn);
+    browser.wait(EC.visibilityOf(observationTable));
   }
 
   /**
@@ -64,7 +101,6 @@ describe('Research Data Finder', function () {
   function checkDownloadDataByResourceType(resourceType) {
     return () => {
       const filename = os.tmpdir() + '/' + resourceType.toLowerCase() + 's.csv';
-      const fs = require('fs');
 
       if (fs.existsSync(filename)) {
         // Make sure the browser doesn't have to rename the download.
@@ -75,7 +111,7 @@ describe('Research Data Finder', function () {
         .all(by.cssContainingText('button', 'Download (in CSV format)'))
         .filter((el) => el.isDisplayed());
       expect(downloadButtons.count()).toBe(1);
-      downloadButtons.get(0).click();
+      safeClick(downloadButtons.get(0));
 
       browser
         .wait(function () {
@@ -110,14 +146,13 @@ describe('Research Data Finder', function () {
     $('#patientsCount').getText().then(patientCountText => {
       const patientsCount = parseInt(patientCountText);
       const filename = os.tmpdir() + `/cohort-${patientsCount}.json`;
-      const fs = require('fs');
 
       if (fs.existsSync(filename)) {
         // Make sure the browser doesn't have to rename the download.
         fs.unlinkSync(filename);
       }
 
-      $('#saveCohort').click();
+      safeClick($('#saveCohort'));
 
       browser
         .wait(function () {
@@ -126,11 +161,12 @@ describe('Research Data Finder', function () {
         }, 30000)
         .then(function () {
           // Checks JSON file structure.
-          const cohortData = require(filename);
-
-          expect(
-            cohortData && cohortData.data && cohortData.data.length
-          ).toBe(patientsCount);
+          const cohortData = JSON.parse(
+            fs.readFileSync(filename, { encoding: 'utf-8' })
+          );
+          expect(cohortData && cohortData.data && cohortData.data.length).toBe(
+            patientsCount
+          );
 
           // Cleanup will be in checkUploadCohort()
         });
@@ -149,13 +185,13 @@ describe('Research Data Finder', function () {
     patientsCountElement.getText().then((patientCountText) => {
       const patientsCount = parseInt(patientCountText);
       const filename = os.tmpdir() + `/cohort-${patientsCount}.json`;
-      const fs = require('fs');
+      const loadCohortRadioBtn = $('#loadCohortOption');
 
       // Clear all Patients data to check it after upload
       browser.refresh();
 
       // Upload file downloaded in checkDownloadCohort()
-      $('#loadCohortOption').click();
+      safeClick(loadCohortRadioBtn);
       cohortFileInput.sendKeys(filename);
 
       browser.wait(EC.visibilityOf(patientsCountElement));
@@ -166,7 +202,7 @@ describe('Research Data Finder', function () {
 
         // Cleanup
         fs.unlinkSync(filename);
-        $('#buildCohortOption').click();
+        safeClick($('#buildCohortOption'));
 
         //Check the number of uploaded Cohort criteria
         browser.wait(EC.invisibilityOf(patientsCountElement));
@@ -185,10 +221,12 @@ describe('Research Data Finder', function () {
       .isPresent()
       .then((tabIsNotCreated) => {
         if (tabIsNotCreated) {
-          $('#ResourceTabPane-1-add-btn').click();
-          $(`a[data-value="${resourceType}"]`).click();
+          const addTabBtn = $('#ResourceTabPane-1-add-btn');
+          const tabLink = $(`a[data-value="${resourceType}"]`);
+          safeClick(addTabBtn);
+          safeClick(tabLink);
         } else {
-          element(by.cssContainingText('.tab-link', resourceType)).click();
+          safeClick(element(by.cssContainingText('.tab-link', resourceType)));
         }
       });
   }
@@ -215,7 +253,7 @@ describe('Research Data Finder', function () {
       const toInput = $(`#${searchParamId}-birthdate-to`);
 
       browser.wait(EC.elementToBeClickable(addCriterionBtn));
-      addCriterionBtn.click();
+      safeClick(addCriterionBtn);
 
       resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Patient');
       resourceInput.sendKeys(Key.ENTER);
@@ -237,7 +275,7 @@ describe('Research Data Finder', function () {
       const paramNameInput = $(`#${searchParamId}`);
 
       browser.wait(EC.elementToBeClickable(addCriterionBtn));
-      addCriterionBtn.click();
+      safeClick(addCriterionBtn);
 
       resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Patient');
       resourceInput.sendKeys(Key.ENTER);
@@ -268,7 +306,7 @@ describe('Research Data Finder', function () {
       const testRealValueInput = $(`#${searchParamId}-test-real-value`);
 
       browser.wait(EC.elementToBeClickable(addCriterionBtn));
-      addCriterionBtn.click();
+      safeClick(addCriterionBtn);
 
       resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Observation');
       resourceInput.sendKeys(Key.ENTER);
@@ -301,8 +339,7 @@ describe('Research Data Finder', function () {
       const fromInput = $(`#${searchParamId}-date-from`);
       const toInput = $(`#${searchParamId}-date-to`);
 
-      browser.wait(EC.elementToBeClickable(addCriterionBtn));
-      addCriterionBtn.click();
+      safeClick(addCriterionBtn);
 
       resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Encounter');
       resourceInput.sendKeys(Key.ENTER);
@@ -337,11 +374,13 @@ describe('Research Data Finder', function () {
     });
 
     it('should load Encounters', () => {
-      $('#ResourceTabPage-1-loadBtn').click();
-      browser.wait(EC.visibilityOf($('#ResourceTable-1')));
+      const loadEncounersBtn = $('#ResourceTabPage-1-loadBtn');
+      const encounterTable = $('#ResourceTable-1');
+      safeClick(loadEncounersBtn);
+      browser.wait(EC.visibilityOf(encounterTable));
     })
 
-    it('should download Observations', checkDownloadDataByResourceType('Encounter'));
+    it('should download Encounters', checkDownloadDataByResourceType('Encounter'));
 
     it('should download Cohort', checkDownloadCohort);
 
