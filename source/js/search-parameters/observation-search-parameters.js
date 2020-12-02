@@ -41,7 +41,7 @@ export const ObservationSearchParameters = () => ({
 
     const testAC = new Def.Autocompleter.Search(testInputId, testSearchUrl, {
       maxSelect: '*',
-      matchListValue: true,
+      matchListValue: false,
       onComplete: function () {
         if (testAC.url.indexOf('&ef=datatype') !== -1) {
           // onComplete only processes response data if hasFocus is true,
@@ -91,8 +91,13 @@ export const ObservationSearchParameters = () => ({
 
     Def.Autocompleter.Event.observeListSelections(testInputId, (eventData) => {
       const selectedCodes = testAC.getSelectedCodes();
-      if (selectedCodes.length === 1 && testAC.url.indexOf('&q=') === -1) {
+      if (
+        selectedCodes.length === 1 &&
+        testAC.url.indexOf('&q=') === -1 &&
+        testAC.url !== ''
+      ) {
         initTestAC(searchItemId, eventData.item_code, () => {
+          testAC.matchListValue_ = true;
           testAC.domCache.set('elemVal', eventData.val_typed_in);
           testAC.urlSearch(
             eventData.val_typed_in,
@@ -101,8 +106,9 @@ export const ObservationSearchParameters = () => ({
         });
       } else if (
         selectedCodes.length === 0 &&
-        testAC.url.indexOf('&q=') !== -1
+        (testAC.url.indexOf('&q=') !== -1 || testAC.url === '')
       ) {
+        testAC.matchListValue_ = false;
         testAC.setURL(testSearchUrl);
         removeTestValueControls(searchItemId);
       }
@@ -127,8 +133,7 @@ export const ObservationSearchParameters = () => ({
    * @return {string}
    */
   getCondition: (searchItemId) => {
-    const { datatype } = testSpecByRowId[searchItemId] || {};
-    if (!datatype) {
+    if (!getCodeParam(searchItemId)) {
       // No tests selected
       return '';
     }
@@ -150,13 +155,19 @@ export const ObservationSearchParameters = () => ({
  */
 function initTestAC(searchItemId, itemCode, onCompleteOnce) {
   const testAC = getAutocompleterById(`${searchItemId}-test-name`);
-  testAC.setURL(
-    `${testSearchUrl}&ef=datatype,units,AnswerLists&q=LOINC_NUM:${itemCode}`
-  );
-  if (onCompleteOnce) {
-    testAC.onCompleteOnce = onCompleteOnce;
+  if (itemCode === null) {
+    testAC.setURL('');
+    createTestValueControls(searchItemId);
+    onCompleteOnce();
+  } else {
+    testAC.setURL(
+      `${testSearchUrl}&ef=datatype,units,AnswerLists&q=LOINC_NUM:${itemCode}`
+    );
+    if (onCompleteOnce) {
+      testAC.onCompleteOnce = onCompleteOnce;
+    }
+    testAC.urlSearch('', Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD);
   }
-  testAC.urlSearch('', Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD);
 }
 
 /**
@@ -200,7 +211,7 @@ ${testPeriodHtml}`;
         codes: answers.map((i) => i.AnswerStringID)
       }
     );
-  } else if (datatype === 'REAL') {
+  } else if (datatype === 'REAL' || datatype === undefined) {
     const prefixes = [
       ['=', 'eq'],
       ['not equal', 'ne'],
@@ -214,12 +225,9 @@ ${testPeriodHtml}`;
 
     document.getElementById(`${searchItemId}-test-value`).innerHTML = `
 <div class="test-value">
-  <input type="text" id="${searchItemId}-test-value-prefix" class="test-value__prefix" value="${
-      prefixes[0][0]
-    }">
+  <input type="text" id="${searchItemId}-test-value-prefix" class="test-value__prefix" value="${prefixes[0][0]}">
   <input type="number" id="${searchItemId}-test-real-value" placeholder="enter number value">
-  <input type="text" id="${searchItemId}-test-value-unit" class="test-value__unit" placeholder="unit code"
-    style="${valueUnits.length === 0 && 'display:none'}">
+  <input type="text" id="${searchItemId}-test-value-unit" class="test-value__unit" placeholder="unit code">
 </div>
 ${testPeriodHtml}`;
 
@@ -270,17 +278,20 @@ ${testPeriodHtml}`;
 /**
  * Returns URL parameters string with a codes of the test
  * @param {string} searchItemId - unique generic identifier for a search parameter row
- * @return {string}
+ * @return {string} 44255-8 LA6571-9
  */
 function getCodeParam(searchItemId) {
-  const selectedCodes = getAutocompleterById(
-    `${searchItemId}-test-name`
-  ).getSelectedCodes();
+  const autocompleter = getAutocompleterById(`${searchItemId}-test-name`);
+  let selectedCodes = autocompleter.getSelectedCodes();
 
-  return (
-    '&code=' +
-    selectedCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
-  );
+  if (selectedCodes.filter((i) => i !== undefined).length === 0) {
+    selectedCodes = autocompleter.getSelectedItems();
+  }
+
+  return selectedCodes.length
+    ? '&code=' +
+        selectedCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
+    : '';
 }
 
 /**
@@ -298,7 +309,7 @@ function getValueParam(searchItemId) {
       .join(',');
 
     return value ? `&value-concept=${value}` : '';
-  } else if (datatype === 'REAL') {
+  } else if (datatype === 'REAL' || datatype === undefined) {
     const prefix = getAutocompleterById(
       `${searchItemId}-test-value-prefix`
     ).getSelectedCodes()[0];
@@ -351,7 +362,7 @@ function getPeriodParams(searchItemId) {
  */
 function getRawCondition(searchItemId) {
   const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
-  if (!datatype) {
+  if (!getCodeParam(searchItemId)) {
     return undefined;
   }
   const testNames = getAutocompleterRawDataById(`${searchItemId}-test-name`);
@@ -361,7 +372,7 @@ function getRawCondition(searchItemId) {
     conditionValue = getAutocompleterRawDataById(
       `${searchItemId}-test-answers`
     );
-  } else if (datatype === 'REAL') {
+  } else if (datatype === 'REAL' || datatype === undefined) {
     const prefix = getAutocompleterById(
       `${searchItemId}-test-value-prefix`
     ).getSelectedCodes();
@@ -417,7 +428,7 @@ function setRawCondition(searchItemId, rawCondition) {
         `${searchItemId}-test-answers`,
         conditionValue
       );
-    } else if (datatype === 'REAL') {
+    } else if (datatype === 'REAL' || datatype === undefined) {
       getAutocompleterById(`${searchItemId}-test-value-prefix`).selectByCode(
         conditionValue.prefix
       );

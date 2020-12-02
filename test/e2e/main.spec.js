@@ -315,6 +315,23 @@ describe('Research Data Finder', function () {
       browser.wait(EC.presenceOf(testRealValueInput));
       testRealValueInput.sendKeys('63');
     });
+    it('should provide the ability to select an user-defined code and test value', function () {
+      const searchParamId = getNextSearchParamId();
+      const addCriterionBtn = $('#SearchParameters-1_add_button');
+      const resourceInput = $(`#${searchParamId}_resource`);
+      const testNameInput = $(`#${searchParamId}-test-name`);
+      const testRealValueInput = $(`#${searchParamId}-test-real-value`);
+
+      browser.wait(EC.elementToBeClickable(addCriterionBtn));
+      safeClick(addCriterionBtn);
+
+      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Observation');
+      resourceInput.sendKeys(Key.ENTER);
+      testNameInput.sendKeys('3137-7');
+      testNameInput.sendKeys(Key.ENTER);
+      browser.wait(EC.presenceOf(testRealValueInput));
+      testRealValueInput.sendKeys('63');
+    });
   });
 
   describe('after adding a criteria to Observation resource', function () {
