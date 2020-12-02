@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [2.1.0] - 2020-11-19
+### Added
+- Reuse selection criteria values from the Patient selection area
+- Notes to screen reader log when adding/removing elements
+### Fixed
+- Observation list does not match term after selection
+
 ## [2.0.0] - 2020-11-06
 ### Added
 - Save/Load Cohort criteria

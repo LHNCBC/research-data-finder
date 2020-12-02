@@ -55,6 +55,21 @@ export class ResourceTabPage extends BaseComponent {
       serviceBaseUrl,
       searchParamGroups
     });
+    this.updateCriteria();
+  }
+
+  /**
+   * Updates resource selection criteria from the Patient selection criteria
+   */
+  updateCriteria() {
+    if (this.searchParams) {
+      // Disable load resources until criteria not ready
+      this.loadResouresButton.disabled = true;
+      this.searchParams.ready.then(() => {
+        this.searchParams.setRawCriteria(this.callbacks.getRawCriteria());
+        this.loadResouresButton.disabled = false;
+      });
+    }
   }
 
   /**
@@ -281,12 +296,16 @@ export class ResourceTabPage extends BaseComponent {
   }
 
   /**
-   * Clear resource list
+   * Clear resource list & initialize resource selection criteria
    */
   clearResourceList(serviceBaseUrl) {
     addCssClass('#' + this.noResourcesAreaId, 'hide');
     addCssClass('#' + this.resourcesAreaId, 'hide');
     this.reportLinkSpan.innerHTML = '';
-    serviceBaseUrl && this.initializeSearchParameters(serviceBaseUrl);
+    if (serviceBaseUrl) {
+      this.initializeSearchParameters(serviceBaseUrl);
+    } else {
+      this.updateCriteria();
+    }
   }
 }

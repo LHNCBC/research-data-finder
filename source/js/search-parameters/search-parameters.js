@@ -150,21 +150,7 @@ export class SearchParameters extends BaseComponent {
    */
   attachControls() {
     this.attachEvent(document.getElementById(this.buttonId), 'click', () =>
-      this.addParam(false)
-    );
-    this.attachEvent(
-      document.getElementById(this.buttonId),
-      'keypress',
-      (event) => {
-        if (
-          event.key === ' ' ||
-          event.key === 'Spacebar' ||
-          event.key === 'Enter'
-        ) {
-          this.addParam(true);
-          event.preventDefault();
-        }
-      }
+      this.addParam()
     );
   }
 
@@ -289,8 +275,9 @@ export class SearchParameters extends BaseComponent {
   }
 
   /**
-   * Creates controls for search parameter
-   * @param {string} searchItemId a generic identifier for a search parameter
+   * Creates controls for a search parameter
+   * @param {string} searchItemId - generic identifier for the search parameter
+   * @return {Promise} promise which resolves when the controls are created and initialized
    */
   createControlsForSearchParam(searchItemId) {
     const element = document.getElementById(
@@ -299,7 +286,9 @@ export class SearchParameters extends BaseComponent {
     const searchParamCtrl = this.getSearchParamController(searchItemId);
 
     element.innerHTML = searchParamCtrl.getControlsHtml();
-    searchParamCtrl.attachControls && searchParamCtrl.attachControls();
+    return Promise.resolve(
+      searchParamCtrl.attachControls && searchParamCtrl.attachControls()
+    );
   }
 
   /**
@@ -391,10 +380,8 @@ export class SearchParameters extends BaseComponent {
 
   /**
    * Handles click or keypress event on the "Add a search criterion" button
-   * @param {boolean} accessibilityMode - focus moves to the first field of
-   *        the new criterion (true on keypress event)
    */
-  addParam(accessibilityMode) {
+  addParam() {
     const prevRowElement = document
       .getElementById(this._id)
       .querySelector('.section__body >:last-child');
@@ -413,9 +400,10 @@ export class SearchParameters extends BaseComponent {
         : this.getAvailableResourceTypes()[0];
     const paramName = this.availableParams[paramResourceType].shift();
 
-    const searchItemId = this._addParam(paramResourceType, paramName);
-
-    if (accessibilityMode) {
+    this._addParam(paramResourceType, paramName).then((searchItemId) => {
+      const addMessage =
+        'Added new row with criterion. The focus is on the first field of this row.';
+      Def.Autocompleter.screenReaderLog(addMessage);
       // Focus moves to the first field of the new criterion
       const focusableElements = getFocusableChildren(
         document.getElementById(this.getParamRowId(searchItemId))
@@ -423,18 +411,18 @@ export class SearchParameters extends BaseComponent {
       if (focusableElements.length > 0) {
         focusableElements[0].focus();
       }
-    }
 
-    if (!this.getAvailableResourceTypes().length) {
-      document.getElementById(this.buttonId).disabled = true;
-    }
+      if (!this.getAvailableResourceTypes().length) {
+        document.getElementById(this.buttonId).disabled = true;
+      }
+    });
   }
 
   /**
    * Adds a new row with search parameter to the table of search parameters
    * @param {string} paramResourceType - parameter resource type
    * @param {string} paramName - parameter name
-   * @return {string} - unique generic identifier for a search parameter row
+   * @return {Promise} promise which resolves with unique generic identifier for a search parameter row
    * @private
    */
   _addParam(paramResourceType, paramName) {
@@ -474,9 +462,10 @@ export class SearchParameters extends BaseComponent {
     });
     this.addRemoveBtnListener(searchItemId);
     this.onParamsCountChanged();
-    this.createControlsForSearchParam(searchItemId);
 
-    return searchItemId;
+    return this.createControlsForSearchParam(searchItemId).then(
+      () => searchItemId
+    );
   }
 
   /**
@@ -486,8 +475,11 @@ export class SearchParameters extends BaseComponent {
   addRemoveBtnListener(searchItemId) {
     const removeButtonId = this.getRemoveButtonId(searchItemId);
 
-    document.getElementById(removeButtonId).onclick = () =>
+    document.getElementById(removeButtonId).onclick = () => {
+      const removeMessage = 'The row with the criterion was removed.';
       this.removeParam(searchItemId);
+      Def.Autocompleter.screenReaderLog(removeMessage);
+    };
   }
 
   /**
@@ -632,9 +624,10 @@ export class SearchParameters extends BaseComponent {
   setRawCriteria(rawConditions) {
     this.removeAllParams();
     rawConditions.forEach(({ resourceType, paramName, rawCondition }) => {
-      const searchItemId = this._addParam(resourceType, paramName);
-      const searchParamCtrl = this.getSearchParamController(searchItemId);
-      searchParamCtrl.setRawCondition(rawCondition);
+      this._addParam(resourceType, paramName).then((searchItemId) => {
+        const searchParamCtrl = this.getSearchParamController(searchItemId);
+        searchParamCtrl.setRawCondition(rawCondition);
+      });
     });
   }
 

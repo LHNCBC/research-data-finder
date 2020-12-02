@@ -295,8 +295,11 @@ function onLoadFile(filename, blobData) {
   document.getElementById('cohortFilename').innerText = `[${filename}]`;
 
   // Pass Patients data to component to display resources
-  resourceTabPane.setPatientResources(data);
-  resourceTabPane.setPatientAdditionalColumns(additionalColumns);
+  resourceTabPane.setContext({
+    patientResources: data,
+    additionalColumns,
+    rawPatientCriteria: rawCriteria
+  });
   showListOfPatients(data.length);
 
   patientSearchParams.setRawCriteria(rawCriteria);
@@ -367,10 +370,13 @@ export function loadPatients() {
       const patientResources = data;
 
       // Pass Patients data to component to display resources
-      resourceTabPane.setPatientResources(data);
-      resourceTabPane.setPatientAdditionalColumns(
-        patientSearchParams ? patientSearchParams.getColumns() : []
-      );
+      resourceTabPane.setContext({
+        patientResources,
+        additionalColumns: patientSearchParams
+          ? patientSearchParams.getColumns()
+          : [],
+        rawPatientCriteria: rawCriteria
+      });
 
       reportPatientsSpan.innerHTML = `
 (<a href="#" onclick="app.showPatientsReport();return false;" onkeydown="keydownToClick(event);">loaded data in ${(
