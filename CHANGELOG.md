@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [2.2.0] - 2020-12-02
+### Added
+- Column selection for resource tables
+
 ## [2.1.0] - 2020-11-19
 ### Added
 - Reuse selection criteria values from the Patient selection area

@@ -1,5 +1,5 @@
 import { getCurrentDefinitions } from './search-parameters/common-descriptions';
-import { capitalize, getValueByPath, humanNameToString } from './common/utils';
+import { getValueByPath, humanNameToString } from './common/utils';
 import { BaseComponent } from './common/base-component';
 
 /**
@@ -10,7 +10,10 @@ export class ResourceTable extends BaseComponent {
    * Constructor of component
    * @param {string} resourceType
    * @param {Object<Function>} callbacks - callback functions:
-   *        addComponentToPage - used to add HTML of the component to the page
+   *   addComponentToPage - used to add HTML of the component to the page
+   *   getColumnsToDisplay - returns an array of column descriptions
+   *              to be displayed if data exists for those columns
+   *              (see JSDoc typedef of ColumnDescription in columns-dialog.js)
    */
   constructor({ resourceType, callbacks }) {
     super({ callbacks });
@@ -38,9 +41,9 @@ export class ResourceTable extends BaseComponent {
   /**
    * Prepares column data using search parameter data and resource list data.
    * Columns without data will be excluded.
-   * @param {Object} param - search parameter description retrieved from webpack-loader
-   * @param {string} param.name - search parameter name
-   * @param {string} param.path - property path (started with resource type) to retrieve
+   * @param {Object} column - visible column description retrieved from ResourceTabPage
+   * @param {string} column.name - search parameter name
+   * @param {string} column.path - property path (started with resource type) to retrieve
    *        the value associated with the search parameter from the resource data record,
    *        with a dot as a separator
    * @param {{ bundles: Object[], patients: Object[]}} data - result of requests
@@ -50,8 +53,8 @@ export class ResourceTable extends BaseComponent {
    *        columnNames - array of column names,
    *        columnValues - array of array of values for these columns.
    */
-  prepareColumnsData(param, data, valueSetMapByPath) {
-    const columnName = capitalize(param.name).replace(/-/g, ' ');
+  prepareColumnsData(column, data, valueSetMapByPath) {
+    const columnName = column.name;
     // Possible column names
     const columnNames = [
       columnName,
@@ -62,13 +65,14 @@ export class ResourceTable extends BaseComponent {
     const columnValues = [[], [], []];
 
     // Get path in resource object (by removing the resourceType from the beginning of the path):
-    const [, ...path] = param.path.split('.');
+    const path = column.path;
+    const fullPath = this.resourceType + '.' + path;
     const valueSet =
-      valueSetMapByPath[param.path] instanceof Object
-        ? valueSetMapByPath[param.path]
+      valueSetMapByPath[fullPath] instanceof Object
+        ? valueSetMapByPath[fullPath]
         : null;
 
-    if (path.length > 0 && path[0] !== 'identifier') {
+    if (path.length > 0) {
       let rowIndex = 0;
       data.bundles.forEach((bundle, patientIndex) => {
         const patient = data.patients[patientIndex];
@@ -135,7 +139,6 @@ export class ResourceTable extends BaseComponent {
    */
   fill({ data, serviceBaseUrl }) {
     const currentDefinitions = getCurrentDefinitions();
-    const searchParameters = currentDefinitions.resources[this.resourceType];
     const valueSetMapByPath = currentDefinitions.valueSetMapByPath;
     // Prepare data for show & download
     this.serviceBaseUrl = serviceBaseUrl;
@@ -143,9 +146,9 @@ export class ResourceTable extends BaseComponent {
     this.columnNames = [];
     this.columnValues = [];
 
-    searchParameters.forEach((param) => {
+    this.callbacks.getColumnsToDisplay().forEach((column) => {
       const { columnNames, columnValues } = this.prepareColumnsData(
-        param,
+        column,
         data,
         valueSetMapByPath
       );

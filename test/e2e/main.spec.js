@@ -61,9 +61,8 @@ describe('Research Data Finder', function () {
   function safeClick(elementFinder) {
     return browser
       .wait(EC.elementToBeClickable(elementFinder))
-      .then(() =>
-        scrollIntoView(elementFinder).then(() => elementFinder.click())
-      );
+      .then(() => scrollIntoView(elementFinder))
+      .then(() => elementFinder.click());
   }
 
    /**

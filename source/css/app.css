@@ -208,7 +208,7 @@ form > p,
 
 th,
 td {
-  padding: 0.5em;
+  padding: 0 0 0.5em 1em;
   text-align: left;
 }
 
@@ -358,6 +358,10 @@ input[disabled] + .upload-file-link {
   display: flex;
   flex-direction: row;
   margin: 20px 7px 9px;
+}
+
+.section__toolbar > * {
+  margin-left: 7px;
 }
 
 div.section__body {
@@ -576,6 +580,31 @@ table.section__body {
   display: none;
 }
 /* End of styles used for the display that search parameters are combined with logical AND. */
+
+/* Styles for the columns dialog */
+#columnsModalDialogBody {
+  display: flex;
+  flex-direction: column;
+  max-height: 305px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+
+#columnsModalDialogBody label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+#columnsModalDialogBody label {
+  margin-bottom: 1em;
+  margin-right: 1em;
+}
+
+#columnsModalDialogBody label input {
+  margin-right: 1em;
+}
+/* End of styles for the columns dialog */
 
 #load {
   margin-bottom: 0.5em;
