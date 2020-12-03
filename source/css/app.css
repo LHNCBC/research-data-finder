@@ -432,8 +432,10 @@ div.section__body > .description {
 .description::before {
   display: inline-block;
   content: url("../images/info.svg");
-  width: 1rem;
-  height: 1rem;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
   margin-right: 0.5em;
 }
 
@@ -799,7 +801,7 @@ a:hover {
 .report-popup_item-space {
   flex: 1 1;
 }
-.report-popup_close-btn {
+.modal-close-btn {
   line-height: 0.7;
   color: #aaa;
   font-size: 28px;
@@ -810,8 +812,8 @@ a:hover {
   cursor: pointer;
 }
 
-.report-popup_close-btn:hover,
-.report-popup_close-btn:focus {
+.modal-close-btn:hover,
+.modal-close-btn:focus {
   color: black;
 }
 /* End of styles for the report popup */

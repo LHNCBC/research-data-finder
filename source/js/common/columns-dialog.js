@@ -67,13 +67,12 @@ export class ColumnsDialog extends BaseComponent {
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="columnsModalDialogLabel">Select columns to load</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <div class="modal-close-btn" data-dismiss="modal" aria-label="Close"
+         tabindex="0"><span aria-hidden="true">&times;</span></div>
       </div>
       <div class="modal-header">
         <span class="description">
-          If no columns are selected, the default columns will be loaded.
+          If no columns are selected, the default columns will be loaded.<br>
           If the column contains no data, it will not be displayed.
         </span>
       </div>

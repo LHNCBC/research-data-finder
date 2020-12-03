@@ -21,20 +21,20 @@ export class Reporter {
 <div id="${id}" class="report-popup hide">
   <div class="report-popup_window">
     <div class="report-popup_content"></div>
-    <div class="report-popup_close-btn"
+    <div class="modal-close-btn"
          tabindex="0" onkeydown="keydownToClick(event);">&times;</div>
   </div>
 </div>`
       );
       document
-        .querySelector(`#${id} .report-popup_close-btn`)
+        .querySelector(`#${id} .modal-close-btn`)
         .addEventListener('click', () => this.hide());
       document
         .querySelector(`#${id}`)
         .addEventListener('mousedown', (event) => {
           if (
             event.target === event.currentTarget &&
-            document.querySelector(`#${id} .report-popup_close-btn.hide`) ===
+            document.querySelector(`#${id} .modal-close-btn.hide`) ===
               null
           ) {
             this.hide();
@@ -164,7 +164,7 @@ ${measurement.name}:
         `#${this._id} .report-popup_content`
       ).innerHTML = html;
       toggleCssClass(
-        `#${this._id} .report-popup_close-btn`,
+        `#${this._id} .modal-close-btn`,
         'hide',
         !!this._info.currentProcess
       );
