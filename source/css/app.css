@@ -210,8 +210,9 @@ form > p,
 }
 
 #patientsArea > a {
-  display: block;
+  display: inline-block;
   margin-top: 5px;
+  width: auto;
 }
 
 .resources-area {
