@@ -73,15 +73,23 @@
 
     <div id=content>
 
-      <p>This is a tool that allows you to view a FHIR server's Observation
-      resources that are coded with the selected LOINC tests.</p>
+      <span class="description">
+        This is a tool that allows you to view FHIR server's resources. <!--To do this you can define criteria to build a Cohort of Patient resources for which you want to pull data.
+        Criteria can be defined not only for the Patient resource but also for related resources.
+        The patient resource will then be added to the Cohort if the related resources meet the criteria.
+        Or you can load previously saved Cohort of Patients with criteria.-->
+      </span>
 
       <div class="section">
         <label class="section__title">Settings</label>
         <div class="section__body">
           <div>
             <label for="fhirServer">FHIR server:</label>
-            <input type="text" id=fhirServer value="https://lforms-fhir.nlm.nih.gov/baseR4">
+            <div class="hinted flex-fill">
+                <input type="text" id=fhirServer value="https://lforms-fhir.nlm.nih.gov/baseR4">
+              <label>See <a target="_blank" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for details</label>
+            </div>
+
           </div>
           <label class="performance-tuning hide">Performance Tuning Settings:</label>
           <div class="performance-tuning hide">
@@ -98,6 +106,11 @@
           </div>
         </div>
       </div>
+
+      <span class="description">
+          You can define criteria to build a Cohort of Patient resources for which you want to pull related resource data.
+          Or you can load previously saved Cohort of Patients with criteria.
+      </span>
 
       <div class="h-box">
         <label class="radio-option">
@@ -120,6 +133,10 @@
         <div class="section">
           <label class="section__title">Build Cohort criteria</label>
           <div class="section__body">
+            <span class="description">
+              Criteria can be defined not only for the Patient resource but also for related resources.
+              The patient resource will then be added to the Cohort if the related resources meet the criteria.
+            </span>
             <div id="patientSearchParamsAfterThisRow">
               <label for="maxPatientCount">Maximum number of patients:</label>
               <input type="number" id="maxPatientCount" value="100">
@@ -133,6 +150,9 @@
       <p id="noPatients" class="hide"></p>
 
       <div id="patientsArea" class="hide">
+        <span class="description">
+          Click on the link below to save Cohort of Patients with criteria for later.
+        </span>
         <a id="saveCohort" href="#" class="download-file-link"
            onclick="app.downloadCohort();return false;">Save the cohort for later</a>
         <div class="section">
@@ -141,7 +161,11 @@
         </div>
         <div class="section">
           <label class="section__title">Pull data for Cohort</label>
-          <div class="section__body"></div>
+          <div class="section__body">
+            <span class="description">
+              Here you can search for each type of Patient-related resources and download the resource list in CSV format.
+            </span>
+          </div>
         </div>
 
       </div>

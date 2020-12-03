@@ -71,8 +71,12 @@ export class ColumnsDialog extends BaseComponent {
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <div class="modal-header">If no columns are selected, the default columns will be loaded.<br>
-      If the column contains no data, it will not be displayed.</div>
+      <div class="modal-header">
+        <span class="description">
+          If no columns are selected, the default columns will be loaded.
+          If the column contains no data, it will not be displayed.
+        </span>
+      </div>
       <div class="modal-body" id="columnsModalDialogBody">
       </div>
       <div class="modal-footer">

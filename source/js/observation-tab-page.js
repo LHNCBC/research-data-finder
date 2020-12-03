@@ -100,7 +100,7 @@ export class ObservationTabPage extends ResourceTabPage {
 <span id=${this.reportLinkId}></span>
 
 <p id=${this.noResourcesAreaId} class="hide"></p>
-<div id=${this.resourcesAreaId} class="hide">
+<div id=${this.resourcesAreaId} class="resources-area hide">
   <div class="section">
     <label class="section__title">Selected Observations [<span id=${this.resourcesCountId}>0</span>]</label>
     <div class="section__toolbar">

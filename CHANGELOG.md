@@ -7,6 +7,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Added
 - Column selection for resource tables
 - Allowed non-LOINC codes to be entered in Patient selection criteria
+- Added description for each step
 
 ## [2.1.0] - 2020-11-19
 ### Added

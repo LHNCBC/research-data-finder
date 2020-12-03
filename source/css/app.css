@@ -182,8 +182,15 @@ th label {
   margin-bottom: 0;
 }
 
-input#fhirServer {
-  flex: 1 1;
+.hinted {
+  display: flex;
+  flex-direction: column;
+}
+
+.hinted > label {
+  font-size: 10px;
+  margin-top: 2px;
+  margin-left: 6px;
 }
 
 input.ansList {
@@ -191,7 +198,7 @@ input.ansList {
 }
 
 #content {
-  padding: 1em;
+  padding: 0 1em 1em 1em;
 }
 
 #content > p,
@@ -200,6 +207,15 @@ form > p,
 .tab-pane > p {
   margin-top: 10px;
   margin-bottom: 0;
+}
+
+#patientsArea > a {
+  display: block;
+  margin-top: 5px;
+}
+
+.resources-area {
+  margin-top: 17px;
 }
 
 #content > p:first-child {
@@ -357,7 +373,7 @@ input[disabled] + .upload-file-link {
 .section__toolbar {
   display: flex;
   flex-direction: row;
-  margin: 20px 7px 9px;
+  margin: 14px 7px 9px;
 }
 
 .section__toolbar > * {
@@ -397,6 +413,37 @@ form:not(.hide-errors) input:invalid:focus {
 
 div.section__body > div {
   padding: 7px 9px 0;
+}
+
+div.section > div.section__body > div:first-child {
+  padding-top: 0;
+}
+
+.description,
+div.section__body > .description {
+  display: flex;
+  align-items: center;
+  border-radius: 16px;
+  padding: 0.5em 1em 0.5em;
+  color: #337ab7;
+  background-color: #ebf5ff;
+}
+
+.description::before {
+  display: inline-block;
+  content: url("../images/info.svg");
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5em;
+}
+
+div.section__body > .description {
+  margin: 0 9px 0;
+}
+
+div.section__body > .description:first-child {
+  margin-top: 0;
+  padding-top: 0.5em;
 }
 
 div.section__body > label {
