@@ -212,6 +212,8 @@ ${testPeriodHtml}`;
       }
     );
   } else if (datatype === 'REAL' || datatype === undefined) {
+    // For questions of type REAL and if no type is defined (for non-LOINC codes),
+    // the same controls are used.
     const prefixes = [
       ['=', 'eq'],
       ['not equal', 'ne'],
@@ -310,6 +312,8 @@ function getValueParam(searchItemId) {
 
     return value ? `&value-concept=${value}` : '';
   } else if (datatype === 'REAL' || datatype === undefined) {
+    // For questions of type REAL and if no type is defined (for non-LOINC codes),
+    // the same controls are used.
     const prefix = getAutocompleterById(
       `${searchItemId}-test-value-prefix`
     ).getSelectedCodes()[0];
@@ -373,6 +377,8 @@ function getRawCondition(searchItemId) {
       `${searchItemId}-test-answers`
     );
   } else if (datatype === 'REAL' || datatype === undefined) {
+    // For questions of type REAL and if no type is defined (for non-LOINC codes),
+    // the same controls are used.
     const prefix = getAutocompleterById(
       `${searchItemId}-test-value-prefix`
     ).getSelectedCodes();
@@ -429,6 +435,8 @@ function setRawCondition(searchItemId, rawCondition) {
         conditionValue
       );
     } else if (datatype === 'REAL' || datatype === undefined) {
+      // For questions of type REAL and if no type is defined (for non-LOINC codes),
+      // the same controls are used.
       getAutocompleterById(`${searchItemId}-test-value-prefix`).selectByCode(
         conditionValue.prefix
       );
