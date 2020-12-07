@@ -74,10 +74,7 @@
     <div id=content>
 
       <span class="description">
-        This is a tool that allows you to view FHIR server's resources. <!--To do this you can define criteria to build a Cohort of Patient resources for which you want to pull data.
-        Criteria can be defined not only for the Patient resource but also for related resources.
-        The patient resource will then be added to the Cohort if the related resources meet the criteria.
-        Or you can load previously saved Cohort of Patients with criteria.-->
+        This is a tool that allows you to view a FHIR server's resources.
       </span>
 
       <div class="section">
@@ -108,8 +105,8 @@
       </div>
 
       <span class="description">
-          You can define criteria to build a Cohort of Patient resources for which you want to pull related resource data.
-          Or you can load previously saved Cohort of Patients with criteria.
+          You can define criteria to build a cohort of Patient resources for which you want to pull related resource data,
+          or load previously saved cohort of Patients and the criteria which selected them.
       </span>
 
       <div class="h-box">
@@ -135,7 +132,7 @@
           <div class="section__body">
             <span class="description">
               Criteria can be defined not only for the Patient resource but also for related resources.
-              The patient resource will then be added to the Cohort if the related resources meet the criteria.
+              Patients will be added to the cohort if the related resources meet the criteria.
             </span>
             <div id="patientSearchParamsAfterThisRow">
               <label for="maxPatientCount">Maximum number of patients:</label>
@@ -151,7 +148,7 @@
 
       <div id="patientsArea" class="hide">
         <span class="description">
-          Click on the link below to save Cohort of Patients with criteria for later.
+          Click on the link below to save the cohort of Patients and the criteria for later.
         </span>
         <a id="saveCohort" href="#" class="download-file-link"
            onclick="app.downloadCohort();return false;">Save the cohort for later</a>

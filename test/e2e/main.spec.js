@@ -94,6 +94,19 @@ describe('Research Data Finder', function () {
   }
 
   /**
+   * Returns one visible button which contain a certain string.
+   * @param {string|RegExp} searchText - text search
+   * @return {ElementFinder}
+   */
+  function getVisibleButtonByText(searchText) {
+    const visibleButtons = element
+      .all(by.cssContainingText('button', searchText))
+      .filter((el) => el.isDisplayed());
+    expect(visibleButtons.count()).toBe(1);
+    return visibleButtons.get(0);
+  }
+
+  /**
    * Returns "it" function to check that resource type data can be downloaded in CSV format
    * @param {string} resourceType
    */
@@ -106,11 +119,7 @@ describe('Research Data Finder', function () {
         fs.unlinkSync(filename);
       }
 
-      const downloadButtons = element
-        .all(by.cssContainingText('button', 'Download (in CSV format)'))
-        .filter((el) => el.isDisplayed());
-      expect(downloadButtons.count()).toBe(1);
-      safeClick(downloadButtons.get(0));
+      safeClick(getVisibleButtonByText('Download (in CSV format)'));
 
       browser
         .wait(function () {
@@ -136,6 +145,16 @@ describe('Research Data Finder', function () {
           fs.unlinkSync(filename);
         });
     };
+  }
+
+  /**
+   * "it" function to check that column selection dialog can be opened.
+   */
+  function checkColumnsDialog() {
+    safeClick(getVisibleButtonByText('Select columns to load'));
+    browser.wait(EC.visibilityOf($('#columnsModalDialogBody')));
+    expect($$('#columnsModalDialogBody input[type=checkbox]').count()).toBeGreaterThan(0);
+    safeClick(getVisibleButtonByText('Close'));
   }
 
   /**
@@ -315,6 +334,7 @@ describe('Research Data Finder', function () {
       browser.wait(EC.presenceOf(testRealValueInput));
       testRealValueInput.sendKeys('63');
     });
+
     it('should provide the ability to select an user-defined code and test value', function () {
       const searchParamId = getNextSearchParamId();
       const addCriterionBtn = $('#SearchParameters-1_add_button');
@@ -388,6 +408,8 @@ describe('Research Data Finder', function () {
         ).getAttribute('value')
       ).toBe('Date');
     });
+
+    it('should open column selection dialog', checkColumnsDialog);
 
     it('should load Encounters', () => {
       const loadEncounersBtn = $('#ResourceTabPage-1-loadBtn');

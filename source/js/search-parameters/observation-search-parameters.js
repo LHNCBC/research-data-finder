@@ -278,7 +278,7 @@ ${testPeriodHtml}`;
 /**
  * Returns URL parameters string with a codes of the test
  * @param {string} searchItemId - unique generic identifier for a search parameter row
- * @return {string} 44255-8 LA6571-9
+ * @return {string}
  */
 function getCodeParam(searchItemId) {
   const autocompleter = getAutocompleterById(`${searchItemId}-test-name`);
