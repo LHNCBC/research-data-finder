@@ -1,7 +1,7 @@
 import { HTTP_ABORT } from './common/fhir-batch-query';
 import { Reporter } from './reporter';
 import { saveAs } from 'file-saver';
-import { ResourceTable } from './resource-table';
+import { ResourceTable, getValueFnDescriptor } from './resource-table';
 import { addCssClass, capitalize, removeCssClass } from './common/utils';
 import { BaseComponent } from './common/base-component';
 import {
@@ -69,7 +69,7 @@ export class ResourceTabPage extends BaseComponent {
           window.localStorage.setItem(
             this.columnsStorageKey,
             this.getVisibleColumns()
-              .map((column) => column.name)
+              .map((column) => column.element)
               .join(',')
           );
         }
@@ -84,7 +84,8 @@ export class ResourceTabPage extends BaseComponent {
   getColumns() {
     if (!this._columns) {
       const currentDefinitions = getCurrentDefinitions();
-      const searchParameters = currentDefinitions.resources[this.resourceType];
+      const columnDescriptions =
+        currentDefinitions.resources[this.resourceType].columnDescriptions;
       const visibleColumnsRawString = window.localStorage.getItem(
         this.columnsStorageKey
       );
@@ -92,15 +93,24 @@ export class ResourceTabPage extends BaseComponent {
         ? visibleColumnsRawString.split(',')
         : [];
 
-      this._columns = searchParameters.map((param) => {
-        const name = capitalize(param.name).replace(/-/g, ' ');
-        const [, ...path] = param.path.split('.');
-        return {
-          name,
-          path,
-          visible: visibleColumnNames.indexOf(name) !== -1
-        };
-      });
+      this._columns = columnDescriptions
+        .map((column) => {
+          const name = capitalize(column.element)
+            .replace(/\[x]$/, '')
+            .split(/(?=[A-Z])/)
+            .join(' ');
+          return {
+            ...column,
+            name,
+            // Use only supported column types
+            types: column.types.filter(
+              (type) => getValueFnDescriptor[type] !== undefined
+            ),
+            visible: visibleColumnNames.indexOf(column.element) !== -1
+          };
+        })
+        // Exclude unsupported columns
+        .filter((column) => column.types.length);
     }
 
     return this._columns;
@@ -121,7 +131,11 @@ export class ResourceTabPage extends BaseComponent {
    * @return {Array<string>}
    */
   getElements() {
-    return this.getVisibleColumns().map((column) => column.path[0]);
+    return this.getVisibleColumns().map((column) =>
+      column.types.length === 1
+        ? column.element
+        : column.element.replace(/\[x]$/, '')
+    );
   }
 
   /**

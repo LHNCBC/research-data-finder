@@ -8,7 +8,9 @@ let initialized = false;
  * @typedef ColumnDescription
  * @type {Object}
  * @property {string} name - column name
- * @property {string} path - property path in resource object
+ * @property {string} element - property name template (could be ends with "[x]") of resource object
+ * @property {string} types - possible value types in the column
+ * @property {boolean} isArray - true if max cardinality greater than 1
  * @property {boolean} visible - boolean value that determines visibility of the column
  */
 

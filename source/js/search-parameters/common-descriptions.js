@@ -107,6 +107,16 @@ export function getCurrentDefinitions() {
   const definitions = definitionsIndex.configByVersionName[versionName];
 
   if (!definitions.initialized) {
+    // Add default common column "id"
+    Object.keys(definitions.resources).forEach((resourceType) => {
+      definitions.resources[resourceType].columnDescriptions.unshift({
+        name: 'id',
+        types: ['string'],
+        element: 'id',
+        isArray: false
+      });
+    });
+
     // prepare definitions on first request
     const valueSets = definitions.valueSets;
     const valueSetMaps = (definitions.valueSetMaps = Object.keys(
@@ -406,53 +416,56 @@ export function defaultParameters(
   const definitions = getCurrentDefinitions();
   const valueSets = definitions.valueSets;
 
-  return definitions.resources[resourceType].reduce((_parameters, item) => {
-    if (skip.indexOf(item.name) === -1) {
-      const displayName = capitalize(item.name).replace(/-/g, ' ');
-      const placeholder = item.description;
-      const name = item.name;
+  return definitions.resources[resourceType].searchParameters.reduce(
+    (_parameters, item) => {
+      if (skip.indexOf(item.name) === -1) {
+        const displayName = capitalize(item.name).replace(/-/g, ' ');
+        const placeholder = item.description;
+        const name = item.name;
 
-      switch (item.type) {
-        case 'date':
-        case 'dateTime':
-          _parameters[displayName] = dateParameterDescription({
-            description: item.description,
-            name,
-            column: searchNameToColumn[name] || name,
-            elementPath: getPropertyPath(resourceType, item.path),
-            resourceType
-          });
-          break;
-        case 'boolean':
-          _parameters[displayName] = booleanParameterDescription({
-            description: item.description,
-            name,
-            column: searchNameToColumn[name] || name
-          });
-          break;
-        // TODO: find a way to support other types
-        default:
-          if (item.valueSet && valueSets[item.valueSet] instanceof Array) {
-            // Static ValueSet specified in FHIR specification
-            _parameters[displayName] = valuesetParameterDescription({
-              placeholder,
+        switch (item.type) {
+          case 'date':
+          case 'dateTime':
+            _parameters[displayName] = dateParameterDescription({
+              description: item.description,
               name,
               column: searchNameToColumn[name] || name,
-              list: valueSets[item.valueSet]
+              elementPath: getPropertyPath(resourceType, item.path),
+              resourceType
             });
-          } else {
-            // all other criteria are considered to have a string type
-            _parameters[displayName] = stringParameterDescription({
-              placeholder,
+            break;
+          case 'boolean':
+            _parameters[displayName] = booleanParameterDescription({
+              description: item.description,
               name,
               column: searchNameToColumn[name] || name
             });
-          }
+            break;
+          // TODO: find a way to support other types
+          default:
+            if (item.valueSet && valueSets[item.valueSet] instanceof Array) {
+              // Static ValueSet specified in FHIR specification
+              _parameters[displayName] = valuesetParameterDescription({
+                placeholder,
+                name,
+                column: searchNameToColumn[name] || name,
+                list: valueSets[item.valueSet]
+              });
+            } else {
+              // all other criteria are considered to have a string type
+              _parameters[displayName] = stringParameterDescription({
+                placeholder,
+                name,
+                column: searchNameToColumn[name] || name
+              });
+            }
+        }
       }
-    }
 
-    return _parameters;
-  }, {});
+      return _parameters;
+    },
+    {}
+  );
 }
 
 /**

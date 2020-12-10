@@ -1,5 +1,5 @@
 import { getCurrentDefinitions } from './search-parameters/common-descriptions';
-import { getValueByPath, humanNameToString } from './common/utils';
+import { humanNameToString } from './common/utils';
 import { BaseComponent } from './common/base-component';
 
 /**
@@ -39,95 +39,45 @@ export class ResourceTable extends BaseComponent {
   }
 
   /**
-   * Prepares column data using search parameter data and resource list data.
-   * Columns without data will be excluded.
-   * @param {Object} column - visible column description retrieved from ResourceTabPage
-   * @param {string} column.name - search parameter name
-   * @param {string} column.path - property path (started with resource type) to retrieve
-   *        the value associated with the search parameter from the resource data record,
-   *        with a dot as a separator
+   * Prepares and returns column values using column description and resource list data.
+   * @param {ColumnDescription} column - visible column description retrieved from ResourceTabPage
+   *        (see JSDoc typedef of ColumnDescription in columns-dialog.js)
    * @param {{ bundles: Object[], patients: Object[]}} data - result of requests
    *        to server for resources and patients
    * @param {Object} valueSetMapByPath - map from property path to valueSet
-   * @return {{columnNames: (string)[], columnValues: [][]}} -
-   *        columnNames - array of column names,
-   *        columnValues - array of array of values for these columns.
+   * @return {Array<string>} - array of values for the column.
    */
-  prepareColumnsData(column, data, valueSetMapByPath) {
-    const columnName = column.name;
-    // Possible column names
-    const columnNames = [
-      columnName,
-      `${columnName} start`,
-      `${columnName} end`
-    ];
-    // Possible column values
-    const columnValues = [[], [], []];
+  getColumnValues(column, data, valueSetMapByPath) {
+    const columnValues = [];
+    const getValueDescriptor = column.types.map((type) => ({
+      propertyName: column.element.replace('[x]', type),
+      getValue: getValueFn(type, column.isArray)
+    }));
+    const fullPath = this.resourceType + '.' + column.element;
+    let rowIndex = 0;
 
-    // Get path in resource object (by removing the resourceType from the beginning of the path):
-    const path = column.path;
-    const fullPath = this.resourceType + '.' + path;
-    const valueSet =
-      valueSetMapByPath[fullPath] instanceof Object
-        ? valueSetMapByPath[fullPath]
-        : null;
-
-    if (path.length > 0) {
-      let rowIndex = 0;
-      data.bundles.forEach((bundle, patientIndex) => {
-        const patient = data.patients[patientIndex];
-        let partientName;
-        (bundle.entry || []).forEach((res) => {
-          let prop = getValueByPath(res.resource, path);
-          prop = prop && prop.length === 1 ? prop[0] : prop;
+    data.bundles.forEach((bundle, patientIndex) => {
+      const patient = data.patients[patientIndex];
+      const context = {
+        patient,
+        valueSetMapByPath
+      };
+      (bundle.entry || []).forEach((entry) => {
+        getValueDescriptor.find(({ propertyName, getValue }) => {
+          let prop = entry.resource[propertyName];
           if (prop) {
-            if (prop.text !== undefined) {
-              columnValues[0][rowIndex] = prop.text;
-            } else if (prop.coding !== undefined || prop.code !== undefined) {
-              const item = prop.coding ? prop.coding[0] : prop;
-              columnValues[0][rowIndex] =
-                item.display || (valueSet && valueSet[item.code]) || item.code;
-            } else if (prop.display !== undefined) {
-              columnValues[0][rowIndex] = prop.display;
-            } else if (prop.start !== undefined || prop.end !== undefined) {
-              columnValues[1][rowIndex] = prop.start || '';
-              columnValues[2][rowIndex] = prop.end || '';
-            } else if (prop.value !== undefined) {
-              columnValues[0][rowIndex] = prop.value;
-            } else if (prop.reference) {
-              if (patient && /^Patient\//.test(prop.reference)) {
-                columnValues[0][rowIndex] =
-                  partientName ||
-                  (partientName = humanNameToString(patient.name));
-              } else {
-                columnValues[0][rowIndex] = prop.reference;
-              }
-            } else if (valueSet) {
-              columnValues[0][rowIndex] = valueSet[prop];
-            } else {
-              columnValues[0][rowIndex] = prop;
+            const value = getValue(prop, context, fullPath);
+            if (value) {
+              columnValues[rowIndex] = value;
+              return true;
             }
           }
-          rowIndex++;
-          return prop !== undefined;
         });
+        rowIndex++;
       });
-    }
+    });
 
-    return columnNames.reduce(
-      (result, columnName, columnIndex) => {
-        const values = columnValues[columnIndex];
-        if (values.length > 0) {
-          result.columnNames.push(columnName);
-          result.columnValues.push(values);
-        }
-        return result;
-      },
-      {
-        columnNames: [],
-        columnValues: []
-      }
-    );
+    return columnValues;
   }
 
   /**
@@ -147,13 +97,16 @@ export class ResourceTable extends BaseComponent {
     this.columnValues = [];
 
     this.callbacks.getColumnsToDisplay().forEach((column) => {
-      const { columnNames, columnValues } = this.prepareColumnsData(
+      const columnValues = this.getColumnValues(
         column,
         data,
         valueSetMapByPath
       );
-      this.columnNames.push(...columnNames);
-      this.columnValues.push(...columnValues);
+      // Columns without data will be excluded.
+      if (columnValues.length > 0) {
+        this.columnNames.push(column.name);
+        this.columnValues.push(columnValues);
+      }
     });
 
     document.getElementById(this._id).innerHTML =
@@ -178,8 +131,8 @@ export class ResourceTable extends BaseComponent {
     return (
       '<tr><td>' +
       this.columnValues
-        .map((column) => {
-          return column[index] || '';
+        .map((columnValue) => {
+          return columnValue[index] || '';
         })
         .join('</td><td>') +
       '</td></tr>'
@@ -211,4 +164,233 @@ export class ResourceTable extends BaseComponent {
       endings: 'native'
     });
   }
+}
+
+// Mapping from type to value getter
+export const getValueFnDescriptor = {
+  Identifier: getIdentifierAsText,
+  code: getCodeAsText,
+  CodeableConcept: getCodeableConceptAsText,
+  string: identity,
+  Reference: getReferenceAsText,
+  Period: getPeriodAsText,
+  dateTime: identity,
+  canonical: identity,
+  uri: identity,
+  ContactPoint: getContactPointAsText,
+  Quantity: getQuantityAsText,
+  decimal: identity,
+  Money: getMoneyAsText,
+  boolean: identity,
+  instant: identity,
+  Coding: getCodingAsText,
+  Duration: getQuantityAsText,
+  date: identity,
+  HumanName: getHumanNameAsText,
+  Address: getAddressAsText
+  // Unsupported types:
+  // 'Annotation': getAnnotationAsText,
+  // 'BackboneElement': getBackboneElementAsText,
+  // 'Timing': getTiming,
+  // 'Attachment': getAttachment,
+  // 'DataRequirement': getDataRequirement,
+  // 'markdown': getmarkdown,
+  // 'Dosage': getDosage,
+};
+
+/**
+ * Returns a function to get the column value
+ * @param {string} type - type of value
+ * @param {boolean} isArray - true if max cardinality greater than 1
+ * @return {Function}
+ */
+function getValueFn(type, isArray) {
+  const singleValueFn = getValueFnDescriptor[type];
+  if (isArray) {
+    return (value, context, fullPath) => {
+      if (value && value.length) {
+        // Currently we will show first item in array
+        return singleValueFn(value[0], context, fullPath);
+      } else {
+        return null;
+      }
+    };
+  } else {
+    return singleValueFn;
+  }
+}
+/**
+ * Returns a textual representation of "Identifier" value
+ * see https://www.hl7.org/fhir/datatypes.html#Identifier
+ * @param {Object} v
+ * @return {string}
+ */
+function getIdentifierAsText(v) {
+  return v.value;
+}
+
+/**
+ * Returns a textual representation of "code" value
+ * see https://www.hl7.org/fhir/datatypes.html#code
+ * @param {Object} v - value of type "code"
+ * @param {Object} context - context data object
+ * @param {Object} context.valueSetMapByPath - map from property path to valueSet
+ * @param {Object} fullPath - property path to value started with resourceType
+ * @return {string}
+ */
+function getCodeAsText(v, context, fullPath) {
+  const valueSet =
+    context.valueSetMapByPath[fullPath] instanceof Object
+      ? context.valueSetMapByPath[fullPath]
+      : null;
+  return (valueSet && valueSet[v]) || v;
+}
+
+/**
+ * Returns value as is. No transformation needed.
+ * @param {*} v - value
+ * @return {*}
+ */
+function identity(v) {
+  return v;
+}
+
+/**
+ * Returns a textual representation of "CodeableConcept" value
+ * see https://www.hl7.org/fhir/datatypes.html#CodeableConcept
+ * @param {Object} v - value of type "CodeableConcept"
+ * @param {Object} context - context data object
+ * @param {Object} fullPath - property path to value started with resourceType
+ * @return {string|null}
+ */
+function getCodeableConceptAsText(v, context, fullPath) {
+  if (v.text) {
+    return v.text;
+  }
+  return v.coding && v.coding[0]
+    ? getCodingAsText(v.coding[0], context, fullPath + '.coding')
+    : null;
+}
+
+/**
+ * Returns a textual representation of "Coding" value
+ * see https://www.hl7.org/fhir/datatypes.html#Coding
+ * @param {Object} v - value of type "Coding"
+ * @param {Object} context - context data object
+ * @param {Object} context.valueSetMapByPath - map from property path to valueSet
+ * @param {Object} fullPath - property path to value started with resourceType
+ * @return {string}
+ */
+function getCodingAsText(v, context, fullPath) {
+  if (v.display) {
+    return v.display;
+  }
+
+  const valueSet =
+    context.valueSetMapByPath[fullPath] instanceof Object
+      ? context.valueSetMapByPath[fullPath]
+      : null;
+  return (valueSet && valueSet[v.code]) || v.code;
+}
+
+/**
+ * Returns a textual representation of "Reference" value
+ * see https://www.hl7.org/fhir/references.html#Reference
+ * @param {Object} v - value of type "Reference"
+ * @param {Object} context - context data object
+ * @param {Object} context.patient - current Patient resource
+ * @param {Object} [context.patientName] - shared context variable
+ * @return {string|null}
+ */
+function getReferenceAsText(v, context) {
+  if (v.display) {
+    return v.display;
+  } else if (v.reference) {
+    if (
+      `${context.patient.resourceType}/${context.patient.id}` === v.reference
+    ) {
+      if (context.patientName === undefined) {
+        context.partientName = humanNameToString(context.patient.name);
+      }
+      return context.patientName || v.reference;
+    } else {
+      return v.reference;
+    }
+  } else if (v.identifier) {
+    return getIdentifierAsText(v.identifier);
+  }
+
+  return null;
+}
+
+/**
+ * Returns a textual representation of "Period" value
+ * see https://www.hl7.org/fhir/datatypes.html#Period
+ * @param {Object} v - value of type "Period"
+ * @return {string|null}
+ */
+function getPeriodAsText(v) {
+  if (v.start || v.end) {
+    return `${v.start || ''}&ndash;${v.end || ''}`;
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Returns a textual representation of "ContactPoint" value
+ * see https://www.hl7.org/fhir/datatypes.html#ContactPoint
+ * @param {Object} v - value of type "ContactPoint"
+ * @return {string}
+ */
+function getContactPointAsText(v) {
+  return v.value;
+}
+
+/**
+ * Returns a textual representation of "Quantity" value
+ * see https://www.hl7.org/fhir/datatypes.html#Quantity
+ * @param {Object} v - value of type "Quantity"
+ * @return {string|null}
+ */
+function getQuantityAsText(v) {
+  return v.value != null ? v.value + (v.unit ? ' ' + v.unit : '') : null;
+}
+
+/**
+ * Returns a textual representation of "Money" value
+ * see https://www.hl7.org/fhir/datatypes.html#Money
+ * @param {Object} v - value of type "Money"
+ * @return {string|null}
+ */
+function getMoneyAsText(v) {
+  return v.value != null ? v.value + '' + v.currency : null;
+}
+
+/**
+ * Returns a textual representation of "HumanName" value
+ * https://www.hl7.org/fhir/datatypes.html#HumanName
+ * @param {Object} v - value of type "HumanName"
+ * @return {string|null}
+ */
+function getHumanNameAsText(v) {
+  return humanNameToString(v);
+}
+
+/**
+ * Returns a textual representation of "Address" value
+ * https://www.hl7.org/fhir/datatypes.html#Address
+ * @param {Object} v - value of type "Address"
+ * @param {Object} context - context data object
+ * @param {Object} context.valueSetMapByPath - map from property path to valueSet
+ * @param {Object} fullPath - property path to value started with resourceType
+ * @return {string|null}
+ */
+function getAddressAsText(v, context, fullPath) {
+  const addressString = [v.line, v.city, v.state, v.postalCode, v.country]
+    .filter((item) => item)
+    .join(', ');
+  return v.use
+    ? `${context.valueSetMapByPath[fullPath + '.use'][v.use]}: ${addressString}`
+    : addressString;
 }

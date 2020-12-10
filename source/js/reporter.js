@@ -34,8 +34,7 @@ export class Reporter {
         .addEventListener('mousedown', (event) => {
           if (
             event.target === event.currentTarget &&
-            document.querySelector(`#${id} .modal-close-btn.hide`) ===
-              null
+            document.querySelector(`#${id} .modal-close-btn.hide`) === null
           ) {
             this.hide();
           }

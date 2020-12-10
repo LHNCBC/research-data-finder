@@ -82,19 +82,29 @@ function getSearchParametersConfig(
    */
   function getTypeDescriptionByPath(resultConfig, path) {
     const typeDesc = { ...getTypeDescByArrayOfPropertyNames(path.split('.')) };
+    findValueSet(resultConfig, path, typeDesc.valueSet);
+    return typeDesc;
+  }
 
-    // Find value set for type description and store in webpack loader result object
-    if (typeDesc.valueSet) {
-      if (!resultConfig.valueSets[typeDesc.valueSet]) {
-        const valueSet = getValueSet({ url: typeDesc.valueSet });
-        resultConfig.valueSets[typeDesc.valueSet] =
+  /**
+   * Finds value set and stores it in the webpack loader result object
+   * @param {Object} resultConfig - webpack loader result object
+   * @param {string} path - simple FHIRPath expression starting with a resource
+   *                        type with a dot-separated listing of property names
+   *                        for which valueSet is used
+   * @param {string} valueSetUrl - valueSet url
+   */
+  function findValueSet(resultConfig, path, valueSetUrl) {
+    if (valueSetUrl) {
+      if (!resultConfig.valueSets[valueSetUrl]) {
+        const valueSet = getValueSet({ url: valueSetUrl });
+        resultConfig.valueSets[valueSetUrl] =
           valueSet instanceof Array
             ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
             : valueSet;
       }
-      resultConfig.valueSetByPath[path] = typeDesc.valueSet;
+      resultConfig.valueSetByPath[path] = valueSetUrl;
     }
-    return typeDesc;
   }
 
   /**
@@ -114,11 +124,14 @@ function getSearchParametersConfig(
       profiles.types.entry.find((i) => i.resource.id === resourceType);
     const resource = entry.resource;
     const expression = resourceType + '.' + propertyNames[0];
-    const desc =
+    let desc =
       resource.snapshot.element.filter((i) => i.id === expression)[0] ||
       resource.snapshot.element.filter(
         (i) => i.id.indexOf(expression) === 0
       )[0];
+    if (!desc.type && /#(.*)/.test(desc.contentReference)) {
+      desc = resource.snapshot.element.find((i) => i.id === RegExp.$1);
+    }
     const type = desc.type[0].code;
     if (desc.type.length !== 1) {
       console.warn('Warning: Data type cannot be accurately determined');
@@ -322,8 +335,13 @@ function getSearchParametersConfig(
     valueSetMapByPath: {}
   };
 
-  resourceTypes.forEach((resourceType) => {
-    resultConfig.resources[resourceType] = profiles.parameters.entry
+  /**
+   * Returns an array of search parameter descriptions for the specified resource type
+   * @param {string} resourceType - resource type
+   * @return {Array<Object>}
+   */
+  function getSearchParameterDescriptions(resourceType) {
+    return profiles.parameters.entry
       .filter((item) => item.resource.base.indexOf(resourceType) !== -1)
       .map((item) => {
         let expression = '',
@@ -347,7 +365,6 @@ function getSearchParametersConfig(
             } else if (/^\((.*) as ([^)]*)\)$/.test(expression)) {
               type = RegExp.$2;
               path = RegExp.$1 + capitalize(type);
-              // console.log(path,'<---', type)
             } else if (/^\((.*) is ([^)]*)\)$/.test(expression)) {
               type = RegExp.$2;
               path = RegExp.$1;
@@ -377,6 +394,68 @@ function getSearchParametersConfig(
         }
         return param;
       });
+  }
+
+  /**
+   * Returns an array of column descriptions for the specified resource type
+   * @param {string} resourceType - resource type
+   * @return {Array<Object>}
+   */
+  function getColumnDescriptions(resourceType) {
+    const resource = profiles.resources.entry.find(
+      (i) => i.resource.id === resourceType
+    ).resource;
+    const idRegExp = new RegExp(`^${resourceType}\\.([^.]*)$`);
+    let columns = [];
+    resource.snapshot.element.forEach((element) => {
+      if (idRegExp.test(element.id)) {
+        const elementName = RegExp.$1;
+        const isArray = element.max === '*';
+
+        // Exclude common elements from resource column list
+        // inherited from Resource: id, meta, implicitRules, and language
+        // inherited from DomainResource: text, contained, extension, and modifierExtension
+        if (
+          element.base.path.startsWith('Resource.') ||
+          element.base.path.startsWith('DomainResource.')
+        ) {
+          return;
+        }
+
+        let types = '';
+        if (!element.type) {
+          if (/#(.*)/.test(element.contentReference)) {
+            types = resource.snapshot.element
+              .find((i) => i.id === RegExp.$1)
+              .type.map((i) => i.code);
+          }
+        } else {
+          types = element.type.map((i) => i.code);
+        }
+
+        columns.push({
+          element: elementName,
+          types,
+          isArray
+        });
+
+        // Find value sets for displaying column values
+        findValueSet(
+          resultConfig,
+          resourceType + '.' + elementName,
+          element.binding && element.binding.valueSet
+        );
+        // TODO: Find value sets for child properties ?
+      }
+    });
+    return columns;
+  }
+
+  resourceTypes.forEach((resourceType) => {
+    resultConfig.resources[resourceType] = {
+      searchParameters: getSearchParameterDescriptions(resourceType),
+      columnDescriptions: getColumnDescriptions(resourceType)
+    };
   });
 
   // Some times we need additional value sets that no search parameters refers to.
