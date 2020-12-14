@@ -182,8 +182,15 @@ th label {
   margin-bottom: 0;
 }
 
-input#fhirServer {
-  flex: 1 1;
+.hinted {
+  display: flex;
+  flex-direction: column;
+}
+
+.hinted > label {
+  font-size: 10px;
+  margin-top: 2px;
+  margin-left: 6px;
 }
 
 input.ansList {
@@ -191,7 +198,7 @@ input.ansList {
 }
 
 #content {
-  padding: 1em;
+  padding: 0 1em 1em 1em;
 }
 
 #content > p,
@@ -202,13 +209,23 @@ form > p,
   margin-bottom: 0;
 }
 
+#patientsArea > a {
+  display: inline-block;
+  margin-top: 5px;
+  width: auto;
+}
+
+.resources-area {
+  margin-top: 17px;
+}
+
 #content > p:first-child {
   margin-top: 0;
 }
 
 th,
 td {
-  padding: 0.5em;
+  padding: 0 0 0.5em 1em;
   text-align: left;
 }
 
@@ -357,7 +374,11 @@ input[disabled] + .upload-file-link {
 .section__toolbar {
   display: flex;
   flex-direction: row;
-  margin: 20px 7px 9px;
+  margin: 14px 7px 9px;
+}
+
+.section__toolbar > * {
+  margin-left: 7px;
 }
 
 div.section__body {
@@ -393,6 +414,39 @@ form:not(.hide-errors) input:invalid:focus {
 
 div.section__body > div {
   padding: 7px 9px 0;
+}
+
+div.section > div.section__body > div:first-child {
+  padding-top: 0;
+}
+
+.description,
+div.section__body > .description {
+  display: flex;
+  align-items: center;
+  border-radius: 16px;
+  padding: 0.5em 1em 0.5em;
+  color: #337ab7;
+  background-color: #ebf5ff;
+}
+
+.description::before {
+  display: inline-block;
+  content: url("../images/info.svg");
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  margin-right: 0.5em;
+}
+
+div.section__body > .description {
+  margin: 0 9px 0;
+}
+
+div.section__body > .description:first-child {
+  margin-top: 0;
+  padding-top: 0.5em;
 }
 
 div.section__body > label {
@@ -577,6 +631,31 @@ table.section__body {
 }
 /* End of styles used for the display that search parameters are combined with logical AND. */
 
+/* Styles for the columns dialog */
+#columnsModalDialogBody {
+  display: flex;
+  flex-direction: column;
+  max-height: 305px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+
+#columnsModalDialogBody label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+#columnsModalDialogBody label {
+  margin-bottom: 1em;
+  margin-right: 1em;
+}
+
+#columnsModalDialogBody label input {
+  margin-right: 1em;
+}
+/* End of styles for the columns dialog */
+
 #load {
   margin-bottom: 0.5em;
 }
@@ -723,7 +802,7 @@ a:hover {
 .report-popup_item-space {
   flex: 1 1;
 }
-.report-popup_close-btn {
+.modal-close-btn {
   line-height: 0.7;
   color: #aaa;
   font-size: 28px;
@@ -734,8 +813,8 @@ a:hover {
   cursor: pointer;
 }
 
-.report-popup_close-btn:hover,
-.report-popup_close-btn:focus {
+.modal-close-btn:hover,
+.modal-close-btn:focus {
   color: black;
 }
 /* End of styles for the report popup */

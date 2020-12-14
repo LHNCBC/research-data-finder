@@ -1,13 +1,15 @@
 import { HTTP_ABORT } from './common/fhir-batch-query';
 import { Reporter } from './reporter';
 import { saveAs } from 'file-saver';
-import { ResourceTable } from './resource-table';
+import { ResourceTable, getValueFnDescriptor } from './resource-table';
 import { addCssClass, capitalize, removeCssClass } from './common/utils';
 import { BaseComponent } from './common/base-component';
 import {
   EncounterSearchParameters,
   SearchParameters
 } from './search-parameters';
+import { ColumnsDialog } from './common/columns-dialog';
+import { getCurrentDefinitions } from './search-parameters/common-descriptions';
 
 export class ResourceTabPage extends BaseComponent {
   /**
@@ -22,6 +24,7 @@ export class ResourceTabPage extends BaseComponent {
   constructor({ resourceType, callbacks }) {
     super({ callbacks });
     this.resourceType = resourceType;
+    this.columnsStorageKey = resourceType + '-columns';
 
     this.loadButtonId = this.generateId('loadBtn');
     this.reportLinkId = this.generateId('reportLink');
@@ -29,6 +32,7 @@ export class ResourceTabPage extends BaseComponent {
     this.resourcesAreaId = this.generateId('resourcesArea');
     this.resourcesCountId = this.generateId('resourcesCount');
     this.downloadButtonId = this.generateId('downloadBtn');
+    this.columnsButtonId = this.generateId('columnsBtn');
     this.searchParametersAnchorId = this.generateId('searchParamatersAchor');
   }
 
@@ -56,6 +60,82 @@ export class ResourceTabPage extends BaseComponent {
       searchParamGroups
     });
     this.updateCriteria();
+
+    this.columnsDialog = new ColumnsDialog({
+      columns: this.getColumns(),
+      callbacks: {
+        updateColumns: () => {
+          // Save visible column names in localStorage
+          window.localStorage.setItem(
+            this.columnsStorageKey,
+            this.getVisibleColumns()
+              .map((column) => column.element)
+              .join(',')
+          );
+        }
+      }
+    });
+  }
+
+  /**
+   * Returns an array of available column descriptions for this.resourceType.
+   * @return {Array<ColumnDescription>} - see JSDoc typedef in columns-dialog.js
+   */
+  getColumns() {
+    if (!this._columns) {
+      const currentDefinitions = getCurrentDefinitions();
+      const columnDescriptions =
+        currentDefinitions.resources[this.resourceType].columnDescriptions;
+      const visibleColumnsRawString = window.localStorage.getItem(
+        this.columnsStorageKey
+      );
+      const visibleColumnNames = visibleColumnsRawString
+        ? visibleColumnsRawString.split(',')
+        : [];
+
+      this._columns = columnDescriptions
+        .map((column) => {
+          const name = capitalize(column.element)
+            .replace(/\[x]$/, '')
+            .split(/(?=[A-Z])/)
+            .join(' ');
+          return {
+            ...column,
+            name,
+            // Use only supported column types
+            types: column.types.filter(
+              (type) => getValueFnDescriptor[type] !== undefined
+            ),
+            visible: visibleColumnNames.indexOf(column.element) !== -1
+          };
+        })
+        // Exclude unsupported columns
+        .filter((column) => column.types.length);
+    }
+
+    return this._columns;
+  }
+
+  /**
+   * Returns an array of visible column descriptions.
+   * See getColumns method documentation for details.
+   * @return {Array<ColumnDescription>} - see JSDoc typedef in columns-dialog.js
+   */
+  getVisibleColumns() {
+    return this.getColumns().filter((column) => column.visible);
+  }
+
+  /**
+   * Returns array of elements for request resources.
+   * See https://www.hl7.org/fhir/search.html#elements
+   * @return {Array<string>}
+   */
+  getElements() {
+    return this.getVisibleColumns().map((column) =>
+      column.types.length === 1
+        ? column.element
+        : column.element.replace(/\[x]$/, '')
+    );
   }
 
   /**
@@ -108,17 +188,40 @@ export class ResourceTabPage extends BaseComponent {
   attachControls() {
     this.attachCommonControls();
 
+    this.attachEvent(
+      document.getElementById(this.columnsButtonId),
+      'click',
+      () => {
+        this.columnsDialog.open();
+      }
+    );
+
     this.initializeSearchParameters(
       this.callbacks.getFhirClient().getServiceBaseUrl()
     );
     this.resourceTable = new ResourceTable({
       callbacks: {
+        /**
+         * Add HTML of the component to the page
+         * @param {string} html
+         */
         addComponentToPage: (html) => {
           document
             .querySelector(
               `#${this.resourcesAreaId} > .section > .section__body`
             )
             .insertAdjacentHTML('beforeend', html);
+        },
+        /**
+         * Returns an array of column descriptions to be displayed
+         * if data exists for those columns
+         * @return {Array<ColumnDescription>} - see JSDoc typedef in columns-dialog.js
+         */
+        getColumnsToDisplay: () => {
+          const visibleColumns = this.getVisibleColumns();
+          // If no columns are selected, the default columns will be loaded
+          // and we will try to display every possible column
+          return visibleColumns.length ? visibleColumns : this.getColumns();
         }
       },
       resourceType: this.resourceType
@@ -146,11 +249,14 @@ export class ResourceTabPage extends BaseComponent {
     <div id="${this.searchParametersAnchorId}" class="hide"></div>
   </div>
 </div>
+<button id=${this.columnsButtonId} type="button">
+  Select columns to load
+</button>
 <button id=${this.loadButtonId}>Load ${title}</button>
 <span id=${this.reportLinkId}></span>
 
 <p id=${this.noResourcesAreaId} class="hide"></p>
-<div id=${this.resourcesAreaId} class="hide">
+<div id=${this.resourcesAreaId} class="resources-area hide">
   <div class="section">
     <label class="section__title">Selected ${title} [<span id=${this.resourcesCountId}>0</span>]</label>
     <div class="section__toolbar">
@@ -229,6 +335,9 @@ export class ResourceTabPage extends BaseComponent {
     const criteria = this.searchParams
       .getCriteriaFor(this.resourceType)
       .join('');
+    const elements = this.getElements();
+    const elementsParam =
+      elements.length > 0 ? '&_elements=' + elements.join(',') : '';
 
     for (let index = 0; index < patientCount; ++index) {
       const patient = patientResources[index];
@@ -236,7 +345,7 @@ export class ResourceTabPage extends BaseComponent {
       fhirClient
         .getWithCache(
           `${this.resourceType}?subject=Patient/${patient.id}` +
-            // `&_elements=${this.resourceTable.getElements()}` +
+            elementsParam +
             `&_sort=subject${criteria}`
         )
         .then(
