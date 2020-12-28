@@ -61,6 +61,30 @@ export class FhirBatchQuery {
   }
 
   /**
+   * Returns timeout from the Retry-After response HTTP header.
+   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After for details
+   * @param {XMLHttpRequest} xhr
+   * @return {number} - timeout in milliseconds
+   */
+  static getRetryAfterTimeout(xhr) {
+    const retryAfterHeader = xhr.getResponseHeader('Retry-After');
+    let timeout;
+    if (retryAfterHeader) {
+      if (/^\d+$/.test(retryAfterHeader)) {
+        timeout = parseInt(retryAfterHeader) * 1000;
+      } else {
+        timeout = new Date(retryAfterHeader) - Date.now();
+        if (isNaN(timeout) || timeout < 0) {
+          // Use default timeout if date is not valid
+          timeout = 1000;
+        }
+      }
+    }
+
+    return timeout;
+  }
+
+  /**
    * Sends XMLHttpRequest
    * @private
    * @return {Promise}
@@ -94,6 +118,19 @@ export class FhirBatchQuery {
 
           if (this.isOK(status)) {
             resolve({ status, data: JSON.parse(oReq.responseText) });
+          } else if (status === 429) {
+            setTimeout(() => {
+              resolve(
+                this._request({
+                  method,
+                  url,
+                  body,
+                  contentType,
+                  logPrefix
+                })
+              );
+            }, FhirBatchQuery.getRetryAfterTimeout(oReq));
+            return;
           } else {
             let error;
             try {
