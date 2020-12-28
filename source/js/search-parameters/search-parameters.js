@@ -23,11 +23,19 @@ export class SearchParameters extends BaseComponent {
    * @param {Object[]} searchParamGroups - array of objects describing the search parameters
    *                   (see patient-search-parameters.js for an example object)
    *                   or strings with resource types.
+   * @param {boolean} autoSelect - automatically select an available resource type when adding a new search parameter
    */
-  constructor({ callbacks, serviceBaseUrl, searchParamGroups }) {
+  constructor({
+    callbacks,
+    serviceBaseUrl,
+    searchParamGroups,
+    autoSelect = false
+  }) {
     super({
       callbacks
     });
+
+    this.autoSelect = autoSelect;
     /**
      * This promise will be resolved when component is ready to use
      * @type {Promise<void>}
@@ -199,16 +207,18 @@ export class SearchParameters extends BaseComponent {
   }
 
   /**
-   * Gets an identifier for a search parameter
-   * from an identifier for an autocompleter is used for select resource type
-   * @param {string} id
-   * @return {string}
+   * Gets an identifier for a search parameter from an identifier for an autocompleter
+   * is used for select resource type. If the passed identifier does not match
+   * the autocompleter for selecting the resource type, then null is returned.
+   * @param {string} id - autocompleter identifier
+   * @return {string|null}
    */
   getSearchItemIdFromResourceSelectorId(id) {
     return (
-      /^(.*)_resource$/.test(id) &&
-      this.selectedResources[RegExp.$1] &&
-      RegExp.$1
+      (/^(.*)_resource$/.test(id) &&
+        this.selectedResources[RegExp.$1] !== undefined &&
+        RegExp.$1) ||
+      null
     );
   }
 
@@ -239,11 +249,14 @@ export class SearchParameters extends BaseComponent {
    * @return {boolean}
    */
   isController(searchParamGroup) {
-    return typeof searchParamGroup.getControlsHtml === 'function';
+    return (
+      searchParamGroup && typeof searchParamGroup.getControlsHtml === 'function'
+    );
   }
 
   /**
    * Returns search parameter "controller" by generic search parameter identifier
+   * or null if resource type or parameter name is not defined.
    * @param {string} searchItemId a generic identifier for a search parameter
    * @returns {{
    *   getControlsHtml: function,
@@ -252,14 +265,23 @@ export class SearchParameters extends BaseComponent {
    *   getCondition: function,
    *   getRawCondition: function,
    *   setRawCondition: function
-   * }}
+   * } | null}
    */
   getSearchParamController(searchItemId) {
     const resourceType = this.selectedResources[searchItemId];
+    if (!resourceType) {
+      return null;
+    }
+
+    const paramName = this.selectedParams[searchItemId];
     const searchParamGroup = this.searchParams[resourceType];
     const searchParamGroupCustomCtrl = this.isController(searchParamGroup)
       ? searchParamGroup
-      : searchParamGroup.description[this.selectedParams[searchItemId]];
+      : paramName && searchParamGroup.description[paramName];
+
+    if (!searchParamGroupCustomCtrl) {
+      return null;
+    }
 
     return Object.keys(searchParamGroupCustomCtrl).reduce((result, key) => {
       if (searchParamGroupCustomCtrl[key] instanceof Function) {
@@ -285,10 +307,14 @@ export class SearchParameters extends BaseComponent {
     );
     const searchParamCtrl = this.getSearchParamController(searchItemId);
 
-    element.innerHTML = searchParamCtrl.getControlsHtml();
-    return Promise.resolve(
-      searchParamCtrl.attachControls && searchParamCtrl.attachControls()
-    );
+    if (searchParamCtrl) {
+      element.innerHTML = searchParamCtrl.getControlsHtml();
+      return Promise.resolve(
+        searchParamCtrl.attachControls && searchParamCtrl.attachControls()
+      );
+    } else {
+      return Promise.resolve(false);
+    }
   }
 
   /**
@@ -301,7 +327,9 @@ export class SearchParameters extends BaseComponent {
     );
     const searchParamCtrl = this.getSearchParamController(searchItemId);
 
-    searchParamCtrl.detachControls && searchParamCtrl.detachControls();
+    searchParamCtrl &&
+      searchParamCtrl.detachControls &&
+      searchParamCtrl.detachControls();
     element.innerHTML = '';
   }
 
@@ -322,8 +350,7 @@ export class SearchParameters extends BaseComponent {
       unavailableParamName
     );
     this.availableParams[unavailableResourceType].splice(index, 1);
-    this.availableParams[availableResourceType].push(availableParamName);
-    this.availableParams[availableResourceType].sort();
+    this.freeAvailableItem(availableResourceType, availableParamName);
   }
 
   /**
@@ -332,8 +359,10 @@ export class SearchParameters extends BaseComponent {
    * @param {string} paramName
    */
   freeAvailableItem(resourceType, paramName) {
-    this.availableParams[resourceType].push(paramName);
-    this.availableParams[resourceType].sort();
+    if (resourceType && paramName) {
+      this.availableParams[resourceType].push(paramName);
+      this.availableParams[resourceType].sort();
+    }
   }
 
   /**
@@ -349,7 +378,9 @@ export class SearchParameters extends BaseComponent {
 
         if (!this.isController(this.searchParams[paramResourceType])) {
           getAutocompleterById(key).setList(
-            [paramName].concat(this.availableParams[paramResourceType]).sort()
+            (paramName ? [paramName] : [])
+              .concat(this.availableParams[paramResourceType] || [])
+              .sort()
           );
         }
         if (key !== skipSearchItemId) {
@@ -393,12 +424,21 @@ export class SearchParameters extends BaseComponent {
         )
       : null;
     const availableResourceTypes = this.getAvailableResourceTypes();
-    const paramResourceType =
+    let paramResourceType = '';
+    if (
       prevResourceTypeSelector &&
       availableResourceTypes.indexOf(prevResourceTypeSelector.value) !== -1
-        ? prevResourceTypeSelector.value
-        : this.getAvailableResourceTypes()[0];
-    const paramName = this.availableParams[paramResourceType].shift();
+    ) {
+      // If the user added a search parameter and selected a resource type, then
+      // automatically select the same resource type value when adding the next parameter
+      paramResourceType = prevResourceTypeSelector.value;
+    } else if (this.autoSelect) {
+      // Automatically select an available resource type when adding a new search parameter
+      paramResourceType = this.getAvailableResourceTypes()[0];
+    }
+    const paramName = paramResourceType
+      ? this.availableParams[paramResourceType].shift()
+      : '';
 
     this._addParam(paramResourceType, paramName).then((searchItemId) => {
       const addMessage =
@@ -446,9 +486,9 @@ export class SearchParameters extends BaseComponent {
         'beforeend',
         `\
 <div id="${rowId}" class="${this.getSearchParameterClass(searchItemId)}">
-  <input type="text" id="${paramResourceTypeSelectorId}" value="${paramResourceType}" aria-label="Resource type">
+  <input type="text" id="${paramResourceTypeSelectorId}" value="${paramResourceType}" placeholder="Resource type" aria-label="Resource type">
   <div class="search-parameter__name">
-    <input type="text" id="${searchItemId}" value="${paramName}" aria-label="Search parameter name">
+    <input type="text" id="${searchItemId}" value="${paramName}" placeholder="Search parameter name" aria-label="Search parameter name">
   </div>
   <div id="${searchItemContentId}" class="search-parameter__content"></div>
   <button id="${removeButtonId}" type="button" aria-label="Remove the search criterion before this button">remove</button>
@@ -492,6 +532,9 @@ export class SearchParameters extends BaseComponent {
       'search-parameter' +
       (this.selectedParams[searchItemId] === undefined
         ? ' search-parameter_custom'
+        : '') +
+      (this.selectedResources[searchItemId] === ''
+        ? ' search-parameter_no-resource'
         : '')
     );
   }
@@ -601,15 +644,16 @@ export class SearchParameters extends BaseComponent {
     Object.keys(this.selectedParams).forEach((searchItemId) => {
       const resourceType = this.selectedResources[searchItemId];
       const paramName = this.selectedParams[searchItemId];
-      const rawCondition = this.getSearchParamController(
-        searchItemId
-      ).getRawCondition();
-      if (rawCondition !== undefined) {
-        rawConditions.push({
-          resourceType,
-          paramName,
-          rawCondition
-        });
+      const searchParamCtrl = this.getSearchParamController(searchItemId);
+      if (searchParamCtrl) {
+        const rawCondition = searchParamCtrl.getRawCondition();
+        if (rawCondition !== undefined) {
+          rawConditions.push({
+            resourceType,
+            paramName,
+            rawCondition
+          });
+        }
       }
     });
 
@@ -644,7 +688,10 @@ export class SearchParameters extends BaseComponent {
 
     Object.keys(this.selectedParams).forEach((key) => {
       const paramResourceType = this.selectedResources[key];
-      if (this.isController(this.searchParams[paramResourceType])) {
+      if (
+        !paramResourceType ||
+        this.isController(this.searchParams[paramResourceType])
+      ) {
         return;
       }
       if (!resourceType || paramResourceType === resourceType) {

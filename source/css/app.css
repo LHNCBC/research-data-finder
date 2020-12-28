@@ -477,6 +477,7 @@ div.section__body > .search-parameter > :nth-child(3) {
   max-width: 30em;
 }
 
+div.section__body > .search-parameter_no-resource > :nth-child(2),
 div.section__body > .search-parameter_custom > :nth-child(2) {
   display: none;
 }
