@@ -4,6 +4,8 @@ let commonRequestCache = {}; // Map from url to result JSON
 
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
 export const HTTP_ABORT = 0;
+// The value of property status in the rejection object when waiting for a response is timed out
+export const HTTP_TIMEOUT = -1;
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
 export class FhirBatchQuery {
@@ -31,6 +33,10 @@ export class FhirBatchQuery {
     // Timeout between requests in milliseconds
     // (=0, if there is no timeout between requests):
     this._msBetweenRequests = 0;
+    // The time at which the last successful request was completed
+    this._lastSuccessTime = Date.now();
+    // The client side should give up if no successful response in 90 seconds
+    this._giveUpTimeout = 90*1000;
   }
 
   getServiceBaseUrl() {
@@ -151,8 +157,12 @@ export class FhirBatchQuery {
           const status = oReq.status;
 
           if (this.isOK(status)) {
+            this._lastSuccessTime = Date.now();
             resolve({ status, data: JSON.parse(oReq.responseText) });
-          } else if (status === 429) {
+          } else if (
+            status === 429 &&
+            Date.now() - this._lastSuccessTime < this._giveUpTimeout
+          ) {
             this._pending.unshift({
               method,
               url,
@@ -167,6 +177,11 @@ export class FhirBatchQuery {
               FhirBatchQuery.getRetryAfterTimeout(oReq)
             );
             return;
+          } else if (status === HTTP_ABORT) {
+            reject({
+              status: HTTP_TIMEOUT,
+              error: 'Server response timed out.'
+            });
           } else {
             let error;
             try {
@@ -181,6 +196,7 @@ export class FhirBatchQuery {
       };
 
       oReq.open(method, url);
+      oReq.timeout = this._giveUpTimeout;
       oReq.setRequestHeader('Content-Type', contentType);
       oReq.send(body);
       this._activeReq.push(oReq);
@@ -267,9 +283,12 @@ export class FhirBatchQuery {
           });
         },
         ({ status, error }) => {
-          requests.forEach(({ reject }) => {
-            reject({ status, error: error });
-          });
+          // If the batch request fails, show an error only for the first
+          // request in the batch:
+          requests[0].reject({ status, error });
+          for (let i = 1; i < requests.length; ++i) {
+            requests[i].reject({ status: HTTP_ABORT, error: 'Abort' });
+          }
         }
       );
     } else if (requests.length) {
