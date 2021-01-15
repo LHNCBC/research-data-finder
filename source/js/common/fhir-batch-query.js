@@ -36,7 +36,7 @@ export class FhirBatchQuery {
     // The time at which the last successful request was completed
     this._lastSuccessTime = Date.now();
     // The client side should give up if no successful response in 90 seconds
-    this._giveUpTimeout = 90*1000;
+    this._giveUpTimeout = 90 * 1000;
   }
 
   getServiceBaseUrl() {
@@ -104,7 +104,13 @@ export class FhirBatchQuery {
    *         0 - if there is no timeout between requests.
    */
   guessMsBetweenRequests(xhr) {
-    const xRateLimitHeader = xhr.getResponseHeader('x-ratelimit-limit');
+    // Workaround to avoid Chrome errors: Refused to get unsafe header "x-ratelimit-limit"
+    // See https://trackjs.com/blog/refused-unsafe-header/ for details
+    const xRateLimitHeader = /x-ratelimit-limit/i.test(
+      xhr.getAllResponseHeaders()
+    )
+      ? xhr.getResponseHeader('x-ratelimit-limit')
+      : '';
     const dbGapRateLimitInterval = 1000;
     if (/^\d+$/.test(xRateLimitHeader)) {
       const limit = parseInt(xRateLimitHeader);
