@@ -94,11 +94,11 @@ export class FhirBatchQuery {
   }
 
   /**
-   * Guesses timeout between rate-limited API requests. Currently works only for
-   * dbGap and API with 1 second rate-limiting interval (hardcoded) because we
-   * can't correctly guess the rate-limiting interval.
-   * An API which does not return "x-ratelimit-limit" header or has a different
-   * rate-limiting interval will be served by handling the HTTP-429 response.
+   * Guesses timeout between rate-limited API requests.
+   * This currently works only for APIs that either do not have a rate limit,
+   * or which have one and indicate it with the "x-ratelimit-limit" header.
+   * We assume this value in the "x-ratelimit-limit" header sets the number
+   * of requests per 1 second.
    * @param {XMLHttpRequest} xhr
    * @return {number} - timeout in milliseconds,
    *         0 - if there is no timeout between requests.
@@ -111,7 +111,8 @@ export class FhirBatchQuery {
     )
       ? xhr.getResponseHeader('x-ratelimit-limit')
       : '';
-    const dbGapRateLimitInterval = 1000;
+    // The rate-limiting interval must be slightly longer than a second to avoid HTTP-429 responses
+    const dbGapRateLimitInterval = 1060;
     if (/^\d+$/.test(xRateLimitHeader)) {
       const limit = parseInt(xRateLimitHeader);
       // TODO: Adjust the maximum number of requests that can be combined in a batch
@@ -145,8 +146,6 @@ export class FhirBatchQuery {
 
       oReq.onreadystatechange = () => {
         if (oReq.readyState === 4) {
-          // Update last request time on respond
-          this._lastRequestTime = Date.now();
           this.guessMsBetweenRequests(oReq);
           const currentRequestIndex = this._activeReq.indexOf(oReq);
           if (currentRequestIndex !== -1) {
@@ -232,6 +231,7 @@ export class FhirBatchQuery {
     }
     return requests;
   }
+
   /**
    * Sends pending requests as batch or single
    * @private
@@ -246,7 +246,8 @@ export class FhirBatchQuery {
       ? this._msBetweenRequests - Date.now() + this._lastRequestTime
       : 0;
     if (pause > 0) {
-      setTimeout(() => {
+      clearTimeout(this._postPendingTimeout);
+      this._postPendingTimeout = setTimeout(() => {
         this._postPending();
       }, pause);
       return;
