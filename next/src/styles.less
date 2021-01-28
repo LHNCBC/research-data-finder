@@ -1,0 +1,50 @@
+/* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.v-box {
+  display: flex;
+  flex-direction: column;
+  & > .spacer {
+    height: 16px;
+  }
+}
+
+.h-box {
+  display: flex;
+  flex-direction: row;
+  & > .spacer {
+    width: 16px;
+  }
+}
+
+.flex {
+  flex: 1 1;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  border-radius: 16px;
+  padding: 0.5em 1em 0.5em;
+  color: #337ab7;
+  background-color: #ebf5ff;
+}
+
+.info::before {
+  display: inline-block;
+  content: url("assets/info.svg");
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  margin-right: 0.5em;
+}
+
+/*
+ Temporary solution: Showing icon properly beside of text in mat-stroked-button
+ */
+button.mat-stroked-button .mat-icon {
+  font-size: 20px;
+}
