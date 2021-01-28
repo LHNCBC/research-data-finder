@@ -67,7 +67,7 @@ export abstract class BaseControlValueAccessor<T> implements ControlValueAccesso
  * which use ControlValueAccessor & Validator interfaces.
  * @param type - component type which extends `BaseControlValueAccessorAndValidator`
  */
-export function createControlValueAccessorAndValidatorProviders(type: Type<BaseControlValueAccessor<any>>): Provider[] {
+export function createControlValueAccessorAndValidatorProviders(type: Type<BaseControlValueAccessorAndValidator<any>>): Provider[] {
   return [
     ...createControlValueAccessorProviders(type),
     {
