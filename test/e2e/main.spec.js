@@ -155,6 +155,8 @@ describe('Research Data Finder', function () {
     browser.wait(EC.visibilityOf($('#columnsModalDialogBody')));
     expect($$('#columnsModalDialogBody input[type=checkbox]').count()).toBeGreaterThan(0);
     safeClick(getVisibleButtonByText('Close'));
+    // Waiting for the dialog to disappear
+    browser.wait(EC.invisibilityOf($('.modal-backdrop')));
   }
 
   /**

@@ -57,7 +57,8 @@ export class ResourceTabPage extends BaseComponent {
         }
       },
       serviceBaseUrl,
-      searchParamGroups
+      searchParamGroups,
+      autoSelect: true
     });
     this.updateCriteria();
 

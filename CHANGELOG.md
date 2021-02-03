@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [2.3.0] - 2020-12-18
+### Added
+- Handle 429 responses with rate limiting
+## Changed
+- Resource type field value is empty by default
+
 ## [2.2.0] - 2020-12-02
 ### Added
 - Column selection for resource tables

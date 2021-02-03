@@ -4,6 +4,8 @@ let commonRequestCache = {}; // Map from url to result JSON
 
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
 export const HTTP_ABORT = 0;
+// The value of property status in the rejection object when waiting for a response is timed out
+export const HTTP_TIMEOUT = -1;
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
 export class FhirBatchQuery {
@@ -28,6 +30,13 @@ export class FhirBatchQuery {
     this._maxPerBatch = maxRequestsPerBatch;
     this._maxActiveReq = maxActiveRequests;
     this._activeReq = [];
+    // Timeout between requests in milliseconds
+    // (=0, if there is no timeout between requests):
+    this._msBetweenRequests = 0;
+    // The time at which the last successful request was completed
+    this._lastSuccessTime = Date.now();
+    // The client side should give up if no successful response in 90 seconds
+    this._giveUpTimeout = 90 * 1000;
   }
 
   getServiceBaseUrl() {
@@ -61,6 +70,63 @@ export class FhirBatchQuery {
   }
 
   /**
+   * Returns timeout from the Retry-After response HTTP header.
+   * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After for details
+   * @param {XMLHttpRequest} xhr
+   * @return {number} - timeout in milliseconds
+   */
+  static getRetryAfterTimeout(xhr) {
+    const retryAfterHeader = xhr.getResponseHeader('Retry-After');
+    let timeout;
+    if (retryAfterHeader) {
+      if (/^\d+$/.test(retryAfterHeader)) {
+        timeout = parseInt(retryAfterHeader) * 1000;
+      } else {
+        timeout = new Date(retryAfterHeader) - Date.now();
+        if (isNaN(timeout) || timeout < 0) {
+          // Use default timeout if date is not valid
+          timeout = 1000;
+        }
+      }
+    }
+
+    return timeout;
+  }
+
+  /**
+   * Guesses timeout between rate-limited API requests.
+   * This currently works only for APIs that either do not have a rate limit,
+   * or which have one and indicate it with the "x-ratelimit-limit" header.
+   * We assume this value in the "x-ratelimit-limit" header sets the number
+   * of requests per 1 second.
+   * @param {XMLHttpRequest} xhr
+   * @return {number} - timeout in milliseconds,
+   *         0 - if there is no timeout between requests.
+   */
+  guessMsBetweenRequests(xhr) {
+    // Workaround to avoid Chrome errors: Refused to get unsafe header "x-ratelimit-limit"
+    // See https://trackjs.com/blog/refused-unsafe-header/ for details
+    const xRateLimitHeader = /x-ratelimit-limit/i.test(
+      xhr.getAllResponseHeaders()
+    )
+      ? xhr.getResponseHeader('x-ratelimit-limit')
+      : '';
+    // The rate-limiting interval must be slightly longer than a second to avoid HTTP-429 responses
+    const dbGapRateLimitInterval = 1060;
+    if (/^\d+$/.test(xRateLimitHeader)) {
+      const limit = parseInt(xRateLimitHeader);
+      // TODO: Adjust the maximum number of requests that can be combined in a batch
+      // after adding the ability to view this new value by the user in the "tunable"
+      // section? In this case, the percentage of data loading progress will practically
+      // not be displayed:
+      // this._maxPerBatch = Math.max(Math.ceil(this._pending.length / limit), 10)
+      this._msBetweenRequests = dbGapRateLimitInterval / limit;
+    } else {
+      this._msBetweenRequests = 0;
+    }
+  }
+
+  /**
    * Sends XMLHttpRequest
    * @private
    * @return {Promise}
@@ -72,12 +138,15 @@ export class FhirBatchQuery {
     contentType = 'application/fhir+json',
     logPrefix = ''
   }) {
+    // Update last request time on request
+    this._lastRequestTime = Date.now();
     return new Promise((resolve, reject) => {
       const oReq = new XMLHttpRequest(),
         startAjaxTime = new Date();
 
       oReq.onreadystatechange = () => {
         if (oReq.readyState === 4) {
+          this.guessMsBetweenRequests(oReq);
           const currentRequestIndex = this._activeReq.indexOf(oReq);
           if (currentRequestIndex !== -1) {
             this._activeReq.splice(currentRequestIndex, 1);
@@ -93,7 +162,31 @@ export class FhirBatchQuery {
           const status = oReq.status;
 
           if (this.isOK(status)) {
+            this._lastSuccessTime = Date.now();
             resolve({ status, data: JSON.parse(oReq.responseText) });
+          } else if (
+            status === 429 &&
+            Date.now() - this._lastSuccessTime < this._giveUpTimeout
+          ) {
+            this._pending.unshift({
+              method,
+              url,
+              body,
+              contentType,
+              logPrefix,
+              resolve,
+              reject
+            });
+            setTimeout(
+              () => this._postPending(),
+              FhirBatchQuery.getRetryAfterTimeout(oReq)
+            );
+            return;
+          } else if (status === HTTP_ABORT) {
+            reject({
+              status: HTTP_TIMEOUT,
+              error: 'Server response timed out.'
+            });
           } else {
             let error;
             try {
@@ -108,10 +201,35 @@ export class FhirBatchQuery {
       };
 
       oReq.open(method, url);
+      oReq.timeout = this._giveUpTimeout;
       oReq.setRequestHeader('Content-Type', contentType);
       oReq.send(body);
       this._activeReq.push(oReq);
     });
+  }
+
+  /**
+   * Returns an array of objects describing requests that can be performed with
+   * a single API request.
+   * @return {Array}
+   */
+  getNextRequestsToPerform() {
+    let requests = [];
+
+    if (this._pending.length) {
+      if (this._pending[0].method === 'POST') {
+        requests.push(this._pending.shift());
+      } else {
+        while (
+          this._pending.length &&
+          this._maxPerBatch > requests.length &&
+          this._pending[0].method !== 'POST'
+        ) {
+          requests.push(this._pending.shift());
+        }
+      }
+    }
+    return requests;
   }
 
   /**
@@ -123,18 +241,31 @@ export class FhirBatchQuery {
       return;
     }
 
-    if (this._pending.length > 1 && this._maxPerBatch > 1) {
-      const current = this._pending.splice(0, this._maxPerBatch),
-        body = JSON.stringify({
-          resourceType: 'Bundle',
-          type: 'batch',
-          entry: current.map(({ url }) => ({
-            request: {
-              method: 'GET',
-              url: this.getRelativeUrl(url)
-            }
-          }))
-        });
+    // Apply timeout between requests
+    const pause = this._lastRequestTime
+      ? this._msBetweenRequests - Date.now() + this._lastRequestTime
+      : 0;
+    if (pause > 0) {
+      clearTimeout(this._postPendingTimeout);
+      this._postPendingTimeout = setTimeout(() => {
+        this._postPending();
+      }, pause);
+      return;
+    }
+
+    const requests = this.getNextRequestsToPerform();
+
+    if (requests.length > 1) {
+      const body = JSON.stringify({
+        resourceType: 'Bundle',
+        type: 'batch',
+        entry: requests.map(({ url }) => ({
+          request: {
+            method: 'GET',
+            url: this.getRelativeUrl(url)
+          }
+        }))
+      });
 
       this._request({
         method: 'POST',
@@ -143,7 +274,7 @@ export class FhirBatchQuery {
         logPrefix: 'Batch'
       }).then(
         ({ data }) => {
-          current.forEach(({ resolve, reject }, index) => {
+          requests.forEach(({ resolve, reject }, index) => {
             // See Batch/Transaction response description here:
             // https://www.hl7.org/fhir/http.html#transaction-response
             const entry = data.entry[index];
@@ -159,14 +290,17 @@ export class FhirBatchQuery {
           });
         },
         ({ status, error }) => {
-          current.forEach(({ reject }) => {
-            reject({ status, error: error });
-          });
+          // If the batch request fails, show an error only for the first
+          // request in the batch:
+          requests[0].reject({ status, error });
+          for (let i = 1; i < requests.length; ++i) {
+            requests[i].reject({ status: HTTP_ABORT, error: 'Abort' });
+          }
         }
       );
-    } else if (this._pending.length > 0) {
-      const { url, resolve, reject } = this._pending.pop();
-      this._request({ url }).then(resolve, reject);
+    } else if (requests.length) {
+      const { resolve, reject, ...options } = requests[0];
+      this._request(options).then(resolve, reject);
     }
   }
 
