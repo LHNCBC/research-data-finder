@@ -118,7 +118,7 @@ export class FhirBatchQuery {
             });
           }
           this._features = {
-            sortObservationsByDate: observationsSortedByDate.data.total > 0,
+            sortObservationsByDate: observationsSortedByDate.data.entry.length > 0,
             sortObservationsByAgeAtEvent: !!observationsSortedByAgeAtEvent
           };
 

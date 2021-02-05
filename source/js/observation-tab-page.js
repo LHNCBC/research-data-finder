@@ -147,7 +147,7 @@ export class ObservationTabPage extends ResourceTabPage {
     const totalRequestCount = patientCount * suffixCount;
 
     let sortFields = 'patient,code';
-    if (features.sortingObservationsByDate) {
+    if (features.sortObservationsByDate) {
       sortFields += ',-date';
     } else if (features.sortObservationsByAgeAtEvent) {
       sortFields += ',-age-at-event';
