@@ -1,4 +1,4 @@
-import { FhirBatchQuery } from '../common/fhir-batch-query';
+import { getFhirClient } from '../common/fhir-service';
 import {
   encodeFhirSearchParameter,
   getAutocompleterById,
@@ -10,36 +10,6 @@ import {
   getAutocompleterRawDataById
 } from '../common/utils';
 import definitionsIndex from './definitions/index.json';
-
-// Common FhirBatchQuery to execute queries from search parameter controls
-let client;
-
-// FHIR version
-let fhirVersion;
-
-/**
- * Returns version name by version number or null if version number is not supported.
- * @example
- * // calling a function as shown below will return this string: 'R4'
- * getVersionNameByNumber('4.0.1')
- * @param versionNumber
- * @return {string|null}
- */
-export function getVersionNameByNumber(versionNumber) {
-  let versionName = null;
-
-  Object.keys(definitionsIndex.versionNameByVersionNumberRegex).some(
-    (versionRegEx) => {
-      if (new RegExp(versionRegEx).test(versionNumber)) {
-        versionName =
-          definitionsIndex.versionNameByVersionNumberRegex[versionRegEx];
-        return true;
-      }
-    }
-  );
-
-  return versionName;
-}
 
 const _searchParamGroupFactoriesByResourceTypes = {};
 
@@ -65,45 +35,11 @@ export function getSearchParamGroupFactoryByResourceType(resourceType) {
 }
 
 /**
- * Sets FHIR REST API Service Base URL for search parameters.
- * This URL uses to create internal FhirBatchQuery instance
- * which is used when a search parameter autocompleter requests
- * a list of possible values (see function referenceParameters below).
- * @param {string} serviceBaseUrl
- * @return {Promise}
- */
-export function setFhirServerForSearchParameters(serviceBaseUrl) {
-  if (client && client.getServiceBaseUrl() === serviceBaseUrl) {
-    return Promise.resolve();
-  }
-
-  client = null;
-  const newClient = new FhirBatchQuery({
-    serviceBaseUrl,
-    maxRequestsPerBatch: 1
-  });
-  return newClient.getWithCache('metadata').then(({ data }) => {
-    fhirVersion = data.fhirVersion;
-    if (!getVersionNameByNumber(fhirVersion)) {
-      return Promise.reject({
-        error: 'Unsupported FHIR version: ' + fhirVersion
-      });
-    } else {
-      client = newClient;
-    }
-  });
-}
-
-export function getCurrentClient() {
-  return client;
-}
-
-/**
  * Returns definitions for current FHIR version
  * @return {Object}
  */
 export function getCurrentDefinitions() {
-  const versionName = getVersionNameByNumber(fhirVersion);
+  const versionName = getFhirClient().getVersionName();
   const definitions = definitionsIndex.configByVersionName[versionName];
 
   if (!definitions.initialized) {
@@ -306,11 +242,12 @@ const LOAD_DATE_MODE = Object.freeze({
 function loadDate(inputId, resourceType, paramName, resourceElementPath, mode) {
   const elementPath = resourceElementPath.split('.');
 
-  return getCurrentClient()
+  return getFhirClient()
     .getWithCache(
       `${resourceType}?_count=1&_elements=${elementPath[0]}&_sort=${
         (mode === LOAD_DATE_MODE.MIN ? '' : '-') + paramName
-      }`
+      }`,
+      { combine: false }
     )
     .then(({ status, data }) => {
       if (status === 200 && data.entry && data.entry.length) {
@@ -582,9 +519,10 @@ export function referenceParameters(descriptions, searchNameToColumn) {
               search: function (fieldVal, count) {
                 return {
                   then: function (success, error) {
-                    getCurrentClient()
+                    getFhirClient()
                       .getWithCache(
-                        `${resourceType}?${filterName}=${fieldVal}&_count=${count}`
+                        `${resourceType}?${filterName}=${fieldVal}&_count=${count}`,
+                        { combine: false }
                       )
                       .then(({ status, data }) => {
                         if (status === 200) {

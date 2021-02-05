@@ -3,6 +3,15 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [2.4.0] - 2020-12-18
+### Added
+- Support for age-at-event search parameter extension
+- Display Observation value from component property
+- The ability to enter a floating point Observation value in search parameters
+- Advanced settings section
+### Changed
+- Sort Observations by date only if possible
+
 ## [2.3.0] - 2020-12-18
 ### Added
 - Handle 429 responses with rate limiting

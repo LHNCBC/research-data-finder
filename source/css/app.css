@@ -305,6 +305,34 @@ input[disabled] + .upload-file-link {
   background-color: #fafdff;
 }
 
+.section__body > .section {
+  border: 0;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.section__body > .section_collapsed {
+  margin-bottom: 7px;
+}
+
+.section__body > .section > .section__header {
+  margin-left: 7px;
+}
+
+.section__body > .section > .section__header > .section__title {
+  padding: 3px 5px 3px 0;
+  text-decoration: underline;
+}
+
+.section__body > .section > .section__body {
+  margin-bottom: 0;
+}
+
+.section__body > .section > .section__header > .section__title::before {
+  border-width: 0;
+  margin-right: 0;
+}
+
 .section_collapsed {
   padding: 0;
   margin-top: 14px;
@@ -345,6 +373,7 @@ input[disabled] + .upload-file-link {
   border-color: transparent;
   border-width: 1px;
   border-radius: 7px;
+  cursor: pointer;
 }
 
 .section__header:focus {
@@ -386,7 +415,7 @@ div.section__body {
   flex-direction: column;
 }
 
-div.section__body > div:not(.search-parameter-list):not(.tabs-component):not(.hide) {
+div.section__body > div:not(.search-parameter-list):not(.tabs-component):not(.hide):not(.section) {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -398,6 +427,7 @@ div.section__body > table {
 
 div.section__body > div:not(.search-parameter-list):not(.tabs-component) > label {
   font-weight: bold;
+  padding-top: 1px;
 }
 
 form:not(.hide-errors) input:invalid:not(:focus) {
@@ -408,11 +438,11 @@ form:not(.hide-errors) input:invalid:focus {
   background-color: #fee8e9;
 }
 
-.section__body > div:not(.search-parameter-list):not(.tabs-component) > *:not(:first-child) {
+.section__body > div:not(.search-parameter-list):not(.tabs-component) > *:not(:first-child):not(.section__body) {
   margin-left: 1em;
 }
 
-div.section__body > div {
+div.section__body > div:not(.section) {
   padding: 7px 9px 0;
 }
 
@@ -478,6 +508,7 @@ div.section__body > .search-parameter > :nth-child(3) {
 }
 
 div.section__body > .search-parameter_no-resource > :nth-child(2),
+div.section__body > .search-parameter_no-resource > :nth-child(3),
 div.section__body > .search-parameter_custom > :nth-child(2) {
   display: none;
 }
@@ -557,7 +588,7 @@ table.section__body {
   margin: 0 0 7px;
 }
 
-.search-parameter-list div.search-parameter {
+.search-parameter-list:not(.section) div.search-parameter {
   padding-left: 0;
 }
 
@@ -752,8 +783,6 @@ a:hover {
 }
 /* End of styles for the navigation links */
 
-/* Adding more specificity for applying CSS-rules */
-.performance-tuning.hide,
 .hide {
   display: none;
 }

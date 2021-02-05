@@ -3,11 +3,9 @@ import {
   getFocusableChildren,
   toggleCssClass
 } from '../common/utils';
-import {
-  getSearchParamGroupFactoryByResourceType,
-  setFhirServerForSearchParameters
-} from './common-descriptions';
+import { getSearchParamGroupFactoryByResourceType } from './common-descriptions';
 import { BaseComponent } from '../common/base-component';
+import { getFhirClient } from '../common/fhir-service';
 
 /**
  * Component class for managing criteria
@@ -16,21 +14,12 @@ export class SearchParameters extends BaseComponent {
   /**
    * Constructor of component
    * @param {Object<Function>} callbacks - callback functions that the component uses for input/output
-   * @param {string} serviceBaseUrl - FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root).
-   *        On instantiating the class, the metadata for the specified server will be loaded and used to
-   *        determine the FHIR version. The FHIR version is needed to get the specification of the criteria.
-   *        Use "ready" property (a Promise) to check that the component is ready for use.
    * @param {Object[]} searchParamGroups - array of objects describing the search parameters
    *                   (see patient-search-parameters.js for an example object)
    *                   or strings with resource types.
    * @param {boolean} autoSelect - automatically select an available resource type when adding a new search parameter
    */
-  constructor({
-    callbacks,
-    serviceBaseUrl,
-    searchParamGroups,
-    autoSelect = false
-  }) {
+  constructor({ callbacks, searchParamGroups, autoSelect = false }) {
     super({
       callbacks
     });
@@ -40,96 +29,101 @@ export class SearchParameters extends BaseComponent {
      * This promise will be resolved when component is ready to use
      * @type {Promise<void>}
      */
-    this.ready = setFhirServerForSearchParameters(serviceBaseUrl).then(
-      () => {
-        this.availableParams = {};
-        this.searchParams = searchParamGroups.reduce((_searchParams, item) => {
-          const searchParamGroupFactory =
-            typeof item === 'string'
-              ? getSearchParamGroupFactoryByResourceType(item)
-              : item;
-          const searchParamGroup = searchParamGroupFactory();
-          const resourceType = searchParamGroup.resourceType;
-          _searchParams[resourceType] = searchParamGroup;
-          this.availableParams[resourceType] = this.isController(
-            searchParamGroup
-          )
-            ? []
-            : Object.keys(searchParamGroup.description).sort();
-          return _searchParams;
-        }, {});
-        this.buttonId = this._id + '_add_button';
-        this.item_prefix = this._id + '_param_';
-        this.item_generator = 0;
-        this.selectedParams = {};
-        this.selectedResources = {};
-
-        this.initialize();
-
-        Def.Autocompleter.Event.observeListSelections(null, (eventData) => {
-          const inputId = eventData.field_id;
-          const searchItemIdFromResourceSelectorId = this.getSearchItemIdFromResourceSelectorId(
-            inputId
+    this.ready = getFhirClient()
+      .initialize()
+      .then(
+        () => {
+          this.availableParams = {};
+          this.searchParams = searchParamGroups.reduce(
+            (_searchParams, item) => {
+              const searchParamGroupFactory =
+                typeof item === 'string'
+                  ? getSearchParamGroupFactoryByResourceType(item)
+                  : item;
+              const searchParamGroup = searchParamGroupFactory();
+              const resourceType = searchParamGroup.resourceType;
+              _searchParams[resourceType] = searchParamGroup;
+              this.availableParams[resourceType] = this.isController(
+                searchParamGroup
+              )
+                ? []
+                : Object.keys(searchParamGroup.description).sort();
+              return _searchParams;
+            },
+            {}
           );
-          const isResourceChanged = !!searchItemIdFromResourceSelectorId;
-          const searchItemId =
-            searchItemIdFromResourceSelectorId ||
-            (this.selectedParams[inputId] && inputId);
+          this.buttonId = this._id + '_add_button';
+          this.item_prefix = this._id + '_param_';
+          this.item_generator = 0;
+          this.selectedParams = {};
+          this.selectedResources = {};
 
-          if (searchItemId) {
-            const autocomplete = getAutocompleterById(inputId);
-            const newValue = eventData.final_val;
-            const prevValue = isResourceChanged
-              ? this.selectedResources[searchItemId]
-              : this.selectedParams[searchItemId];
-            if (eventData.on_list) {
-              if (newValue !== prevValue) {
-                const newResourceType = isResourceChanged
-                  ? newValue
-                  : this.selectedResources[searchItemId];
-                const newSelectedParam = isResourceChanged
-                  ? this.availableParams[newValue][0]
-                  : newValue;
-                const prevResourceType = this.selectedResources[searchItemId];
-                const prevSelectedParam = this.selectedParams[searchItemId];
+          this.initialize();
 
-                this.removeControlsForSearchParam(searchItemId);
-                this.selectedParams[searchItemId] = newSelectedParam;
-                this.selectedResources[searchItemId] = newResourceType;
-                document.getElementById(
-                  this.getParamRowId(searchItemId)
-                ).className = this.getSearchParameterClass(searchItemId);
-                this.createControlsForSearchParam(searchItemId);
-                this.swapAvailableItem(
-                  newResourceType,
-                  newSelectedParam,
-                  prevResourceType,
-                  prevSelectedParam
-                );
-                if (isResourceChanged) {
-                  getAutocompleterById(searchItemId).setFieldToListValue(
-                    newSelectedParam
+          Def.Autocompleter.Event.observeListSelections(null, (eventData) => {
+            const inputId = eventData.field_id;
+            const searchItemIdFromResourceSelectorId = this.getSearchItemIdFromResourceSelectorId(
+              inputId
+            );
+            const isResourceChanged = !!searchItemIdFromResourceSelectorId;
+            const searchItemId =
+              searchItemIdFromResourceSelectorId ||
+              (this.selectedParams[inputId] && inputId);
+
+            if (searchItemId) {
+              const autocomplete = getAutocompleterById(inputId);
+              const newValue = eventData.final_val;
+              const prevValue = isResourceChanged
+                ? this.selectedResources[searchItemId]
+                : this.selectedParams[searchItemId];
+              if (eventData.on_list) {
+                if (newValue !== prevValue) {
+                  const newResourceType = isResourceChanged
+                    ? newValue
+                    : this.selectedResources[searchItemId];
+                  const newSelectedParam = isResourceChanged
+                    ? this.availableParams[newValue][0]
+                    : newValue;
+                  const prevResourceType = this.selectedResources[searchItemId];
+                  const prevSelectedParam = this.selectedParams[searchItemId];
+
+                  this.removeControlsForSearchParam(searchItemId);
+                  this.selectedParams[searchItemId] = newSelectedParam;
+                  this.selectedResources[searchItemId] = newResourceType;
+                  document.getElementById(
+                    this.getParamRowId(searchItemId)
+                  ).className = this.getSearchParameterClass(searchItemId);
+                  this.createControlsForSearchParam(searchItemId);
+                  this.swapAvailableItem(
+                    newResourceType,
+                    newSelectedParam,
+                    prevResourceType,
+                    prevSelectedParam
+                  );
+                  if (isResourceChanged) {
+                    getAutocompleterById(searchItemId).setFieldToListValue(
+                      newSelectedParam
+                    );
+                  }
+                  this.updateAllSearchParamSelectors(
+                    searchItemId,
+                    isResourceChanged
                   );
                 }
-                this.updateAllSearchParamSelectors(
-                  searchItemId,
-                  isResourceChanged
-                );
-              }
-            } else {
-              // Restore the previous value if the user hasn't finally selected the correct value
-              if (!newValue) {
-                autocomplete.setFieldToListValue(prevValue);
+              } else {
+                // Restore the previous value if the user hasn't finally selected the correct value
+                if (!newValue) {
+                  autocomplete.setFieldToListValue(prevValue);
+                }
               }
             }
-          }
-        });
-      },
-      (e) => {
-        alert(e.error);
-        return Promise.reject(e);
-      }
-    );
+          });
+        },
+        (e) => {
+          alert(e.error);
+          return Promise.reject(e);
+        }
+      );
   }
 
   /**

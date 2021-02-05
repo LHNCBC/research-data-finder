@@ -13,7 +13,6 @@ export class ResourceTabPane extends BaseComponent {
   /**
    * Constructor
    * @param {Object} callbacks - callback functions
-   * @param {Function} callbacks.getFhirClient - to retrieve FHIR client
    * @param {Function} callbacks.addComponentToPage - used to add HTML of the
    *                   component to the page
    * @param {Function} callbacks.onStartLoading - to be called when resources

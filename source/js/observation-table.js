@@ -6,6 +6,7 @@ import {
 } from './common/utils';
 import { getCurrentDefinitions } from './search-parameters/common-descriptions';
 import { ResourceTable } from './resource-table';
+import { getFhirClient } from './common/fhir-service';
 
 const reValueKey = /^value/;
 
@@ -87,20 +88,51 @@ export class ObservationTable extends ResourceTable {
       // },
       {
         title: 'Date',
+        condition: () => getFhirClient().getFeatures().sortObservationsByDate,
         text: (obs) => {
-          const date = obs.effectiveDateTime,
-            tIndex = date.indexOf('T');
-
-          return tIndex >= 0 ? date.slice(0, tIndex) : date;
+          const date = obs.effectiveDateTime;
+          if (date) {
+            const tIndex = date.indexOf('T');
+            return tIndex >= 0 ? date.slice(0, tIndex) : date;
+          } else {
+            return '';
+          }
         }
       },
       {
         title: 'Time',
+        condition: () => getFhirClient().getFeatures().sortObservationsByDate,
         text: (obs) => {
-          const date = obs.effectiveDateTime,
-            tIndex = date.indexOf('T');
+          const date = obs.effectiveDateTime;
 
-          return tIndex >= 0 ? date.slice(tIndex + 1) : '';
+          if (date) {
+            const tIndex = date.indexOf('T');
+            return tIndex >= 0 ? date.slice(tIndex + 1) : '';
+          } else {
+            return '';
+          }
+        }
+      },
+      {
+        title: 'Age at event',
+        condition: () =>
+          getFhirClient().getFeatures().sortObservationsByAgeAtEvent,
+        text: (obs) => {
+          let result = '';
+
+          obs.extension &&
+            obs.extension.some((item) => {
+              const isAgeAtEvent =
+                item.url ===
+                'http://fhir.ncpi-project-forge.io/StructureDefinition/age-at-event';
+              if (isAgeAtEvent && item.valueAge) {
+                result = item.valueAge.value + ' ' + item.valueAge.unit;
+                return true;
+              }
+              return isAgeAtEvent;
+            });
+
+          return result;
         }
       },
       {
@@ -212,15 +244,31 @@ export class ObservationTable extends ResourceTable {
    * @return {{value: string, unit: string}}
    */
   getObservationValue(obs) {
-    let result = {
-      value: '',
-      unit: ''
-    };
+    let result = this._getValue(obs);
+    if (!result && obs.component && obs.code) {
+      const obsCode = this.getObservationCode(obs);
+      obs.component.some((component) => {
+        if (obsCode === this.getObservationCode(component)) {
+          result = this._getValue(component);
+        }
+      });
+    }
+    return result;
+  }
 
-    Object.keys(obs).some((key) => {
+  /**
+   * Extracts "value[x]" from the source object
+   * @param {Object} obj - an object which may contain property "value[x]"
+   * @return {{value: string, unit: string}|null}
+   * @private
+   */
+  _getValue(obj) {
+    let result = null;
+
+    Object.keys(obj).some((key) => {
       const valueFound = reValueKey.test(key);
       if (valueFound) {
-        const value = obs[key];
+        const value = obj[key];
         if (key === 'valueQuantity') {
           result = {
             value: value.value,
@@ -231,9 +279,15 @@ export class ObservationTable extends ResourceTable {
           value.coding &&
           value.coding.length
         ) {
-          result.value = value.text || value.coding[0].display;
+          result = {
+            value: value.text || value.coding[0].display,
+            unit: ''
+          };
         } else {
-          result.value = value;
+          result = {
+            value: value,
+            unit: ''
+          };
         }
       }
       return valueFound;
@@ -252,19 +306,19 @@ export class ObservationTable extends ResourceTable {
     this._additionalColumns = columns || [];
   }
 
-  _getViewCellsTemplate() {
-    return this.viewCellsTemplate.filter(
-      (item) =>
-        !item.columnName ||
-        this._additionalColumns.indexOf(item.columnName) !== -1
+  _filterColumns(item) {
+    return (
+      (!item.columnName ||
+        this._additionalColumns.indexOf(item.columnName) !== -1) &&
+      (!item.condition || item.condition())
     );
   }
+
+  _getViewCellsTemplate() {
+    return this.viewCellsTemplate.filter(this._filterColumns.bind(this));
+  }
   _getExportCellsTemplate() {
-    return this.exportCellsTemplate.filter(
-      (item) =>
-        !item.columnName ||
-        this._additionalColumns.indexOf(item.columnName) !== -1
-    );
+    return this.exportCellsTemplate.filter(this._filterColumns.bind(this));
   }
 
   /**
