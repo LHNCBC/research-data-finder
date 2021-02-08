@@ -1,4 +1,9 @@
 <div *ngFor="let item of parameterList.controls" class="search-parameter-row">
-  <mat-icon (click)="removeParameter(item)">cancel</mat-icon>
+  <div class="mat-form-field-wrapper">
+    <button mat-icon-button aria-label="Remove search parameter"
+            (click)="removeParameter(item)">
+      <mat-icon>clear</mat-icon>
+    </button>
+  </div>
   <app-search-parameter [formControl]="item" [fixedResourceType]="resourceType !== ''"></app-search-parameter>
 </div>
