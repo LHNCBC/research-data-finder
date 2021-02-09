@@ -6,9 +6,13 @@
       <app-search-parameters resourceType="Observation" #resourceParams></app-search-parameters>
       <div class="spacer" *ngIf="!resourceParams.parameterList.length"></div>
       <div class="h-box">
-        <button (click)="resourceParams.addParameter()" mat-stroked-button color="secondary"><mat-icon aria-hidden="false">add</mat-icon>Add a search criterion</button>
+        <button (click)="resourceParams.addParameter()" mat-stroked-button color="secondary">
+          <mat-icon aria-hidden="false" svgIcon="add"></mat-icon>Add a search criterion
+        </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary"><mat-icon aria-hidden="false">refresh</mat-icon>Load Observations</button>
+        <button mat-stroked-button color="secondary">
+          <mat-icon aria-hidden="false" svgIcon="refresh"></mat-icon>Load Observations
+        </button>
       </div>
       <div class="resource-table-container mat-elevation-z4">
         <mat-table [dataSource]="resourceDataSource">
@@ -39,7 +43,7 @@
               matTooltipPosition="right"
               matTooltipClass="not-ready-tooltip"
               (click)="tooltip.show()">
-        <mat-icon>add</mat-icon>
+        <mat-icon svgIcon="add"></mat-icon>
       </button>
     </ng-template>
   </mat-tab>

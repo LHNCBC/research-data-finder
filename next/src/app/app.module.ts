@@ -1,9 +1,8 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
 import { AppComponent } from './app.component';
 import { StepperModule } from './modules/stepper/stepper.module';
-import { HttpClientModule } from '@angular/common/http';
+import { CommonSvgIconsModule } from './modules/common-svg-icons/common-svg-icons.module';
 import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatFormFieldDefaultOptions
@@ -19,7 +18,7 @@ const appearance: MatFormFieldDefaultOptions = {
   ],
   imports: [
     BrowserModule,
-    HttpClientModule,
+    CommonSvgIconsModule,
     StepperModule
   ],
   providers: [

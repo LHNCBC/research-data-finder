@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
-    "start-public": "ng serve --host 0.0.0.0 --port=8080 --disable-host-check",
+    "start-public": "ng serve --poll=2000 --host 0.0.0.0 --port=8080 --disable-host-check",
     "analyze": "ng build --prod --source-map && source-map-explorer dist/next/main.*",
     "analyze-gzip": "ng build --prod --source-map && source-map-explorer dist/next/main.* --gzip",
     "build": "ng build --prod",
@@ -25,8 +25,10 @@
     "@angular/platform-browser": "~11.0.9",
     "@angular/platform-browser-dynamic": "~11.0.9",
     "@angular/router": "~11.0.9",
+    "classlist.js": "^1.1.20150312",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",
+    "web-animations-js": "^2.3.2",
     "zone.js": "~0.10.2"
   },
   "devDependencies": {
