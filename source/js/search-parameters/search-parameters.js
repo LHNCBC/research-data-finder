@@ -166,6 +166,10 @@ export class SearchParameters extends BaseComponent {
       this.removeAllParams();
       addBtn.parentElement.removeChild(addBtn);
     }
+    const componentElement = document.getElementById(this._id);
+    if (componentElement) {
+      componentElement.parentElement.removeChild(componentElement);
+    }
   }
 
   /**

@@ -43,6 +43,11 @@ export class FhirBatchQuery {
     this._apiKey = '';
   }
 
+  /**
+   * Returns current FHIR REST API Service Base URL
+   * (See https://www.hl7.org/fhir/http.html#root)
+   * @return {string}
+   */
   getServiceBaseUrl() {
     return this._serviceBaseUrl;
   }
@@ -97,29 +102,34 @@ export class FhirBatchQuery {
         )
       ];
 
-      this._initializationPromise = Promise.all(
-        // Convert reject to resolve to emulate Promise.allSettled behaviour (for Edge/IE11)
-        initializationRequests.map((promise) =>
-          promise.catch(() => {
-            return false;
-          })
-        )
+      this._initializationPromise = Promise.allSettled(
+        initializationRequests
       ).then(
         ([
           metadata,
           observationsSortedByDate,
           observationsSortedByAgeAtEvent
         ]) => {
-          const fhirVersion = metadata.data.fhirVersion;
-          this._versionName = getVersionNameByNumber(fhirVersion);
-          if (!this._versionName) {
+          if (metadata.status === 'fulfilled') {
+            const fhirVersion = metadata.value.data.fhirVersion;
+            this._versionName = getVersionNameByNumber(fhirVersion);
+            if (!this._versionName) {
+              return Promise.reject({
+                error: 'Unsupported FHIR version: ' + fhirVersion
+              });
+            }
+          } else {
             return Promise.reject({
-              error: 'Unsupported FHIR version: ' + fhirVersion
+              error: 'Unknown server'
             });
           }
           this._features = {
-            sortObservationsByDate: observationsSortedByDate.data.entry.length > 0,
-            sortObservationsByAgeAtEvent: !!observationsSortedByAgeAtEvent
+            sortObservationsByDate:
+              observationsSortedByDate.status === 'fulfilled' &&
+              observationsSortedByDate.value.data.entry &&
+              observationsSortedByDate.value.data.entry.length > 0,
+            sortObservationsByAgeAtEvent:
+              observationsSortedByAgeAtEvent.status === 'fulfilled'
           };
 
           this._onChangeServiceBaseUrlListeners.forEach((fn) => fn());

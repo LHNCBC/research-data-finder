@@ -21,6 +21,7 @@ export class ObservationTable extends ResourceTable {
     //              also this value specifies column name for a request to the FHIR server;
     //              otherwise, if no value is specified, this column is constantly displayed.
     // text - callback to get cell text/html
+    // [condition] - callback which returns true if column could be visible
     this.viewCellsTemplate = [
       {
         title: 'Patient Id',
@@ -296,16 +297,30 @@ export class ObservationTable extends ResourceTable {
     return result;
   }
 
+  /**
+   * Returns HTML for table header
+   * @return {string}
+   */
   getHeader() {
     return `<thead><tr><th>${this._getViewCellsTemplate()
       .map((cell) => cell.title)
       .join('</th><th>')}</th></tr></thead>`;
   }
 
+  /**
+   * Sets additional column list to display
+   * @param {strings[]} columns - array of column names
+   */
   setAdditionalColumns(columns) {
     this._additionalColumns = columns || [];
   }
 
+  /**
+   * Returns true if item describes a visible column
+   * @param {Object} item - one element from mapping object (see this.viewCellsTemplate)
+   * @return {boolean}
+   * @private
+   */
   _filterColumns(item) {
     return (
       (!item.columnName ||
@@ -314,9 +329,22 @@ export class ObservationTable extends ResourceTable {
     );
   }
 
+  /**
+   * Returns mapping for each visible cell in a row for display
+   * (see description of this.viewCellsTemplate)
+   * @return {Object}
+   * @private
+   */
   _getViewCellsTemplate() {
     return this.viewCellsTemplate.filter(this._filterColumns.bind(this));
   }
+
+  /**
+   * Returns mapping for each visible cell in a row for export to CSV-file
+   * (see description of this.exportCellsTemplate)
+   * @return {Object}
+   * @private
+   */
   _getExportCellsTemplate() {
     return this.exportCellsTemplate.filter(this._filterColumns.bind(this));
   }
