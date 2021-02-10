@@ -4,7 +4,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
+    "start-dist": "ng serve --prod --poll=2000",
     "start-public": "ng serve --poll=2000 --host 0.0.0.0 --port=8080 --disable-host-check",
+    "start-dist-public": "ng serve --prod --poll=2000 --host 0.0.0.0 --port=8080 --disable-host-check",
     "analyze": "ng build --prod --source-map && source-map-explorer dist/next/main.*",
     "analyze-gzip": "ng build --prod --source-map && source-map-explorer dist/next/main.* --gzip",
     "build": "ng build --prod",
