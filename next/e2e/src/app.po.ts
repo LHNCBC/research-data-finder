@@ -1,11 +1,12 @@
 import { browser, by, element } from 'protractor';
+import { ElementFinder } from 'protractor/built/element';
 
 export class AppPage {
   async navigateTo(): Promise<unknown> {
     return browser.get(browser.baseUrl);
   }
 
-  async getAppDescriptionText(): Promise<string> {
-    return element(by.css('app-stepper > p:first-child')).getText();
+  getAppDescription(): ElementFinder {
+    return element(by.css('app-stepper > p:first-child'));
   }
 }
