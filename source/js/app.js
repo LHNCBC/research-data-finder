@@ -35,13 +35,22 @@ const reportPatientsSpan = document.getElementById('reportPatients');
 // An instance of report popup component for collecting statistical information about Patient selection
 const patientsReporter = new Reporter();
 let fhirClient = getFhirClient();
-// Update settings section
-document.getElementById('fhirServer').value = fhirClient.getServiceBaseUrl();
-['maxRequestsPerBatch', 'maxActiveRequests'].forEach((inputId) => {
-  document.getElementById(inputId).value = fhirClient[
-    'get' + capitalize(inputId)
-  ]();
-});
+
+/**
+ * Update settings section from fhirClient
+ */
+function updatesSettingsSection() {
+  document.getElementById('fhirServer').value = fhirClient.getServiceBaseUrl();
+  ['maxRequestsPerBatch', 'maxActiveRequests'].forEach((inputId) => {
+    document.getElementById(inputId).value = fhirClient[
+      'get' + capitalize(inputId)
+    ]();
+  });
+}
+
+fhirClient.addChangeEventListener(updatesSettingsSection);
+
+updatesSettingsSection();
 
 let patientSearchParams;
 

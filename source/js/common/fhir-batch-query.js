@@ -8,6 +8,9 @@ export const HTTP_ABORT = 0;
 // The value of property status in the rejection object when waiting for a response is timed out
 export const HTTP_TIMEOUT = -1;
 
+// The rate-limiting interval must be slightly longer than a second to avoid HTTP-429 responses
+const RATE_LIMIT_INTERVAL = 1060;
+
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
 export class FhirBatchQuery {
   /**
@@ -31,7 +34,7 @@ export class FhirBatchQuery {
     this._maxPerBatch = maxRequestsPerBatch;
     this._maxActiveReq = maxActiveRequests;
     this._activeReq = [];
-    this._onChangeServiceBaseUrlListeners = [];
+    this._onChangeListeners = [];
     // Timeout between requests in milliseconds
     // (=0, if there is no timeout between requests):
     this._msBetweenRequests = 0;
@@ -88,6 +91,7 @@ export class FhirBatchQuery {
       this.clearPendingRequests();
       this._serviceBaseUrl = newServiceBaseUrl;
       delete this._initializationPromise;
+      this._msBetweenRequests = 0;
     }
 
     if (!this._initializationPromise) {
@@ -120,7 +124,8 @@ export class FhirBatchQuery {
             }
           } else {
             return Promise.reject({
-              error: 'Unknown server'
+              error:
+                "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
             });
           }
           this._features = {
@@ -131,8 +136,6 @@ export class FhirBatchQuery {
             sortObservationsByAgeAtEvent:
               observationsSortedByAgeAtEvent.status === 'fulfilled'
           };
-
-          this._onChangeServiceBaseUrlListeners.forEach((fn) => fn());
         }
       );
     }
@@ -141,20 +144,28 @@ export class FhirBatchQuery {
   }
 
   /**
-   * Adds a listener for the FHIR REST API Service Base URL change event
+   * Adds a listener for the parameters change event
    * and returns a function to remove this listener
-   * @param {Function} handler
+   * @param {Function} handler - callback function which is used to signal
+   *   that parameters changed by FhirBatchQuery
    * @return {Function}
    */
-  addChangeServiceBaseUrlEventListener(handler) {
-    this._onChangeServiceBaseUrlListeners.push(handler);
+  addChangeEventListener(handler) {
+    this._onChangeListeners.push(handler);
 
     return () => {
-      const index = this._onChangeServiceBaseUrlListeners.indexOf(handler);
+      const index = this._onChangeListeners.indexOf(handler);
       if (index > -1) {
-        this._onChangeServiceBaseUrlListeners.splice(index, 1);
+        this._onChangeListeners.splice(index, 1);
       }
     };
+  }
+
+  /**
+   * Executes all parameter change event listeners
+   */
+  emitChangeEvent() {
+    this._onChangeListeners.forEach((fn) => fn());
   }
 
   /**
@@ -248,7 +259,9 @@ export class FhirBatchQuery {
    */
   static getRetryAfterTimeout(xhr) {
     const retryAfterHeader = xhr.getResponseHeader('Retry-After');
-    let timeout;
+    // Use default timeout if there is no Retry-After header. This can happen
+    // when the request was aborted because the preflight request returned HTTP-429.
+    let timeout = RATE_LIMIT_INTERVAL;
     if (retryAfterHeader) {
       if (/^\d+$/.test(retryAfterHeader)) {
         timeout = parseInt(retryAfterHeader) * 1000;
@@ -256,7 +269,7 @@ export class FhirBatchQuery {
         timeout = new Date(retryAfterHeader) - Date.now();
         if (isNaN(timeout) || timeout < 0) {
           // Use default timeout if date is not valid
-          timeout = 1000;
+          timeout = RATE_LIMIT_INTERVAL;
         }
       }
     }
@@ -282,18 +295,16 @@ export class FhirBatchQuery {
     )
       ? xhr.getResponseHeader('x-ratelimit-limit')
       : '';
-    // The rate-limiting interval must be slightly longer than a second to avoid HTTP-429 responses
-    const dbGapRateLimitInterval = 1060;
     if (/^\d+$/.test(xRateLimitHeader)) {
-      const limit = parseInt(xRateLimitHeader);
+      // For each request, the browser sends an additional preflight request;
+      // therefore, we need to send half the number of requests.
+      const limit = parseInt(xRateLimitHeader) / 2;
       // TODO: Adjust the maximum number of requests that can be combined in a batch
-      // after adding the ability to view this new value by the user in the "tunable"
+      // after adding the ability to view this new value by the user in the "Advanced settings"
       // section? In this case, the percentage of data loading progress will practically
       // not be displayed:
       // this._maxPerBatch = Math.max(Math.ceil(this._pending.length / limit), 10)
-      this._msBetweenRequests = dbGapRateLimitInterval / limit;
-    } else {
-      this._msBetweenRequests = 0;
+      this._msBetweenRequests = RATE_LIMIT_INTERVAL / limit;
     }
   }
 
@@ -345,9 +356,15 @@ export class FhirBatchQuery {
             this._lastSuccessTime = Date.now();
             resolve({ status, data: JSON.parse(oReq.responseText) });
           } else if (
-            status === 429 &&
+            // When the preflight request returns HTTP-429, the real request is aborted
+            (status === 429 || status === HTTP_ABORT) &&
             Date.now() - this._lastSuccessTime < this._giveUpTimeout
           ) {
+            if (this._msBetweenRequests < RATE_LIMIT_INTERVAL) {
+              this._msBetweenRequests += 100;
+              this._maxActiveReq = 1;
+              this.emitChangeEvent();
+            }
             this._pending.unshift({
               method,
               url,
@@ -512,7 +529,6 @@ export class FhirBatchQuery {
       request.abort();
     });
     this._activeReq = [];
-    this._onChangeServiceBaseUrlListeners = [];
   }
 
   getFullUrl(url) {
