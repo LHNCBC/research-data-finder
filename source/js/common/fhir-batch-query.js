@@ -311,7 +311,7 @@ export class FhirBatchQuery {
       // this._maxPerBatch = Math.max(Math.ceil(this._pending.length / limit), 10)
 
       // Use value slightly longer than the rate limit interval to avoid HTTP-429 responses
-      this._msBetweenRequests = (RATE_LIMIT_INTERVAL + 60) / limit;
+      this._msBetweenRequests = Math.ceil((RATE_LIMIT_INTERVAL + 60) / limit);
     }
   }
 
