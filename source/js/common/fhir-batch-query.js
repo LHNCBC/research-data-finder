@@ -8,8 +8,8 @@ export const HTTP_ABORT = 0;
 // The value of property status in the rejection object when waiting for a response is timed out
 export const HTTP_TIMEOUT = -1;
 
-// The rate-limiting interval must be slightly longer than a second to avoid HTTP-429 responses
-const RATE_LIMIT_INTERVAL = 1060;
+// Rate limiting interval - the time interval in milliseconds for which a limited number of requests can be specified
+const RATE_LIMIT_INTERVAL = 1000;
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
 export class FhirBatchQuery {
@@ -298,13 +298,20 @@ export class FhirBatchQuery {
     if (/^\d+$/.test(xRateLimitHeader)) {
       // For each request, the browser sends an additional preflight request;
       // therefore, we need to send half the number of requests.
-      const limit = parseInt(xRateLimitHeader) / 2;
+      // Examples:
+      // if we have "x-ratelimit-limit: 3", we should send 1 request per second to avoid HTTP-429.
+      // if we have "x-ratelimit-limit: 2", we should send 1 request per second to avoid HTTP-429.
+      // if we have "x-ratelimit-limit: 1", this will not work at all - we can't skip preflight request.
+      const limit = Math.max(1, Math.floor(parseInt(xRateLimitHeader) / 2));
+
       // TODO: Adjust the maximum number of requests that can be combined in a batch
       // after adding the ability to view this new value by the user in the "Advanced settings"
       // section? In this case, the percentage of data loading progress will practically
       // not be displayed:
       // this._maxPerBatch = Math.max(Math.ceil(this._pending.length / limit), 10)
-      this._msBetweenRequests = RATE_LIMIT_INTERVAL / limit;
+
+      // Use value slightly longer than the rate limit interval to avoid HTTP-429 responses
+      this._msBetweenRequests = (RATE_LIMIT_INTERVAL + 60) / limit;
     }
   }
 
