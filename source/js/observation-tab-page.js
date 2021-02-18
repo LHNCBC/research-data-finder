@@ -1,12 +1,12 @@
 import { HTTP_ABORT } from './common/fhir-batch-query';
 import { ObservationTable } from './observation-table';
 import { ResourceTabPage } from './resource-tab-page';
+import { getFhirClient } from './common/fhir-service';
 
 export class ObservationTabPage extends ResourceTabPage {
   /**
    * Constructor of component
    * @param {Object<Function>} callbacks - callback functions:
-   *        getFhirClient - to retrieve FHIR client,
    *        addComponentToPage - used to add HTML of the component to the page,
    *        onStartLoading - to be called when resources load starts,
    *        onEndLoading - to be called when resources load ends
@@ -21,7 +21,7 @@ export class ObservationTabPage extends ResourceTabPage {
   /**
    * Initializes the section with search parameters for resources selection
    */
-  initializeSearchParameters(/*serviceBaseUrl*/) {
+  initializeSearchParameters() {
     //TODO is not supported for this component yet
   }
 
@@ -52,9 +52,7 @@ export class ObservationTabPage extends ResourceTabPage {
       this.loincAC.addToSelectedArea(testData[0]);
     }
 
-    this.initializeSearchParameters(
-      this.callbacks.getFhirClient().getServiceBaseUrl()
-    );
+    this.initializeSearchParameters();
     this.resourceTable = new ObservationTable({
       callbacks: {
         addComponentToPage: (html) => {
@@ -116,7 +114,8 @@ export class ObservationTabPage extends ResourceTabPage {
    *  Handles the request to load the Observation list
    */
   loadResources() {
-    const fhirClient = this.callbacks.getFhirClient();
+    const fhirClient = getFhirClient();
+    const features = fhirClient.getFeatures();
     const patientResources = this.callbacks.getPatientResources();
     const patientAdditionalColumns = this.callbacks.getPatientAdditionalColumns();
     this.reportLinkSpan.innerHTML = '';
@@ -147,6 +146,13 @@ export class ObservationTabPage extends ResourceTabPage {
     const suffixCount = urlSuffixes.length;
     const totalRequestCount = patientCount * suffixCount;
 
+    let sortFields = 'patient,code';
+    if (features.sortObservationsByDate) {
+      sortFields += ',-date';
+    } else if (features.sortObservationsByAgeAtEvent) {
+      sortFields += ',-age-at-event';
+    }
+
     this.loadReporter.initialize();
     this.showLoadingProgress(0);
     let observationsLoaded = this.loadReporter.addMetric({
@@ -163,7 +169,7 @@ export class ObservationTabPage extends ResourceTabPage {
         fhirClient
           .getWithCache(
             `Observation?subject=Patient/${patient.id}` +
-              `&_sort=patient,code,-date&_elements=subject,effectiveDateTime,code,value,interpretation` +
+              `&_sort=${sortFields}&_elements=subject,effectiveDateTime,code,value,component,interpretation` +
               urlSuffix
           )
           .then(

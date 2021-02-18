@@ -1,4 +1,5 @@
 import { updateUrlWithParam } from './utils';
+import definitionsIndex from '../search-parameters/definitions';
 
 let commonRequestCache = {}; // Map from url to result JSON
 
@@ -6,6 +7,9 @@ let commonRequestCache = {}; // Map from url to result JSON
 export const HTTP_ABORT = 0;
 // The value of property status in the rejection object when waiting for a response is timed out
 export const HTTP_TIMEOUT = -1;
+
+// Rate limiting interval - the time interval in milliseconds for which a limited number of requests can be specified
+const RATE_LIMIT_INTERVAL = 1000;
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
 export class FhirBatchQuery {
@@ -30,6 +34,7 @@ export class FhirBatchQuery {
     this._maxPerBatch = maxRequestsPerBatch;
     this._maxActiveReq = maxActiveRequests;
     this._activeReq = [];
+    this._onChangeListeners = [];
     // Timeout between requests in milliseconds
     // (=0, if there is no timeout between requests):
     this._msBetweenRequests = 0;
@@ -37,10 +42,186 @@ export class FhirBatchQuery {
     this._lastSuccessTime = Date.now();
     // The client side should give up if no successful response in 90 seconds
     this._giveUpTimeout = 90 * 1000;
+    // NCBI E-utilities API Key
+    this._apiKey = '';
   }
 
+  /**
+   * Returns current FHIR REST API Service Base URL
+   * (See https://www.hl7.org/fhir/http.html#root)
+   * @return {string}
+   */
   getServiceBaseUrl() {
     return this._serviceBaseUrl;
+  }
+
+  /**
+   * @typedef FHIRServerFeatures
+   * @type {Object}
+   * @property {boolean} [sortObservationsByDate] - whether sorting
+   *           Observations by date available
+   * @property {boolean} [sortObservationsByAgeAtEvent] - whether sorting
+   *           Observations by age-at-event available
+   */
+
+  /**
+   * Returns an object describing the server features.
+   * @return {FHIRServerFeatures}
+   */
+  getFeatures() {
+    return this._features || {};
+  }
+
+  /**
+   * Return version name e.g. "R4"
+   * @return {string}
+   */
+  getVersionName() {
+    return this._versionName;
+  }
+
+  /**
+   * Initialize/reinitialize FhirBatchQuery instance.
+   * @param {string} [newServiceBaseUrl] - new FHIR REST API Service Base URL
+   *                 (https://www.hl7.org/fhir/http.html#root)
+   * @return {Promise}
+   */
+  initialize(newServiceBaseUrl) {
+    if (newServiceBaseUrl && newServiceBaseUrl !== this._serviceBaseUrl) {
+      this.clearPendingRequests();
+      this._serviceBaseUrl = newServiceBaseUrl;
+      delete this._initializationPromise;
+      this._msBetweenRequests = 0;
+    }
+
+    if (!this._initializationPromise) {
+      const initializationRequests = [
+        this.getWithCache('metadata', { combine: false }),
+        this.getWithCache('Observation?_sort=date&_elements=id&_count=1', {
+          combine: false
+        }),
+        this.getWithCache(
+          'Observation?_sort=age-at-event&_elements=id&_count=1',
+          { combine: false }
+        )
+      ];
+
+      this._initializationPromise = Promise.allSettled(
+        initializationRequests
+      ).then(
+        ([
+          metadata,
+          observationsSortedByDate,
+          observationsSortedByAgeAtEvent
+        ]) => {
+          if (metadata.status === 'fulfilled') {
+            const fhirVersion = metadata.value.data.fhirVersion;
+            this._versionName = getVersionNameByNumber(fhirVersion);
+            if (!this._versionName) {
+              return Promise.reject({
+                error: 'Unsupported FHIR version: ' + fhirVersion
+              });
+            }
+          } else {
+            return Promise.reject({
+              error:
+                "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
+            });
+          }
+          this._features = {
+            sortObservationsByDate:
+              observationsSortedByDate.status === 'fulfilled' &&
+              observationsSortedByDate.value.data.entry &&
+              observationsSortedByDate.value.data.entry.length > 0,
+            sortObservationsByAgeAtEvent:
+              observationsSortedByAgeAtEvent.status === 'fulfilled'
+          };
+        }
+      );
+    }
+
+    return this._initializationPromise;
+  }
+
+  /**
+   * Adds a listener for the parameters change event
+   * and returns a function to remove this listener
+   * @param {Function} handler - callback function which is used to signal
+   *   that parameters changed by FhirBatchQuery
+   * @return {Function}
+   */
+  addChangeEventListener(handler) {
+    this._onChangeListeners.push(handler);
+
+    return () => {
+      const index = this._onChangeListeners.indexOf(handler);
+      if (index > -1) {
+        this._onChangeListeners.splice(index, 1);
+      }
+    };
+  }
+
+  /**
+   * Executes all parameter change event listeners
+   */
+  emitChangeEvent() {
+    this._onChangeListeners.forEach((fn) => fn());
+  }
+
+  /**
+   * Sets the maximum number of requests that can be combined
+   * (1 - turn off combined requests)
+   * @param {number} val
+   */
+  setMaxRequestsPerBatch(val) {
+    this._maxPerBatch = val;
+  }
+
+  /**
+   * Gets the maximum number of requests that can be combined
+   * @return {number}
+   */
+  getMaxRequestsPerBatch() {
+    return this._maxPerBatch;
+  }
+
+  /**
+   * Sets the maximum number of requests that can be executed simultaneously
+   * @param {number} val
+   */
+  setMaxActiveRequests(val) {
+    this._maxActiveReq = val;
+  }
+
+  /**
+   * Gets the maximum number of requests that can be executed simultaneously
+   * @return {number}
+   */
+  getMaxActiveRequests() {
+    return this._maxActiveReq;
+  }
+
+  /**
+   * Sets the NCBI E-utilities API Key.
+   * See https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/
+   * @param {string} val
+   */
+  setApiKey(val) {
+    this._apiKey = (val || '').trim();
+  }
+
+  /**
+   * Adds the an API Key to the passed URL and returns this new URL.
+   * @param {string} url
+   * @return {string}
+   */
+  addApiKeyToUrl(url) {
+    const apiKeyParam = 'api_key=' + encodeURIComponent(this._apiKey);
+    if (url.indexOf('?') === -1) {
+      return url + '?' + apiKeyParam;
+    } else {
+      return url + '&' + apiKeyParam;
+    }
   }
 
   static clearCache() {
@@ -50,13 +231,14 @@ export class FhirBatchQuery {
   /**
    * Gets the response content from a URL.
    * @param {string} url - the URL whose data is to be retrieved.
+   * @param {boolean} combine - whether to combine requests in a batch
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  get(url) {
+  get(url, { combine = true }) {
     return new Promise((resolve, reject) => {
-      this._pending.push({ url, resolve, reject });
+      this._pending.push({ url, combine, resolve, reject });
       if (this._pending.length < this._maxPerBatch) {
         clearTimeout(this._batchTimeoutId);
         this._batchTimeoutId = setTimeout(
@@ -77,7 +259,9 @@ export class FhirBatchQuery {
    */
   static getRetryAfterTimeout(xhr) {
     const retryAfterHeader = xhr.getResponseHeader('Retry-After');
-    let timeout;
+    // Use default timeout if there is no Retry-After header. This can happen
+    // when the request was aborted because the preflight request returned HTTP-429.
+    let timeout = RATE_LIMIT_INTERVAL;
     if (retryAfterHeader) {
       if (/^\d+$/.test(retryAfterHeader)) {
         timeout = parseInt(retryAfterHeader) * 1000;
@@ -85,7 +269,7 @@ export class FhirBatchQuery {
         timeout = new Date(retryAfterHeader) - Date.now();
         if (isNaN(timeout) || timeout < 0) {
           // Use default timeout if date is not valid
-          timeout = 1000;
+          timeout = RATE_LIMIT_INTERVAL;
         }
       }
     }
@@ -111,30 +295,44 @@ export class FhirBatchQuery {
     )
       ? xhr.getResponseHeader('x-ratelimit-limit')
       : '';
-    // The rate-limiting interval must be slightly longer than a second to avoid HTTP-429 responses
-    const dbGapRateLimitInterval = 1060;
     if (/^\d+$/.test(xRateLimitHeader)) {
-      const limit = parseInt(xRateLimitHeader);
+      // For each request, the browser sends an additional preflight request;
+      // therefore, we need to send half the number of requests.
+      // Examples:
+      // if we have "x-ratelimit-limit: 3", we should send 1 request per second to avoid HTTP-429.
+      // if we have "x-ratelimit-limit: 2", we should send 1 request per second to avoid HTTP-429.
+      // if we have "x-ratelimit-limit: 1", this will not work at all - we can't skip preflight request.
+      const limit = Math.max(1, Math.floor(parseInt(xRateLimitHeader) / 2));
+
       // TODO: Adjust the maximum number of requests that can be combined in a batch
-      // after adding the ability to view this new value by the user in the "tunable"
+      // after adding the ability to view this new value by the user in the "Advanced settings"
       // section? In this case, the percentage of data loading progress will practically
       // not be displayed:
       // this._maxPerBatch = Math.max(Math.ceil(this._pending.length / limit), 10)
-      this._msBetweenRequests = dbGapRateLimitInterval / limit;
-    } else {
-      this._msBetweenRequests = 0;
+
+      // Use value slightly longer than the rate limit interval to avoid HTTP-429 responses
+      this._msBetweenRequests = Math.ceil((RATE_LIMIT_INTERVAL + 60) / limit);
     }
   }
 
   /**
    * Sends XMLHttpRequest
    * @private
+   * @param {Object} settings - a set of key/value pairs that configure
+   *                 the XMLHttpRequest request
+   * @param {string} settings.method - HTTP method
+   * @param {string} settings.url - request URL
+   * @param {string} settings.body - request body if method === 'POST'
+   * @param {boolean} settings.combine - whether to combine requests in a batch
+   * @param {string} settings.contentType - Content-Type request header value
+   * @param {string} settings.logPrefix - prefix for console log messages
    * @return {Promise}
    */
   _request({
     method = 'GET',
     url,
-    body,
+    body = undefined,
+    combine = true,
     contentType = 'application/fhir+json',
     logPrefix = ''
   }) {
@@ -165,13 +363,20 @@ export class FhirBatchQuery {
             this._lastSuccessTime = Date.now();
             resolve({ status, data: JSON.parse(oReq.responseText) });
           } else if (
-            status === 429 &&
+            // When the preflight request returns HTTP-429, the real request is aborted
+            (status === 429 || status === HTTP_ABORT) &&
             Date.now() - this._lastSuccessTime < this._giveUpTimeout
           ) {
+            if (this._msBetweenRequests < RATE_LIMIT_INTERVAL) {
+              this._msBetweenRequests += 100;
+              this._maxActiveReq = 1;
+              this.emitChangeEvent();
+            }
             this._pending.unshift({
               method,
               url,
               body,
+              combine,
               contentType,
               logPrefix,
               resolve,
@@ -200,6 +405,10 @@ export class FhirBatchQuery {
         }
       };
 
+      if (this._apiKey) {
+        url = this.addApiKeyToUrl(url);
+      }
+
       oReq.open(method, url);
       oReq.timeout = this._giveUpTimeout;
       oReq.setRequestHeader('Content-Type', contentType);
@@ -217,13 +426,17 @@ export class FhirBatchQuery {
     let requests = [];
 
     if (this._pending.length) {
-      if (this._pending[0].method === 'POST') {
+      if (
+        this._pending[0].method === 'POST' ||
+        this._pending[0].combine === false
+      ) {
         requests.push(this._pending.shift());
       } else {
         while (
           this._pending.length &&
           this._maxPerBatch > requests.length &&
-          this._pending[0].method !== 'POST'
+          this._pending[0].method !== 'POST' &&
+          this._pending[0].combine === true
         ) {
           requests.push(this._pending.shift());
         }
@@ -349,11 +562,14 @@ export class FhirBatchQuery {
   /**
    * Like "get", but uses a cache if the URL has been requested before.
    * @param {string} url - the URL whose data is to be retrieved.
+   * @param {Object} options - additional options
+   * @param {boolean} options.combine - whether to combine requests in a batch,
+   *                  true by default
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  getWithCache(url) {
+  getWithCache(url, options = { combine: true }) {
     return new Promise((resolve, reject) => {
       const fullUrl = this.getFullUrl(url),
         cachedReq = commonRequestCache[fullUrl];
@@ -361,7 +577,7 @@ export class FhirBatchQuery {
         console.log('Using cached data');
         resolve(cachedReq);
       } else {
-        this.get(fullUrl).then((result) => {
+        this.get(fullUrl, options).then((result) => {
           commonRequestCache[fullUrl] = result;
           resolve(result);
         }, reject);
@@ -493,4 +709,28 @@ export class FhirBatchQuery {
       }, reject);
     });
   }
+}
+
+/**
+ * Returns version name by version number or null if version number is not supported.
+ * @example
+ * // calling a function as shown below will return this string: 'R4'
+ * getVersionNameByNumber('4.0.1')
+ * @param versionNumber
+ * @return {string|null}
+ */
+export function getVersionNameByNumber(versionNumber) {
+  let versionName = null;
+
+  Object.keys(definitionsIndex.versionNameByVersionNumberRegex).some(
+    (versionRegEx) => {
+      if (new RegExp(versionRegEx).test(versionNumber)) {
+        versionName =
+          definitionsIndex.versionNameByVersionNumberRegex[versionRegEx];
+        return true;
+      }
+    }
+  );
+
+  return versionName;
 }

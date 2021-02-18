@@ -228,7 +228,7 @@ ${testPeriodHtml}`;
     document.getElementById(`${searchItemId}-test-value`).innerHTML = `
 <div class="test-value">
   <input type="text" id="${searchItemId}-test-value-prefix" class="test-value__prefix" value="${prefixes[0][0]}">
-  <input type="number" id="${searchItemId}-test-real-value" placeholder="enter number value">
+  <input type="number" id="${searchItemId}-test-real-value" placeholder="enter number value" step="any">
   <input type="text" id="${searchItemId}-test-value-unit" class="test-value__unit" placeholder="unit code">
 </div>
 ${testPeriodHtml}`;

@@ -8,7 +8,7 @@ const packageJson = require('./package.json');
 
 
 module.exports = {
-  entry: './source/js/app.js',
+  entry: ['promise-polyfill/src/polyfill', './source/js/app.js'],
   optimization: {
     minimizer: [new TerserJSPlugin({sourceMap: true}), new OptimizeCSSAssetsPlugin({})],
   },

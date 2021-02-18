@@ -305,6 +305,32 @@ input[disabled] + .upload-file-link {
   background-color: #fafdff;
 }
 
+.section__body > .section {
+  border: 0;
+  border-radius: 0;
+  margin-bottom: 0;
+  padding: 10px 0 0 0;
+}
+
+.section__body > .section > .section__header {
+  margin-top: -22px;
+  margin-left: 7px;
+}
+
+.section__body > .section > .section__header > .section__title {
+  padding: 3px 5px 3px 0;
+  text-decoration: underline;
+}
+
+.section__body > .section > .section__body {
+  margin-bottom: 0;
+}
+
+.section__body > .section > .section__header > .section__title::before {
+  border-width: 0;
+  margin-right: 0;
+}
+
 .section_collapsed {
   padding: 0;
   margin-top: 14px;
@@ -345,6 +371,7 @@ input[disabled] + .upload-file-link {
   border-color: transparent;
   border-width: 1px;
   border-radius: 7px;
+  cursor: pointer;
 }
 
 .section__header:focus {
@@ -386,7 +413,7 @@ div.section__body {
   flex-direction: column;
 }
 
-div.section__body > div:not(.search-parameter-list):not(.tabs-component):not(.hide) {
+div.section__body > div:not(.search-parameter-list):not(.tabs-component):not(.hide):not(.section) {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -398,6 +425,7 @@ div.section__body > table {
 
 div.section__body > div:not(.search-parameter-list):not(.tabs-component) > label {
   font-weight: bold;
+  padding-top: 1px;
 }
 
 form:not(.hide-errors) input:invalid:not(:focus) {
@@ -408,7 +436,7 @@ form:not(.hide-errors) input:invalid:focus {
   background-color: #fee8e9;
 }
 
-.section__body > div:not(.search-parameter-list):not(.tabs-component) > *:not(:first-child) {
+.section__body > div:not(.search-parameter-list):not(.tabs-component):not(.section) > *:not(:first-child) {
   margin-left: 1em;
 }
 
@@ -464,11 +492,11 @@ div.section__body > .search-parameter > :first-child {
   max-width: 180px;
 }
 
-.search-parameter-list_one-resource div.section__body > .search-parameter > :first-child {
+.search-parameter-list.search-parameter-list_one-resource div.section__body > .search-parameter > :first-child {
   display: none;
 }
 
-.search-parameter-list_one-resource div.section__body > .search-parameter > :nth-child(2) {
+.search-parameter-list.search-parameter-list_one-resource div.section__body > .search-parameter > :nth-child(2) {
   margin-left: 0;
 }
 
@@ -478,6 +506,7 @@ div.section__body > .search-parameter > :nth-child(3) {
 }
 
 div.section__body > .search-parameter_no-resource > :nth-child(2),
+div.section__body > .search-parameter_no-resource > :nth-child(3),
 div.section__body > .search-parameter_custom > :nth-child(2) {
   display: none;
 }
@@ -752,8 +781,6 @@ a:hover {
 }
 /* End of styles for the navigation links */
 
-/* Adding more specificity for applying CSS-rules */
-.performance-tuning.hide,
 .hide {
   display: none;
 }

@@ -10,13 +10,13 @@ import {
 } from './search-parameters';
 import { ColumnsDialog } from './common/columns-dialog';
 import { getCurrentDefinitions } from './search-parameters/common-descriptions';
+import { getFhirClient } from './common/fhir-service';
 
 export class ResourceTabPage extends BaseComponent {
   /**
    * Constructor of component
    * @param {string} resourceType
    * @param {Object<Function>} callbacks - callback functions:
-   *        getFhirClient - to retrieve FHIR client,
    *        addComponentToPage - used to add HTML of the component to the page,
    *        onStartLoading - to be called when resources load starts,
    *        onEndLoading - to be called when resources load ends
@@ -39,7 +39,7 @@ export class ResourceTabPage extends BaseComponent {
   /**
    * Initializes the resource selection criteria section
    */
-  initializeSearchParameters(serviceBaseUrl) {
+  initializeSearchParameters() {
     this.searchParams && this.searchParams.detachControls();
 
     const searchParamGroups = [
@@ -56,7 +56,6 @@ export class ResourceTabPage extends BaseComponent {
             .insertAdjacentHTML('afterend', html);
         }
       },
-      serviceBaseUrl,
       searchParamGroups,
       autoSelect: true
     });
@@ -197,9 +196,7 @@ export class ResourceTabPage extends BaseComponent {
       }
     );
 
-    this.initializeSearchParameters(
-      this.callbacks.getFhirClient().getServiceBaseUrl()
-    );
+    this.initializeSearchParameters();
     this.resourceTable = new ResourceTable({
       callbacks: {
         /**
@@ -314,7 +311,7 @@ export class ResourceTabPage extends BaseComponent {
    *  Handles the request to load the Resource list
    */
   loadResources() {
-    const fhirClient = this.callbacks.getFhirClient();
+    const fhirClient = getFhirClient();
     const patientResources = this.callbacks.getPatientResources();
     this.reportLinkSpan.innerHTML = '';
     this.callbacks.onStartLoading();

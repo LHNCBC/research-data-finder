@@ -18,35 +18,81 @@ import {
   ConditionSearchParameters,
   MedicationDispenseSearchParameters
 } from './search-parameters';
-import { toggleCssClass, addCssClass, removeCssClass } from './common/utils';
+import {
+  toggleCssClass,
+  addCssClass,
+  removeCssClass,
+  capitalize
+} from './common/utils';
 import { Reporter } from './reporter';
 import { PatientTable } from './patient-table';
 import { ResourceTabPane } from './resource-tab-pane';
+import { getFhirClient } from './common/fhir-service';
 
 const loadPatientsButton = document.getElementById('loadPatients');
 const reportPatientsSpan = document.getElementById('reportPatients');
 
-if (/[?&]tunable(&|$)/.test(window.location.search)) {
-  removeCssClass('.performance-tuning', 'hide');
-}
-
 // An instance of report popup component for collecting statistical information about Patient selection
 const patientsReporter = new Reporter();
 let fhirClient = getFhirClient();
-let patientSearchParams = createPatientSearchParameters(
-  document.getElementById('fhirServer').value
-);
-document.getElementById('fhirServer').addEventListener('change', function () {
+
+/**
+ * Update settings section from fhirClient
+ */
+function updatesSettingsSection() {
+  document.getElementById('fhirServer').value = fhirClient.getServiceBaseUrl();
+  ['maxRequestsPerBatch', 'maxActiveRequests'].forEach((inputId) => {
+    document.getElementById(inputId).value = fhirClient[
+      'get' + capitalize(inputId)
+    ]();
+  });
+}
+
+fhirClient.addChangeEventListener(updatesSettingsSection);
+
+updatesSettingsSection();
+
+let patientSearchParams;
+
+/**
+ * Initialize the application on startup, or reinitialize the application
+ * when the FHIR REST API Service Base URL changes.
+ * @param {string} [serviceBaseUrl] - new FHIR REST API Service Base URL
+ *                 (https://www.hl7.org/fhir/http.html#root)
+ */
+function initApp(serviceBaseUrl) {
   patientSearchParams && patientSearchParams.detachControls();
-  patientSearchParams = createPatientSearchParameters(this.value);
-  resourceTabPane.clearResourceList(this.value);
+  fhirClient.initialize(serviceBaseUrl);
+  patientSearchParams = createPatientSearchParameters();
+  resourceTabPane.clearResourceList(serviceBaseUrl);
 
   onStartLoading();
   patientSearchParams.ready.then(onEndLoading);
   // Clear visible Patient list data
   showMessageIfNoPatientList('');
   reportPatientsSpan.innerHTML = '';
-  fhirClient.clearPendingRequests();
+}
+
+// Add event listeners for settings section
+document.getElementById('fhirServer').addEventListener('change', function () {
+  initApp(this.value);
+});
+
+['maxRequestsPerBatch', 'maxActiveRequests'].forEach((inputId) => {
+  document.getElementById(inputId).addEventListener('change', function () {
+    const value = +document.getElementById(inputId).value;
+    if (value > 0) {
+      fhirClient['set' + capitalize(inputId)](value);
+    } else {
+      document.getElementById(inputId).value = fhirClient[
+        'get' + capitalize(inputId)
+      ]();
+    }
+  });
+});
+
+document.getElementById('apiKey').addEventListener('change', function () {
+  fhirClient.setApiKey(document.getElementById('apiKey').value);
 });
 
 /**
@@ -82,10 +128,6 @@ function onEndLoading() {
 // Create component for displaying resources for selected Patients
 const resourceTabPane = new ResourceTabPane({
   callbacks: {
-    // Gets FHIR client to make requests
-    getFhirClient: () => {
-      return fhirClient;
-    },
     /**
      * Add HTML of the component to the page
      * @param {string} html
@@ -99,6 +141,8 @@ const resourceTabPane = new ResourceTabPane({
     onEndLoading
   }
 }).initialize();
+
+initApp();
 
 /**
  *  Shows a message when there are no Patient list was displayed
@@ -154,28 +198,11 @@ const patientTable = new PatientTable({
 }).initialize();
 
 /**
- * Gets an instance of FhirBatchQuery used to query data for Patient/Observation list
- * @return {FhirBatchQuery}
- */
-function getFhirClient() {
-  const serviceBaseUrl = document.getElementById('fhirServer').value;
-  const maxRequestsPerBatch =
-    document.getElementById('maxRequestsPerBatch').value || undefined;
-  const maxActiveRequests =
-    document.getElementById('maxActiveRequests').value || undefined;
-  return new FhirBatchQuery({
-    serviceBaseUrl,
-    maxRequestsPerBatch,
-    maxActiveRequests
-  });
-}
-
-/**
  * Creates the section with search parameters for patients selection
  *
  * @return {SearchParameters}
  */
-function createPatientSearchParameters(serviceBaseUrl) {
+function createPatientSearchParameters() {
   return new SearchParameters({
     callbacks: {
       addComponentToPage: (html) => {
@@ -184,7 +211,6 @@ function createPatientSearchParameters(serviceBaseUrl) {
           .insertAdjacentHTML('afterend', html);
       }
     },
-    serviceBaseUrl,
     searchParamGroups: [
       PatientSearchParameters,
       EncounterSearchParameters,
@@ -349,7 +375,6 @@ function clearPatients() {
  * Handles the request to load the Patient list
  */
 export function loadPatients() {
-  fhirClient = getFhirClient();
   clearPatients();
   onStartLoading();
   patientsReporter.initialize();

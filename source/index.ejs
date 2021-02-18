@@ -83,24 +83,37 @@
           <div>
             <label for="fhirServer">FHIR server:</label>
             <div class="hinted flex-fill">
-                <input type="text" id=fhirServer value="https://lforms-fhir.nlm.nih.gov/baseR4">
+                <input type="text" id=fhirServer value="">
               <label>See <a target="_blank" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for details</label>
             </div>
 
           </div>
-          <label class="performance-tuning hide">Performance Tuning Settings:</label>
-          <div class="performance-tuning hide">
-            <label for="maxRequestsPerBatch">Requests per batch:</label>
-            <div>
-              <input type="number" id="maxRequestsPerBatch" value="10" min="1" placeholder="default value">
+
+          <div class="section section_collapsed">
+            <label class="section__title">Advanced Settings</label>
+            <div class="section__body">
+              <div class="api-key-section">
+                <label for="apiKey">NCBI E-utilities API Key:</label>
+                <div class="hinted flex-fill">
+                  <input type="text" id="apiKey" placeholder="api_key value">
+                  <label>See <a target="_blank" href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/">New API Keys for the E-utilities</a> article for details</label>
+                </div>
+              </div>
+              <div class="performance-tuning">
+                <label for="maxRequestsPerBatch">Requests per batch:</label>
+                <div>
+                  <input type="number" id="maxRequestsPerBatch" value="" min="1">
+                </div>
+                <label for="maxActiveRequests">Maximum active requests:</label>
+                <div>
+                  <input type="number" id="maxActiveRequests" value="" min="1">
+                </div>
+                <label>Actions:</label>
+                <button onclick="app.clearCache()">Clear cache</button>
+              </div>
             </div>
-            <label for="maxActiveRequests">Maximum active requests:</label>
-            <div>
-              <input type="number" id="maxActiveRequests" value="6" min="1" placeholder="default value">
-            </div>
-            <label>Actions:</label>
-            <button onclick="app.clearCache()">Clear cache</button>
           </div>
+
         </div>
       </div>
 
@@ -191,8 +204,8 @@
     </div>
     <!-- end page footer -->
 
-    <script src="https://polyfill.io/v3/polyfill.min.js?version=3.53.1&features=Symbol%2CSymbol.iterator%2CArray.from%2CCustomEvent%2CPromise%7Calways%7Cgated"
-            integrity="sha384-zmY2IxEOC1bgFXEe9t1bA9TjR5LVnBl4C3Al7Eud6LyU6OyhUTtC9nFWQpWoDgqz"
+    <script src="https://polyfill.io/v3/polyfill.min.js?version=3.53.1&features=Symbol%2CSymbol.iterator%2CArray.from%2CCustomEvent"
+            integrity="sha384-bF2gXog8EbftpjuWQY8G0T7aeq+FvNU9YWvxSRHybqv2F/lvV5msKMHvRgoukeQP"
             crossorigin="anonymous"></script>
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"
