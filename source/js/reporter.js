@@ -190,7 +190,7 @@ ${measurement.name}:
    * @param {string} name
    * @param {boolean} calculateDuration
    * @param {number} count
-   * @return {{updateCount: (function(number): void), incrementCount: (function(number): void)}}
+   * @return {{updateCount: (function(number): void), incrementCount: (function(number=): void), getCount: (function(): number)}}
    */
   addMetric({ name, calculateDuration = true, count = 0 }) {
     const measurement = {
@@ -219,10 +219,9 @@ ${measurement.name}:
       updateCount,
       /**
        * Increment current measurement count
-       * @param {number} inc
+       * @param {number} [inc]
        */
-      incrementCount: (inc) =>
-        updateCount(measurement.count + (typeof inc === 'number' ? inc : 1)),
+      incrementCount: (inc = 1) => updateCount(measurement.count + inc),
       /**
        * Returns current measurement count
        * @return {number}

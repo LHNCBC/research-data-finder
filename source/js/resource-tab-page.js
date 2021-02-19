@@ -69,7 +69,7 @@ export class ResourceTabPage extends BaseComponent {
           window.localStorage.setItem(
             this.columnsStorageKey,
             this.getVisibleColumns()
-              .map((column) => column.element)
+              .map((column) => column.customElement || column.element)
               .join(',')
           );
         }
@@ -93,12 +93,22 @@ export class ResourceTabPage extends BaseComponent {
         ? visibleColumnsRawString.split(',')
         : [];
 
+      // Add custom columns for ResearchStudy, because it hasn't column Subject
+      if (this.resourceType === 'ResearchStudy') {
+        columnDescriptions.push({
+          name: 'Research subject',
+          customElement: 'patientName',
+          types: ['context-patient-name']
+        });
+      }
       this._columns = columnDescriptions
         .map((column) => {
-          const name = capitalize(column.element)
-            .replace(/\[x]$/, '')
-            .split(/(?=[A-Z])/)
-            .join(' ');
+          const name =
+            column.name ||
+            capitalize(column.element)
+              .replace(/\[x]$/, '')
+              .split(/(?=[A-Z])/)
+              .join(' ');
           return {
             ...column,
             name,
@@ -106,7 +116,10 @@ export class ResourceTabPage extends BaseComponent {
             types: column.types.filter(
               (type) => getValueFnDescriptor[type] !== undefined
             ),
-            visible: visibleColumnNames.indexOf(column.element) !== -1
+            visible:
+              visibleColumnNames.indexOf(
+                column.customElement || column.element
+              ) !== -1
           };
         })
         // Exclude unsupported columns
@@ -131,11 +144,13 @@ export class ResourceTabPage extends BaseComponent {
    * @return {Array<string>}
    */
   getElements() {
-    return this.getVisibleColumns().map((column) =>
-      column.types.length === 1
-        ? column.element
-        : column.element.replace(/\[x]$/, '')
-    );
+    return this.getVisibleColumns()
+      .filter((column) => column.element)
+      .map((column) =>
+        column.types.length === 1
+          ? column.element
+          : column.element.replace(/\[x]$/, '')
+      );
   }
 
   /**
@@ -255,7 +270,7 @@ export class ResourceTabPage extends BaseComponent {
 
 <p id=${this.noResourcesAreaId} class="hide"></p>
 <div id=${this.resourcesAreaId} class="resources-area hide">
-  <div class="section">
+  <div class="section section_sticky">
     <label class="section__title">Selected ${title} [<span id=${this.resourcesCountId}>0</span>]</label>
     <div class="section__toolbar">
       <button id=${this.downloadButtonId}>Download (in CSV format)</button>
@@ -339,12 +354,19 @@ export class ResourceTabPage extends BaseComponent {
 
     for (let index = 0; index < patientCount; ++index) {
       const patient = patientResources[index];
+      let linkToPatient, sortParam;
+
+      if (this.resourceType === 'ResearchStudy') {
+        linkToPatient = `_has:ResearchSubject:study:individual=Patient/${patient.id}`;
+        sortParam = '';
+      } else {
+        linkToPatient = `subject=Patient/${patient.id}`;
+        sortParam = '&_sort=subject';
+      }
 
       fhirClient
         .getWithCache(
-          `${this.resourceType}?subject=Patient/${patient.id}` +
-            elementsParam +
-            `&_sort=subject${criteria}`
+          `${this.resourceType}?${linkToPatient}${elementsParam}${sortParam}${criteria}`
         )
         .then(
           ({ data }) => {

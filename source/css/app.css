@@ -355,10 +355,13 @@ input[disabled] + .upload-file-link {
   display: none;
 }
 
+.section.section_sticky > .section__header {
+  position: sticky;
+}
+
 .section__header {
   z-index: 1;
   cursor: pointer;
-  position: sticky;
   width: fit-content;
   margin-top: -22px;
   margin-left: 10px;

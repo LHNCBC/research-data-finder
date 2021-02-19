@@ -684,9 +684,11 @@ export class FhirBatchQuery {
         Promise.all(
           resources.map((resource) => filterMapFunction(resource))
         ).then((match) => {
-          const result = resources
-            .map((res, index) => (match[index] === true ? res : match[index]))
-            .filter((res) => res !== false);
+          const result = [].concat(
+            ...resources
+              .map((res, index) => (match[index] === true ? res : match[index]))
+              .filter((res) => res !== false)
+          );
           const newCount = count - result.length;
           const nextPageUrl = this.getNextPageUrl(data);
 

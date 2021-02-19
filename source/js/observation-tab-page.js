@@ -99,7 +99,7 @@ export class ObservationTabPage extends ResourceTabPage {
 
 <p id=${this.noResourcesAreaId} class="hide"></p>
 <div id=${this.resourcesAreaId} class="resources-area hide">
-  <div class="section">
+  <div class="section section_sticky">
     <label class="section__title">Selected Observations [<span id=${this.resourcesCountId}>0</span>]</label>
     <div class="section__toolbar">
       <button id=${this.downloadButtonId}>Download (in CSV format)</button>

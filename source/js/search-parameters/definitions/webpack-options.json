@@ -29,6 +29,7 @@
     "Patient",
     "Procedure",
     "RequestGroup",
+    "ResearchStudy",
     "RiskAssessment",
     "ServiceRequest"
   ],

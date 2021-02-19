@@ -242,7 +242,8 @@ function createPatientSearchParameters() {
       'Procedure',
       'RequestGroup',
       'RiskAssessment',
-      'ServiceRequest'
+      'ServiceRequest',
+      'ResearchStudy'
     ]
   });
 }
@@ -481,20 +482,46 @@ function getPatients() {
     }
 
     showPatientProgress('Searching patients', 0);
-    const patientResourcesLoaded = patientsReporter.addMetric({
-      name: 'Patient resources loaded'
-    });
 
     if (resourceSummaries[0].total === 0) {
       return [];
     } else {
-      let checked = 0;
       let processedPatients = {};
-      // Processing resources, the number of which is less than the number of Patients.
-      // (Retrieve patient identifiers corresponding to resources whose number is less than the number of Patients)
       const firstItem = resourceSummaries.shift();
+
+      if (firstItem.resourceType === 'ResearchStudy') {
+        return fhirClient.resourcesMapFilter(
+          `${firstItem.resourceType}?_elements=id${firstItem.criteria}`,
+          maxPatientCount,
+          (researchStudy) => {
+            return fhirClient.resourcesMapFilter(
+              `ResearchSubject?_elements=individual&study=${researchStudy.id}`,
+              maxPatientCount,
+              (researchSubject) => {
+                const patientId =
+                  /^Patient\/(.*)/.test(researchSubject.individual.reference) &&
+                  RegExp.$1;
+                if (processedPatients[patientId]) {
+                  return false;
+                }
+                processedPatients[patientId] = true;
+                return checkPatient(
+                  resourceSummaries,
+                  elements,
+                  maxPatientCount,
+                  patientId
+                );
+              },
+              maxPatientCount
+            );
+          },
+          1
+        );
+      }
+
       const firstItemElements =
         firstItem.resourceType === PATIENT ? elements : 'subject';
+
       return fhirClient.resourcesMapFilter(
         `${firstItem.resourceType}?_elements=${firstItemElements}${firstItem.criteria}`,
         maxPatientCount,
@@ -511,50 +538,88 @@ function getPatients() {
             return false;
           }
           processedPatients[patientId] = true;
-          return resourceSummaries
-            .reduce(
-              (promise, item) =>
-                promise.then((result) => {
-                  if (!result) return result;
-                  const params =
-                    item.resourceType === PATIENT
-                      ? `_elements=${elements}${item.criteria}&_id=${patientId}`
-                      : `_total=accurate&_summary=count${item.criteria}&subject:Patient=${patientId}`;
-
-                  return fhirClient
-                    .getWithCache(`${item.resourceType}?${params}`)
-                    .then(({ data }) => {
-                      const meetsTheConditions = data.total > 0;
-                      const resource =
-                        data.entry && data.entry[0] && data.entry[0].resource;
-                      if (resource && resource.resourceType === PATIENT) {
-                        patientResource = resource;
-                      }
-
-                      return meetsTheConditions && patientResource
-                        ? patientResource
-                        : meetsTheConditions;
-                    });
-                }),
-              Promise.resolve(patientResource ? patientResource : true)
-            )
-            .then((result) => {
-              if (result) {
-                patientResourcesLoaded.updateCount(++checked);
-                showPatientProgress(
-                  'Searching patients',
-                  Math.floor(
-                    (Math.min(maxPatientCount, checked) * 100) / maxPatientCount
-                  )
-                );
-              }
-              return result;
-            });
+          return checkPatient(
+            resourceSummaries,
+            elements,
+            maxPatientCount,
+            patientId,
+            patientResource
+          );
         },
         resourceSummaries.length > 1 ? null : maxPatientCount
       );
     }
   });
+}
+
+/**
+ * This function called from function getPatients.
+ * Checks the patient for the rest of the criteria and returns promise fulfilled
+ * with Patient resource data or with false.
+ * @param {Array} resourceSummaries - array of Object describes criteria
+ *   for each resource
+ * @param {string} elements - value of the _element parameter to use
+ *   in the query to retrieve Patient data
+ * @param {number} maxPatientCount - maximum number of Patients
+ * @param {string} patientId - Patient id
+ * @param {Object} [patientResource] - Patient resource data
+ * @return {Promise<Object|boolean>}
+ */
+function checkPatient(
+  resourceSummaries,
+  elements,
+  maxPatientCount,
+  patientId,
+  patientResource
+) {
+  const patientResourcesLoaded = patientsReporter.addMetric({
+    name: 'Patient resources loaded'
+  });
+
+  return resourceSummaries
+    .reduce(
+      (promise, item) =>
+        promise.then((result) => {
+          if (!result) return result;
+          let url;
+
+          if (item.resourceType === PATIENT) {
+            url = `${item.resourceType}?_elements=${elements}${item.criteria}&_id=${patientId}`;
+          } else if (item.resourceType === 'ResearchStudy') {
+            url = `${item.resourceType}?_total=accurate&_summary=count${item.criteria}&_has:ResearchSubject:study:individual=Patient/${patientId}`;
+          } else {
+            url = `${item.resourceType}?_total=accurate&_summary=count${item.criteria}&subject:Patient=${patientId}`;
+          }
+
+          return fhirClient.getWithCache(url).then(({ data }) => {
+            const meetsTheConditions = data.total > 0;
+            const resource =
+              data.entry && data.entry[0] && data.entry[0].resource;
+            if (resource && resource.resourceType === PATIENT) {
+              patientResource = resource;
+            }
+
+            return meetsTheConditions && patientResource
+              ? patientResource
+              : meetsTheConditions;
+          });
+        }),
+      Promise.resolve(patientResource ? patientResource : true)
+    )
+    .then((result) => {
+      if (result) {
+        patientResourcesLoaded.incrementCount();
+        showPatientProgress(
+          'Searching patients',
+          Math.floor(
+            (Math.min(maxPatientCount, patientResourcesLoaded.getCount()) *
+              100) /
+              maxPatientCount
+          )
+        );
+      }
+      return result;
+    });
 }
 
 export function clearCache() {

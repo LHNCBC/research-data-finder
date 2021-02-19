@@ -90,6 +90,7 @@ export class ResourceTabPane extends BaseComponent {
       'Observation',
       'Procedure',
       'RequestGroup',
+      'ResearchStudy',
       'RiskAssessment',
       'ServiceRequest'
     ];

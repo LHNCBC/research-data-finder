@@ -46,7 +46,6 @@ export function getCurrentDefinitions() {
     // Add default common column "id"
     Object.keys(definitions.resources).forEach((resourceType) => {
       definitions.resources[resourceType].columnDescriptions.unshift({
-        name: 'id',
         types: ['string'],
         element: 'id',
         isArray: false
