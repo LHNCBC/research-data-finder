@@ -24,6 +24,12 @@ export class ResourceTabPage extends BaseComponent {
   constructor({ resourceType, callbacks }) {
     super({ callbacks });
     this.resourceType = resourceType;
+    this.pluralFormOfResourceType = this.resourceType.replace(/(.*)(.)/, function (_, $1, $2) {
+      if ($2 === 'y') {
+        return $1 + 'ies';
+      }
+      return _;
+    });
     this.columnsStorageKey = resourceType + '-columns';
 
     this.loadButtonId = this.generateId('loadBtn');
@@ -253,7 +259,7 @@ export class ResourceTabPage extends BaseComponent {
    * @return {string}
    */
   getHtml() {
-    const title = capitalize(this.resourceType) + 's';
+    const title = this.pluralFormOfResourceType;
 
     return `
 <div class="section">
@@ -291,7 +297,7 @@ export class ResourceTabPage extends BaseComponent {
     const percent = completedRequestCount
       ? Math.floor((completedRequestCount * 100) / totalRequestCount)
       : 0;
-    const message = `Loading ${this.resourceType}s`;
+    const message = `Loading ${this.pluralFormOfResourceType}`;
     this.showMessageIfNoResourceList(`${message}... ${percent}%`);
     this.loadReporter.setProgress(message + '...', percent);
   }
@@ -399,7 +405,7 @@ export class ResourceTabPage extends BaseComponent {
                   this.showListOfResources(resourcesCount);
                 } else {
                   this.showMessageIfNoResourceList(
-                    `No matching ${this.resourceType}s found.`
+                    `No matching ${this.pluralFormOfResourceType} found.`
                   );
                 }
                 this.callbacks.onEndLoading();
@@ -411,7 +417,7 @@ export class ResourceTabPage extends BaseComponent {
             hasError = true;
             if (status !== HTTP_ABORT) {
               fhirClient.clearPendingRequests();
-              console.log(`Load ${this.resourceType}s failed: ${error}`);
+              console.log(`Load ${this.pluralFormOfResourceType} failed: ${error}`);
               // Show message if request is not aborted
               this.showMessageIfNoResourceList(
                 `Could not load ${this.resourceType} list`
