@@ -28,7 +28,7 @@ export class ResourceTabPage extends BaseComponent {
       if ($2 === 'y') {
         return $1 + 'ies';
       }
-      return _;
+      return _ + 's';
     });
     this.columnsStorageKey = resourceType + '-columns';
 
