@@ -483,6 +483,10 @@ function getPatients() {
 
     showPatientProgress('Searching patients', 0);
 
+    const patientResourcesLoaded = patientsReporter.addMetric({
+      name: 'Patient resources loaded'
+    });
+
     if (resourceSummaries[0].total === 0) {
       return [];
     } else {
@@ -507,6 +511,7 @@ function getPatients() {
                 processedPatients[patientId] = true;
                 return checkPatient(
                   resourceSummaries,
+                  patientResourcesLoaded,
                   elements,
                   maxPatientCount,
                   patientId
@@ -540,6 +545,7 @@ function getPatients() {
           processedPatients[patientId] = true;
           return checkPatient(
             resourceSummaries,
+            patientResourcesLoaded,
             elements,
             maxPatientCount,
             patientId,
@@ -567,14 +573,12 @@ function getPatients() {
  */
 function checkPatient(
   resourceSummaries,
+  patientResourcesLoaded,
   elements,
   maxPatientCount,
   patientId,
   patientResource
 ) {
-  const patientResourcesLoaded = patientsReporter.addMetric({
-    name: 'Patient resources loaded'
-  });
 
   return resourceSummaries
     .reduce(
@@ -617,6 +621,9 @@ function checkPatient(
               maxPatientCount
           )
         );
+      } else {
+        // Update duration:
+        patientResourcesLoaded.incrementCount(0);
       }
       return result;
     });
