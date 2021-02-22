@@ -1,0 +1,46 @@
+<div class="search-parameter">
+  <mat-form-field class="resource-type" *ngIf="!fixedResourceType">
+    <mat-label>Resource type</mat-label>
+    <input type="text"
+           aria-label="Resource type"
+           matInput
+           [formControl]="resourceType"
+           [matAutocomplete]="autocomplete">
+    <mat-autocomplete #autocomplete="matAutocomplete">
+      <mat-option *ngFor="let option of filteredResourceTypes | async" [value]="option">
+        {{option}}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <mat-form-field class="parameter-name" *ngIf="resourceType.value === 'Patient'">
+    <mat-label>Search parameter name</mat-label>
+    <input type="text"
+           aria-label="Search parameter name"
+           matInput
+           [formControl]="parameterName"
+           [matAutocomplete]="auto1">
+    <mat-autocomplete #auto1="matAutocomplete">
+      <mat-option *ngFor="let option of filteredParameterNames | async" [value]="option">
+        {{option}}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <mat-form-field class="parameter-value" *ngIf="resourceType.value === 'Patient' && parameterName.value">
+    <mat-label>Parameter value</mat-label>
+    <input matInput [formControl]="parameterValue">
+  </mat-form-field>
+
+  <app-loinc-variables-selector
+    *ngIf="resourceType.value === 'Observation'"
+    class="flex"
+    [formControl]="selectedLoincItems">
+  </app-loinc-variables-selector>
+
+  <mat-form-field class="parameter-value" *ngIf="resourceType.value === 'Observation' && selectedLoincItems.value.length">
+    <mat-label>Test value</mat-label>
+    <input matInput [formControl]="parameterValue">
+  </mat-form-field>
+
+</div>
