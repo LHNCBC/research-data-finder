@@ -66,8 +66,11 @@ function initApp(serviceBaseUrl) {
   patientSearchParams = createPatientSearchParameters();
   resourceTabPane.clearResourceList(serviceBaseUrl);
 
+  addCssClass('#searchArea', 'spinner');
   onStartLoading();
-  patientSearchParams.ready.then(onEndLoading);
+  patientSearchParams.ready.then(onEndLoading).finally(() => {
+    removeCssClass('#searchArea', 'spinner');
+  });
   // Clear visible Patient list data
   showMessageIfNoPatientList('');
   reportPatientsSpan.innerHTML = '';
@@ -146,10 +149,13 @@ initApp();
 
 /**
  *  Shows a message when there are no Patient list was displayed
+ *  @param {string} msg - message text
+ *  @param {boolean} [withSpinner] - whether to show spinner before the message text
  */
-function showMessageIfNoPatientList(msg) {
+function showMessageIfNoPatientList(msg, withSpinner = false) {
   const nonResultsMsgElement = document.getElementById('noPatients');
   nonResultsMsgElement.innerText = msg;
+  toggleCssClass('#noPatients', 'spinner spinner_left', withSpinner);
   toggleCssClass('#noPatients', 'hide', !msg);
   addCssClass('#patientsArea', 'hide');
 }
@@ -173,9 +179,9 @@ function showListOfPatients(count) {
  */
 function showPatientProgress(message, percent) {
   if (percent === undefined) {
-    showMessageIfNoPatientList(`${message}...`);
+    showMessageIfNoPatientList(`${message}...`, true);
   } else {
-    showMessageIfNoPatientList(`${message}... ${percent}%`);
+    showMessageIfNoPatientList(`${message}... ${percent}%`, true);
   }
   patientsReporter.setProgress(message + '...', percent);
 }
@@ -564,6 +570,8 @@ function getPatients() {
  * with Patient resource data or with false.
  * @param {Array} resourceSummaries - array of Object describes criteria
  *   for each resource
+ * @param {Array} patientResourcesLoaded - object for measuring the number of Patients
+ *   (this object is created in the getPatients method)
  * @param {string} elements - value of the _element parameter to use
  *   in the query to retrieve Patient data
  * @param {number} maxPatientCount - maximum number of Patients
@@ -579,7 +587,6 @@ function checkPatient(
   patientId,
   patientResource
 ) {
-
   return resourceSummaries
     .reduce(
       (promise, item) =>

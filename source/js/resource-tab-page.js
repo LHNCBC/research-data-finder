@@ -2,7 +2,12 @@ import { HTTP_ABORT } from './common/fhir-batch-query';
 import { Reporter } from './reporter';
 import { saveAs } from 'file-saver';
 import { ResourceTable, getValueFnDescriptor } from './resource-table';
-import { addCssClass, capitalize, removeCssClass } from './common/utils';
+import {
+  addCssClass,
+  capitalize,
+  removeCssClass,
+  toggleCssClass
+} from './common/utils';
 import { BaseComponent } from './common/base-component';
 import {
   EncounterSearchParameters,
@@ -24,12 +29,15 @@ export class ResourceTabPage extends BaseComponent {
   constructor({ resourceType, callbacks }) {
     super({ callbacks });
     this.resourceType = resourceType;
-    this.pluralFormOfResourceType = this.resourceType.replace(/(.*)(.)/, function (_, $1, $2) {
-      if ($2 === 'y') {
-        return $1 + 'ies';
+    this.pluralFormOfResourceType = this.resourceType.replace(
+      /(.*)(.)/,
+      function (_, $1, $2) {
+        if ($2 === 'y') {
+          return $1 + 'ies';
+        }
+        return _ + 's';
       }
-      return _ + 's';
-    });
+    );
     this.columnsStorageKey = resourceType + '-columns';
 
     this.loadButtonId = this.generateId('loadBtn');
@@ -298,18 +306,25 @@ export class ResourceTabPage extends BaseComponent {
       ? Math.floor((completedRequestCount * 100) / totalRequestCount)
       : 0;
     const message = `Loading ${this.pluralFormOfResourceType}`;
-    this.showMessageIfNoResourceList(`${message}... ${percent}%`);
+    this.showMessageIfNoResourceList(`${message}... ${percent}%`, true);
     this.loadReporter.setProgress(message + '...', percent);
   }
 
   /**
    *  Shows a message when there are no resource list was displayed
+   *  @param {string} msg - message text
+   *  @param {boolean} [withSpinner] - whether to show spinner before the message text
    */
-  showMessageIfNoResourceList(msg) {
+  showMessageIfNoResourceList(msg, withSpinner = false) {
     const nonResultsMsgElement = document.getElementById(
       this.noResourcesAreaId
     );
     nonResultsMsgElement.innerText = msg;
+    toggleCssClass(
+      '#' + this.noResourcesAreaId,
+      'spinner spinner_left',
+      withSpinner
+    );
     removeCssClass('#' + this.noResourcesAreaId, 'hide');
     addCssClass('#' + this.resourcesAreaId, 'hide');
   }
@@ -417,7 +432,9 @@ export class ResourceTabPage extends BaseComponent {
             hasError = true;
             if (status !== HTTP_ABORT) {
               fhirClient.clearPendingRequests();
-              console.log(`Load ${this.pluralFormOfResourceType} failed: ${error}`);
+              console.log(
+                `Load ${this.pluralFormOfResourceType} failed: ${error}`
+              );
               // Show message if request is not aborted
               this.showMessageIfNoResourceList(
                 `Could not load ${this.resourceType} list`

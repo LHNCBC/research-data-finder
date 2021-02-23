@@ -74,6 +74,8 @@ describe('Research Data Finder', function () {
     const maxPatientCountInput = $('#maxPatientCount');
     const loadObservationsBtn = $('#ObservationTabPage-1-loadBtn');
 
+     browser.wait(EC.visibilityOf(maxPatientCountInput));
+
     // Random maximum number of Patients from 50 to 100
     maxPatientCountInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 50 + Math.floor(Math.random()*50));
 
@@ -286,6 +288,10 @@ describe('Research Data Finder', function () {
           anyDateToBePresentInInput(toInput)
         )
       );
+
+      // TODO: temporary workaround for HAPI 5.x issue:
+      // https://chat.fhir.org/#narrow/stream/179167-hapi/topic/Patient.2Ebirthdate.20lower.20bound.20search.20issue.20in.205.2E3.20snapshot
+      fromInput.clear();
     });
 
     it('should select the first search parameter for selected resource by default', function () {
