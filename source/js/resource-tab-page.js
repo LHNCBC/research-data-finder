@@ -316,16 +316,10 @@ export class ResourceTabPage extends BaseComponent {
    *  @param {boolean} [withSpinner] - whether to show spinner before the message text
    */
   showMessageIfNoResourceList(msg, withSpinner = false) {
-    const nonResultsMsgElement = document.getElementById(
-      this.noResourcesAreaId
-    );
-    nonResultsMsgElement.innerText = msg;
-    toggleCssClass(
-      '#' + this.noResourcesAreaId,
-      'spinner spinner_left',
-      withSpinner
-    );
-    removeCssClass('#' + this.noResourcesAreaId, 'hide');
+    const msgElement = document.getElementById(this.noResourcesAreaId);
+    msgElement.innerText = msg;
+    toggleCssClass(msgElement, 'spinner spinner_left', withSpinner);
+    removeCssClass(msgElement, 'hide');
     addCssClass('#' + this.resourcesAreaId, 'hide');
   }
 
