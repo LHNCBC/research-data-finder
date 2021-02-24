@@ -50,10 +50,12 @@ export class ResourceTable extends BaseComponent {
   getColumnValues(column, data, valueSetMapByPath) {
     const columnValues = [];
     const getValueDescriptor = column.types.map((type) => ({
-      propertyName: column.element.replace('[x]', type),
+      propertyName: column.element ? column.element.replace('[x]', type) : '',
       getValue: getValueFn(type, column.isArray)
     }));
-    const fullPath = this.resourceType + '.' + column.element;
+    const fullPath = column.element
+      ? this.resourceType + '.' + column.element
+      : '';
     let rowIndex = 0;
 
     data.bundles.forEach((bundle, patientIndex) => {
@@ -64,7 +66,9 @@ export class ResourceTable extends BaseComponent {
       };
       (bundle.entry || []).forEach((entry) => {
         getValueDescriptor.find(({ propertyName, getValue }) => {
-          let prop = entry.resource[propertyName];
+          let prop = propertyName
+            ? entry.resource[propertyName]
+            : entry.resource;
           if (prop) {
             const value = getValue(prop, context, fullPath);
             if (value) {
@@ -187,7 +191,7 @@ export const getValueFnDescriptor = {
   Duration: getQuantityAsText,
   date: identity,
   HumanName: getHumanNameAsText,
-  Address: getAddressAsText
+  Address: getAddressAsText,
   // Unsupported types:
   // 'Annotation': getAnnotationAsText,
   // 'BackboneElement': getBackboneElementAsText,
@@ -196,6 +200,8 @@ export const getValueFnDescriptor = {
   // 'DataRequirement': getDataRequirement,
   // 'markdown': getmarkdown,
   // 'Dosage': getDosage,
+  // Custom types:
+  'context-patient-name': getContextPatientName
 };
 
 /**
@@ -393,4 +399,15 @@ function getAddressAsText(v, context, fullPath) {
   return v.use
     ? `${context.valueSetMapByPath[fullPath + '.use'][v.use]}: ${addressString}`
     : addressString;
+}
+
+/**
+ * Returns a textual representation of "Patient name" value
+ * @param {Object} v - unused value
+ * @param {Object} context - context data object
+ * @param {Object} context.patient - Patient resource data
+ * @return {string|null}
+ */
+function getContextPatientName(v, context) {
+  return humanNameToString(context.patient.name);
 }

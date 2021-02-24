@@ -20,11 +20,11 @@ export class PatientTable extends ResourceTable {
     // text - callback to get cell text/html
     this.viewCellsTemplate = [
       {
-        title: 'Patient Id',
+        title: 'Id',
         text: (pat) => pat.id
       },
       {
-        title: 'Patient',
+        title: 'Name',
         text: (pat) => pat._name
       },
       {

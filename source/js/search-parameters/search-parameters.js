@@ -53,6 +53,7 @@ export class SearchParameters extends BaseComponent {
             {}
           );
           this.buttonId = this._id + '_add_button';
+          this.buttonAreaId = this._id + '_button_area';
           this.item_prefix = this._id + '_param_';
           this.item_generator = 0;
           this.selectedParams = {};
@@ -140,7 +141,7 @@ export class SearchParameters extends BaseComponent {
     <div class="search-parameter-list__combiner"><label>AND</label> - criteria are combined with logical AND</div>
     <div class="section__body"></div>
 </div>
-<div>
+<div id="${this.buttonAreaId}">
   <button id="${
     this.buttonId
   }" type="button" class="add-search-param-button">Add a search criterion</button>
@@ -161,10 +162,10 @@ export class SearchParameters extends BaseComponent {
    */
   detachControls() {
     super.detachControls();
-    const addBtn = document.getElementById(this.buttonId);
-    if (addBtn) {
+    const buttonArea = document.getElementById(this.buttonAreaId);
+    if (buttonArea) {
       this.removeAllParams();
-      addBtn.parentElement.removeChild(addBtn);
+      buttonArea.parentElement.removeChild(buttonArea);
     }
     const componentElement = document.getElementById(this._id);
     if (componentElement) {

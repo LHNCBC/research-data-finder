@@ -122,62 +122,64 @@
           or load previously saved cohort of Patients and the criteria which selected them.
       </span>
 
-      <div class="h-box">
-        <label class="radio-option">
-          <input type="radio" checked name="cohortOption" id="buildCohortOption" value="build"
-                 onchange="app.onChangePatientForm()">
-          Build Cohort
-        </label>
-        <label class="radio-option">
-          <input type="radio" name="cohortOption" id="loadCohortOption" value="load"
-                 onchange="app.onChangePatientForm()">
-          Load Cohort<span id="patientLoadForm" class="hide">:
-            <input style="display: none;" type="file" id="cohortFile" onchange="app.loadCohort(event)">
-            <label id="cohortFilename" for="cohortFile"
-                   class="upload-file-link" tabindex="0" onkeydown="keydownToClick(event)"></label>
-          </span>
-        </label>
-      </div>
-
-      <form id="patientCriteriaForm" onsubmit="app.loadPatients(); return false;">
-        <div class="section">
-          <label class="section__title">Build Cohort criteria</label>
-          <div class="section__body">
-            <span class="description">
-              Criteria can be defined not only for the Patient resource but also for related resources.
-              Patients will be added to the cohort if the related resources meet the criteria.
+      <div id="searchArea" class="v-box">
+        <div class="h-box">
+          <label class="radio-option">
+            <input type="radio" checked name="cohortOption" id="buildCohortOption" value="build"
+                   onchange="app.onChangePatientForm()">
+            Build Cohort
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="cohortOption" id="loadCohortOption" value="load"
+                   onchange="app.onChangePatientForm()">
+            Load Cohort<span id="patientLoadForm" class="hide">:
+              <input style="display: none;" type="file" id="cohortFile" onchange="app.loadCohort(event)">
+              <label id="cohortFilename" for="cohortFile"
+                     class="upload-file-link" tabindex="0" onkeydown="keydownToClick(event)"></label>
             </span>
-            <div id="patientSearchParamsAfterThisRow">
-              <label for="maxPatientCount">Maximum number of patients:</label>
-              <input type="number" id="maxPatientCount" value="100">
+          </label>
+        </div>
+
+        <form id="patientCriteriaForm" onsubmit="app.loadPatients(); return false;">
+          <div class="section">
+            <label class="section__title">Build Cohort criteria</label>
+            <div class="section__body">
+              <span class="description">
+                Criteria can be defined not only for the Patient resource but also for related resources.
+                Patients will be added to the cohort if the related resources meet the criteria.
+              </span>
+              <div id="patientSearchParamsAfterThisRow">
+                <label for="maxPatientCount">Maximum number of patients:</label>
+                <input type="number" id="maxPatientCount" value="100">
+              </div>
             </div>
           </div>
-        </div>
 
-        <button id=loadPatients onclick="app.checkPatientCriteria()">Search for Patients</button>
-        <span id=reportPatients class="hide"></span>
-      </form>
-      <p id="noPatients" class="hide"></p>
+          <button id=loadPatients onclick="app.checkPatientCriteria()">Search for Patients</button>
+          <span id=reportPatients class="hide"></span>
+        </form>
+        <p id="noPatients" class="hide"></p>
 
-      <div id="patientsArea" class="hide">
-        <span class="description">
-          Click on the link below to save the cohort of Patients and the criteria for later.
-        </span>
-        <a id="saveCohort" href="#" class="download-file-link"
-           onclick="app.downloadCohort();return false;">Save the cohort for later</a>
-        <div class="section">
-          <label class="section__title">Cohort [<span id="patientsCount">0</span> Patients]</label>
-          <div class="section__body"></div>
-        </div>
-        <div class="section">
-          <label class="section__title">Pull data for Cohort</label>
-          <div class="section__body">
-            <span class="description">
-              Here you can search for each type of Patient-related resources and download the resource list in CSV format.
-            </span>
+        <div id="patientsArea" class="hide">
+          <span class="description">
+            Click on the link below to save the cohort of Patients and the criteria for later.
+          </span>
+          <a id="saveCohort" href="#" class="download-file-link"
+             onclick="app.downloadCohort();return false;">Save the cohort for later</a>
+          <div class="section section_sticky">
+            <label class="section__title">Cohort [<span id="patientsCount">0</span> Patients]</label>
+            <div class="section__body"></div>
           </div>
-        </div>
+          <div class="section">
+            <label class="section__title">Pull data for Cohort</label>
+            <div class="section__body">
+              <span class="description">
+                Here you can search for each type of Patient-related resources and download the resource list in CSV format.
+              </span>
+            </div>
+          </div>
 
+        </div>
       </div>
 
     </div>

@@ -201,6 +201,8 @@ input.ansList {
   padding: 0 1em 1em 1em;
 }
 
+.v-box > div:not(:first-child),
+.v-box > p:not(:first-child),
 #content > p,
 #content > div:not(.section),
 form > p,
@@ -355,10 +357,13 @@ input[disabled] + .upload-file-link {
   display: none;
 }
 
+.section.section_sticky > .section__header {
+  position: sticky;
+}
+
 .section__header {
   z-index: 1;
   cursor: pointer;
-  position: sticky;
   width: fit-content;
   margin-top: -22px;
   margin-left: 10px;
@@ -847,7 +852,7 @@ a:hover {
 }
 /* End of styles for the report popup */
 
-/* Styles to show loading status for search parameter controls */
+/* Styles to show loading status */
 @keyframes spinner {
   to {
     transform: rotate(360deg);
@@ -875,7 +880,19 @@ a:hover {
   border-top-color: #000;
   animation: spinner 0.6s linear infinite;
 }
-/* End of styles to show loading status for search parameter controls */
+
+.spinner_left {
+  padding-left: 20px;
+}
+
+.spinner_left * {
+  visibility: inherit;
+}
+
+.spinner_left:before {
+  left: 10px;
+}
+/* End of styles to show loading status */
 
 /* Styles for the footer */
 #fine-print {

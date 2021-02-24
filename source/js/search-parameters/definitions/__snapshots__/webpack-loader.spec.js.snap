@@ -7082,6 +7082,273 @@ Object {
       },
     ],
   },
+  "ResearchStudy": Object {
+    "columnDescriptions": Array [
+      Object {
+        "element": "identifier",
+        "isArray": true,
+        "types": Array [
+          "Identifier",
+        ],
+      },
+      Object {
+        "element": "title",
+        "isArray": false,
+        "types": Array [
+          "string",
+        ],
+      },
+      Object {
+        "element": "protocol",
+        "isArray": true,
+        "types": Array [
+          "Reference",
+        ],
+      },
+      Object {
+        "element": "partOf",
+        "isArray": true,
+        "types": Array [
+          "Reference",
+        ],
+      },
+      Object {
+        "element": "status",
+        "isArray": false,
+        "types": Array [
+          "code",
+        ],
+      },
+      Object {
+        "element": "primaryPurposeType",
+        "isArray": false,
+        "types": Array [
+          "CodeableConcept",
+        ],
+      },
+      Object {
+        "element": "phase",
+        "isArray": false,
+        "types": Array [
+          "CodeableConcept",
+        ],
+      },
+      Object {
+        "element": "category",
+        "isArray": true,
+        "types": Array [
+          "CodeableConcept",
+        ],
+      },
+      Object {
+        "element": "focus",
+        "isArray": true,
+        "types": Array [
+          "CodeableConcept",
+        ],
+      },
+      Object {
+        "element": "condition",
+        "isArray": true,
+        "types": Array [
+          "CodeableConcept",
+        ],
+      },
+      Object {
+        "element": "contact",
+        "isArray": true,
+        "types": Array [
+          "ContactDetail",
+        ],
+      },
+      Object {
+        "element": "relatedArtifact",
+        "isArray": true,
+        "types": Array [
+          "RelatedArtifact",
+        ],
+      },
+      Object {
+        "element": "keyword",
+        "isArray": true,
+        "types": Array [
+          "CodeableConcept",
+        ],
+      },
+      Object {
+        "element": "location",
+        "isArray": true,
+        "types": Array [
+          "CodeableConcept",
+        ],
+      },
+      Object {
+        "element": "description",
+        "isArray": false,
+        "types": Array [
+          "markdown",
+        ],
+      },
+      Object {
+        "element": "enrollment",
+        "isArray": true,
+        "types": Array [
+          "Reference",
+        ],
+      },
+      Object {
+        "element": "period",
+        "isArray": false,
+        "types": Array [
+          "Period",
+        ],
+      },
+      Object {
+        "element": "sponsor",
+        "isArray": false,
+        "types": Array [
+          "Reference",
+        ],
+      },
+      Object {
+        "element": "principalInvestigator",
+        "isArray": false,
+        "types": Array [
+          "Reference",
+        ],
+      },
+      Object {
+        "element": "site",
+        "isArray": true,
+        "types": Array [
+          "Reference",
+        ],
+      },
+      Object {
+        "element": "reasonStopped",
+        "isArray": false,
+        "types": Array [
+          "CodeableConcept",
+        ],
+      },
+      Object {
+        "element": "note",
+        "isArray": true,
+        "types": Array [
+          "Annotation",
+        ],
+      },
+      Object {
+        "element": "arm",
+        "isArray": true,
+        "types": Array [
+          "BackboneElement",
+        ],
+      },
+      Object {
+        "element": "objective",
+        "isArray": true,
+        "types": Array [
+          "BackboneElement",
+        ],
+      },
+    ],
+    "searchParameters": Array [
+      Object {
+        "description": "Classifications for the study",
+        "expression": "ResearchStudy.category",
+        "name": "category",
+        "path": "ResearchStudy.category",
+        "type": "CodeableConcept",
+      },
+      Object {
+        "description": "When the study began and ended",
+        "expression": "ResearchStudy.period",
+        "name": "date",
+        "path": "ResearchStudy.period",
+        "type": "date",
+      },
+      Object {
+        "description": "Drugs, devices, etc. under study",
+        "expression": "ResearchStudy.focus",
+        "name": "focus",
+        "path": "ResearchStudy.focus",
+        "type": "CodeableConcept",
+      },
+      Object {
+        "description": "Business Identifier for study",
+        "expression": "ResearchStudy.identifier",
+        "name": "identifier",
+        "path": "ResearchStudy.identifier",
+        "type": "Identifier",
+      },
+      Object {
+        "description": "Used to search for the study",
+        "expression": "ResearchStudy.keyword",
+        "name": "keyword",
+        "path": "ResearchStudy.keyword",
+        "type": "CodeableConcept",
+      },
+      Object {
+        "description": "Geographic region(s) for study",
+        "expression": "ResearchStudy.location",
+        "name": "location",
+        "path": "ResearchStudy.location",
+        "type": "CodeableConcept",
+        "valueSet": "http://hl7.org/fhir/ValueSet/jurisdiction",
+      },
+      Object {
+        "description": "Part of larger study",
+        "expression": "ResearchStudy.partOf",
+        "name": "partof",
+        "path": "ResearchStudy.partOf",
+        "type": "reference",
+      },
+      Object {
+        "description": "Researcher who oversees multiple aspects of the study",
+        "expression": "ResearchStudy.principalInvestigator",
+        "name": "principalinvestigator",
+        "path": "ResearchStudy.principalInvestigator",
+        "type": "reference",
+      },
+      Object {
+        "description": "Steps followed in executing study",
+        "expression": "ResearchStudy.protocol",
+        "name": "protocol",
+        "path": "ResearchStudy.protocol",
+        "type": "reference",
+      },
+      Object {
+        "description": "Facility where study activities are conducted",
+        "expression": "ResearchStudy.site",
+        "name": "site",
+        "path": "ResearchStudy.site",
+        "type": "reference",
+      },
+      Object {
+        "description": "Organization that initiates and is legally responsible for the study",
+        "expression": "ResearchStudy.sponsor",
+        "name": "sponsor",
+        "path": "ResearchStudy.sponsor",
+        "type": "reference",
+      },
+      Object {
+        "description": "active | administratively-completed | approved | closed-to-accrual | closed-to-accrual-and-intervention | completed | disapproved | in-review | temporarily-closed-to-accrual | temporarily-closed-to-accrual-and-intervention | withdrawn",
+        "expression": "ResearchStudy.status",
+        "name": "status",
+        "path": "ResearchStudy.status",
+        "type": "code",
+        "valueSet": "http://hl7.org/fhir/ValueSet/research-study-status|4.0.1",
+      },
+      Object {
+        "description": "Name for this study",
+        "expression": "ResearchStudy.title",
+        "name": "title",
+        "path": "ResearchStudy.title",
+        "type": "string",
+      },
+    ],
+  },
   "RiskAssessment": Object {
     "columnDescriptions": Array [
       Object {
@@ -34571,6 +34838,7 @@ Object {
       "display": "issued",
     },
   ],
+  "http://hl7.org/fhir/ValueSet/jurisdiction": "http://hl7.org/fhir/ValueSet/jurisdiction",
   "http://hl7.org/fhir/ValueSet/languages": Array [
     Object {
       "code": "ar",
@@ -35820,6 +36088,138 @@ Object {
     Object {
       "code": "unknown",
       "display": "Unknown",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/research-study-phase": Array [
+    Object {
+      "code": "early-phase-1",
+      "display": "Early Phase 1",
+    },
+    Object {
+      "code": "n-a",
+      "display": "N/A",
+    },
+    Object {
+      "code": "phase-1",
+      "display": "Phase 1",
+    },
+    Object {
+      "code": "phase-1-phase-2",
+      "display": "Phase 1/Phase 2",
+    },
+    Object {
+      "code": "phase-2",
+      "display": "Phase 2",
+    },
+    Object {
+      "code": "phase-2-phase-3",
+      "display": "Phase 2/Phase 3",
+    },
+    Object {
+      "code": "phase-3",
+      "display": "Phase 3",
+    },
+    Object {
+      "code": "phase-4",
+      "display": "Phase 4",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/research-study-prim-purp-type": Array [
+    Object {
+      "code": "basic-science",
+      "display": "Basic Science",
+    },
+    Object {
+      "code": "device-feasibility",
+      "display": "Device Feasibility",
+    },
+    Object {
+      "code": "diagnostic",
+      "display": "Diagnostic",
+    },
+    Object {
+      "code": "health-services-research",
+      "display": "Health Services Research",
+    },
+    Object {
+      "code": "prevention",
+      "display": "Prevention",
+    },
+    Object {
+      "code": "screening",
+      "display": "Screening",
+    },
+    Object {
+      "code": "supportive-care",
+      "display": "Supportive Care",
+    },
+    Object {
+      "code": "treatment",
+      "display": "Treatment",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/research-study-reason-stopped": Array [
+    Object {
+      "code": "accrual-goal-met",
+      "display": "Accrual Goal Met",
+    },
+    Object {
+      "code": "closed-due-to-lack-of-study-progress",
+      "display": "Closed due to lack of study progress",
+    },
+    Object {
+      "code": "closed-due-to-toxicity",
+      "display": "Closed due to toxicity",
+    },
+    Object {
+      "code": "temporarily-closed-per-study-design",
+      "display": "Temporarily closed per study design",
+    },
+  ],
+  "http://hl7.org/fhir/ValueSet/research-study-status|4.0.1": Array [
+    Object {
+      "code": "active",
+      "display": "Active",
+    },
+    Object {
+      "code": "administratively-completed",
+      "display": "Administratively Completed",
+    },
+    Object {
+      "code": "approved",
+      "display": "Approved",
+    },
+    Object {
+      "code": "closed-to-accrual",
+      "display": "Closed to Accrual",
+    },
+    Object {
+      "code": "closed-to-accrual-and-intervention",
+      "display": "Closed to Accrual and Intervention",
+    },
+    Object {
+      "code": "completed",
+      "display": "Completed",
+    },
+    Object {
+      "code": "disapproved",
+      "display": "Disapproved",
+    },
+    Object {
+      "code": "in-review",
+      "display": "In Review",
+    },
+    Object {
+      "code": "temporarily-closed-to-accrual",
+      "display": "Temporarily Closed to Accrual",
+    },
+    Object {
+      "code": "temporarily-closed-to-accrual-and-intervention",
+      "display": "Temporarily Closed to Accrual and Intervention",
+    },
+    Object {
+      "code": "withdrawn",
+      "display": "Withdrawn",
     },
   ],
   "http://hl7.org/fhir/ValueSet/risk-probability": Array [
@@ -45838,6 +46238,12 @@ Object {
   "RequestGroup.intent": "http://hl7.org/fhir/ValueSet/request-intent|4.0.1",
   "RequestGroup.priority": "http://hl7.org/fhir/ValueSet/request-priority|4.0.1",
   "RequestGroup.status": "http://hl7.org/fhir/ValueSet/request-status|4.0.1",
+  "ResearchStudy.condition": "http://hl7.org/fhir/ValueSet/condition-code",
+  "ResearchStudy.location": "http://hl7.org/fhir/ValueSet/jurisdiction",
+  "ResearchStudy.phase": "http://hl7.org/fhir/ValueSet/research-study-phase",
+  "ResearchStudy.primaryPurposeType": "http://hl7.org/fhir/ValueSet/research-study-prim-purp-type",
+  "ResearchStudy.reasonStopped": "http://hl7.org/fhir/ValueSet/research-study-reason-stopped",
+  "ResearchStudy.status": "http://hl7.org/fhir/ValueSet/research-study-status|4.0.1",
   "RiskAssessment.prediction.qualitativeRisk": "http://hl7.org/fhir/ValueSet/risk-probability",
   "RiskAssessment.status": "http://hl7.org/fhir/ValueSet/observation-status|4.0.1",
   "ServiceRequest.asNeeded[x]": "http://hl7.org/fhir/ValueSet/medication-as-needed-reason",

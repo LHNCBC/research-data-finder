@@ -2,7 +2,12 @@ import { HTTP_ABORT } from './common/fhir-batch-query';
 import { Reporter } from './reporter';
 import { saveAs } from 'file-saver';
 import { ResourceTable, getValueFnDescriptor } from './resource-table';
-import { addCssClass, capitalize, removeCssClass } from './common/utils';
+import {
+  addCssClass,
+  capitalize,
+  removeCssClass,
+  toggleCssClass
+} from './common/utils';
 import { BaseComponent } from './common/base-component';
 import {
   EncounterSearchParameters,
@@ -24,6 +29,15 @@ export class ResourceTabPage extends BaseComponent {
   constructor({ resourceType, callbacks }) {
     super({ callbacks });
     this.resourceType = resourceType;
+    this.pluralFormOfResourceType = this.resourceType.replace(
+      /(.*)(.)/,
+      function (_, $1, $2) {
+        if ($2 === 'y') {
+          return $1 + 'ies';
+        }
+        return _ + 's';
+      }
+    );
     this.columnsStorageKey = resourceType + '-columns';
 
     this.loadButtonId = this.generateId('loadBtn');
@@ -69,7 +83,7 @@ export class ResourceTabPage extends BaseComponent {
           window.localStorage.setItem(
             this.columnsStorageKey,
             this.getVisibleColumns()
-              .map((column) => column.element)
+              .map((column) => column.customElement || column.element)
               .join(',')
           );
         }
@@ -93,12 +107,22 @@ export class ResourceTabPage extends BaseComponent {
         ? visibleColumnsRawString.split(',')
         : [];
 
+      // Add a custom column for ResearchStudy, because it doesn't have column Subject
+      if (this.resourceType === 'ResearchStudy') {
+        columnDescriptions.push({
+          name: 'Research subject',
+          customElement: 'patientName',
+          types: ['context-patient-name']
+        });
+      }
       this._columns = columnDescriptions
         .map((column) => {
-          const name = capitalize(column.element)
-            .replace(/\[x]$/, '')
-            .split(/(?=[A-Z])/)
-            .join(' ');
+          const name =
+            column.name ||
+            capitalize(column.element)
+              .replace(/\[x]$/, '')
+              .split(/(?=[A-Z])/)
+              .join(' ');
           return {
             ...column,
             name,
@@ -106,7 +130,10 @@ export class ResourceTabPage extends BaseComponent {
             types: column.types.filter(
               (type) => getValueFnDescriptor[type] !== undefined
             ),
-            visible: visibleColumnNames.indexOf(column.element) !== -1
+            visible:
+              visibleColumnNames.indexOf(
+                column.customElement || column.element
+              ) !== -1
           };
         })
         // Exclude unsupported columns
@@ -131,11 +158,13 @@ export class ResourceTabPage extends BaseComponent {
    * @return {Array<string>}
    */
   getElements() {
-    return this.getVisibleColumns().map((column) =>
-      column.types.length === 1
-        ? column.element
-        : column.element.replace(/\[x]$/, '')
-    );
+    return this.getVisibleColumns()
+      .filter((column) => column.element)
+      .map((column) =>
+        column.types.length === 1
+          ? column.element
+          : column.element.replace(/\[x]$/, '')
+      );
   }
 
   /**
@@ -238,7 +267,7 @@ export class ResourceTabPage extends BaseComponent {
    * @return {string}
    */
   getHtml() {
-    const title = capitalize(this.resourceType) + 's';
+    const title = this.pluralFormOfResourceType;
 
     return `
 <div class="section">
@@ -255,7 +284,7 @@ export class ResourceTabPage extends BaseComponent {
 
 <p id=${this.noResourcesAreaId} class="hide"></p>
 <div id=${this.resourcesAreaId} class="resources-area hide">
-  <div class="section">
+  <div class="section section_sticky">
     <label class="section__title">Selected ${title} [<span id=${this.resourcesCountId}>0</span>]</label>
     <div class="section__toolbar">
       <button id=${this.downloadButtonId}>Download (in CSV format)</button>
@@ -276,20 +305,21 @@ export class ResourceTabPage extends BaseComponent {
     const percent = completedRequestCount
       ? Math.floor((completedRequestCount * 100) / totalRequestCount)
       : 0;
-    const message = `Loading ${this.resourceType}s`;
-    this.showMessageIfNoResourceList(`${message}... ${percent}%`);
+    const message = `Loading ${this.pluralFormOfResourceType}`;
+    this.showMessageIfNoResourceList(`${message}... ${percent}%`, true);
     this.loadReporter.setProgress(message + '...', percent);
   }
 
   /**
    *  Shows a message when there are no resource list was displayed
+   *  @param {string} msg - message text
+   *  @param {boolean} [withSpinner] - whether to show spinner before the message text
    */
-  showMessageIfNoResourceList(msg) {
-    const nonResultsMsgElement = document.getElementById(
-      this.noResourcesAreaId
-    );
-    nonResultsMsgElement.innerText = msg;
-    removeCssClass('#' + this.noResourcesAreaId, 'hide');
+  showMessageIfNoResourceList(msg, withSpinner = false) {
+    const msgElement = document.getElementById(this.noResourcesAreaId);
+    msgElement.innerText = msg;
+    toggleCssClass(msgElement, 'spinner spinner_left', withSpinner);
+    removeCssClass(msgElement, 'hide');
     addCssClass('#' + this.resourcesAreaId, 'hide');
   }
 
@@ -339,12 +369,19 @@ export class ResourceTabPage extends BaseComponent {
 
     for (let index = 0; index < patientCount; ++index) {
       const patient = patientResources[index];
+      let linkToPatient, sortParam;
+
+      if (this.resourceType === 'ResearchStudy') {
+        linkToPatient = `_has:ResearchSubject:study:individual=Patient/${patient.id}`;
+        sortParam = '';
+      } else {
+        linkToPatient = `subject=Patient/${patient.id}`;
+        sortParam = '&_sort=subject';
+      }
 
       fhirClient
         .getWithCache(
-          `${this.resourceType}?subject=Patient/${patient.id}` +
-            elementsParam +
-            `&_sort=subject${criteria}`
+          `${this.resourceType}?${linkToPatient}${elementsParam}${sortParam}${criteria}`
         )
         .then(
           ({ data }) => {
@@ -377,7 +414,7 @@ export class ResourceTabPage extends BaseComponent {
                   this.showListOfResources(resourcesCount);
                 } else {
                   this.showMessageIfNoResourceList(
-                    `No matching ${this.resourceType}s found.`
+                    `No matching ${this.pluralFormOfResourceType} found.`
                   );
                 }
                 this.callbacks.onEndLoading();
@@ -389,7 +426,9 @@ export class ResourceTabPage extends BaseComponent {
             hasError = true;
             if (status !== HTTP_ABORT) {
               fhirClient.clearPendingRequests();
-              console.log(`Load ${this.resourceType}s failed: ${error}`);
+              console.log(
+                `Load ${this.pluralFormOfResourceType} failed: ${error}`
+              );
               // Show message if request is not aborted
               this.showMessageIfNoResourceList(
                 `Could not load ${this.resourceType} list`

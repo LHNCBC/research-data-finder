@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [2.5.0] - 2021-02-18
+### Added
+- ResearchStudy for cohort selection
+- Spinner when loading data
+
 ## [2.4.0] - 2020-12-18
 ### Added
 - Support for age-at-event search parameter extension
