@@ -175,7 +175,7 @@ function showListOfPatients(count) {
 /**
  * Shows the current progress of loading the Patient list
  * @param {string} message
- * @param {number|undefined} percent
+ * @param {number|undefined} [percent]
  */
 function showPatientProgress(message, percent) {
   if (percent === undefined) {
@@ -447,21 +447,37 @@ export function loadPatients() {
  */
 function getPatients() {
   const maxPatientCount = document.getElementById('maxPatientCount').value;
+  // List of Patient resource elements to request
   const elements = patientSearchParams
     .getResourceElements(PATIENT, ['name'])
     .join(',');
+  /**
+   * @typedef ResourceSummary
+   * An object which describes a resource summary
+   * @type {Object}
+   * @property {string} resourceType - resource type, e.g. 'Patient', 'Observation'
+   * @property {string} criteria - string of URL parameters with search criteria for this resource
+   * @property {number} [total] - total number of matching resources
+   */
+  /**
+   * An array of objects describes resource summaries
+   * @type {ResourceSummary[]}
+   */
   const resourceSummaries = patientSearchParams
     .getAllCriteria()
     .filter((item) => item.criteria.length || item.resourceType === PATIENT);
 
   showPatientProgress('Calculating resources count');
 
+  // Object for measuring the load time of resource summaries
   const numberOfResources =
     resourceSummaries.length > 1
       ? patientsReporter.addMetric({
           name: 'Searches to find the following counts'
         })
       : null;
+
+  // Load resource summaries
   return Promise.all(
     resourceSummaries.length > 1
       ? resourceSummaries.map((item) =>
@@ -489,6 +505,7 @@ function getPatients() {
 
     showPatientProgress('Searching patients', 0);
 
+    // Object for measuring the number of Patients and their loading time
     const patientResourcesLoaded = patientsReporter.addMetric({
       name: 'Patient resources loaded'
     });
@@ -496,18 +513,23 @@ function getPatients() {
     if (resourceSummaries[0].total === 0) {
       return [];
     } else {
-      let processedPatients = {};
+      // Hashmap of processed patients. Used to avoid recheck of the same patient
+      const processedPatients = {};
+      // Resource summary from which the search starts
       const firstItem = resourceSummaries.shift();
 
       if (firstItem.resourceType === 'ResearchStudy') {
+        // If the search starts from ResearchStudy
         return fhirClient.resourcesMapFilter(
-          `${firstItem.resourceType}?_elements=id${firstItem.criteria}`,
+          `ResearchStudy?_elements=id${firstItem.criteria}`,
           maxPatientCount,
           (researchStudy) => {
+            // Map each ResearchStudy to ResearchSubjects
             return fhirClient.resourcesMapFilter(
               `ResearchSubject?_elements=individual&study=${researchStudy.id}`,
               maxPatientCount,
               (researchSubject) => {
+                // Map each ResearchSubject to Patient Id
                 const patientId =
                   /^Patient\/(.*)/.test(researchSubject.individual.reference) &&
                   RegExp.$1;
@@ -515,6 +537,7 @@ function getPatients() {
                   return false;
                 }
                 processedPatients[patientId] = true;
+                // And filter by rest of the criteria
                 return checkPatient(
                   resourceSummaries,
                   patientResourcesLoaded,
@@ -530,13 +553,16 @@ function getPatients() {
         );
       }
 
+      // List of resource elements for the first request
       const firstItemElements =
         firstItem.resourceType === PATIENT ? elements : 'subject';
 
+      // If the search doesn't start from ResearchStudy
       return fhirClient.resourcesMapFilter(
         `${firstItem.resourceType}?_elements=${firstItemElements}${firstItem.criteria}`,
         maxPatientCount,
         (resource) => {
+          // Map each resource to Patient Id
           let patientResource, patientId;
           if (resource.resourceType === PATIENT) {
             patientResource = resource;
@@ -549,6 +575,7 @@ function getPatients() {
             return false;
           }
           processedPatients[patientId] = true;
+          // And filter Patient by rest of the criteria
           return checkPatient(
             resourceSummaries,
             patientResourcesLoaded,
@@ -570,7 +597,7 @@ function getPatients() {
  * with Patient resource data or with false.
  * @param {Array} resourceSummaries - array of Object describes criteria
  *   for each resource
- * @param {Array} patientResourcesLoaded - object for measuring the number of Patients
+ * @param {MeasurementController} patientResourcesLoaded - object for measuring the number of Patients
  *   (this object is created in the getPatients method)
  * @param {string} elements - value of the _element parameter to use
  *   in the query to retrieve Patient data

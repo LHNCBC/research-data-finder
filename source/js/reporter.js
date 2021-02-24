@@ -186,11 +186,18 @@ ${measurement.name}:
   }
 
   /**
+   * @typedef MeasurementController
+   * Object to control the measurement.
+   * @property {function(number): void} updateCount - update measurement value
+   * @property {function(number=): void} incrementCount - increase measurement value
+   * @property {function(): number} getCount - get measurement value
+   */
+  /**
    * Records the start of metric measurement. Returns an object to control the measurement.
    * @param {string} name
    * @param {boolean} calculateDuration
    * @param {number} count
-   * @return {{updateCount: (function(number): void), incrementCount: (function(number=): void), getCount: (function(): number)}}
+   * @return {MeasurementController}
    */
   addMetric({ name, calculateDuration = true, count = 0 }) {
     const measurement = {

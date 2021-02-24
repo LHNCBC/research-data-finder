@@ -107,7 +107,7 @@ export class ResourceTabPage extends BaseComponent {
         ? visibleColumnsRawString.split(',')
         : [];
 
-      // Add custom columns for ResearchStudy, because it hasn't column Subject
+      // Add a custom column for ResearchStudy, because it doesn't have column Subject
       if (this.resourceType === 'ResearchStudy') {
         columnDescriptions.push({
           name: 'Research subject',
