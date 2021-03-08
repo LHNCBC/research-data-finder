@@ -15,6 +15,7 @@ import {
   PATIENT,
   EncounterSearchParameters,
   ObservationSearchParameters,
+  ObservationLastnSearchParameters,
   ConditionSearchParameters,
   MedicationDispenseSearchParameters
 } from './search-parameters';
@@ -223,6 +224,7 @@ function createPatientSearchParameters() {
       ConditionSearchParameters,
       MedicationDispenseSearchParameters,
       ObservationSearchParameters,
+      ObservationLastnSearchParameters,
       'Account',
       'AdverseEvent',
       'CarePlan',

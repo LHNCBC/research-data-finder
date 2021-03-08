@@ -34,6 +34,7 @@ export class SearchParameters extends BaseComponent {
       .then(
         () => {
           this.availableParams = {};
+          this.id2displayName = {};
           this.searchParams = searchParamGroups.reduce(
             (_searchParams, item) => {
               const searchParamGroupFactory =
@@ -41,7 +42,13 @@ export class SearchParameters extends BaseComponent {
                   ? getSearchParamGroupFactoryByResourceType(item)
                   : item;
               const searchParamGroup = searchParamGroupFactory();
-              const resourceType = searchParamGroup.resourceType;
+              const resourceType =
+                searchParamGroup.displayName || searchParamGroup.resourceType;
+              this.id2displayName[
+                searchParamGroup.id ||
+                  searchParamGroup.displayName ||
+                  searchParamGroup.resourceType
+              ] = searchParamGroup.displayName || searchParamGroup.resourceType;
               _searchParams[resourceType] = searchParamGroup;
               this.availableParams[resourceType] = this.isController(
                 searchParamGroup
@@ -594,7 +601,7 @@ export class SearchParameters extends BaseComponent {
         if (this.isController(searchParamGroup)) {
           allCriteria.push(
             ...(criteria.length ? criteria : ['']).map((item) => ({
-              resourceType: resourceType,
+              resourceType: searchParamGroup.resourceType,
               criteria: item
             }))
           );
@@ -648,7 +655,7 @@ export class SearchParameters extends BaseComponent {
         const rawCondition = searchParamCtrl.getRawCondition();
         if (rawCondition !== undefined) {
           rawConditions.push({
-            resourceType,
+            resourceType: searchParamCtrl.id || resourceType,
             paramName,
             rawCondition
           });
@@ -667,6 +674,7 @@ export class SearchParameters extends BaseComponent {
   setRawCriteria(rawConditions) {
     this.removeAllParams();
     rawConditions.forEach(({ resourceType, paramName, rawCondition }) => {
+      resourceType = this.id2displayName[resourceType];
       this._addParam(resourceType, paramName).then((searchItemId) => {
         const searchParamCtrl = this.getSearchParamController(searchItemId);
         searchParamCtrl.setRawCondition(rawCondition);

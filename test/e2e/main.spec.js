@@ -74,7 +74,7 @@ describe('Research Data Finder', function () {
     const maxPatientCountInput = $('#maxPatientCount');
     const loadObservationsBtn = $('#ObservationTabPage-1-loadBtn');
 
-     browser.wait(EC.visibilityOf(maxPatientCountInput));
+    browser.wait(EC.visibilityOf(maxPatientCountInput));
 
     // Random maximum number of Patients from 50 to 100
     maxPatientCountInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 50 + Math.floor(Math.random()*50));
@@ -253,6 +253,10 @@ describe('Research Data Finder', function () {
       });
   }
 
+  function waitForAutocompleteDropDown() {
+    browser.wait(EC.presenceOf($('#searchResults[aria-hidden="false"]')));
+  }
+
   describe('without criteria(initial state)', function () {
     it('should load Patients', checkLoadPatients);
 
@@ -337,6 +341,7 @@ describe('Research Data Finder', function () {
       resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Observation');
       resourceInput.sendKeys(Key.ENTER);
       testNameInput.sendKeys('body height measured');
+      waitForAutocompleteDropDown();
       testNameInput.sendKeys(Key.ARROW_DOWN);
       testNameInput.sendKeys(Key.ENTER);
       browser.wait(EC.presenceOf(testRealValueInput));
@@ -356,6 +361,26 @@ describe('Research Data Finder', function () {
       resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Observation');
       resourceInput.sendKeys(Key.ENTER);
       testNameInput.sendKeys('3137-7');
+      testNameInput.sendKeys(Key.ENTER);
+      browser.wait(EC.presenceOf(testRealValueInput));
+      testRealValueInput.sendKeys('63');
+    });
+
+    it('should provide the ability to select a test name from current FHIR server', function () {
+      const searchParamId = getNextSearchParamId();
+      const addCriterionBtn = $('#SearchParameters-1_add_button');
+      const resourceInput = $(`#${searchParamId}_resource`);
+      const testNameInput = $(`#${searchParamId}-test-name`);
+      const testRealValueInput = $(`#${searchParamId}-test-value`);
+
+      browser.wait(EC.elementToBeClickable(addCriterionBtn));
+      safeClick(addCriterionBtn);
+
+      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Observation ($lastn)');
+      resourceInput.sendKeys(Key.ENTER);
+      testNameInput.sendKeys('height cm');
+      waitForAutocompleteDropDown();
+      testNameInput.sendKeys(Key.ARROW_DOWN);
       testNameInput.sendKeys(Key.ENTER);
       browser.wait(EC.presenceOf(testRealValueInput));
       testRealValueInput.sendKeys('63');

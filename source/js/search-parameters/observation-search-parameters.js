@@ -38,6 +38,7 @@ export const ObservationSearchParameters = () => ({
    */
   attachControls: (searchItemId) => {
     const testInputId = `${searchItemId}-test-name`;
+    const currentData = (testSpecByRowId[searchItemId] = {});
 
     const testAC = new Def.Autocompleter.Search(testInputId, testSearchUrl, {
       maxSelect: '*',
@@ -89,7 +90,7 @@ export const ObservationSearchParameters = () => ({
       }
     });
 
-    Def.Autocompleter.Event.observeListSelections(testInputId, (eventData) => {
+    currentData.changeListener = (eventData) => {
       const selectedCodes = testAC.getSelectedCodes();
       if (
         selectedCodes.length === 1 &&
@@ -112,7 +113,12 @@ export const ObservationSearchParameters = () => ({
         testAC.setURL(testSearchUrl);
         removeTestValueControls(searchItemId);
       }
-    });
+    };
+
+    Def.Autocompleter.Event.observeListSelections(
+      testInputId,
+      currentData.changeListener
+    );
   },
 
   /**
@@ -120,8 +126,16 @@ export const ObservationSearchParameters = () => ({
    * @param {string} searchItemId - unique generic identifier for a search parameter row
    */
   detachControls: (searchItemId) => {
+    const testInputId = `${searchItemId}-test-name`;
+    const currentData = testSpecByRowId[searchItemId];
     removeTestValueControls(searchItemId);
-    getAutocompleterById(`${searchItemId}-test-name`).destroy();
+    getAutocompleterById(testInputId).destroy();
+    Def.Autocompleter.Event.removeCallback(
+      testInputId,
+      'LIST_SEL',
+      currentData.changeListener
+    );
+    delete testSpecByRowId[searchItemId];
   },
 
   getRawCondition,
@@ -270,11 +284,9 @@ ${testPeriodHtml}`;
     ).storeSelectedItem();
   }
 
-  testSpecByRowId[searchItemId] = {
-    datatype,
-    units,
-    AnswerLists
-  };
+  testSpecByRowId[searchItemId].datatype = datatype;
+  testSpecByRowId[searchItemId].units = units;
+  testSpecByRowId[searchItemId].AnswerLists = AnswerLists;
 }
 
 /**
@@ -302,7 +314,7 @@ function getCodeParam(searchItemId) {
  * @return {string}
  */
 function getValueParam(searchItemId) {
-  const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
+  const { datatype, AnswerLists } = testSpecByRowId[searchItemId];
 
   if (AnswerLists && AnswerLists.length) {
     const value = getAutocompleterById(`${searchItemId}-test-answers`)
@@ -365,7 +377,7 @@ function getPeriodParams(searchItemId) {
  * @return {Object|null}
  */
 function getRawCondition(searchItemId) {
-  const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
+  const { datatype, AnswerLists } = testSpecByRowId[searchItemId];
   if (!getCodeParam(searchItemId)) {
     return undefined;
   }
@@ -427,7 +439,7 @@ function setRawCondition(searchItemId, rawCondition) {
 
   addAutocompleterRawDataById(`${searchItemId}-test-name`, testNames);
   initTestAC(searchItemId, testNames.codes[0], () => {
-    const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
+    const { datatype, AnswerLists } = testSpecByRowId[searchItemId];
 
     if (AnswerLists && AnswerLists.length) {
       addAutocompleterRawDataById(
@@ -468,7 +480,7 @@ function removeTestValueControls(searchItemId) {
   document.getElementById(
     `${searchItemId}-test-value`
   ).innerHTML = noControlsMessage;
-  delete testSpecByRowId[searchItemId];
+  testSpecByRowId[searchItemId] = {};
 }
 
 /**

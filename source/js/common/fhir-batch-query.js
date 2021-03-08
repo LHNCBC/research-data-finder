@@ -238,7 +238,8 @@ export class FhirBatchQuery {
    */
   get(url, { combine = true }) {
     return new Promise((resolve, reject) => {
-      this._pending.push({ url, combine, resolve, reject });
+      const fullUrl = this.getFullUrl(url);
+      this._pending.push({ url: fullUrl, combine, resolve, reject });
       if (this._pending.length < this._maxPerBatch) {
         clearTimeout(this._batchTimeoutId);
         this._batchTimeoutId = setTimeout(
