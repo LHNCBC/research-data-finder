@@ -328,6 +328,8 @@ describe('Research Data Finder', function () {
   });
 
   describe('when adding criteria to Observation resource', function () {
+// Commented out tests are not actual when using lastn lookup:
+/*
     it('should provide the ability to select a test name and test value', function () {
       const searchParamId = getNextSearchParamId();
       const addCriterionBtn = $('#SearchParameters-1_add_button');
@@ -365,6 +367,7 @@ describe('Research Data Finder', function () {
       browser.wait(EC.presenceOf(testRealValueInput));
       testRealValueInput.sendKeys('63');
     });
+*/
 
     it('should provide the ability to select a test name from current FHIR server', function () {
       const searchParamId = getNextSearchParamId();
@@ -376,7 +379,7 @@ describe('Research Data Finder', function () {
       browser.wait(EC.elementToBeClickable(addCriterionBtn));
       safeClick(addCriterionBtn);
 
-      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Observation ($lastn)');
+      resourceInput.sendKeys(Key.chord(Key.CONTROL, 'a'), 'Observation');
       resourceInput.sendKeys(Key.ENTER);
       testNameInput.sendKeys('height cm');
       waitForAutocompleteDropDown();

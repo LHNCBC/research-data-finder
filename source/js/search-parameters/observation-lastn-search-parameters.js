@@ -54,7 +54,7 @@ export const ObservationLastnSearchParameters = () => ({
   // The resource type (for which these search parameters) is used for retrieving entered data from the SearchParameters component
   resourceType: OBSERVATION,
   id: OBSERVATION + '-lastN',
-  displayName: 'Observation ($lastn)',
+  displayName: 'Observation',
 
   /**
    * Returns HTML for test names input field and area for test value fields

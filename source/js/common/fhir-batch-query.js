@@ -103,6 +103,10 @@ export class FhirBatchQuery {
         this.getWithCache(
           'Observation?_sort=age-at-event&_elements=id&_count=1',
           { combine: false }
+        ),
+        this.getWithCache(
+          'Observation/$lastn?max=1&_elements=code,value,component&code:text=g&_count=1',
+          { combine: false }
         )
       ];
 
@@ -112,7 +116,8 @@ export class FhirBatchQuery {
         ([
           metadata,
           observationsSortedByDate,
-          observationsSortedByAgeAtEvent
+          observationsSortedByAgeAtEvent,
+          lastnLookup
         ]) => {
           if (metadata.status === 'fulfilled') {
             const fhirVersion = metadata.value.data.fhirVersion;
@@ -134,7 +139,8 @@ export class FhirBatchQuery {
               observationsSortedByDate.value.data.entry &&
               observationsSortedByDate.value.data.entry.length > 0,
             sortObservationsByAgeAtEvent:
-              observationsSortedByAgeAtEvent.status === 'fulfilled'
+              observationsSortedByAgeAtEvent.status === 'fulfilled',
+            lastnLookup: lastnLookup.status === 'fulfilled'
           };
         }
       );

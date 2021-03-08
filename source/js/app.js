@@ -63,15 +63,19 @@ let patientSearchParams;
  */
 function initApp(serviceBaseUrl) {
   patientSearchParams && patientSearchParams.detachControls();
-  fhirClient.initialize(serviceBaseUrl);
-  patientSearchParams = createPatientSearchParameters();
+  fhirClient
+    .initialize(serviceBaseUrl)
+    .then(() => {
+      patientSearchParams = createPatientSearchParameters();
+      onEndLoading();
+    })
+    .finally(() => {
+      removeCssClass('#searchArea', 'spinner');
+    });
   resourceTabPane.clearResourceList(serviceBaseUrl);
 
   addCssClass('#searchArea', 'spinner');
   onStartLoading();
-  patientSearchParams.ready.then(onEndLoading).finally(() => {
-    removeCssClass('#searchArea', 'spinner');
-  });
   // Clear visible Patient list data
   showMessageIfNoPatientList('');
   reportPatientsSpan.innerHTML = '';
@@ -223,8 +227,9 @@ function createPatientSearchParameters() {
       EncounterSearchParameters,
       ConditionSearchParameters,
       MedicationDispenseSearchParameters,
-      ObservationSearchParameters,
-      ObservationLastnSearchParameters,
+      fhirClient.getFeatures().lastnLookup
+        ? ObservationLastnSearchParameters
+        : ObservationSearchParameters,
       'Account',
       'AdverseEvent',
       'CarePlan',
