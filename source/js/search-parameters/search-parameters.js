@@ -672,13 +672,23 @@ export class SearchParameters extends BaseComponent {
    * @param {Array} rawConditions
    */
   setRawCriteria(rawConditions) {
+    const updateConditionPromises = [];
     this.removeAllParams();
     rawConditions.forEach(({ resourceType, paramName, rawCondition }) => {
       resourceType = this.id2displayName[resourceType];
-      this._addParam(resourceType, paramName).then((searchItemId) => {
-        const searchParamCtrl = this.getSearchParamController(searchItemId);
-        searchParamCtrl.setRawCondition(rawCondition);
-      });
+      updateConditionPromises.push(
+        this._addParam(resourceType, paramName).then((searchItemId) => {
+          const searchParamCtrl = this.getSearchParamController(searchItemId);
+          searchParamCtrl.setRawCondition(rawCondition);
+          this.swapAvailableItem(
+            this.selectedResources[searchItemId],
+            this.selectedParams[searchItemId]
+          );
+        })
+      );
+    });
+    Promise.all(updateConditionPromises).then(() => {
+      this.updateAllSearchParamSelectors();
     });
   }
 
