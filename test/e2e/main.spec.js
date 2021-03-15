@@ -328,7 +328,7 @@ describe('Research Data Finder', function () {
   });
 
   describe('when adding criteria to Observation resource', function () {
-// Commented out tests are not actual when using lastn lookup:
+// Commented out tests are not relevant when using lastn lookup:
 /*
     it('should provide the ability to select a test name and test value', function () {
       const searchParamId = getNextSearchParamId();

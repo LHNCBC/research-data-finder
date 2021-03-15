@@ -12,7 +12,7 @@ import {
 
 export const OBSERVATION = 'Observation';
 
-const testSearchUrl =
+const loincSearchUrl =
   'https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?df=LOINC_NUM,text&type=question';
 
 const noControlsMessage = 'select a test to display controls';
@@ -40,7 +40,7 @@ export const ObservationSearchParameters = () => ({
     const testInputId = `${searchItemId}-test-name`;
     const currentData = (testSpecByRowId[searchItemId] = {});
 
-    const testAC = new Def.Autocompleter.Search(testInputId, testSearchUrl, {
+    const testAC = new Def.Autocompleter.Search(testInputId, loincSearchUrl, {
       maxSelect: '*',
       matchListValue: false,
       onComplete: function () {
@@ -58,14 +58,14 @@ export const ObservationSearchParameters = () => ({
           const units = testAC.listExtraData_.units[0] || null;
           if (AnswerLists && AnswerLists.length) {
             testAC.setURL(
-              `${testSearchUrl}&q=AnswerLists.AnswerListId:${AnswerLists.map(
+              `${loincSearchUrl}&q=AnswerLists.AnswerListId:${AnswerLists.map(
                 (i) => i.AnswerListId
               ).join(';')}`
             );
           } else if (datatype === 'REAL') {
             if (units) {
               testAC.setURL(
-                `${testSearchUrl}&q=datatype:REAL%20AND%20units.unit:${encodeURIComponent(
+                `${loincSearchUrl}&q=datatype:REAL%20AND%20units.unit:${encodeURIComponent(
                   '/' +
                     units.map((i) => escapeStringForRegExp(i.unit)).join('|') +
                     '/'
@@ -73,11 +73,11 @@ export const ObservationSearchParameters = () => ({
               );
             } else {
               testAC.setURL(
-                `${testSearchUrl}&q=datatype:REAL%20AND%20NOT%20_exists_:units.unit`
+                `${loincSearchUrl}&q=datatype:REAL%20AND%20NOT%20_exists_:units.unit`
               );
             }
           } else {
-            testAC.setURL(`${testSearchUrl}&q=datatype:${datatype}`);
+            testAC.setURL(`${loincSearchUrl}&q=datatype:${datatype}`);
           }
           createTestValueControls(searchItemId, datatype, units, AnswerLists);
         } else {
@@ -110,7 +110,7 @@ export const ObservationSearchParameters = () => ({
         (testAC.url.indexOf('&q=') !== -1 || testAC.url === '')
       ) {
         testAC.matchListValue_ = false;
-        testAC.setURL(testSearchUrl);
+        testAC.setURL(loincSearchUrl);
         removeTestValueControls(searchItemId);
       }
     };
@@ -175,7 +175,7 @@ function initTestAC(searchItemId, itemCode, onCompleteOnce) {
     onCompleteOnce();
   } else {
     testAC.setURL(
-      `${testSearchUrl}&ef=datatype,units,AnswerLists&q=LOINC_NUM:${itemCode}`
+      `${loincSearchUrl}&ef=datatype,units,AnswerLists&q=LOINC_NUM:${itemCode}`
     );
     if (onCompleteOnce) {
       testAC.onCompleteOnce = onCompleteOnce;

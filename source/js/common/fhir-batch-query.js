@@ -96,16 +96,20 @@ export class FhirBatchQuery {
 
     if (!this._initializationPromise) {
       const initializationRequests = [
+        // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
         this.getWithCache('metadata', { combine: false }),
+        // Check if sorting Observations by date is supported
         this.getWithCache('Observation?_sort=date&_elements=id&_count=1', {
           combine: false
         }),
+        // Check if sorting Observations by age-at-event is supported
         this.getWithCache(
           'Observation?_sort=age-at-event&_elements=id&_count=1',
           { combine: false }
         ),
+        // Check if operation $lastn on Observation is supported
         this.getWithCache(
-          'Observation/$lastn?max=1&_elements=code,value,component&code:text=g&_count=1',
+          'Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1',
           { combine: false }
         )
       ];

@@ -14,10 +14,7 @@ import { getFhirClient } from '../common/fhir-service';
 
 export const OBSERVATION = 'Observation';
 
-const testSearchUrl =
-  'https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?df=LOINC_NUM,text&type=question';
-
-const noControlsMessage = 'select a test to display controls';
+const noControlsMessage = 'Select a test to display options';
 const testSpecByRowId = {};
 
 // Mapping for supported value[x] properties of Observation
@@ -77,7 +74,7 @@ export const ObservationLastnSearchParameters = () => ({
       datatype: ''
     });
 
-    const testAC = new Def.Autocompleter.Search(testInputId, testSearchUrl, {
+    const testAC = new Def.Autocompleter.Search(testInputId, null, {
       fhir: {
         search: function (fieldVal, count) {
           const isMatchToFieldVal = new RegExp(
@@ -300,7 +297,8 @@ ${testPeriodHtml}`;
         if (eventData.on_list) {
           currentPrefix = newPrefix;
         } else if (!newPrefix) {
-          // Restore the previous value if the user hasn't finally selected the correct value
+          // Restore the previous value if the user hasn't finally selected
+          // a value from the list of available values
           prefixAC.setFieldToListValue(currentPrefix);
         }
       }
@@ -325,7 +323,8 @@ ${testPeriodHtml}`;
         if (eventData.on_list) {
           currentModifier = newModifier;
         } else if (!newModifier) {
-          // Restore the previous value if the user hasn't finally selected the correct value
+          // Restore the previous value if the user hasn't finally selected
+          // a value from the list of available values
           modifierAC.setFieldToListValue(currentModifier);
         }
       }
