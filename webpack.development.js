@@ -22,5 +22,9 @@ module.exports = merge(common, {
     //host: 'localhost',
     port: port,
     public: shortHostname+':'+port
+  },
+  watchOptions: {
+    poll: 2000,
+    ignored: /node_modules/,
   }
 });

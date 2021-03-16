@@ -90,7 +90,7 @@ export const ObservationLastnSearchParameters = () => ({
                   )}`,
                   count,
                   (observation) => {
-                    // TODO: Is it possible that within one server there will be two identical codes with different systems?
+                    // TODO: Add support for different systems
                     const datatype = getValueDataType(observation);
                     if (
                       !currentData.datatype ||
@@ -119,7 +119,7 @@ export const ObservationLastnSearchParameters = () => ({
                     resolve({
                       resourceType: 'ValueSet',
                       expansion: {
-                        total: data.length + 1,
+                        total: Infinity,
                         contains: data
                       }
                     });
