@@ -7,6 +7,7 @@ import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatFormFieldDefaultOptions
 } from '@angular/material/form-field';
+import {HttpClientModule} from "@angular/common/http";
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
@@ -18,6 +19,7 @@ const appearance: MatFormFieldDefaultOptions = {
   ],
   imports: [
     BrowserModule,
+    HttpClientModule,
     CommonSvgIconsModule,
     StepperModule
   ],
