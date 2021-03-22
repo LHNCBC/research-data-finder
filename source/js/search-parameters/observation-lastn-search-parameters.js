@@ -114,13 +114,12 @@ export const ObservationLastnSearchParameters = () => ({
                   500
                 )
                 .then(
-                  (data) => {
-                    data = [].concat(...data);
+                  ({ entry, total }) => {
                     resolve({
                       resourceType: 'ValueSet',
                       expansion: {
-                        total: Infinity,
-                        contains: data
+                        total: Number.isInteger(total) ? total : Infinity,
+                        contains: entry
                       }
                     });
                   },

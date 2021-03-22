@@ -405,8 +405,8 @@ export function loadPatients() {
   const maxPatientCount = document.getElementById('maxPatientCount').value;
 
   getPatients().then(
-    (data) => {
-      const patientResources = data;
+    ({ entry }) => {
+      const patientResources = entry;
 
       // Pass Patients data to component to display resources
       resourceTabPane.setContext({
@@ -450,7 +450,7 @@ export function loadPatients() {
 
 /**
  * Loads list of patients resources using search parameters.
- * @return {Promise<Array>}
+ * @return {Promise<{entry:Array}>}
  */
 function getPatients() {
   const maxPatientCount = document.getElementById('maxPatientCount').value;
@@ -518,7 +518,7 @@ function getPatients() {
     });
 
     if (resourceSummaries[0].total === 0) {
-      return [];
+      return { entry: [] };
     } else {
       // Hashmap of processed patients. Used to avoid recheck of the same patient
       const processedPatients = {};

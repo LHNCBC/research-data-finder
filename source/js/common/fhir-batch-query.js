@@ -649,7 +649,8 @@ export class FhirBatchQuery {
    */
 
   /**
-   * Returns the promise of resources(or mapped values) that meet the condition specified in a filter(map) function.
+   * Returns the promise of resources(or mapped values) that meet the condition specified in a filter(map) function
+   * and the total amount of resources.
    * @param {string|Promise} url - URL to get resources
    * @param {number} count - the target number of resources
    * @param {ResourceMapFilterCallback} filterMapFunction - the resourcesFilter method calls the filterFunction
@@ -657,7 +658,7 @@ export class FhirBatchQuery {
    *                                 be included in the resulting array (returns Promise<true>), skipped (returns Promise<false>)
    *                                 or replaced with new value(returns Promise<Object>)
    * @param {number} [pageSize] - page size for resources loading
-   * @return {Promise<Array>}
+   * @return {Promise<{entry:Array, total: number}>}
    */
   resourcesMapFilter(url, count, filterMapFunction, pageSize) {
     // The value (this._maxPerBatch*this._maxActiveReq*2) is the optimal page size to get resources for filtering/mapping:
@@ -684,39 +685,39 @@ export class FhirBatchQuery {
    * @param {Promise} firstRequest - promise to return the first page of resources
    * @param {number} count - see public method resourcesMapFilter
    * @param {ResourceMapFilterCallback} filterMapFunction - see public method resourcesMapFilter
-   * @return {Promise<Array>}
+   * @return {Promise<{entry:Array, total: number}>}
    * @private
    */
   _resourcesMapFilter(firstRequest, count, filterMapFunction) {
     return new Promise((resolve, reject) => {
       firstRequest.then(({ data }) => {
         const resources = (data.entry || []).map((entry) => entry.resource);
-
+        const total = data.total;
         Promise.all(
           resources.map((resource) => filterMapFunction(resource))
         ).then((match) => {
-          const result = [].concat(
+          const entry = [].concat(
             ...resources
               .map((res, index) => (match[index] === true ? res : match[index]))
               .filter((res) => res !== false)
           );
-          const newCount = count - result.length;
+          const newCount = count - entry.length;
           const nextPageUrl = this.getNextPageUrl(data);
 
-          if (result.length < count && nextPageUrl) {
+          if (entry.length < count && nextPageUrl) {
             this._resourcesMapFilter(
               this.getWithCache(nextPageUrl),
               newCount,
               filterMapFunction
             ).then((nextPage) => {
-              resolve(result.concat(nextPage));
+              resolve({ entry: entry.concat(nextPage.entry), total });
             }, reject);
           } else {
-            if (result.length > count) {
+            if (entry.length > count) {
               // Remove extra entries
-              result.length = count;
+              entry.length = count;
             }
-            resolve(result);
+            resolve({ entry, total });
           }
         }, reject);
       }, reject);
