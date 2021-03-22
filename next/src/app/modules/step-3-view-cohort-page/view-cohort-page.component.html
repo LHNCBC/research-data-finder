@@ -26,7 +26,7 @@
     <!-- URL Column -->
     <ng-container matColumnDef="url">
       <mat-header-cell *matHeaderCellDef> Full URL </mat-header-cell>
-      <mat-cell *matCellDef="let element"> {{element.fullUrl}} </mat-cell>
+      <mat-cell *matCellDef="let element" id="{{element.resource.id}}"> {{element.fullUrl}} </mat-cell>
     </ng-container>
 
     <!-- TODO: replace with https://github.com/swimlane/ngx-datatable to support IE11 or find another way to support sticky header -->
