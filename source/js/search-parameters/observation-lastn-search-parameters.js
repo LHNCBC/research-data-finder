@@ -20,7 +20,7 @@ const testSpecByRowId = {};
 // Mapping for supported value[x] properties of Observation
 const typeDescriptions = {
   Quantity: {
-    prefixes: [
+    searchValPrefixes: [
       ['=', 'eq'],
       ['not equal', 'ne'],
       ['>', 'gt'],
@@ -204,12 +204,14 @@ const reValueKey = /^value(.*)/;
  */
 function getValueDataType(observation) {
   let valueType = '';
-  Object.keys(observation).some((key) => {
-    const valueFound = reValueKey.test(key);
-    if (valueFound) {
-      valueType = RegExp.$1;
-    }
-    return valueFound;
+  [observation, ...(observation.component || [])].some((obj) => {
+    return Object.keys(obj).some((key) => {
+      const valueFound = reValueKey.test(key);
+      if (valueFound) {
+        valueType = RegExp.$1;
+      }
+      return valueFound;
+    });
   });
 
   return valueType;
@@ -252,11 +254,11 @@ function createTestValueControls(searchItemId, datatype) {
 
   const prefixInputId = `${searchItemId}-test-value-prefix`;
   let prefixHtml = '',
-    currentPrefix;
-  if (typeDescription.prefixes) {
-    currentPrefix = typeDescription.prefixes[0][0];
-    prefixHtml = `<input type="text" id="${prefixInputId}" class="test-value__prefix" value="${currentPrefix}" ${
-      typeDescription.prefixes.length === 1 ? 'readonly' : ''
+    selectedSearchValPrefix;
+  if (typeDescription.searchValPrefixes) {
+    selectedSearchValPrefix = typeDescription.searchValPrefixes[0][0];
+    prefixHtml = `<input type="text" id="${prefixInputId}" class="test-value__prefix" value="${selectedSearchValPrefix}" ${
+      typeDescription.searchValPrefixes.length === 1 ? 'readonly' : ''
     }>`;
   }
 
@@ -281,10 +283,10 @@ ${testPeriodHtml}`;
   if (prefixHtml) {
     const prefixAC = new Def.Autocompleter.Prefetch(
       prefixInputId,
-      typeDescription.prefixes.map((i) => i[0]),
+      typeDescription.searchValPrefixes.map((i) => i[0]),
       {
         matchListValue: true,
-        codes: typeDescription.prefixes.map((i) => i[1])
+        codes: typeDescription.searchValPrefixes.map((i) => i[1])
       }
     );
     prefixAC.storeSelectedItem();
@@ -294,11 +296,11 @@ ${testPeriodHtml}`;
       (eventData) => {
         const newPrefix = eventData.final_val;
         if (eventData.on_list) {
-          currentPrefix = newPrefix;
+          selectedSearchValPrefix = newPrefix;
         } else if (!newPrefix) {
           // Restore the previous value if the user hasn't finally selected
           // a value from the list of available values
-          prefixAC.setFieldToListValue(currentPrefix);
+          prefixAC.setFieldToListValue(selectedSearchValPrefix);
         }
       }
     );
@@ -345,7 +347,7 @@ function getCodeParam(searchItemId) {
   }
 
   return selectedCodes.length
-    ? '&code=' +
+    ? '&combo-code=' +
         selectedCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
     : '';
 }
@@ -359,8 +361,8 @@ function getValueParam(searchItemId) {
   const { datatype } = testSpecByRowId[searchItemId];
   const typeDescription = typeDescriptions[datatype];
   const valueParamName = {
-    CodeableConcept: 'value-concept',
-    Quantity: 'value-quantity',
+    CodeableConcept: 'combo-value-concept',
+    Quantity: 'combo-value-quantity',
     string: 'value-string'
   }[datatype];
 
@@ -371,7 +373,7 @@ function getValueParam(searchItemId) {
       ).getSelectedCodes()[0]) ||
     '';
   const prefix =
-    (typeDescription.prefixes &&
+    (typeDescription.searchValPrefixes &&
       getAutocompleterById(
         `${searchItemId}-test-value-prefix`
       ).getSelectedCodes()[0]) ||
@@ -426,7 +428,7 @@ function getRawCondition(searchItemId) {
       ).getSelectedCodes()[0]) ||
     '';
   const prefix =
-    (typeDescription.prefixes &&
+    (typeDescription.searchValPrefixes &&
       getAutocompleterById(
         `${searchItemId}-test-value-prefix`
       ).getSelectedCodes()[0]) ||

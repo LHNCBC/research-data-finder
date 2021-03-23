@@ -303,7 +303,7 @@ function getCodeParam(searchItemId) {
   }
 
   return selectedCodes.length
-    ? '&code=' +
+    ? '&combo-code=' +
         selectedCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
     : '';
 }
@@ -322,7 +322,7 @@ function getValueParam(searchItemId) {
       .map((code) => encodeFhirSearchParameter(code))
       .join(',');
 
-    return value ? `&value-concept=${value}` : '';
+    return value ? `&combo-value-concept=${value}` : '';
   } else if (datatype === 'REAL' || datatype === undefined) {
     // For questions of type REAL and if no type is defined (for non-LOINC codes),
     // the same controls are used.
@@ -335,7 +335,7 @@ function getValueParam(searchItemId) {
       document.getElementById(`${searchItemId}-test-value-unit`).value || '';
 
     return value.trim()
-      ? `&value-quantity=${encodeURIComponent(
+      ? `&combo-value-quantity=${encodeURIComponent(
           prefix + value + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
         )}`
       : '';

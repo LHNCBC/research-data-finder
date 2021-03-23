@@ -221,16 +221,18 @@ export class FhirBatchQuery {
   }
 
   /**
-   * Adds the an API Key to the passed URL and returns this new URL.
-   * @param {string} url
+   * Adds a parameter to the source URL and returns the new URL.
+   * @param {string} url - source url
+   * @param {string} name - parameter name
+   * @param {string} value - parameter value
    * @return {string}
    */
-  addApiKeyToUrl(url) {
-    const apiKeyParam = 'api_key=' + encodeURIComponent(this._apiKey);
+  addParamToUrl(url, name, value) {
+    const param = name + '=' + encodeURIComponent(value);
     if (url.indexOf('?') === -1) {
-      return url + '?' + apiKeyParam;
+      return url + '?' + param;
     } else {
-      return url + '&' + apiKeyParam;
+      return url + '&' + param;
     }
   }
 
@@ -417,12 +419,20 @@ export class FhirBatchQuery {
       };
 
       if (this._apiKey) {
-        url = this.addApiKeyToUrl(url);
+        url = this.addParamToUrl(url, 'api_key', this._apiKey);
+      }
+
+      if (method === 'GET') {
+        url = this.addParamToUrl(url, '_type', 'json');
       }
 
       oReq.open(method, url);
       oReq.timeout = this._giveUpTimeout;
-      oReq.setRequestHeader('Content-Type', contentType);
+
+      if (method !== 'GET') {
+        oReq.setRequestHeader('Content-Type', contentType);
+      }
+
       oReq.send(body);
       this._activeReq.push(oReq);
     });
@@ -682,9 +692,14 @@ export class FhirBatchQuery {
 
   /**
    * A private method that is called from a public method resourcesMapFilter.
+   * Returns the promise of resources(or mapped values) that meet the condition specified
+   * in a filter(map) function and the total amount of resources.
    * @param {Promise} firstRequest - promise to return the first page of resources
-   * @param {number} count - see public method resourcesMapFilter
-   * @param {ResourceMapFilterCallback} filterMapFunction - see public method resourcesMapFilter
+   * @param {number} count - the target number of resources
+   * @param {ResourceMapFilterCallback} filterMapFunction -  - the resourcesFilter method
+   *   calls the filterFunction one time for each resource to determine whether the element
+   *   should be included in the resulting array (returns Promise<true>),
+   *   skipped (returns Promise<false>) or replaced with new value(returns Promise<Object>).
    * @return {Promise<{entry:Array, total: number}>}
    * @private
    */

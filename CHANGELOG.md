@@ -8,6 +8,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 - $lastn lookup of Observation codes, when supported
 ### Fixed
 - It was possible to select the same criteria after loading the cohort criteria
+- Displaying Observation component values
 
 ## [2.5.0] - 2021-02-18
 ### Added
