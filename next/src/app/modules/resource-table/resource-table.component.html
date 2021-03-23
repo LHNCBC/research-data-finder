@@ -1,0 +1,35 @@
+<div class="table-container mat-elevation-z4">
+  <mat-table [dataSource]="patientDataSource">
+    <!-- Select checkbox column -->
+    <ng-container matColumnDef="select">
+      <mat-header-cell *matHeaderCellDef>
+        <mat-checkbox (change)="$event ? masterToggle() : null"
+                      [checked]="selectedResources.hasValue() && isAllSelected()"
+                      [indeterminate]="selectedResources.hasValue() && !isAllSelected()">
+        </mat-checkbox>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-checkbox (click)="$event.stopPropagation()"
+                      (change)="$event ? selectedResources.toggle(row) : null"
+                      [checked]="selectedResources.isSelected(row)">
+        </mat-checkbox>
+      </mat-cell>
+    </ng-container>
+
+    <!-- Patient Id Column -->
+    <ng-container matColumnDef="id">
+      <mat-header-cell *matHeaderCellDef> Patient Id </mat-header-cell>
+      <mat-cell *matCellDef="let element"> {{element.resource.id}} </mat-cell>
+    </ng-container>
+
+    <!-- URL Column -->
+    <ng-container matColumnDef="url">
+      <mat-header-cell *matHeaderCellDef> Full URL </mat-header-cell>
+      <mat-cell *matCellDef="let element" id="{{element.resource.id}}"> {{element.fullUrl}} </mat-cell>
+    </ng-container>
+
+    <!-- TODO: replace with https://github.com/swimlane/ngx-datatable to support IE11 or find another way to support sticky header -->
+    <mat-header-row *matHeaderRowDef="patientColumns; sticky: true"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: patientColumns;"></mat-row>
+  </mat-table>
+</div>
