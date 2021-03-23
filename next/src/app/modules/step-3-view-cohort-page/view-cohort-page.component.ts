@@ -2,6 +2,7 @@ import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import Bundle = fhir.Bundle;
 import BundleEntry = fhir.BundleEntry;
 import {HttpClient} from "@angular/common/http";
+import {SelectionModel} from "@angular/cdk/collections";
 
 /**
  * Component for viewing a cohort of Patient resources
@@ -12,9 +13,10 @@ import {HttpClient} from "@angular/common/http";
   styleUrls: ['./view-cohort-page.component.less']
 })
 export class ViewCohortPageComponent implements OnInit {
-  patientColumns: string[] = ['id', 'url'];
+  patientColumns: string[] = ['select', 'id', 'url'];
   patientDataSource: BundleEntry[] = [];
   nextBundleUrl: string;
+  selectedResources = new SelectionModel<BundleEntry>(true, []);
 
   constructor(
     private http: HttpClient,
@@ -41,6 +43,7 @@ export class ViewCohortPageComponent implements OnInit {
     this.cd.detectChanges();
     // last row element of what's rendered
     let lastResourceElement = document.getElementById(this.patientDataSource[this.patientDataSource.length - 1].resource.id);
+    // watch for last row getting displayed
     let observer = new IntersectionObserver((entries, obs) => {
       entries.forEach(entry => {
         // when last row of resource is displayed in viewport, unwatch this element and call next batch
@@ -51,6 +54,20 @@ export class ViewCohortPageComponent implements OnInit {
       });
     });
     observer.observe(lastResourceElement);
+  }
+
+  /** Whether the number of selected elements matches the total number of rows. */
+  isAllSelected() {
+    const numSelected = this.selectedResources.selected.length;
+    const numRows = this.patientDataSource.length;
+    return numSelected == numRows;
+  }
+
+  /** Selects all rows if they are not all selected; otherwise clear selection. */
+  masterToggle() {
+    this.isAllSelected() ?
+      this.selectedResources.clear() :
+      this.patientDataSource.forEach(row => this.selectedResources.select(row));
   }
 
 }
