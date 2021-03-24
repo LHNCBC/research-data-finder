@@ -13,7 +13,8 @@ import {SelectionModel} from "@angular/cdk/collections";
   styleUrls: ['./resource-table.component.less']
 })
 export class ResourceTableComponent implements OnInit {
-  patientColumns: string[] = ['select', 'id', 'url'];
+  // TODO: temporarily hard coded column options
+  patientColumns = ['select', 'id', 'name', 'gender', 'birthDate', 'deceased', 'address', 'active'];
   patientDataSource: BundleEntry[] = [];
   nextBundleUrl: string;
   selectedResources = new SelectionModel<BundleEntry>(true, []);
@@ -25,7 +26,7 @@ export class ResourceTableComponent implements OnInit {
 
   ngOnInit(): void {
     // TODO: temporarily calling this test server manually here
-    this.callBatch('https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active&_count=100');
+    this.callBatch('https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=10');
   }
 
   callBatch(url: string) {
