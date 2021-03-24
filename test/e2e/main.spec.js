@@ -176,16 +176,17 @@ describe('Research Data Finder', function () {
 
       safeClick($('#saveCohort'));
 
+      var cohortData = null;
       browser
         .wait(function () {
           // Wait until the file has been downloaded.
-          return fs.existsSync(filename);
+          return fs.existsSync(filename) &&
+           (cohortData = fs.readFileSync(filename, { encoding: 'utf-8' })).length;
         }, 30000)
         .then(function () {
           // Checks JSON file structure.
-          const cohortData = JSON.parse(
-            fs.readFileSync(filename, { encoding: 'utf-8' })
-          );
+          //var data = fs.readFileSync(filename, { encoding: 'utf-8' });
+          cohortData = JSON.parse(cohortData);
           expect(cohortData && cohortData.data && cohortData.data.length).toBe(
             patientsCount
           );
