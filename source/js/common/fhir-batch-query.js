@@ -659,14 +659,14 @@ export class FhirBatchQuery {
    */
 
   /**
-   * Returns the promise of resources(or mapped values) that meet the condition specified in a filter(map) function
-   * and the total amount of resources.
+   * Returns the promise of resources(or mapped values) that meet the condition specified
+   * in a filter(map) function and the total amount of resources.
    * @param {string|Promise} url - URL to get resources
    * @param {number} count - the target number of resources
-   * @param {ResourceMapFilterCallback} filterMapFunction - the resourcesFilter method calls the filterFunction
-   *                                 one time for each resource to determine whether the element should
-   *                                 be included in the resulting array (returns Promise<true>), skipped (returns Promise<false>)
-   *                                 or replaced with new value(returns Promise<Object>)
+   * @param {ResourceMapFilterCallback} filterMapFunction - the resourcesMapFilter method
+   *   calls the filterMapFunction one time for each resource to determine whether the element
+   *   should be included in the resulting array (returns Promise<true>),
+   *   skipped (returns Promise<false>) or replaced with new value(returns Promise<Object>)
    * @param {number} [pageSize] - page size for resources loading
    * @return {Promise<{entry:Array, total: number}>}
    */
@@ -696,8 +696,8 @@ export class FhirBatchQuery {
    * in a filter(map) function and the total amount of resources.
    * @param {Promise} firstRequest - promise to return the first page of resources
    * @param {number} count - the target number of resources
-   * @param {ResourceMapFilterCallback} filterMapFunction -  - the resourcesFilter method
-   *   calls the filterFunction one time for each resource to determine whether the element
+   * @param {ResourceMapFilterCallback} filterMapFunction -  - the _resourcesMapFilter method
+   *   calls the filterMapFunction one time for each resource to determine whether the element
    *   should be included in the resulting array (returns Promise<true>),
    *   skipped (returns Promise<false>) or replaced with new value(returns Promise<Object>).
    * @return {Promise<{entry:Array, total: number}>}

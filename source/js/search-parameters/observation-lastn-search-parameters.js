@@ -75,6 +75,7 @@ export const ObservationLastnSearchParameters = () => ({
     });
 
     const testAC = new Def.Autocompleter.Search(testInputId, null, {
+      suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
       fhir: {
         search: function (fieldVal, count) {
           const isMatchToFieldVal = new RegExp(
