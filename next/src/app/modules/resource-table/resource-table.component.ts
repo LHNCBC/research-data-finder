@@ -3,7 +3,7 @@ import Bundle = fhir.Bundle;
 import BundleEntry = fhir.BundleEntry;
 import {HttpClient} from "@angular/common/http";
 import {SelectionModel} from "@angular/cdk/collections";
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
+import {FormBuilder, FormGroup} from "@angular/forms";
 import {MatTableDataSource} from "@angular/material/table";
 
 /**
@@ -22,6 +22,16 @@ export class ResourceTableComponent implements OnInit {
   filtersForm: FormGroup;
   patientDataSource = new MatTableDataSource<BundleEntry>([]);
   patientFilterColumns = [];
+  lastResourceElement: HTMLElement;
+  emptySearchCriteria = {
+    id: '',
+    name: '',
+    gender: '',
+    birthDate: '',
+    deceased: '',
+    address: '',
+    active: ''
+  };
 
   constructor(
     private http: HttpClient,
@@ -48,6 +58,10 @@ export class ResourceTableComponent implements OnInit {
     });
     this.filtersForm.valueChanges.subscribe(value => {
       this.patientDataSource.filter = {...value} as string;
+      // re-observe last row of resource for scrolling when search is cleared
+      if (!value.id && !value.name && !value.gender && !value.birthDate && !value.deceased && !value.address && !value.active) {
+        this.createIntersectionObserver();
+      }
     });
   }
 
@@ -71,7 +85,7 @@ export class ResourceTableComponent implements OnInit {
   createIntersectionObserver() {
     this.cd.detectChanges();
     // last row element of what's rendered
-    let lastResourceElement = document.getElementById(this.patientDataSource.data[this.patientDataSource.data.length - 1].resource.id);
+    this.lastResourceElement = document.getElementById(this.patientDataSource.data[this.patientDataSource.data.length - 1].resource.id);
     // watch for last row getting displayed
     let observer = new IntersectionObserver((entries, obs) => {
       entries.forEach(entry => {
@@ -82,7 +96,7 @@ export class ResourceTableComponent implements OnInit {
         }
       });
     });
-    observer.observe(lastResourceElement);
+    observer.observe(this.lastResourceElement);
   }
 
   /** Whether the number of selected elements matches the total number of rows. */
@@ -100,14 +114,6 @@ export class ResourceTableComponent implements OnInit {
   }
 
   clearSearchCriteria() {
-    this.filtersForm.setValue({
-      id: '',
-      name: '',
-      gender: '',
-      birthDate: '',
-      deceased: '',
-      address: '',
-      active: ''
-    });
+    this.filtersForm.setValue(this.emptySearchCriteria);
   }
 }
