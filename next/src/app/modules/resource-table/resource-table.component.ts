@@ -32,6 +32,7 @@ export class ResourceTableComponent implements OnInit {
     address: '',
     active: ''
   };
+  isLoading = false;
 
   constructor(
     private http: HttpClient,
@@ -72,8 +73,10 @@ export class ResourceTableComponent implements OnInit {
   }
 
   callBatch(url: string) {
+    this.isLoading = true;
     this.http.get(url)
       .subscribe((data: Bundle) => {
+        this.isLoading = false;
         this.nextBundleUrl = data.link.find(l => l.relation === 'next')?.url;
         this.patientDataSource.data = this.patientDataSource.data.concat(data.entry);
         if (this.nextBundleUrl) { // if bundle has no more 'next' link, do not create watcher for scrolling

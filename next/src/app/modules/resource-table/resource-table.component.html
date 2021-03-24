@@ -106,6 +106,7 @@
     <mat-row *matRowDef="let row; columns: patientColumns;"></mat-row>
   </mat-table>
 </div>
+<mat-spinner *ngIf="isLoading" style="margin:0 auto;"></mat-spinner>
 <p>
   Selected {{selectedResources.selected.length}} out of {{patientDataSource.data.length}}.
 </p>
