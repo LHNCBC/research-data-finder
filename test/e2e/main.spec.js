@@ -123,15 +123,16 @@ describe('Research Data Finder', function () {
 
       safeClick(getVisibleButtonByText('Download (in CSV format)'));
 
+      let csvData = null;
       browser
         .wait(function () {
           // Wait until the file has been downloaded.
-          return fs.existsSync(filename);
+          return fs.existsSync(filename) &&
+            (csvData = fs.readFileSync(filename, { encoding: 'utf-8' })).length;
         }, 30000)
         .then(function () {
           // Checks CSV file structure: the file has columns and all lines have the same number of cells.
-          const cellsInRowCount = fs
-              .readFileSync(filename, { encoding: 'utf8' })
+          const cellsInRowCount = csvData
               .replace(/""/g, '')
               .replace(/"[^"]*"/g, '')
               .split('\n')
@@ -185,7 +186,6 @@ describe('Research Data Finder', function () {
         }, 30000)
         .then(function () {
           // Checks JSON file structure.
-          //var data = fs.readFileSync(filename, { encoding: 'utf-8' });
           cohortData = JSON.parse(cohortData);
           expect(cohortData && cohortData.data && cohortData.data.length).toBe(
             patientsCount
