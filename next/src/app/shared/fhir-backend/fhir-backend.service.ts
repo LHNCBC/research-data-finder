@@ -71,7 +71,7 @@ export class FhirBackendService implements HttpBackend {
   set cacheEnabled(value: boolean) {
     this.isCacheEnabled = value;
     if (!value) {
-      this.fhirClient.clearCache();
+      FhirBatchQuery.clearCache();
     }
   }
   get cacheEnabled(): boolean {
