@@ -41,13 +41,15 @@ export class ResourceTableComponent implements OnInit {
     private cd: ChangeDetectorRef
   ) {
     this.patientDataSource.filterPredicate = ((data, filter) => {
-      const a = !filter.id || data.resource.id.includes(filter.id);
-      const b = !filter.name || data.resource.name[0].family?.includes(filter.name) || data.resource.name[0].given[0]?.includes(filter.name);
-      const c = !filter.gender || data.resource.gender === filter.gender;
-      const d = !filter.birthDate || data.resource.birthDate.includes(filter.birthDate);
-      const e = !filter.deceased || data.resource.deceasedDateTime?.includes(filter.deceased) || data.resource.deceasedBoolean?.includes(filter.deceased);
-      const f = !filter.address || data.resource.address[0].text.includes(filter.address);
-      const g = !filter.active || data.resource.active.toString() === filter.active;
+      const a = !filter.id || data.resource.id.toLowerCase().includes(filter.id).toLowerCase();
+      const b = !filter.name || data.resource.name[0].family?.toLowerCase()?.includes(filter.name.toLowerCase()) ||
+        data.resource.name[0].given[0]?.toLowerCase()?.includes(filter.name.toLowerCase());
+      const c = !filter.gender || data.resource.gender.toLowerCase() === filter.gender;
+      const d = !filter.birthDate || data.resource.birthDate.toLowerCase().includes(filter.birthDate.toLowerCase());
+      const e = !filter.deceased || data.resource.deceasedDateTime?.toLowerCase()?.includes(filter.deceased.toLowerCase()) ||
+        data.resource.deceasedBoolean?.toLowerCase()?.includes(filter.deceased.toLowerCase());
+      const f = !filter.address || data.resource.address[0].text.toLowerCase().includes(filter.address.toLowerCase());
+      const g = !filter.active || data.resource.active.toString().toLowerCase() === filter.active;
       return a && b && c && d && e && f && g;
     }) as (BundleEntry, string) => boolean;
     this.filtersForm = new FormBuilder().group({
@@ -86,11 +88,11 @@ export class ResourceTableComponent implements OnInit {
         }
         // update search options for select controls from column values
         data.entry.forEach(e => {
-          if (!this.genderSearchOptions.includes(e.resource['gender'])) {
-            this.genderSearchOptions.push(e.resource['gender']);
+          if (!this.genderSearchOptions.includes(e.resource['gender'].toLowerCase())) {
+            this.genderSearchOptions.push(e.resource['gender'].toLowerCase());
           }
-          if (!this.activeSearchOptions.includes(e.resource['active'].toString())) {
-            this.activeSearchOptions.push(e.resource['active'].toString());
+          if (!this.activeSearchOptions.includes(e.resource['active'].toString().toLowerCase())) {
+            this.activeSearchOptions.push(e.resource['active'].toString().toLowerCase());
           }
         });
       });
