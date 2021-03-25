@@ -70,7 +70,7 @@ export class FhirBackendService implements HttpBackend {
 
   set cacheEnabled(value: boolean) {
     this.isCacheEnabled = value;
-    if (!this.cacheEnabled) {
+    if (!value) {
       this.fhirClient.clearCache();
     }
   }
@@ -82,11 +82,16 @@ export class FhirBackendService implements HttpBackend {
   // for FHIR with the ability to automatically combine requests in a batch .
   fhirClient: FhirBatchQuery;
 
+  /**
+   * Creates and initializes an instance of FhirBackendService
+   * @param defaultBackend - default Angular final HttpHandler which uses
+   *   XMLHttpRequest to send requests to a backend server.
+   */
   constructor(private defaultBackend: HttpXhrBackend) {
     this.fhirClient = new FhirBatchQuery({
       serviceBaseUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4'
     });
-    this.fhirClient.initialize('https://lforms-fhir.nlm.nih.gov/baseR4').then(() => {
+    this.fhirClient.initialize().then(() => {
       this.initialized$.next(true);
     });
   }
