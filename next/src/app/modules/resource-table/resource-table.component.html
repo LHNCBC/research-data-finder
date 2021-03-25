@@ -76,7 +76,12 @@
     </ng-container>
     <ng-container matColumnDef="genderFilter">
       <mat-header-cell *matHeaderCellDef>
-        <input matInput formControlName="gender" placeholder="Search gender" />
+        <mat-form-field appearance="fill">
+          <mat-select formControlName="gender" placeholder="Search gender">
+            <mat-option>None</mat-option>
+            <mat-option *ngFor="let option of genderSearchOptions" [value]="option">{{option}}</mat-option>
+          </mat-select>
+        </mat-form-field>
       </mat-header-cell>
     </ng-container>
     <ng-container matColumnDef="birthDateFilter">
@@ -96,7 +101,12 @@
     </ng-container>
     <ng-container matColumnDef="activeFilter">
       <mat-header-cell *matHeaderCellDef>
-        <input matInput formControlName="active" placeholder="Search active" />
+        <mat-form-field appearance="fill">
+          <mat-select formControlName="active" placeholder="Search active">
+            <mat-option>None</mat-option>
+            <mat-option *ngFor="let option of activeSearchOptions" [value]="option">{{option}}</mat-option>
+          </mat-select>
+        </mat-form-field>
       </mat-header-cell>
     </ng-container>
 

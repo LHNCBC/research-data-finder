@@ -33,19 +33,21 @@ export class ResourceTableComponent implements OnInit {
     active: ''
   };
   isLoading = false;
+  genderSearchOptions: string[] = [];
+  activeSearchOptions: string[] = [];
 
   constructor(
     private http: HttpClient,
     private cd: ChangeDetectorRef
   ) {
     this.patientDataSource.filterPredicate = ((data, filter) => {
-      const a = !filter.id || data.resource.id.includes((filter.id));
-      const b = !filter.name || data.resource.name[0].family?.includes((filter.name)) || data.resource.name[0].given[0]?.includes(filter.name);
-      const c = !filter.gender || data.resource.gender.includes((filter.gender));
-      const d = !filter.birthDate || data.resource.birthDate.includes((filter.birthDate));
-      const e = !filter.deceased || data.resource.deceasedDateTime?.includes((filter.deceased)) || data.resource.deceasedBoolean?.includes((filter.deceased));
-      const f = !filter.address || data.resource.address[0].text.includes((filter.address));
-      const g = !filter.active || data.resource.active.toString().includes((filter.active));
+      const a = !filter.id || data.resource.id.includes(filter.id);
+      const b = !filter.name || data.resource.name[0].family?.includes(filter.name) || data.resource.name[0].given[0]?.includes(filter.name);
+      const c = !filter.gender || data.resource.gender === filter.gender;
+      const d = !filter.birthDate || data.resource.birthDate.includes(filter.birthDate);
+      const e = !filter.deceased || data.resource.deceasedDateTime?.includes(filter.deceased) || data.resource.deceasedBoolean?.includes(filter.deceased);
+      const f = !filter.address || data.resource.address[0].text.includes(filter.address);
+      const g = !filter.active || data.resource.active.toString() === filter.active;
       return a && b && c && d && e && f && g;
     }) as (BundleEntry, string) => boolean;
     this.filtersForm = new FormBuilder().group({
@@ -82,6 +84,15 @@ export class ResourceTableComponent implements OnInit {
         if (this.nextBundleUrl) { // if bundle has no more 'next' link, do not create watcher for scrolling
           this.createIntersectionObserver();
         }
+        // update search options for select controls from column values
+        data.entry.forEach(e => {
+          if (!this.genderSearchOptions.includes(e.resource['gender'])) {
+            this.genderSearchOptions.push(e.resource['gender']);
+          }
+          if (!this.activeSearchOptions.includes(e.resource['active'].toString())) {
+            this.activeSearchOptions.push(e.resource['active'].toString());
+          }
+        });
       });
   }
 
