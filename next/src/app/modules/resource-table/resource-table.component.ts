@@ -41,15 +41,22 @@ export class ResourceTableComponent implements OnInit {
     private cd: ChangeDetectorRef
   ) {
     this.patientDataSource.filterPredicate = ((data, filter) => {
-      const a = !filter.id || data.resource.id.toLowerCase().includes(filter.id).toLowerCase();
-      const b = !filter.name || data.resource.name[0].family?.toLowerCase()?.includes(filter.name.toLowerCase()) ||
+      const a = !filter.id ||
+        data.resource.id.toLowerCase().includes(filter.id).toLowerCase();
+      const b = !filter.name ||
+        data.resource.name[0].family?.toLowerCase()?.includes(filter.name.toLowerCase()) ||
         data.resource.name[0].given[0]?.toLowerCase()?.includes(filter.name.toLowerCase());
-      const c = !filter.gender || data.resource.gender.toLowerCase() === filter.gender;
-      const d = !filter.birthDate || data.resource.birthDate.toLowerCase().includes(filter.birthDate.toLowerCase());
-      const e = !filter.deceased || data.resource.deceasedDateTime?.toLowerCase()?.includes(filter.deceased.toLowerCase()) ||
+      const c = !filter.gender ||
+        data.resource.gender.toLowerCase() === filter.gender;
+      const d = !filter.birthDate ||
+        data.resource.birthDate.toLowerCase().includes(filter.birthDate.toLowerCase());
+      const e = !filter.deceased ||
+        data.resource.deceasedDateTime?.toLowerCase()?.includes(filter.deceased.toLowerCase()) ||
         data.resource.deceasedBoolean?.toLowerCase()?.includes(filter.deceased.toLowerCase());
-      const f = !filter.address || data.resource.address[0].text.toLowerCase().includes(filter.address.toLowerCase());
-      const g = !filter.active || data.resource.active.toString().toLowerCase() === filter.active;
+      const f = !filter.address ||
+        data.resource.address[0].text.toLowerCase().includes(filter.address.toLowerCase());
+      const g = !filter.active ||
+        data.resource.active.toString().toLowerCase() === filter.active;
       return a && b && c && d && e && f && g;
     }) as (BundleEntry, string) => boolean;
     this.filtersForm = new FormBuilder().group({
@@ -64,7 +71,8 @@ export class ResourceTableComponent implements OnInit {
     this.filtersForm.valueChanges.subscribe(value => {
       this.patientDataSource.filter = {...value} as string;
       // re-observe last row of resource for scrolling when search is cleared
-      if (!value.id && !value.name && !value.gender && !value.birthDate && !value.deceased && !value.address && !value.active) {
+      if (!value.id && !value.name && !value.gender && !value.birthDate &&
+        !value.deceased && !value.address && !value.active) {
         this.createIntersectionObserver();
       }
     });
@@ -76,6 +84,9 @@ export class ResourceTableComponent implements OnInit {
     this.callBatch('https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=100');
   }
 
+  /**
+   * Call and load a bundle of resources
+   */
   callBatch(url: string) {
     this.isLoading = true;
     this.http.get(url)
@@ -98,6 +109,9 @@ export class ResourceTableComponent implements OnInit {
       });
   }
 
+  /**
+   * Create watcher to call next bundle when user scrolls to last row
+   */
   createIntersectionObserver() {
     this.cd.detectChanges();
     // last row element of what's rendered
@@ -129,7 +143,10 @@ export class ResourceTableComponent implements OnInit {
       this.patientDataSource.data.forEach(row => this.selectedResources.select(row));
   }
 
-  clearSearchCriteria() {
+  /**
+   * Clear filters on all columns
+   */
+  clearColumnFilters() {
     this.filtersForm.setValue(this.emptySearchCriteria);
   }
 }
