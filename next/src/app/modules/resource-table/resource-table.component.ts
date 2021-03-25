@@ -73,7 +73,7 @@ export class ResourceTableComponent implements OnInit {
   ngOnInit(): void {
     this.patientFilterColumns = this.patientColumns.map(c => c + 'Filter');
     // TODO: temporarily calling this test server manually here
-    this.callBatch('https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=10');
+    this.callBatch('https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=100');
   }
 
   callBatch(url: string) {
