@@ -9,6 +9,8 @@ import {Component, OnInit} from '@angular/core';
   styleUrls: ['./view-cohort-page.component.less']
 })
 export class ViewCohortPageComponent implements OnInit {
+  // TODO: temporarily hard coded column options
+  columns = ['select', 'id', 'name', 'gender', 'birthDate', 'deceased', 'address', 'active'];
 
   constructor() {
   }

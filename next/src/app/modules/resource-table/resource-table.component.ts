@@ -1,10 +1,10 @@
-import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import Bundle = fhir.Bundle;
-import BundleEntry = fhir.BundleEntry;
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {SelectionModel} from "@angular/cdk/collections";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {MatTableDataSource} from "@angular/material/table";
+import Bundle = fhir.Bundle;
+import BundleEntry = fhir.BundleEntry;
 
 /**
  * Component for loading table of resources
@@ -15,13 +15,12 @@ import {MatTableDataSource} from "@angular/material/table";
   styleUrls: ['./resource-table.component.less']
 })
 export class ResourceTableComponent implements OnInit {
-  // TODO: temporarily hard coded column options
-  patientColumns = ['select', 'id', 'name', 'gender', 'birthDate', 'deceased', 'address', 'active'];
+  @Input() columns: string[];
   nextBundleUrl: string;
   selectedResources = new SelectionModel<BundleEntry>(true, []);
   filtersForm: FormGroup;
-  patientDataSource = new MatTableDataSource<BundleEntry>([]);
-  patientFilterColumns = [];
+  dataSource = new MatTableDataSource<BundleEntry>([]);
+  filterColumns = [];
   lastResourceElement: HTMLElement;
   emptySearchCriteria = {
     id: '',
@@ -40,7 +39,7 @@ export class ResourceTableComponent implements OnInit {
     private http: HttpClient,
     private cd: ChangeDetectorRef
   ) {
-    this.patientDataSource.filterPredicate = ((data, filter) => {
+    this.dataSource.filterPredicate = ((data, filter) => {
       const a = !filter.id ||
         data.resource.id.toLowerCase().includes(filter.id).toLowerCase();
       const b = !filter.name ||
@@ -69,7 +68,7 @@ export class ResourceTableComponent implements OnInit {
       active: ''
     });
     this.filtersForm.valueChanges.subscribe(value => {
-      this.patientDataSource.filter = {...value} as string;
+      this.dataSource.filter = {...value} as string;
       // re-observe last row of resource for scrolling when search is cleared
       if (!value.id && !value.name && !value.gender && !value.birthDate &&
         !value.deceased && !value.address && !value.active) {
@@ -79,7 +78,7 @@ export class ResourceTableComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.patientFilterColumns = this.patientColumns.map(c => c + 'Filter');
+    this.filterColumns = this.columns.map(c => c + 'Filter');
     // TODO: temporarily calling this test server manually here
     this.callBatch('https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=100');
   }
@@ -93,7 +92,7 @@ export class ResourceTableComponent implements OnInit {
       .subscribe((data: Bundle) => {
         this.isLoading = false;
         this.nextBundleUrl = data.link.find(l => l.relation === 'next')?.url;
-        this.patientDataSource.data = this.patientDataSource.data.concat(data.entry);
+        this.dataSource.data = this.dataSource.data.concat(data.entry);
         if (this.nextBundleUrl) { // if bundle has no more 'next' link, do not create watcher for scrolling
           this.createIntersectionObserver();
         }
@@ -115,7 +114,7 @@ export class ResourceTableComponent implements OnInit {
   createIntersectionObserver() {
     this.cd.detectChanges();
     // last row element of what's rendered
-    this.lastResourceElement = document.getElementById(this.patientDataSource.data[this.patientDataSource.data.length - 1].resource.id);
+    this.lastResourceElement = document.getElementById(this.dataSource.data[this.dataSource.data.length - 1].resource.id);
     // watch for last row getting displayed
     let observer = new IntersectionObserver((entries, obs) => {
       entries.forEach(entry => {
@@ -132,7 +131,7 @@ export class ResourceTableComponent implements OnInit {
   /** Whether the number of selected elements matches the total number of rows. */
   isAllSelected() {
     const numSelected = this.selectedResources.selected.length;
-    const numRows = this.patientDataSource.data.length;
+    const numRows = this.dataSource.data.length;
     return numSelected == numRows;
   }
 
@@ -140,7 +139,7 @@ export class ResourceTableComponent implements OnInit {
   masterToggle() {
     this.isAllSelected() ?
       this.selectedResources.clear() :
-      this.patientDataSource.data.forEach(row => this.selectedResources.select(row));
+      this.dataSource.data.forEach(row => this.selectedResources.select(row));
   }
 
   /**
