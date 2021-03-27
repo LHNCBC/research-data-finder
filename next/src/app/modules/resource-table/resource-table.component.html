@@ -8,7 +8,7 @@
                       [indeterminate]="selectedResources.hasValue() && !isAllSelected()">
         </mat-checkbox>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row">
+      <mat-cell *matCellDef="let row" id="{{row.resource.id}}">
         <mat-checkbox (click)="$event.stopPropagation()"
                       (change)="$event ? selectedResources.toggle(row) : null"
                       [checked]="selectedResources.isSelected(row)">
@@ -16,49 +16,14 @@
       </mat-cell>
     </ng-container>
 
-    <!-- Id Column -->
-    <ng-container matColumnDef="id">
-      <mat-header-cell *matHeaderCellDef> Id </mat-header-cell>
-      <mat-cell *matCellDef="let element" id="{{element.resource.id}}"> {{element.resource.id}} </mat-cell>
-    </ng-container>
-
-    <!-- Name Column -->
-    <ng-container matColumnDef="name">
-      <mat-header-cell *matHeaderCellDef> Name </mat-header-cell>
-      <mat-cell *matCellDef="let element"> {{element.resource.name[0].given[0]}} {{element.resource.name[0].family}}</mat-cell>
-    </ng-container>
-
-    <!-- Gender Column -->
-    <ng-container matColumnDef="gender">
-      <mat-header-cell *matHeaderCellDef> Gender </mat-header-cell>
-      <mat-cell *matCellDef="let element"> {{element.resource.gender}}</mat-cell>
-    </ng-container>
-
-    <!-- Birth Date Column -->
-    <ng-container matColumnDef="birthDate">
-      <mat-header-cell *matHeaderCellDef> Birth Date </mat-header-cell>
-      <mat-cell *matCellDef="let element"> {{element.resource.birthDate}}</mat-cell>
-    </ng-container>
-
-    <!-- Address Column -->
-    <ng-container matColumnDef="address">
-      <mat-header-cell *matHeaderCellDef> Address </mat-header-cell>
-      <mat-cell *matCellDef="let element"> {{element.resource.address[0].text}} </mat-cell>
-    </ng-container>
-
-    <!-- Deceased Column -->
-    <ng-container matColumnDef="deceased">
-      <mat-header-cell *matHeaderCellDef> Deceased </mat-header-cell>
-      <mat-cell *matCellDef="let element"> {{element.resource.deceasedDateTime || element.resource.deceasedBoolean}} </mat-cell>
-    </ng-container>
-
-    <!-- Active Column -->
-    <ng-container matColumnDef="active">
-      <mat-header-cell *matHeaderCellDef> Active </mat-header-cell>
-      <mat-cell *matCellDef="let element"> {{element.resource.active}} </mat-cell>
+    <!-- Data Columns -->
+    <ng-container *ngFor="let column of columnDescriptions" [matColumnDef]="column.element">
+      <mat-header-cell *matHeaderCellDef> {{column.displayName}} </mat-header-cell>
+      <mat-cell *matCellDef="let element"> {{getCellDisplay(element, column)}} </mat-cell>
     </ng-container>
 
     <!-- Filter columns -->
+<!--
     <ng-container matColumnDef="selectFilter">
       <mat-header-cell *matHeaderCellDef>
         <button mat-button (click)="clearColumnFilters()">Clear column filters</button>
@@ -69,50 +34,13 @@
         <input matInput formControlName="id" placeholder="Search id" />
       </mat-header-cell>
     </ng-container>
-    <ng-container matColumnDef="nameFilter">
-      <mat-header-cell *matHeaderCellDef>
-        <input matInput formControlName="name" placeholder="Search name" />
-      </mat-header-cell>
-    </ng-container>
-    <ng-container matColumnDef="genderFilter">
-      <mat-header-cell *matHeaderCellDef>
-        <mat-form-field appearance="fill">
-          <mat-select formControlName="gender" placeholder="Search gender">
-            <mat-option>None</mat-option>
-            <mat-option *ngFor="let option of genderSearchOptions" [value]="option">{{option}}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </mat-header-cell>
-    </ng-container>
-    <ng-container matColumnDef="birthDateFilter">
-      <mat-header-cell *matHeaderCellDef>
-        <input matInput formControlName="birthDate" placeholder="Search birth date" />
-      </mat-header-cell>
-    </ng-container>
-    <ng-container matColumnDef="deceasedFilter">
-      <mat-header-cell *matHeaderCellDef>
-        <input matInput formControlName="deceased" placeholder="Search deceased" />
-      </mat-header-cell>
-    </ng-container>
-    <ng-container matColumnDef="addressFilter">
-      <mat-header-cell *matHeaderCellDef>
-        <input matInput formControlName="address" placeholder="Search address" />
-      </mat-header-cell>
-    </ng-container>
-    <ng-container matColumnDef="activeFilter">
-      <mat-header-cell *matHeaderCellDef>
-        <mat-form-field appearance="fill">
-          <mat-select formControlName="active" placeholder="Search active">
-            <mat-option>None</mat-option>
-            <mat-option *ngFor="let option of activeSearchOptions" [value]="option">{{option}}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </mat-header-cell>
-    </ng-container>
+-->
 
     <!-- TODO: replace with https://github.com/swimlane/ngx-datatable to support IE11 or find another way to support sticky header -->
     <mat-header-row *matHeaderRowDef="columns; sticky: true"></mat-header-row>
+<!--
     <mat-header-row *matHeaderRowDef="filterColumns; sticky: true"></mat-header-row>
+-->
     <mat-row *matRowDef="let row; columns: columns;"></mat-row>
   </mat-table>
 </div>

@@ -1,10 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {SelectionModel} from "@angular/cdk/collections";
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {MatTableDataSource} from "@angular/material/table";
 import Bundle = fhir.Bundle;
 import BundleEntry = fhir.BundleEntry;
+import {ColumnDescription} from "../../types/column.description";
 
 /**
  * Component for loading table of resources
@@ -15,12 +16,14 @@ import BundleEntry = fhir.BundleEntry;
   styleUrls: ['./resource-table.component.less']
 })
 export class ResourceTableComponent implements OnInit {
-  @Input() columns: string[];
+  @Input() columnDescriptions: ColumnDescription[];
+  @Input() initialUrl: string;
+  columns: string[] = ['select'];
+  filterColumns = [];
   nextBundleUrl: string;
   selectedResources = new SelectionModel<BundleEntry>(true, []);
   filtersForm: FormGroup;
   dataSource = new MatTableDataSource<BundleEntry>([]);
-  filterColumns = [];
   lastResourceElement: HTMLElement;
   emptySearchCriteria = {
     id: '',
@@ -28,12 +31,9 @@ export class ResourceTableComponent implements OnInit {
     gender: '',
     birthDate: '',
     deceased: '',
-    address: '',
-    active: ''
+    address: ''
   };
   isLoading = false;
-  genderSearchOptions: string[] = [];
-  activeSearchOptions: string[] = [];
 
   constructor(
     private http: HttpClient,
@@ -54,9 +54,7 @@ export class ResourceTableComponent implements OnInit {
         data.resource.deceasedBoolean?.toLowerCase()?.includes(filter.deceased.toLowerCase());
       const f = !filter.address ||
         data.resource.address[0].text.toLowerCase().includes(filter.address.toLowerCase());
-      const g = !filter.active ||
-        data.resource.active.toString().toLowerCase() === filter.active;
-      return a && b && c && d && e && f && g;
+      return a && b && c && d && e && f;
     }) as (BundleEntry, string) => boolean;
     this.filtersForm = new FormBuilder().group({
       id: '',
@@ -64,23 +62,22 @@ export class ResourceTableComponent implements OnInit {
       gender: '',
       birthDate: '',
       deceased: '',
-      address: '',
-      active: ''
+      address: ''
     });
     this.filtersForm.valueChanges.subscribe(value => {
       this.dataSource.filter = {...value} as string;
       // re-observe last row of resource for scrolling when search is cleared
       if (!value.id && !value.name && !value.gender && !value.birthDate &&
-        !value.deceased && !value.address && !value.active) {
+        !value.deceased && !value.address) {
         this.createIntersectionObserver();
       }
     });
   }
 
   ngOnInit(): void {
+    this.columns = this.columns.concat(this.columnDescriptions.map(c => c.element));
     this.filterColumns = this.columns.map(c => c + 'Filter');
-    // TODO: temporarily calling this test server manually here
-    this.callBatch('https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=100');
+    this.callBatch(this.initialUrl);
   }
 
   /**
@@ -96,15 +93,6 @@ export class ResourceTableComponent implements OnInit {
         if (this.nextBundleUrl) { // if bundle has no more 'next' link, do not create watcher for scrolling
           this.createIntersectionObserver();
         }
-        // update search options for select controls from column values
-        data.entry.forEach(e => {
-          if (!this.genderSearchOptions.includes(e.resource['gender'].toLowerCase())) {
-            this.genderSearchOptions.push(e.resource['gender'].toLowerCase());
-          }
-          if (!this.activeSearchOptions.includes(e.resource['active'].toString().toLowerCase())) {
-            this.activeSearchOptions.push(e.resource['active'].toString().toLowerCase());
-          }
-        });
       });
   }
 
@@ -147,5 +135,69 @@ export class ResourceTableComponent implements OnInit {
    */
   clearColumnFilters() {
     this.filtersForm.setValue(this.emptySearchCriteria);
+  }
+
+  /**
+   * Get cell display
+   */
+  getCellDisplay(row: BundleEntry, column: ColumnDescription): string {
+    if (column.types.length === 1) {
+      return this.getCellDisplayByType(row, column.types[0], column.element);
+    }
+    for (let type of column.types) {
+      let upperCaseType = type.charAt(0).toUpperCase() + type.slice(1);
+      let output = this.getCellDisplayByType(row, type, column.element.replace('[x]', upperCaseType));
+      if (output) {
+        return output;
+      }
+    }
+    return '';
+  }
+
+  /**
+   * Get cell display by type
+   */
+  getCellDisplayByType(row: BundleEntry, type: string, element: string): string {
+    switch (type) {
+      case 'Address':
+        return this.getAddressDisplay(row.resource['address']);
+      case 'HumanName':
+        return this.humanNameToString(row.resource['name']);
+      default:
+        return row.resource[element];
+    }
+  }
+
+  /**
+   * Get address display
+   */
+  getAddressDisplay(addressElements): string {
+    for (let address of addressElements) {
+      if (address['text'])
+        return address['text'];
+    }
+    return '';
+  }
+
+  /**
+   * Get name display
+   */
+  humanNameToString(nameElements) {
+    let rtn;
+    const name = nameElements && nameElements[0];
+
+    if (name) {
+      const given = name.given || [],
+        firstName = given[0] || '',
+        lastName = name.family || '';
+      let middleName = given[1] || '';
+
+      if (middleName.length === 1) {
+        middleName += '.';
+      }
+      rtn = [firstName, middleName, lastName].filter((item) => item).join(' ');
+    }
+
+    return rtn || null;
   }
 }
