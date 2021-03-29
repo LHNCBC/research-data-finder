@@ -10,7 +10,7 @@ import {
   Observable,
   Observer
 } from 'rxjs';
-import { FhirBatchQuery } from './fhir-batch-query';
+import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
