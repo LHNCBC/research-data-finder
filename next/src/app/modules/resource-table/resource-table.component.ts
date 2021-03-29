@@ -18,11 +18,12 @@ import {ColumnDescription} from "../../types/column.description";
 export class ResourceTableComponent implements OnInit {
   @Input() columnDescriptions: ColumnDescription[];
   @Input() initialUrl: string;
+  @Input() enableClientFiltering: boolean = false;
   columns: string[] = ['select'];
   filterColumns = [];
   nextBundleUrl: string;
   selectedResources = new SelectionModel<BundleEntry>(true, []);
-  filtersForm: FormGroup;
+  filtersForm: FormGroup = new FormBuilder().group({});
   dataSource = new MatTableDataSource<BundleEntry>([]);
   lastResourceElement: HTMLElement;
   isLoading = false;
@@ -31,34 +32,37 @@ export class ResourceTableComponent implements OnInit {
     private http: HttpClient,
     private cd: ChangeDetectorRef
   ) {
-    this.dataSource.filterPredicate = ((data, filter) => {
-      for (const [key, value] of Object.entries(filter)) {
-        if (value) {
-          const columnDescription = this.columnDescriptions.find(c => c.element === key);
-          const cellValue = this.getCellDisplay(data, columnDescription);
-          if (!cellValue.toLowerCase().startsWith((<string>value).toLowerCase())) {
-            return false;
+    if (this.enableClientFiltering) {
+      this.dataSource.filterPredicate = ((data, filter) => {
+        for (const [key, value] of Object.entries(filter)) {
+          if (value) {
+            const columnDescription = this.columnDescriptions.find(c => c.element === key);
+            const cellValue = this.getCellDisplay(data, columnDescription);
+            if (!cellValue.toLowerCase().startsWith((<string>value).toLowerCase())) {
+              return false;
+            }
           }
         }
-      }
-      return true;
-    }) as (BundleEntry, string) => boolean;
+        return true;
+      }) as (BundleEntry, string) => boolean;
+    }
   }
 
   ngOnInit(): void {
     this.columns = this.columns.concat(this.columnDescriptions.map(c => c.element));
-    this.filterColumns = this.columns.map(c => c + 'Filter');
-    this.filtersForm = new FormBuilder().group({});
-    this.columnDescriptions.forEach(column => {
-      this.filtersForm.addControl(column.element, new FormControl());
-    });
-    this.filtersForm.valueChanges.subscribe(value => {
-      this.dataSource.filter = {...value} as string;
-      // re-observe last row of resource for scrolling when search is cleared
-      if (Object.values(value).every(v => !v)) {
-        this.createIntersectionObserver();
-      }
-    });
+    if (this.enableClientFiltering) {
+      this.filterColumns = this.columns.map(c => c + 'Filter');
+      this.columnDescriptions.forEach(column => {
+        this.filtersForm.addControl(column.element, new FormControl());
+      });
+      this.filtersForm.valueChanges.subscribe(value => {
+        this.dataSource.filter = {...value} as string;
+        // re-observe last row of resource for scrolling when search is cleared
+        if (Object.values(value).every(v => !v)) {
+          this.createIntersectionObserver();
+        }
+      });
+    }
     this.callBatch(this.initialUrl);
   }
 
