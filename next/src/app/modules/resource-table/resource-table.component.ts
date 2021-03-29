@@ -1,7 +1,7 @@
 import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {SelectionModel} from "@angular/cdk/collections";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
 import {MatTableDataSource} from "@angular/material/table";
 import Bundle = fhir.Bundle;
 import BundleEntry = fhir.BundleEntry;
@@ -25,14 +25,6 @@ export class ResourceTableComponent implements OnInit {
   filtersForm: FormGroup;
   dataSource = new MatTableDataSource<BundleEntry>([]);
   lastResourceElement: HTMLElement;
-  emptySearchCriteria = {
-    id: '',
-    name: '',
-    gender: '',
-    birthDate: '',
-    deceased: '',
-    address: ''
-  };
   isLoading = false;
 
   constructor(
@@ -40,43 +32,33 @@ export class ResourceTableComponent implements OnInit {
     private cd: ChangeDetectorRef
   ) {
     this.dataSource.filterPredicate = ((data, filter) => {
-      const a = !filter.id ||
-        data.resource.id.toLowerCase().includes(filter.id).toLowerCase();
-      const b = !filter.name ||
-        data.resource.name[0].family?.toLowerCase()?.includes(filter.name.toLowerCase()) ||
-        data.resource.name[0].given[0]?.toLowerCase()?.includes(filter.name.toLowerCase());
-      const c = !filter.gender ||
-        data.resource.gender.toLowerCase() === filter.gender;
-      const d = !filter.birthDate ||
-        data.resource.birthDate.toLowerCase().includes(filter.birthDate.toLowerCase());
-      const e = !filter.deceased ||
-        data.resource.deceasedDateTime?.toLowerCase()?.includes(filter.deceased.toLowerCase()) ||
-        data.resource.deceasedBoolean?.toLowerCase()?.includes(filter.deceased.toLowerCase());
-      const f = !filter.address ||
-        data.resource.address[0].text.toLowerCase().includes(filter.address.toLowerCase());
-      return a && b && c && d && e && f;
-    }) as (BundleEntry, string) => boolean;
-    this.filtersForm = new FormBuilder().group({
-      id: '',
-      name: '',
-      gender: '',
-      birthDate: '',
-      deceased: '',
-      address: ''
-    });
-    this.filtersForm.valueChanges.subscribe(value => {
-      this.dataSource.filter = {...value} as string;
-      // re-observe last row of resource for scrolling when search is cleared
-      if (!value.id && !value.name && !value.gender && !value.birthDate &&
-        !value.deceased && !value.address) {
-        this.createIntersectionObserver();
+      for (const [key, value] of Object.entries(filter)) {
+        if (value) {
+          const columnDescription = this.columnDescriptions.find(c => c.element === key);
+          const cellValue = this.getCellDisplay(data, columnDescription);
+          if (!cellValue.toLowerCase().startsWith((<string>value).toLowerCase())) {
+            return false;
+          }
+        }
       }
-    });
+      return true;
+    }) as (BundleEntry, string) => boolean;
   }
 
   ngOnInit(): void {
     this.columns = this.columns.concat(this.columnDescriptions.map(c => c.element));
     this.filterColumns = this.columns.map(c => c + 'Filter');
+    this.filtersForm = new FormBuilder().group({});
+    this.columnDescriptions.forEach(column => {
+      this.filtersForm.addControl(column.element, new FormControl());
+    });
+    this.filtersForm.valueChanges.subscribe(value => {
+      this.dataSource.filter = {...value} as string;
+      // re-observe last row of resource for scrolling when search is cleared
+      if (Object.values(value).every(v => !v)) {
+        this.createIntersectionObserver();
+      }
+    });
     this.callBatch(this.initialUrl);
   }
 
@@ -134,7 +116,7 @@ export class ResourceTableComponent implements OnInit {
    * Clear filters on all columns
    */
   clearColumnFilters() {
-    this.filtersForm.setValue(this.emptySearchCriteria);
+    this.filtersForm.reset();
   }
 
   /**

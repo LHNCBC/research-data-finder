@@ -23,24 +23,20 @@
     </ng-container>
 
     <!-- Filter columns -->
-<!--
     <ng-container matColumnDef="selectFilter">
       <mat-header-cell *matHeaderCellDef>
         <button mat-button (click)="clearColumnFilters()">Clear column filters</button>
       </mat-header-cell>
     </ng-container>
-    <ng-container matColumnDef="idFilter">
+    <ng-container *ngFor="let column of columnDescriptions" [matColumnDef]="column.element + 'Filter'">
       <mat-header-cell *matHeaderCellDef>
-        <input matInput formControlName="id" placeholder="Search id" />
+        <input matInput [formControlName]="column.element" [placeholder]="'Search ' + column.displayName" />
       </mat-header-cell>
     </ng-container>
--->
 
     <!-- TODO: replace with https://github.com/swimlane/ngx-datatable to support IE11 or find another way to support sticky header -->
     <mat-header-row *matHeaderRowDef="columns; sticky: true"></mat-header-row>
-<!--
     <mat-header-row *matHeaderRowDef="filterColumns; sticky: true"></mat-header-row>
--->
     <mat-row *matRowDef="let row; columns: columns;"></mat-row>
   </mat-table>
 </div>
