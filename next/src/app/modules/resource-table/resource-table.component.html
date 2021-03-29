@@ -41,8 +41,8 @@
     </ng-container>
     <mat-row *matRowDef="let row; columns: columns;"></mat-row>
   </mat-table>
+  <mat-spinner *ngIf="isLoading" diameter="40" style="margin:0 auto;"></mat-spinner>
 </div>
-<mat-spinner *ngIf="isLoading" style="margin:0 auto;"></mat-spinner>
 <p>
   Selected {{selectedResources.selected.length}} out of {{dataSource.data.length}}.
 </p>
