@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import {AfterViewInit, Component, Input, NgZone, OnInit, ViewChild} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {SelectionModel} from "@angular/cdk/collections";
 import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
@@ -6,6 +6,8 @@ import {MatTableDataSource} from "@angular/material/table";
 import Bundle = fhir.Bundle;
 import BundleEntry = fhir.BundleEntry;
 import {ColumnDescription} from "../../types/column.description";
+import {debounceTime} from "rxjs/operators";
+import {CdkScrollable} from "@angular/cdk/overlay";
 
 /**
  * Component for loading table of resources
@@ -15,7 +17,7 @@ import {ColumnDescription} from "../../types/column.description";
   templateUrl: './resource-table.component.html',
   styleUrls: ['./resource-table.component.less']
 })
-export class ResourceTableComponent implements OnInit {
+export class ResourceTableComponent implements OnInit, AfterViewInit {
   @Input() columnDescriptions: ColumnDescription[];
   @Input() initialUrl: string;
   @Input() enableClientFiltering: boolean = false;
@@ -27,10 +29,11 @@ export class ResourceTableComponent implements OnInit {
   dataSource = new MatTableDataSource<BundleEntry>([]);
   lastResourceElement: HTMLElement;
   isLoading = false;
+  @ViewChild(CdkScrollable) scrollable: CdkScrollable;
 
   constructor(
     private http: HttpClient,
-    private cd: ChangeDetectorRef
+    private ngZone: NgZone
   ) {
     if (this.enableClientFiltering) {
       this.dataSource.filterPredicate = ((data, filter) => {
@@ -57,13 +60,19 @@ export class ResourceTableComponent implements OnInit {
       });
       this.filtersForm.valueChanges.subscribe(value => {
         this.dataSource.filter = {...value} as string;
-        // re-observe last row of resource for scrolling when search is cleared
-        if (Object.values(value).every(v => !v)) {
-          this.createIntersectionObserver();
-        }
       });
     }
     this.callBatch(this.initialUrl);
+  }
+
+  ngAfterViewInit(): void {
+    this.scrollable.elementScrolled()
+      .pipe(debounceTime(1000))
+      .subscribe(e => {
+        this.ngZone.run(() => {
+          this.onTableScroll(e);
+        });
+      });
   }
 
   /**
@@ -76,30 +85,22 @@ export class ResourceTableComponent implements OnInit {
         this.isLoading = false;
         this.nextBundleUrl = data.link.find(l => l.relation === 'next')?.url;
         this.dataSource.data = this.dataSource.data.concat(data.entry);
-        if (this.nextBundleUrl) { // if bundle has no more 'next' link, do not create watcher for scrolling
-          this.createIntersectionObserver();
-        }
       });
   }
 
   /**
-   * Create watcher to call next bundle when user scrolls to last row
+   * Table viewport scroll handler
    */
-  createIntersectionObserver() {
-    this.cd.detectChanges();
-    // last row element of what's rendered
-    this.lastResourceElement = document.getElementById(this.dataSource.data[this.dataSource.data.length - 1].resource.id);
-    // watch for last row getting displayed
-    let observer = new IntersectionObserver((entries, obs) => {
-      entries.forEach(entry => {
-        // when last row of resource is displayed in viewport, unwatch this element and call next batch
-        if (entry.intersectionRatio > 0) {
-          obs.disconnect();
-          this.callBatch(this.nextBundleUrl);
-        }
-      });
-    });
-    observer.observe(this.lastResourceElement);
+  onTableScroll(e) {
+    const tableViewHeight = e.target.offsetHeight; // viewport: 300px
+    const tableScrollHeight = e.target.scrollHeight; // length of all table
+    const scrollLocation = e.target.scrollTop; // how far user scrolled
+    // If the user has scrolled within 200px of the bottom, add more data
+    const buffer = 200;
+    const limit = tableScrollHeight - tableViewHeight - buffer;
+    if (scrollLocation > limit) {
+      this.callBatch(this.nextBundleUrl);
+    }
   }
 
   /** Whether the number of selected elements matches the total number of rows. */
