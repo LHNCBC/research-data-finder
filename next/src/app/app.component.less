@@ -118,3 +118,46 @@ ul.horz-list li.last-item {
   flex-direction: column;
   align-items: center;
 }
+
+
+/* Styles for the covid banner */
+#covid-banner {
+  background-color: #dc3545;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  padding-left: 1em;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 16px;
+  color: #ffffff;
+  display: flex;
+  list-style-type: disc;
+
+  li {
+    padding-left: 0em;
+    padding-right: 2em;
+
+    a {
+      text-decoration: none;
+      color: #ffffff;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    button {
+      cursor: pointer;
+      border-radius: 0.8em;
+      background-color: #ffffff;
+      opacity: 0.75;
+      color: #000000;
+      text-decoration: none;
+    }
+  }
+
+  li:first-child, li:last-child {
+    list-style-type: none;
+  }
+}
+/* End of styles for the covid banner */
