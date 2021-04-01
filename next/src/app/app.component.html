@@ -44,7 +44,8 @@
     </a>
   </li>
   <li>
-    <button onclick="document.querySelector('#covid-banner').style.display = 'none';" title="Dismiss">
+    <button title="Dismiss"
+            onclick="document.querySelector('#covid-banner').style.display = 'none'; sessionStorage.setItem('hideCovidBanner', true);">
       <span aria-hidden="true">x</span>
     </button>
   </li>
