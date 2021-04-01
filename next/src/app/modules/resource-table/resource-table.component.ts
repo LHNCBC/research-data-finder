@@ -35,7 +35,15 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
     private http: HttpClient,
     private ngZone: NgZone
   ) {
+  }
+
+  ngOnInit(): void {
+    this.columns = this.columns.concat(this.columnDescriptions.map(c => c.element));
     if (this.enableClientFiltering) {
+      this.filterColumns = this.columns.map(c => c + 'Filter');
+      this.columnDescriptions.forEach(column => {
+        this.filtersForm.addControl(column.element, new FormControl());
+      });
       this.dataSource.filterPredicate = ((data, filter) => {
         for (const [key, value] of Object.entries(filter)) {
           if (value) {
@@ -48,16 +56,6 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
         }
         return true;
       }) as (BundleEntry, string) => boolean;
-    }
-  }
-
-  ngOnInit(): void {
-    this.columns = this.columns.concat(this.columnDescriptions.map(c => c.element));
-    if (this.enableClientFiltering) {
-      this.filterColumns = this.columns.map(c => c + 'Filter');
-      this.columnDescriptions.forEach(column => {
-        this.filtersForm.addControl(column.element, new FormControl());
-      });
       this.filtersForm.valueChanges.subscribe(value => {
         this.dataSource.filter = {...value} as string;
       });
@@ -80,6 +78,7 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
    */
   callBatch(url: string) {
     this.isLoading = true;
+    this.nextBundleUrl = '';
     this.http.get(url)
       .subscribe((data: Bundle) => {
         this.isLoading = false;
@@ -92,6 +91,10 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
    * Table viewport scroll handler
    */
   onTableScroll(e) {
+    // Extra safeguard in case server traffic takes longer than scroll throttle time (1000ms)
+    if (!this.nextBundleUrl) {
+      return;
+    }
     const tableViewHeight = e.target.offsetHeight; // viewport: 300px
     const tableScrollHeight = e.target.scrollHeight; // length of all table
     const scrollLocation = e.target.scrollTop; // how far user scrolled
