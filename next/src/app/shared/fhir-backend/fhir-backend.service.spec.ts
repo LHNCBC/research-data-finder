@@ -62,12 +62,12 @@ describe('FhirBackendService', () => {
   it('should patch URL for non-GET FHIR requests', (done) => {
     httpClient.post('$fhir/some_related_url', '').subscribe((response) => {
       expect(response).toBe(responseFromDefaultBackend.body);
+      expect(defaultHttpXhrBackend.handle)
+        .toHaveBeenCalledWith(jasmine.objectContaining({
+          url: service.serviceBaseUrl + '/some_related_url'
+        }));
       done();
     });
-    expect(defaultHttpXhrBackend.handle)
-      .toHaveBeenCalledWith(jasmine.objectContaining({
-        url: service.serviceBaseUrl + '/some_related_url'
-      }));
   });
 
   it('should pass GET FHIR requests to FhirBatchQuery', (done) => {
