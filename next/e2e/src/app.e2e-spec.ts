@@ -84,7 +84,11 @@ describe('Research Data Finder', () => {
 
   afterEach(async () => {
     // Assert that there are no errors emitted from the browser
-    const logs = await browser.manage().logs().get(logging.Type.BROWSER);
+    const logs = await browser.manage().logs().get(logging.Type.BROWSER)
+      .then(entries => {
+        // Ignore the error that the sorting parameter "age-at-event" is not supported
+        return entries.filter(entry => !/Observation\?_sort=age-at-event/.test(entry.message));
+      });
     expect(logs).not.toContain(jasmine.objectContaining({
       level: logging.Level.SEVERE,
     } as logging.Entry));

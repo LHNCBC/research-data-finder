@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [2.6.0] - 2021-03-08
+### Added
+- $lastn lookup of Observation codes, when supported
+### Fixed
+- It was possible to select the same criteria after loading the cohort criteria
+- Displaying Observation component values
+
 ## [2.5.0] - 2021-02-18
 ### Added
 - ResearchStudy for cohort selection

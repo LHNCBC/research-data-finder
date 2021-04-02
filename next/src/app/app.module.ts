@@ -2,12 +2,12 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { StepperModule } from './modules/stepper/stepper.module';
-import { CommonSvgIconsModule } from './modules/common-svg-icons/common-svg-icons.module';
+import { SharedModule } from './shared/shared.module';
 import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatFormFieldDefaultOptions
 } from '@angular/material/form-field';
-import {HttpClientModule} from "@angular/common/http";
+import {HttpClientModule} from '@angular/common/http';
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
@@ -19,8 +19,8 @@ const appearance: MatFormFieldDefaultOptions = {
   ],
   imports: [
     BrowserModule,
+    SharedModule,
     HttpClientModule,
-    CommonSvgIconsModule,
     StepperModule
   ],
   providers: [

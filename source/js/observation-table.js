@@ -138,15 +138,11 @@ export class ObservationTable extends ResourceTable {
       },
       {
         title: 'Test Name',
-        text: (obs) => obs.code.text || obs.code.coding[0].display
+        text: (obs) => this.getDisplayOfCodeableConcept(obs.code)
       },
       {
         title: 'Value',
-        text: (obs) => this.getObservationValue(obs).value
-      },
-      {
-        title: 'Unit',
-        text: (obs) => this.getObservationValue(obs).unit
+        text: (obs) => this.getObservationValue(obs)
       },
       {
         title: 'FHIR Observation',
@@ -162,15 +158,7 @@ export class ObservationTable extends ResourceTable {
         text: (obs) => {
           const codeableConcept = obs.interpretation && obs.interpretation[0];
 
-          return (
-            (codeableConcept &&
-              (codeableConcept.text ||
-                (codeableConcept.coding &&
-                  codeableConcept.coding.length > 0 &&
-                  (codeableConcept.coding[0].display ||
-                    codeableConcept.coding[0].code)))) ||
-            ''
-          );
+          return this.getDisplayOfCodeableConcept(codeableConcept);
         }
       }
     ];
@@ -223,13 +211,11 @@ export class ObservationTable extends ResourceTable {
   }
 
   /**
-   * Returns Observation code
-   * @param {Object} obs
+   * Returns first CodeableConcept code
+   * @param {Object} codeableConcept
    * @return {string|null}
    */
-  getObservationCode(obs) {
-    const codeableConcept = obs.code;
-
+  getCodableConceptCode(codeableConcept) {
     return (
       (codeableConcept &&
         codeableConcept.coding &&
@@ -240,20 +226,41 @@ export class ObservationTable extends ResourceTable {
   }
 
   /**
+   * Returns CodeableConcept display string
+   * @param {Object} codeableConcept
+   * @return {string|null}
+   */
+  getDisplayOfCodeableConcept(codeableConcept) {
+    return (
+      (codeableConcept &&
+        (codeableConcept.text ||
+          (codeableConcept.coding &&
+            codeableConcept.coding.length > 0 &&
+            codeableConcept.coding[0].display))) ||
+      this.getCodableConceptCode(codeableConcept) ||
+      ''
+    );
+  }
+
+  /**
    * Returns Observation value/unit
    * @param {Object} obs
    * @return {{value: string, unit: string}}
    */
   getObservationValue(obs) {
-    let result = this._getValue(obs);
-    if (!result && obs.component && obs.code) {
-      const obsCode = this.getObservationCode(obs);
-      obs.component.some((component) => {
-        if (obsCode === this.getObservationCode(component)) {
-          result = this._getValue(component);
-        }
-      });
-    }
+    const v = this._getValue(obs);
+    let result = v ? `${v.value} ${v.unit}` : '';
+    (obs.component || []).forEach((component) => {
+      obs.code.text || obs.code.coding[0].display;
+      const componentCodeDisplay = this.getDisplayOfCodeableConcept(
+        component.code
+      );
+      const componentValue = this._getValue(component);
+      if (result) {
+        result += '\n';
+      }
+      result += `${componentCodeDisplay}: ${componentValue.value} ${componentValue.unit}`;
+    });
     return result;
   }
 
@@ -273,7 +280,7 @@ export class ObservationTable extends ResourceTable {
         if (key === 'valueQuantity') {
           result = {
             value: value.value,
-            unit: value.unit
+            unit: value.unit || ''
           };
         } else if (
           key === 'valueCodeableConcept' &&
@@ -385,7 +392,7 @@ export class ObservationTable extends ResourceTable {
     this.data = data.observations.filter((obs) => {
       // Per Clem, we will only show perPatientPerTest results per patient per test.
       const patientRef = obs.subject.reference,
-        codeStr = this.getObservationCode(obs);
+        codeStr = this.getCodableConceptCode(obs.code);
       let codeToCount =
         patientToCodeToCount[patientRef] ||
         (patientToCodeToCount[patientRef] = {});
@@ -411,7 +418,9 @@ export class ObservationTable extends ResourceTable {
         .map((obs) => {
           return (
             '<td>' +
-            viewCellsTemplate.map((cell) => cell.text(obs)).join('</td><td>') +
+            viewCellsTemplate
+              .map((cell) => cell.text(obs).replace(/\n/g, '<br>'))
+              .join('</td><td>') +
             '</td>'
           );
         })
@@ -431,7 +440,7 @@ export class ObservationTable extends ResourceTable {
           .map((cell) => {
             const cellText = cell.text(obs);
 
-            if (/["\s]/.test(cellText)) {
+            if (/["\s\n]/.test(cellText)) {
               return '"' + cellText.replace(/"/, '""') + '"';
             } else {
               return cellText;
