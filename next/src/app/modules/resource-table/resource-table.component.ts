@@ -32,6 +32,7 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   lastResourceElement: HTMLElement;
   isLoading = false;
   @ViewChild(CdkScrollable) scrollable: CdkScrollable;
+  resourceTotal = 0;
 
   constructor(
     private http: HttpClient,
@@ -68,6 +69,7 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
     }
     this.dataSource.data = this.initialBundle.entry;
     this.nextBundleUrl = this.initialBundle.link.find(l => l.relation === 'next')?.url;
+    this.resourceTotal = this.initialBundle.total;
   }
 
   ngAfterViewInit(): void {
@@ -202,5 +204,30 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
     }
 
     return rtn || null;
+  }
+
+  /**
+   * Get count message according to total/max number of resources
+   */
+  get countMessage(): string {
+    let output = '';
+    if (this.enableSelection) {
+      output += `Selected ${this.selectedResources.selected.length} out of `;
+    }
+    if (!this.resourceTotal && !this.max) {
+      output += `${this.dataSource.data.length} rows loaded.`;
+    }
+    if (!this.resourceTotal && this.max) {
+      output += `${this.max} maximum rows.`;
+    }
+    if (this.resourceTotal && !this.max) {
+      output += `${this.resourceTotal} total rows.`;
+    }
+    if (this.resourceTotal && this.max) {
+      output += this.max > this.resourceTotal
+        ? `${this.resourceTotal} total rows.`
+        : `${this.max} maximum rows.`;
+    }
+    return output;
   }
 }
