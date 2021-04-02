@@ -15,6 +15,7 @@ import {
   PATIENT,
   EncounterSearchParameters,
   ObservationSearchParameters,
+  ObservationLastnSearchParameters,
   ConditionSearchParameters,
   MedicationDispenseSearchParameters
 } from './search-parameters';
@@ -62,15 +63,19 @@ let patientSearchParams;
  */
 function initApp(serviceBaseUrl) {
   patientSearchParams && patientSearchParams.detachControls();
-  fhirClient.initialize(serviceBaseUrl);
-  patientSearchParams = createPatientSearchParameters();
+  fhirClient
+    .initialize(serviceBaseUrl)
+    .then(() => {
+      patientSearchParams = createPatientSearchParameters();
+      onEndLoading();
+    })
+    .finally(() => {
+      removeCssClass('#searchArea', 'spinner');
+    });
   resourceTabPane.clearResourceList(serviceBaseUrl);
 
   addCssClass('#searchArea', 'spinner');
   onStartLoading();
-  patientSearchParams.ready.then(onEndLoading).finally(() => {
-    removeCssClass('#searchArea', 'spinner');
-  });
   // Clear visible Patient list data
   showMessageIfNoPatientList('');
   reportPatientsSpan.innerHTML = '';
@@ -222,7 +227,9 @@ function createPatientSearchParameters() {
       EncounterSearchParameters,
       ConditionSearchParameters,
       MedicationDispenseSearchParameters,
-      ObservationSearchParameters,
+      fhirClient.getFeatures().lastnLookup
+        ? ObservationLastnSearchParameters
+        : ObservationSearchParameters,
       'Account',
       'AdverseEvent',
       'CarePlan',
@@ -398,8 +405,8 @@ export function loadPatients() {
   const maxPatientCount = document.getElementById('maxPatientCount').value;
 
   getPatients().then(
-    (data) => {
-      const patientResources = data;
+    ({ entry }) => {
+      const patientResources = entry;
 
       // Pass Patients data to component to display resources
       resourceTabPane.setContext({
@@ -443,7 +450,7 @@ export function loadPatients() {
 
 /**
  * Loads list of patients resources using search parameters.
- * @return {Promise<Array>}
+ * @return {Promise<{entry:Array}>}
  */
 function getPatients() {
   const maxPatientCount = document.getElementById('maxPatientCount').value;
@@ -511,7 +518,7 @@ function getPatients() {
     });
 
     if (resourceSummaries[0].total === 0) {
-      return [];
+      return { entry: [] };
     } else {
       // Hashmap of processed patients. Used to avoid recheck of the same patient
       const processedPatients = {};

@@ -12,7 +12,7 @@ import {
 
 export const OBSERVATION = 'Observation';
 
-const testSearchUrl =
+const loincSearchUrl =
   'https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?df=LOINC_NUM,text&type=question';
 
 const noControlsMessage = 'select a test to display controls';
@@ -38,8 +38,9 @@ export const ObservationSearchParameters = () => ({
    */
   attachControls: (searchItemId) => {
     const testInputId = `${searchItemId}-test-name`;
+    const currentData = (testSpecByRowId[searchItemId] = {});
 
-    const testAC = new Def.Autocompleter.Search(testInputId, testSearchUrl, {
+    const testAC = new Def.Autocompleter.Search(testInputId, loincSearchUrl, {
       maxSelect: '*',
       matchListValue: false,
       onComplete: function () {
@@ -57,14 +58,14 @@ export const ObservationSearchParameters = () => ({
           const units = testAC.listExtraData_.units[0] || null;
           if (AnswerLists && AnswerLists.length) {
             testAC.setURL(
-              `${testSearchUrl}&q=AnswerLists.AnswerListId:${AnswerLists.map(
+              `${loincSearchUrl}&q=AnswerLists.AnswerListId:${AnswerLists.map(
                 (i) => i.AnswerListId
               ).join(';')}`
             );
           } else if (datatype === 'REAL') {
             if (units) {
               testAC.setURL(
-                `${testSearchUrl}&q=datatype:REAL%20AND%20units.unit:${encodeURIComponent(
+                `${loincSearchUrl}&q=datatype:REAL%20AND%20units.unit:${encodeURIComponent(
                   '/' +
                     units.map((i) => escapeStringForRegExp(i.unit)).join('|') +
                     '/'
@@ -72,11 +73,11 @@ export const ObservationSearchParameters = () => ({
               );
             } else {
               testAC.setURL(
-                `${testSearchUrl}&q=datatype:REAL%20AND%20NOT%20_exists_:units.unit`
+                `${loincSearchUrl}&q=datatype:REAL%20AND%20NOT%20_exists_:units.unit`
               );
             }
           } else {
-            testAC.setURL(`${testSearchUrl}&q=datatype:${datatype}`);
+            testAC.setURL(`${loincSearchUrl}&q=datatype:${datatype}`);
           }
           createTestValueControls(searchItemId, datatype, units, AnswerLists);
         } else {
@@ -89,7 +90,7 @@ export const ObservationSearchParameters = () => ({
       }
     });
 
-    Def.Autocompleter.Event.observeListSelections(testInputId, (eventData) => {
+    currentData.changeListener = (eventData) => {
       const selectedCodes = testAC.getSelectedCodes();
       if (
         selectedCodes.length === 1 &&
@@ -109,10 +110,15 @@ export const ObservationSearchParameters = () => ({
         (testAC.url.indexOf('&q=') !== -1 || testAC.url === '')
       ) {
         testAC.matchListValue_ = false;
-        testAC.setURL(testSearchUrl);
+        testAC.setURL(loincSearchUrl);
         removeTestValueControls(searchItemId);
       }
-    });
+    };
+
+    Def.Autocompleter.Event.observeListSelections(
+      testInputId,
+      currentData.changeListener
+    );
   },
 
   /**
@@ -120,8 +126,16 @@ export const ObservationSearchParameters = () => ({
    * @param {string} searchItemId - unique generic identifier for a search parameter row
    */
   detachControls: (searchItemId) => {
+    const testInputId = `${searchItemId}-test-name`;
+    const currentData = testSpecByRowId[searchItemId];
     removeTestValueControls(searchItemId);
-    getAutocompleterById(`${searchItemId}-test-name`).destroy();
+    getAutocompleterById(testInputId).destroy();
+    Def.Autocompleter.Event.removeCallback(
+      testInputId,
+      'LIST_SEL',
+      currentData.changeListener
+    );
+    delete testSpecByRowId[searchItemId];
   },
 
   getRawCondition,
@@ -161,7 +175,7 @@ function initTestAC(searchItemId, itemCode, onCompleteOnce) {
     onCompleteOnce();
   } else {
     testAC.setURL(
-      `${testSearchUrl}&ef=datatype,units,AnswerLists&q=LOINC_NUM:${itemCode}`
+      `${loincSearchUrl}&ef=datatype,units,AnswerLists&q=LOINC_NUM:${itemCode}`
     );
     if (onCompleteOnce) {
       testAC.onCompleteOnce = onCompleteOnce;
@@ -270,11 +284,9 @@ ${testPeriodHtml}`;
     ).storeSelectedItem();
   }
 
-  testSpecByRowId[searchItemId] = {
-    datatype,
-    units,
-    AnswerLists
-  };
+  testSpecByRowId[searchItemId].datatype = datatype;
+  testSpecByRowId[searchItemId].units = units;
+  testSpecByRowId[searchItemId].AnswerLists = AnswerLists;
 }
 
 /**
@@ -291,7 +303,7 @@ function getCodeParam(searchItemId) {
   }
 
   return selectedCodes.length
-    ? '&code=' +
+    ? '&combo-code=' +
         selectedCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
     : '';
 }
@@ -302,7 +314,7 @@ function getCodeParam(searchItemId) {
  * @return {string}
  */
 function getValueParam(searchItemId) {
-  const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
+  const { datatype, AnswerLists } = testSpecByRowId[searchItemId];
 
   if (AnswerLists && AnswerLists.length) {
     const value = getAutocompleterById(`${searchItemId}-test-answers`)
@@ -310,7 +322,7 @@ function getValueParam(searchItemId) {
       .map((code) => encodeFhirSearchParameter(code))
       .join(',');
 
-    return value ? `&value-concept=${value}` : '';
+    return value ? `&combo-value-concept=${value}` : '';
   } else if (datatype === 'REAL' || datatype === undefined) {
     // For questions of type REAL and if no type is defined (for non-LOINC codes),
     // the same controls are used.
@@ -323,7 +335,7 @@ function getValueParam(searchItemId) {
       document.getElementById(`${searchItemId}-test-value-unit`).value || '';
 
     return value.trim()
-      ? `&value-quantity=${encodeURIComponent(
+      ? `&combo-value-quantity=${encodeURIComponent(
           prefix + value + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
         )}`
       : '';
@@ -365,7 +377,7 @@ function getPeriodParams(searchItemId) {
  * @return {Object|null}
  */
 function getRawCondition(searchItemId) {
-  const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
+  const { datatype, AnswerLists } = testSpecByRowId[searchItemId];
   if (!getCodeParam(searchItemId)) {
     return undefined;
   }
@@ -427,7 +439,7 @@ function setRawCondition(searchItemId, rawCondition) {
 
   addAutocompleterRawDataById(`${searchItemId}-test-name`, testNames);
   initTestAC(searchItemId, testNames.codes[0], () => {
-    const { datatype, AnswerLists } = testSpecByRowId[searchItemId] || {};
+    const { datatype, AnswerLists } = testSpecByRowId[searchItemId];
 
     if (AnswerLists && AnswerLists.length) {
       addAutocompleterRawDataById(
@@ -468,7 +480,7 @@ function removeTestValueControls(searchItemId) {
   document.getElementById(
     `${searchItemId}-test-value`
   ).innerHTML = noControlsMessage;
-  delete testSpecByRowId[searchItemId];
+  testSpecByRowId[searchItemId] = {};
 }
 
 /**
