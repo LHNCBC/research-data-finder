@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {ColumnDescription} from "../../types/column.description";
+import {ColumnDescription} from '../../types/column.description';
 
 /**
  * Component for viewing a cohort of Patient resources
@@ -60,6 +60,6 @@ export class ViewCohortPageComponent implements OnInit {
   constructor() {
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
   }
 }

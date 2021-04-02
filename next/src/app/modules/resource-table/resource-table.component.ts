@@ -22,6 +22,7 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   @Input() initialUrl: string;
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
+  @Input() max = 0;
   columns: string[] = [];
   filterColumns = [];
   nextBundleUrl: string;
@@ -87,6 +88,10 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
     this.http.get(url)
       .subscribe((data: Bundle) => {
         this.isLoading = false;
+        // If max is defined, load no more than max number of resource rows
+        if (this.max && this.dataSource.data.length + data.entry.length > this.max) {
+          return;
+        }
         this.nextBundleUrl = data.link.find(l => l.relation === 'next')?.url;
         this.dataSource.data = this.dataSource.data.concat(data.entry);
       });
