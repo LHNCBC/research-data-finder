@@ -40,7 +40,7 @@
 
   <mat-step label="View cohort">
     <div class="v-box">
-      <app-view-cohort-page></app-view-cohort-page>
+      <app-view-cohort-page [max]="defineCohortComponent.defineCohortForm.get('maxPatientsNumber').value"></app-view-cohort-page>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>

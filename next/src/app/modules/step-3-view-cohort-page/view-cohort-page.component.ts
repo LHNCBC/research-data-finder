@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {ColumnDescription} from '../../types/column.description';
 import {HttpClient} from '@angular/common/http';
 import Bundle = fhir.Bundle;
@@ -12,6 +12,7 @@ import Bundle = fhir.Bundle;
   styleUrls: ['./view-cohort-page.component.less']
 })
 export class ViewCohortPageComponent implements OnInit {
+  @Input() max = 0;
   // TODO: temporarily hard coded options
   columnDescriptions: ColumnDescription[] = [
     {
