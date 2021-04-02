@@ -58,7 +58,7 @@ export class ViewCohortPageComponent implements OnInit {
       visible: false
     }
   ];
-  url = 'https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=100';
+  url = 'https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=10';
   initialBundle: Bundle;
   showTable = false;
 
