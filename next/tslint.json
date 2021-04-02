@@ -147,6 +147,7 @@
       "element",
       "app",
       "kebab-case"
-    ]
+    ],
+    "no-string-literal": false
   }
 }

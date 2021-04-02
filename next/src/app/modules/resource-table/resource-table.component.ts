@@ -1,13 +1,13 @@
 import {AfterViewInit, Component, Input, NgZone, OnInit, ViewChild} from '@angular/core';
-import {HttpClient} from "@angular/common/http";
-import {SelectionModel} from "@angular/cdk/collections";
-import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
-import {MatTableDataSource} from "@angular/material/table";
+import {HttpClient} from '@angular/common/http';
+import {SelectionModel} from '@angular/cdk/collections';
+import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {MatTableDataSource} from '@angular/material/table';
 import Bundle = fhir.Bundle;
 import BundleEntry = fhir.BundleEntry;
-import {ColumnDescription} from "../../types/column.description";
-import {debounceTime} from "rxjs/operators";
-import {CdkScrollable} from "@angular/cdk/overlay";
+import {ColumnDescription} from '../../types/column.description';
+import {debounceTime} from 'rxjs/operators';
+import {CdkScrollable} from '@angular/cdk/overlay';
 
 /**
  * Component for loading table of resources
@@ -20,7 +20,7 @@ import {CdkScrollable} from "@angular/cdk/overlay";
 export class ResourceTableComponent implements OnInit, AfterViewInit {
   @Input() columnDescriptions: ColumnDescription[];
   @Input() initialUrl: string;
-  @Input() enableClientFiltering: boolean = false;
+  @Input() enableClientFiltering = false;
   columns: string[] = ['select'];
   filterColumns = [];
   nextBundleUrl: string;
@@ -49,12 +49,13 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
           if (value) {
             const columnDescription = this.columnDescriptions.find(c => c.element === key);
             const cellValue = this.getCellDisplay(data, columnDescription);
-            if (!cellValue.toLowerCase().startsWith((<string>value).toLowerCase())) {
+            if (!cellValue.toLowerCase().startsWith((value as string).toLowerCase())) {
               return false;
             }
           }
         }
         return true;
+        // tslint:disable-next-line:variable-name
       }) as (BundleEntry, string) => boolean;
       this.filtersForm.valueChanges.subscribe(value => {
         this.dataSource.filter = {...value} as string;
@@ -76,7 +77,7 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   /**
    * Call and load a bundle of resources
    */
-  callBatch(url: string) {
+  callBatch(url: string): void {
     this.isLoading = true;
     this.nextBundleUrl = '';
     this.http.get(url)
@@ -90,7 +91,7 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   /**
    * Table viewport scroll handler
    */
-  onTableScroll(e) {
+  onTableScroll(e): void {
     // Extra safeguard in case server traffic takes longer than scroll throttle time (1000ms)
     if (!this.nextBundleUrl) {
       return;
@@ -107,14 +108,14 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   }
 
   /** Whether the number of selected elements matches the total number of rows. */
-  isAllSelected() {
+  isAllSelected(): boolean {
     const numSelected = this.selectedResources.selected.length;
     const numRows = this.dataSource.data.length;
-    return numSelected == numRows;
+    return numSelected === numRows;
   }
 
   /** Selects all rows if they are not all selected; otherwise clear selection. */
-  masterToggle() {
+  masterToggle(): void {
     this.isAllSelected() ?
       this.selectedResources.clear() :
       this.dataSource.data.forEach(row => this.selectedResources.select(row));
@@ -123,7 +124,7 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   /**
    * Clear filters on all columns
    */
-  clearColumnFilters() {
+  clearColumnFilters(): void {
     this.filtersForm.reset();
   }
 
@@ -134,9 +135,9 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
     if (column.types.length === 1) {
       return this.getCellDisplayByType(row, column.types[0], column.element);
     }
-    for (let type of column.types) {
-      let upperCaseType = type.charAt(0).toUpperCase() + type.slice(1);
-      let output = this.getCellDisplayByType(row, type, column.element.replace('[x]', upperCaseType));
+    for (const type of column.types) {
+      const upperCaseType = type.charAt(0).toUpperCase() + type.slice(1);
+      const output = this.getCellDisplayByType(row, type, column.element.replace('[x]', upperCaseType));
       if (output) {
         return output;
       }
@@ -162,9 +163,10 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
    * Get address display
    */
   getAddressDisplay(addressElements): string {
-    for (let address of addressElements) {
-      if (address['text'])
+    for (const address of addressElements) {
+      if (address['text']) {
         return address['text'];
+      }
     }
     return '';
   }
@@ -172,11 +174,12 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   /**
    * Get name display
    */
-  humanNameToString(nameElements) {
+  humanNameToString(nameElements): string {
     let rtn;
     const name = nameElements && nameElements[0];
 
     if (name) {
+      // tslint:disable-next-line:one-variable-per-declaration
       const given = name.given || [],
         firstName = given[0] || '',
         lastName = name.family || '';
