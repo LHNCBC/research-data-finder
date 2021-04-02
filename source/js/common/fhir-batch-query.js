@@ -1,5 +1,5 @@
 import { updateUrlWithParam } from './utils';
-import definitionsIndex from '../search-parameters/definitions';
+import definitionsIndex from '../search-parameters/definitions/index.json';
 
 let commonRequestCache = {}; // Map from url to result JSON
 
