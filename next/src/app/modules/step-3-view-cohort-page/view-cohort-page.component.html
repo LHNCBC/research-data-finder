@@ -15,4 +15,4 @@
   </mat-expansion-panel>
 </mat-accordion>
 
-<app-resource-table [columnDescriptions]="columnDescriptions" [initialUrl]="url"></app-resource-table>
+<app-resource-table *ngIf="showTable" [columnDescriptions]="columnDescriptions" [initialBundle]="initialBundle"></app-resource-table>

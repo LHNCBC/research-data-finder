@@ -19,7 +19,7 @@ import {CdkScrollable} from '@angular/cdk/overlay';
 })
 export class ResourceTableComponent implements OnInit, AfterViewInit {
   @Input() columnDescriptions: ColumnDescription[];
-  @Input() initialUrl: string;
+  @Input() initialBundle: Bundle;
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
   @Input() max = 0;
@@ -66,7 +66,8 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
         this.dataSource.filter = {...value} as string;
       });
     }
-    this.callBatch(this.initialUrl);
+    this.dataSource.data = this.initialBundle.entry;
+    this.nextBundleUrl = this.initialBundle.link.find(l => l.relation === 'next')?.url;
   }
 
   ngAfterViewInit(): void {

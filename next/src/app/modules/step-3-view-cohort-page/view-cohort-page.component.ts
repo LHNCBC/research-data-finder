@@ -1,5 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {ColumnDescription} from '../../types/column.description';
+import {HttpClient} from '@angular/common/http';
+import Bundle = fhir.Bundle;
 
 /**
  * Component for viewing a cohort of Patient resources
@@ -56,10 +58,17 @@ export class ViewCohortPageComponent implements OnInit {
     }
   ];
   url = 'https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=100';
+  initialBundle: Bundle;
+  showTable = false;
 
-  constructor() {
+  constructor(
+    private http: HttpClient) {
   }
 
   ngOnInit(): void {
+    this.http.get(this.url).subscribe((data: Bundle) => {
+      this.initialBundle = data;
+      this.showTable = true;
+    });
   }
 }
