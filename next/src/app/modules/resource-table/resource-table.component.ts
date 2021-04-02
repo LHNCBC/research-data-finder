@@ -21,7 +21,8 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   @Input() columnDescriptions: ColumnDescription[];
   @Input() initialUrl: string;
   @Input() enableClientFiltering = false;
-  columns: string[] = ['select'];
+  @Input() enableSelection = false;
+  columns: string[] = [];
   filterColumns = [];
   nextBundleUrl: string;
   selectedResources = new SelectionModel<BundleEntry>(true, []);
@@ -38,6 +39,9 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    if (this.enableSelection) {
+      this.columns.push('select');
+    }
     this.columns = this.columns.concat(this.columnDescriptions.map(c => c.element));
     if (this.enableClientFiltering) {
       this.filterColumns = this.columns.map(c => c + 'Filter');
