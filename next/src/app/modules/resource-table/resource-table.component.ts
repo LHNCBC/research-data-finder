@@ -61,6 +61,7 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
           }
         }
         return true;
+        // casting method signature here because filterPredicate defines filter param as string
         // tslint:disable-next-line:variable-name
       }) as (BundleEntry, string) => boolean;
       this.filtersForm.valueChanges.subscribe(value => {
