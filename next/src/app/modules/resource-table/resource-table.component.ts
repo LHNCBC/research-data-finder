@@ -75,7 +75,7 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.scrollable.elementScrolled()
-      .pipe(debounceTime(1000))
+      .pipe(debounceTime(700))
       .subscribe(e => {
         this.ngZone.run(() => {
           this.onTableScroll(e);
