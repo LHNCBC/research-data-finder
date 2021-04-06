@@ -5,7 +5,7 @@ import {
   HttpEvent,
   HttpRequest,
   HttpResponse,
-  HttpXhrBackend,
+  HttpXhrBackend
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
@@ -87,7 +87,7 @@ export class FhirBackendService implements HttpBackend {
    */
   constructor(private defaultBackend: HttpXhrBackend) {
     this.fhirClient = new FhirBatchQuery({
-      serviceBaseUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4',
+      serviceBaseUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4'
     });
     this.fhirClient.initialize().then(() => {
       this.initialized$.next(true);
@@ -113,7 +113,7 @@ export class FhirBackendService implements HttpBackend {
       this.serviceBaseUrl
     );
     const newRequest = request.clone({
-      url: newUrl,
+      url: newUrl
     });
 
     if (request.method !== 'GET') {
@@ -139,7 +139,7 @@ export class FhirBackendService implements HttpBackend {
                 new HttpResponse<any>({
                   status,
                   body: data,
-                  url: fullUrl,
+                  url: fullUrl
                 })
               );
               observer.complete();
@@ -149,7 +149,7 @@ export class FhirBackendService implements HttpBackend {
                 new HttpErrorResponse({
                   status,
                   error,
-                  url: fullUrl,
+                  url: fullUrl
                 })
               );
             }

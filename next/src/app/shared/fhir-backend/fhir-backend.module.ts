@@ -8,7 +8,7 @@ import { FhirBackendService } from './fhir-backend.service';
   imports: [CommonModule, HttpClientModule],
   providers: [
     FhirBackendService,
-    { provide: HttpBackend, useExisting: FhirBackendService },
-  ],
+    { provide: HttpBackend, useExisting: FhirBackendService }
+  ]
 })
 export class FhirBackendModule {}

@@ -11,7 +11,7 @@ describe('PullDataForCohortComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [PullDataPageComponent],
-      imports: [PullDataPageModule, SharedModule],
+      imports: [PullDataPageModule, SharedModule]
     }).compileComponents();
   });
 

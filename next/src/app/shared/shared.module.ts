@@ -5,6 +5,6 @@ import { CommonSvgIconsModule } from './common-svg-icons/common-svg-icons.module
 
 @NgModule({
   declarations: [],
-  imports: [CommonModule, FhirBackendModule, CommonSvgIconsModule],
+  imports: [CommonModule, FhirBackendModule, CommonSvgIconsModule]
 })
 export class SharedModule {}

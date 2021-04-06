@@ -14,7 +14,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     BrowserAnimationsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatInputModule,
-  ],
+    MatInputModule
+  ]
 })
 export class SettingsPageModule {}

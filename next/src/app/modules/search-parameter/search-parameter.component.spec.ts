@@ -10,7 +10,7 @@ describe('SearchParameterComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [SearchParameterComponent],
-      imports: [SearchParametersModule],
+      imports: [SearchParametersModule]
     }).compileComponents();
   });
 

@@ -4,7 +4,7 @@ import {
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
-  Validator,
+  Validator
 } from '@angular/forms';
 import { forwardRef, Provider, Type } from '@angular/core';
 
@@ -20,8 +20,8 @@ export function createControlValueAccessorProviders(
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => type),
-      multi: true,
-    },
+      multi: true
+    }
   ];
 }
 
@@ -78,8 +78,8 @@ export function createControlValueAccessorAndValidatorProviders(
     {
       provide: NG_VALIDATORS,
       useExisting: forwardRef(() => type),
-      multi: true,
-    },
+      multi: true
+    }
   ];
 }
 

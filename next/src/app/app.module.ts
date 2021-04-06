@@ -5,11 +5,11 @@ import { StepperModule } from './modules/stepper/stepper.module';
 import { SharedModule } from './shared/shared.module';
 import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
-  MatFormFieldDefaultOptions,
+  MatFormFieldDefaultOptions
 } from '@angular/material/form-field';
 
 const appearance: MatFormFieldDefaultOptions = {
-  appearance: 'outline',
+  appearance: 'outline'
 };
 
 @NgModule({
@@ -18,9 +18,9 @@ const appearance: MatFormFieldDefaultOptions = {
   providers: [
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
-      useValue: appearance,
-    },
+      useValue: appearance
+    }
   ],
-  bootstrap: [AppComponent],
+  bootstrap: [AppComponent]
 })
 export class AppModule {}

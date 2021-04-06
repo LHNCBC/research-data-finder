@@ -7,7 +7,7 @@ import {
   HttpClient,
   HttpClientModule,
   HttpResponse,
-  HttpXhrBackend,
+  HttpXhrBackend
 } from '@angular/common/http';
 import { of } from 'rxjs';
 
@@ -17,20 +17,20 @@ describe('FhirBackendService', () => {
   let defaultHttpXhrBackend: HttpXhrBackend;
   const responseFromDefaultBackend = new HttpResponse({
     status: 200,
-    body: 'response from default backend',
+    body: 'response from default backend'
   });
   const responseFromFhirBatchQuery = {
     status: 200,
-    data: 'response from FhirBatchQuery',
+    data: 'response from FhirBatchQuery'
   };
   const responseFromFhirBatchQueryCache = {
     status: 200,
-    data: 'response from FhirBatchQuery cache',
+    data: 'response from FhirBatchQuery cache'
   };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [FhirBackendModule, HttpClientModule],
+      imports: [FhirBackendModule, HttpClientModule]
     });
     spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
     spyOn(FhirBatchQuery.prototype, 'get').and.resolveTo(
@@ -67,7 +67,7 @@ describe('FhirBackendService', () => {
       expect(response).toBe(responseFromDefaultBackend.body);
       expect(defaultHttpXhrBackend.handle).toHaveBeenCalledWith(
         jasmine.objectContaining({
-          url: service.serviceBaseUrl + '/some_related_url',
+          url: service.serviceBaseUrl + '/some_related_url'
         })
       );
       done();

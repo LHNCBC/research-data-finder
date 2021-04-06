@@ -5,7 +5,7 @@ import { map, startWith } from 'rxjs/operators';
 import { SearchParameter } from 'src/app/types/search.parameter';
 import {
   BaseControlValueAccessor,
-  createControlValueAccessorProviders,
+  createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 
 /**
@@ -15,7 +15,7 @@ import {
   selector: 'app-search-parameter',
   templateUrl: './search-parameter.component.html',
   styleUrls: ['./search-parameter.component.less'],
-  providers: createControlValueAccessorProviders(SearchParameterComponent),
+  providers: createControlValueAccessorProviders(SearchParameterComponent)
 })
 export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>

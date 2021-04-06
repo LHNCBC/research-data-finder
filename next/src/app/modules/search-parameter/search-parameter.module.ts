@@ -16,7 +16,7 @@ import { LoincVariablesSelectorModule } from '../loinc-variables-selector/loinc-
     MatAutocompleteModule,
     ReactiveFormsModule,
     MatInputModule,
-    LoincVariablesSelectorModule,
-  ],
+    LoincVariablesSelectorModule
+  ]
 })
 export class SearchParameterModule {}

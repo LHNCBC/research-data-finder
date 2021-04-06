@@ -4,7 +4,7 @@ import { ProtractorHarnessEnvironment } from '@angular/cdk/testing/protractor';
 import {
   MatStepHarness,
   MatStepperHarness,
-  MatStepperNextHarness,
+  MatStepperNextHarness
 } from '@angular/material/stepper/testing';
 
 // Page objects & harnesses
@@ -102,7 +102,7 @@ describe('Research Data Finder', () => {
       });
     expect(logs).not.toContain(
       jasmine.objectContaining({
-        level: logging.Level.SEVERE,
+        level: logging.Level.SEVERE
       } as logging.Entry)
     );
   });

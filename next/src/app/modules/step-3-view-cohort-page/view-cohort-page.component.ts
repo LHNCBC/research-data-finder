@@ -12,13 +12,13 @@ export interface PatientElement {
 @Component({
   selector: 'app-view-cohort-page',
   templateUrl: './view-cohort-page.component.html',
-  styleUrls: ['./view-cohort-page.component.less'],
+  styleUrls: ['./view-cohort-page.component.less']
 })
 export class ViewCohortPageComponent implements OnInit {
   patientColumns: string[] = ['id', 'name'];
   patientDataSource: PatientElement[] = Array.from({ length: 50 }, (v, i) => ({
     id: `id-${i}`,
-    name: `Patient name - ${i}`,
+    name: `Patient name - ${i}`
   }));
 
   constructor() {}

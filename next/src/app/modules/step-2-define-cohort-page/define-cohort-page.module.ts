@@ -16,7 +16,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     ReactiveFormsModule,
     MatFormFieldModule,
     SearchParametersModule,
-    MatInputModule,
-  ],
+    MatInputModule
+  ]
 })
 export class DefineCohortPageModule {}

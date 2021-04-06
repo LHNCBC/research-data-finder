@@ -18,7 +18,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatTableModule,
     MatIconModule,
     MatTooltipModule,
-    MatButtonModule,
-  ],
+    MatButtonModule
+  ]
 })
 export class PullDataPageModule {}

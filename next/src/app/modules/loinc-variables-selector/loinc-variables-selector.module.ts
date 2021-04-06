@@ -18,7 +18,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     MatAutocompleteModule,
     MatChipsModule,
     MatFormFieldModule,
-    MatIconModule,
-  ],
+    MatIconModule
+  ]
 })
 export class LoincVariablesSelectorModule {}

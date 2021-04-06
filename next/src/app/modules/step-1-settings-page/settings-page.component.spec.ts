@@ -11,7 +11,7 @@ describe('SettingsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [SettingsPageComponent],
-      imports: [SettingsPageModule, SharedModule],
+      imports: [SettingsPageModule, SharedModule]
     }).compileComponents();
   });
 

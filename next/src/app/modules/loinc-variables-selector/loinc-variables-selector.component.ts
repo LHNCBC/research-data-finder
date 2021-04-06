@@ -4,14 +4,14 @@ import { map, startWith } from 'rxjs/operators';
 import {
   MatAutocomplete,
   MatAutocompleteSelectedEvent,
-  MatAutocompleteTrigger,
+  MatAutocompleteTrigger
 } from '@angular/material/autocomplete';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { FormControl } from '@angular/forms';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import {
   BaseControlValueAccessor,
-  createControlValueAccessorProviders,
+  createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 
 // See examples:
@@ -36,7 +36,7 @@ import {
   styleUrls: ['./loinc-variables-selector.component.less'],
   providers: createControlValueAccessorProviders(
     LoincVariablesSelectorComponent
-  ),
+  )
 })
 export class LoincVariablesSelectorComponent
   extends BaseControlValueAccessor<string[]>
@@ -52,7 +52,7 @@ export class LoincVariablesSelectorComponent
     'ABCDE',
     'Glucose Ur-msCnc',
     'Feeling tired or having little energy',
-    'DEF',
+    'DEF'
   ];
 
   @ViewChild('inputField') inputElementRef: ElementRef<HTMLInputElement>;

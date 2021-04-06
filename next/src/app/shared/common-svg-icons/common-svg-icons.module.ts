@@ -18,12 +18,12 @@ const icons = [
   'upload',
   'save',
   'file_download',
-  'create',
+  'create'
 ];
 
 @NgModule({
   declarations: [],
-  imports: [CommonModule],
+  imports: [CommonModule]
 })
 export class CommonSvgIconsModule {
   constructor(

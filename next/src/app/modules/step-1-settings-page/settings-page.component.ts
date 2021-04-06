@@ -4,11 +4,11 @@ import {
   FormControl,
   FormGroup,
   ValidationErrors,
-  Validators,
+  Validators
 } from '@angular/forms';
 import {
   BaseControlValueAccessorAndValidator,
-  createControlValueAccessorAndValidatorProviders,
+  createControlValueAccessorAndValidatorProviders
 } from '../base-control-value-accessor';
 import { HttpClient } from '@angular/common/http';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
@@ -22,7 +22,7 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
   styleUrls: ['./settings-page.component.less'],
   providers: createControlValueAccessorAndValidatorProviders(
     SettingsPageComponent
-  ),
+  )
 })
 export class SettingsPageComponent
   extends BaseControlValueAccessorAndValidator<any>
@@ -39,7 +39,7 @@ export class SettingsPageComponent
 
   ngOnInit(): void {
     this.settingsFormGroup = this.formBuilder.group({
-      serviceBaseUrl: [this.fhirBackend.serviceBaseUrl, Validators.required],
+      serviceBaseUrl: [this.fhirBackend.serviceBaseUrl, Validators.required]
     });
 
     this.settingsFormGroup.valueChanges.subscribe((value) => {

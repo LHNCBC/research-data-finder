@@ -10,7 +10,7 @@ describe('SelectLoincCodesComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [LoincVariablesSelectorComponent],
-      imports: [LoincVariablesSelectorModule],
+      imports: [LoincVariablesSelectorModule]
     }).compileComponents();
   });
 

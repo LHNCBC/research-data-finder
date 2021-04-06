@@ -11,7 +11,7 @@ describe('StepperComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [StepperComponent],
-      imports: [StepperModule, SharedModule],
+      imports: [StepperModule, SharedModule]
     }).compileComponents();
   });
 

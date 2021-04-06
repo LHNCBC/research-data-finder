@@ -4,11 +4,11 @@ import {
   FormControl,
   FormGroup,
   ValidationErrors,
-  Validators,
+  Validators
 } from '@angular/forms';
 import {
   BaseControlValueAccessorAndValidator,
-  createControlValueAccessorAndValidatorProviders,
+  createControlValueAccessorAndValidatorProviders
 } from '../base-control-value-accessor';
 import { SearchParametersComponent } from '../search-parameters/search-parameters.component';
 
@@ -21,7 +21,7 @@ import { SearchParametersComponent } from '../search-parameters/search-parameter
   styleUrls: ['./define-cohort-page.component.less'],
   providers: createControlValueAccessorAndValidatorProviders(
     DefineCohortPageComponent
-  ),
+  )
 })
 export class DefineCohortPageComponent
   extends BaseControlValueAccessorAndValidator<any>
@@ -36,7 +36,7 @@ export class DefineCohortPageComponent
 
   ngOnInit(): void {
     this.defineCohortForm = this.formBuilder.group({
-      maxPatientsNumber: ['100', Validators.required],
+      maxPatientsNumber: ['100', Validators.required]
     });
     this.defineCohortForm.valueChanges.subscribe((value) => {
       this.onChange(value);

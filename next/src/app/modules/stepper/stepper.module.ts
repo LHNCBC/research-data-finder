@@ -24,7 +24,7 @@ import { PullDataPageModule } from '../step-4-pull-data-page/pull-data-page.modu
     SettingsPageModule,
     DefineCohortPageModule,
     ViewCohortPageModule,
-    PullDataPageModule,
-  ],
+    PullDataPageModule
+  ]
 })
 export class StepperModule {}

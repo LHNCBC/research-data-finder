@@ -16,7 +16,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     MatIconModule,
     ReactiveFormsModule,
     MatButtonModule,
-    MatFormFieldModule,
-  ],
+    MatFormFieldModule
+  ]
 })
 export class SearchParametersModule {}

@@ -14,7 +14,7 @@ export interface ResourceElement {
 @Component({
   selector: 'app-pull-data-page',
   templateUrl: './pull-data-page.component.html',
-  styleUrls: ['./pull-data-page.component.less'],
+  styleUrls: ['./pull-data-page.component.less']
 })
 export class PullDataPageComponent implements OnInit {
   resourceColumns: string[] = ['col1', 'col2'];
@@ -22,7 +22,7 @@ export class PullDataPageComponent implements OnInit {
     { length: 50 },
     (v, i) => ({
       col1: `first column value - ${i}`,
-      col2: `second column value - ${i}`,
+      col2: `second column value - ${i}`
     })
   );
 
