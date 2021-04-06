@@ -8,6 +8,7 @@ import {
   ObservationSearchParameters,
   OBSERVATION
 } from './observation-search-parameters';
+import { ObservationLastnSearchParameters } from './observation-lastn-search-parameters';
 import {
   ConditionSearchParameters,
   CONDITION
@@ -24,6 +25,7 @@ export {
   EncounterSearchParameters,
   ENCOUNTER,
   ObservationSearchParameters,
+  ObservationLastnSearchParameters,
   OBSERVATION,
   ConditionSearchParameters,
   CONDITION,

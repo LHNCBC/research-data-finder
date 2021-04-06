@@ -1,8 +1,12 @@
 <form [formGroup]="settingsFormGroup" class="v-box">
-  <p class="info">At this step, you can select FHIR REST API Service Base URL.</p>
+  <p class="info">
+    <span class="info-icon" aria-hidden="true"></span>
+    At this step, you can select FHIR REST API Service Base URL.
+  </p>
   <mat-form-field>
     <mat-label>FHIR server</mat-label>
-    <input matInput placeholder="URL" formControlName="serviceBaseUrl">
+    <input matInput placeholder="URL" formControlName="serviceBaseUrl"
+           (change)="updateServiceBaseUrl()">
     <mat-hint align="start">See <a target="_blank" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for details</mat-hint>
   </mat-form-field>
 </form>

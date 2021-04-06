@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
 
 /**
  * This module used for register Material icons SVG downloaded
@@ -24,7 +23,7 @@ const icons = [
 
 @NgModule({
   declarations: [],
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule],
 })
 export class CommonSvgIconsModule {
   constructor(

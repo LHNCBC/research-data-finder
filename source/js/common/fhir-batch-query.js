@@ -1,5 +1,5 @@
 import { updateUrlWithParam } from './utils';
-import definitionsIndex from '../search-parameters/definitions';
+import definitionsIndex from '../search-parameters/definitions/index.json';
 
 let commonRequestCache = {}; // Map from url to result JSON
 
@@ -96,12 +96,20 @@ export class FhirBatchQuery {
 
     if (!this._initializationPromise) {
       const initializationRequests = [
+        // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
         this.getWithCache('metadata', { combine: false }),
+        // Check if sorting Observations by date is supported
         this.getWithCache('Observation?_sort=date&_elements=id&_count=1', {
           combine: false
         }),
+        // Check if sorting Observations by age-at-event is supported
         this.getWithCache(
           'Observation?_sort=age-at-event&_elements=id&_count=1',
+          { combine: false }
+        ),
+        // Check if operation $lastn on Observation is supported
+        this.getWithCache(
+          'Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1',
           { combine: false }
         )
       ];
@@ -112,7 +120,8 @@ export class FhirBatchQuery {
         ([
           metadata,
           observationsSortedByDate,
-          observationsSortedByAgeAtEvent
+          observationsSortedByAgeAtEvent,
+          lastnLookup
         ]) => {
           if (metadata.status === 'fulfilled') {
             const fhirVersion = metadata.value.data.fhirVersion;
@@ -134,7 +143,8 @@ export class FhirBatchQuery {
               observationsSortedByDate.value.data.entry &&
               observationsSortedByDate.value.data.entry.length > 0,
             sortObservationsByAgeAtEvent:
-              observationsSortedByAgeAtEvent.status === 'fulfilled'
+              observationsSortedByAgeAtEvent.status === 'fulfilled',
+            lastnLookup: lastnLookup.status === 'fulfilled'
           };
         }
       );
@@ -211,16 +221,18 @@ export class FhirBatchQuery {
   }
 
   /**
-   * Adds the an API Key to the passed URL and returns this new URL.
-   * @param {string} url
+   * Adds a parameter to the source URL and returns the new URL.
+   * @param {string} url - source url
+   * @param {string} name - parameter name
+   * @param {string} value - parameter value
    * @return {string}
    */
-  addApiKeyToUrl(url) {
-    const apiKeyParam = 'api_key=' + encodeURIComponent(this._apiKey);
+  addParamToUrl(url, name, value) {
+    const param = name + '=' + encodeURIComponent(value);
     if (url.indexOf('?') === -1) {
-      return url + '?' + apiKeyParam;
+      return url + '?' + param;
     } else {
-      return url + '&' + apiKeyParam;
+      return url + '&' + param;
     }
   }
 
@@ -238,7 +250,8 @@ export class FhirBatchQuery {
    */
   get(url, { combine = true }) {
     return new Promise((resolve, reject) => {
-      this._pending.push({ url, combine, resolve, reject });
+      const fullUrl = this.getFullUrl(url);
+      this._pending.push({ url: fullUrl, combine, resolve, reject });
       if (this._pending.length < this._maxPerBatch) {
         clearTimeout(this._batchTimeoutId);
         this._batchTimeoutId = setTimeout(
@@ -406,12 +419,20 @@ export class FhirBatchQuery {
       };
 
       if (this._apiKey) {
-        url = this.addApiKeyToUrl(url);
+        url = this.addParamToUrl(url, 'api_key', this._apiKey);
+      }
+
+      if (method === 'GET') {
+        url = this.addParamToUrl(url, '_type', 'json');
       }
 
       oReq.open(method, url);
       oReq.timeout = this._giveUpTimeout;
-      oReq.setRequestHeader('Content-Type', contentType);
+
+      if (method !== 'GET') {
+        oReq.setRequestHeader('Content-Type', contentType);
+      }
+
       oReq.send(body);
       this._activeReq.push(oReq);
     });
@@ -638,15 +659,16 @@ export class FhirBatchQuery {
    */
 
   /**
-   * Returns the promise of resources(or mapped values) that meet the condition specified in a filter(map) function.
+   * Returns the promise of resources(or mapped values) that meet the condition specified
+   * in a filter(map) function and the total amount of resources.
    * @param {string|Promise} url - URL to get resources
    * @param {number} count - the target number of resources
-   * @param {ResourceMapFilterCallback} filterMapFunction - the resourcesFilter method calls the filterFunction
-   *                                 one time for each resource to determine whether the element should
-   *                                 be included in the resulting array (returns Promise<true>), skipped (returns Promise<false>)
-   *                                 or replaced with new value(returns Promise<Object>)
+   * @param {ResourceMapFilterCallback} filterMapFunction - the resourcesMapFilter method
+   *   calls the filterMapFunction one time for each resource to determine whether the element
+   *   should be included in the resulting array (returns Promise<true>),
+   *   skipped (returns Promise<false>) or replaced with new value(returns Promise<Object>)
    * @param {number} [pageSize] - page size for resources loading
-   * @return {Promise<Array>}
+   * @return {Promise<{entry:Array, total: number}>}
    */
   resourcesMapFilter(url, count, filterMapFunction, pageSize) {
     // The value (this._maxPerBatch*this._maxActiveReq*2) is the optimal page size to get resources for filtering/mapping:
@@ -670,42 +692,47 @@ export class FhirBatchQuery {
 
   /**
    * A private method that is called from a public method resourcesMapFilter.
+   * Returns the promise of resources(or mapped values) that meet the condition specified
+   * in a filter(map) function and the total amount of resources.
    * @param {Promise} firstRequest - promise to return the first page of resources
-   * @param {number} count - see public method resourcesMapFilter
-   * @param {ResourceMapFilterCallback} filterMapFunction - see public method resourcesMapFilter
-   * @return {Promise<Array>}
+   * @param {number} count - the target number of resources
+   * @param {ResourceMapFilterCallback} filterMapFunction -  - the _resourcesMapFilter method
+   *   calls the filterMapFunction one time for each resource to determine whether the element
+   *   should be included in the resulting array (returns Promise<true>),
+   *   skipped (returns Promise<false>) or replaced with new value(returns Promise<Object>).
+   * @return {Promise<{entry:Array, total: number}>}
    * @private
    */
   _resourcesMapFilter(firstRequest, count, filterMapFunction) {
     return new Promise((resolve, reject) => {
       firstRequest.then(({ data }) => {
         const resources = (data.entry || []).map((entry) => entry.resource);
-
+        const total = data.total;
         Promise.all(
           resources.map((resource) => filterMapFunction(resource))
         ).then((match) => {
-          const result = [].concat(
+          const entry = [].concat(
             ...resources
               .map((res, index) => (match[index] === true ? res : match[index]))
               .filter((res) => res !== false)
           );
-          const newCount = count - result.length;
+          const newCount = count - entry.length;
           const nextPageUrl = this.getNextPageUrl(data);
 
-          if (result.length < count && nextPageUrl) {
+          if (entry.length < count && nextPageUrl) {
             this._resourcesMapFilter(
               this.getWithCache(nextPageUrl),
               newCount,
               filterMapFunction
             ).then((nextPage) => {
-              resolve(result.concat(nextPage));
+              resolve({ entry: entry.concat(nextPage.entry), total });
             }, reject);
           } else {
-            if (result.length > count) {
+            if (entry.length > count) {
               // Remove extra entries
-              result.length = count;
+              entry.length = count;
             }
-            resolve(result);
+            resolve({ entry, total });
           }
         }, reject);
       }, reject);

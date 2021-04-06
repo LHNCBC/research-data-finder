@@ -140,7 +140,9 @@ export class ObservationTabPage extends ResourceTabPage {
       codes && codes.length > 0
         ? codes.map(
             (code) =>
-              `&_count=${perPatientPerTest}&code=${encodeURIComponent(code)}`
+              `&_count=${perPatientPerTest}&combo-code=${encodeURIComponent(
+                code
+              )}`
           )
         : [`&_count=1000`];
     const suffixCount = urlSuffixes.length;

@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PullDataPageComponent } from './pull-data-page.component';
 import { PullDataPageModule } from './pull-data-page.module';
-import { CommonSvgIconsModule } from '../common-svg-icons/common-svg-icons.module';
+import { SharedModule } from '../../shared/shared.module';
 
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
@@ -11,7 +11,7 @@ describe('PullDataForCohortComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [PullDataPageComponent],
-      imports: [PullDataPageModule, CommonSvgIconsModule],
+      imports: [PullDataPageModule, SharedModule],
     }).compileComponents();
   });
 
