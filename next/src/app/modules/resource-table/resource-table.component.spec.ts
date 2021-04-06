@@ -29,59 +29,11 @@ describe('ResourceTableComponent', () => {
       { relation: 'next', url: 'test.url.com' }
     ],
     total: 100,
-    entry: [
-      { resource: { id: '1' } },
-      { resource: { id: '2' } },
-      { resource: { id: '3' } },
-      { resource: { id: '4' } },
-      { resource: { id: '5' } },
-      { resource: { id: '6' } },
-      { resource: { id: '7' } },
-      { resource: { id: '8' } },
-      { resource: { id: '9' } },
-      { resource: { id: '10' } },
-      { resource: { id: '11' } },
-      { resource: { id: '12' } },
-      { resource: { id: '13' } },
-      { resource: { id: '14' } },
-      { resource: { id: '15' } },
-      { resource: { id: '16' } },
-      { resource: { id: '17' } },
-      { resource: { id: '18' } },
-      { resource: { id: '19' } },
-      { resource: { id: '20' } },
-      { resource: { id: '21' } },
-      { resource: { id: '22' } },
-      { resource: { id: '23' } },
-      { resource: { id: '24' } },
-      { resource: { id: '25' } },
-      { resource: { id: '26' } },
-      { resource: { id: '27' } },
-      { resource: { id: '28' } },
-      { resource: { id: '29' } },
-      { resource: { id: '30' } },
-      { resource: { id: '31' } },
-      { resource: { id: '32' } },
-      { resource: { id: '33' } },
-      { resource: { id: '34' } },
-      { resource: { id: '35' } },
-      { resource: { id: '36' } },
-      { resource: { id: '37' } },
-      { resource: { id: '38' } },
-      { resource: { id: '39' } },
-      { resource: { id: '40' } },
-      { resource: { id: '41' } },
-      { resource: { id: '42' } },
-      { resource: { id: '43' } },
-      { resource: { id: '44' } },
-      { resource: { id: '45' } },
-      { resource: { id: '46' } },
-      { resource: { id: '47' } },
-      { resource: { id: '48' } },
-      { resource: { id: '49' } },
-      { resource: { id: '50' } }
-    ]
+    entry: []
   };
+  for (let i = 1; i < 51; i++) {
+    bundle.entry.push({ resource: { id: i.toString() } });
+  }
   const columnDescriptions: ColumnDescription[] = [
     {
       displayName: 'ID',
