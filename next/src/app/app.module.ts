@@ -5,28 +5,22 @@ import { StepperModule } from './modules/stepper/stepper.module';
 import { CommonSvgIconsModule } from './modules/common-svg-icons/common-svg-icons.module';
 import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
-  MatFormFieldDefaultOptions
+  MatFormFieldDefaultOptions,
 } from '@angular/material/form-field';
 
 const appearance: MatFormFieldDefaultOptions = {
-  appearance: 'outline'
+  appearance: 'outline',
 };
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    CommonSvgIconsModule,
-    StepperModule
-  ],
+  declarations: [AppComponent],
+  imports: [BrowserModule, CommonSvgIconsModule, StepperModule],
   providers: [
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
-      useValue: appearance
-    }
+      useValue: appearance,
+    },
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

@@ -13,9 +13,7 @@ import { PullDataPageModule } from '../step-4-pull-data-page/pull-data-page.modu
 
 @NgModule({
   declarations: [StepperComponent],
-  exports: [
-    StepperComponent
-  ],
+  exports: [StepperComponent],
   imports: [
     CommonModule,
     MatStepperModule,
@@ -26,7 +24,7 @@ import { PullDataPageModule } from '../step-4-pull-data-page/pull-data-page.modu
     SettingsPageModule,
     DefineCohortPageModule,
     ViewCohortPageModule,
-    PullDataPageModule
-  ]
+    PullDataPageModule,
+  ],
 })
-export class StepperModule { }
+export class StepperModule {}

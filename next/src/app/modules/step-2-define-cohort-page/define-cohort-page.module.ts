@@ -7,20 +7,16 @@ import { SearchParametersModule } from '../search-parameters/search-parameters.m
 import { MatInputModule } from '@angular/material/input';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-
-
 @NgModule({
   declarations: [DefineCohortPageComponent],
-  exports: [
-    DefineCohortPageComponent
-  ],
+  exports: [DefineCohortPageComponent],
   imports: [
     CommonModule,
     BrowserAnimationsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     SearchParametersModule,
-    MatInputModule
-  ]
+    MatInputModule,
+  ],
 })
-export class DefineCohortPageModule { }
+export class DefineCohortPageModule {}

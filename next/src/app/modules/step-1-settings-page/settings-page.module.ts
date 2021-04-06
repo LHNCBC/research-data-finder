@@ -6,19 +6,15 @@ import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-
-
 @NgModule({
   declarations: [SettingsPageComponent],
-  exports: [
-    SettingsPageComponent
-  ],
+  exports: [SettingsPageComponent],
   imports: [
     CommonModule,
     BrowserAnimationsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatInputModule
-  ]
+    MatInputModule,
+  ],
 })
-export class SettingsPageModule { }
+export class SettingsPageModule {}

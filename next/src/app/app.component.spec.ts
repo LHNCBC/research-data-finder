@@ -5,12 +5,8 @@ import { AppModule } from './app.module';
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [
-        AppComponent
-      ],
-      imports: [
-        AppModule
-      ]
+      declarations: [AppComponent],
+      imports: [AppModule],
     }).compileComponents();
   });
 
@@ -26,7 +22,7 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('next');
   });
 
-/*  it('should render title', () => {
+  /*  it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement;

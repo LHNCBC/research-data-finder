@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { AbstractControl, FormArray, FormControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
-  createControlValueAccessorProviders
+  createControlValueAccessorProviders,
 } from '../base-control-value-accessor';
 import { SearchParameter } from 'src/app/types/search.parameter';
 
@@ -13,9 +13,11 @@ import { SearchParameter } from 'src/app/types/search.parameter';
   selector: 'app-search-parameters',
   templateUrl: './search-parameters.component.html',
   styleUrls: ['./search-parameters.component.less'],
-  providers: createControlValueAccessorProviders(SearchParametersComponent)
+  providers: createControlValueAccessorProviders(SearchParametersComponent),
 })
-export class SearchParametersComponent extends BaseControlValueAccessor<SearchParameter[]>{
+export class SearchParametersComponent extends BaseControlValueAccessor<
+  SearchParameter[]
+> {
   /**
    * Limits the list of available search parameters to only parameters for this resource type
    */
@@ -34,9 +36,11 @@ export class SearchParametersComponent extends BaseControlValueAccessor<SearchPa
    * Add new search parameter to search parameter list
    */
   public addParameter(): void {
-    this.parameterList.push(new FormControl({
-      resourceType: this.resourceType
-    }));
+    this.parameterList.push(
+      new FormControl({
+        resourceType: this.resourceType,
+      })
+    );
   }
 
   /**

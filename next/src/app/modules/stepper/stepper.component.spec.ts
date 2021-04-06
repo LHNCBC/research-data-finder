@@ -10,10 +10,9 @@ describe('StepperComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ StepperComponent ],
-      imports: [ StepperModule, CommonSvgIconsModule ]
-    })
-    .compileComponents();
+      declarations: [StepperComponent],
+      imports: [StepperModule, CommonSvgIconsModule],
+    }).compileComponents();
   });
 
   beforeEach(() => {

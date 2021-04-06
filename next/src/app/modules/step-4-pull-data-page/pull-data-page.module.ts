@@ -8,13 +8,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 
-
-
 @NgModule({
   declarations: [PullDataPageComponent],
-  exports: [
-    PullDataPageComponent
-  ],
+  exports: [PullDataPageComponent],
   imports: [
     CommonModule,
     MatTabsModule,
@@ -22,7 +18,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatTableModule,
     MatIconModule,
     MatTooltipModule,
-    MatButtonModule
-  ]
+    MatButtonModule,
+  ],
 })
-export class PullDataPageModule { }
+export class PullDataPageModule {}

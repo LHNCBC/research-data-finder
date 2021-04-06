@@ -4,7 +4,7 @@ import { ProtractorHarnessEnvironment } from '@angular/cdk/testing/protractor';
 import {
   MatStepHarness,
   MatStepperHarness,
-  MatStepperNextHarness
+  MatStepperNextHarness,
 } from '@angular/material/stepper/testing';
 
 // Page objects & harnesses
@@ -33,7 +33,7 @@ describe('Research Data Finder', () => {
 
   beforeEach(async () => {
     // Initialize current step next button harness
-    const currentStep = (await stepper.getSteps({selected: true}))[0];
+    const currentStep = (await stepper.getSteps({ selected: true }))[0];
     nextPageBtn = await currentStep.getHarness(MatStepperNextHarness);
   });
 
@@ -56,10 +56,16 @@ describe('Research Data Finder', () => {
 
   it('should not allow empty server URL', async () => {
     const serviceBaseUrlInput = $('[formControlName="serviceBaseUrl"]');
-    serviceBaseUrlInput.sendKeys(Key.chord(Key.CONTROL, 'a'), Key.chord(Key.CONTROL, 'x'));
+    serviceBaseUrlInput.sendKeys(
+      Key.chord(Key.CONTROL, 'a'),
+      Key.chord(Key.CONTROL, 'x')
+    );
     await nextPageBtn.click();
     expect(await settingsStep.isSelected()).toBe(true);
-    serviceBaseUrlInput.sendKeys(Key.chord(Key.CONTROL, 'a'), Key.chord(Key.CONTROL, 'v'));
+    serviceBaseUrlInput.sendKeys(
+      Key.chord(Key.CONTROL, 'a'),
+      Key.chord(Key.CONTROL, 'v')
+    );
   });
 
   it('should allow to proceed to the Define cohort step', async () => {
@@ -85,8 +91,10 @@ describe('Research Data Finder', () => {
   afterEach(async () => {
     // Assert that there are no errors emitted from the browser
     const logs = await browser.manage().logs().get(logging.Type.BROWSER);
-    expect(logs).not.toContain(jasmine.objectContaining({
-      level: logging.Level.SEVERE,
-    } as logging.Entry));
+    expect(logs).not.toContain(
+      jasmine.objectContaining({
+        level: logging.Level.SEVERE,
+      } as logging.Entry)
+    );
   });
 });

@@ -19,26 +19,24 @@ const icons = [
   'upload',
   'save',
   'file_download',
-  'create'
+  'create',
 ];
 
 @NgModule({
   declarations: [],
-  imports: [
-    CommonModule,
-    HttpClientModule
-  ]
+  imports: [CommonModule, HttpClientModule],
 })
 export class CommonSvgIconsModule {
   constructor(
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer
   ) {
-    icons.forEach(key => {
+    icons.forEach((key) => {
       this.matIconRegistry.addSvgIcon(
         key,
         this.domSanitizer.bypassSecurityTrustResourceUrl(
-          `assets/${key}-24px.svg`)
+          `assets/${key}-24px.svg`
+        )
       );
     });
   }

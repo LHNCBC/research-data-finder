@@ -1,13 +1,17 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
-import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import {
+  MatAutocomplete,
+  MatAutocompleteSelectedEvent,
+  MatAutocompleteTrigger,
+} from '@angular/material/autocomplete';
 import { MatChipInputEvent } from '@angular/material/chips';
-import { FormControl} from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import {
   BaseControlValueAccessor,
-  createControlValueAccessorProviders
+  createControlValueAccessorProviders,
 } from '../base-control-value-accessor';
 
 // See examples:
@@ -30,9 +34,13 @@ import {
   selector: 'app-loinc-variables-selector',
   templateUrl: './loinc-variables-selector.component.html',
   styleUrls: ['./loinc-variables-selector.component.less'],
-  providers: createControlValueAccessorProviders(LoincVariablesSelectorComponent)
+  providers: createControlValueAccessorProviders(
+    LoincVariablesSelectorComponent
+  ),
 })
-export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<string[]> implements OnInit {
+export class LoincVariablesSelectorComponent
+  extends BaseControlValueAccessor<string[]>
+  implements OnInit {
   selectable = true;
   removable = true;
   separatorKeysCodes: number[] = [ENTER, COMMA];
@@ -44,7 +52,7 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<st
     'ABCDE',
     'Glucose Ur-msCnc',
     'Feeling tired or having little energy',
-    'DEF'
+    'DEF',
   ];
 
   @ViewChild('inputField') inputElementRef: ElementRef<HTMLInputElement>;
@@ -62,13 +70,14 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<st
    * @param value New value to be written to the model.
    */
   writeValue(value: string[]): void {
-     this.selectedItems = value;
+    this.selectedItems = value;
   }
 
   ngOnInit(): void {
     this.filteredItems = this.inputCtrl.valueChanges.pipe(
       startWith(''),
-      map((inputValue: string | null) => this._filter(inputValue)));
+      map((inputValue: string | null) => this._filter(inputValue))
+    );
   }
 
   add(event: MatChipInputEvent): void {
@@ -124,5 +133,4 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<st
         item.toLowerCase().indexOf(filterValue) === 0
     );
   }
-
 }

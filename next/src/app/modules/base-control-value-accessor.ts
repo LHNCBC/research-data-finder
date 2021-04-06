@@ -4,7 +4,7 @@ import {
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
-  Validator
+  Validator,
 } from '@angular/forms';
 import { forwardRef, Provider, Type } from '@angular/core';
 
@@ -13,13 +13,15 @@ import { forwardRef, Provider, Type } from '@angular/core';
  * which use ControlValueAccessor interface.
  * @param type - component type which extends `BaseControlValueAccessor`
  */
-export function createControlValueAccessorProviders(type: Type<BaseControlValueAccessor<any>>): Provider[] {
+export function createControlValueAccessorProviders(
+  type: Type<BaseControlValueAccessor<any>>
+): Provider[] {
   return [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => type),
-      multi: true
-    }
+      multi: true,
+    },
   ];
 }
 
@@ -27,7 +29,8 @@ export function createControlValueAccessorProviders(type: Type<BaseControlValueA
  * Base class for components which use ControlValueAccessor
  * interface as required by Angular.
  */
-export abstract class BaseControlValueAccessor<T> implements ControlValueAccessor {
+export abstract class BaseControlValueAccessor<T>
+  implements ControlValueAccessor {
   // Callback function that is called when the control's value changes in the UI
   onChange: (newVal: T) => void = () => {};
   // Callback function that is called when the control should be considered blurred or “touched”
@@ -67,20 +70,24 @@ export abstract class BaseControlValueAccessor<T> implements ControlValueAccesso
  * which use ControlValueAccessor & Validator interfaces.
  * @param type - component type which extends `BaseControlValueAccessorAndValidator`
  */
-export function createControlValueAccessorAndValidatorProviders(type: Type<BaseControlValueAccessorAndValidator<any>>): Provider[] {
+export function createControlValueAccessorAndValidatorProviders(
+  type: Type<BaseControlValueAccessorAndValidator<any>>
+): Provider[] {
   return [
     ...createControlValueAccessorProviders(type),
     {
       provide: NG_VALIDATORS,
       useExisting: forwardRef(() => type),
-      multi: true
-    }
+      multi: true,
+    },
   ];
 }
 
 /**
  * Base class for components which use ControlValueAccessor & Validator interfaces.
  */
-export abstract class BaseControlValueAccessorAndValidator<T> extends BaseControlValueAccessor<T> implements Validator {
-  abstract validate({value}: FormControl): ValidationErrors | null;
+export abstract class BaseControlValueAccessorAndValidator<T>
+  extends BaseControlValueAccessor<T>
+  implements Validator {
+  abstract validate({ value }: FormControl): ValidationErrors | null;
 }

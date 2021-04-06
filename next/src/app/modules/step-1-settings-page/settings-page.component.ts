@@ -4,11 +4,11 @@ import {
   FormControl,
   FormGroup,
   ValidationErrors,
-  Validators
+  Validators,
 } from '@angular/forms';
 import {
   BaseControlValueAccessorAndValidator,
-  createControlValueAccessorAndValidatorProviders
+  createControlValueAccessorAndValidatorProviders,
 } from '../base-control-value-accessor';
 
 /**
@@ -18,9 +18,13 @@ import {
   selector: 'app-settings-page',
   templateUrl: './settings-page.component.html',
   styleUrls: ['./settings-page.component.less'],
-  providers: createControlValueAccessorAndValidatorProviders(SettingsPageComponent)
+  providers: createControlValueAccessorAndValidatorProviders(
+    SettingsPageComponent
+  ),
 })
-export class SettingsPageComponent extends BaseControlValueAccessorAndValidator<any> implements OnInit {
+export class SettingsPageComponent
+  extends BaseControlValueAccessorAndValidator<any>
+  implements OnInit {
   settingsFormGroup: FormGroup;
 
   constructor(private formBuilder: FormBuilder) {
@@ -29,7 +33,10 @@ export class SettingsPageComponent extends BaseControlValueAccessorAndValidator<
 
   ngOnInit(): void {
     this.settingsFormGroup = this.formBuilder.group({
-      serviceBaseUrl: ['https://lforms-fhir.nlm.nih.gov/baseR4', Validators.required]
+      serviceBaseUrl: [
+        'https://lforms-fhir.nlm.nih.gov/baseR4',
+        Validators.required,
+      ],
     });
 
     this.settingsFormGroup.valueChanges.subscribe((value) => {
@@ -37,11 +44,9 @@ export class SettingsPageComponent extends BaseControlValueAccessorAndValidator<
     });
   }
 
-  validate({value}: FormControl): ValidationErrors | null {
+  validate({ value }: FormControl): ValidationErrors | null {
     return this.settingsFormGroup.get('serviceBaseUrl').errors;
   }
 
-  writeValue(obj: any): void {
-  }
-
+  writeValue(obj: any): void {}
 }

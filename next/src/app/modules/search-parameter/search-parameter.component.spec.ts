@@ -9,10 +9,9 @@ describe('SearchParameterComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SearchParameterComponent ],
-      imports: [ SearchParametersModule ]
-    })
-    .compileComponents();
+      declarations: [SearchParameterComponent],
+      imports: [SearchParametersModule],
+    }).compileComponents();
   });
 
   beforeEach(() => {

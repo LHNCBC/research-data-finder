@@ -7,18 +7,16 @@ import { MatInputModule } from '@angular/material/input';
 import { SearchParameterComponent } from './search-parameter.component';
 import { LoincVariablesSelectorModule } from '../loinc-variables-selector/loinc-variables-selector.module';
 
-
-
 @NgModule({
-  declarations: [ SearchParameterComponent ],
-  exports: [ SearchParameterComponent ],
+  declarations: [SearchParameterComponent],
+  exports: [SearchParameterComponent],
   imports: [
     CommonModule,
     MatFormFieldModule,
     MatAutocompleteModule,
     ReactiveFormsModule,
     MatInputModule,
-    LoincVariablesSelectorModule
-  ]
+    LoincVariablesSelectorModule,
+  ],
 })
-export class SearchParameterModule { }
+export class SearchParameterModule {}

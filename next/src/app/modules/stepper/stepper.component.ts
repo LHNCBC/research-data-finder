@@ -8,15 +8,14 @@ import { MatStepper } from '@angular/material/stepper';
 @Component({
   selector: 'app-stepper',
   templateUrl: './stepper.component.html',
-  styleUrls: ['./stepper.component.less']
+  styleUrls: ['./stepper.component.less'],
 })
 export class StepperComponent implements OnInit {
   @ViewChild('stepper') private myStepper: MatStepper;
   settings: FormControl = new FormControl();
   defineCohort: FormControl = new FormControl();
 
-  constructor() { }
+  constructor() {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 }

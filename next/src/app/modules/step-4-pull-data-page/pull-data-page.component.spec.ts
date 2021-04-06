@@ -10,10 +10,9 @@ describe('PullDataForCohortComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PullDataPageComponent ],
-      imports: [ PullDataPageModule, CommonSvgIconsModule ]
-    })
-    .compileComponents();
+      declarations: [PullDataPageComponent],
+      imports: [PullDataPageModule, CommonSvgIconsModule],
+    }).compileComponents();
   });
 
   beforeEach(() => {

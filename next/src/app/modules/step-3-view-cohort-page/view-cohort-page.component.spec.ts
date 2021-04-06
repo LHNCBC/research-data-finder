@@ -9,10 +9,9 @@ describe('ViewCohortComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ViewCohortPageComponent ],
-      imports: [ ViewCohortPageModule ]
-    })
-    .compileComponents();
+      declarations: [ViewCohortPageComponent],
+      imports: [ViewCohortPageModule],
+    }).compileComponents();
   });
 
   beforeEach(() => {
