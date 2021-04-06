@@ -1,27 +1,4 @@
-<mat-form-field class="flex">
-  <mat-label>LOINC variables</mat-label>
-  <mat-chip-list #chipList aria-label="LOINC variables">
-    <mat-chip
-      *ngFor="let item of selectedItems"
-      [selectable]="selectable"
-      [removable]="removable"
-      (removed)="remove(item)">
-      {{item}}
-      <mat-icon matChipRemove *ngIf="removable" svgIcon="cancel"></mat-icon>
-    </mat-chip>
-    <input
-      placeholder="type or select one or more"
-      #inputField
-      #trigger="matAutocompleteTrigger"
-      [formControl]="inputCtrl"
-      [matAutocomplete]="autocomplete"
-      [matChipInputFor]="chipList"
-      [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-      (matChipInputTokenEnd)="add($event)">
-  </mat-chip-list>
-  <mat-autocomplete #autocomplete="matAutocomplete" (optionSelected)="selected($event)">
-    <mat-option *ngFor="let item of filteredItems | async" [value]="item">
-      <div (click)="clickOption($event, item)">{{item}}</div>
-    </mat-option>
-  </mat-autocomplete>
-</mat-form-field>
+<input [attr.id]="inputId"
+       class="mat-input-element"
+       type="text"
+       [placeholder]="shouldLabelFloat ? placeholder : ''">

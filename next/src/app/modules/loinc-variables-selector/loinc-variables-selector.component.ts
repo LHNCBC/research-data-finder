@@ -1,27 +1,19 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
-import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { MatChipInputEvent } from '@angular/material/chips';
-import { FormControl} from '@angular/forms';
-import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import {
+  AfterViewInit,
+  Component, ElementRef, HostListener, Input, OnDestroy, ViewChild
+} from '@angular/core';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
-
-// See examples:
-// Original:
-// https://material.angular.io/components/chips/overview
-// chips autocomplete:
-// https://github.com/mdrafee03/chip-autocomplete
-// ng-select:
-// https://ng-select.github.io/ng-select#/multiselect-checkbox
-// ng-select for material:
-// https://github.com/ng-matero/extensions/tree/master/projects/extensions/select
-// https://stackblitz.com/edit/ng-select-b37iax?file=app%2Fapp.component.ts
-// search field for material select:
-// https://www.npmjs.com/package/ngx-mat-select-search
+import { escapeStringForRegExp } from '@legacy/js/common/utils';
+// see docs at http://lhncbc.github.io/autocomplete-lhc/docs.html
+import Def from 'autocomplete-lhc';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { SelectedLoincCodes } from '../../types/selected-loinc-codes';
+import { MatFormFieldControl } from '@angular/material/form-field';
+import { NgControl } from '@angular/forms';
+import { Subject } from 'rxjs';
 
 /**
  * Component for selecting LOINC variables.
@@ -30,29 +22,93 @@ import {
   selector: 'app-loinc-variables-selector',
   templateUrl: './loinc-variables-selector.component.html',
   styleUrls: ['./loinc-variables-selector.component.less'],
-  providers: createControlValueAccessorProviders(LoincVariablesSelectorComponent)
+  providers: [
+    ...createControlValueAccessorProviders(LoincVariablesSelectorComponent),
+    {provide: MatFormFieldControl, useExisting: LoincVariablesSelectorComponent}
+  ]
 })
-export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<string[]> implements OnInit {
-  selectable = true;
-  removable = true;
-  separatorKeysCodes: number[] = [ENTER, COMMA];
-  inputCtrl = new FormControl();
-  filteredItems: Observable<string[]>;
-  selectedItems: string[] = [];
-  allItems: string[] = [
-    'ABC',
-    'ABCDE',
-    'Glucose Ur-msCnc',
-    'Feeling tired or having little energy',
-    'DEF'
-  ];
+export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<SelectedLoincCodes>
+  implements MatFormFieldControl<SelectedLoincCodes>, AfterViewInit, OnDestroy {
 
-  @ViewChild('inputField') inputElementRef: ElementRef<HTMLInputElement>;
-  @ViewChild('autocomplete') matAutocomplete: MatAutocomplete;
-  @ViewChild('trigger') matAutocompleteTrigger: MatAutocompleteTrigger;
+  static reValueKey = /^value(.*)/;
 
-  constructor() {
+  static idPrefix = 'prefix-';
+  static idIndex = 0;
+  inputId = LoincVariablesSelectorComponent.idPrefix + ++LoincVariablesSelectorComponent.idIndex;
+
+  /**
+   * Describes the currently selected data:
+   * datatype - type of data for the selected Observation codes
+   * codes - Observation codes
+   */
+  currentData: SelectedLoincCodes = {
+    datatype: '',
+    codes: [],
+    items: []
+  };
+
+  /**
+   * Implemented as part of MatFormFieldControl.
+   */
+  get value(): SelectedLoincCodes {
+    return this.currentData;
+  }
+
+  // Autocompleter instance
+  acInstance: Def.Autocompleter.Search;
+  listSelectionsObserver: (eventData: any) => void;
+
+  /**
+   * Whether the control is empty (Implemented as part of MatFormFieldControl)
+   */
+  get empty(): boolean {
+    return (this.acInstance && this.acInstance.getSelectedCodes().length === 0);
+  }
+
+  /**
+   * Whether the control is focused (Implemented as part of MatFormFieldControl)
+   */
+  focused = false;
+
+  /**
+   * The placeholder for this control.
+   */
+  @Input() placeholder: string = '';
+
+  /**
+   * This properties currently unused but required by MatFormFieldControl:
+   */
+  readonly disabled: boolean = false;
+  readonly errorState = false;
+  readonly id: string;
+  readonly ngControl: NgControl | null;
+  readonly required = false;
+
+  /**
+   * Whether the MatFormField label should try to float.
+   */
+  get shouldLabelFloat(): boolean {
+    return this.focused || !this.empty;
+  }
+
+  /**
+   * Stream that emits whenever the state of the control changes such that the parent `MatFormField`
+   * needs to run change detection.
+   */
+  readonly stateChanges  = new Subject<void>();
+
+  constructor(private fhirBackend: FhirBackendService,
+              private elementRef: ElementRef) {
     super();
+  }
+
+  /**
+   * Clean up the autocompleter instance
+   */
+  ngOnDestroy(): void {
+    if (this.acInstance) {
+      this.acInstance.destroy();
+    }
   }
 
   /**
@@ -61,68 +117,187 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<st
    *
    * @param value New value to be written to the model.
    */
-  writeValue(value: string[]): void {
-     this.selectedItems = value;
-  }
-
-  ngOnInit(): void {
-    this.filteredItems = this.inputCtrl.valueChanges.pipe(
-      startWith(''),
-      map((inputValue: string | null) => this._filter(inputValue)));
-  }
-
-  add(event: MatChipInputEvent): void {
-    const input = event.input;
-    const value = event.value;
-
-    // Add our item
-    if ((value || '').trim()) {
-      this.selectedItems.push(value.trim());
+  writeValue(newValue: SelectedLoincCodes | null): void {
+    const value = this.currentData = newValue || {
+      datatype: '',
+      codes: [],
+      items: []
+    };
+    if (this.acInstance) {
+      throw new Error('Failed to set value after initialization. Autocompleter only has method to add data (addToSelectedArea)');
     }
-
-    // Reset the input value
-    if (input) {
-      input.value = '';
-    }
-
-    this.inputCtrl.setValue('');
   }
 
-  remove(item: string): void {
-    const index = this.selectedItems.indexOf(item);
-
-    if (index >= 0) {
-      this.selectedItems.splice(index, 1);
-    }
-
-    this.inputCtrl.setValue('');
+  /**
+   * Initialize the autocomplete-lhc
+   * Cannot be done in ngOnInit because the DOM elements that autocomplete-lhc depends on are
+   * not ready yet on ngOnInit
+   */
+  ngAfterViewInit(): void {
+    this.setupAutocomplete();
   }
 
-  selected(event: MatAutocompleteSelectedEvent): void {
-    this.selectedItems.push(event.option.viewValue);
-    this.inputElementRef.nativeElement.value = '';
-    this.inputCtrl.setValue('');
+  /**
+   * Set up the autocompleter
+   */
+  setupAutocomplete(): void {
+    const testInputId = this.inputId;
+    const code2Type = {};
 
-    // setTimeout(() => {
-    //   this.matAutocompleteTrigger.openPanel();
-    // },1);
-  }
+    const acInstance  = this.acInstance = new Def.Autocompleter.Search(testInputId, null, {
+      suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
+      fhir: {
+        search: (fieldVal, count) => {
+          const isMatchToFieldVal = new RegExp(
+            escapeStringForRegExp(fieldVal),
+            'i'
+          );
+          return {
+            then: (resolve, reject) => {
+              // TODO: temporary use of fhirBackend directly should be replaced with calls to HttpClient
+              this.fhirBackend.fhirClient
+                .resourcesMapFilter(
+                  `Observation/$lastn?max=1&_elements=code,value,component&code:text=${encodeURIComponent(
+                    fieldVal
+                  )}`,
+                  count,
+                  (observation) => {
+                    const datatype = this.getValueDataType(observation);
+                    if (
+                      !this.currentData.datatype ||
+                      datatype === this.currentData.datatype
+                    ) {
+                      return observation.code.coding
+                        .filter((coding) => {
+                          return isMatchToFieldVal.test(coding.display) &&
+                            acInstance.getSelectedCodes().indexOf(coding.code) === -1
+                        })
+                        .map((coding) => {
+                          code2Type[coding.code] = datatype;
+                          return {
+                            code: coding.code,
+                            display: coding.display
+                          };
+                        });
+                    } else {
+                      return false;
+                    }
+                  },
+                  500
+                )
+                .then(
+                  ({ entry, total }) => {
+                    resolve({
+                      resourceType: 'ValueSet',
+                      expansion: {
+                        total: Number.isInteger(total) ? total : Infinity,
+                        contains: entry
+                      }
+                    });
+                  },
+                  ({ error }) => reject(error)
+                );
+            }
+          };
+        }
+      },
+      useResultCache: false,
+      maxSelect: '*',
+      matchListValue: true
+    });
 
-  clickOption($event: MouseEvent, item: string): void {
-    // this.selectedItems.push(item);
-    // this.inputElementRef.nativeElement.value = '';
-    // this.inputCtrl.setValue('');
-    // $event.stopPropagation();
-  }
+    // Fill component with data (see writeValue)
+    this.currentData.items.forEach((item, index) => {
+      this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
+      this.acInstance.addToSelectedArea(item);
+    });
 
-  private _filter(value: string): string[] {
-    const filterValue = value.toLowerCase();
 
-    return this.allItems.filter(
-      (item) =>
-        this.selectedItems.indexOf(item) === -1 &&
-        item.toLowerCase().indexOf(filterValue) === 0
+    this.listSelectionsObserver = (eventData) => {
+      const codes = acInstance.getSelectedCodes();
+      const items = acInstance.getSelectedItems();
+      let datatype = '';
+      if (codes.length > 0) {
+        datatype = code2Type[codes[0]];
+        acInstance.matchListValue_ = true;
+        acInstance.domCache.set('elemVal', eventData.val_typed_in);
+        acInstance.useSearchFn(
+          eventData.val_typed_in,
+          Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD
+        );
+      }
+      this.currentData = {
+        codes,
+        datatype,
+        items
+      };
+      this.onChange(this.currentData);
+    };
+    Def.Autocompleter.Event.observeListSelections(
+      testInputId,
+      this.listSelectionsObserver
     );
   }
 
+  /**
+   * Returns the [x] part of the property name value[x]
+   * @param observation - Observation resource data
+   */
+  getValueDataType(observation: any): string {
+    let valueType = '';
+    [observation, ...(observation.component || [])].some((obj) => {
+      return Object.keys(obj).some((key) => {
+        const valueFound = LoincVariablesSelectorComponent.reValueKey.test(key);
+        if (valueFound) {
+          valueType = RegExp.$1;
+        }
+        return valueFound;
+      });
+    });
+
+    return valueType;
+  }
+
+  /**
+   * Handles focusin event to maintain the focused state.
+   */
+  @HostListener('focusin')
+  onFocusin(): void {
+    if (!this.focused) {
+      this.focused = true;
+      this.stateChanges.next();
+    }
+  }
+
+  /**
+   * Handles focusout event to maintain the focused state.
+   */
+  @HostListener('focusout', ['$event.relatedTarget'])
+  onFocusOut(relatedTarget: HTMLElement): void {
+    console.log('<<<', this.elementRef.nativeElement.contains(relatedTarget));
+    if (this.focused && !this.elementRef.nativeElement.contains(relatedTarget)) {
+      this.focused = false;
+      this.stateChanges.next();
+    }
+  }
+
+  /**
+   * Handles a click on the control's container to maintain the focused state.
+   */
+  onContainerClick(event: MouseEvent): void {
+    if (!this.focused) {
+      document.getElementById(this.inputId).focus();
+    }
+  }
+
+  /**
+   * Implemented as part of MatFormFieldControl (required but not used).
+   */
+  setDescribedByIds(ids: string[]): void {
+    if (ids.length) {
+      this.elementRef.nativeElement.setAttribute('aria-describedby', ids.join(' '));
+    } else {
+      this.elementRef.nativeElement.removeAttribute('aria-describedby');
+    }
+  }
 }

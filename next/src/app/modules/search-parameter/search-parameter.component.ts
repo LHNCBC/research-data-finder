@@ -30,7 +30,7 @@ export class SearchParameterComponent extends BaseControlValueAccessor<SearchPar
 
   parameterValue: FormControl = new FormControl('');
 
-  selectedLoincItems: FormControl = new FormControl([]);
+  selectedLoincItems: FormControl = new FormControl(null);
 
   constructor() {
     super();
