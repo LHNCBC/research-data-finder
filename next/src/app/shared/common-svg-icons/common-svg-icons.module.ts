@@ -23,20 +23,19 @@ const icons = [
 
 @NgModule({
   declarations: [],
-  imports: [
-    CommonModule
-  ]
+  imports: [CommonModule]
 })
 export class CommonSvgIconsModule {
   constructor(
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer
   ) {
-    icons.forEach(key => {
+    icons.forEach((key) => {
       this.matIconRegistry.addSvgIcon(
         key,
         this.domSanitizer.bypassSecurityTrustResourceUrl(
-          `assets/${key}-24px.svg`)
+          `assets/${key}-24px.svg`
+        )
       );
     });
   }

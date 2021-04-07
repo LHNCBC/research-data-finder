@@ -2,12 +2,13 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
-  FormGroup, ValidationErrors,
+  FormGroup,
+  ValidationErrors,
   Validators
 } from '@angular/forms';
 import {
   BaseControlValueAccessorAndValidator,
-  createControlValueAccessorAndValidatorProviders,
+  createControlValueAccessorAndValidatorProviders
 } from '../base-control-value-accessor';
 import { SearchParametersComponent } from '../search-parameters/search-parameters.component';
 
@@ -18,9 +19,13 @@ import { SearchParametersComponent } from '../search-parameters/search-parameter
   selector: 'app-define-cohort-page',
   templateUrl: './define-cohort-page.component.html',
   styleUrls: ['./define-cohort-page.component.less'],
-  providers: createControlValueAccessorAndValidatorProviders(DefineCohortPageComponent)
+  providers: createControlValueAccessorAndValidatorProviders(
+    DefineCohortPageComponent
+  )
 })
-export class DefineCohortPageComponent extends BaseControlValueAccessorAndValidator<any> implements OnInit {
+export class DefineCohortPageComponent
+  extends BaseControlValueAccessorAndValidator<any>
+  implements OnInit {
   defineCohortForm: FormGroup;
 
   @ViewChild('patientParams') patientParams: SearchParametersComponent;
@@ -38,12 +43,11 @@ export class DefineCohortPageComponent extends BaseControlValueAccessorAndValida
     });
   }
 
-  validate({value}: FormControl): ValidationErrors | null {
+  validate({ value }: FormControl): ValidationErrors | null {
     return this.defineCohortForm.get('maxPatientsNumber').errors;
   }
 
-  writeValue(obj: any): void {
-  }
+  writeValue(obj: any): void {}
 
   addParameter(): void {
     this.patientParams.addParameter();
