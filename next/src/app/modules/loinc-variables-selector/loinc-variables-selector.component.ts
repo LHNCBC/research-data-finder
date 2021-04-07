@@ -1,10 +1,15 @@
 import {
   AfterViewInit,
-  Component, ElementRef, HostListener, Input, OnDestroy, ViewChild
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnDestroy,
+  Optional,
+  Self
 } from '@angular/core';
 import {
-  BaseControlValueAccessor,
-  createControlValueAccessorProviders
+  BaseControlValueAccessor
 } from '../base-control-value-accessor';
 import { escapeStringForRegExp } from '@legacy/js/common/utils';
 // see docs at http://lhncbc.github.io/autocomplete-lhc/docs.html
@@ -23,7 +28,6 @@ import { Subject } from 'rxjs';
   templateUrl: './loinc-variables-selector.component.html',
   styleUrls: ['./loinc-variables-selector.component.less'],
   providers: [
-    ...createControlValueAccessorProviders(LoincVariablesSelectorComponent),
     {provide: MatFormFieldControl, useExisting: LoincVariablesSelectorComponent}
   ]
 })
@@ -32,9 +36,12 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
 
   static reValueKey = /^value(.*)/;
 
-  static idPrefix = 'prefix-';
+  static idPrefix = 'code-selector-';
   static idIndex = 0;
   inputId = LoincVariablesSelectorComponent.idPrefix + ++LoincVariablesSelectorComponent.idIndex;
+
+  // See https://material.angular.io/guide/creating-a-custom-form-field-control#ngcontrol
+  ngControl: NgControl = null;
 
   /**
    * Describes the currently selected data:
@@ -56,13 +63,14 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
 
   // Autocompleter instance
   acInstance: Def.Autocompleter.Search;
+  // Callback to handle changes
   listSelectionsObserver: (eventData: any) => void;
 
   /**
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
    */
   get empty(): boolean {
-    return (this.acInstance && this.acInstance.getSelectedCodes().length === 0);
+    return !this.currentData.datatype;
   }
 
   /**
@@ -73,7 +81,7 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
   /**
    * The placeholder for this control.
    */
-  @Input() placeholder: string = '';
+  @Input() placeholder = '';
 
   /**
    * This properties currently unused but required by MatFormFieldControl:
@@ -81,7 +89,6 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
   readonly disabled: boolean = false;
   readonly errorState = false;
   readonly id: string;
-  readonly ngControl: NgControl | null;
   readonly required = false;
 
   /**
@@ -92,20 +99,28 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
   }
 
   /**
-   * Stream that emits whenever the state of the control changes such that the parent `MatFormField`
-   * needs to run change detection.
+   * Stream that emits whenever the state of the control changes such that
+   * the parent `MatFormField` needs to run change detection.
    */
   readonly stateChanges  = new Subject<void>();
 
   constructor(private fhirBackend: FhirBackendService,
+              @Optional() @Self() ngControl: NgControl,
               private elementRef: ElementRef) {
     super();
+
+    if (ngControl != null) {
+      // Setting the value accessor directly (instead of using
+      // the providers) to avoid running into a circular import.
+      ngControl.valueAccessor = this;
+    }
   }
 
   /**
    * Clean up the autocompleter instance
    */
   ngOnDestroy(): void {
+    this.stateChanges.complete();
     if (this.acInstance) {
       this.acInstance.destroy();
     }
@@ -117,8 +132,8 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
    *
    * @param value New value to be written to the model.
    */
-  writeValue(newValue: SelectedLoincCodes | null): void {
-    const value = this.currentData = newValue || {
+  writeValue(value: SelectedLoincCodes | null): void {
+    this.currentData = value || {
       datatype: '',
       codes: [],
       items: []
@@ -168,10 +183,8 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
                       datatype === this.currentData.datatype
                     ) {
                       return observation.code.coding
-                        .filter((coding) => {
-                          return isMatchToFieldVal.test(coding.display) &&
-                            acInstance.getSelectedCodes().indexOf(coding.code) === -1
-                        })
+                        .filter((coding) => isMatchToFieldVal.test(coding.display) &&
+                            acInstance.getSelectedCodes().indexOf(coding.code) === -1)
                         .map((coding) => {
                           code2Type[coding.code] = datatype;
                           return {
