@@ -20,15 +20,20 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
   selector: 'app-settings-page',
   templateUrl: './settings-page.component.html',
   styleUrls: ['./settings-page.component.less'],
-  providers: createControlValueAccessorAndValidatorProviders(SettingsPageComponent)
+  providers: createControlValueAccessorAndValidatorProviders(
+    SettingsPageComponent
+  )
 })
-export class SettingsPageComponent extends BaseControlValueAccessorAndValidator<any> implements OnInit {
+export class SettingsPageComponent
+  extends BaseControlValueAccessorAndValidator<any>
+  implements OnInit {
   settingsFormGroup: FormGroup;
 
   constructor(
     private formBuilder: FormBuilder,
     private http: HttpClient,
-    private fhirBackend: FhirBackendService) {
+    private fhirBackend: FhirBackendService
+  ) {
     super();
   }
 
@@ -47,19 +52,18 @@ export class SettingsPageComponent extends BaseControlValueAccessorAndValidator<
    */
   updateServiceBaseUrl(): void {
     // Get new URL and strip trailing slash if necessary
-    const newUrl = this.settingsFormGroup.get('serviceBaseUrl').value
-      .replace(/\/$/, '');
+    const newUrl = this.settingsFormGroup
+      .get('serviceBaseUrl')
+      .value.replace(/\/$/, '');
 
     if (this.fhirBackend.serviceBaseUrl !== newUrl) {
       this.fhirBackend.serviceBaseUrl = newUrl;
     }
   }
 
-  validate({value}: FormControl): ValidationErrors | null {
+  validate({ value }: FormControl): ValidationErrors | null {
     return this.settingsFormGroup.get('serviceBaseUrl').errors;
   }
 
-  writeValue(obj: any): void {
-  }
-
+  writeValue(obj: any): void {}
 }

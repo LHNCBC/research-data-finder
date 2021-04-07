@@ -5,7 +5,8 @@ import { FhirBackendModule } from './fhir-backend.module';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import {
   HttpClient,
-  HttpClientModule, HttpResponse,
+  HttpClientModule,
+  HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
 import { of } from 'rxjs';
@@ -31,17 +32,19 @@ describe('FhirBackendService', () => {
     TestBed.configureTestingModule({
       imports: [FhirBackendModule, HttpClientModule]
     });
-    spyOn(FhirBatchQuery.prototype, 'initialize')
-      .and.resolveTo(null);
-    spyOn(FhirBatchQuery.prototype, 'get')
-      .and.resolveTo(responseFromFhirBatchQuery);
-    spyOn(FhirBatchQuery.prototype, 'getWithCache')
-      .and.resolveTo(responseFromFhirBatchQueryCache);
+    spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
+    spyOn(FhirBatchQuery.prototype, 'get').and.resolveTo(
+      responseFromFhirBatchQuery
+    );
+    spyOn(FhirBatchQuery.prototype, 'getWithCache').and.resolveTo(
+      responseFromFhirBatchQueryCache
+    );
     service = TestBed.inject(FhirBackendService);
     httpClient = TestBed.inject(HttpClient);
     defaultHttpXhrBackend = TestBed.inject(HttpXhrBackend);
-    spyOn(defaultHttpXhrBackend, 'handle')
-      .and.returnValue(of(responseFromDefaultBackend));
+    spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
+      of(responseFromDefaultBackend)
+    );
   });
 
   it('should be created', () => {
@@ -62,10 +65,11 @@ describe('FhirBackendService', () => {
   it('should patch URL for non-GET FHIR requests', (done) => {
     httpClient.post('$fhir/some_related_url', '').subscribe((response) => {
       expect(response).toBe(responseFromDefaultBackend.body);
-      expect(defaultHttpXhrBackend.handle)
-        .toHaveBeenCalledWith(jasmine.objectContaining({
+      expect(defaultHttpXhrBackend.handle).toHaveBeenCalledWith(
+        jasmine.objectContaining({
           url: service.serviceBaseUrl + '/some_related_url'
-        }));
+        })
+      );
       done();
     });
   });
@@ -73,8 +77,9 @@ describe('FhirBackendService', () => {
   it('should pass GET FHIR requests to FhirBatchQuery', (done) => {
     httpClient.get('$fhir/some_related_url').subscribe((response) => {
       expect(response).toBe(responseFromFhirBatchQueryCache.data);
-      expect(FhirBatchQuery.prototype.getWithCache)
-        .toHaveBeenCalledWith(service.serviceBaseUrl + '/some_related_url');
+      expect(FhirBatchQuery.prototype.getWithCache).toHaveBeenCalledWith(
+        service.serviceBaseUrl + '/some_related_url'
+      );
       done();
     });
   });
@@ -83,8 +88,9 @@ describe('FhirBackendService', () => {
     service.cacheEnabled = false;
     httpClient.get('$fhir/some_related_url').subscribe((response) => {
       expect(response).toBe(responseFromFhirBatchQuery.data);
-      expect(FhirBatchQuery.prototype.get)
-        .toHaveBeenCalledWith(service.serviceBaseUrl + '/some_related_url');
+      expect(FhirBatchQuery.prototype.get).toHaveBeenCalledWith(
+        service.serviceBaseUrl + '/some_related_url'
+      );
       done();
     });
   });

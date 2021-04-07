@@ -8,7 +8,6 @@ export interface ResourceElement {
 // TODO:
 //  Import fhir types: https://www.npmjs.com/package/@types/fhir ?
 
-
 /**
  * The main component for pulling Patient-related resources data
  */
@@ -18,17 +17,16 @@ export interface ResourceElement {
   styleUrls: ['./pull-data-page.component.less']
 })
 export class PullDataPageComponent implements OnInit {
-
   resourceColumns: string[] = ['col1', 'col2'];
-  resourceDataSource: ResourceElement[] =
-    Array.from({length: 50}, (v, i) => ({
+  resourceDataSource: ResourceElement[] = Array.from(
+    { length: 50 },
+    (v, i) => ({
       col1: `first column value - ${i}`,
       col2: `second column value - ${i}`
-    }));
+    })
+  );
 
-  constructor() { }
+  constructor() {}
 
-  ngOnInit(): void {
-  }
-
+  ngOnInit(): void {}
 }
