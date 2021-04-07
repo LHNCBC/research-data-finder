@@ -6,13 +6,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-
-
 @NgModule({
   declarations: [LoincVariablesSelectorComponent],
-  exports: [
-    LoincVariablesSelectorComponent
-  ],
+  exports: [LoincVariablesSelectorComponent],
   imports: [
     CommonModule,
     BrowserAnimationsModule,
@@ -21,4 +17,4 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     MatIconModule
   ]
 })
-export class LoincVariablesSelectorModule { }
+export class LoincVariablesSelectorModule {}

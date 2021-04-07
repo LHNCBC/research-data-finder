@@ -15,8 +15,7 @@ export class StepperComponent implements OnInit {
   settings: FormControl = new FormControl();
   defineCohort: FormControl = new FormControl();
 
-  constructor() { }
+  constructor() {}
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 }

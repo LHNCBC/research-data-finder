@@ -16,14 +16,12 @@ export interface PatientElement {
 })
 export class ViewCohortPageComponent implements OnInit {
   patientColumns: string[] = ['id', 'name'];
-  patientDataSource: PatientElement[] = Array.from({length: 50}, (v, i) => ({
+  patientDataSource: PatientElement[] = Array.from({ length: 50 }, (v, i) => ({
     id: `id-${i}`,
     name: `Patient name - ${i}`
   }));
 
-  constructor() { }
+  constructor() {}
 
-  ngOnInit(): void {
-  }
-
+  ngOnInit(): void {}
 }

@@ -13,14 +13,8 @@ const appearance: MatFormFieldDefaultOptions = {
 };
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    SharedModule,
-    StepperModule
-  ],
+  declarations: [AppComponent],
+  imports: [BrowserModule, SharedModule, StepperModule],
   providers: [
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
@@ -29,4 +23,4 @@ const appearance: MatFormFieldDefaultOptions = {
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

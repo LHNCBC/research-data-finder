@@ -17,7 +17,9 @@ import {
   styleUrls: ['./search-parameter.component.less'],
   providers: createControlValueAccessorProviders(SearchParameterComponent)
 })
-export class SearchParameterComponent extends BaseControlValueAccessor<SearchParameter> implements OnInit {
+export class SearchParameterComponent
+  extends BaseControlValueAccessor<SearchParameter>
+  implements OnInit {
   @Input() fixedResourceType = true;
 
   resourceType: FormControl = new FormControl('');
@@ -37,23 +39,29 @@ export class SearchParameterComponent extends BaseControlValueAccessor<SearchPar
   }
 
   ngOnInit(): void {
-    this.filteredResourceTypes = this.resourceType.valueChanges
-      .pipe(
-        startWith(''),
-        map(value => this._filter(value, this.resourceTypes))
-      );
+    this.filteredResourceTypes = this.resourceType.valueChanges.pipe(
+      startWith(''),
+      map((value) => this._filter(value, this.resourceTypes))
+    );
 
-    this.filteredParameterNames = this.parameterName.valueChanges
-      .pipe(
-        startWith(''),
-        map(value => this._filter(value, this.parameterNames))
-      );
+    this.filteredParameterNames = this.parameterName.valueChanges.pipe(
+      startWith(''),
+      map((value) => this._filter(value, this.parameterNames))
+    );
   }
 
-  private _filter(value: string, options: string[], selected: string[] = null): string[] {
+  private _filter(
+    value: string,
+    options: string[],
+    selected: string[] = null
+  ): string[] {
     const filterValue = value.toLowerCase();
 
-    return options.filter(option => option.toLowerCase().includes(filterValue) && (selected ? selected.indexOf(option) === -1 : true));
+    return options.filter(
+      (option) =>
+        option.toLowerCase().includes(filterValue) &&
+        (selected ? selected.indexOf(option) === -1 : true)
+    );
   }
 
   /**

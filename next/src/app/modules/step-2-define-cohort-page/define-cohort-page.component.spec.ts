@@ -9,10 +9,9 @@ describe('DefineCohortComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ DefineCohortPageComponent ],
-      imports: [ DefineCohortPageModule ]
-    })
-    .compileComponents();
+      declarations: [DefineCohortPageComponent],
+      imports: [DefineCohortPageModule]
+    }).compileComponents();
   });
 
   beforeEach(() => {

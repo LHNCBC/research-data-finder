@@ -1,15 +1,13 @@
 import { Injectable } from '@angular/core';
 import {
-  HttpBackend, HttpErrorResponse,
+  HttpBackend,
+  HttpErrorResponse,
   HttpEvent,
-  HttpRequest, HttpResponse,
+  HttpRequest,
+  HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
-import {
-  BehaviorSubject,
-  Observable,
-  Observer
-} from 'rxjs';
+import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 
 // RegExp to modify the URL of requests to the FHIR server.
@@ -110,7 +108,10 @@ export class FhirBackendService implements HttpBackend {
       return this.defaultBackend.handle(request);
     }
 
-    const newUrl = request.url.replace(serviceBaseUrlRegExp, this.serviceBaseUrl);
+    const newUrl = request.url.replace(
+      serviceBaseUrlRegExp,
+      this.serviceBaseUrl
+    );
     const newRequest = request.clone({
       url: newUrl
     });
@@ -125,30 +126,36 @@ export class FhirBackendService implements HttpBackend {
 
     // Otherwise, use the FhirBatchQuery from the old version of
     // Research Data Finder to handle the HTTP request.
-    return new Observable<HttpResponse<any>>((observer: Observer<HttpResponse<any>>) => {
-      this.fhirClient.initialize().then(() => {
-        const promise = this.isCacheEnabled
-          ? this.fhirClient.getWithCache(fullUrl)
-          : this.fhirClient.get(fullUrl);
+    return new Observable<HttpResponse<any>>(
+      (observer: Observer<HttpResponse<any>>) => {
+        this.fhirClient.initialize().then(() => {
+          const promise = this.isCacheEnabled
+            ? this.fhirClient.getWithCache(fullUrl)
+            : this.fhirClient.get(fullUrl);
 
-        promise.then(
-          ({status, data}) => {
-            observer.next(new HttpResponse<any>({
-              status,
-              body: data,
-              url: fullUrl
-            }));
-            observer.complete();
-          },
-          ({status, error}) => {
-            observer.error(new HttpErrorResponse({
-              status,
-              error,
-              url: fullUrl
-            }));
-          }
-        );
-      });
-    });
+          promise.then(
+            ({ status, data }) => {
+              observer.next(
+                new HttpResponse<any>({
+                  status,
+                  body: data,
+                  url: fullUrl
+                })
+              );
+              observer.complete();
+            },
+            ({ status, error }) => {
+              observer.error(
+                new HttpErrorResponse({
+                  status,
+                  error,
+                  url: fullUrl
+                })
+              );
+            }
+          );
+        });
+      }
+    );
   }
 }

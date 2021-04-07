@@ -5,13 +5,9 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTableModule } from '@angular/material/table';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-
-
 @NgModule({
   declarations: [ViewCohortPageComponent],
-  exports: [
-    ViewCohortPageComponent
-  ],
+  exports: [ViewCohortPageComponent],
   imports: [
     CommonModule,
     BrowserAnimationsModule,
@@ -19,4 +15,4 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     MatTableModule
   ]
 })
-export class ViewCohortPageModule { }
+export class ViewCohortPageModule {}
