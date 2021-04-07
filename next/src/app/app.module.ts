@@ -7,22 +7,15 @@ import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatFormFieldDefaultOptions
 } from '@angular/material/form-field';
-import {HttpClientModule} from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
 };
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    SharedModule,
-    HttpClientModule,
-    StepperModule
-  ],
+  declarations: [AppComponent],
+  imports: [BrowserModule, SharedModule, HttpClientModule, StepperModule],
   providers: [
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
@@ -31,4 +24,4 @@ const appearance: MatFormFieldDefaultOptions = {
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

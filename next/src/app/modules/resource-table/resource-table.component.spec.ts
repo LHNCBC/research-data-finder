@@ -1,12 +1,17 @@
-import {ComponentFixture, fakeAsync, TestBed, tick} from '@angular/core/testing';
+import {
+  ComponentFixture,
+  fakeAsync,
+  TestBed,
+  tick
+} from '@angular/core/testing';
 import { ResourceTableComponent } from './resource-table.component';
-import {of} from 'rxjs';
-import {HttpClient} from '@angular/common/http';
-import {ResourceTableModule} from './resource-table.module';
-import {ColumnDescription} from '../../types/column.description';
-import {By} from '@angular/platform-browser';
-import {CdkScrollable} from '@angular/cdk/overlay';
-import {DebugElement} from '@angular/core';
+import { of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { ResourceTableModule } from './resource-table.module';
+import { ColumnDescription } from '../../types/column.description';
+import { By } from '@angular/platform-browser';
+import { CdkScrollable } from '@angular/cdk/overlay';
+import { DebugElement } from '@angular/core';
 
 class Page {
   private fixture: ComponentFixture<ResourceTableComponent>;
@@ -25,9 +30,7 @@ describe('ResourceTableComponent', () => {
 
   const bundle = {
     type: undefined,
-    link: [
-      { relation: 'next', url: 'test.url.com' }
-    ],
+    link: [{ relation: 'next', url: 'test.url.com' }],
     total: 100,
     entry: []
   };
@@ -50,15 +53,10 @@ describe('ResourceTableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ResourceTableComponent ],
-      imports: [
-        ResourceTableModule
-      ],
-      providers: [
-        { provide: HttpClient, useValue: spies[0] }
-      ]
-    })
-    .compileComponents();
+      declarations: [ResourceTableComponent],
+      imports: [ResourceTableModule],
+      providers: [{ provide: HttpClient, useValue: spies[0] }]
+    }).compileComponents();
     fixture = TestBed.createComponent(ResourceTableComponent);
     page = new Page(fixture);
     component = fixture.componentInstance;
