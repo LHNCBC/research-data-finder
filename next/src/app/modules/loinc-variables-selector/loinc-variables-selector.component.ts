@@ -8,9 +8,7 @@ import {
   Optional,
   Self
 } from '@angular/core';
-import {
-  BaseControlValueAccessor
-} from '../base-control-value-accessor';
+import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import { escapeStringForRegExp } from '@legacy/js/common/utils';
 // see docs at http://lhncbc.github.io/autocomplete-lhc/docs.html
 import Def from 'autocomplete-lhc';
@@ -28,17 +26,22 @@ import { Subject } from 'rxjs';
   templateUrl: './loinc-variables-selector.component.html',
   styleUrls: ['./loinc-variables-selector.component.less'],
   providers: [
-    {provide: MatFormFieldControl, useExisting: LoincVariablesSelectorComponent}
+    {
+      provide: MatFormFieldControl,
+      useExisting: LoincVariablesSelectorComponent
+    }
   ]
 })
-export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<SelectedLoincCodes>
+export class LoincVariablesSelectorComponent
+  extends BaseControlValueAccessor<SelectedLoincCodes>
   implements MatFormFieldControl<SelectedLoincCodes>, AfterViewInit, OnDestroy {
-
   static reValueKey = /^value(.*)/;
 
   static idPrefix = 'code-selector-';
   static idIndex = 0;
-  inputId = LoincVariablesSelectorComponent.idPrefix + ++LoincVariablesSelectorComponent.idIndex;
+  inputId =
+    LoincVariablesSelectorComponent.idPrefix +
+    ++LoincVariablesSelectorComponent.idIndex;
 
   // See https://material.angular.io/guide/creating-a-custom-form-field-control#ngcontrol
   ngControl: NgControl = null;
@@ -102,11 +105,13 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
    * Stream that emits whenever the state of the control changes such that
    * the parent `MatFormField` needs to run change detection.
    */
-  readonly stateChanges  = new Subject<void>();
+  readonly stateChanges = new Subject<void>();
 
-  constructor(private fhirBackend: FhirBackendService,
-              @Optional() @Self() ngControl: NgControl,
-              private elementRef: ElementRef) {
+  constructor(
+    private fhirBackend: FhirBackendService,
+    @Optional() @Self() ngControl: NgControl,
+    private elementRef: ElementRef
+  ) {
     super();
 
     if (ngControl != null) {
@@ -139,7 +144,9 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
       items: []
     };
     if (this.acInstance) {
-      throw new Error('Failed to set value after initialization. Autocompleter only has method to add data (addToSelectedArea)');
+      throw new Error(
+        'Failed to set value after initialization. Autocompleter only has method to add data (addToSelectedArea)'
+      );
     }
   }
 
@@ -159,72 +166,80 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
     const testInputId = this.inputId;
     const code2Type = {};
 
-    const acInstance  = this.acInstance = new Def.Autocompleter.Search(testInputId, null, {
-      suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
-      fhir: {
-        search: (fieldVal, count) => {
-          const isMatchToFieldVal = new RegExp(
-            escapeStringForRegExp(fieldVal),
-            'i'
-          );
-          return {
-            then: (resolve, reject) => {
-              // TODO: temporary use of fhirBackend directly should be replaced with calls to HttpClient
-              this.fhirBackend.fhirClient
-                .resourcesMapFilter(
-                  `Observation/$lastn?max=1&_elements=code,value,component&code:text=${encodeURIComponent(
-                    fieldVal
-                  )}`,
-                  count,
-                  (observation) => {
-                    const datatype = this.getValueDataType(observation);
-                    if (
-                      !this.currentData.datatype ||
-                      datatype === this.currentData.datatype
-                    ) {
-                      return observation.code.coding
-                        .filter((coding) => isMatchToFieldVal.test(coding.display) &&
-                            acInstance.getSelectedCodes().indexOf(coding.code) === -1)
-                        .map((coding) => {
-                          code2Type[coding.code] = datatype;
-                          return {
-                            code: coding.code,
-                            display: coding.display
-                          };
-                        });
-                    } else {
-                      return false;
-                    }
-                  },
-                  500
-                )
-                .then(
-                  ({ entry, total }) => {
-                    resolve({
-                      resourceType: 'ValueSet',
-                      expansion: {
-                        total: Number.isInteger(total) ? total : Infinity,
-                        contains: entry
+    const acInstance = (this.acInstance = new Def.Autocompleter.Search(
+      testInputId,
+      null,
+      {
+        suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
+        fhir: {
+          search: (fieldVal, count) => {
+            const isMatchToFieldVal = new RegExp(
+              escapeStringForRegExp(fieldVal),
+              'i'
+            );
+            return {
+              then: (resolve, reject) => {
+                // TODO: temporary use of fhirBackend directly should be replaced with calls to HttpClient
+                this.fhirBackend.fhirClient
+                  .resourcesMapFilter(
+                    `Observation/$lastn?max=1&_elements=code,value,component&code:text=${encodeURIComponent(
+                      fieldVal
+                    )}`,
+                    count,
+                    (observation) => {
+                      const datatype = this.getValueDataType(observation);
+                      if (
+                        !this.currentData.datatype ||
+                        datatype === this.currentData.datatype
+                      ) {
+                        return observation.code.coding
+                          .filter(
+                            (coding) =>
+                              isMatchToFieldVal.test(coding.display) &&
+                              acInstance
+                                .getSelectedCodes()
+                                .indexOf(coding.code) === -1
+                          )
+                          .map((coding) => {
+                            code2Type[coding.code] = datatype;
+                            return {
+                              code: coding.code,
+                              display: coding.display
+                            };
+                          });
+                      } else {
+                        return false;
                       }
-                    });
-                  },
-                  ({ error }) => reject(error)
-                );
-            }
-          };
-        }
-      },
-      useResultCache: false,
-      maxSelect: '*',
-      matchListValue: true
-    });
+                    },
+                    500
+                  )
+                  .then(
+                    ({ entry, total }) => {
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(total) ? total : Infinity,
+                          contains: entry
+                        }
+                      });
+                    },
+                    ({ error }) => reject(error)
+                  );
+              }
+            };
+          }
+        },
+        useResultCache: false,
+        maxSelect: '*',
+        matchListValue: true
+      }
+    ));
 
     // Fill component with data (see writeValue)
     this.currentData.items.forEach((item, index) => {
       this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
       this.acInstance.addToSelectedArea(item);
     });
-
 
     this.listSelectionsObserver = (eventData) => {
       const codes = acInstance.getSelectedCodes();
@@ -288,7 +303,10 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
   @HostListener('focusout', ['$event.relatedTarget'])
   onFocusOut(relatedTarget: HTMLElement): void {
     console.log('<<<', this.elementRef.nativeElement.contains(relatedTarget));
-    if (this.focused && !this.elementRef.nativeElement.contains(relatedTarget)) {
+    if (
+      this.focused &&
+      !this.elementRef.nativeElement.contains(relatedTarget)
+    ) {
       this.focused = false;
       this.stateChanges.next();
     }
@@ -308,7 +326,10 @@ export class LoincVariablesSelectorComponent extends BaseControlValueAccessor<Se
    */
   setDescribedByIds(ids: string[]): void {
     if (ids.length) {
-      this.elementRef.nativeElement.setAttribute('aria-describedby', ids.join(' '));
+      this.elementRef.nativeElement.setAttribute(
+        'aria-describedby',
+        ids.join(' ')
+      );
     } else {
       this.elementRef.nativeElement.removeAttribute('aria-describedby');
     }

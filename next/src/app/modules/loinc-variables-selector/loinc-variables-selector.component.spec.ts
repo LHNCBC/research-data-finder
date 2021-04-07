@@ -9,25 +9,22 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
 
 @Component({
-  template: `
-    <mat-form-field class="flex">
-      <mat-label>Observation codes from FHIR server</mat-label>
-      <app-loinc-variables-selector
-        [formControl]="selectedLoincItems"
-        placeholder="Type and select one or more">
-      </app-loinc-variables-selector>
-    </mat-form-field>`
+  template: ` <mat-form-field class="flex">
+    <mat-label>Observation codes from FHIR server</mat-label>
+    <app-loinc-variables-selector
+      [formControl]="selectedLoincItems"
+      placeholder="Type and select one or more"
+    >
+    </app-loinc-variables-selector>
+  </mat-form-field>`
 })
 class TestHostComponent {
-  @ViewChild(LoincVariablesSelectorComponent) component: LoincVariablesSelectorComponent;
+  @ViewChild(LoincVariablesSelectorComponent)
+  component: LoincVariablesSelectorComponent;
   selectedLoincItems = new FormControl({
-    codes: [
-      '3137-7'
-    ],
-    items: [
-      'Height cm'
-    ],
-    datatype: 'Quantity',
+    codes: ['3137-7'],
+    items: ['Height cm'],
+    datatype: 'Quantity'
   });
 }
 
@@ -38,7 +35,7 @@ describe('SelectLoincCodesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TestHostComponent ],
+      declarations: [TestHostComponent],
       imports: [
         CommonModule,
         ReactiveFormsModule,
@@ -46,8 +43,7 @@ describe('SelectLoincCodesComponent', () => {
         LoincVariablesSelectorModule,
         SharedModule
       ]
-    })
-    .compileComponents();
+    }).compileComponents();
   });
 
   beforeEach(async () => {
@@ -63,8 +59,11 @@ describe('SelectLoincCodesComponent', () => {
 
   it('should initialize autocomplete correctly', () => {
     expect(component.acInstance).toBeTruthy();
-    expect(component.acInstance.getSelectedCodes()).toEqual(hostComponent.selectedLoincItems.value.codes);
-    expect(component.acInstance.getSelectedItems()).toEqual(hostComponent.selectedLoincItems.value.items);
+    expect(component.acInstance.getSelectedCodes()).toEqual(
+      hostComponent.selectedLoincItems.value.codes
+    );
+    expect(component.acInstance.getSelectedItems()).toEqual(
+      hostComponent.selectedLoincItems.value.items
+    );
   });
-
 });
