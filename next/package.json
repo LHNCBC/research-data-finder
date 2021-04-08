@@ -13,7 +13,8 @@
     "test": "ng test",
     "lint": "ng lint",
     "postinstall": "webdriver-manager update --versions.chrome $(google-chrome --version |awk '{print $NF}')",
-    "e2e": "ng e2e --webdriverUpdate=false"
+    "e2e": "ng e2e --webdriverUpdate=false",
+    "prettier-fix": "prettier --write '**/*.ts'"
   },
   "private": true,
   "dependencies": {
