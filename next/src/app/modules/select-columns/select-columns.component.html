@@ -1,0 +1,16 @@
+<h2 mat-dialog-title>
+  Select columns to load
+</h2>
+<mat-dialog-content>
+  <ul>
+    <li *ngFor="let x of columns">
+      <mat-checkbox>
+        {{x.element}}
+      </mat-checkbox>
+    </li>
+  </ul>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button class="mat-raised-button" (click)="close()">Close</button>
+  <button class="mat-raised-button mat-primary">Save</button>
+</mat-dialog-actions>

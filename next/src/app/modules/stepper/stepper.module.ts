@@ -10,6 +10,8 @@ import { SettingsPageModule } from '../step-1-settings-page/settings-page.module
 import { DefineCohortPageModule } from '../step-2-define-cohort-page/define-cohort-page.module';
 import { ViewCohortPageModule } from '../step-3-view-cohort-page/view-cohort-page.module';
 import { PullDataPageModule } from '../step-4-pull-data-page/pull-data-page.module';
+import { MatDialogModule } from '@angular/material/dialog';
+import { SelectColumnsModule } from '../select-columns/select-columns.module';
 
 @NgModule({
   declarations: [StepperComponent],
@@ -24,7 +26,9 @@ import { PullDataPageModule } from '../step-4-pull-data-page/pull-data-page.modu
     SettingsPageModule,
     DefineCohortPageModule,
     ViewCohortPageModule,
-    PullDataPageModule
+    PullDataPageModule,
+    MatDialogModule,
+    SelectColumnsModule
   ]
 })
 export class StepperModule {}
