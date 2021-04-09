@@ -1,7 +1,14 @@
 <h2 mat-dialog-title>
   Select columns to load
 </h2>
+<hr />
 <mat-dialog-content>
+  <p class="info">
+    <span class="info-icon" aria-hidden="true"></span>
+    If no columns are selected, the default columns will be displayed.
+    If the column contains no data, it will not be displayed.
+  </p>
+  <hr />
   <ul>
     <li *ngFor="let x of columns">
       <mat-checkbox>
@@ -10,7 +17,8 @@
     </li>
   </ul>
 </mat-dialog-content>
-<mat-dialog-actions>
+<hr />
+<div>
+  <button class="mat-raised-button mat-primary">Save changes</button>
   <button class="mat-raised-button" (click)="close()">Close</button>
-  <button class="mat-raised-button mat-primary">Save</button>
-</mat-dialog-actions>
+</div>
