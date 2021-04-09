@@ -45,7 +45,6 @@ export class StepperComponent implements OnInit {
    */
   openColumnsDialog(): void {
     const dialogConfig = new MatDialogConfig();
-    dialogConfig.minWidth = 800;
     dialogConfig.disableClose = true;
     dialogConfig.hasBackdrop = true;
     dialogConfig.data = {
