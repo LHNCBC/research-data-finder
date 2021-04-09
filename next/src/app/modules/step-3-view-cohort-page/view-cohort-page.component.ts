@@ -1,6 +1,6 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {ColumnDescription} from '../../types/column.description';
-import {HttpClient} from '@angular/common/http';
+import { Component, Input, OnInit } from '@angular/core';
+import { ColumnDescription } from '../../types/column.description';
+import { HttpClient } from '@angular/common/http';
 import Bundle = fhir.Bundle;
 
 /**
@@ -58,13 +58,12 @@ export class ViewCohortPageComponent implements OnInit {
       visible: false
     }
   ];
-  url = 'https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=10';
+  url =
+    'https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_elements=id,name,birthDate,active,deceased,identifier,telecom,gender,address&_count=10';
   initialBundle: Bundle;
   showTable = false;
 
-  constructor(
-    private http: HttpClient) {
-  }
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.http.get(this.url).subscribe((data: Bundle) => {

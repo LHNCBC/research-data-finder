@@ -1,12 +1,12 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {ViewCohortPageComponent} from './view-cohort-page.component';
-import {HttpClient} from '@angular/common/http';
-import {of} from 'rxjs';
-import {ResourceTableComponent} from '../resource-table/resource-table.component';
-import {MockComponent} from 'ng-mocks';
-import {CommonModule} from '@angular/common';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {MatExpansionModule} from '@angular/material/expansion';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ViewCohortPageComponent } from './view-cohort-page.component';
+import { HttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
+import { ResourceTableComponent } from '../resource-table/resource-table.component';
+import { MockComponent } from 'ng-mocks';
+import { CommonModule } from '@angular/common';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 describe('ViewCohortComponent', () => {
   let component: ViewCohortPageComponent;
@@ -21,16 +21,9 @@ describe('ViewCohortComponent', () => {
         ViewCohortPageComponent,
         MockComponent(ResourceTableComponent)
       ],
-      imports: [
-        CommonModule,
-        BrowserAnimationsModule,
-        MatExpansionModule
-      ],
-      providers: [
-        { provide: HttpClient, useValue: spies[0] }
-      ]
-    })
-      .compileComponents();
+      imports: [CommonModule, BrowserAnimationsModule, MatExpansionModule],
+      providers: [{ provide: HttpClient, useValue: spies[0] }]
+    }).compileComponents();
   });
 
   beforeEach(() => {

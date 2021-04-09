@@ -1,13 +1,20 @@
-import {AfterViewInit, Component, Input, NgZone, OnInit, ViewChild} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {SelectionModel} from '@angular/cdk/collections';
-import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
-import {MatTableDataSource} from '@angular/material/table';
+import {
+  AfterViewInit,
+  Component,
+  Input,
+  NgZone,
+  OnInit,
+  ViewChild
+} from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { SelectionModel } from '@angular/cdk/collections';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { MatTableDataSource } from '@angular/material/table';
 import Bundle = fhir.Bundle;
 import BundleEntry = fhir.BundleEntry;
-import {ColumnDescription} from '../../types/column.description';
-import {debounceTime} from 'rxjs/operators';
-import {CdkScrollable} from '@angular/cdk/overlay';
+import { ColumnDescription } from '../../types/column.description';
+import { debounceTime } from 'rxjs/operators';
+import { CdkScrollable } from '@angular/cdk/overlay';
 
 /**
  * Component for loading table of resources
@@ -34,28 +41,32 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   @ViewChild(CdkScrollable) scrollable: CdkScrollable;
   resourceTotal = 0;
 
-  constructor(
-    private http: HttpClient,
-    private ngZone: NgZone
-  ) {
-  }
+  constructor(private http: HttpClient, private ngZone: NgZone) {}
 
   ngOnInit(): void {
     if (this.enableSelection) {
       this.columns.push('select');
     }
-    this.columns = this.columns.concat(this.columnDescriptions.map(c => c.element));
+    this.columns = this.columns.concat(
+      this.columnDescriptions.map((c) => c.element)
+    );
     if (this.enableClientFiltering) {
-      this.filterColumns = this.columns.map(c => c + 'Filter');
-      this.columnDescriptions.forEach(column => {
+      this.filterColumns = this.columns.map((c) => c + 'Filter');
+      this.columnDescriptions.forEach((column) => {
         this.filtersForm.addControl(column.element, new FormControl());
       });
       this.dataSource.filterPredicate = ((data, filter) => {
         for (const [key, value] of Object.entries(filter)) {
           if (value) {
-            const columnDescription = this.columnDescriptions.find(c => c.element === key);
+            const columnDescription = this.columnDescriptions.find(
+              (c) => c.element === key
+            );
             const cellValue = this.getCellDisplay(data, columnDescription);
-            if (!cellValue.toLowerCase().startsWith((value as string).toLowerCase())) {
+            if (
+              !cellValue
+                .toLowerCase()
+                .startsWith((value as string).toLowerCase())
+            ) {
               return false;
             }
           }
@@ -64,19 +75,22 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
         // casting method signature here because filterPredicate defines filter param as string
         // tslint:disable-next-line:variable-name
       }) as (BundleEntry, string) => boolean;
-      this.filtersForm.valueChanges.subscribe(value => {
-        this.dataSource.filter = {...value} as string;
+      this.filtersForm.valueChanges.subscribe((value) => {
+        this.dataSource.filter = { ...value } as string;
       });
     }
     this.dataSource.data = this.initialBundle.entry;
-    this.nextBundleUrl = this.initialBundle.link.find(l => l.relation === 'next')?.url;
+    this.nextBundleUrl = this.initialBundle.link.find(
+      (l) => l.relation === 'next'
+    )?.url;
     this.resourceTotal = this.initialBundle.total;
   }
 
   ngAfterViewInit(): void {
-    this.scrollable.elementScrolled()
+    this.scrollable
+      .elementScrolled()
       .pipe(debounceTime(700))
-      .subscribe(e => {
+      .subscribe((e) => {
         this.ngZone.run(() => {
           this.onTableScroll(e);
         });
@@ -89,16 +103,18 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   callBatch(url: string): void {
     this.isLoading = true;
     this.nextBundleUrl = '';
-    this.http.get(url)
-      .subscribe((data: Bundle) => {
-        this.isLoading = false;
-        // If max is defined, load no more than max number of resource rows
-        if (this.max && this.dataSource.data.length + data.entry.length > this.max) {
-          return;
-        }
-        this.nextBundleUrl = data.link.find(l => l.relation === 'next')?.url;
-        this.dataSource.data = this.dataSource.data.concat(data.entry);
-      });
+    this.http.get(url).subscribe((data: Bundle) => {
+      this.isLoading = false;
+      // If max is defined, load no more than max number of resource rows
+      if (
+        this.max &&
+        this.dataSource.data.length + data.entry.length > this.max
+      ) {
+        return;
+      }
+      this.nextBundleUrl = data.link.find((l) => l.relation === 'next')?.url;
+      this.dataSource.data = this.dataSource.data.concat(data.entry);
+    });
   }
 
   /**
@@ -129,9 +145,11 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
 
   /** Selects all rows if they are not all selected; otherwise clear selection. */
   masterToggle(): void {
-    this.isAllSelected() ?
-      this.selectedResources.clear() :
-      this.dataSource.data.forEach(row => this.selectedResources.select(row));
+    this.isAllSelected()
+      ? this.selectedResources.clear()
+      : this.dataSource.data.forEach((row) =>
+          this.selectedResources.select(row)
+        );
   }
 
   /**
@@ -150,7 +168,11 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
     }
     for (const type of column.types) {
       const upperCaseType = type.charAt(0).toUpperCase() + type.slice(1);
-      const output = this.getCellDisplayByType(row, type, column.element.replace('[x]', upperCaseType));
+      const output = this.getCellDisplayByType(
+        row,
+        type,
+        column.element.replace('[x]', upperCaseType)
+      );
       if (output) {
         return output;
       }
@@ -161,7 +183,11 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   /**
    * Get cell display by type
    */
-  getCellDisplayByType(row: BundleEntry, type: string, element: string): string {
+  getCellDisplayByType(
+    row: BundleEntry,
+    type: string,
+    element: string
+  ): string {
     switch (type) {
       case 'Address':
         return this.getAddressDisplay(row.resource['address']);
@@ -225,9 +251,10 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
       output += `${this.resourceTotal} total rows.`;
     }
     if (this.resourceTotal && this.max) {
-      output += this.max > this.resourceTotal
-        ? `${this.resourceTotal} total rows.`
-        : `${this.max} maximum rows.`;
+      output +=
+        this.max > this.resourceTotal
+          ? `${this.resourceTotal} total rows.`
+          : `${this.max} maximum rows.`;
     }
     return output;
   }
