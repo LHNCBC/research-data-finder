@@ -3,7 +3,9 @@ import {
   Component,
   Input,
   NgZone,
+  OnChanges,
   OnInit,
+  SimpleChanges,
   ViewChild
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -24,7 +26,8 @@ import { CdkScrollable } from '@angular/cdk/overlay';
   templateUrl: './resource-table.component.html',
   styleUrls: ['./resource-table.component.less']
 })
-export class ResourceTableComponent implements OnInit, AfterViewInit {
+export class ResourceTableComponent
+  implements OnInit, AfterViewInit, OnChanges {
   @Input() columnDescriptions: ColumnDescription[];
   @Input() initialBundle: Bundle;
   @Input() enableClientFiltering = false;
@@ -44,46 +47,53 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   constructor(private http: HttpClient, private ngZone: NgZone) {}
 
   ngOnInit(): void {
-    if (this.enableSelection) {
-      this.columns.push('select');
-    }
-    this.columns = this.columns.concat(
-      this.columnDescriptions.map((c) => c.element)
-    );
-    if (this.enableClientFiltering) {
-      this.filterColumns = this.columns.map((c) => c + 'Filter');
-      this.columnDescriptions.forEach((column) => {
-        this.filtersForm.addControl(column.element, new FormControl());
-      });
-      this.dataSource.filterPredicate = ((data, filter) => {
-        for (const [key, value] of Object.entries(filter)) {
-          if (value) {
-            const columnDescription = this.columnDescriptions.find(
-              (c) => c.element === key
-            );
-            const cellValue = this.getCellDisplay(data, columnDescription);
-            if (
-              !cellValue
-                .toLowerCase()
-                .startsWith((value as string).toLowerCase())
-            ) {
-              return false;
-            }
-          }
-        }
-        return true;
-        // casting method signature here because filterPredicate defines filter param as string
-        // tslint:disable-next-line:variable-name
-      }) as (BundleEntry, string) => boolean;
-      this.filtersForm.valueChanges.subscribe((value) => {
-        this.dataSource.filter = { ...value } as string;
-      });
-    }
     this.dataSource.data = this.initialBundle.entry;
     this.nextBundleUrl = this.initialBundle.link.find(
       (l) => l.relation === 'next'
     )?.url;
     this.resourceTotal = this.initialBundle.total;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['columnDescriptions']) {
+      this.columns.length = 0;
+      if (this.enableSelection) {
+        this.columns.push('select');
+      }
+      this.columns = this.columns.concat(
+        this.columnDescriptions.map((c) => c.element)
+      );
+      if (this.enableClientFiltering) {
+        this.filtersForm = new FormBuilder().group({});
+        this.filterColumns = this.columns.map((c) => c + 'Filter');
+        this.columnDescriptions.forEach((column) => {
+          this.filtersForm.addControl(column.element, new FormControl());
+        });
+        this.dataSource.filterPredicate = ((data, filter) => {
+          for (const [key, value] of Object.entries(filter)) {
+            if (value) {
+              const columnDescription = this.columnDescriptions.find(
+                (c) => c.element === key
+              );
+              const cellValue = this.getCellDisplay(data, columnDescription);
+              if (
+                !cellValue
+                  .toLowerCase()
+                  .startsWith((value as string).toLowerCase())
+              ) {
+                return false;
+              }
+            }
+          }
+          return true;
+          // casting method signature here because filterPredicate defines filter param as string
+          // tslint:disable-next-line:variable-name
+        }) as (BundleEntry, string) => boolean;
+        this.filtersForm.valueChanges.subscribe((value) => {
+          this.dataSource.filter = { ...value } as string;
+        });
+      }
+    }
   }
 
   ngAfterViewInit(): void {

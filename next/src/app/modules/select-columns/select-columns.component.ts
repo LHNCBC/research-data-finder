@@ -12,6 +12,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 })
 export class SelectColumnsComponent implements OnInit {
   columns: ColumnDescription[] = [];
+
   constructor(
     private dialogRef: MatDialogRef<SelectColumnsComponent>,
     @Inject(MAT_DIALOG_DATA) data
