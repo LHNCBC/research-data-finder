@@ -3,13 +3,11 @@ import { CommonModule } from '@angular/common';
 import { ViewCohortPageComponent } from './view-cohort-page.component';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import {ResourceTableModule} from '../resource-table/resource-table.module';
+import { ResourceTableModule } from '../resource-table/resource-table.module';
 
 @NgModule({
   declarations: [ViewCohortPageComponent],
-  exports: [
-    ViewCohortPageComponent
-  ],
+  exports: [ViewCohortPageComponent],
   imports: [
     CommonModule,
     BrowserAnimationsModule,
@@ -17,4 +15,4 @@ import {ResourceTableModule} from '../resource-table/resource-table.module';
     ResourceTableModule
   ]
 })
-export class ViewCohortPageModule { }
+export class ViewCohortPageModule {}
