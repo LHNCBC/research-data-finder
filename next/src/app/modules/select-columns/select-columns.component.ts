@@ -1,8 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { getCurrentDefinitions } from '@legacy/js/search-parameters/common-descriptions';
+import { Component, Inject, OnInit } from '@angular/core';
 import { ColumnDescription } from '../../types/column.description';
-import { MatDialogRef } from '@angular/material/dialog';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 /**
  * Component for selecting columns displayed in resource table
@@ -14,16 +12,20 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 })
 export class SelectColumnsComponent implements OnInit {
   columns: ColumnDescription[] = [];
-  constructor(private dialogRef: MatDialogRef<SelectColumnsComponent>,
-              private fhirBackend: FhirBackendService) {}
-
-  ngOnInit(): void {
-    // TODO: temporarily using patient columns.
-    this.columns = this.fhirBackend.getColumns('Patient');
-    console.log(this.columns);
+  constructor(
+    private dialogRef: MatDialogRef<SelectColumnsComponent>,
+    @Inject(MAT_DIALOG_DATA) data
+  ) {
+    this.columns = data.columns;
   }
+
+  ngOnInit(): void {}
 
   close(): void {
     this.dialogRef.close();
+  }
+
+  save(): void {
+    this.dialogRef.close(this.columns);
   }
 }

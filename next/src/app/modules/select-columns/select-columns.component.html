@@ -11,7 +11,7 @@
   <hr />
   <ul>
     <li *ngFor="let x of columns">
-      <mat-checkbox>
+      <mat-checkbox [(ngModel)]="x.visible">
         {{x.displayName}}
       </mat-checkbox>
     </li>
@@ -19,6 +19,6 @@
 </mat-dialog-content>
 <hr />
 <div>
-  <button class="mat-raised-button mat-primary">Save changes</button>
+  <button class="mat-raised-button mat-primary" (click)="save()">Save changes</button>
   <button class="mat-raised-button" (click)="close()">Close</button>
 </div>
