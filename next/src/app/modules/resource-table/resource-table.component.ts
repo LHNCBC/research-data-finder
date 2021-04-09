@@ -17,6 +17,7 @@ import BundleEntry = fhir.BundleEntry;
 import { ColumnDescription } from '../../types/column.description';
 import { debounceTime } from 'rxjs/operators';
 import { CdkScrollable } from '@angular/cdk/overlay';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 
 /**
  * Component for loading table of resources
@@ -44,7 +45,11 @@ export class ResourceTableComponent
   @ViewChild(CdkScrollable) scrollable: CdkScrollable;
   resourceTotal = 0;
 
-  constructor(private http: HttpClient, private ngZone: NgZone) {}
+  constructor(
+    private http: HttpClient,
+    private ngZone: NgZone,
+    private fhirBackend: FhirBackendService
+  ) {}
 
   ngOnInit(): void {
     this.dataSource.data = this.initialBundle.entry;
@@ -54,11 +59,25 @@ export class ResourceTableComponent
     this.resourceTotal = this.initialBundle.total;
   }
 
+  /**
+   * Use columns present in bundle info as default, if empty column descriptions is passed in
+   */
+  private setColumnsFromBundle(): void {
+    // TODO: hard coded Patient
+    const allColumns = this.fhirBackend.getColumns('Patient');
+    this.columnDescriptions = allColumns.filter((x) =>
+      this.getCellDisplay(this.initialBundle.entry[0], x)
+    );
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['columnDescriptions']) {
       this.columns.length = 0;
       if (this.enableSelection) {
         this.columns.push('select');
+      }
+      if (!this.columnDescriptions.length) {
+        this.setColumnsFromBundle();
       }
       this.columns = this.columns.concat(
         this.columnDescriptions.map((c) => c.element)
