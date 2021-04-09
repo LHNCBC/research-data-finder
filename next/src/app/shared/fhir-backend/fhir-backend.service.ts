@@ -10,6 +10,8 @@ import {
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
+import { getValueFnDescriptor } from '@legacy/js/resource-table';
+import { ColumnDescription } from '../../types/column.description';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -25,9 +27,6 @@ const serviceBaseUrlRegExp = /^\$fhir/;
  */
 @Injectable()
 export class FhirBackendService implements HttpBackend {
-  // Whether the connection to server is initialized.
-  initialized$ = new BehaviorSubject(false);
-
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
     this.initialized$.next(false);
@@ -64,9 +63,6 @@ export class FhirBackendService implements HttpBackend {
     return this.fhirClient.getApiKey();
   }
 
-  // Whether to cache requests to the FHIR server
-  private isCacheEnabled = true;
-
   set cacheEnabled(value: boolean) {
     this.isCacheEnabled = value;
     if (!value) {
@@ -76,10 +72,6 @@ export class FhirBackendService implements HttpBackend {
   get cacheEnabled(): boolean {
     return this.isCacheEnabled;
   }
-
-  // Javascript client from the old version of Research Data Finder
-  // for FHIR with the ability to automatically combine requests in a batch .
-  fhirClient: FhirBatchQuery;
 
   /**
    * Creates and initializes an instance of FhirBackendService
@@ -93,6 +85,20 @@ export class FhirBackendService implements HttpBackend {
     this.fhirClient.initialize().then(() => {
       this.initialized$.next(true);
     });
+  }
+  columns: ColumnDescription[];
+  // Whether the connection to server is initialized.
+  initialized$ = new BehaviorSubject(false);
+
+  // Whether to cache requests to the FHIR server
+  private isCacheEnabled = true;
+
+  // Javascript client from the old version of Research Data Finder
+  // for FHIR with the ability to automatically combine requests in a batch .
+  fhirClient: FhirBatchQuery;
+
+  private static capitalize(str: string): string {
+    return str && str.charAt(0).toUpperCase() + str.substring(1);
   }
 
   /**
@@ -162,9 +168,8 @@ export class FhirBackendService implements HttpBackend {
 
   /**
    * Returns definitions for current FHIR version
-   * @return {Object}
    */
-  getCurrentDefinitions() {
+  getCurrentDefinitions(): any {
     const versionName = this.fhirClient.getVersionName();
     const definitions = definitionsIndex.configByVersionName[versionName];
 
@@ -177,32 +182,60 @@ export class FhirBackendService implements HttpBackend {
           isArray: false
         });
       });
-
-      // prepare definitions on first request
-      const valueSets = definitions.valueSets;
-      const valueSetMaps = (definitions.valueSetMaps = Object.keys(
-        valueSets
-      ).reduce((_valueSetsMap, entityName) => {
-        _valueSetsMap[entityName] =
-          typeof valueSets[entityName] === 'string'
-            ? valueSets[entityName]
-            : valueSets[entityName].reduce((_entityMap, item) => {
-              _entityMap[item.code] = item.display;
-              return _entityMap;
-            }, {});
-        return _valueSetsMap;
-      }, {}));
-
-      Object.keys(definitions.valueSetByPath).forEach((path) => {
-        definitions.valueSetMapByPath[path] =
-          valueSetMaps[definitions.valueSetByPath[path]];
-        definitions.valueSetByPath[path] =
-          valueSets[definitions.valueSetByPath[path]];
-      });
       definitions.initialized = true;
     }
 
     return definitions;
   }
 
+  /**
+   * Returns an array of available column descriptions for this.resourceType.
+   */
+  getColumns(resourceType: string): ColumnDescription[] {
+    if (!this.columns) {
+      const currentDefinitions = this.getCurrentDefinitions();
+      const columnDescriptions =
+        currentDefinitions.resources[resourceType].columnDescriptions;
+      const visibleColumnsRawString = window.localStorage.getItem(
+        resourceType + '-columns'
+      );
+      const visibleColumnNames = visibleColumnsRawString
+        ? visibleColumnsRawString.split(',')
+        : [];
+
+      // Add a custom column for ResearchStudy, because it doesn't have column Subject
+      if (resourceType === 'ResearchStudy') {
+        columnDescriptions.push({
+          displayName: 'Research subject',
+          customElement: 'patientName',
+          types: ['context-patient-name']
+        });
+      }
+      this.columns = columnDescriptions
+        .map((column) => {
+          const displayName =
+            column.displayName ||
+            FhirBackendService.capitalize(column.element)
+              .replace(/\[x]$/, '')
+              .split(/(?=[A-Z])/)
+              .join(' ');
+          return {
+            ...column,
+            displayName,
+            // Use only supported column types
+            types: column.types.filter(
+              (type) => getValueFnDescriptor[type] !== undefined
+            ),
+            visible:
+              visibleColumnNames.indexOf(
+                column.customElement || column.element
+              ) !== -1
+          };
+        })
+        // Exclude unsupported columns
+        .filter((column) => column.types.length);
+    }
+
+    return this.columns;
+  }
 }

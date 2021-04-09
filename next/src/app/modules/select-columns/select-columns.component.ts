@@ -19,7 +19,7 @@ export class SelectColumnsComponent implements OnInit {
 
   ngOnInit(): void {
     // TODO: temporarily using patient columns.
-    this.columns = this.fhirBackend.getCurrentDefinitions().resources.Patient.columnDescriptions;
+    this.columns = this.fhirBackend.getColumns('Patient');
     console.log(this.columns);
   }
 
