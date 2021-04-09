@@ -29,4 +29,8 @@ export class SelectColumnsComponent implements OnInit {
   save(): void {
     this.dialogRef.close(this.columns);
   }
+
+  clearSelection(): void {
+    this.columns.forEach((x) => (x.visible = false));
+  }
 }
