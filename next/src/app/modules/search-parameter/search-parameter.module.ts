@@ -5,7 +5,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { SearchParameterComponent } from './search-parameter.component';
-import { LoincVariablesSelectorModule } from '../loinc-variables-selector/loinc-variables-selector.module';
+import { ObservationCodeLookupModule } from '../loinc-variables-selector/observation-code-lookup.module';
 
 @NgModule({
   declarations: [SearchParameterComponent],
@@ -16,7 +16,7 @@ import { LoincVariablesSelectorModule } from '../loinc-variables-selector/loinc-
     MatAutocompleteModule,
     ReactiveFormsModule,
     MatInputModule,
-    LoincVariablesSelectorModule
+    ObservationCodeLookupModule
   ]
 })
 export class SearchParameterModule {}

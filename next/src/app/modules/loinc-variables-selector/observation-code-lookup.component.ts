@@ -23,16 +23,16 @@ import { Subject } from 'rxjs';
  */
 @Component({
   selector: 'app-loinc-variables-selector',
-  templateUrl: './loinc-variables-selector.component.html',
-  styleUrls: ['./loinc-variables-selector.component.less'],
+  templateUrl: './observation-code-lookup.component.html',
+  styleUrls: ['./observation-code-lookup.component.less'],
   providers: [
     {
       provide: MatFormFieldControl,
-      useExisting: LoincVariablesSelectorComponent
+      useExisting: ObservationCodeLookupComponent
     }
   ]
 })
-export class LoincVariablesSelectorComponent
+export class ObservationCodeLookupComponent
   extends BaseControlValueAccessor<SelectedLoincCodes>
   implements MatFormFieldControl<SelectedLoincCodes>, AfterViewInit, OnDestroy {
   static reValueKey = /^value(.*)/;
@@ -40,8 +40,8 @@ export class LoincVariablesSelectorComponent
   static idPrefix = 'code-selector-';
   static idIndex = 0;
   inputId =
-    LoincVariablesSelectorComponent.idPrefix +
-    ++LoincVariablesSelectorComponent.idIndex;
+    ObservationCodeLookupComponent.idPrefix +
+    ++ObservationCodeLookupComponent.idIndex;
 
   // See https://material.angular.io/guide/creating-a-custom-form-field-control#ngcontrol
   ngControl: NgControl = null;
@@ -247,7 +247,6 @@ export class LoincVariablesSelectorComponent
       let datatype = '';
       if (codes.length > 0) {
         datatype = code2Type[codes[0]];
-        acInstance.matchListValue_ = true;
         acInstance.domCache.set('elemVal', eventData.val_typed_in);
         acInstance.useSearchFn(
           eventData.val_typed_in,
@@ -275,7 +274,7 @@ export class LoincVariablesSelectorComponent
     let valueType = '';
     [observation, ...(observation.component || [])].some((obj) => {
       return Object.keys(obj).some((key) => {
-        const valueFound = LoincVariablesSelectorComponent.reValueKey.test(key);
+        const valueFound = ObservationCodeLookupComponent.reValueKey.test(key);
         if (valueFound) {
           valueType = RegExp.$1;
         }
@@ -302,7 +301,6 @@ export class LoincVariablesSelectorComponent
    */
   @HostListener('focusout', ['$event.relatedTarget'])
   onFocusOut(relatedTarget: HTMLElement): void {
-    console.log('<<<', this.elementRef.nativeElement.contains(relatedTarget));
     if (
       this.focused &&
       !this.elementRef.nativeElement.contains(relatedTarget)

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LoincVariablesSelectorComponent } from './loinc-variables-selector.component';
-import { LoincVariablesSelectorModule } from './loinc-variables-selector.module';
+import { ObservationCodeLookupComponent } from './observation-code-lookup.component';
+import { ObservationCodeLookupModule } from './observation-code-lookup.module';
 import { Component, ViewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -19,8 +19,8 @@ import { SharedModule } from '../../shared/shared.module';
   </mat-form-field>`
 })
 class TestHostComponent {
-  @ViewChild(LoincVariablesSelectorComponent)
-  component: LoincVariablesSelectorComponent;
+  @ViewChild(ObservationCodeLookupComponent)
+  component: ObservationCodeLookupComponent;
   selectedLoincItems = new FormControl({
     codes: ['3137-7'],
     items: ['Height cm'],
@@ -31,7 +31,7 @@ class TestHostComponent {
 describe('SelectLoincCodesComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let hostComponent: TestHostComponent;
-  let component: LoincVariablesSelectorComponent;
+  let component: ObservationCodeLookupComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -40,7 +40,7 @@ describe('SelectLoincCodesComponent', () => {
         CommonModule,
         ReactiveFormsModule,
         MatFormFieldModule,
-        LoincVariablesSelectorModule,
+        ObservationCodeLookupModule,
         SharedModule
       ]
     }).compileComponents();
