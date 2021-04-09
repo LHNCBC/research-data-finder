@@ -19,6 +19,7 @@
     ],
     "paths": {
       "@legacy/*": ["../source/*"]
-    }
+    },
+    "allowSyntheticDefaultImports": true
   }
 }

@@ -9,6 +9,7 @@ import {
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -158,4 +159,50 @@ export class FhirBackendService implements HttpBackend {
       }
     );
   }
+
+  /**
+   * Returns definitions for current FHIR version
+   * @return {Object}
+   */
+  getCurrentDefinitions() {
+    const versionName = this.fhirClient.getVersionName();
+    const definitions = definitionsIndex.configByVersionName[versionName];
+
+    if (!definitions.initialized) {
+      // Add default common column "id"
+      Object.keys(definitions.resources).forEach((resourceType) => {
+        definitions.resources[resourceType].columnDescriptions.unshift({
+          types: ['string'],
+          element: 'id',
+          isArray: false
+        });
+      });
+
+      // prepare definitions on first request
+      const valueSets = definitions.valueSets;
+      const valueSetMaps = (definitions.valueSetMaps = Object.keys(
+        valueSets
+      ).reduce((_valueSetsMap, entityName) => {
+        _valueSetsMap[entityName] =
+          typeof valueSets[entityName] === 'string'
+            ? valueSets[entityName]
+            : valueSets[entityName].reduce((_entityMap, item) => {
+              _entityMap[item.code] = item.display;
+              return _entityMap;
+            }, {});
+        return _valueSetsMap;
+      }, {}));
+
+      Object.keys(definitions.valueSetByPath).forEach((path) => {
+        definitions.valueSetMapByPath[path] =
+          valueSetMaps[definitions.valueSetByPath[path]];
+        definitions.valueSetByPath[path] =
+          valueSets[definitions.valueSetByPath[path]];
+      });
+      definitions.initialized = true;
+    }
+
+    return definitions;
+  }
+
 }
