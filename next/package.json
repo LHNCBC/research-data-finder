@@ -10,7 +10,8 @@
     "analyze": "ng build --prod --source-map && source-map-explorer dist/next/main.*",
     "analyze-gzip": "ng build --prod --source-map && source-map-explorer dist/next/main.* --gzip",
     "build": "ng build --prod",
-    "test": "ng test",
+    "unit": "ng test",
+    "test": "npm run unit && npm run e2e",
     "lint": "ng lint",
     "postinstall": "webdriver-manager update --versions.chrome $(google-chrome --version |awk '{print $NF}')",
     "e2e": "ng e2e --webdriverUpdate=false",
@@ -28,8 +29,10 @@
     "@angular/platform-browser": "~11.0.9",
     "@angular/platform-browser-dynamic": "~11.0.9",
     "@angular/router": "~11.0.9",
+    "prettier": "^2.2.1",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",
+    "tslint-config-prettier": "^1.18.0",
     "zone.js": "~0.10.2"
   },
   "devDependencies": {

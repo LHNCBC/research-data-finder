@@ -6,6 +6,7 @@ import {
   MatStepperHarness,
   MatStepperNextHarness
 } from '@angular/material/stepper/testing';
+import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
 
 // Page objects & harnesses
 // See https://material.angular.io/cdk/test-harnesses/overview for details
@@ -49,23 +50,38 @@ describe('Research Data Finder', () => {
     expect(await settingsStep.isSelected()).toBe(true);
   });
 
+  describe('in Settings step', () => {
+    beforeAll(async () => {
+      const advancedSettings: MatExpansionPanelHarness = await settingsStep.getHarness(
+        MatExpansionPanelHarness
+      );
+      await advancedSettings.expand();
+    });
+
+    [
+      ['server URL', 'serviceBaseUrl'],
+      ['Request per batch', 'maxRequestsPerBatch'],
+      ['Maximum active requests', 'maxActiveRequests']
+    ].forEach(([displayName, controlName]) => {
+      it(`should not allow empty "${displayName}"`, async () => {
+        const inputField = $(`[formControlName="${controlName}"]`);
+        inputField.sendKeys(
+          Key.chord(Key.CONTROL, 'a'),
+          Key.chord(Key.CONTROL, 'x')
+        );
+        await nextPageBtn.click();
+        expect(await settingsStep.isSelected()).toBe(true);
+        inputField.sendKeys(
+          Key.chord(Key.CONTROL, 'a'),
+          Key.chord(Key.CONTROL, 'v')
+        );
+      });
+    });
+  });
+
   it('should not allow skipping the Define cohort step', async () => {
     await viewCohortStep.select();
     expect(await settingsStep.isSelected()).toBe(true);
-  });
-
-  it('should not allow empty server URL', async () => {
-    const serviceBaseUrlInput = $('[formControlName="serviceBaseUrl"]');
-    serviceBaseUrlInput.sendKeys(
-      Key.chord(Key.CONTROL, 'a'),
-      Key.chord(Key.CONTROL, 'x')
-    );
-    await nextPageBtn.click();
-    expect(await settingsStep.isSelected()).toBe(true);
-    serviceBaseUrlInput.sendKeys(
-      Key.chord(Key.CONTROL, 'a'),
-      Key.chord(Key.CONTROL, 'v')
-    );
   });
 
   it('should allow to proceed to the Define cohort step', async () => {

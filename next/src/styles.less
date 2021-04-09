@@ -53,3 +53,55 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 button.mat-stroked-button .mat-icon {
   margin-top: -3px;
 }
+
+/*
+ Workaround for first displaying of mat-expansion-panel component.
+ See https://github.com/angular/components/issues/11765 for details.
+ */
+.ng-animating mat-expansion-panel:not(.mat-expanded) mat-expansion-panel-header {
+  height: 48px;
+}
+.ng-animating mat-expansion-panel:not(.mat-expanded) div.mat-expansion-panel-content {
+  height: 0;
+  visibility: hidden;
+}
+
+/*
+ Styles for the collapsible section.
+ */
+.section.mat-expansion-panel {
+  & .mat-expansion-panel-header {
+    height: 48px;
+    background-color: rgba(0,0,0,.07);
+    padding: 0 8px;
+
+    &:hover {
+      background: rgba(0,0,0,.07) !important;
+    }
+
+    &:focus {
+      background: rgba(0,0,0,.1) !important;
+    }
+
+    &::before {
+      content: url("assets/keyboard_arrow_right-24px.svg");
+      height: 24px;
+    }
+
+    &.mat-expanded {
+      &::before {
+        content: url(assets/keyboard_arrow_down_black_24dp.svg);
+      }
+      border-bottom-left-radius: initial;
+      border-bottom-right-radius: initial;
+    }
+
+    & .mat-expansion-indicator {
+      display: none;
+    }
+  }
+
+  & .mat-expansion-panel-body {
+    padding: 16px 24px 16px;
+  }
+}

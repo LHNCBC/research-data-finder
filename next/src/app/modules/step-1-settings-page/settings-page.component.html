@@ -6,7 +6,53 @@
   <mat-form-field>
     <mat-label>FHIR server</mat-label>
     <input matInput placeholder="URL" formControlName="serviceBaseUrl"
-           (change)="updateServiceBaseUrl()">
-    <mat-hint align="start">See <a target="_blank" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for details</mat-hint>
+           (keydown.enter)="$event.target.blur();$event.target.focus()">
+    <mat-hint align="start" *ngIf="isWaitingForConnection$ | async">
+      <mat-spinner [diameter]="12"  style="float: left; margin-right: 8px"></mat-spinner>
+      Initializing ...
+    </mat-hint>
+    <mat-hint align="start" *ngIf="!(isWaitingForConnection$ | async)">
+      See <a target="_blank" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for details.
+    </mat-hint>
+    <mat-error>
+      Please, specify valid FHIR server URL.
+      See <a target="_blank" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for details.
+    </mat-error>
   </mat-form-field>
+
+  <div class="spacer"></div>
+  <mat-expansion-panel class="section">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        Advanced Settings
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <div class="v-box">
+        <mat-form-field class="flex">
+          <mat-label>NCBI E-utilities API Key</mat-label>
+          <input matInput placeholder="API Key" formControlName="apiKey"
+                 (change)="updateFhirBackendSetting('apiKey')">
+          <mat-hint align="start">See <a target="_blank" href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/">New API Keys for the E-utilities article</a> for details</mat-hint>
+        </mat-form-field>
+        <div class="spacer"></div>
+        <div class="h-box">
+          <mat-form-field class="number-field">
+            <mat-label>Requests per batch</mat-label>
+            <input matInput type="number" min="1" formControlName="maxRequestsPerBatch"
+                   (change)="updateFhirBackendSetting('maxRequestsPerBatch')">
+          </mat-form-field>
+
+          <div class="spacer"></div>
+          <mat-form-field class="number-field">
+            <mat-label>Maximum active requests</mat-label>
+            <input matInput type="number" min="1" formControlName="maxActiveRequests"
+                   (change)="updateFhirBackendSetting('maxActiveRequests')">
+          </mat-form-field>
+        </div>
+        <mat-checkbox formControlName="cacheDisabled">Disable cache</mat-checkbox>
+      </div>
+    </ng-template>
+  </mat-expansion-panel>
+
 </form>
