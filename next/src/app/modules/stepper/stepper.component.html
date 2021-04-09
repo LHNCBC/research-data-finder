@@ -4,9 +4,9 @@
 </p>
 <mat-horizontal-stepper linear="true" #stepper>
 
-  <mat-step [stepControl]="settings" label="Settings" state="edit">
+  <mat-step [completed]="settings.settingsFormGroup.valid" label="Settings" state="edit">
     <div class="v-box">
-      <app-settings-page [formControl]="settings"></app-settings-page>
+      <app-settings-page #settings></app-settings-page>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperNext>

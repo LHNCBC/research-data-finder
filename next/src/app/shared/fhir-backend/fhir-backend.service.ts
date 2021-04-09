@@ -96,9 +96,10 @@ export class FhirBackendService implements HttpBackend {
       serviceBaseUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4'
       // serviceBaseUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/'
     });
-    this.fhirClient
-      .initialize()
-      .then(() => this.initialized$.next(ConnectionStatus.Ready));
+    this.fhirClient.initialize().then(
+      () => this.initialized$.next(ConnectionStatus.Ready),
+      () => this.initialized$.next(ConnectionStatus.Error)
+    );
   }
 
   /**

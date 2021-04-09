@@ -390,7 +390,7 @@ export class FhirBatchQuery {
           } else if (
             // When the preflight request returns HTTP-429, the real request is aborted
             (status === 429 || status === HTTP_ABORT) &&
-            (typeof count !== 'number' || --retryCount > 0) &&
+            (typeof retryCount !== 'number' || --retryCount > 0) &&
             Date.now() - this._lastSuccessTime < this._giveUpTimeout
           ) {
             if (this._msBetweenRequests < RATE_LIMIT_INTERVAL) {
