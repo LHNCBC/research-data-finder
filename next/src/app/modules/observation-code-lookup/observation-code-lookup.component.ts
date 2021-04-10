@@ -22,7 +22,7 @@ import { Subject } from 'rxjs';
  * Component for selecting LOINC variables.
  */
 @Component({
-  selector: 'app-loinc-variables-selector',
+  selector: 'app-observation-code-lookup',
   templateUrl: './observation-code-lookup.component.html',
   styleUrls: ['./observation-code-lookup.component.less'],
   providers: [
