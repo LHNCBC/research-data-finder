@@ -1,12 +1,16 @@
 .search-parameter-row {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   & app-search-parameter {
     flex: 1 1;
   }
 
   & .mat-icon-button:not(:hover) mat-icon {
     opacity: .4;
+  }
+
+  & button {
+     margin-top: 1.25em;
   }
 }

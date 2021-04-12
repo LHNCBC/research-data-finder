@@ -32,13 +32,15 @@
     <input matInput [formControl]="parameterValue">
   </mat-form-field>
 
-  <app-loinc-variables-selector
-    *ngIf="resourceType.value === 'Observation'"
-    class="flex"
-    [formControl]="selectedLoincItems">
-  </app-loinc-variables-selector>
+  <mat-form-field class="flex" *ngIf="resourceType.value === 'Observation'">
+    <mat-label>Observation codes from FHIR server</mat-label>
+    <app-observation-code-lookup
+      [formControl]="selectedLoincItems"
+      placeholder="Type and select one or more">
+    </app-observation-code-lookup>
+  </mat-form-field>
 
-  <mat-form-field class="parameter-value" *ngIf="resourceType.value === 'Observation' && selectedLoincItems.value.length">
+  <mat-form-field class="parameter-value" *ngIf="resourceType.value === 'Observation' && selectedLoincItems.value?.datatype">
     <mat-label>Test value</mat-label>
     <input matInput [formControl]="parameterValue">
   </mat-form-field>

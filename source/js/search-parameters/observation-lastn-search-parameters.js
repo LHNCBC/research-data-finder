@@ -140,7 +140,6 @@ export const ObservationLastnSearchParameters = () => ({
       const selectedCodes = testAC.getSelectedCodes();
       if (selectedCodes.length > 0) {
         currentData.datatype = code2Type[selectedCodes[0]];
-        testAC.matchListValue_ = true;
         testAC.domCache.set('elemVal', eventData.val_typed_in);
         testAC.useSearchFn(
           eventData.val_typed_in,
