@@ -8,6 +8,8 @@ import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import observations from './test-fixtures/observations.json';
+import metadata from './test-fixtures/metadata.json';
 
 @Component({
   template: ` <mat-form-field class="flex">
@@ -57,6 +59,15 @@ describe('SelectLoincCodesComponent', () => {
         SharedModule
       ]
     }).compileComponents();
+
+    spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
+      const status = 200;
+      if (/\$lastn\?/.test(url) || /Observation/.test(url)) {
+        return Promise.resolve({ status, data: observations });
+      } else if (/metadata$/.test(url)) {
+        return Promise.resolve({ status, data: metadata });
+      }
+    });
   });
 
   beforeEach(async () => {
