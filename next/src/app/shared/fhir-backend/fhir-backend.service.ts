@@ -192,49 +192,47 @@ export class FhirBackendService implements HttpBackend {
    * Returns an array of available column descriptions for this.resourceType.
    */
   getColumns(resourceType: string): ColumnDescription[] {
-    if (!this.columns) {
-      const currentDefinitions = this.getCurrentDefinitions();
-      const columnDescriptions =
-        currentDefinitions.resources[resourceType].columnDescriptions;
-      const visibleColumnsRawString = window.localStorage.getItem(
-        resourceType + '-columns'
-      );
-      const visibleColumnNames = visibleColumnsRawString
-        ? visibleColumnsRawString.split(',')
-        : [];
+    const currentDefinitions = this.getCurrentDefinitions();
+    const columnDescriptions =
+      currentDefinitions.resources[resourceType].columnDescriptions;
+    const visibleColumnsRawString = window.localStorage.getItem(
+      resourceType + '-columns'
+    );
+    const visibleColumnNames = visibleColumnsRawString
+      ? visibleColumnsRawString.split(',')
+      : [];
 
-      // Add a custom column for ResearchStudy, because it doesn't have column Subject
-      if (resourceType === 'ResearchStudy') {
-        columnDescriptions.push({
-          displayName: 'Research subject',
-          customElement: 'patientName',
-          types: ['context-patient-name']
-        });
-      }
-      this.columns = columnDescriptions
-        .map((column) => {
-          const displayName =
-            column.displayName ||
-            FhirBackendService.capitalize(column.element)
-              .replace(/\[x]$/, '')
-              .split(/(?=[A-Z])/)
-              .join(' ');
-          return {
-            ...column,
-            displayName,
-            // Use only supported column types
-            types: column.types.filter(
-              (type) => getValueFnDescriptor[type] !== undefined
-            ),
-            visible:
-              visibleColumnNames.indexOf(
-                column.customElement || column.element
-              ) !== -1
-          };
-        })
-        // Exclude unsupported columns
-        .filter((column) => column.types.length);
+    // Add a custom column for ResearchStudy, because it doesn't have column Subject
+    if (resourceType === 'ResearchStudy') {
+      columnDescriptions.push({
+        displayName: 'Research subject',
+        customElement: 'patientName',
+        types: ['context-patient-name']
+      });
     }
+    this.columns = columnDescriptions
+      .map((column) => {
+        const displayName =
+          column.displayName ||
+          FhirBackendService.capitalize(column.element)
+            .replace(/\[x]$/, '')
+            .split(/(?=[A-Z])/)
+            .join(' ');
+        return {
+          ...column,
+          displayName,
+          // Use only supported column types
+          types: column.types.filter(
+            (type) => getValueFnDescriptor[type] !== undefined
+          ),
+          visible:
+            visibleColumnNames.indexOf(
+              column.customElement || column.element
+            ) !== -1
+        };
+      })
+      // Exclude unsupported columns
+      .filter((column) => column.types.length);
 
     return this.columns;
   }

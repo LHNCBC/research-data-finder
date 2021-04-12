@@ -68,6 +68,12 @@ export class ResourceTableComponent
     this.columnDescriptions = allColumns.filter((x) =>
       this.getCellDisplay(this.initialBundle.entry[0], x)
     );
+    // Save column selections of default
+    window.localStorage.setItem(
+      // TODO: resource type binding
+      'Patient-columns',
+      this.columnDescriptions.map((x) => x.element).join(',')
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {

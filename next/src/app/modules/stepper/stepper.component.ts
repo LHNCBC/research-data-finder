@@ -30,8 +30,7 @@ export class StepperComponent implements OnInit {
       if (!initialized) {
         return;
       }
-      // TODO: temporarily using patient columns.
-      this.columns = this.fhirBackend.getColumns('Patient');
+      this.columns = this.getColumns();
       this.visibleColumns = this.columns.filter((x) => x.visible);
       this.serverInitialized = true;
       fhirBackend.initialized$.unsubscribe();
@@ -40,10 +39,16 @@ export class StepperComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  private getColumns(): ColumnDescription[] {
+    // TODO: temporarily using patient columns.
+    return this.fhirBackend.getColumns('Patient');
+  }
+
   /**
    * Open dialog to manage visible columns
    */
   openColumnsDialog(): void {
+    this.columns = this.getColumns();
     const dialogConfig = new MatDialogConfig();
     dialogConfig.disableClose = true;
     dialogConfig.hasBackdrop = true;
