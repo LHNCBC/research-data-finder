@@ -18,6 +18,7 @@ import { ColumnDescription } from '../../types/column.description';
 import { debounceTime } from 'rxjs/operators';
 import { CdkScrollable } from '@angular/cdk/overlay';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { capitalize } from '../../shared/utils';
 
 /**
  * Component for loading table of resources
@@ -202,11 +203,10 @@ export class ResourceTableComponent
       return this.getCellDisplayByType(row, column.types[0], column.element);
     }
     for (const type of column.types) {
-      const upperCaseType = type.charAt(0).toUpperCase() + type.slice(1);
       const output = this.getCellDisplayByType(
         row,
         type,
-        column.element.replace('[x]', upperCaseType)
+        column.element.replace('[x]', capitalize(type))
       );
       if (output) {
         return output;

@@ -12,6 +12,7 @@ import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 import { getValueFnDescriptor } from '@legacy/js/resource-table';
 import { ColumnDescription } from '../../types/column.description';
+import { capitalize } from '../utils';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -97,10 +98,6 @@ export class FhirBackendService implements HttpBackend {
   // for FHIR with the ability to automatically combine requests in a batch .
   fhirClient: FhirBatchQuery;
 
-  private static capitalize(str: string): string {
-    return str && str.charAt(0).toUpperCase() + str.substring(1);
-  }
-
   /**
    * Handles HTTP requests.
    * All requests which matched to serviceBaseUrlRegExp treated as requests
@@ -167,7 +164,7 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
-   * Returns definitions for current FHIR version
+   * Returns definitions of columns for current FHIR version
    */
   getCurrentDefinitions(): any {
     const versionName = this.fhirClient.getVersionName();
@@ -214,7 +211,7 @@ export class FhirBackendService implements HttpBackend {
       .map((column) => {
         const displayName =
           column.displayName ||
-          FhirBackendService.capitalize(column.element)
+          capitalize(column.element)
             .replace(/\[x]$/, '')
             .split(/(?=[A-Z])/)
             .join(' ');
