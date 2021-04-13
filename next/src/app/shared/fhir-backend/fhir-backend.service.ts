@@ -164,7 +164,7 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
-   * Returns definitions of columns for current FHIR version
+   * Returns definitions of columns, search params, value sets for current FHIR version
    */
   getCurrentDefinitions(): any {
     const versionName = this.fhirClient.getVersionName();
@@ -178,6 +178,28 @@ export class FhirBackendService implements HttpBackend {
           element: 'id',
           isArray: false
         });
+      });
+
+      // prepare definitions on first request
+      const valueSets = definitions.valueSets;
+      const valueSetMaps = (definitions.valueSetMaps = Object.keys(
+        valueSets
+      ).reduce((valueSetsMap, entityName) => {
+        valueSetsMap[entityName] =
+          typeof valueSets[entityName] === 'string'
+            ? valueSets[entityName]
+            : valueSets[entityName].reduce((entityMap, item) => {
+                entityMap[item.code] = item.display;
+                return entityMap;
+              }, {});
+        return valueSetsMap;
+      }, {}));
+
+      Object.keys(definitions.valueSetByPath).forEach((path) => {
+        definitions.valueSetMapByPath[path] =
+          valueSetMaps[definitions.valueSetByPath[path]];
+        definitions.valueSetByPath[path] =
+          valueSets[definitions.valueSetByPath[path]];
       });
       definitions.initialized = true;
     }
