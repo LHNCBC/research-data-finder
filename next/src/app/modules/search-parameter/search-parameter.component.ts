@@ -32,7 +32,7 @@ export class SearchParameterComponent
 
   parameterValue: FormControl = new FormControl('');
 
-  selectedLoincItems: FormControl = new FormControl([]);
+  selectedLoincItems: FormControl = new FormControl(null);
 
   constructor() {
     super();
