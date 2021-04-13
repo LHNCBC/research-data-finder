@@ -127,20 +127,12 @@ button.mat-stroked-button .mat-icon {
 .section.mat-expansion-panel {
   & .mat-expansion-panel-header {
     height: 48px;
-    background-color: rgba(0,0,0,.07);
     padding: 0 8px;
-
-    &:hover {
-      background: rgba(0,0,0,.07) !important;
-    }
-
-    &:focus {
-      background: rgba(0,0,0,.1) !important;
-    }
 
     &::before {
       content: url("assets/keyboard_arrow_right-24px.svg");
       height: 24px;
+      width: 24px;
     }
 
     &.mat-expanded {
@@ -158,5 +150,31 @@ button.mat-stroked-button .mat-icon {
 
   & .mat-expansion-panel-body {
     padding: 16px 24px 16px;
+  }
+
+  // Section with zero elevation (https://material.angular.io/guide/elevation)
+  &.mat-elevation-z {
+    display: flex;
+    flex-direction: column;
+
+    & .mat-expansion-panel-header {
+      align-self: flex-start;
+      padding: 0;
+
+      // When we use "align-self: flex-start;" the header is not displayed in IE,
+      // to fix that we change the "display" property to "table-cell"
+      & .mat-content {
+        display: table-cell;
+      }
+
+      & .mat-expansion-panel-header-title {
+        text-decoration: underline;
+        color: #337ab7;
+      }
+    }
+
+    & .mat-expansion-panel-body {
+      padding: 6px 14px 6px;
+    }
   }
 }

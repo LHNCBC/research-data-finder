@@ -21,7 +21,7 @@
   </mat-form-field>
 
   <div class="spacer"></div>
-  <mat-expansion-panel class="section">
+  <mat-expansion-panel class="section mat-elevation-z">
     <mat-expansion-panel-header>
       <mat-panel-title>
         Advanced Settings
@@ -29,7 +29,7 @@
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
       <div class="v-box">
-        <mat-form-field class="flex">
+        <mat-form-field>
           <mat-label>NCBI E-utilities API Key</mat-label>
           <input matInput placeholder="API Key" formControlName="apiKey"
                  (change)="updateFhirBackendSetting('apiKey')">
