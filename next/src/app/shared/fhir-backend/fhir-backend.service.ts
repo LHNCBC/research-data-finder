@@ -28,6 +28,9 @@ const serviceBaseUrlRegExp = /^\$fhir/;
  */
 @Injectable()
 export class FhirBackendService implements HttpBackend {
+  // Whether the connection to server is initialized.
+  initialized$ = new BehaviorSubject(false);
+
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
     this.initialized$.next(false);
@@ -64,6 +67,9 @@ export class FhirBackendService implements HttpBackend {
     return this.fhirClient.getApiKey();
   }
 
+  // Whether to cache requests to the FHIR server
+  private isCacheEnabled = true;
+
   set cacheEnabled(value: boolean) {
     this.isCacheEnabled = value;
     if (!value) {
@@ -73,6 +79,10 @@ export class FhirBackendService implements HttpBackend {
   get cacheEnabled(): boolean {
     return this.isCacheEnabled;
   }
+
+  // Javascript client from the old version of Research Data Finder
+  // for FHIR with the ability to automatically combine requests in a batch .
+  fhirClient: FhirBatchQuery;
 
   /**
    * Creates and initializes an instance of FhirBackendService
@@ -87,16 +97,6 @@ export class FhirBackendService implements HttpBackend {
       this.initialized$.next(true);
     });
   }
-  columns: ColumnDescription[];
-  // Whether the connection to server is initialized.
-  initialized$ = new BehaviorSubject(false);
-
-  // Whether to cache requests to the FHIR server
-  private isCacheEnabled = true;
-
-  // Javascript client from the old version of Research Data Finder
-  // for FHIR with the ability to automatically combine requests in a batch .
-  fhirClient: FhirBatchQuery;
 
   /**
    * Handles HTTP requests.
@@ -207,30 +207,30 @@ export class FhirBackendService implements HttpBackend {
         types: ['context-patient-name']
       });
     }
-    this.columns = columnDescriptions
-      .map((column) => {
-        const displayName =
-          column.displayName ||
-          capitalize(column.element)
-            .replace(/\[x]$/, '')
-            .split(/(?=[A-Z])/)
-            .join(' ');
-        return {
-          ...column,
-          displayName,
-          // Use only supported column types
-          types: column.types.filter(
-            (type) => getValueFnDescriptor[type] !== undefined
-          ),
-          visible:
-            visibleColumnNames.indexOf(
-              column.customElement || column.element
-            ) !== -1
-        };
-      })
-      // Exclude unsupported columns
-      .filter((column) => column.types.length);
-
-    return this.columns;
+    return (
+      columnDescriptions
+        .map((column) => {
+          const displayName =
+            column.displayName ||
+            capitalize(column.element)
+              .replace(/\[x]$/, '')
+              .split(/(?=[A-Z])/)
+              .join(' ');
+          return {
+            ...column,
+            displayName,
+            // Use only supported column types
+            types: column.types.filter(
+              (type) => getValueFnDescriptor[type] !== undefined
+            ),
+            visible:
+              visibleColumnNames.indexOf(
+                column.customElement || column.element
+              ) !== -1
+          };
+        })
+        // Exclude unsupported columns
+        .filter((column) => column.types.length)
+    );
   }
 }
