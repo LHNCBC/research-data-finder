@@ -41,6 +41,7 @@
             <mat-label>Requests per batch</mat-label>
             <input matInput type="number" min="1" formControlName="maxRequestsPerBatch"
                    (change)="updateFhirBackendSetting('maxRequestsPerBatch')">
+            <mat-hint align="start">Combine the specified number of HTTP requests to the FHIR server into a batch request</mat-hint>
           </mat-form-field>
 
           <div class="spacer"></div>
@@ -48,9 +49,12 @@
             <mat-label>Maximum active requests</mat-label>
             <input matInput type="number" min="1" formControlName="maxActiveRequests"
                    (change)="updateFhirBackendSetting('maxActiveRequests')">
+            <mat-hint align="start">The maximum number of HTTP requests that can be active at the same time</mat-hint>
           </mat-form-field>
         </div>
-        <mat-checkbox formControlName="cacheDisabled">Disable cache</mat-checkbox>
+
+        <div class="spacer"></div>
+        <mat-checkbox formControlName="cacheDisabled">Disable caching of HTTP requests to the FHIR server</mat-checkbox>
       </div>
     </ng-template>
   </mat-expansion-panel>
