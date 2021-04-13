@@ -9,7 +9,7 @@ import {
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
-import definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
+import * as definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 import { getValueFnDescriptor } from '@legacy/js/resource-table';
 import { ColumnDescription } from '../../types/column.description';
 import { capitalize } from '../utils';

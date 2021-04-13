@@ -35,6 +35,7 @@ export class ResourceTableComponent
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
   @Input() max = 0;
+  @Input() resourceType;
   columns: string[] = [];
   filterColumns = [];
   nextBundleUrl: string;
@@ -64,15 +65,13 @@ export class ResourceTableComponent
    * Use columns present in bundle info as default, if empty column descriptions is passed in
    */
   private setColumnsFromBundle(): void {
-    // TODO: hard coded Patient
-    const allColumns = this.fhirBackend.getColumns('Patient');
+    const allColumns = this.fhirBackend.getColumns(this.resourceType);
     this.columnDescriptions = allColumns.filter((x) =>
       this.getCellDisplay(this.initialBundle.entry[0], x)
     );
     // Save column selections of default
     window.localStorage.setItem(
-      // TODO: resource type binding
-      'Patient-columns',
+      this.resourceType + '-columns',
       this.columnDescriptions.map((x) => x.element).join(',')
     );
   }

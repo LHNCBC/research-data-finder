@@ -40,7 +40,6 @@ export class StepperComponent implements OnInit {
   ngOnInit(): void {}
 
   private getColumns(): ColumnDescription[] {
-    // TODO: temporarily using patient columns.
     return this.fhirBackend.getColumns('Patient');
   }
 
@@ -63,7 +62,6 @@ export class StepperComponent implements OnInit {
       this.columns = data;
       this.visibleColumns = this.columns.filter((x) => x.visible);
       window.localStorage.setItem(
-        // TODO: resource type binding
         'Patient-columns',
         data
           .filter((x) => x.visible)
