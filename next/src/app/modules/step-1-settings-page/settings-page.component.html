@@ -7,11 +7,11 @@
     <mat-label>FHIR server</mat-label>
     <input matInput placeholder="URL" formControlName="serviceBaseUrl"
            (keydown.enter)="$event.target.blur();$event.target.focus()">
-    <mat-hint align="start" *ngIf="isWaitingForConnection$ | async">
+    <mat-hint align="start" *ngIf="isWaitingForConnection | async">
       <mat-spinner [diameter]="12"  style="float: left; margin-right: 8px"></mat-spinner>
       Initializing ...
     </mat-hint>
-    <mat-hint align="start" *ngIf="!(isWaitingForConnection$ | async)">
+    <mat-hint align="start" *ngIf="!(isWaitingForConnection | async)">
       See <a target="_blank" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for details.
     </mat-hint>
     <mat-error>

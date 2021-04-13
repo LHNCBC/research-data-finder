@@ -24,14 +24,14 @@ import { filter, map, take } from 'rxjs/operators';
 })
 export class SettingsPageComponent {
   settingsFormGroup: FormGroup;
-  isWaitingForConnection$: Observable<boolean>;
+  isWaitingForConnection: Observable<boolean>;
 
   constructor(
     private formBuilder: FormBuilder,
     private http: HttpClient,
     private fhirBackend: FhirBackendService
   ) {
-    this.isWaitingForConnection$ = fhirBackend.initialized$.pipe(
+    this.isWaitingForConnection = fhirBackend.initialized.pipe(
       map((status) => status === ConnectionStatus.Pending)
     );
     this.settingsFormGroup = this.formBuilder.group({
@@ -74,7 +74,7 @@ export class SettingsPageComponent {
     this.fhirBackend.serviceBaseUrl = control.value.replace(/\/$/, '');
 
     // Wait for response to validate server
-    return this.fhirBackend.initialized$.pipe(
+    return this.fhirBackend.initialized.pipe(
       filter((status) => status !== ConnectionStatus.Pending),
       take(1),
       map((status) =>

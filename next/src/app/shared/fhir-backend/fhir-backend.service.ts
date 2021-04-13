@@ -31,15 +31,15 @@ export enum ConnectionStatus {
 @Injectable()
 export class FhirBackendService implements HttpBackend {
   // Whether the connection to server is initialized.
-  initialized$ = new BehaviorSubject(ConnectionStatus.Pending);
+  initialized = new BehaviorSubject(ConnectionStatus.Pending);
 
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
     if (this.serviceBaseUrl !== url) {
-      this.initialized$.next(ConnectionStatus.Pending);
+      this.initialized.next(ConnectionStatus.Pending);
       this.fhirClient.initialize(url).then(
-        () => this.initialized$.next(ConnectionStatus.Ready),
-        () => this.initialized$.next(ConnectionStatus.Error)
+        () => this.initialized.next(ConnectionStatus.Ready),
+        () => this.initialized.next(ConnectionStatus.Error)
       );
     }
   }
@@ -97,8 +97,8 @@ export class FhirBackendService implements HttpBackend {
       // serviceBaseUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/'
     });
     this.fhirClient.initialize().then(
-      () => this.initialized$.next(ConnectionStatus.Ready),
-      () => this.initialized$.next(ConnectionStatus.Error)
+      () => this.initialized.next(ConnectionStatus.Ready),
+      () => this.initialized.next(ConnectionStatus.Error)
     );
   }
 
