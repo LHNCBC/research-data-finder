@@ -129,14 +129,14 @@ button.mat-stroked-button .mat-icon {
     height: 48px;
     padding: 0 8px;
 
-    &::before {
+    & .expand-collapse-icon::before {
       content: url("assets/keyboard_arrow_right-24px.svg");
       height: 24px;
       width: 24px;
     }
 
     &.mat-expanded {
-      &::before {
+      & .expand-collapse-icon::before {
         content: url(assets/keyboard_arrow_down_black_24dp.svg);
       }
       border-bottom-left-radius: initial;
