@@ -33,7 +33,6 @@ export class StepperComponent implements OnInit {
       this.columns = this.getColumns();
       this.visibleColumns = this.columns.filter((x) => x.visible);
       this.serverInitialized = true;
-      fhirBackend.initialized$.unsubscribe();
     });
   }
 
