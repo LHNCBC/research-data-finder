@@ -10,7 +10,7 @@ import { SettingsPageComponent } from '../step-1-settings-page/settings-page.com
 import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.component';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { MatIcon } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
@@ -39,13 +39,13 @@ describe('StepperComponent', () => {
         MockComponent(SettingsPageComponent),
         DefineCohortPageComponentStub,
         MockComponent(ViewCohortPageComponent),
-        MockComponent(PullDataPageComponent)
+        MockComponent(PullDataPageComponent),
+        MockComponent(MatIcon)
       ],
       imports: [
         CommonModule,
         MatStepperModule,
         MatButtonModule,
-        MatIconModule,
         NoopAnimationsModule
       ],
       providers: [
