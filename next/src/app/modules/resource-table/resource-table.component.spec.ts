@@ -11,7 +11,8 @@ import { ResourceTableModule } from './resource-table.module';
 import { ColumnDescription } from '../../types/column.description';
 import { By } from '@angular/platform-browser';
 import { CdkScrollable } from '@angular/cdk/overlay';
-import { DebugElement } from '@angular/core';
+import { DebugElement, SimpleChange, SimpleChanges } from '@angular/core';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 
 class Page {
   private fixture: ComponentFixture<ResourceTableComponent>;
@@ -49,13 +50,18 @@ describe('ResourceTableComponent', () => {
 
   const spies = [];
   spies.push(jasmine.createSpyObj('HttpClient', ['get']));
+  spies.push(jasmine.createSpyObj('FhirBackendService', ['getColumns']));
   spies[0].get.and.returnValue(of(bundle));
+  spies[1].getColumns.and.returnValue(columnDescriptions);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ResourceTableComponent],
       imports: [ResourceTableModule],
-      providers: [{ provide: HttpClient, useValue: spies[0] }]
+      providers: [
+        { provide: HttpClient, useValue: spies[0] },
+        { provide: FhirBackendService, useValue: spies[1] }
+      ]
     }).compileComponents();
     fixture = TestBed.createComponent(ResourceTableComponent);
     page = new Page(fixture);
@@ -66,6 +72,10 @@ describe('ResourceTableComponent', () => {
     component.initialBundle = bundle;
     fixture.detectChanges();
     await fixture.whenStable();
+    const changesObj: SimpleChanges = {
+      columnDescriptions: new SimpleChange(null, { columnDescriptions }, true)
+    };
+    component.ngOnChanges(changesObj);
   });
 
   it('should create', () => {
