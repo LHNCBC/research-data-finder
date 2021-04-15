@@ -3,7 +3,10 @@ import { FormControl } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { SelectColumnsComponent } from '../select-columns/select-columns.component';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
 import { ColumnDescription } from '../../types/column.description';
 import { Subscription } from 'rxjs';
 
@@ -28,14 +31,15 @@ export class StepperComponent implements OnInit, OnDestroy {
     public dialog: MatDialog,
     private fhirBackend: FhirBackendService
   ) {
-    this.subscription = fhirBackend.initialized$.subscribe(
-      (initialized: boolean) => {
-        if (!initialized) {
+    this.subscription = fhirBackend.initialized.subscribe(
+      (status: ConnectionStatus) => {
+        if (status === ConnectionStatus.Ready) {
+          this.columns = this.getColumns();
+          this.visibleColumns = this.columns.filter((x) => x.visible);
+          this.serverInitialized = true;
+        } else {
           return;
         }
-        this.columns = this.getColumns();
-        this.visibleColumns = this.columns.filter((x) => x.visible);
-        this.serverInitialized = true;
       }
     );
   }
