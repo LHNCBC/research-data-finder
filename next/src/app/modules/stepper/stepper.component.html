@@ -4,13 +4,13 @@
 </p>
 <mat-horizontal-stepper linear="true" #stepper>
 
-  <mat-step [stepControl]="settings" label="Settings" state="edit">
+  <mat-step [completed]="settings.settingsFormGroup.valid" label="Settings" state="edit">
     <div class="v-box">
-      <app-settings-page [formControl]="settings"></app-settings-page>
+      <app-settings-page #settings></app-settings-page>
       <div class="spacer"></div>
       <div class="h-box">
-        <button mat-stroked-button color="primary" matStepperNext>
-          Define cohort<mat-icon aria-hidden="false" svgIcon="keyboard_arrow_right"></mat-icon>
+        <button mat-stroked-button color="primary" matStepperNext type="button">
+          Define cohort<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
@@ -23,19 +23,19 @@
         #defineCohortComponent></app-define-cohort-page>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon aria-hidden="false" svgIcon="keyboard_arrow_left"></mat-icon>Settings
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Settings
         </button>
         <div class="spacer"></div>
         <button (click)="defineCohortComponent.addParameter()" mat-stroked-button color="secondary">
-          <mat-icon aria-hidden="false" svgIcon="add"></mat-icon>Add a search criterion
+          <mat-icon svgIcon="add"></mat-icon>Add a search criterion
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary">
-          <mat-icon aria-hidden="false" svgIcon="upload"></mat-icon>Load cohort and criteria
+          <mat-icon svgIcon="upload"></mat-icon>Load cohort and criteria
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="primary" matStepperNext>
-          Search for Patients<mat-icon aria-hidden="false" svgIcon="keyboard_arrow_right"></mat-icon>
+          Search for Patients<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
@@ -49,15 +49,15 @@
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon aria-hidden="false" svgIcon="keyboard_arrow_left"></mat-icon>Define cohort
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Define cohort
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary">
-          <mat-icon aria-hidden="false" svgIcon="save"></mat-icon>Save the cohort and criteria for later
+          <mat-icon svgIcon="save"></mat-icon>Save the cohort and criteria for later
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary">
-          <mat-icon aria-hidden="false" svgIcon="refresh"></mat-icon>Reload
+          <mat-icon svgIcon="refresh"></mat-icon>Reload
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary" (click)="openColumnsDialog()">
@@ -65,7 +65,7 @@
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="primary" matStepperNext>
-          Pull data for the cohort<mat-icon aria-hidden="false" svgIcon="keyboard_arrow_right"></mat-icon>
+          Pull data for the cohort<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
@@ -77,11 +77,11 @@
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon aria-hidden="false" svgIcon="keyboard_arrow_left"></mat-icon>View cohort
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>View cohort
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary">
-          <mat-icon aria-hidden="false" svgIcon="file_download"></mat-icon>Download(in CSV format)
+          <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
         </button>
         <div class="spacer"></div>
       </div>

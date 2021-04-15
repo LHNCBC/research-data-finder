@@ -98,9 +98,11 @@ export const ObservationLastnSearchParameters = () => ({
                       datatype === currentData.datatype
                     ) {
                       return observation.code.coding
-                        .filter((coding) =>
-                          isMatchToFieldVal.test(coding.display) &&
-                          testAC.getSelectedCodes().indexOf(coding.code) === -1
+                        .filter(
+                          (coding) =>
+                            isMatchToFieldVal.test(coding.display) &&
+                            testAC.getSelectedCodes().indexOf(coding.code) ===
+                              -1
                         )
                         .map((coding) => {
                           code2Type[coding.code] = datatype;
@@ -140,7 +142,6 @@ export const ObservationLastnSearchParameters = () => ({
       const selectedCodes = testAC.getSelectedCodes();
       if (selectedCodes.length > 0) {
         currentData.datatype = code2Type[selectedCodes[0]];
-        testAC.matchListValue_ = true;
         testAC.domCache.set('elemVal', eventData.val_typed_in);
         testAC.useSearchFn(
           eventData.val_typed_in,

@@ -53,3 +53,138 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 button.mat-stroked-button .mat-icon {
   margin-top: -3px;
 }
+
+/*
+ Autocomplete-lhc styles
+ */
+@import "~autocomplete-lhc/source/auto_completion.css";
+.autocomp_selected {
+  padding: 0;
+  line-height: normal;
+  width: 100%;
+  border-radius: unset;
+  border: 0;
+}
+
+.autocomp_selected input {
+  border-width: 0;
+  font: inherit;
+  outline-style: none;
+}
+
+.autocomp_selected ul:empty {
+  display: none;
+  border-bottom: 0;
+}
+
+.autocomp_selected ul {
+  border-bottom: 1px solid #17b4e3;
+  margin: 0 0 0.25em 0;
+  padding: 0 0.25em;
+}
+
+.autocomp_selected li {
+  line-height: 1.42857;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  overflow-x: hidden;
+  margin-bottom: 0;
+}
+
+.ansList:focus, .search_field:focus {
+  background-color: #FFFFFF;
+}
+
+
+/*
+  TODO: Should we fix Material styles manually, for example for align outlined material inputs?
+ */
+//.mat-form-field-appearance-outline .mat-form-field-label {
+//  top: 1.84375em;
+//  margin-top: 0;
+//}
+//
+//.mat-form-field-appearance-outline.mat-form-field-can-float.mat-form-field-should-float .mat-form-field-label, .mat-form-field-appearance-outline.mat-form-field-can-float .mat-input-server:focus+.mat-form-field-label-wrapper .mat-form-field-label {
+//  transform: translateY(-1.84375em) scale(0.75);
+//  width: 133.3333333333%;
+//}
+
+/*
+ Workaround for first displaying of mat-expansion-panel component.
+ See https://github.com/angular/components/issues/11765 for details.
+ */
+.ng-animating mat-expansion-panel:not(.mat-expanded) mat-expansion-panel-header {
+  height: 48px;
+}
+.ng-animating mat-expansion-panel:not(.mat-expanded) div.mat-expansion-panel-content {
+  height: 0;
+  visibility: hidden;
+}
+
+/*
+ Styles for the collapsible section.
+ */
+.section.mat-expansion-panel {
+  & .mat-expansion-panel-header {
+    height: 48px;
+    padding: 0 8px;
+
+    & .expand-collapse-icon::before {
+      content: url("assets/keyboard_arrow_right-24px.svg");
+      height: 24px;
+      width: 24px;
+    }
+
+    &.mat-expanded {
+      & .expand-collapse-icon::before {
+        content: url(assets/keyboard_arrow_down_black_24dp.svg);
+      }
+      border-bottom-left-radius: initial;
+      border-bottom-right-radius: initial;
+    }
+
+    & .mat-expansion-indicator {
+      display: none;
+    }
+  }
+
+  & .mat-expansion-panel-body {
+    padding: 16px 24px 16px;
+  }
+
+  // Section with zero elevation (https://material.angular.io/guide/elevation)
+  &.mat-elevation-z {
+    display: flex;
+    flex-direction: column;
+
+    & .mat-expansion-panel-header {
+      height: 36px;
+      align-self: flex-start;
+      padding: 0;
+
+      // When we use "align-self: flex-start;" the header is not displayed in IE,
+      // to fix that we change the "display" property to "table-cell"
+      & .mat-content {
+        display: table-cell;
+      }
+
+      & .mat-expansion-panel-header-title {
+        text-decoration: underline;
+        color: #337ab7;
+      }
+    }
+
+    & .mat-expansion-panel-body {
+      padding: 6px 14px 6px;
+    }
+  }
+}
+
+// Style mat-hint for big chunks of text
+.mat-form-field-wrapper {
+  padding-bottom: 0;
+  & .mat-form-field-subscript-wrapper {
+    position: relative;
+  }
+}
+

@@ -1,34 +1,11 @@
 .search-parameter {
   display: flex;
   flex-direction: row;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 
-/*
-:host ::ng-deep chip-autocomplete form {
-  max-width: none!important;
-}
-:host ::ng-deep chip-autocomplete .form-element {
-  padding: 0;
-}
-:host ::ng-deep chip-autocomplete .mat-chip {
-  min-height: 27px;
-  &.mat-standard-chip .mat-chip-remove {
-    width: 10px;
-  }
-}
-:host ::ng-deep chip-autocomplete .mat-standard-chip .mat-chip-remove {
-  margin-left: 4px;
-  margin-right: 4px;
-}
-:host ::ng-deep chip-autocomplete .mat-standard-chip.mat-chip-with-trailing-icon {
-  padding-right: 8px;
-}
-*/
-
-
-mat-form-field ~ app-loinc-variables-selector,
-app-loinc-variables-selector ~ mat-form-field,
+mat-form-field ~ app-observation-code-lookup,
+app-observation-code-lookup ~ mat-form-field,
 mat-form-field ~ mat-form-field {
   margin-left: 16px;
 }
@@ -45,6 +22,6 @@ mat-form-field ~ mat-form-field {
   flex: 1 1;
 }
 
-app-loinc-variables-selector {
+app-observation-code-lookup {
   width: 100%;
 }
