@@ -98,9 +98,11 @@ export const ObservationLastnSearchParameters = () => ({
                       datatype === currentData.datatype
                     ) {
                       return observation.code.coding
-                        .filter((coding) =>
-                          isMatchToFieldVal.test(coding.display) &&
-                          testAC.getSelectedCodes().indexOf(coding.code) === -1
+                        .filter(
+                          (coding) =>
+                            isMatchToFieldVal.test(coding.display) &&
+                            testAC.getSelectedCodes().indexOf(coding.code) ===
+                              -1
                         )
                         .map((coding) => {
                           code2Type[coding.code] = datatype;

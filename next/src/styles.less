@@ -108,3 +108,83 @@ button.mat-stroked-button .mat-icon {
 //  transform: translateY(-1.84375em) scale(0.75);
 //  width: 133.3333333333%;
 //}
+
+/*
+ Workaround for first displaying of mat-expansion-panel component.
+ See https://github.com/angular/components/issues/11765 for details.
+ */
+.ng-animating mat-expansion-panel:not(.mat-expanded) mat-expansion-panel-header {
+  height: 48px;
+}
+.ng-animating mat-expansion-panel:not(.mat-expanded) div.mat-expansion-panel-content {
+  height: 0;
+  visibility: hidden;
+}
+
+/*
+ Styles for the collapsible section.
+ */
+.section.mat-expansion-panel {
+  & .mat-expansion-panel-header {
+    height: 48px;
+    padding: 0 8px;
+
+    & .expand-collapse-icon::before {
+      content: url("assets/keyboard_arrow_right-24px.svg");
+      height: 24px;
+      width: 24px;
+    }
+
+    &.mat-expanded {
+      & .expand-collapse-icon::before {
+        content: url(assets/keyboard_arrow_down_black_24dp.svg);
+      }
+      border-bottom-left-radius: initial;
+      border-bottom-right-radius: initial;
+    }
+
+    & .mat-expansion-indicator {
+      display: none;
+    }
+  }
+
+  & .mat-expansion-panel-body {
+    padding: 16px 24px 16px;
+  }
+
+  // Section with zero elevation (https://material.angular.io/guide/elevation)
+  &.mat-elevation-z {
+    display: flex;
+    flex-direction: column;
+
+    & .mat-expansion-panel-header {
+      height: 36px;
+      align-self: flex-start;
+      padding: 0;
+
+      // When we use "align-self: flex-start;" the header is not displayed in IE,
+      // to fix that we change the "display" property to "table-cell"
+      & .mat-content {
+        display: table-cell;
+      }
+
+      & .mat-expansion-panel-header-title {
+        text-decoration: underline;
+        color: #337ab7;
+      }
+    }
+
+    & .mat-expansion-panel-body {
+      padding: 6px 14px 6px;
+    }
+  }
+}
+
+// Style mat-hint for big chunks of text
+.mat-form-field-wrapper {
+  padding-bottom: 0;
+  & .mat-form-field-subscript-wrapper {
+    position: relative;
+  }
+}
+

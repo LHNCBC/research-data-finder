@@ -15,6 +15,12 @@ import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 // with the current URL of the FHIR REST API database.
 const serviceBaseUrlRegExp = /^\$fhir/;
 
+export enum ConnectionStatus {
+  Pending = 0,
+  Ready,
+  Error
+}
+
 /**
  * This is a final HttpHandler which will dispatch the request via browser HTTP APIs
  * to a backend. Interceptors sit between the HttpClient interface and the
@@ -25,14 +31,17 @@ const serviceBaseUrlRegExp = /^\$fhir/;
 @Injectable()
 export class FhirBackendService implements HttpBackend {
   // Whether the connection to server is initialized.
-  initialized$ = new BehaviorSubject(false);
+  initialized = new BehaviorSubject(ConnectionStatus.Pending);
 
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
-    this.initialized$.next(false);
-    this.fhirClient.initialize(url).then(() => {
-      this.initialized$.next(true);
-    });
+    if (this.serviceBaseUrl !== url) {
+      this.initialized.next(ConnectionStatus.Pending);
+      this.fhirClient.initialize(url).then(
+        () => this.initialized.next(ConnectionStatus.Ready),
+        () => this.initialized.next(ConnectionStatus.Error)
+      );
+    }
   }
   get serviceBaseUrl(): string {
     return this.fhirClient.getServiceBaseUrl();
@@ -58,9 +67,6 @@ export class FhirBackendService implements HttpBackend {
   // See https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/
   set apiKey(val: string) {
     this.fhirClient.setApiKey(val);
-  }
-  get apiKey(): string {
-    return this.fhirClient.getApiKey();
   }
 
   // Whether to cache requests to the FHIR server
@@ -88,10 +94,12 @@ export class FhirBackendService implements HttpBackend {
   constructor(private defaultBackend: HttpXhrBackend) {
     this.fhirClient = new FhirBatchQuery({
       serviceBaseUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4'
+      // serviceBaseUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/'
     });
-    this.fhirClient.initialize().then(() => {
-      this.initialized$.next(true);
-    });
+    this.fhirClient.initialize().then(
+      () => this.initialized.next(ConnectionStatus.Ready),
+      () => this.initialized.next(ConnectionStatus.Error)
+    );
   }
 
   /**
@@ -144,15 +152,14 @@ export class FhirBackendService implements HttpBackend {
               );
               observer.complete();
             },
-            ({ status, error }) => {
+            ({ status, error }) =>
               observer.error(
                 new HttpErrorResponse({
                   status,
                   error,
                   url: fullUrl
                 })
-              );
-            }
+              )
           );
         });
       }

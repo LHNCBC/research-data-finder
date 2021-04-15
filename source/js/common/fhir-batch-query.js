@@ -95,22 +95,24 @@ export class FhirBatchQuery {
     }
 
     if (!this._initializationPromise) {
+      // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
       const initializationRequests = [
         // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-        this.getWithCache('metadata', { combine: false }),
+        this.getWithCache('metadata', { combine: false, retryCount: 2 }),
         // Check if sorting Observations by date is supported
         this.getWithCache('Observation?_sort=date&_elements=id&_count=1', {
-          combine: false
+          combine: false,
+          retryCount: 2
         }),
         // Check if sorting Observations by age-at-event is supported
         this.getWithCache(
           'Observation?_sort=age-at-event&_elements=id&_count=1',
-          { combine: false }
+          { combine: false, retryCount: 2 }
         ),
         // Check if operation $lastn on Observation is supported
         this.getWithCache(
           'Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1',
-          { combine: false }
+          { combine: false, retryCount: 2 }
         )
       ];
 
@@ -244,14 +246,22 @@ export class FhirBatchQuery {
    * Gets the response content from a URL.
    * @param {string} url - the URL whose data is to be retrieved.
    * @param {boolean} combine - whether to combine requests in a batch
+   * @param {number|boolean} retryCount - maximum number of retries or false
+   *                   to use _giveUpTimeout
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  get(url, { combine = true }) {
+  get(url, { combine = true, retryCount = false }) {
     return new Promise((resolve, reject) => {
       const fullUrl = this.getFullUrl(url);
-      this._pending.push({ url: fullUrl, combine, resolve, reject });
+      this._pending.push({
+        url: fullUrl,
+        combine,
+        retryCount,
+        resolve,
+        reject
+      });
       if (this._pending.length < this._maxPerBatch) {
         clearTimeout(this._batchTimeoutId);
         this._batchTimeoutId = setTimeout(
@@ -337,6 +347,7 @@ export class FhirBatchQuery {
    * @param {string} settings.url - request URL
    * @param {string} settings.body - request body if method === 'POST'
    * @param {boolean} settings.combine - whether to combine requests in a batch
+   * @param {number|boolean} settings.retryCount - maximum number of retries or false to use _giveUpTimeout
    * @param {string} settings.contentType - Content-Type request header value
    * @param {string} settings.logPrefix - prefix for console log messages
    * @return {Promise}
@@ -346,6 +357,7 @@ export class FhirBatchQuery {
     url,
     body = undefined,
     combine = true,
+    retryCount = false,
     contentType = 'application/fhir+json',
     logPrefix = ''
   }) {
@@ -378,6 +390,7 @@ export class FhirBatchQuery {
           } else if (
             // When the preflight request returns HTTP-429, the real request is aborted
             (status === 429 || status === HTTP_ABORT) &&
+            (typeof retryCount !== 'number' || --retryCount > 0) &&
             Date.now() - this._lastSuccessTime < this._giveUpTimeout
           ) {
             if (this._msBetweenRequests < RATE_LIMIT_INTERVAL) {
@@ -390,6 +403,7 @@ export class FhirBatchQuery {
               url,
               body,
               combine,
+              retryCount,
               contentType,
               logPrefix,
               resolve,
@@ -418,15 +432,16 @@ export class FhirBatchQuery {
         }
       };
 
+      let sendUrl = url;
       if (this._apiKey) {
-        url = this.addParamToUrl(url, 'api_key', this._apiKey);
+        sendUrl = this.addParamToUrl(sendUrl, 'api_key', this._apiKey);
       }
 
       if (method === 'GET') {
-        url = this.addParamToUrl(url, '_type', 'json');
+        sendUrl = this.addParamToUrl(sendUrl, '_type', 'json');
       }
 
-      oReq.open(method, url);
+      oReq.open(method, sendUrl);
       oReq.timeout = this._giveUpTimeout;
 
       if (method !== 'GET') {
@@ -586,11 +601,13 @@ export class FhirBatchQuery {
    * @param {Object} options - additional options
    * @param {boolean} options.combine - whether to combine requests in a batch,
    *                  true by default
+   * @param {number|boolean} options.retryCount - maximum number of retries
+   *                  or false to use _giveUpTimeout
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  getWithCache(url, options = { combine: true }) {
+  getWithCache(url, options = { combine: true, retryCount: false }) {
     return new Promise((resolve, reject) => {
       const fullUrl = this.getFullUrl(url),
         cachedReq = commonRequestCache[fullUrl];
