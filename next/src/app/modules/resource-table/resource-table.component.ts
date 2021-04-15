@@ -3,7 +3,9 @@ import {
   Component,
   Input,
   NgZone,
+  OnChanges,
   OnInit,
+  SimpleChanges,
   ViewChild
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -15,6 +17,8 @@ import BundleEntry = fhir.BundleEntry;
 import { ColumnDescription } from '../../types/column.description';
 import { debounceTime } from 'rxjs/operators';
 import { CdkScrollable } from '@angular/cdk/overlay';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { capitalize } from '../../shared/utils';
 
 /**
  * Component for loading table of resources
@@ -24,12 +28,14 @@ import { CdkScrollable } from '@angular/cdk/overlay';
   templateUrl: './resource-table.component.html',
   styleUrls: ['./resource-table.component.less']
 })
-export class ResourceTableComponent implements OnInit, AfterViewInit {
+export class ResourceTableComponent
+  implements OnInit, AfterViewInit, OnChanges {
   @Input() columnDescriptions: ColumnDescription[];
   @Input() initialBundle: Bundle;
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
   @Input() max = 0;
+  @Input() resourceType;
   columns: string[] = [];
   filterColumns = [];
   nextBundleUrl: string;
@@ -41,49 +47,78 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
   @ViewChild(CdkScrollable) scrollable: CdkScrollable;
   resourceTotal = 0;
 
-  constructor(private http: HttpClient, private ngZone: NgZone) {}
+  constructor(
+    private http: HttpClient,
+    private ngZone: NgZone,
+    private fhirBackend: FhirBackendService
+  ) {}
 
   ngOnInit(): void {
-    if (this.enableSelection) {
-      this.columns.push('select');
-    }
-    this.columns = this.columns.concat(
-      this.columnDescriptions.map((c) => c.element)
-    );
-    if (this.enableClientFiltering) {
-      this.filterColumns = this.columns.map((c) => c + 'Filter');
-      this.columnDescriptions.forEach((column) => {
-        this.filtersForm.addControl(column.element, new FormControl());
-      });
-      this.dataSource.filterPredicate = ((data, filter) => {
-        for (const [key, value] of Object.entries(filter)) {
-          if (value) {
-            const columnDescription = this.columnDescriptions.find(
-              (c) => c.element === key
-            );
-            const cellValue = this.getCellDisplay(data, columnDescription);
-            if (
-              !cellValue
-                .toLowerCase()
-                .startsWith((value as string).toLowerCase())
-            ) {
-              return false;
-            }
-          }
-        }
-        return true;
-        // casting method signature here because filterPredicate defines filter param as string
-        // tslint:disable-next-line:variable-name
-      }) as (BundleEntry, string) => boolean;
-      this.filtersForm.valueChanges.subscribe((value) => {
-        this.dataSource.filter = { ...value } as string;
-      });
-    }
     this.dataSource.data = this.initialBundle.entry;
     this.nextBundleUrl = this.initialBundle.link.find(
       (l) => l.relation === 'next'
     )?.url;
     this.resourceTotal = this.initialBundle.total;
+  }
+
+  /**
+   * Use columns present in bundle info as default, if empty column descriptions is passed in
+   */
+  private setColumnsFromBundle(): void {
+    const allColumns = this.fhirBackend.getColumns(this.resourceType);
+    this.columnDescriptions = allColumns.filter((x) =>
+      this.getCellDisplay(this.initialBundle.entry[0], x)
+    );
+    // Save column selections of default
+    window.localStorage.setItem(
+      this.resourceType + '-columns',
+      this.columnDescriptions.map((x) => x.element).join(',')
+    );
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['columnDescriptions']) {
+      this.columns.length = 0;
+      if (this.enableSelection) {
+        this.columns.push('select');
+      }
+      if (!this.columnDescriptions.length) {
+        this.setColumnsFromBundle();
+      }
+      this.columns = this.columns.concat(
+        this.columnDescriptions.map((c) => c.element)
+      );
+      if (this.enableClientFiltering) {
+        this.filtersForm = new FormBuilder().group({});
+        this.filterColumns = this.columns.map((c) => c + 'Filter');
+        this.columnDescriptions.forEach((column) => {
+          this.filtersForm.addControl(column.element, new FormControl());
+        });
+        this.dataSource.filterPredicate = ((data, filter) => {
+          for (const [key, value] of Object.entries(filter)) {
+            if (value) {
+              const columnDescription = this.columnDescriptions.find(
+                (c) => c.element === key
+              );
+              const cellValue = this.getCellDisplay(data, columnDescription);
+              if (
+                !cellValue
+                  .toLowerCase()
+                  .startsWith((value as string).toLowerCase())
+              ) {
+                return false;
+              }
+            }
+          }
+          return true;
+          // casting method signature here because filterPredicate defines filter param as string
+          // tslint:disable-next-line:variable-name
+        }) as (BundleEntry, string) => boolean;
+        this.filtersForm.valueChanges.subscribe((value) => {
+          this.dataSource.filter = { ...value } as string;
+        });
+      }
+    }
   }
 
   ngAfterViewInit(): void {
@@ -167,11 +202,10 @@ export class ResourceTableComponent implements OnInit, AfterViewInit {
       return this.getCellDisplayByType(row, column.types[0], column.element);
     }
     for (const type of column.types) {
-      const upperCaseType = type.charAt(0).toUpperCase() + type.slice(1);
       const output = this.getCellDisplayByType(
         row,
         type,
-        column.element.replace('[x]', upperCaseType)
+        column.element.replace('[x]', capitalize(type))
       );
       if (output) {
         return output;

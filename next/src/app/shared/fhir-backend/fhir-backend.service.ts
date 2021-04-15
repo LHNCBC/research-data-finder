@@ -9,6 +9,10 @@ import {
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import * as definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
+import { getValueFnDescriptor } from '@legacy/js/resource-table';
+import { ColumnDescription } from '../../types/column.description';
+import { capitalize } from '../utils';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -163,6 +167,99 @@ export class FhirBackendService implements HttpBackend {
           );
         });
       }
+    );
+  }
+
+  /**
+   * Returns definitions of columns, search params, value sets for current FHIR version
+   */
+  getCurrentDefinitions(): any {
+    const versionName = this.fhirClient.getVersionName();
+    const definitions = definitionsIndex.configByVersionName[versionName];
+
+    if (!definitions.initialized) {
+      // Add default common column "id"
+      Object.keys(definitions.resources).forEach((resourceType) => {
+        definitions.resources[resourceType].columnDescriptions.unshift({
+          types: ['string'],
+          element: 'id',
+          isArray: false
+        });
+      });
+
+      // prepare definitions on first request
+      const valueSets = definitions.valueSets;
+      const valueSetMaps = (definitions.valueSetMaps = Object.keys(
+        valueSets
+      ).reduce((valueSetsMap, entityName) => {
+        valueSetsMap[entityName] =
+          typeof valueSets[entityName] === 'string'
+            ? valueSets[entityName]
+            : valueSets[entityName].reduce((entityMap, item) => {
+                entityMap[item.code] = item.display;
+                return entityMap;
+              }, {});
+        return valueSetsMap;
+      }, {}));
+
+      Object.keys(definitions.valueSetByPath).forEach((path) => {
+        definitions.valueSetMapByPath[path] =
+          valueSetMaps[definitions.valueSetByPath[path]];
+        definitions.valueSetByPath[path] =
+          valueSets[definitions.valueSetByPath[path]];
+      });
+      definitions.initialized = true;
+    }
+
+    return definitions;
+  }
+
+  /**
+   * Returns an array of available column descriptions for this.resourceType.
+   */
+  getColumns(resourceType: string): ColumnDescription[] {
+    const currentDefinitions = this.getCurrentDefinitions();
+    const columnDescriptions =
+      currentDefinitions.resources[resourceType].columnDescriptions;
+    const visibleColumnsRawString = window.localStorage.getItem(
+      resourceType + '-columns'
+    );
+    const visibleColumnNames = visibleColumnsRawString
+      ? visibleColumnsRawString.split(',')
+      : [];
+
+    // Add a custom column for ResearchStudy, because it doesn't have column Subject
+    if (resourceType === 'ResearchStudy') {
+      columnDescriptions.push({
+        displayName: 'Research subject',
+        customElement: 'patientName',
+        types: ['context-patient-name']
+      });
+    }
+    return (
+      columnDescriptions
+        .map((column) => {
+          const displayName =
+            column.displayName ||
+            capitalize(column.element)
+              .replace(/\[x]$/, '')
+              .split(/(?=[A-Z])/)
+              .join(' ');
+          return {
+            ...column,
+            displayName,
+            // Use only supported column types
+            types: column.types.filter(
+              (type) => getValueFnDescriptor[type] !== undefined
+            ),
+            visible:
+              visibleColumnNames.indexOf(
+                column.customElement || column.element
+              ) !== -1
+          };
+        })
+        // Exclude unsupported columns
+        .filter((column) => column.types.length)
     );
   }
 }

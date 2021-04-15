@@ -43,7 +43,9 @@
 
   <mat-step label="View cohort">
     <div class="v-box">
-      <app-view-cohort-page [max]="defineCohortComponent.defineCohortForm.get('maxPatientsNumber').value"></app-view-cohort-page>
+      <app-view-cohort-page *ngIf="serverInitialized" [max]="defineCohortComponent.defineCohortForm.get('maxPatientsNumber').value"
+                            [columnDescriptions]="visibleColumns">
+      </app-view-cohort-page>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
@@ -56,6 +58,10 @@
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary">
           <mat-icon svgIcon="refresh"></mat-icon>Reload
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="secondary" (click)="openColumnsDialog()">
+          <mat-icon aria-hidden="false" svgIcon="create"></mat-icon>Configure columns
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="primary" matStepperNext>
