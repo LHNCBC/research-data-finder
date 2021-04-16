@@ -1,12 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StepperComponent } from './stepper.component';
 import { MatDialog } from '@angular/material/dialog';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
 import { BehaviorSubject } from 'rxjs';
 import { MockComponent } from 'ng-mocks';
 import { SelectColumnsComponent } from '../select-columns/select-columns.component';
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
-import { SettingsPageComponent } from '../step-1-settings-page/settings-page.component';
 import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.component';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +17,15 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+
+@Component({
+  selector: 'app-settings-page',
+  template: ''
+})
+// tslint:disable-next-line:component-class-suffix
+class SettingsPageComponentStub {
+  settingsFormGroup = new FormBuilder().group({});
+}
 
 @Component({
   selector: 'app-define-cohort-page',
@@ -36,7 +47,7 @@ describe('StepperComponent', () => {
       declarations: [
         StepperComponent,
         MockComponent(SelectColumnsComponent),
-        MockComponent(SettingsPageComponent),
+        SettingsPageComponentStub,
         DefineCohortPageComponentStub,
         MockComponent(ViewCohortPageComponent),
         MockComponent(PullDataPageComponent),
@@ -53,7 +64,7 @@ describe('StepperComponent', () => {
         {
           provide: FhirBackendService,
           useValue: {
-            initialized$: new BehaviorSubject(true),
+            initialized: new BehaviorSubject(ConnectionStatus.Ready),
             getColumns: () => [
               {
                 displayName: 'ID',
