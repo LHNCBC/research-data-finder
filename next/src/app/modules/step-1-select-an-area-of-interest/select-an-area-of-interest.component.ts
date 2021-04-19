@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnDestroy } from '@angular/core';
 import { ColumnDescription } from '../../types/column.description';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +7,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { combineLatest } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 import { filter, tap } from 'rxjs/operators';
 
 export enum SelectOptions {
@@ -20,7 +20,7 @@ export enum SelectOptions {
   templateUrl: './select-an-area-of-interest.component.html',
   styleUrls: ['./select-an-area-of-interest.component.less']
 })
-export class SelectAnAreaOfInterestComponent {
+export class SelectAnAreaOfInterestComponent implements OnDestroy {
   // Publish enum for template
   SelectOptions = SelectOptions;
 
@@ -29,6 +29,7 @@ export class SelectAnAreaOfInterestComponent {
   initialBundle: Bundle;
   showTable = false;
   option = new FormControl(SelectOptions.Skip);
+  subscription: Subscription;
 
   /**
    * Create and initialize instance of component.
@@ -37,7 +38,10 @@ export class SelectAnAreaOfInterestComponent {
     private fhirBackend: FhirBackendService,
     private http: HttpClient
   ) {
-    combineLatest([this.option.valueChanges, this.fhirBackend.initialized])
+    this.subscription = combineLatest([
+      this.option.valueChanges,
+      this.fhirBackend.initialized
+    ])
       .pipe(
         tap(() => {
           this.showTable = false;
@@ -56,5 +60,9 @@ export class SelectAnAreaOfInterestComponent {
             this.showTable = true;
           });
       });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 }
