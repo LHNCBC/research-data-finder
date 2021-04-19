@@ -1,4 +1,9 @@
 <div id="header">
+  <div id="lhc-logo">
+    <a href="https://lhncbc.nlm.nih.gov" title="Lister Hill National Center for Biomedical Communications">
+      <img src="/assets/LHNCBC_white.svg" alt="NIH/NLM/LHNCBC logo"/>
+    </a>
+  </div>
   <a href="http://lhncbc.nlm.nih.gov" title="Lister Hill Center" id="logo">
     <img src="assets/lhncbc.jpg" alt="Lister Hill Center" />
   </a>
@@ -7,9 +12,9 @@
     <span id=tagline>An <a
       href="https://github.com/lhncbc/fhir-obs-viewer">open source</a> viewer
          for FHIR Observations from the National Library of Medicine</span>
+    <div id="version">Version: <a target="_blank" rel="noopener noreferrer"
+                                  href="https://github.com/lhncbc/fhir-obs-viewer/blob/master/CHANGELOG.md">Angular</a></div>
   </div>
-  <div id="version">Version: <a target="_blank" rel="noopener noreferrer"
-                                href="https://github.com/lhncbc/fhir-obs-viewer/blob/master/CHANGELOG.md">Angular</a></div>
 </div>
 <!-- end page header -->
 <ul class="nav-links horz-list">
@@ -21,37 +26,6 @@
   Service</a></li><!--
       --><li class="last-item"><a id="sdcPageLink" href="https://lhcforms.nlm.nih.gov/sdc">FHIR SDC SMART App</a></li>
 </ul>
-
-<!-- COVID-19 banner -->
-<ul id="covid-banner">
-  <li>COVID-19 information: </li>
-  <li>
-    <a href="https://www.cdc.gov/coronavirus/" target="_blank">
-      Get the latest public health information from CDC
-    </a>
-  </li>
-  <li>
-    <a href="http://www.covid19.nih.gov/" target="_blank">
-      Get the latest research information from NIH
-    </a> |
-    <a href="https://salud.nih.gov/covid-19/" target="_blank">
-      Español
-    </a>
-  </li>
-  <li>
-    <a href="https://combatcovid.hhs.gov/" target="_blank">
-      Learn more about COVID-19 and you from HHS
-    </a>
-  </li>
-  <li>
-    <button title="Dismiss"
-            onclick="document.querySelector('#covid-banner').style.display = 'none'; sessionStorage.setItem('hideCovidBanner', true);">
-      <span aria-hidden="true">×</span>
-    </button>
-  </li>
-</ul>
-<!-- End COVID-19 banner -->
-
 
 <div class="content" role="main">
   <app-stepper></app-stepper>
