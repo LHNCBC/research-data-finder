@@ -250,6 +250,9 @@ export class FhirBackendService implements HttpBackend {
             displayName,
             // Use only supported column types
             types: column.types.filter(
+              // TODO: Instead of using getValueFnDescriptor, which contains the types
+              //       supported by the previous version of the application,
+              //       we need the types supported by the ResourceTableComponent
               (type) => getValueFnDescriptor[type] !== undefined
             ),
             visible:

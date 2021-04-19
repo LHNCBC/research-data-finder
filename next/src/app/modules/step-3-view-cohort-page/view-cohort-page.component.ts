@@ -14,7 +14,7 @@ import Bundle = fhir.Bundle;
 export class ViewCohortPageComponent implements OnInit {
   @Input() max = 0;
   @Input() columnDescriptions: ColumnDescription[];
-  url = 'https://lforms-fhir.nlm.nih.gov/baseR4/Patient?_count=50';
+  url = '$fhir/Patient?_count=50';
   initialBundle: Bundle;
   showTable = false;
 

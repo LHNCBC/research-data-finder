@@ -1,11 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StepperComponent } from './stepper.component';
-import { MatDialog } from '@angular/material/dialog';
 import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { MockComponent } from 'ng-mocks';
 import { SelectColumnsComponent } from '../select-columns/select-columns.component';
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
@@ -14,9 +13,23 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { Component, Input } from '@angular/core';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import { ColumnDescription } from '../../types/column.description';
+import { SelectOptions } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
+
+@Component({
+  selector: 'app-select-an-area-of-interest',
+  template: ''
+})
+// tslint:disable-next-line:component-class-suffix
+class SelectAnAreaOfInterestComponentStub {
+  option = { value: SelectOptions.Skip };
+  SelectOptions = SelectOptions;
+  @Input() columnDescriptions: ColumnDescription[];
+}
 
 @Component({
   selector: 'app-settings-page',
@@ -36,6 +49,7 @@ class DefineCohortPageComponentStub {
   defineCohortForm = new FormBuilder().group({
     maxPatientsNumber: ['100', Validators.required]
   });
+  @Input() formControl: FormControl;
 }
 
 describe('StepperComponent', () => {
@@ -51,7 +65,8 @@ describe('StepperComponent', () => {
         DefineCohortPageComponentStub,
         MockComponent(ViewCohortPageComponent),
         MockComponent(PullDataPageComponent),
-        MockComponent(MatIcon)
+        MockComponent(MatIcon),
+        SelectAnAreaOfInterestComponentStub
       ],
       imports: [
         CommonModule,
@@ -60,45 +75,42 @@ describe('StepperComponent', () => {
         NoopAnimationsModule
       ],
       providers: [
-        { provide: MatDialog, useValue: {} },
         {
           provide: FhirBackendService,
           useValue: {
-            initialized: new BehaviorSubject(ConnectionStatus.Ready),
-            getColumns: () => [
-              {
-                displayName: 'ID',
-                element: 'id',
-                types: ['string'],
-                isArray: false,
-                visible: false
-              },
-              {
-                displayName: 'Name',
-                element: 'name',
-                types: ['string'],
-                isArray: false,
-                visible: true
-              }
-            ]
+            initialized: new BehaviorSubject(ConnectionStatus.Ready)
+          }
+        },
+        {
+          provide: ColumnDescriptionsService,
+          useValue: {
+            getVisibleColumns: () => of([]),
+            destroy: () => {}
           }
         }
       ]
     }).compileComponents();
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     fixture = TestBed.createComponent(StepperComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    await fixture.detectChanges();
+    spyOn(component.subscription, 'unsubscribe').and.callThrough();
+    spyOn(component.columnDescriptions, 'destroy').and.callThrough();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should get columns', () => {
-    expect(component.columns.length).toEqual(2);
-    expect(component.visibleColumns.length).toEqual(1);
+  it('should initialize', () => {
+    expect(component.serverInitialized).toBe(true);
+  });
+
+  it('should unsubscribe on destroy', () => {
+    component.ngOnDestroy();
+    expect(component.subscription.unsubscribe).toHaveBeenCalledOnceWith();
+    expect(component.columnDescriptions.destroy).toHaveBeenCalledOnceWith();
   });
 });

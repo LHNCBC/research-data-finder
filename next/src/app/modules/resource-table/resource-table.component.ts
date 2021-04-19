@@ -54,7 +54,8 @@ export class ResourceTableComponent
   ) {}
 
   ngOnInit(): void {
-    this.dataSource.data = this.initialBundle.entry;
+    // entry is not mandatory property
+    this.dataSource.data = this.initialBundle.entry || [];
     this.nextBundleUrl = this.initialBundle.link.find(
       (l) => l.relation === 'next'
     )?.url;
@@ -65,6 +66,11 @@ export class ResourceTableComponent
    * Use columns present in bundle info as default, if empty column descriptions is passed in
    */
   private setColumnsFromBundle(): void {
+    // Don't update if no data is available
+    if (!this.initialBundle.entry && this.initialBundle.entry.length) {
+      return;
+    }
+
     const allColumns = this.fhirBackend.getColumns(this.resourceType);
     this.columnDescriptions = allColumns.filter((x) =>
       this.getCellDisplay(this.initialBundle.entry[0], x)
@@ -222,11 +228,12 @@ export class ResourceTableComponent
     type: string,
     element: string
   ): string {
+    // TODO: we need support for all types from previous version of the application
     switch (type) {
       case 'Address':
-        return this.getAddressDisplay(row.resource['address']);
+        return this.getAddressDisplay(row.resource[element]);
       case 'HumanName':
-        return this.humanNameToString(row.resource['name']);
+        return this.humanNameToString(row.resource[element]);
       default:
         return row.resource[element];
     }
@@ -236,9 +243,11 @@ export class ResourceTableComponent
    * Get address display
    */
   getAddressDisplay(addressElements): string {
-    for (const address of addressElements) {
-      if (address['text']) {
-        return address['text'];
+    if (addressElements) {
+      for (const address of addressElements) {
+        if (address['text']) {
+          return address['text'];
+        }
       }
     }
     return '';

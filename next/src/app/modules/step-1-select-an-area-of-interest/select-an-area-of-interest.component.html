@@ -1,0 +1,19 @@
+<div class="v-box">
+  <p class="info">
+    <span class="info-icon" aria-hidden="true"></span>
+    At this step, you can browse and select resources related to Patients
+    from which you want to start building a cohort of Patients.
+  </p>
+
+  <mat-radio-group aria-label="Select an option" class="h-box" [formControl]="option">
+    <mat-radio-button [value]="SelectOptions.Skip">Skip this step</mat-radio-button>
+    <div class="spacer"></div>
+    <mat-radio-button [value]="SelectOptions.ResearchStudy">Select ResearchStudies</mat-radio-button>
+  </mat-radio-group>
+
+  <div *ngIf="showTable" class="spacer"></div>
+  <app-resource-table *ngIf="showTable"
+                      [columnDescriptions]="columnDescriptions" [initialBundle]="initialBundle"
+                      [enableClientFiltering]="true" [enableSelection]="true"
+                      resourceType="ResearchStudy"></app-resource-table>
+</div>
