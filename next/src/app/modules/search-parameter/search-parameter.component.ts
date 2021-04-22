@@ -30,10 +30,12 @@ export class SearchParameterComponent
   resourceType: FormControl = new FormControl('');
   resourceTypes: string[] = [];
   filteredResourceTypes: Observable<string[]>;
+  selectedResourceType: any;
 
   parameterName: FormControl = new FormControl('');
   parameterNames: string[] = [];
   filteredParameterNames: Observable<string[]>;
+  selectedParameter: any;
 
   parameterValue: FormControl = new FormControl('');
 
@@ -53,7 +55,8 @@ export class SearchParameterComponent
     this.resourceType.valueChanges.subscribe(value => {
       const match = this.resourceTypes.find(rt => rt === value);
       if (match) {
-        this.parameterNames = this.fhirBackend.getCurrentDefinitions().resources[value].searchParameters.map(sp => capitalize(sp.name));
+        this.selectedResourceType = this.fhirBackend.getCurrentDefinitions().resources[value];
+        this.parameterNames = this.selectedResourceType.searchParameters.map(sp => sp.name);
       }
     });
 
@@ -61,6 +64,12 @@ export class SearchParameterComponent
       startWith(''),
       map((value) => this._filter(value, this.parameterNames))
     );
+
+    this.parameterName.valueChanges.subscribe(value => {
+      if (this.selectedResourceType) {
+        this.selectedParameter = this.selectedResourceType.searchParameters.find(p => p.name === value);
+      }
+    })
   }
 
   private _filter(

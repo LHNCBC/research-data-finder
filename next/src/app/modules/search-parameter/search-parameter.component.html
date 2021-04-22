@@ -13,7 +13,7 @@
     </mat-autocomplete>
   </mat-form-field>
 
-  <mat-form-field class="parameter-name" *ngIf="resourceType.value === 'Patient'">
+  <mat-form-field class="parameter-name" *ngIf="selectedResourceType">
     <mat-label>Search parameter name</mat-label>
     <input type="text"
            aria-label="Search parameter name"
@@ -27,10 +27,18 @@
     </mat-autocomplete>
   </mat-form-field>
 
-  <mat-form-field class="parameter-value" *ngIf="resourceType.value === 'Patient' && parameterName.value">
-    <mat-label>Parameter value</mat-label>
-    <input matInput [formControl]="parameterValue">
-  </mat-form-field>
+  <div *ngIf="selectedParameter">
+    <div [ngSwitch]="selectedParameter.type">
+      <div *ngSwitchCase="'boolean'" class="parameter-value">
+        <mat-label><input type="radio" [formControl]="parameterValue" value="true">true</mat-label>
+        <mat-label><input type="radio" [formControl]="parameterValue" value="false">false</mat-label>
+      </div>
+      <mat-form-field *ngSwitchDefault class="parameter-value">
+        <mat-label>Test value</mat-label>
+        <input matInput [formControl]="parameterValue">
+      </mat-form-field>
+    </div>
+  </div>
 
   <mat-form-field class="flex" *ngIf="resourceType.value === 'Observation'">
     <mat-label>Observation codes from FHIR server</mat-label>
