@@ -7,6 +7,11 @@ import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
+import { capitalize } from '../../shared/utils';
 
 /**
  * Component for editing one resource search parameter
@@ -23,19 +28,20 @@ export class SearchParameterComponent
   @Input() fixedResourceType = true;
 
   resourceType: FormControl = new FormControl('');
-  resourceTypes: string[] = ['Patient', 'Observation'];
+  resourceTypes: string[] = [];
   filteredResourceTypes: Observable<string[]>;
 
   parameterName: FormControl = new FormControl('');
-  parameterNames: string[] = ['Active', 'Address', 'etc...'];
+  parameterNames: string[] = [];
   filteredParameterNames: Observable<string[]>;
 
   parameterValue: FormControl = new FormControl('');
 
   selectedLoincItems: FormControl = new FormControl(null);
 
-  constructor() {
+  constructor(private fhirBackend: FhirBackendService) {
     super();
+    this.resourceTypes = Object.keys(fhirBackend.getCurrentDefinitions().resources);
   }
 
   ngOnInit(): void {
@@ -43,6 +49,13 @@ export class SearchParameterComponent
       startWith(''),
       map((value) => this._filter(value, this.resourceTypes))
     );
+
+    this.resourceType.valueChanges.subscribe(value => {
+      const match = this.resourceTypes.find(rt => rt === value);
+      if (match) {
+        this.parameterNames = this.fhirBackend.getCurrentDefinitions().resources[value].searchParameters.map(sp => capitalize(sp.name));
+      }
+    });
 
     this.filteredParameterNames = this.parameterName.valueChanges.pipe(
       startWith(''),
