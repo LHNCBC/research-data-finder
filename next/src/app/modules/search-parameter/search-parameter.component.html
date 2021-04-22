@@ -1,5 +1,5 @@
 <div class="search-parameter">
-  <mat-form-field class="resource-type" *ngIf="!fixedResourceType">
+  <mat-form-field class="resource-type">
     <mat-label>Resource type</mat-label>
     <input type="text"
            aria-label="Resource type"
@@ -69,7 +69,7 @@
     </ng-container>
   </ng-container>
 
-  <mat-form-field class="flex" *ngIf="resourceType.value === 'Observation'">
+  <mat-form-field class="flex" *ngIf="resourceType.value === OBSERVATIONBYTEST">
     <mat-label>Observation codes from FHIR server</mat-label>
     <app-observation-code-lookup
       [formControl]="selectedLoincItems"
@@ -78,7 +78,7 @@
   </mat-form-field>
 
   <mat-form-field class="parameter-value"
-                  *ngIf="resourceType.value === 'Observation' && selectedLoincItems.value?.datatype">
+                  *ngIf="resourceType.value === OBSERVATIONBYTEST && selectedLoincItems.value?.datatype">
     <mat-label>Test value</mat-label>
     <input matInput [formControl]="parameterValue">
   </mat-form-field>
