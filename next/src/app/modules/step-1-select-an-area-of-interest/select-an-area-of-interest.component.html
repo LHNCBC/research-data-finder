@@ -14,7 +14,8 @@
 
   <div *ngIf="showTable" class="spacer"></div>
   <app-resource-table *ngIf="showTable"
-                      [columnDescriptions]="columnDescriptions" [initialBundle]="initialBundle"
-                      [enableClientFiltering]="true" [enableSelection]="true"
-                      resourceType="ResearchStudy"></app-resource-table>
+      [columnDescriptions]="columnDescriptions.getVisibleColumns('ResearchStudy') | async"
+      [initialBundle]="initialBundle"
+      [enableClientFiltering]="true" [enableSelection]="true"
+      resourceType="ResearchStudy"></app-resource-table>
 </div>

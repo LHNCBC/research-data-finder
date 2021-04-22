@@ -1,5 +1,4 @@
 import { Component, Input, OnDestroy } from '@angular/core';
-import { ColumnDescription } from '../../types/column.description';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
@@ -9,6 +8,7 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { combineLatest, Subscription } from 'rxjs';
 import { filter, tap } from 'rxjs/operators';
+import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 
 export enum SelectOptions {
   Skip = 0,
@@ -25,7 +25,6 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   SelectOptions = SelectOptions;
 
   @Input()
-  columnDescriptions: ColumnDescription[];
   initialBundle: Bundle;
   showTable = false;
   option = new FormControl(SelectOptions.Skip);
@@ -36,7 +35,8 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
    */
   constructor(
     private fhirBackend: FhirBackendService,
-    private http: HttpClient
+    private http: HttpClient,
+    public columnDescriptions: ColumnDescriptionsService
   ) {
     this.subscription = combineLatest([
       this.option.valueChanges,

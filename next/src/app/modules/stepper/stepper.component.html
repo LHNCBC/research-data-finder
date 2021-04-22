@@ -19,9 +19,7 @@
   <mat-step label="Select an area of interest" state="edit"
             [optional]="selectAnAreaOfInterest.option.value === selectAnAreaOfInterest.SelectOptions.Skip">
     <div class="v-box">
-      <app-select-an-area-of-interest
-        #selectAnAreaOfInterest
-        [columnDescriptions]="columnDescriptions.getVisibleColumns('ResearchStudy') | async">
+      <app-select-an-area-of-interest #selectAnAreaOfInterest>
       </app-select-an-area-of-interest>
       <div class="spacer"></div>
       <div class="h-box">
@@ -68,8 +66,8 @@
 
   <mat-step label="View cohort">
     <div class="v-box">
-      <app-view-cohort-page *ngIf="serverInitialized" [max]="defineCohortComponent.defineCohortForm.get('maxPatientsNumber').value"
-                            [columnDescriptions]="columnDescriptions.getVisibleColumns('Patient') | async">
+      <app-view-cohort-page *ngIf="serverInitialized"
+          [max]="defineCohortComponent.defineCohortForm.get('maxPatientsNumber').value">
       </app-view-cohort-page>
       <div class="spacer"></div>
       <div class="h-box">

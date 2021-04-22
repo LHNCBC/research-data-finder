@@ -10,6 +10,7 @@ import {
 import { BehaviorSubject, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
+import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 
 describe('SelectAnAreaOfInterestComponent', () => {
   let component: SelectAnAreaOfInterestComponent;
@@ -35,6 +36,13 @@ describe('SelectAnAreaOfInterestComponent', () => {
         {
           provide: HttpClient,
           useValue: fakeHttpClient
+        },
+        {
+          provide: ColumnDescriptionsService,
+          useValue: {
+            getVisibleColumns: () => of([]),
+            destroy: () => {}
+          }
         }
       ]
     }).compileComponents();
