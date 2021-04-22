@@ -49,6 +49,16 @@
         </mat-autocomplete>
       </mat-form-field>
 
+      <mat-form-field *ngSwitchCase="'date'" class="parameter-value">
+        <mat-label>from</mat-label>
+        <input type="date" matInput [formControl]="parameterValue">
+      </mat-form-field>
+      <!-- TODO: wrap two date inputs into a new component with ControlValueAccessor -->
+      <mat-form-field *ngSwitchCase="'date'" class="parameter-value">
+        <mat-label>to</mat-label>
+        <input type="date" matInput [formControl]="parameterValue">
+      </mat-form-field>
+
       <mat-form-field *ngSwitchDefault class="parameter-value">
         <mat-label>Search parameter value</mat-label>
         <input matInput [formControl]="parameterValue">
