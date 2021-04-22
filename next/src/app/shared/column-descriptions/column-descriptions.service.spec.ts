@@ -19,26 +19,34 @@ describe('ColumnDescriptionsService', () => {
           provide: FhirBackendService,
           useValue: {
             initialized: new BehaviorSubject(ConnectionStatus.Ready),
-            getColumns: () => [
-              {
-                displayName: 'ID',
-                element: 'id',
-                types: ['string'],
-                isArray: false,
-                visible: false
-              },
-              {
-                displayName: 'Name',
-                element: 'name',
-                types: ['string'],
-                isArray: false,
-                visible: true
+            getCurrentDefinitions: () => ({
+              resources: {
+                Patient: {
+                  columnDescriptions: [
+                    {
+                      element: 'id',
+                      types: ['string'],
+                      isArray: false
+                    },
+                    {
+                      element: 'name',
+                      types: ['string'],
+                      isArray: false
+                    }
+                  ]
+                }
               }
-            ]
+            })
           }
         },
         ColumnDescriptionsService
       ]
+    });
+    spyOn(window.localStorage, 'getItem').and.callFake((paramName) => {
+      if (paramName === 'Patient-columns') {
+        return 'name';
+      }
+      return '';
     });
     service = TestBed.inject(ColumnDescriptionsService);
   });
@@ -49,7 +57,9 @@ describe('ColumnDescriptionsService', () => {
 
   it('should get columns', (done) => {
     service.getVisibleColumns('Patient').subscribe((visibleColumns) => {
-      expect(visibleColumns.length).toEqual(1);
+      expect(visibleColumns).toEqual([
+        jasmine.objectContaining({ displayName: 'Name' })
+      ]);
       done();
     });
   });

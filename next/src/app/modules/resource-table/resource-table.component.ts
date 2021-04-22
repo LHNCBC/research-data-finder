@@ -17,8 +17,10 @@ import BundleEntry = fhir.BundleEntry;
 import { ColumnDescription } from '../../types/column.description';
 import { debounceTime } from 'rxjs/operators';
 import { CdkScrollable } from '@angular/cdk/overlay';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { capitalize } from '../../shared/utils';
+import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import { ColumnValuesService } from '../../shared/column-values/column-values.service';
+import { escapeStringForRegExp } from '@legacy/js/common/utils';
 
 /**
  * Component for loading table of resources
@@ -50,7 +52,8 @@ export class ResourceTableComponent
   constructor(
     private http: HttpClient,
     private ngZone: NgZone,
-    private fhirBackend: FhirBackendService
+    private columnDescriptionsService: ColumnDescriptionsService,
+    private columnValuesService: ColumnValuesService
   ) {}
 
   ngOnInit(): void {
@@ -71,9 +74,11 @@ export class ResourceTableComponent
       return;
     }
 
-    const allColumns = this.fhirBackend.getColumns(this.resourceType);
-    this.columnDescriptions = allColumns.filter((x) =>
-      this.getCellDisplay(this.initialBundle.entry[0], x)
+    const allColumns = this.columnDescriptionsService.getAvailableColumns(
+      this.resourceType
+    );
+    this.columnDescriptions = allColumns.filter(
+      (x) => this.getCellStrings(this.initialBundle.entry[0], x).length
     );
     // Save column selections of default
     window.localStorage.setItem(
@@ -106,12 +111,12 @@ export class ResourceTableComponent
               const columnDescription = this.columnDescriptions.find(
                 (c) => c.element === key
               );
-              const cellValue = this.getCellDisplay(data, columnDescription);
-              if (
-                !cellValue
-                  .toLowerCase()
-                  .startsWith((value as string).toLowerCase())
-              ) {
+              const cellValue = this.getCellStrings(data, columnDescription);
+              const reCondition = new RegExp(
+                '\\b' + escapeStringForRegExp(value),
+                'i'
+              );
+              if (!cellValue.some((item) => reCondition.test(item))) {
                 return false;
               }
             }
@@ -201,79 +206,27 @@ export class ResourceTableComponent
   }
 
   /**
-   * Get cell display
+   * Returns string values to display in a cell
    */
-  getCellDisplay(row: BundleEntry, column: ColumnDescription): string {
-    if (column.types.length === 1) {
-      return this.getCellDisplayByType(row, column.types[0], column.element);
-    }
+  getCellStrings(row: BundleEntry, column: ColumnDescription): string[] {
+    const fullPath = column.element
+      ? this.resourceType + '.' + column.element
+      : '';
+
     for (const type of column.types) {
-      const output = this.getCellDisplayByType(
-        row,
+      const element = column.element.replace('[x]', capitalize(type));
+      const output = this.columnValuesService.valueToStrings(
+        row.resource[element],
         type,
-        column.element.replace('[x]', capitalize(type))
+        column.isArray,
+        fullPath
       );
-      if (output) {
+
+      if (output && output.length) {
         return output;
       }
     }
-    return '';
-  }
-
-  /**
-   * Get cell display by type
-   */
-  getCellDisplayByType(
-    row: BundleEntry,
-    type: string,
-    element: string
-  ): string {
-    // TODO: we need support for all types from previous version of the application
-    switch (type) {
-      case 'Address':
-        return this.getAddressDisplay(row.resource[element]);
-      case 'HumanName':
-        return this.humanNameToString(row.resource[element]);
-      default:
-        return row.resource[element];
-    }
-  }
-
-  /**
-   * Get address display
-   */
-  getAddressDisplay(addressElements): string {
-    if (addressElements) {
-      for (const address of addressElements) {
-        if (address['text']) {
-          return address['text'];
-        }
-      }
-    }
-    return '';
-  }
-
-  /**
-   * Get name display
-   */
-  humanNameToString(nameElements): string {
-    let rtn;
-    const name = nameElements && nameElements[0];
-
-    if (name) {
-      // tslint:disable-next-line:one-variable-per-declaration
-      const given = name.given || [],
-        firstName = given[0] || '',
-        lastName = name.family || '';
-      let middleName = given[1] || '';
-
-      if (middleName.length === 1) {
-        middleName += '.';
-      }
-      rtn = [firstName, middleName, lastName].filter((item) => item).join(' ');
-    }
-
-    return rtn || null;
+    return [];
   }
 
   /**

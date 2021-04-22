@@ -20,7 +20,7 @@
       <!-- Data Columns -->
       <ng-container *ngFor="let column of columnDescriptions" [matColumnDef]="column.element">
         <mat-header-cell *matHeaderCellDef> {{column.displayName}} </mat-header-cell>
-        <mat-cell *matCellDef="let element"> {{getCellDisplay(element, column)}} </mat-cell>
+        <mat-cell *matCellDef="let element"> {{getCellStrings(element, column).join('; ')}} </mat-cell>
       </ng-container>
 
       <!-- Filter columns -->
