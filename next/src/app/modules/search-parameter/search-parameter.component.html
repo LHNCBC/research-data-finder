@@ -27,8 +27,8 @@
     </mat-autocomplete>
   </mat-form-field>
 
-  <div *ngIf="selectedParameter">
-    <div [ngSwitch]="selectedParameter.type">
+  <ng-container *ngIf="selectedParameter">
+    <ng-container [ngSwitch]="selectedParameter.type">
 
       <div *ngSwitchCase="'boolean'" class="parameter-value">
         <mat-label><input type="radio" [formControl]="parameterValue" value="true">true</mat-label>
@@ -38,9 +38,9 @@
       <mat-form-field *ngSwitchCase="selectedParameter.type === 'code' || selectedParameter.type === 'CodeableConcept' ? selectedParameter.type : ''" class="parameter-value">
         <mat-label>Search parameter value</mat-label>
         <input type="text"
-               aria-label="Search parameter value"
                matInput
                [formControl]="parameterValue"
+               [placeholder]="selectedParameter.description"
                [matAutocomplete]="auto2">
         <mat-autocomplete #auto2="matAutocomplete">
           <mat-option *ngFor="let option of filteredParameterValues | async" [value]="option">
@@ -61,10 +61,11 @@
 
       <mat-form-field *ngSwitchDefault class="parameter-value">
         <mat-label>Search parameter value</mat-label>
-        <input matInput [formControl]="parameterValue">
+        <input matInput [formControl]="parameterValue" [placeholder]="selectedParameter.description">
       </mat-form-field>
-    </div>
-  </div>
+
+    </ng-container>
+  </ng-container>
 
   <mat-form-field class="flex" *ngIf="resourceType.value === 'Observation'">
     <mat-label>Observation codes from FHIR server</mat-label>
