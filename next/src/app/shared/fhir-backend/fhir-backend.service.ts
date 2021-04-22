@@ -32,7 +32,9 @@ export enum ConnectionStatus {
  * the backend, without going through the interceptor chain.
  * The main function which handles HTTP requests is called "handle".
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class FhirBackendService implements HttpBackend {
   // Whether the connection to server is initialized.
   initialized = new BehaviorSubject(ConnectionStatus.Pending);

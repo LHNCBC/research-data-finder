@@ -9,7 +9,9 @@ import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { SelectColumnsComponent } from '../../modules/select-columns/select-columns.component';
 import { filter, map } from 'rxjs/operators';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class ColumnDescriptionsService {
   visibleColumns: { [key: string]: BehaviorSubject<ColumnDescription[]> } = {};
   subscriptions: Subscription[] = [];
