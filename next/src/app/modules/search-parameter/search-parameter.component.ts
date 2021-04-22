@@ -38,6 +38,8 @@ export class SearchParameterComponent
   selectedParameter: any;
 
   parameterValue: FormControl = new FormControl('');
+  parameterValues: string[];
+  filteredParameterValues: Observable<string[]>;
 
   selectedLoincItems: FormControl = new FormControl(null);
 
@@ -68,6 +70,14 @@ export class SearchParameterComponent
     this.parameterName.valueChanges.subscribe(value => {
       if (this.selectedResourceType) {
         this.selectedParameter = this.selectedResourceType.searchParameters.find(p => p.name === value);
+        if (this.selectedParameter && this.selectedParameter.valueSet) {
+          this.parameterValues = this.fhirBackend.getCurrentDefinitions().valueSets[this.selectedParameter.valueSet]
+            .map(v => v.display);
+          this.filteredParameterValues = this.parameterValue.valueChanges.pipe(
+            startWith(''),
+            map((value) => this._filter(value, this.parameterValues))
+          );
+        }
       }
     })
   }
