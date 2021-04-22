@@ -35,7 +35,9 @@
         <mat-label><input type="radio" [formControl]="parameterValue" value="false">false</mat-label>
       </div>
 
-      <mat-form-field *ngSwitchCase="selectedParameter.type === 'code' || selectedParameter.type === 'CodeableConcept' ? selectedParameter.type : ''" class="parameter-value">
+      <mat-form-field
+        *ngSwitchCase="selectedParameter.type === 'code' || selectedParameter.type === 'CodeableConcept' ? selectedParameter.type : ''"
+        class="parameter-value">
         <mat-label>Search parameter value</mat-label>
         <input type="text"
                matInput
@@ -75,7 +77,8 @@
     </app-observation-code-lookup>
   </mat-form-field>
 
-  <mat-form-field class="parameter-value" *ngIf="resourceType.value === 'Observation' && selectedLoincItems.value?.datatype">
+  <mat-form-field class="parameter-value"
+                  *ngIf="resourceType.value === 'Observation' && selectedLoincItems.value?.datatype">
     <mat-label>Test value</mat-label>
     <input matInput [formControl]="parameterValue">
   </mat-form-field>
