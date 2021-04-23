@@ -1,9 +1,9 @@
 import {
-  AfterViewInit,
   Component,
   Input,
   NgZone,
   OnChanges,
+  OnDestroy,
   OnInit,
   SimpleChanges,
   ViewChild
@@ -21,6 +21,7 @@ import { capitalize } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 import { escapeStringForRegExp } from '@legacy/js/common/utils';
+import { Subscription } from 'rxjs';
 
 /**
  * Component for loading table of resources
@@ -30,8 +31,7 @@ import { escapeStringForRegExp } from '@legacy/js/common/utils';
   templateUrl: './resource-table.component.html',
   styleUrls: ['./resource-table.component.less']
 })
-export class ResourceTableComponent
-  implements OnInit, AfterViewInit, OnChanges {
+export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() columnDescriptions: ColumnDescription[];
   @Input() initialBundle: Bundle;
   @Input() enableClientFiltering = false;
@@ -46,7 +46,23 @@ export class ResourceTableComponent
   dataSource = new MatTableDataSource<BundleEntry>([]);
   lastResourceElement: HTMLElement;
   isLoading = false;
-  @ViewChild(CdkScrollable) scrollable: CdkScrollable;
+
+  scrollSubscription: Subscription;
+
+  @ViewChild(CdkScrollable)
+  set scrollable(scrollable: CdkScrollable) {
+    this.scrollSubscription?.unsubscribe();
+    if (scrollable) {
+      this.scrollSubscription = scrollable
+        .elementScrolled()
+        .pipe(debounceTime(700))
+        .subscribe((e) => {
+          this.ngZone.run(() => {
+            this.onTableScroll(e);
+          });
+        });
+    }
+  }
   resourceTotal = 0;
 
   constructor(
@@ -63,6 +79,10 @@ export class ResourceTableComponent
       (l) => l.relation === 'next'
     )?.url;
     this.resourceTotal = this.initialBundle.total;
+  }
+
+  ngOnDestroy(): void {
+    this.scrollSubscription?.unsubscribe();
   }
 
   /**
@@ -130,17 +150,6 @@ export class ResourceTableComponent
         });
       }
     }
-  }
-
-  ngAfterViewInit(): void {
-    this.scrollable
-      .elementScrolled()
-      .pipe(debounceTime(700))
-      .subscribe((e) => {
-        this.ngZone.run(() => {
-          this.onTableScroll(e);
-        });
-      });
   }
 
   /**
@@ -233,25 +242,29 @@ export class ResourceTableComponent
    * Get count message according to total/max number of resources
    */
   get countMessage(): string {
-    let output = '';
-    if (this.enableSelection) {
-      output += `Selected ${this.selectedResources.selected.length} out of `;
+    if (this.dataSource?.data.length === 0) {
+      return `No ${this.resourceType} resources found.`;
+    } else {
+      let output = '';
+      if (this.enableSelection) {
+        output += `Selected ${this.selectedResources.selected.length} out of `;
+      }
+      if (!this.resourceTotal && !this.max) {
+        output += `${this.dataSource.data.length} rows loaded.`;
+      }
+      if (!this.resourceTotal && this.max) {
+        output += `${this.max} maximum rows.`;
+      }
+      if (this.resourceTotal && !this.max) {
+        output += `${this.resourceTotal} total rows.`;
+      }
+      if (this.resourceTotal && this.max) {
+        output +=
+          this.max > this.resourceTotal
+            ? `${this.resourceTotal} total rows.`
+            : `${this.max} maximum rows.`;
+      }
+      return output;
     }
-    if (!this.resourceTotal && !this.max) {
-      output += `${this.dataSource.data.length} rows loaded.`;
-    }
-    if (!this.resourceTotal && this.max) {
-      output += `${this.max} maximum rows.`;
-    }
-    if (this.resourceTotal && !this.max) {
-      output += `${this.resourceTotal} total rows.`;
-    }
-    if (this.resourceTotal && this.max) {
-      output +=
-        this.max > this.resourceTotal
-          ? `${this.resourceTotal} total rows.`
-          : `${this.max} maximum rows.`;
-    }
-    return output;
   }
 }
