@@ -67,7 +67,7 @@ export class ResourceTableComponent
    */
   private setColumnsFromBundle(): void {
     // Don't update if no data is available
-    if (!this.initialBundle.entry && this.initialBundle.entry.length) {
+    if (!this.initialBundle.entry?.length) {
       return;
     }
 
