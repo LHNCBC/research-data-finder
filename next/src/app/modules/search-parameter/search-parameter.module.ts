@@ -6,9 +6,10 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { SearchParameterComponent } from './search-parameter.component';
 import { ObservationCodeLookupModule } from '../observation-code-lookup/observation-code-lookup.module';
+import { DatesFromToComponent } from './dates-from-to.component';
 
 @NgModule({
-  declarations: [SearchParameterComponent],
+  declarations: [SearchParameterComponent, DatesFromToComponent],
   exports: [SearchParameterComponent],
   imports: [
     CommonModule,

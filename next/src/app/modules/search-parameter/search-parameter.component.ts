@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -7,11 +7,7 @@ import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
-import {
-  ConnectionStatus,
-  FhirBackendService
-} from '../../shared/fhir-backend/fhir-backend.service';
-import { capitalize } from '../../shared/utils';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 
 /**
  * Component for editing one resource search parameter
@@ -51,10 +47,9 @@ export class SearchParameterComponent
 
   ngOnInit(): void {
     this.definitions = this.fhirBackend.getCurrentDefinitions();
-    this.resourceTypes =
-      this.fixedResourceType
-        ? ['Observation', this.OBSERVATIONBYTEST]
-        : Object.keys(this.definitions.resources).concat(this.OBSERVATIONBYTEST);
+    this.resourceTypes = this.fixedResourceType
+      ? ['Observation', this.OBSERVATIONBYTEST]
+      : Object.keys(this.definitions.resources).concat(this.OBSERVATIONBYTEST);
 
     this.filteredResourceTypes = this.resourceType.valueChanges.pipe(
       startWith(''),
