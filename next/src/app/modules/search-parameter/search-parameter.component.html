@@ -69,10 +69,8 @@
     </app-observation-code-lookup>
   </mat-form-field>
 
-  <mat-form-field class="parameter-value"
+  <app-observation-test-value class="parameter-value" [formControl]="parameterValue"
                   *ngIf="resourceType.value === OBSERVATIONBYTEST && selectedLoincItems.value?.datatype">
-    <mat-label>Test value</mat-label>
-    <input matInput [formControl]="parameterValue">
-  </mat-form-field>
+  </app-observation-test-value>
 
 </div>

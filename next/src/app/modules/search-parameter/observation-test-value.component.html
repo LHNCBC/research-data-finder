@@ -1,0 +1,26 @@
+<div class="test-value">
+  <mat-form-field>
+    <mat-label>Test value prefix</mat-label>
+    <mat-select [formControl]="testValuePrefix">
+      <mat-option *ngFor="let option of PREFIXOPTIONS" [value]="option">{{option}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Test value</mat-label>
+    <input type="number" matInput [formControl]="testValue" placeholder="enter number value">
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Test value unit</mat-label>
+    <input matInput [formControl]="testValueUnit" placeholder="unit code">
+  </mat-form-field>
+</div>
+<div class="test-period">
+  <mat-form-field>
+    <mat-label>from</mat-label>
+    <input type="date" matInput [formControl]="from">
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>to</mat-label>
+    <input type="date" matInput [formControl]="to">
+  </mat-form-field>
+</div>

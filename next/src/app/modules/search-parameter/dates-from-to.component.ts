@@ -26,6 +26,9 @@ export class DatesFromToComponent extends BaseControlValueAccessor<DatesFromTo> 
   from: FormControl = new FormControl('');
   to: FormControl = new FormControl('');
 
+  /**
+   * Part of the ControlValueAccessor interface
+   */
   writeValue(value: DatesFromTo): void {
     this.from.setValue(value.from);
     this.to.setValue(value.to);
