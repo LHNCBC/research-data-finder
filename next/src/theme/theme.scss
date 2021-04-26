@@ -12,7 +12,7 @@
   // The amount to scale the font for the floating label and subscript.
   $subscript-font-scale: 0.75;
   // The padding above and below the infix.
-  $infix-padding: $form-field-infix;
+  $infix-padding: $form-field-infix-padding;
   // The margin applied to the form-field-infix to reserve space for the floating label.
   $infix-margin-top: 1em * $line-height * $subscript-font-scale;
   // The space between the bottom of the .mat-form-field-flex area and the subscript wrapper.
