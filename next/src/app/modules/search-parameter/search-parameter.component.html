@@ -6,7 +6,7 @@
            matInput
            [formControl]="resourceType"
            [matAutocomplete]="autocomplete">
-    <mat-autocomplete #autocomplete="matAutocomplete">
+    <mat-autocomplete #autocomplete="matAutocomplete" panelWidth="auto">
       <mat-option *ngFor="let option of filteredResourceTypes | async" [value]="option">
         {{option}}
       </mat-option>
