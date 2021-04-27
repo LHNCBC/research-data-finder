@@ -99,8 +99,8 @@ export class FhirBackendService implements HttpBackend {
    */
   constructor(private defaultBackend: HttpXhrBackend) {
     this.fhirClient = new FhirBatchQuery({
-      // serviceBaseUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4'
-      serviceBaseUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/'
+      serviceBaseUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4'
+      // serviceBaseUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/'
     });
     this.fhirClient.initialize().then(
       () => this.initialized.next(ConnectionStatus.Ready),
