@@ -245,7 +245,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   get countMessage(): string {
     if (this.dataSource?.data.length === 0) {
-      return `No ${this.resourceType} resources found.`;
+      return `No ${this.resourceType} resources were found on the server.`;
     } else {
       let output = '';
       if (this.enableSelection) {
