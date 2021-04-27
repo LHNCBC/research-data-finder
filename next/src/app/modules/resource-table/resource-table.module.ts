@@ -10,6 +10,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
   declarations: [ResourceTableComponent],
@@ -24,6 +25,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatCheckboxModule,
     FormsModule,
     MatInputModule,
+    MatTooltipModule,
     MatProgressSpinnerModule,
     MatSelectModule
   ]

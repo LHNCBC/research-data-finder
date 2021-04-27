@@ -13,6 +13,7 @@ const icons = [
   'keyboard_arrow_left',
   'cancel',
   'clear',
+  'clear_all_black',
   'add',
   'refresh',
   'upload',

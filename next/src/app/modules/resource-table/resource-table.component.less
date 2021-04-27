@@ -17,8 +17,19 @@
   margin-left: -20px;
 }
 
-/*
-.mat-expansion-panel-header {
-  height: 25px;
+td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
+  padding-right: 5px;
 }
-*/
+
+td.mat-cell {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+th.mat-header-cell:not(.cell-with-icon) {
+  min-width: 90px;
+}
+
+th button[mat-icon-button] {
+  margin-left: -12px;
+}

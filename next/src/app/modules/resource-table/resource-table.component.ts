@@ -216,6 +216,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
   /**
    * Returns string values to display in a cell
+   * @param row - data for a row of table (entry in the bundle)
+   * @param column - column description
    */
   getCellStrings(row: BundleEntry, column: ColumnDescription): string[] {
     const fullPath = column.element

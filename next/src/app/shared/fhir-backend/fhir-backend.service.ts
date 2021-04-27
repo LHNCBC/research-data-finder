@@ -1,3 +1,6 @@
+/**
+ * This file contains a service used to handle HTTP requests to the FHIR server.
+ */
 import { Injectable } from '@angular/core';
 import {
   HttpBackend,
@@ -96,8 +99,8 @@ export class FhirBackendService implements HttpBackend {
    */
   constructor(private defaultBackend: HttpXhrBackend) {
     this.fhirClient = new FhirBatchQuery({
-      serviceBaseUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4'
-      // serviceBaseUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/'
+      // serviceBaseUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4'
+      serviceBaseUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/'
     });
     this.fhirClient.initialize().then(
       () => this.initialized.next(ConnectionStatus.Ready),
