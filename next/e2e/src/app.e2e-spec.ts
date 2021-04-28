@@ -14,6 +14,7 @@ let page: AppPage;
 let stepper: MatStepperHarness;
 let stepsArray: Array<MatStepHarness>;
 let settingsStep: MatStepHarness;
+let selectAnAreaOfInterestStep: MatStepHarness;
 let defineCohortStep: MatStepHarness;
 let viewCohortStep: MatStepHarness;
 let pullDataStep: MatStepHarness;
@@ -25,7 +26,13 @@ beforeAll(async () => {
   const harnessLoader = ProtractorHarnessEnvironment.loader();
   stepper = await harnessLoader.getHarness(MatStepperHarness);
   stepsArray = await stepper.getSteps();
-  [settingsStep, defineCohortStep, viewCohortStep, pullDataStep] = stepsArray;
+  [
+    settingsStep,
+    selectAnAreaOfInterestStep,
+    defineCohortStep,
+    viewCohortStep,
+    pullDataStep
+  ] = stepsArray;
 });
 
 describe('Research Data Finder', () => {
@@ -43,7 +50,7 @@ describe('Research Data Finder', () => {
   });
 
   it('should display all steps', () => {
-    expect(stepsArray.length).toBe(4);
+    expect(stepsArray.length).toBe(5);
   });
 
   it('should select the Settings step by default', async () => {
@@ -84,6 +91,17 @@ describe('Research Data Finder', () => {
     expect(await settingsStep.isSelected()).toBe(true);
   });
 
+  it('should allow skipping the Select an area of interest step', async () => {
+    await defineCohortStep.select();
+    expect(await defineCohortStep.isSelected()).toBe(true);
+    await settingsStep.select();
+  });
+
+  it('should allow to proceed to the Select an area of interest step', async () => {
+    await nextPageBtn.click();
+    expect(await selectAnAreaOfInterestStep.isSelected()).toBe(true);
+  });
+
   it('should allow to proceed to the Define cohort step', async () => {
     await nextPageBtn.click();
     expect(await defineCohortStep.isSelected()).toBe(true);
@@ -111,9 +129,14 @@ describe('Research Data Finder', () => {
       .logs()
       .get(logging.Type.BROWSER)
       .then((entries) => {
-        // Ignore the error that the sorting parameter "age-at-event" is not supported
+        // Ignore these errors:
+        // * sorting parameter "age-at-event" is not supported
+        // * favicon.ico is missing
         return entries.filter(
-          (entry) => !/Observation\?_sort=age-at-event/.test(entry.message)
+          (entry) =>
+            !/Observation\?_sort=age-at-event|\/favicon\.ico/.test(
+              entry.message
+            )
         );
       });
     expect(logs).not.toContain(

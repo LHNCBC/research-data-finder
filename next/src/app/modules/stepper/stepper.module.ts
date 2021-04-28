@@ -6,12 +6,11 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { SearchParametersModule } from 'src/app/modules/search-parameters/search-parameters.module';
-import { SettingsPageModule } from '../step-1-settings-page/settings-page.module';
+import { SettingsPageModule } from '../step-0-settings-page/settings-page.module';
 import { DefineCohortPageModule } from '../step-2-define-cohort-page/define-cohort-page.module';
 import { ViewCohortPageModule } from '../step-3-view-cohort-page/view-cohort-page.module';
 import { PullDataPageModule } from '../step-4-pull-data-page/pull-data-page.module';
-import { MatDialogModule } from '@angular/material/dialog';
-import { SelectColumnsModule } from '../select-columns/select-columns.module';
+import { SelectAnAreaOfInterestModule } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.module';
 
 @NgModule({
   declarations: [StepperComponent],
@@ -27,8 +26,7 @@ import { SelectColumnsModule } from '../select-columns/select-columns.module';
     DefineCohortPageModule,
     ViewCohortPageModule,
     PullDataPageModule,
-    MatDialogModule,
-    SelectColumnsModule
+    SelectAnAreaOfInterestModule
   ]
 })
 export class StepperModule {}

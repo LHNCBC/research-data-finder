@@ -1,3 +1,6 @@
+/**
+ * This file contains a service used to handle HTTP requests to the FHIR server.
+ */
 import { Injectable } from '@angular/core';
 import {
   HttpBackend,
@@ -10,9 +13,6 @@ import {
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import * as definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
-import { getValueFnDescriptor } from '@legacy/js/resource-table';
-import { ColumnDescription } from '../../types/column.description';
-import { capitalize } from '../utils';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -32,7 +32,9 @@ export enum ConnectionStatus {
  * the backend, without going through the interceptor chain.
  * The main function which handles HTTP requests is called "handle".
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class FhirBackendService implements HttpBackend {
   // Whether the connection to server is initialized.
   initialized = new BehaviorSubject(ConnectionStatus.Pending);
@@ -212,54 +214,5 @@ export class FhirBackendService implements HttpBackend {
     }
 
     return definitions;
-  }
-
-  /**
-   * Returns an array of available column descriptions for this.resourceType.
-   */
-  getColumns(resourceType: string): ColumnDescription[] {
-    const currentDefinitions = this.getCurrentDefinitions();
-    const columnDescriptions =
-      currentDefinitions.resources[resourceType].columnDescriptions;
-    const visibleColumnsRawString = window.localStorage.getItem(
-      resourceType + '-columns'
-    );
-    const visibleColumnNames = visibleColumnsRawString
-      ? visibleColumnsRawString.split(',')
-      : [];
-
-    // Add a custom column for ResearchStudy, because it doesn't have column Subject
-    if (resourceType === 'ResearchStudy') {
-      columnDescriptions.push({
-        displayName: 'Research subject',
-        customElement: 'patientName',
-        types: ['context-patient-name']
-      });
-    }
-    return (
-      columnDescriptions
-        .map((column) => {
-          const displayName =
-            column.displayName ||
-            capitalize(column.element)
-              .replace(/\[x]$/, '')
-              .split(/(?=[A-Z])/)
-              .join(' ');
-          return {
-            ...column,
-            displayName,
-            // Use only supported column types
-            types: column.types.filter(
-              (type) => getValueFnDescriptor[type] !== undefined
-            ),
-            visible:
-              visibleColumnNames.indexOf(
-                column.customElement || column.element
-              ) !== -1
-          };
-        })
-        // Exclude unsupported columns
-        .filter((column) => column.types.length)
-    );
   }
 }

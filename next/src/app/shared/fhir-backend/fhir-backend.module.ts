@@ -6,9 +6,6 @@ import { FhirBackendService } from './fhir-backend.service';
 @NgModule({
   declarations: [],
   imports: [CommonModule, HttpClientModule],
-  providers: [
-    FhirBackendService,
-    { provide: HttpBackend, useExisting: FhirBackendService }
-  ]
+  providers: [{ provide: HttpBackend, useExisting: FhirBackendService }]
 })
 export class FhirBackendModule {}

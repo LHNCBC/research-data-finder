@@ -105,7 +105,13 @@
             ],
             "scripts": [
               "./node_modules/jquery/dist/jquery.min.js"
-            ]
+            ],
+            "customWebpackConfig": {
+              "path": "./extra-webpack.config.js",
+              "mergeRules": {
+                "externals": "replace"
+              }
+            }
           }
         },
         "lint": {

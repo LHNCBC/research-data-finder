@@ -10,6 +10,29 @@
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperNext type="button">
+          Select an area of interest<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step label="Select an area of interest" state="edit"
+            [optional]="selectAnAreaOfInterest.option.value === selectAnAreaOfInterest.SelectOptions.Skip">
+    <div class="v-box">
+      <app-select-an-area-of-interest #selectAnAreaOfInterest>
+      </app-select-an-area-of-interest>
+      <div class="spacer"></div>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperPrevious>
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Settings
+        </button>
+        <div class="spacer" *ngIf="selectAnAreaOfInterest.showTable"></div>
+        <button mat-stroked-button color="secondary" *ngIf="selectAnAreaOfInterest.showTable"
+                (click)="columnDescriptions.openColumnsDialog('ResearchStudy')">
+          <mat-icon aria-hidden="false" svgIcon="create"></mat-icon>Configure columns
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="primary" matStepperNext type="button">
           Define cohort<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
@@ -22,7 +45,7 @@
         #defineCohortComponent></app-define-cohort-page>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Settings
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Select an area of interest
         </button>
         <div class="spacer"></div>
         <button (click)="defineCohortComponent.addParameter()" mat-stroked-button color="secondary">
@@ -41,8 +64,8 @@
 
   <mat-step label="View cohort">
     <div class="v-box">
-      <app-view-cohort-page *ngIf="serverInitialized" [max]="defineCohortComponent.defineCohortForm.get('maxPatientsNumber').value"
-                            [columnDescriptions]="visibleColumns">
+      <app-view-cohort-page *ngIf="serverInitialized"
+          [max]="defineCohortComponent.defineCohortForm.get('maxPatientsNumber').value">
       </app-view-cohort-page>
       <div class="spacer"></div>
       <div class="h-box">
@@ -58,7 +81,7 @@
           <mat-icon svgIcon="refresh"></mat-icon>Reload
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary" (click)="openColumnsDialog()">
+        <button mat-stroked-button color="secondary" (click)="columnDescriptions.openColumnsDialog('Patient')">
           <mat-icon aria-hidden="false" svgIcon="create"></mat-icon>Configure columns
         </button>
         <div class="spacer"></div>

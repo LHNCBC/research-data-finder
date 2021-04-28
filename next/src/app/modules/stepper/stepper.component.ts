@@ -1,13 +1,12 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
-import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import { SelectColumnsComponent } from '../select-columns/select-columns.component';
 import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { ColumnDescription } from '../../types/column.description';
+import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import { filter, take } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 
 /**
@@ -18,67 +17,30 @@ import { Subscription } from 'rxjs';
   templateUrl: './stepper.component.html',
   styleUrls: ['./stepper.component.less']
 })
-export class StepperComponent implements OnInit, OnDestroy {
+export class StepperComponent implements OnDestroy {
   @ViewChild('stepper') private myStepper: MatStepper;
+
   settings: FormControl = new FormControl();
   defineCohort: FormControl = new FormControl();
-  columns: ColumnDescription[] = [];
-  visibleColumns: ColumnDescription[] = [];
   serverInitialized = false;
   subscription: Subscription;
 
   constructor(
-    public dialog: MatDialog,
+    public columnDescriptions: ColumnDescriptionsService,
     private fhirBackend: FhirBackendService
   ) {
-    this.subscription = fhirBackend.initialized.subscribe(
-      (status: ConnectionStatus) => {
-        if (status === ConnectionStatus.Ready) {
-          this.columns = this.getColumns();
-          this.visibleColumns = this.columns.filter((x) => x.visible);
-          this.serverInitialized = true;
-        } else {
-          return;
-        }
-      }
-    );
+    this.subscription = fhirBackend.initialized
+      .pipe(
+        filter((status) => status === ConnectionStatus.Ready),
+        take(1)
+      )
+      .subscribe(() => {
+        this.serverInitialized = true;
+      });
   }
-
-  ngOnInit(): void {}
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
-  }
-
-  private getColumns(): ColumnDescription[] {
-    return this.fhirBackend.getColumns('Patient');
-  }
-
-  /**
-   * Open dialog to manage visible columns
-   */
-  openColumnsDialog(): void {
-    this.columns = this.getColumns();
-    const dialogConfig = new MatDialogConfig();
-    dialogConfig.disableClose = true;
-    dialogConfig.hasBackdrop = true;
-    dialogConfig.data = {
-      columns: this.columns
-    };
-    const dialogRef = this.dialog.open(SelectColumnsComponent, dialogConfig);
-    dialogRef.afterClosed().subscribe((data: ColumnDescription[]) => {
-      if (!data) {
-        return;
-      }
-      this.columns = data;
-      this.visibleColumns = this.columns.filter((x) => x.visible);
-      window.localStorage.setItem(
-        'Patient-columns',
-        data
-          .filter((x) => x.visible)
-          .map((x) => x.element)
-          .join(',')
-      );
-    });
+    this.columnDescriptions.destroy();
   }
 }
