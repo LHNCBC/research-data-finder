@@ -1,9 +1,9 @@
 import {
-  AfterViewInit,
   Component,
   Input,
   NgZone,
   OnChanges,
+  OnDestroy,
   OnInit,
   SimpleChanges,
   ViewChild
@@ -17,8 +17,11 @@ import BundleEntry = fhir.BundleEntry;
 import { ColumnDescription } from '../../types/column.description';
 import { debounceTime } from 'rxjs/operators';
 import { CdkScrollable } from '@angular/cdk/overlay';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { capitalize } from '../../shared/utils';
+import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import { ColumnValuesService } from '../../shared/column-values/column-values.service';
+import { escapeStringForRegExp } from '@legacy/js/common/utils';
+import { Subscription } from 'rxjs';
 
 /**
  * Component for loading table of resources
@@ -28,8 +31,7 @@ import { capitalize } from '../../shared/utils';
   templateUrl: './resource-table.component.html',
   styleUrls: ['./resource-table.component.less']
 })
-export class ResourceTableComponent
-  implements OnInit, AfterViewInit, OnChanges {
+export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() columnDescriptions: ColumnDescription[];
   @Input() initialBundle: Bundle;
   @Input() enableClientFiltering = false;
@@ -44,13 +46,30 @@ export class ResourceTableComponent
   dataSource = new MatTableDataSource<BundleEntry>([]);
   lastResourceElement: HTMLElement;
   isLoading = false;
-  @ViewChild(CdkScrollable) scrollable: CdkScrollable;
+
+  scrollSubscription: Subscription;
+
+  @ViewChild(CdkScrollable)
+  set scrollable(scrollable: CdkScrollable) {
+    this.scrollSubscription?.unsubscribe();
+    if (scrollable) {
+      this.scrollSubscription = scrollable
+        .elementScrolled()
+        .pipe(debounceTime(700))
+        .subscribe((e) => {
+          this.ngZone.run(() => {
+            this.onTableScroll(e);
+          });
+        });
+    }
+  }
   resourceTotal = 0;
 
   constructor(
     private http: HttpClient,
     private ngZone: NgZone,
-    private fhirBackend: FhirBackendService
+    private columnDescriptionsService: ColumnDescriptionsService,
+    private columnValuesService: ColumnValuesService
   ) {}
 
   ngOnInit(): void {
@@ -62,6 +81,10 @@ export class ResourceTableComponent
     this.resourceTotal = this.initialBundle.total;
   }
 
+  ngOnDestroy(): void {
+    this.scrollSubscription?.unsubscribe();
+  }
+
   /**
    * Use columns present in bundle info as default, if empty column descriptions is passed in
    */
@@ -71,9 +94,11 @@ export class ResourceTableComponent
       return;
     }
 
-    const allColumns = this.fhirBackend.getColumns(this.resourceType);
-    this.columnDescriptions = allColumns.filter((x) =>
-      this.getCellDisplay(this.initialBundle.entry[0], x)
+    const allColumns = this.columnDescriptionsService.getAvailableColumns(
+      this.resourceType
+    );
+    this.columnDescriptions = allColumns.filter(
+      (x) => this.getCellStrings(this.initialBundle.entry[0], x).length
     );
     // Save column selections of default
     window.localStorage.setItem(
@@ -106,12 +131,12 @@ export class ResourceTableComponent
               const columnDescription = this.columnDescriptions.find(
                 (c) => c.element === key
               );
-              const cellValue = this.getCellDisplay(data, columnDescription);
-              if (
-                !cellValue
-                  .toLowerCase()
-                  .startsWith((value as string).toLowerCase())
-              ) {
+              const cellValue = this.getCellStrings(data, columnDescription);
+              const reCondition = new RegExp(
+                '\\b' + escapeStringForRegExp(value),
+                'i'
+              );
+              if (!cellValue.some((item) => reCondition.test(item))) {
                 return false;
               }
             }
@@ -125,17 +150,6 @@ export class ResourceTableComponent
         });
       }
     }
-  }
-
-  ngAfterViewInit(): void {
-    this.scrollable
-      .elementScrolled()
-      .pipe(debounceTime(700))
-      .subscribe((e) => {
-        this.ngZone.run(() => {
-          this.onTableScroll(e);
-        });
-      });
   }
 
   /**
@@ -201,104 +215,58 @@ export class ResourceTableComponent
   }
 
   /**
-   * Get cell display
+   * Returns string values to display in a cell
+   * @param row - data for a row of table (entry in the bundle)
+   * @param column - column description
    */
-  getCellDisplay(row: BundleEntry, column: ColumnDescription): string {
-    if (column.types.length === 1) {
-      return this.getCellDisplayByType(row, column.types[0], column.element);
-    }
+  getCellStrings(row: BundleEntry, column: ColumnDescription): string[] {
+    const fullPath = column.element
+      ? this.resourceType + '.' + column.element
+      : '';
+
     for (const type of column.types) {
-      const output = this.getCellDisplayByType(
-        row,
+      const element = column.element.replace('[x]', capitalize(type));
+      const output = this.columnValuesService.valueToStrings(
+        row.resource[element],
         type,
-        column.element.replace('[x]', capitalize(type))
+        column.isArray,
+        fullPath
       );
-      if (output) {
+
+      if (output && output.length) {
         return output;
       }
     }
-    return '';
-  }
-
-  /**
-   * Get cell display by type
-   */
-  getCellDisplayByType(
-    row: BundleEntry,
-    type: string,
-    element: string
-  ): string {
-    // TODO: we need support for all types from previous version of the application
-    switch (type) {
-      case 'Address':
-        return this.getAddressDisplay(row.resource[element]);
-      case 'HumanName':
-        return this.humanNameToString(row.resource[element]);
-      default:
-        return row.resource[element];
-    }
-  }
-
-  /**
-   * Get address display
-   */
-  getAddressDisplay(addressElements): string {
-    if (addressElements) {
-      for (const address of addressElements) {
-        if (address['text']) {
-          return address['text'];
-        }
-      }
-    }
-    return '';
-  }
-
-  /**
-   * Get name display
-   */
-  humanNameToString(nameElements): string {
-    let rtn;
-    const name = nameElements && nameElements[0];
-
-    if (name) {
-      // tslint:disable-next-line:one-variable-per-declaration
-      const given = name.given || [],
-        firstName = given[0] || '',
-        lastName = name.family || '';
-      let middleName = given[1] || '';
-
-      if (middleName.length === 1) {
-        middleName += '.';
-      }
-      rtn = [firstName, middleName, lastName].filter((item) => item).join(' ');
-    }
-
-    return rtn || null;
+    return [];
   }
 
   /**
    * Get count message according to total/max number of resources
    */
   get countMessage(): string {
-    let output = '';
-    if (this.enableSelection) {
-      output += `Selected ${this.selectedResources.selected.length} out of `;
+    if (this.dataSource?.data.length === 0) {
+      return `No ${this.resourceType} resources were found on the server.`;
+    } else {
+      let output = '';
+      if (this.enableSelection) {
+        output += `Selected ${this.selectedResources.selected.length} out of `;
+      }
+      if (!this.resourceTotal && !this.max) {
+        output += `${this.dataSource.data.length} rows loaded.`;
+      }
+      if (!this.resourceTotal && this.max) {
+        output += `${this.max} maximum rows.`;
+      }
+      if (this.resourceTotal && !this.max) {
+        output += `${this.resourceTotal} total rows.`;
+      }
+      if (this.resourceTotal && this.max) {
+        output +=
+          this.max > this.resourceTotal
+            ? `${this.resourceTotal} total rows.`
+            : `${this.max} maximum rows.`;
+      }
+      return output;
     }
-    if (!this.resourceTotal && !this.max) {
-      output += `${this.dataSource.data.length} rows loaded.`;
-    }
-    if (!this.resourceTotal && this.max) {
-      output += `${this.max} maximum rows.`;
-    }
-    if (this.resourceTotal && !this.max) {
-      output += `${this.resourceTotal} total rows.`;
-    }
-    if (this.resourceTotal && this.max) {
-      output +=
-        this.max > this.resourceTotal
-          ? `${this.resourceTotal} total rows.`
-          : `${this.max} maximum rows.`;
-    }
-    return output;
   }
 }

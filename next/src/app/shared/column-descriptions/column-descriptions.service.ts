@@ -8,6 +8,8 @@ import {
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { SelectColumnsComponent } from '../../modules/select-columns/select-columns.component';
 import { filter, map } from 'rxjs/operators';
+import { capitalize } from '../utils';
+import { ColumnValuesService } from '../column-values/column-values.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +19,8 @@ export class ColumnDescriptionsService {
   subscriptions: Subscription[] = [];
   constructor(
     private fhirBackend: FhirBackendService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private columnValues: ColumnValuesService
   ) {}
 
   /**
@@ -28,7 +31,7 @@ export class ColumnDescriptionsService {
     dialogConfig.disableClose = true;
     dialogConfig.hasBackdrop = true;
     dialogConfig.data = {
-      columns: this.fhirBackend.getColumns(resourceType)
+      columns: this.getAvailableColumns(resourceType)
     };
     const dialogRef = this.dialog.open(SelectColumnsComponent, dialogConfig);
     dialogRef.afterClosed().subscribe((columns: ColumnDescription[]) => {
@@ -58,7 +61,7 @@ export class ColumnDescriptionsService {
         this.fhirBackend.initialized
           .pipe(
             filter((status) => status === ConnectionStatus.Ready),
-            map(() => this.fhirBackend.getColumns(resourceType))
+            map(() => this.getAvailableColumns(resourceType))
           )
           .subscribe((columns) => {
             this.visibleColumns[resourceType].next(
@@ -68,6 +71,48 @@ export class ColumnDescriptionsService {
       );
     }
     return this.visibleColumns[resourceType];
+  }
+
+  /**
+   * Returns an array of available column descriptions for the resource table.
+   * @param resourceType - resource type
+   */
+  getAvailableColumns(resourceType: string): ColumnDescription[] {
+    const currentDefinitions = this.fhirBackend.getCurrentDefinitions();
+    const columnDescriptions =
+      currentDefinitions.resources[resourceType].columnDescriptions;
+    const visibleColumnsRawString = window.localStorage.getItem(
+      resourceType + '-columns'
+    );
+    const visibleColumnNames = visibleColumnsRawString
+      ? visibleColumnsRawString.split(',')
+      : [];
+
+    return (
+      columnDescriptions
+        .map((column) => {
+          const displayName =
+            column.displayName ||
+            capitalize(column.element)
+              .replace(/\[x]$/, '')
+              .split(/(?=[A-Z])/)
+              .join(' ');
+          return {
+            ...column,
+            displayName,
+            // Use only supported column types
+            types: column.types.filter(
+              (type) => this.columnValues.getValueFn(type) !== undefined
+            ),
+            visible:
+              visibleColumnNames.indexOf(
+                column.customElement || column.element
+              ) !== -1
+          };
+        })
+        // Exclude unsupported columns
+        .filter((column) => column.types.length)
+    );
   }
 
   /**

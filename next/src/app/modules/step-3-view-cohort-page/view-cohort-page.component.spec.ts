@@ -7,6 +7,7 @@ import { MockComponent } from 'ng-mocks';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 
 describe('ViewCohortComponent', () => {
   let component: ViewCohortPageComponent;
@@ -22,7 +23,16 @@ describe('ViewCohortComponent', () => {
         MockComponent(ResourceTableComponent)
       ],
       imports: [CommonModule, BrowserAnimationsModule, MatExpansionModule],
-      providers: [{ provide: HttpClient, useValue: spies[0] }]
+      providers: [
+        { provide: HttpClient, useValue: spies[0] },
+        {
+          provide: ColumnDescriptionsService,
+          useValue: {
+            getVisibleColumns: () => of([]),
+            destroy: () => {}
+          }
+        }
+      ]
     }).compileComponents();
   });
 

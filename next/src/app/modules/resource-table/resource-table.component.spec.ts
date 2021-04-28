@@ -12,7 +12,8 @@ import { ColumnDescription } from '../../types/column.description';
 import { By } from '@angular/platform-browser';
 import { CdkScrollable } from '@angular/cdk/overlay';
 import { DebugElement, SimpleChange, SimpleChanges } from '@angular/core';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import { SharedModule } from '../../shared/shared.module';
 
 class Page {
   private fixture: ComponentFixture<ResourceTableComponent>;
@@ -50,17 +51,19 @@ describe('ResourceTableComponent', () => {
 
   const spies = [];
   spies.push(jasmine.createSpyObj('HttpClient', ['get']));
-  spies.push(jasmine.createSpyObj('FhirBackendService', ['getColumns']));
+  spies.push(
+    jasmine.createSpyObj('ColumnDescriptionsService', ['getAvailableColumns'])
+  );
   spies[0].get.and.returnValue(of(bundle));
-  spies[1].getColumns.and.returnValue(columnDescriptions);
+  spies[1].getAvailableColumns.and.returnValue(columnDescriptions);
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ResourceTableComponent],
-      imports: [ResourceTableModule],
+      imports: [ResourceTableModule, SharedModule],
       providers: [
         { provide: HttpClient, useValue: spies[0] },
-        { provide: FhirBackendService, useValue: spies[1] }
+        { provide: ColumnDescriptionsService, useValue: spies[1] }
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(ResourceTableComponent);
