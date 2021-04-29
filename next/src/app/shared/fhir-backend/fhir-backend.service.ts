@@ -116,7 +116,10 @@ export class FhirBackendService implements HttpBackend {
    * Research Data Finder is used for that.
    */
   handle(request: HttpRequest<any>): Observable<HttpEvent<any>> {
-    if (!serviceBaseUrlRegExp.test(request.url)) {
+    if (
+      !serviceBaseUrlRegExp.test(request.url) &&
+      !request.url.startsWith(this.serviceBaseUrl)
+    ) {
       // If it is not a request to the FHIR server,
       // pass the request to the default Angular backend.
       return this.defaultBackend.handle(request);

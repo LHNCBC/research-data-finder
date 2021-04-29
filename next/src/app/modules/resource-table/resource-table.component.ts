@@ -48,17 +48,19 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   isLoading = false;
 
   scrollSubscription: Subscription;
+  private cdkScrollable: CdkScrollable;
 
   @ViewChild(CdkScrollable)
   set scrollable(scrollable: CdkScrollable) {
     this.scrollSubscription?.unsubscribe();
     if (scrollable) {
+      this.cdkScrollable = scrollable;
       this.scrollSubscription = scrollable
         .elementScrolled()
         .pipe(debounceTime(700))
         .subscribe((e) => {
           this.ngZone.run(() => {
-            this.onTableScroll(e);
+            this.onTableScroll();
           });
         });
     }
@@ -147,6 +149,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }) as (BundleEntry, string) => boolean;
         this.filtersForm.valueChanges.subscribe((value) => {
           this.dataSource.filter = { ...value } as string;
+          setTimeout(() => {
+            this.onTableScroll();
+          });
         });
       }
     }
@@ -169,24 +174,21 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       }
       this.nextBundleUrl = data.link.find((l) => l.relation === 'next')?.url;
       this.dataSource.data = this.dataSource.data.concat(data.entry);
+      this.onTableScroll();
     });
   }
 
   /**
    * Table viewport scroll handler
    */
-  onTableScroll(e): void {
+  onTableScroll(): void {
     // Extra safeguard in case server traffic takes longer than scroll throttle time (1000ms)
     if (!this.nextBundleUrl) {
       return;
     }
-    const tableViewHeight = e.target.offsetHeight; // viewport: 300px
-    const tableScrollHeight = e.target.scrollHeight; // length of all table
-    const scrollLocation = e.target.scrollTop; // how far user scrolled
     // If the user has scrolled within 200px of the bottom, add more data
     const buffer = 200;
-    const limit = tableScrollHeight - tableViewHeight - buffer;
-    if (scrollLocation > limit) {
+    if (this.cdkScrollable.measureScrollOffset('bottom') < buffer) {
       this.callBatch(this.nextBundleUrl);
     }
   }
@@ -258,7 +260,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         output += `${this.max} maximum rows.`;
       }
       if (this.resourceTotal && !this.max) {
-        output += `${this.resourceTotal} total rows.`;
+        output += `${this.dataSource.data.length} rows loaded (${this.resourceTotal} total rows).`;
       }
       if (this.resourceTotal && this.max) {
         output +=
