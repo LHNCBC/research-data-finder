@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
@@ -26,12 +26,42 @@ interface ObservationTestValue {
   providers: createControlValueAccessorProviders(ObservationTestValueComponent)
 })
 export class ObservationTestValueComponent extends BaseControlValueAccessor<ObservationTestValue> {
-  readonly PREFIXOPTIONS = ['=', 'not equal', '>', '<', '>=', '<='];
+  @Input() datatype: string;
   testValuePrefix: FormControl = new FormControl('');
+  testValueModifier: FormControl = new FormControl('');
   testValue: FormControl = new FormControl('');
   testValueUnit: FormControl = new FormControl('');
   from: FormControl = new FormControl('');
   to: FormControl = new FormControl('');
+  // Mapping for supported value[x] properties of Observation
+  readonly typeDescriptions = {
+    Quantity: {
+      searchValPrefixes: [
+        ['=', 'eq'],
+        ['not equal', 'ne'],
+        ['>', 'gt'],
+        ['<', 'lt'],
+        ['>=', 'ge'],
+        ['<=', 'le']
+      ],
+      unit: true,
+      inputFieldAttrs: 'type="number" step="any" placeholder="enter number value"'
+    },
+    CodeableConcept: {
+      modifiers: [['starts with', ':text']],
+      unit: false,
+      inputFieldAttrs: 'type="text" placeholder="enter string value"'
+    },
+    string: {
+      modifiers: [
+        ['starts with', ''],
+        ['contains', ':contains'],
+        ['exact', ':exact']
+      ],
+      unit: false,
+      inputFieldAttrs: 'type="text" placeholder="enter string value"'
+    }
+  };
 
   /**
    * Part of the ControlValueAccessor interface
