@@ -10,7 +10,8 @@ import {
  */
 interface ObservationTestValue {
   testValuePrefix: string;
-  testValue: number;
+  testValueModifier: string;
+  testValue: number | string;
   testValueUnit: string;
   from: string;
   to: string;
@@ -44,13 +45,11 @@ export class ObservationTestValueComponent extends BaseControlValueAccessor<Obse
         ['>=', 'ge'],
         ['<=', 'le']
       ],
-      unit: true,
-      inputFieldAttrs: 'type="number" step="any" placeholder="enter number value"'
+      unit: true
     },
     CodeableConcept: {
       modifiers: [['starts with', ':text']],
-      unit: false,
-      inputFieldAttrs: 'type="text" placeholder="enter string value"'
+      unit: false
     },
     string: {
       modifiers: [
@@ -58,8 +57,7 @@ export class ObservationTestValueComponent extends BaseControlValueAccessor<Obse
         ['contains', ':contains'],
         ['exact', ':exact']
       ],
-      unit: false,
-      inputFieldAttrs: 'type="text" placeholder="enter string value"'
+      unit: false
     }
   };
 
@@ -68,6 +66,18 @@ export class ObservationTestValueComponent extends BaseControlValueAccessor<Obse
    */
   writeValue(value: ObservationTestValue): void {
     this.testValuePrefix.setValue(value.testValuePrefix);
+    if (
+      !value.testValueModifier &&
+      this.typeDescriptions[this.datatype].modifiers &&
+      this.typeDescriptions[this.datatype].modifiers.length === 1
+    ) { // default and disable control if only one option
+      this.testValueModifier.setValue(
+        this.typeDescriptions[this.datatype].modifiers[0][1]
+      );
+      this.testValueModifier.disable();
+    } else {
+      this.testValueModifier.setValue(value.testValueModifier);
+    }
     this.testValue.setValue(value.testValue);
     this.testValueUnit.setValue(value.testValueUnit);
     this.from.setValue(value.from);
