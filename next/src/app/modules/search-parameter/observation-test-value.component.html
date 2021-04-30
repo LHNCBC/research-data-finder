@@ -13,7 +13,7 @@
   </mat-form-field>
   <mat-form-field>
     <mat-label>Test value</mat-label>
-    <input *ngIf="datatype === 'Quantity'" type="number" matInput [formControl]="testValue" placeholder="enter number value">
+    <input *ngIf="datatype === 'Quantity'" type="number" step="any" matInput [formControl]="testValue" placeholder="enter number value">
     <input *ngIf="datatype !== 'Quantity'" type="text" matInput [formControl]="testValue" placeholder="enter string value">
   </mat-form-field>
   <mat-form-field *ngIf="typeDescriptions[datatype].unit">
