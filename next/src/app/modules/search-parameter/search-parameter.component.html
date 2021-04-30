@@ -36,7 +36,7 @@
       </div>
 
       <mat-form-field
-        *ngSwitchCase="selectedParameter.type === 'code' || selectedParameter.type === 'CodeableConcept' ? selectedParameter.type : ''"
+        *ngSwitchCase="selectedParameter.type === 'code' || selectedParameter.type === 'CodeableConcept' || selectedParameter.type === 'Coding' ? selectedParameter.type : ''"
         class="parameter-value">
         <mat-label>Search parameter value</mat-label>
         <input type="text"
