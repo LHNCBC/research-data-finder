@@ -1,5 +1,5 @@
 <div class="search-parameter">
-  <mat-form-field class="resource-type">
+  <mat-form-field class="resource-type" *ngIf="!fixedResourceType">
     <mat-label>Resource type</mat-label>
     <input type="text"
            aria-label="Resource type"

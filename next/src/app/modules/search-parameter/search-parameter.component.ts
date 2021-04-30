@@ -21,7 +21,8 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>
   implements OnInit {
-  @Input() fixedResourceType = true;
+  @Input() inputResourceType = '';
+  fixedResourceType = false;
   readonly OBSERVATIONBYTEST = 'Observation by Test';
   definitions: any;
 
@@ -46,11 +47,6 @@ export class SearchParameterComponent
   }
 
   ngOnInit(): void {
-    this.definitions = this.fhirBackend.getCurrentDefinitions();
-    this.resourceTypes = this.fixedResourceType
-      ? ['Observation', this.OBSERVATIONBYTEST]
-      : Object.keys(this.definitions.resources).concat(this.OBSERVATIONBYTEST);
-
     this.filteredResourceTypes = this.resourceType.valueChanges.pipe(
       startWith(''),
       map((value) => this._filter(value, this.resourceTypes))
@@ -70,6 +66,16 @@ export class SearchParameterComponent
         );
       }
     });
+
+    this.definitions = this.fhirBackend.getCurrentDefinitions();
+    if (!this.inputResourceType) {
+      this.resourceTypes = Object.keys(this.definitions.resources).concat(this.OBSERVATIONBYTEST);
+    } else if (this.inputResourceType === 'Observation') {
+      this.resourceTypes = ['Observation', this.OBSERVATIONBYTEST];
+    } else { // single resource type
+      this.resourceType.setValue(this.inputResourceType);
+      this.fixedResourceType = true;
+    }
 
     this.filteredParameterNames = this.parameterName.valueChanges.pipe(
       startWith(''),
