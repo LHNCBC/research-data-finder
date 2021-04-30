@@ -54,7 +54,7 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
       )
       .subscribe(() => {
         this.http
-          .get('$fhir/ResearchStudy?_count=10')
+          .get('$fhir/ResearchStudy?_count=50')
           .subscribe((data: Bundle) => {
             this.initialBundle = data;
             this.showTable = true;
