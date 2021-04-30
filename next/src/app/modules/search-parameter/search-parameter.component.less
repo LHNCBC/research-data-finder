@@ -6,12 +6,13 @@
 
 mat-form-field ~ app-observation-code-lookup,
 app-observation-code-lookup ~ mat-form-field,
-mat-form-field ~ mat-form-field {
+mat-form-field ~ mat-form-field,
+mat-form-field ~ div {
   margin-left: 16px;
 }
 
 .resource-type {
-  width: 150px;
+  width: 210px;
 }
 
 .parameter-name {
@@ -20,6 +21,10 @@ mat-form-field ~ mat-form-field {
 
 .parameter-value {
   flex: 1 1;
+}
+
+div.parameter-value {
+  align-self: center;
 }
 
 app-observation-code-lookup {

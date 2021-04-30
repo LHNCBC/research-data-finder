@@ -6,9 +6,16 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { SearchParameterComponent } from './search-parameter.component';
 import { ObservationCodeLookupModule } from '../observation-code-lookup/observation-code-lookup.module';
+import { DatesFromToComponent } from './dates-from-to.component';
+import { ObservationTestValueComponent } from './observation-test-value.component';
+import { MatSelectModule } from '@angular/material/select';
 
 @NgModule({
-  declarations: [SearchParameterComponent],
+  declarations: [
+    SearchParameterComponent,
+    DatesFromToComponent,
+    ObservationTestValueComponent
+  ],
   exports: [SearchParameterComponent],
   imports: [
     CommonModule,
@@ -16,7 +23,8 @@ import { ObservationCodeLookupModule } from '../observation-code-lookup/observat
     MatAutocompleteModule,
     ReactiveFormsModule,
     MatInputModule,
-    ObservationCodeLookupModule
+    ObservationCodeLookupModule,
+    MatSelectModule
   ]
 })
 export class SearchParameterModule {}

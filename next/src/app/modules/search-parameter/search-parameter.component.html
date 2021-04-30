@@ -6,14 +6,14 @@
            matInput
            [formControl]="resourceType"
            [matAutocomplete]="autocomplete">
-    <mat-autocomplete #autocomplete="matAutocomplete">
+    <mat-autocomplete #autocomplete="matAutocomplete" panelWidth="auto">
       <mat-option *ngFor="let option of filteredResourceTypes | async" [value]="option">
         {{option}}
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>
 
-  <mat-form-field class="parameter-name" *ngIf="resourceType.value === 'Patient'">
+  <mat-form-field class="parameter-name" *ngIf="selectedResourceType">
     <mat-label>Search parameter name</mat-label>
     <input type="text"
            aria-label="Search parameter name"
@@ -27,12 +27,41 @@
     </mat-autocomplete>
   </mat-form-field>
 
-  <mat-form-field class="parameter-value" *ngIf="resourceType.value === 'Patient' && parameterName.value">
-    <mat-label>Parameter value</mat-label>
-    <input matInput [formControl]="parameterValue">
-  </mat-form-field>
+  <ng-container *ngIf="selectedParameter">
+    <ng-container [ngSwitch]="selectedParameter.type">
 
-  <mat-form-field class="flex" *ngIf="resourceType.value === 'Observation'">
+      <div *ngSwitchCase="'boolean'" class="parameter-value">
+        <mat-label><input type="radio" [formControl]="parameterValue" value="true">true</mat-label>
+        <mat-label><input type="radio" [formControl]="parameterValue" value="false">false</mat-label>
+      </div>
+
+      <mat-form-field
+        *ngSwitchCase="selectedParameter.type === 'code' || selectedParameter.type === 'CodeableConcept' || selectedParameter.type === 'Coding' ? selectedParameter.type : ''"
+        class="parameter-value">
+        <mat-label>Search parameter value</mat-label>
+        <input type="text"
+               matInput
+               [formControl]="parameterValue"
+               [placeholder]="selectedParameter.description"
+               [matAutocomplete]="auto2">
+        <mat-autocomplete #auto2="matAutocomplete">
+          <mat-option *ngFor="let option of filteredParameterValues | async" [value]="option">
+            {{option}}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+
+      <app-dates-from-to *ngSwitchCase="'date'" [formControl]="parameterValue" class="parameter-value"></app-dates-from-to>
+
+      <mat-form-field *ngSwitchDefault class="parameter-value">
+        <mat-label>Search parameter value</mat-label>
+        <input matInput [formControl]="parameterValue" [placeholder]="selectedParameter.description">
+      </mat-form-field>
+
+    </ng-container>
+  </ng-container>
+
+  <mat-form-field class="flex" *ngIf="resourceType.value === OBSERVATIONBYTEST">
     <mat-label>Observation codes from FHIR server</mat-label>
     <app-observation-code-lookup
       [formControl]="selectedLoincItems"
@@ -40,9 +69,8 @@
     </app-observation-code-lookup>
   </mat-form-field>
 
-  <mat-form-field class="parameter-value" *ngIf="resourceType.value === 'Observation' && selectedLoincItems.value?.datatype">
-    <mat-label>Test value</mat-label>
-    <input matInput [formControl]="parameterValue">
-  </mat-form-field>
+  <app-observation-test-value class="parameter-value" [formControl]="parameterValue" [datatype]="selectedLoincItems.value?.datatype"
+                  *ngIf="resourceType.value === OBSERVATIONBYTEST && selectedLoincItems.value?.datatype">
+  </app-observation-test-value>
 
 </div>

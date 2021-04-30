@@ -1,5 +1,5 @@
 import { AppPage } from './app.po';
-import { $, browser, logging, Key } from 'protractor';
+import { $, browser, logging, Key, ExpectedConditions } from 'protractor';
 import { ProtractorHarnessEnvironment } from '@angular/cdk/testing/protractor';
 import {
   MatStepHarness,
@@ -105,6 +105,16 @@ describe('Research Data Finder', () => {
   it('should allow to proceed to the Define cohort step', async () => {
     await nextPageBtn.click();
     expect(await defineCohortStep.isSelected()).toBe(true);
+  });
+
+  it('should add search criterion', async () => {
+    const addButton = $('#addSearchCriterion');
+    await addButton.click();
+    expect(await $('.resource-type').isDisplayed()).toBe(true);
+    await $('.resource-type input').sendKeys('Patient');
+    expect(await $('.parameter-name').isDisplayed()).toBe(true);
+    await $('.parameter-name input').sendKeys('address');
+    expect(await $('.parameter-value').isDisplayed()).toBe(true);
   });
 
   it('should not allow skipping the View cohort (search for patients) step', async () => {

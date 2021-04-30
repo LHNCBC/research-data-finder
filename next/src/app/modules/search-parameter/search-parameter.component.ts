@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -7,6 +7,7 @@ import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 
 /**
  * Component for editing one resource search parameter
@@ -20,21 +21,28 @@ import {
 export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>
   implements OnInit {
-  @Input() fixedResourceType = true;
+  @Input() inputResourceType = '';
+  fixedResourceType = false;
+  readonly OBSERVATIONBYTEST = 'Observation by Test';
+  definitions: any;
 
   resourceType: FormControl = new FormControl('');
-  resourceTypes: string[] = ['Patient', 'Observation'];
+  resourceTypes: string[] = [];
   filteredResourceTypes: Observable<string[]>;
+  selectedResourceType: any;
 
   parameterName: FormControl = new FormControl('');
-  parameterNames: string[] = ['Active', 'Address', 'etc...'];
+  parameterNames: string[] = [];
   filteredParameterNames: Observable<string[]>;
+  selectedParameter: any;
 
   parameterValue: FormControl = new FormControl('');
+  parameterValues: string[];
+  filteredParameterValues: Observable<string[]>;
 
   selectedLoincItems: FormControl = new FormControl(null);
 
-  constructor() {
+  constructor(private fhirBackend: FhirBackendService) {
     super();
   }
 
@@ -44,10 +52,52 @@ export class SearchParameterComponent
       map((value) => this._filter(value, this.resourceTypes))
     );
 
+    this.resourceType.valueChanges.subscribe((value) => {
+      if (value === this.OBSERVATIONBYTEST) {
+        this.selectedParameter = null;
+        this.selectedResourceType = null;
+        return;
+      }
+      const match = this.resourceTypes.find((rt) => rt === value);
+      if (match) {
+        this.selectedResourceType = this.definitions.resources[value];
+        this.parameterNames = this.selectedResourceType.searchParameters.map(
+          (sp) => sp.name
+        );
+      }
+    });
+
+    this.definitions = this.fhirBackend.getCurrentDefinitions();
+    if (!this.inputResourceType) {
+      this.resourceTypes = Object.keys(this.definitions.resources).concat(this.OBSERVATIONBYTEST);
+    } else if (this.inputResourceType === 'Observation') {
+      this.resourceTypes = ['Observation', this.OBSERVATIONBYTEST];
+    } else { // single resource type
+      this.resourceType.setValue(this.inputResourceType);
+      this.fixedResourceType = true;
+    }
+
     this.filteredParameterNames = this.parameterName.valueChanges.pipe(
       startWith(''),
       map((value) => this._filter(value, this.parameterNames))
     );
+
+    this.parameterName.valueChanges.subscribe((value) => {
+      if (this.selectedResourceType) {
+        this.selectedParameter = this.selectedResourceType.searchParameters.find(
+          (p) => p.name === value
+        );
+        if (this.selectedParameter && this.selectedParameter.valueSet) {
+          this.parameterValues = this.definitions.valueSets[
+            this.selectedParameter.valueSet
+          ].map((v) => v.display);
+          this.filteredParameterValues = this.parameterValue.valueChanges.pipe(
+            startWith(''),
+            map((v) => this._filter(v, this.parameterValues))
+          );
+        }
+      }
+    });
   }
 
   private _filter(
