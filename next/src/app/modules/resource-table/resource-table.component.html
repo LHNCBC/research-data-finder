@@ -49,6 +49,14 @@
       <tr mat-row *matRowDef="let row; columns: columns;"></tr>
     </table>
   </div>
+  <button mat-mini-fab
+          class="fullscreen-button"
+          color="basic"
+          matTooltip="Expand the table to full screen"
+          aria-label="Expand the table to full screen"
+          (click)="toggleFullscreen()">
+    <mat-icon [svgIcon]="fullscreen ? 'fullscreen_exit_black' : 'fullscreen_black'" ></mat-icon>
+  </button>
   <mat-spinner *ngIf="isLoading" diameter="40"></mat-spinner>
 </div>
 <p>
