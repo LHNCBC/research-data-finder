@@ -11,6 +11,7 @@ import {
   createControlValueAccessorAndValidatorProviders
 } from '../base-control-value-accessor';
 import { SearchParametersComponent } from '../search-parameters/search-parameters.component';
+import { SearchCondition } from '../../types/search.condition';
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -53,7 +54,7 @@ export class DefineCohortPageComponent
     this.patientParams.addParameter();
   }
 
-  getConditions(): string[] {
+  getConditions(): SearchCondition[] {
     return this.patientParams.getConditions();
   }
 }

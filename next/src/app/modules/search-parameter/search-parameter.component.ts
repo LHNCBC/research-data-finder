@@ -8,6 +8,7 @@ import {
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { SearchCondition } from '../../types/search.condition';
 
 /**
  * Component for editing one resource search parameter
@@ -130,7 +131,10 @@ export class SearchParameterComponent
     this.parameterValue.setValue(value.value || '');
   }
 
-  getConditionUrl(): string {
-    return `&${this.parameterName.value}=${this.parameterValue.value}`;
+  getConditionUrl(): SearchCondition {
+    return {
+      resourceType: this.resourceType.value,
+      url: `&${this.parameterName.value}=${this.parameterValue.value}`
+    };
   }
 }

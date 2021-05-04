@@ -6,6 +6,7 @@ import {
 } from '../base-control-value-accessor';
 import { SearchParameter } from 'src/app/types/search.parameter';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
+import { SearchCondition } from '../../types/search.condition';
 
 /**
  * Component for managing resources search parameters
@@ -57,7 +58,22 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
     // TODO
   }
 
-  getConditions(): string[] {
-    return this.searchParameterComponents.map((c) => c.getConditionUrl());
+  // Get search conditions from each row, group them on the resource type
+  getConditions(): SearchCondition[] {
+    const conditions = this.searchParameterComponents.map((c) =>
+      c.getConditionUrl()
+    );
+    const groupedConditions = [];
+    conditions.forEach((item) => {
+      const match = groupedConditions.find(
+        (x) => x.resourceType === item.resourceType
+      );
+      if (match) {
+        match.url += item.url;
+      } else {
+        groupedConditions.push(item);
+      }
+    });
+    return groupedConditions;
   }
 }
