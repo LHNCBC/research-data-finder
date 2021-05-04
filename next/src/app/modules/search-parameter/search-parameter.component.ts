@@ -69,10 +69,13 @@ export class SearchParameterComponent
 
     this.definitions = this.fhirBackend.getCurrentDefinitions();
     if (!this.inputResourceType) {
-      this.resourceTypes = Object.keys(this.definitions.resources).concat(this.OBSERVATIONBYTEST);
+      this.resourceTypes = Object.keys(this.definitions.resources).concat(
+        this.OBSERVATIONBYTEST
+      );
     } else if (this.inputResourceType === 'Observation') {
       this.resourceTypes = ['Observation', this.OBSERVATIONBYTEST];
-    } else { // single resource type
+    } else {
+      // single resource type
       this.resourceType.setValue(this.inputResourceType);
       this.fixedResourceType = true;
     }
@@ -125,5 +128,9 @@ export class SearchParameterComponent
     this.parameterName.setValue(value.name || '');
     // TODO:
     this.parameterValue.setValue(value.value || '');
+  }
+
+  getConditionUrl(): string {
+    return `&${this.parameterName.value}=${this.parameterValue.value}`;
   }
 }

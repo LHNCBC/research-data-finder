@@ -70,7 +70,8 @@ export class ObservationTestValueComponent extends BaseControlValueAccessor<Obse
       !value.testValueModifier &&
       this.typeDescriptions[this.datatype].modifiers &&
       this.typeDescriptions[this.datatype].modifiers.length === 1
-    ) { // default and disable control if only one option
+    ) {
+      // default and disable control if only one option
       this.testValueModifier.setValue(
         this.typeDescriptions[this.datatype].modifiers[0][1]
       );

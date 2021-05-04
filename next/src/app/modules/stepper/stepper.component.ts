@@ -8,6 +8,7 @@ import {
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { filter, take } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
+import { DefineCohortPageComponent } from '../step-2-define-cohort-page/define-cohort-page.component';
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
@@ -19,6 +20,7 @@ import { Subscription } from 'rxjs';
 })
 export class StepperComponent implements OnDestroy {
   @ViewChild('stepper') private myStepper: MatStepper;
+  @ViewChild(DefineCohortPageComponent) public defineCohortComponent;
 
   settings: FormControl = new FormControl();
   defineCohort: FormControl = new FormControl();
@@ -42,5 +44,10 @@ export class StepperComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
     this.columnDescriptions.destroy();
+  }
+
+  searchForPatients(): void {
+    const conditions = this.defineCohortComponent.getConditions();
+    console.log(conditions);
   }
 }

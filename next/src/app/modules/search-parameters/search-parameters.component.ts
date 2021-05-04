@@ -1,10 +1,11 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ViewChildren, QueryList } from '@angular/core';
 import { AbstractControl, FormArray, FormControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 import { SearchParameter } from 'src/app/types/search.parameter';
+import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 
 /**
  * Component for managing resources search parameters
@@ -22,6 +23,8 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
    * Limits the list of available search parameters to only parameters for this resource type
    */
   @Input() resourceType = '';
+  @ViewChildren(SearchParameterComponent)
+  searchParameterComponents: QueryList<SearchParameterComponent>;
 
   parameterList = new FormArray([]);
 
@@ -52,5 +55,9 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 
   writeValue(value: SearchParameter[]): void {
     // TODO
+  }
+
+  getConditions(): string[] {
+    return this.searchParameterComponents.map((c) => c.getConditionUrl());
   }
 }

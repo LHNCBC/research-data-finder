@@ -52,4 +52,8 @@ export class DefineCohortPageComponent
   addParameter(): void {
     this.patientParams.addParameter();
   }
+
+  getConditions(): string[] {
+    return this.patientParams.getConditions();
+  }
 }

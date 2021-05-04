@@ -41,8 +41,7 @@
 
   <mat-step [stepControl]="defineCohort" label="Define cohort">
       <app-define-cohort-page
-        [formControl]="defineCohort"
-        #defineCohortComponent></app-define-cohort-page>
+        [formControl]="defineCohort"></app-define-cohort-page>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Select an area of interest
@@ -56,7 +55,7 @@
           <mat-icon svgIcon="upload"></mat-icon>Load cohort and criteria
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="primary" matStepperNext>
+        <button mat-stroked-button color="primary" (click)="searchForPatients()" matStepperNext>
           Search for Patients<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
