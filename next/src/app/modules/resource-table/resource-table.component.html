@@ -52,8 +52,8 @@
   <button mat-mini-fab
           class="fullscreen-button"
           color="basic"
-          matTooltip="Expand the table to full screen"
-          aria-label="Expand the table to full screen"
+          [matTooltip]="fullscreen ? 'Exit full screen mode' : 'Expand the table to full screen'"
+          [attr.aria-label]="fullscreen ? 'Exit full screen mode' : 'Expand the table to full screen'"
           (click)="toggleFullscreen()">
     <mat-icon [svgIcon]="fullscreen ? 'fullscreen_exit_black' : 'fullscreen_black'" ></mat-icon>
   </button>
