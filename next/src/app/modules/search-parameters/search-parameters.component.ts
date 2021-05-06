@@ -64,6 +64,11 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
       c.getConditionUrl()
     );
     const groupedConditions = [];
+    // add default Patient condition if missing
+    groupedConditions.push({
+      resourceType: 'Patient',
+      criteria: ''
+    });
     conditions.forEach((item) => {
       const match = groupedConditions.find(
         (x) => x.resourceType === item.resourceType

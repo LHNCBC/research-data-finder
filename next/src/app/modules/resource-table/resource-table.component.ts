@@ -56,7 +56,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       .subscribe(
         (resouceses) => {
           this.dataSource.data = this.dataSource.data.concat(resouceses);
-          console.log(this.dataSource.data.length);
         },
         () => {},
         () => {

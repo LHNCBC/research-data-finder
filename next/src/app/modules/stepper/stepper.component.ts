@@ -199,7 +199,6 @@ export class StepperComponent implements OnDestroy {
         Promise.resolve(patientResource ? patientResource : true)
       )
       .then((result) => {
-        console.log(result);
         this.patientStream.next(result);
         return result;
       });
