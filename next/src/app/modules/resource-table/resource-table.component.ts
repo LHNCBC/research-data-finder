@@ -49,20 +49,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private columnValuesService: ColumnValuesService
   ) {}
 
-  ngOnInit(): void {
-    this.patientStream
-      .asObservable()
-      .pipe(bufferCount(5))
-      .subscribe(
-        (resouceses) => {
-          this.dataSource.data = this.dataSource.data.concat(resouceses);
-        },
-        () => {},
-        () => {
-          this.isLoading = false;
-        }
-      );
-  }
+  ngOnInit(): void {}
 
   ngOnDestroy(): void {}
 
@@ -89,6 +76,24 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    // update resource table if user searches again
+    if (changes['patientStream'] && changes['patientStream'].currentValue) {
+      this.dataSource.data.length = 0;
+      this.isLoading = true;
+      this.patientStream
+        .asObservable()
+        // update table for every 50 new rows
+        .pipe(bufferCount(50))
+        .subscribe(
+          (resouceses) => {
+            this.dataSource.data = this.dataSource.data.concat(resouceses);
+          },
+          () => {},
+          () => {
+            this.isLoading = false;
+          }
+        );
+    }
     if (changes['columnDescriptions']) {
       this.columns.length = 0;
       if (this.enableSelection) {
