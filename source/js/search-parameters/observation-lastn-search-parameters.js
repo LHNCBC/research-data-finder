@@ -117,7 +117,7 @@ export const ObservationLastnSearchParameters = () => ({
                   },
                   500
                 )
-                .then(
+                .promise.then(
                   ({ entry, total }) => {
                     resolve({
                       resourceType: 'ValueSet',

@@ -554,10 +554,10 @@ function getPatients() {
                 );
               },
               maxPatientCount
-            );
+            ).promise;
           },
           1
-        );
+        ).promise;
       }
 
       // List of resource elements for the first request
@@ -593,7 +593,7 @@ function getPatients() {
           );
         },
         resourceSummaries.length > 1 ? null : maxPatientCount
-      );
+      ).promise;
     }
   });
 }
