@@ -1,4 +1,5 @@
 export interface SearchCondition {
   resourceType: string;
-  url: string;
+  criteria: string;
+  total?: number;
 }

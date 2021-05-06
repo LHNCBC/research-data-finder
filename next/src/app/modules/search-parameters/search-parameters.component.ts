@@ -69,7 +69,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         (x) => x.resourceType === item.resourceType
       );
       if (match) {
-        match.url += item.url;
+        match.criteria += item.criteria;
       } else {
         groupedConditions.push(item);
       }

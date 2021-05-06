@@ -134,7 +134,7 @@ export class SearchParameterComponent
   getConditionUrl(): SearchCondition {
     return {
       resourceType: this.resourceType.value,
-      url: `&${this.parameterName.value}=${this.parameterValue.value}`
+      criteria: `&${this.parameterName.value}=${this.parameterValue.value}`
     };
   }
 }

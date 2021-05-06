@@ -218,4 +218,11 @@ export class FhirBackendService implements HttpBackend {
 
     return definitions;
   }
+
+  getWithCache(url): Promise<any> {
+    return this.fhirClient.getWithCache(url, {
+      combine: false,
+      retryCount: false
+    });
+  }
 }
