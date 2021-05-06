@@ -18,8 +18,7 @@
   </mat-expansion-panel>
 </mat-accordion>
 
-<app-resource-table *ngIf="showTable"
+<app-resource-table
     [columnDescriptions]="columnDescriptions.getVisibleColumns('Patient') | async"
-    [initialBundle]="initialBundle"
-    [max]="max" resourceType="Patient">
+    resourceType="Patient" [patientStream]="patientStream">
 </app-resource-table>

@@ -7,8 +7,10 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { filter, take } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { DefineCohortPageComponent } from '../step-2-define-cohort-page/define-cohort-page.component';
+
+import Resource = fhir.Resource;
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
@@ -27,6 +29,7 @@ export class StepperComponent implements OnDestroy {
   serverInitialized = false;
   subscription: Subscription;
   PATIENT = 'Patient';
+  patientStream = new Subject<Resource>();
 
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
@@ -49,7 +52,6 @@ export class StepperComponent implements OnDestroy {
 
   searchForPatients(): void {
     const resourceSummaries = this.defineCohortComponent.getConditions();
-    console.log(resourceSummaries);
     // Load resource summaries
     Promise.all(
       resourceSummaries.length > 1
@@ -119,35 +121,40 @@ export class StepperComponent implements OnDestroy {
           firstItem.resourceType === this.PATIENT ? elements : 'subject';
 
         // If the search doesn't start from ResearchStudy
-        return this.fhirBackend.fhirClient.resourcesMapFilter(
-          `${firstItem.resourceType}?_elements=${firstItemElements}${firstItem.criteria}`,
-          maxPatientCount,
-          (resource) => {
-            // Map each resource to Patient Id
-            let patientResource;
-            let patientId;
-            if (resource.resourceType === this.PATIENT) {
-              patientResource = resource;
-              patientId = patientResource.id;
-            } else {
-              patientId =
-                /^Patient\/(.*)/.test(resource.subject.reference) && RegExp.$1;
-            }
-            if (processedPatients[patientId]) {
-              return false;
-            }
-            processedPatients[patientId] = true;
-            // And filter Patient by rest of the criteria
-            return this.checkPatient(
-              resourceSummaries,
-              elements,
-              maxPatientCount,
-              patientId,
-              patientResource
-            );
-          },
-          resourceSummaries.length > 1 ? null : maxPatientCount
-        );
+        return this.fhirBackend.fhirClient
+          .resourcesMapFilter(
+            `${firstItem.resourceType}?_elements=${firstItemElements}${firstItem.criteria}`,
+            maxPatientCount,
+            (resource) => {
+              // Map each resource to Patient Id
+              let patientResource;
+              let patientId;
+              if (resource.resourceType === this.PATIENT) {
+                patientResource = resource;
+                patientId = patientResource.id;
+              } else {
+                patientId =
+                  /^Patient\/(.*)/.test(resource.subject.reference) &&
+                  RegExp.$1;
+              }
+              if (processedPatients[patientId]) {
+                return false;
+              }
+              processedPatients[patientId] = true;
+              // And filter Patient by rest of the criteria
+              return this.checkPatient(
+                resourceSummaries,
+                elements,
+                maxPatientCount,
+                patientId,
+                patientResource
+              );
+            },
+            resourceSummaries.length > 1 ? null : maxPatientCount
+          )
+          .then(() => {
+            this.patientStream.complete();
+          });
       }
     });
   }
@@ -193,6 +200,7 @@ export class StepperComponent implements OnDestroy {
       )
       .then((result) => {
         console.log(result);
+        this.patientStream.next(result);
         return result;
       });
   }
