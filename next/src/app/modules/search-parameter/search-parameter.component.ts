@@ -132,9 +132,26 @@ export class SearchParameterComponent
   }
 
   getConditionUrl(): SearchCondition {
-    return {
-      resourceType: this.resourceType.value,
-      criteria: `&${this.parameterName.value}=${this.parameterValue.value}`
-    };
+    const criteria = this.getCriteria();
+    return criteria
+      ? {
+          resourceType: this.resourceType.value,
+          criteria
+        }
+      : null;
+  }
+
+  getCriteria(): string {
+    if (this.selectedParameter.type === 'date') {
+      return (
+        (this.parameterValue.value.from
+          ? `&${this.parameterName.value}=ge${this.parameterValue.value.from}`
+          : '') +
+        (this.parameterValue.value.to
+          ? `&${this.parameterName.value}=le${this.parameterValue.value.to}`
+          : '')
+      );
+    }
+    return `&${this.parameterName.value}=${this.parameterValue.value}`;
   }
 }
