@@ -19,7 +19,9 @@ const icons = [
   'upload',
   'save',
   'file_download',
-  'create'
+  'create',
+  'fullscreen_black',
+  'fullscreen_exit_black'
 ];
 
 @NgModule({

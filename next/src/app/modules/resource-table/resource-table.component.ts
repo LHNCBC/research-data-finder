@@ -1,5 +1,6 @@
 import {
   Component,
+  HostBinding,
   Input,
   NgZone,
   OnChanges,
@@ -47,6 +48,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   lastResourceElement: HTMLElement;
   isLoading = false;
 
+  @HostBinding('class.fullscreen') fullscreen = false;
+
   scrollSubscription: Subscription;
   private cdkScrollable: CdkScrollable;
 
@@ -58,7 +61,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.scrollSubscription = scrollable
         .elementScrolled()
         .pipe(debounceTime(700))
-        .subscribe((e) => {
+        .subscribe(() => {
           this.ngZone.run(() => {
             this.onTableScroll();
           });
@@ -214,6 +217,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   clearColumnFilters(): void {
     this.filtersForm.reset();
+  }
+
+  /**
+   * Toggle fullscreen mode
+   */
+  toggleFullscreen(): void {
+    this.fullscreen = !this.fullscreen;
   }
 
   /**

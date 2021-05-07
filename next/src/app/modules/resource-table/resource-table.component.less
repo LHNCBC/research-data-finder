@@ -6,7 +6,7 @@
   position: relative;
   height: 100%;
   overflow: auto;
-  max-height: 600px;
+  max-height: 300px;
   margin-top: 6px;
 }
 
@@ -32,4 +32,26 @@ th.mat-header-cell:not(.cell-with-icon) {
 
 th button[mat-icon-button] {
   margin-left: -12px;
+}
+
+.fullscreen-button {
+  position: absolute;
+  top: -5px;
+  right: 20px;
+  z-index: 100;
+}
+
+:host.fullscreen {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: 0 5px 0 5px;
+  z-index: 101;
+  background-color: white;
+
+  .table-container {
+    max-height: calc(100vh - 60px);
+  }
 }
