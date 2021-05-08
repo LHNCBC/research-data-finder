@@ -26,8 +26,8 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   @Input() resourceType = '';
   @ViewChildren(SearchParameterComponent)
   searchParameterComponents: QueryList<SearchParameterComponent>;
-
   parameterList = new FormArray([]);
+  readonly OBSERVATIONBYTEST = 'Observation by Test';
 
   constructor() {
     super();
@@ -61,7 +61,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   // Get search conditions from each row, group them on the resource type
   getConditions(): SearchCondition[] {
     const conditions = this.searchParameterComponents.map((c) =>
-      c.getConditionUrl()
+      c.getCondition()
     );
     const groupedConditions = [];
     // add default Patient condition if missing
@@ -73,10 +73,17 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
       const match = groupedConditions.find(
         (x) => x.resourceType === item.resourceType
       );
-      if (match) {
+      // do not combine conditions for 'Observation by Test'
+      if (match && item.resourceType !== this.OBSERVATIONBYTEST) {
         match.criteria += item.criteria;
       } else {
         groupedConditions.push(item);
+      }
+    });
+    conditions.map((item) => {
+      // for 'Observation by Test', search url needs to use 'Observation'
+      if (item.resourceType === this.OBSERVATIONBYTEST) {
+        item.resourceType = 'Observation';
       }
     });
     return groupedConditions;

@@ -9,6 +9,10 @@ import {
 } from '../base-control-value-accessor';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { SearchCondition } from '../../types/search.condition';
+import {
+  encodeFhirSearchParameter,
+  escapeFhirSearchParameter
+} from '../../shared/utils';
 
 /**
  * Component for editing one resource search parameter
@@ -131,7 +135,7 @@ export class SearchParameterComponent
     this.parameterValue.setValue(value.value || '');
   }
 
-  getConditionUrl(): SearchCondition {
+  getCondition(): SearchCondition {
     const criteria = this.getCriteria();
     return criteria
       ? {
@@ -142,6 +146,9 @@ export class SearchParameterComponent
   }
 
   getCriteria(): string {
+    if (this.resourceType.value === this.OBSERVATIONBYTEST) {
+      return this.getObservationByTestCriteria();
+    }
     if (this.selectedParameter.type === 'date') {
       return (
         (this.parameterValue.value.from
@@ -153,5 +160,38 @@ export class SearchParameterComponent
       );
     }
     return `&${this.parameterName.value}=${this.parameterValue.value}`;
+  }
+
+  getObservationByTestCriteria(): string {
+    const comboCodes = this.selectedLoincItems.value.codes.filter((c) => c);
+    const codeParam = comboCodes.length
+      ? '&combo-code=' +
+        comboCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
+      : '';
+    const valueParamName = {
+      CodeableConcept: 'combo-value-concept',
+      Quantity: 'combo-value-quantity',
+      string: 'value-string'
+    }[this.selectedLoincItems.value.datatype];
+    const modifier = this.parameterValue.value.testValueModifier;
+    const prefix = this.parameterValue.value.testValuePrefix;
+    const testValue = this.parameterValue.value.testValue
+      ? escapeFhirSearchParameter(
+          this.parameterValue.value.testValue.toString()
+        )
+      : '';
+    const unit = this.parameterValue.value.testValueUnit;
+    const from = this.parameterValue.value.from
+      ? `&date=ge${encodeURIComponent(this.parameterValue.value.from)}`
+      : '';
+    const to = this.parameterValue.value.to
+      ? `&date=le${encodeURIComponent(this.parameterValue.value.to)}`
+      : '';
+    const valueParam = testValue.trim()
+      ? `&${valueParamName}${modifier}=${prefix}${encodeURIComponent(
+          testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
+        )}`
+      : '';
+    return `${codeParam}${valueParam}${from}${to}`;
   }
 }
