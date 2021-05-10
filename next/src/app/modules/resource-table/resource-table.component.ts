@@ -1,5 +1,6 @@
 import {
   Component,
+  HostBinding,
   Input,
   NgZone,
   OnChanges,
@@ -41,6 +42,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   dataSource = new MatTableDataSource<Resource>([]);
   lastResourceElement: HTMLElement;
   isLoading = true;
+
+  @HostBinding('class.fullscreen') fullscreen = false;
 
   constructor(
     private http: HttpClient,
@@ -159,6 +162,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   clearColumnFilters(): void {
     this.filtersForm.reset();
+  }
+
+  /**
+   * Toggle fullscreen mode
+   */
+  toggleFullscreen(): void {
+    this.fullscreen = !this.fullscreen;
   }
 
   /**
