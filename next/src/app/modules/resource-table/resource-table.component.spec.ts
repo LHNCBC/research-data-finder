@@ -5,7 +5,7 @@ import {
   tick
 } from '@angular/core/testing';
 import { ResourceTableComponent } from './resource-table.component';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { ResourceTableModule } from './resource-table.module';
 import { ColumnDescription } from '../../types/column.description';
@@ -72,43 +72,24 @@ describe('ResourceTableComponent', () => {
     component.enableClientFiltering = true;
     component.columns = [];
     component.columnDescriptions = columnDescriptions;
-    component.initialBundle = bundle;
-    fixture.detectChanges();
-    await fixture.whenStable();
+    const patientStream = new Subject();
+    component.patientStream = patientStream;
     const changesObj: SimpleChanges = {
+      patientStream: new SimpleChange(null, patientStream, true),
       columnDescriptions: new SimpleChange(null, { columnDescriptions }, true)
     };
     component.ngOnChanges(changesObj);
+    for (let i = 1; i < 51; i++) {
+      patientStream.next({ id: i.toString() });
+    }
+    patientStream.complete();
+    fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  it('should load more rows when scroll', fakeAsync(() => {
-    spyOn(component, 'onTableScroll').and.callThrough();
-    page.scrollable.nativeElement.scrollTop = 3000;
-    const scrollEvent = new MouseEvent('scroll');
-    page.scrollable.nativeElement.dispatchEvent(scrollEvent);
-    fixture.detectChanges();
-    tick(2000);
-    fixture.detectChanges();
-    expect(component.onTableScroll).toHaveBeenCalled();
-    expect(component.dataSource.data.length).toEqual(100);
-  }));
-
-  it('should load no more than max rows', fakeAsync(() => {
-    spyOn(component, 'onTableScroll').and.callThrough();
-    component.max = 50;
-    page.scrollable.nativeElement.scrollTop = 3000;
-    const scrollEvent = new MouseEvent('scroll');
-    page.scrollable.nativeElement.dispatchEvent(scrollEvent);
-    fixture.detectChanges();
-    tick(2000);
-    fixture.detectChanges();
-    expect(component.onTableScroll).toHaveBeenCalled();
-    expect(component.dataSource.data.length).toEqual(50);
-  }));
 
   it('should filter', () => {
     expect(component.filtersForm).not.toBeNull();

@@ -15,7 +15,9 @@ describe('SearchParameterComponent', () => {
         {
           provide: FhirBackendService,
           useValue: {
-            getCurrentDefinitions: () => []
+            getCurrentDefinitions: () => {
+              return { resources: [] };
+            }
           }
         }
       ]
