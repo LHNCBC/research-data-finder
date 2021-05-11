@@ -12,10 +12,10 @@
     <mat-radio-button [value]="SelectOptions.ResearchStudy">Select ResearchStudies</mat-radio-button>
   </mat-radio-group>
 
-  <div *ngIf="showTable" class="spacer"></div>
+  <div class="spacer" *ngIf="showTable"></div>
   <app-resource-table *ngIf="showTable"
       [columnDescriptions]="columnDescriptions.getVisibleColumns('ResearchStudy') | async"
-      [initialBundle]="initialBundle"
       [enableClientFiltering]="true" [enableSelection]="true"
+      [resourceStream]="researchStudyStream"
       resourceType="ResearchStudy"></app-resource-table>
 </div>

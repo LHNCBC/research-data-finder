@@ -34,7 +34,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
   @Input() resourceType;
-  @Input() patientStream: Subject<Resource>;
+  @Input() resourceStream: Subject<Resource>;
   columns: string[] = [];
   filterColumns = [];
   selectedResources = new SelectionModel<Resource>(true, []);
@@ -80,16 +80,20 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     // update resource table if user searches again
-    if (changes['patientStream'] && changes['patientStream'].currentValue) {
+    if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       this.dataSource.data.length = 0;
       this.isLoading = true;
-      this.patientStream
+      this.resourceStream
         .asObservable()
         // update table for every 50 new rows
         .pipe(bufferCount(50))
         .subscribe(
           (resouceses) => {
             this.dataSource.data = this.dataSource.data.concat(resouceses);
+            if (!this.columnDescriptions.length) {
+              this.setColumnsFromBundle();
+              this.setTableColumns();
+            }
           },
           () => {},
           () => {
@@ -105,39 +109,43 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       if (!this.columnDescriptions.length) {
         this.setColumnsFromBundle();
       }
-      this.columns = this.columns.concat(
-        this.columnDescriptions.map((c) => c.element)
-      );
-      if (this.enableClientFiltering) {
-        this.filtersForm = new FormBuilder().group({});
-        this.filterColumns = this.columns.map((c) => c + 'Filter');
-        this.columnDescriptions.forEach((column) => {
-          this.filtersForm.addControl(column.element, new FormControl());
-        });
-        this.dataSource.filterPredicate = ((data, filter) => {
-          for (const [key, value] of Object.entries(filter)) {
-            if (value) {
-              const columnDescription = this.columnDescriptions.find(
-                (c) => c.element === key
-              );
-              const cellValue = this.getCellStrings(data, columnDescription);
-              const reCondition = new RegExp(
-                '\\b' + escapeStringForRegExp(value),
-                'i'
-              );
-              if (!cellValue.some((item) => reCondition.test(item))) {
-                return false;
-              }
+      this.setTableColumns();
+    }
+  }
+
+  setTableColumns(): void {
+    this.columns = this.columns.concat(
+      this.columnDescriptions.map((c) => c.element)
+    );
+    if (this.enableClientFiltering) {
+      this.filtersForm = new FormBuilder().group({});
+      this.filterColumns = this.columns.map((c) => c + 'Filter');
+      this.columnDescriptions.forEach((column) => {
+        this.filtersForm.addControl(column.element, new FormControl());
+      });
+      this.dataSource.filterPredicate = ((data, filter) => {
+        for (const [key, value] of Object.entries(filter)) {
+          if (value) {
+            const columnDescription = this.columnDescriptions.find(
+              (c) => c.element === key
+            );
+            const cellValue = this.getCellStrings(data, columnDescription);
+            const reCondition = new RegExp(
+              '\\b' + escapeStringForRegExp(value),
+              'i'
+            );
+            if (!cellValue.some((item) => reCondition.test(item))) {
+              return false;
             }
           }
-          return true;
-          // casting method signature here because filterPredicate defines filter param as string
-          // tslint:disable-next-line:variable-name
-        }) as (BundleEntry, string) => boolean;
-        this.filtersForm.valueChanges.subscribe((value) => {
-          this.dataSource.filter = { ...value } as string;
-        });
-      }
+        }
+        return true;
+        // casting method signature here because filterPredicate defines filter param as string
+        // tslint:disable-next-line:variable-name
+      }) as (BundleEntry, string) => boolean;
+      this.filtersForm.valueChanges.subscribe((value) => {
+        this.dataSource.filter = { ...value } as string;
+      });
     }
   }
 

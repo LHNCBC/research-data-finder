@@ -6,9 +6,10 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { combineLatest, Subscription } from 'rxjs';
+import { combineLatest, Subject, Subscription } from 'rxjs';
 import { filter, tap } from 'rxjs/operators';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import Resource = fhir.Resource;
 
 export enum SelectOptions {
   Skip = 0,
@@ -23,12 +24,10 @@ export enum SelectOptions {
 export class SelectAnAreaOfInterestComponent implements OnDestroy {
   // Publish enum for template
   SelectOptions = SelectOptions;
-
-  @Input()
-  initialBundle: Bundle;
-  showTable = false;
   option = new FormControl(SelectOptions.Skip);
   subscription: Subscription;
+  researchStudyStream = new Subject<Resource>();
+  showTable = false;
 
   /**
    * Create and initialize instance of component.
@@ -53,16 +52,30 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
         )
       )
       .subscribe(() => {
-        this.http
-          .get('$fhir/ResearchStudy?_count=50')
-          .subscribe((data: Bundle) => {
-            this.initialBundle = data;
-            this.showTable = true;
-          });
+        this.callBatch('$fhir/ResearchStudy?_count=50');
       });
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+  }
+
+  callBatch(url: string): void {
+    this.http.get(url).subscribe((data: Bundle) => {
+      if (!data.entry) {
+        return;
+      } else {
+        this.showTable = true;
+        data.entry?.forEach((item) => {
+          this.researchStudyStream.next(item.resource);
+        });
+        const nextBundleUrl = data.link.find((l) => l.relation === 'next')?.url;
+        if (nextBundleUrl) {
+          this.callBatch(nextBundleUrl);
+        } else {
+          this.researchStudyStream.complete();
+        }
+      }
+    });
   }
 }
