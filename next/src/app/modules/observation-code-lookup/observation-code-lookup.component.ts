@@ -18,8 +18,13 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 import { SelectedLoincCodes } from '../../types/selected-loinc-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { NgControl } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { HTTP_ABORT } from '@legacy/js/common/fhir-batch-query';
+import { of, Subject, Subscription } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { catchError, expand, takeWhile } from 'rxjs/operators';
+import { getNextPageUrl } from '../../shared/utils';
+import Bundle = fhir.Bundle;
+import Observation = fhir.Observation;
+import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 
 /**
  * Component for selecting LOINC variables.
@@ -79,6 +84,8 @@ export class ObservationCodeLookupComponent
   acInstance: Def.Autocompleter.Search;
   // Callback to handle changes
   listSelectionsObserver: (eventData: any) => void;
+  // Subscription used to cancel the previous loading process
+  subscription: Subscription;
 
   /**
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
@@ -104,6 +111,9 @@ export class ObservationCodeLookupComponent
     return this.input?.nativeElement.className.indexOf('invalid') >= 0 || false;
   }
 
+  // Mapping from code to datatype
+  code2Type: { [key: string]: string } = {};
+
   /**
    * This properties currently unused but required by MatFormFieldControl:
    */
@@ -127,7 +137,8 @@ export class ObservationCodeLookupComponent
   constructor(
     private fhirBackend: FhirBackendService,
     @Optional() @Self() ngControl: NgControl,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private httpClient: HttpClient
   ) {
     super();
 
@@ -143,6 +154,7 @@ export class ObservationCodeLookupComponent
    */
   ngOnDestroy(): void {
     this.stateChanges.complete();
+    this.subscription?.unsubscribe();
     if (this.acInstance) {
       this.acInstance.destroy();
     }
@@ -181,10 +193,6 @@ export class ObservationCodeLookupComponent
    */
   setupAutocomplete(): void {
     const testInputId = this.inputId;
-    // Mapping from code to datatype
-    const code2Type = {};
-    // Callback to cancel the previous loading process
-    let cancelPreviousProcess = () => {};
 
     const acInstance = (this.acInstance = new Def.Autocompleter.Search(
       testInputId,
@@ -199,71 +207,89 @@ export class ObservationCodeLookupComponent
             );
             return {
               then: (resolve, reject) => {
+                const url = this.fhirBackend.features.lastnLookup
+                  ? '$fhir/Observation/$lastn?max=1'
+                  : '$fhir/Observation';
+                const params = {
+                  _elements: 'code,value,component',
+                  'code:text': fieldVal,
+                  _count: '500'
+                };
                 // Hash of processed codes, used to exclude repeated codes
                 const processedCodes = {};
+                // Array of result items for autocompleter
+                const contains: ValueSetExpansionContains[] = [];
+                // Total amount of items
+                let total = Infinity;
+                // Already selected codes
+                const selectedCodes = acInstance.getSelectedCodes();
 
                 this.loading = true;
-                cancelPreviousProcess();
+                this.subscription?.unsubscribe();
 
-                // TODO: temporary use of fhirBackend directly should be replaced with calls to HttpClient
-                const process = this.fhirBackend.fhirClient.resourcesMapFilter(
-                  this.fhirBackend.features.lastnLookup
-                    ? `Observation/$lastn?max=1&_elements=code,value,component&code:text=${encodeURIComponent(
-                        fieldVal
-                      )}`
-                    : `Observation?_elements=code,value,component&code:text=${encodeURIComponent(
-                        fieldVal
-                      )}`,
-                  count,
-                  (observation) => {
-                    const datatype = this.getValueDataType(observation);
-                    if (
-                      !this.currentData.datatype ||
-                      datatype === this.currentData.datatype
-                    ) {
-                      return observation.code.coding
-                        .filter((coding) => {
-                          const matched =
-                            !processedCodes[coding.display] &&
-                            isMatchToFieldVal.test(coding.display) &&
-                            acInstance
-                              .getSelectedCodes()
-                              .indexOf(coding.code) === -1;
-                          processedCodes[coding.display] = true;
-                          return matched;
-                        })
-                        .map((coding) => {
-                          code2Type[coding.code] = datatype;
-                          return {
-                            code: coding.code,
-                            display: coding.display
-                          };
-                        });
-                    } else {
-                      return false;
-                    }
-                  },
-                  500
-                );
-                cancelPreviousProcess = process.cancel;
-                process.promise.then(
-                  ({ entry, total }) => {
-                    this.loading = false;
-                    resolve({
-                      resourceType: 'ValueSet',
-                      expansion: {
-                        total: Number.isInteger(total) ? total : Infinity,
-                        contains: entry
+                this.subscription = this.httpClient
+                  .get(url, {
+                    params
+                  })
+                  .pipe(
+                    expand((response: Bundle) => {
+                      const nextPageUrl = getNextPageUrl(response);
+                      if (nextPageUrl) {
+                        if (this.fhirBackend.features.lastnLookup) {
+                          return this.httpClient.get(nextPageUrl);
+                        } else {
+                          return this.httpClient.get(url, {
+                            params: {
+                              ...params,
+                              'code:not': Object.keys(processedCodes).join(',')
+                            }
+                          });
+                        }
+                      } else {
+                        return of(response);
                       }
-                    });
-                  },
-                  ({ status, error }) => {
-                    if (status !== HTTP_ABORT) {
+                    }),
+                    takeWhile((response: Bundle) => {
+                      contains.push(
+                        ...this.getAutocompleteItems(
+                          response,
+                          processedCodes,
+                          selectedCodes,
+                          isMatchToFieldVal
+                        )
+                      );
+                      const nextPageUrl = getNextPageUrl(response);
+                      const stop = !nextPageUrl || contains.length >= count;
+                      if (stop) {
+                        if (
+                          this.fhirBackend.features.lastnLookup &&
+                          response.total
+                        ) {
+                          total = response.total;
+                        } else if (!nextPageUrl) {
+                          total = contains.length;
+                        }
+                        if (contains.length > count) {
+                          contains.length = count;
+                        }
+                        resolve({
+                          resourceType: 'ValueSet',
+                          expansion: {
+                            total: Number.isInteger(total) ? total : Infinity,
+                            contains
+                          }
+                        });
+                        this.loading = false;
+                      }
+                      return !stop;
+                    }),
+                    catchError((error) => {
                       this.loading = false;
-                    }
-                    reject(error);
-                  }
-                );
+                      reject(error);
+                      throw error;
+                    })
+                  )
+                  .subscribe();
               }
             };
           }
@@ -282,8 +308,8 @@ export class ObservationCodeLookupComponent
 
     // Restore mapping from code to datatype from preselected data
     this.currentData.codes.forEach((code) => {
-      if (!code2Type[code]) {
-        code2Type[code] = this.currentData.datatype;
+      if (!this.code2Type[code]) {
+        this.code2Type[code] = this.currentData.datatype;
       }
     });
 
@@ -292,12 +318,14 @@ export class ObservationCodeLookupComponent
       const items = acInstance.getSelectedItems();
       let datatype = '';
       if (codes.length > 0) {
-        datatype = code2Type[codes[0]];
-        acInstance.domCache.set('elemVal', eventData.val_typed_in);
-        acInstance.useSearchFn(
-          eventData.val_typed_in,
-          Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD
-        );
+        datatype = this.code2Type[codes[0]];
+        if (!eventData.removed) {
+          acInstance.domCache.set('elemVal', eventData.val_typed_in);
+          acInstance.useSearchFn(
+            eventData.val_typed_in,
+            Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD
+          );
+        }
       }
       this.currentData = {
         codes,
@@ -310,6 +338,51 @@ export class ObservationCodeLookupComponent
       testInputId,
       this.listSelectionsObserver
     );
+  }
+
+  /**
+   * Extracts autocomplete items from resource bundle
+   * @param bundle - resource bundle
+   * @param processedCodes - hash of processed codes,
+   *   used to exclude repeated codes
+   * @param selectedCodes - already selected codes
+   * @param isMatchToFieldVal - RegExp to check if
+   *   a string matches the value of the input field
+   */
+  getAutocompleteItems(
+    bundle: Bundle,
+    processedCodes: { [key: string]: boolean },
+    selectedCodes: Array<string>,
+    isMatchToFieldVal: RegExp
+  ): ValueSetExpansionContains[] {
+    return (bundle.entry || []).reduce((acc, entry) => {
+      const observation = entry.resource as Observation;
+      const datatype = this.getValueDataType(observation);
+      if (
+        !this.currentData.datatype ||
+        datatype === this.currentData.datatype
+      ) {
+        acc = acc.concat(
+          observation.code.coding
+            .filter((coding) => {
+              const matched =
+                !processedCodes[coding.code] &&
+                isMatchToFieldVal.test(coding.display) &&
+                selectedCodes.indexOf(coding.code) === -1;
+              processedCodes[coding.code] = true;
+              return matched;
+            })
+            .map((coding) => {
+              this.code2Type[coding.code] = datatype;
+              return {
+                code: coding.code,
+                display: coding.display
+              };
+            })
+        );
+      }
+      return acc;
+    }, []);
   }
 
   /**
