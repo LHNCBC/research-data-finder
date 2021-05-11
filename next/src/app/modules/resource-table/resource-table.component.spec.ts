@@ -73,7 +73,7 @@ describe('ResourceTableComponent', () => {
     component.columns = [];
     component.columnDescriptions = columnDescriptions;
     const patientStream = new Subject();
-    component.patientStream = patientStream;
+    component.resourceStream = patientStream;
     const changesObj: SimpleChanges = {
       patientStream: new SimpleChange(null, patientStream, true),
       columnDescriptions: new SimpleChange(null, { columnDescriptions }, true)

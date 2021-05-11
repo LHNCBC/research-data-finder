@@ -55,7 +55,7 @@
           <mat-icon svgIcon="upload"></mat-icon>Load cohort and criteria
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="primary" (click)="searchForPatients()" matStepperNext>
+        <button mat-stroked-button color="primary" (click)="defineCohortComponent.searchForPatients()" matStepperNext>
           Search for Patients<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
@@ -64,7 +64,7 @@
   <mat-step label="View cohort">
     <div class="v-box">
       <app-view-cohort-page *ngIf="serverInitialized"
-          [patientStream]="patientStream">
+          [patientStream]="defineCohortComponent.patientStream">
       </app-view-cohort-page>
       <div class="spacer"></div>
       <div class="h-box">
