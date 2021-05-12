@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
@@ -52,7 +52,8 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
         )
       )
       .subscribe(() => {
-        this.callBatch('$fhir/ResearchStudy?_count=50');
+        this.showTable = true;
+        this.callBatch('$fhir/ResearchStudy?_count=500');
       });
   }
 
@@ -66,11 +67,9 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   callBatch(url: string): void {
     this.http.get(url).subscribe((data: Bundle) => {
       if (!data.entry) {
-        this.showTable = true;
         this.researchStudyStream.complete();
         return;
       } else {
-        this.showTable = true;
         data.entry?.forEach((item) => {
           this.researchStudyStream.next(item.resource);
         });

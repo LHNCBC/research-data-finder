@@ -57,8 +57,11 @@
           (click)="toggleFullscreen()">
     <mat-icon [svgIcon]="fullscreen ? 'fullscreen_exit_black' : 'fullscreen_black'" ></mat-icon>
   </button>
-  <mat-spinner *ngIf="isLoading" diameter="40"></mat-spinner>
+<!--  <mat-spinner *ngIf="isLoading" diameter="40"></mat-spinner>-->
 </div>
+<p>
+  Loading{{isLoading ? '...' : ' complete.'}}
+</p>
 <p>
   {{countMessage}}
 </p>
