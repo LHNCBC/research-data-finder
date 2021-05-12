@@ -18,7 +18,7 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 import { SelectedLoincCodes } from '../../types/selected-loinc-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { NgControl } from '@angular/forms';
-import { of, Subject, Subscription } from 'rxjs';
+import { EMPTY, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, expand, takeWhile } from 'rxjs/operators';
 import { getNextPageUrl } from '../../shared/utils';
@@ -228,13 +228,15 @@ export class ObservationCodeLookupComponent
                 this.subscription?.unsubscribe();
 
                 this.subscription = this.httpClient
+                  // Load first page of Observation resources
                   .get(url, {
                     params
                   })
                   .pipe(
+                    // Modifying the Observable to load the following pages sequentially
                     expand((response: Bundle) => {
                       const nextPageUrl = getNextPageUrl(response);
-                      if (nextPageUrl) {
+                      if (nextPageUrl && contains.length < count) {
                         if (this.fhirBackend.features.lastnLookup) {
                           return this.httpClient.get(nextPageUrl);
                         } else {
@@ -246,9 +248,11 @@ export class ObservationCodeLookupComponent
                           });
                         }
                       } else {
-                        return of(response);
+                        // Emit a complete notification
+                        return EMPTY;
                       }
                     }),
+                    // Process each page of Observation resources until we get the required number of values
                     takeWhile((response: Bundle) => {
                       contains.push(
                         ...this.getAutocompleteItems(
@@ -362,8 +366,8 @@ export class ObservationCodeLookupComponent
         !this.currentData.datatype ||
         datatype === this.currentData.datatype
       ) {
-        acc = acc.concat(
-          observation.code.coding
+        acc.push(
+          ...observation.code.coding
             .filter((coding) => {
               const matched =
                 !processedCodes[coding.code] &&
