@@ -66,6 +66,8 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   callBatch(url: string): void {
     this.http.get(url).subscribe((data: Bundle) => {
       if (!data.entry) {
+        this.showTable = true;
+        this.researchStudyStream.complete();
         return;
       } else {
         this.showTable = true;

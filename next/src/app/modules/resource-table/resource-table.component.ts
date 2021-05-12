@@ -209,7 +209,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * Get count message according to number of resources loaded
    */
   get countMessage(): string {
-    if (this.dataSource?.data.length === 0) {
+    if (!this.isLoading && this.dataSource?.data.length === 0) {
       return `No ${this.resourceType} resources were found on the server.`;
     } else {
       let output = '';
