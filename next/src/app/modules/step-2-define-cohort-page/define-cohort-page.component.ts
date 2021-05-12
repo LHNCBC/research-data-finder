@@ -62,7 +62,9 @@ export class DefineCohortPageComponent
     this.patientParams.addParameter();
   }
 
-  // get all search parameters, grouped by resource types
+  /**
+   * get all search parameters, grouped by resource types.
+   */
   getConditions(): SearchCondition[] {
     return this.patientParams.getConditions();
   }

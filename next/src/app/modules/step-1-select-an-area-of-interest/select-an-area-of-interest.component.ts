@@ -60,6 +60,9 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
     this.subscription.unsubscribe();
   }
 
+  /**
+   * calls server for a bundle of resources. Will be recursively called if having next bundle.
+   */
   callBatch(url: string): void {
     this.http.get(url).subscribe((data: Bundle) => {
       if (!data.entry) {

@@ -135,7 +135,9 @@ export class SearchParameterComponent
     this.parameterValue.setValue(value.value || '');
   }
 
-  // return resource type and url segment of search string for current search parameter
+  /**
+   * return resource type and url segment of search string for current search parameter.
+   */
   getCondition(): SearchCondition {
     const criteria = this.getCriteria();
     return criteria
@@ -146,7 +148,9 @@ export class SearchParameterComponent
       : null;
   }
 
-  // get string of url segment describing the search criteria that will be used to search in server
+  /**
+   * get string of url segment describing the search criteria that will be used to search in server.
+   */
   getCriteria(): string {
     if (this.resourceType.value === this.OBSERVATIONBYTEST) {
       return this.getObservationByTestCriteria();
