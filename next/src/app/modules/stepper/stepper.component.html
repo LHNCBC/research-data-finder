@@ -40,7 +40,7 @@
   </mat-step>
 
   <mat-step [stepControl]="defineCohort" label="Define cohort">
-      <app-define-cohort-page
+      <app-define-cohort-page #defineCohortComponent
         [formControl]="defineCohort"></app-define-cohort-page>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>

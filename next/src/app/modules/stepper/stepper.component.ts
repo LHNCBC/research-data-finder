@@ -22,7 +22,7 @@ import Resource = fhir.Resource;
 })
 export class StepperComponent implements OnDestroy {
   @ViewChild('stepper') private myStepper: MatStepper;
-  @ViewChild(DefineCohortPageComponent) public defineCohortComponent;
+  @ViewChild('defineCohortComponent') public defineCohortComponent;
 
   settings: FormControl = new FormControl();
   defineCohort: FormControl = new FormControl();

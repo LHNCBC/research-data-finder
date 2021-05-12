@@ -1,9 +1,4 @@
-import {
-  ComponentFixture,
-  fakeAsync,
-  TestBed,
-  tick
-} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ResourceTableComponent } from './resource-table.component';
 import { of, Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -75,7 +70,7 @@ describe('ResourceTableComponent', () => {
     const patientStream = new Subject();
     component.resourceStream = patientStream;
     const changesObj: SimpleChanges = {
-      patientStream: new SimpleChange(null, patientStream, true),
+      resourceStream: new SimpleChange(null, patientStream, true),
       columnDescriptions: new SimpleChange(null, { columnDescriptions }, true)
     };
     component.ngOnChanges(changesObj);

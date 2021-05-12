@@ -4,7 +4,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, Subject } from 'rxjs';
 import { MockComponent } from 'ng-mocks';
 import { SelectColumnsComponent } from '../select-columns/select-columns.component';
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
@@ -49,6 +49,7 @@ class DefineCohortPageComponentStub {
   defineCohortForm = new FormBuilder().group({
     maxPatientsNumber: ['100', Validators.required]
   });
+  patientStream = new Subject<any>();
   @Input() formControl: FormControl;
 }
 
