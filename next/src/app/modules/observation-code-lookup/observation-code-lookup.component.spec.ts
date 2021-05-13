@@ -31,7 +31,7 @@ class TestHostComponent {
   });
 }
 
-describe('SelectLoincCodesComponent', () => {
+describe('ObservationCodeLookupComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let hostComponent: TestHostComponent;
   let component: ObservationCodeLookupComponent;
@@ -48,69 +48,94 @@ describe('SelectLoincCodesComponent', () => {
     return fixture.whenStable();
   }
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [TestHostComponent],
-      imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        ObservationCodeLookupModule,
-        SharedModule
-      ]
-    }).compileComponents();
-
-    spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
-      const status = 200;
-      if (/\$lastn\?/.test(url) || /Observation/.test(url)) {
-        return Promise.resolve({ status, data: observations });
-      } else if (/metadata$/.test(url)) {
-        return Promise.resolve({ status, data: metadata });
+  [
+    {
+      description: 'when "lastn" operation is supported',
+      beforeEachFn: () => {
+        spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
+          const HTTP_OK = 200;
+          if (/\$lastn\?/.test(url) || /Observation/.test(url)) {
+            return Promise.resolve({ status: HTTP_OK, data: observations });
+          } else if (/metadata$/.test(url)) {
+            return Promise.resolve({ status: HTTP_OK, data: metadata });
+          }
+        });
       }
+    },
+    {
+      description: 'when "lastn" operation is not supported',
+      beforeEachFn: () => {
+        spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
+          const HTTP_OK = 200;
+          const HTTP_ERROR = 404;
+          if (/\$lastn\?/.test(url)) {
+            return Promise.reject({ status: HTTP_ERROR, error: 'error' });
+          } else if (/Observation/.test(url)) {
+            return Promise.resolve({ status: HTTP_OK, data: observations });
+          } else if (/metadata$/.test(url)) {
+            return Promise.resolve({ status: HTTP_OK, data: metadata });
+          }
+        });
+      }
+    }
+  ].forEach(({ description, beforeEachFn }) => {
+    describe(description, () => {
+      beforeEach(async () => {
+        await TestBed.configureTestingModule({
+          declarations: [TestHostComponent],
+          imports: [
+            CommonModule,
+            ReactiveFormsModule,
+            MatFormFieldModule,
+            ObservationCodeLookupModule,
+            SharedModule
+          ]
+        }).compileComponents();
+      });
+
+      beforeEach(async () => {
+        beforeEachFn();
+        console.log('>>> start');
+        spyOn(FhirBatchQuery.prototype, 'resourcesMapFilter').and.callThrough();
+        fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        hostComponent = fixture.componentInstance;
+        component = hostComponent.component;
+      });
+
+      it('should create', () => {
+        expect(component).toBeTruthy();
+      });
+
+      it('should initialize autocomplete correctly', () => {
+        expect(component.acInstance).toBeTruthy();
+        expect(component.acInstance.getSelectedCodes()).toEqual(
+          hostComponent.selectedLoincItems.value.codes
+        );
+        expect(component.acInstance.getSelectedItems()).toEqual(
+          hostComponent.selectedLoincItems.value.items
+        );
+      });
+
+      it('should be able to select an additional item', async () => {
+        // get the input element from the DOM
+        const hostElement = fixture.nativeElement;
+        const input: HTMLInputElement = hostElement.querySelector('input');
+
+        // simulate user entering a new text into the input box
+        input.value = 'H';
+        const ARROW_DOWN = 40;
+        const ENTER = 13;
+        input.focus();
+        await keyDownInAutocompleteInput(input, ARROW_DOWN);
+        await keyDownInAutocompleteInput(input, ARROW_DOWN);
+        await keyDownInAutocompleteInput(input, ENTER);
+
+        expect(
+          FhirBatchQuery.prototype.getWithCache.calls.mostRecent().args[0]
+        ).toMatch(/_elements=code,value,component&code:text=H/);
+        expect(hostComponent.selectedLoincItems.value.codes.length).toBe(2);
+      });
     });
-  });
-
-  beforeEach(async () => {
-    spyOn(FhirBatchQuery.prototype, 'resourcesMapFilter').and.callThrough();
-    fixture = TestBed.createComponent(TestHostComponent);
-    fixture.detectChanges();
-    hostComponent = fixture.componentInstance;
-    component = hostComponent.component;
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should initialize autocomplete correctly', () => {
-    expect(component.acInstance).toBeTruthy();
-    expect(component.acInstance.getSelectedCodes()).toEqual(
-      hostComponent.selectedLoincItems.value.codes
-    );
-    expect(component.acInstance.getSelectedItems()).toEqual(
-      hostComponent.selectedLoincItems.value.items
-    );
-  });
-
-  it('should be able to select an additional item', async () => {
-    // get the input element from the DOM
-    const hostElement = fixture.nativeElement;
-    const input: HTMLInputElement = hostElement.querySelector('input');
-
-    // simulate user entering a new text into the input box
-    input.value = 'H';
-    const ARROW_DOWN = 40;
-    const ENTER = 13;
-    input.focus();
-    await keyDownInAutocompleteInput(input, ARROW_DOWN);
-    await keyDownInAutocompleteInput(input, ARROW_DOWN);
-    await keyDownInAutocompleteInput(input, ENTER);
-
-    expect(
-      FhirBatchQuery.prototype.resourcesMapFilter.calls.mostRecent().args[0]
-    ).toEqual(
-      'Observation/$lastn?max=1&_elements=code,value,component&code:text=H'
-    );
-    expect(hostComponent.selectedLoincItems.value.codes.length).toBe(2);
   });
 });
