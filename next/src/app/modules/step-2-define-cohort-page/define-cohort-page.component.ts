@@ -192,8 +192,6 @@ export class DefineCohortPageComponent
    * with Patient resource data or with false.
    * @param resourceSummaries - array of Object describes criteria
    *   for each resource
-   * @param patientResourcesLoaded - object for measuring the number of Patients
-   *   (this object is created in the getPatients method)
    * @param elements - value of the _element parameter to use
    *   in the query to retrieve Patient data
    * @param maxPatientCount - maximum number of Patients

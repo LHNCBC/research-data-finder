@@ -1,6 +1,4 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import Bundle = fhir.Bundle;
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { Subject } from 'rxjs';
 import BundleEntry = fhir.BundleEntry;
@@ -16,10 +14,7 @@ import BundleEntry = fhir.BundleEntry;
 export class ViewCohortPageComponent implements OnInit {
   @Input() patientStream: Subject<BundleEntry>;
 
-  constructor(
-    private http: HttpClient,
-    public columnDescriptions: ColumnDescriptionsService
-  ) {}
+  constructor(public columnDescriptions: ColumnDescriptionsService) {}
 
   ngOnInit(): void {}
 }

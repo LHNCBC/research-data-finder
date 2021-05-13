@@ -13,7 +13,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatTableDataSource } from '@angular/material/table';
 import { ColumnDescription } from '../../types/column.description';
-import { bufferCount, debounceTime } from 'rxjs/operators';
+import { bufferCount } from 'rxjs/operators';
 import { capitalize } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
@@ -206,11 +206,24 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Get loading message according to loading status
+   */
+  get loadingMessage(): string {
+    if (this.isLoading) {
+      return 'Loading ...';
+    } else if (this.dataSource.data.length === 0) {
+      return `No ${this.resourceType} resources were found on the server.`;
+    } else {
+      return 'Loading complete.';
+    }
+  }
+
+  /**
    * Get count message according to number of resources loaded
    */
   get countMessage(): string {
-    if (!this.isLoading && this.dataSource?.data.length === 0) {
-      return `No ${this.resourceType} resources were found on the server.`;
+    if (this.dataSource.data.length === 0) {
+      return '';
     } else {
       let output = '';
       if (this.enableSelection) {

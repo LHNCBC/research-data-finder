@@ -7,10 +7,7 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { filter, take } from 'rxjs/operators';
-import { Subject, Subscription } from 'rxjs';
-import { DefineCohortPageComponent } from '../step-2-define-cohort-page/define-cohort-page.component';
-
-import Resource = fhir.Resource;
+import { Subscription } from 'rxjs';
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
