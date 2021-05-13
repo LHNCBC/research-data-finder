@@ -13,6 +13,7 @@ import {
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import * as definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
+import { FhirServerFeatures } from '../../types/fhir-server-features';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -86,6 +87,11 @@ export class FhirBackendService implements HttpBackend {
   }
   get cacheEnabled(): boolean {
     return this.isCacheEnabled;
+  }
+
+  // An object describing the server features
+  get features(): FhirServerFeatures {
+    return this.fhirClient.getFeatures();
   }
 
   // Javascript client from the old version of Research Data Finder

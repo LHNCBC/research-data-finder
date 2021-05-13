@@ -72,6 +72,11 @@ button.mat-stroked-button .mat-icon {
   outline-style: none;
 }
 
+// Remove original error state - we use MatFormField to show an error state
+input.search_field.invalid {
+  border-width: 0;
+}
+
 .autocomp_selected ul:empty {
   display: none;
   border-bottom: 0;

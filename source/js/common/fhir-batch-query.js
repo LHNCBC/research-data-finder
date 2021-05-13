@@ -678,6 +678,7 @@ export class FhirBatchQuery {
   /**
    * Returns the promise of resources(or mapped values) that meet the condition specified
    * in a filter(map) function and the total amount of resources.
+   * Also, returns function "cancel" to reject this promise and stop the loading process.
    * @param {string|Promise} url - URL to get resources
    * @param {number} count - the target number of resources
    * @param {ResourceMapFilterCallback} filterMapFunction - the resourcesMapFilter method
@@ -685,7 +686,7 @@ export class FhirBatchQuery {
    *   should be included in the resulting array (returns Promise<true>),
    *   skipped (returns Promise<false>) or replaced with new value(returns Promise<Object>)
    * @param {number} [pageSize] - page size for resources loading
-   * @return {Promise<{entry:Array, total: number}>}
+   * @return {{promise: Promise<{entry:Array, total: number}>, cancel: Function}}
    */
   resourcesMapFilter(url, count, filterMapFunction, pageSize) {
     // The value (this._maxPerBatch*this._maxActiveReq*2) is the optimal page size to get resources for filtering/mapping:
@@ -694,7 +695,8 @@ export class FhirBatchQuery {
     // For example, if we want to load Patients whose Encounters meet certain criteria,
     // we will load Encounters in portions of the specified optimal page size, and for each Encounter,
     // load the Patient and add it to the result (if it is not already in it) until we get the target number of Patients.
-    return this._resourcesMapFilter(
+    let canceled = false;
+    const promise = this._resourcesMapFilter(
       this.getWithCache(
         updateUrlWithParam(
           url,
@@ -703,8 +705,20 @@ export class FhirBatchQuery {
         )
       ),
       count,
-      filterMapFunction
+      (resource) => {
+        if (canceled) {
+          return Promise.reject({ status: HTTP_ABORT, error: 'Abort' });
+        }
+
+        return filterMapFunction(resource);
+      }
     );
+    return {
+      promise,
+      cancel: () => {
+        canceled = true;
+      }
+    };
   }
 
   /**
@@ -742,7 +756,10 @@ export class FhirBatchQuery {
               newCount,
               filterMapFunction
             ).then((nextPage) => {
-              resolve({ entry: entry.concat(nextPage.entry), total });
+              resolve({
+                entry: entry.concat(nextPage.entry),
+                total: typeof total === 'number' ? total : nextPage.total
+              });
             }, reject);
           } else {
             if (entry.length > count) {
