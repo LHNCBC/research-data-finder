@@ -26,7 +26,7 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   SelectOptions = SelectOptions;
   option = new FormControl(SelectOptions.Skip);
   subscription: Subscription;
-  researchStudyStream = new Subject<Resource>();
+  researchStudyStream: Subject<Resource>;
   showTable = false;
 
   /**
@@ -52,6 +52,7 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
         )
       )
       .subscribe(() => {
+        this.researchStudyStream = new Subject<Resource>();
         this.showTable = true;
         this.callBatch('$fhir/ResearchStudy?_count=500');
       });
