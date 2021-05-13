@@ -137,10 +137,10 @@ export class DefineCohortPageComponent
                     );
                   },
                   maxPatientCount
-                );
+                ).promise;
               },
               1
-            );
+            ).promise;
           }
 
           // List of resource elements for the first request
@@ -179,7 +179,7 @@ export class DefineCohortPageComponent
               },
               resourceSummaries.length > 1 ? null : maxPatientCount
             )
-            .then(() => {
+            .promise.then(() => {
               this.patientStream.complete();
             });
         }
