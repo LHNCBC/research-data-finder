@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
@@ -28,6 +28,7 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   subscription: Subscription;
   researchStudyStream: Subject<Resource>;
   showTable = false;
+  @ViewChild('resourceTableComponent') public resourceTableComponent;
 
   /**
    * Create and initialize instance of component.
@@ -82,5 +83,18 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
         }
       }
     });
+  }
+
+  /**
+   * Get search parameter of selected research studies' IDs
+   */
+  getResearchStudySearchParam(): string[] {
+    if (!this.resourceTableComponent) {
+      return [];
+    } else {
+      return this.resourceTableComponent.selectedResources.selected.map(
+        (r) => r.id
+      );
+    }
   }
 }

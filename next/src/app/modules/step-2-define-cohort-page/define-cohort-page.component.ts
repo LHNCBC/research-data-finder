@@ -65,8 +65,23 @@ export class DefineCohortPageComponent
   /**
    * get all search parameters, grouped by resource types.
    */
-  getConditions(): SearchCondition[] {
-    return this.patientParams.getConditions();
+  getConditions(researchStudyIds: string[]): SearchCondition[] {
+    const conditions = this.patientParams.getConditions();
+    if (researchStudyIds.length) {
+      const criteria = `&_id=${researchStudyIds.join(',')}`;
+      const researchStudyCondition = conditions.find(
+        (c) => c.resourceType === 'ResearchStudy'
+      );
+      if (researchStudyCondition) {
+        researchStudyCondition.criteria += criteria;
+      } else {
+        conditions.push({
+          resourceType: 'ResearchStudy',
+          criteria
+        });
+      }
+    }
+    return conditions;
   }
 
   /**
@@ -75,11 +90,11 @@ export class DefineCohortPageComponent
    * searches from server and checks patient records against all search parameters,
    * and emits patient records that matches all search parameters through {patientStream}
    */
-  searchForPatients(): void {
+  searchForPatients(researchStudyIds: string[]): void {
     // make new stream so user can come back and search multiple times
     this.patientStream = new Subject<Resource>();
     setTimeout(() => {
-      const resourceSummaries = this.getConditions();
+      const resourceSummaries = this.getConditions(researchStudyIds);
       // Load resource summaries
       Promise.all(
         resourceSummaries.length > 1
@@ -110,37 +125,41 @@ export class DefineCohortPageComponent
 
           if (firstItem.resourceType === 'ResearchStudy') {
             // If the search starts from ResearchStudy
-            return this.fhirBackend.fhirClient.resourcesMapFilter(
-              `ResearchStudy?_elements=id${firstItem.criteria}`,
-              maxPatientCount,
-              (researchStudy) => {
-                // Map each ResearchStudy to ResearchSubjects
-                return this.fhirBackend.fhirClient.resourcesMapFilter(
-                  `ResearchSubject?_elements=individual&study=${researchStudy.id}`,
-                  maxPatientCount,
-                  (researchSubject) => {
-                    // Map each ResearchSubject to Patient Id
-                    const patientId =
-                      /^Patient\/(.*)/.test(
-                        researchSubject.individual.reference
-                      ) && RegExp.$1;
-                    if (processedPatients[patientId]) {
-                      return false;
-                    }
-                    processedPatients[patientId] = true;
-                    // And filter by rest of the criteria
-                    return this.checkPatient(
-                      resourceSummaries,
-                      elements,
-                      maxPatientCount,
-                      patientId
-                    );
-                  },
-                  maxPatientCount
-                ).promise;
-              },
-              1
-            ).promise;
+            return this.fhirBackend.fhirClient
+              .resourcesMapFilter(
+                `ResearchStudy?_elements=id${firstItem.criteria}`,
+                maxPatientCount,
+                (researchStudy) => {
+                  // Map each ResearchStudy to ResearchSubjects
+                  return this.fhirBackend.fhirClient.resourcesMapFilter(
+                    `ResearchSubject?_elements=individual&study=${researchStudy.id}`,
+                    maxPatientCount,
+                    (researchSubject) => {
+                      // Map each ResearchSubject to Patient Id
+                      const patientId =
+                        /^Patient\/(.*)/.test(
+                          researchSubject.individual.reference
+                        ) && RegExp.$1;
+                      if (processedPatients[patientId]) {
+                        return false;
+                      }
+                      processedPatients[patientId] = true;
+                      // And filter by rest of the criteria
+                      return this.checkPatient(
+                        resourceSummaries,
+                        elements,
+                        maxPatientCount,
+                        patientId
+                      );
+                    },
+                    maxPatientCount
+                  ).promise;
+                },
+                1
+              )
+              .promise.then(() => {
+                this.patientStream.complete();
+              });
           }
 
           // List of resource elements for the first request

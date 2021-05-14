@@ -55,7 +55,8 @@
           <mat-icon svgIcon="upload"></mat-icon>Load cohort and criteria
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="primary" (click)="defineCohortComponent.searchForPatients()" matStepperNext>
+        <button mat-stroked-button color="primary" matStepperNext
+                (click)="defineCohortComponent.searchForPatients(selectAnAreaOfInterest.getResearchStudySearchParam())">
           Search for Patients<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>

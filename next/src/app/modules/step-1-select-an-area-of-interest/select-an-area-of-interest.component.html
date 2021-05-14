@@ -13,7 +13,7 @@
   </mat-radio-group>
 
   <div class="spacer" *ngIf="showTable"></div>
-  <app-resource-table *ngIf="showTable"
+  <app-resource-table *ngIf="showTable" #resourceTableComponent
       [columnDescriptions]="columnDescriptions.getVisibleColumns('ResearchStudy') | async"
       [enableClientFiltering]="true" [enableSelection]="true"
       [resourceStream]="researchStudyStream"
