@@ -121,7 +121,7 @@ export class DefineCohortPageComponent
           // Resource summary from which the search starts
           const firstItem = resourceSummaries.shift();
           const maxPatientCount = this.defineCohortForm.value.maxPatientsNumber;
-          const elements = 'name';
+          const elements = '';
 
           if (firstItem.resourceType === 'ResearchStudy') {
             // If the search starts from ResearchStudy
