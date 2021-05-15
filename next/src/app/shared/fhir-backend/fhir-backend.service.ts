@@ -222,6 +222,7 @@ export class FhirBackendService implements HttpBackend {
       definitions.initialized = true;
     }
 
+    console.log(definitions);
     return definitions;
   }
 

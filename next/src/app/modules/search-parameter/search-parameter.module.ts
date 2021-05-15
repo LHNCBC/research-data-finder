@@ -9,11 +9,13 @@ import { ObservationCodeLookupModule } from '../observation-code-lookup/observat
 import { DatesFromToComponent } from './dates-from-to.component';
 import { ObservationTestValueComponent } from './observation-test-value.component';
 import { MatSelectModule } from '@angular/material/select';
+import { AutoCompleteTestValueComponent } from './autocomplete-test-value.component';
 
 @NgModule({
   declarations: [
     SearchParameterComponent,
     DatesFromToComponent,
+    AutoCompleteTestValueComponent,
     ObservationTestValueComponent
   ],
   exports: [SearchParameterComponent],

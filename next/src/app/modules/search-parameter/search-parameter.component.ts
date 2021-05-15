@@ -42,8 +42,7 @@ export class SearchParameterComponent
   selectedParameter: any;
 
   parameterValue: FormControl = new FormControl('');
-  parameterValues: string[];
-  filteredParameterValues: Observable<string[]>;
+  parameterValues: any[];
 
   selectedLoincItems: FormControl = new FormControl(null);
 
@@ -98,11 +97,7 @@ export class SearchParameterComponent
         if (this.selectedParameter && this.selectedParameter.valueSet) {
           this.parameterValues = this.definitions.valueSets[
             this.selectedParameter.valueSet
-          ].map((v) => v.display);
-          this.filteredParameterValues = this.parameterValue.valueChanges.pipe(
-            startWith(''),
-            map((v) => this._filter(v, this.parameterValues))
-          );
+          ];
         }
       }
     });
