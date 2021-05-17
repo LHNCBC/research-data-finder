@@ -15,6 +15,7 @@ import { SearchCondition } from '../../types/search.condition';
 import { Subject } from 'rxjs';
 import Resource = fhir.Resource;
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { HttpClient } from '@angular/common/http';
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -38,7 +39,8 @@ export class DefineCohortPageComponent
 
   constructor(
     private formBuilder: FormBuilder,
-    private fhirBackend: FhirBackendService
+    private fhirBackend: FhirBackendService,
+    private http: HttpClient
   ) {
     super();
   }
@@ -99,22 +101,24 @@ export class DefineCohortPageComponent
       Promise.all(
         resourceSummaries.length > 1
           ? resourceSummaries.map((item) =>
-              this.fhirBackend.getWithCache(
-                `${item.resourceType}?_total=accurate&_summary=count${item.criteria}`
-              )
+              this.http
+                .get(
+                  `$fhir/${item.resourceType}?_total=accurate&_summary=count${item.criteria}`
+                )
+                .toPromise()
             )
           : []
       ).then((summaries: any[]) => {
         // Sort by the number of resources matching the conditions
         if (summaries.length > 0) {
           resourceSummaries.forEach((resourceSummary, index) => {
-            resourceSummary.total = summaries[index].data.total;
+            resourceSummary.total = summaries[index].total;
           });
           resourceSummaries.sort((x, y) => x.total - y.total);
         }
 
         if (resourceSummaries[0].total === 0) {
-          return { entry: [] };
+          this.patientStream.complete();
         } else {
           // Hashmap of processed patients. Used to avoid recheck of the same patient
           const processedPatients = {};
@@ -234,25 +238,28 @@ export class DefineCohortPageComponent
             let url;
 
             if (item.resourceType === this.PATIENT) {
-              url = `${item.resourceType}?_elements=${elements}${item.criteria}&_id=${patientId}`;
+              url = `$fhir/${item.resourceType}?_elements=${elements}${item.criteria}&_id=${patientId}`;
             } else if (item.resourceType === 'ResearchStudy') {
-              url = `${item.resourceType}?_total=accurate&_summary=count${item.criteria}&_has:ResearchSubject:study:individual=Patient/${patientId}`;
+              url = `$fhir/${item.resourceType}?_total=accurate&_summary=count${item.criteria}&_has:ResearchSubject:study:individual=Patient/${patientId}`;
             } else {
-              url = `${item.resourceType}?_total=accurate&_summary=count${item.criteria}&subject:Patient=${patientId}`;
+              url = `$fhir/${item.resourceType}?_total=accurate&_summary=count${item.criteria}&subject:Patient=${patientId}`;
             }
 
-            return this.fhirBackend.getWithCache(url).then(({ data }) => {
-              const meetsTheConditions = data.total > 0;
-              const resource =
-                data.entry && data.entry[0] && data.entry[0].resource;
-              if (resource && resource.resourceType === this.PATIENT) {
-                patientResource = resource;
-              }
+            return this.http
+              .get(url)
+              .toPromise()
+              .then((data: any) => {
+                const meetsTheConditions = data.total > 0;
+                const resource =
+                  data.entry && data.entry[0] && data.entry[0].resource;
+                if (resource && resource.resourceType === this.PATIENT) {
+                  patientResource = resource;
+                }
 
-              return meetsTheConditions && patientResource
-                ? patientResource
-                : meetsTheConditions;
-            });
+                return meetsTheConditions && patientResource
+                  ? patientResource
+                  : meetsTheConditions;
+              });
           }),
         Promise.resolve(patientResource ? patientResource : true)
       )
