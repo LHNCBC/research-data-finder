@@ -35,10 +35,13 @@
         <mat-label><input type="radio" [formControl]="parameterValue" value="false">false</mat-label>
       </div>
 
-      <app-autocomplete-test-value
-        *ngSwitchCase="selectedParameter.type === 'code' || selectedParameter.type === 'CodeableConcept' || selectedParameter.type === 'Coding' ? selectedParameter.type : ''"
-        class="parameter-value" [options]="parameterValues" [formControl]="parameterValue">
-      </app-autocomplete-test-value>
+      <mat-form-field class="parameter-value"
+        *ngSwitchCase="selectedParameter.type === 'code' || selectedParameter.type === 'CodeableConcept' || selectedParameter.type === 'Coding' ? selectedParameter.type : ''">
+        <mat-label>Search parameter value</mat-label>
+        <app-autocomplete-test-value
+          [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more">
+        </app-autocomplete-test-value>
+      </mat-form-field>
 
       <app-dates-from-to *ngSwitchCase="'date'" [formControl]="parameterValue" class="parameter-value"></app-dates-from-to>
 

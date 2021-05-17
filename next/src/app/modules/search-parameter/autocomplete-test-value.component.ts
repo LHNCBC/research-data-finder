@@ -1,16 +1,22 @@
 import {
   AfterViewInit,
   Component,
+  ElementRef,
+  HostListener,
   Input,
   OnChanges,
-  OnInit
+  Optional,
+  Self,
+  ViewChild
 } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { NgControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
+import { MatFormFieldControl } from '@angular/material/form-field';
+import { Subject } from 'rxjs';
 
 /**
  * data type used for this control
@@ -27,22 +33,104 @@ export interface Lookup {
   selector: 'app-autocomplete-test-value',
   templateUrl: './autocomplete-test-value.component.html',
   styleUrls: ['./autocomplete-test-value.component.less'],
-  providers: createControlValueAccessorProviders(AutoCompleteTestValueComponent)
+  providers: [
+    {
+      provide: MatFormFieldControl,
+      useExisting: AutoCompleteTestValueComponent
+    }
+  ]
 })
 export class AutoCompleteTestValueComponent
   extends BaseControlValueAccessor<Lookup[]>
-  implements OnChanges, AfterViewInit {
+  implements OnChanges, AfterViewInit, MatFormFieldControl<Lookup[]> {
   static idPrefix = 'autocomplete-test-value-';
   static idIndex = 0;
   inputId =
     AutoCompleteTestValueComponent.idPrefix +
     ++AutoCompleteTestValueComponent.idIndex;
+  @Input() options: Lookup[];
+  @Input() placeholder = '';
+
+  ngControl: NgControl = null;
   // Autocompleter instance
   acInstance: Def.Autocompleter.Prefetch;
-  @Input() options: Lookup[];
+  // Reference to the <input> element
+  @ViewChild('input') input: ElementRef<HTMLInputElement>;
 
   get value(): Lookup[] {
     return this.acInstance?.getSelectedCodes() || [];
+  }
+
+  /**
+   * Whether the control is empty (Implemented as part of MatFormFieldControl)
+   */
+  get empty(): boolean {
+    return !this.value.length;
+  }
+
+  /**
+   * Whether the control is focused (Implemented as part of MatFormFieldControl)
+   */
+  focused = false;
+
+  /**
+   * Whether the MatFormField label should try to float.
+   */
+  get shouldLabelFloat(): boolean {
+    return this.focused || !this.empty;
+  }
+
+  /**
+   * Stream that emits whenever the state of the control changes such that
+   * the parent `MatFormField` needs to run change detection.
+   */
+  readonly stateChanges = new Subject<void>();
+
+  /**
+   * These properties currently unused but required by MatFormFieldControl:
+   */
+  readonly disabled: boolean = false;
+  readonly id: string;
+  readonly required = false;
+  readonly errorState = false;
+  setDescribedByIds(): void {}
+  onContainerClick(event: MouseEvent): void {}
+
+  /**
+   * Handles focusin event to maintain the focused state.
+   */
+  @HostListener('focusin')
+  onFocusin(): void {
+    if (!this.focused) {
+      this.focused = true;
+      this.stateChanges.next();
+    }
+  }
+
+  /**
+   * Handles focusout event to maintain the focused state.
+   */
+  @HostListener('focusout', ['$event.relatedTarget'])
+  onFocusOut(relatedTarget: HTMLElement): void {
+    if (
+      this.focused &&
+      !this.elementRef.nativeElement.contains(relatedTarget)
+    ) {
+      this.focused = false;
+      this.stateChanges.next();
+    }
+  }
+
+  constructor(
+    @Optional() @Self() ngControl: NgControl,
+    private elementRef: ElementRef
+  ) {
+    super();
+    if (ngControl != null) {
+      // Setting the value accessor directly (instead of using
+      // the providers) to avoid running into a circular import.
+      ngControl.valueAccessor = this;
+    }
   }
 
   ngOnChanges(): void {

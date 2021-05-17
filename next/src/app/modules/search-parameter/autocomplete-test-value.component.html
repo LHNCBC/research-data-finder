@@ -1,4 +1,5 @@
-<mat-form-field>
-  <mat-label>Search parameter value</mat-label>
-  <input type="text" id="{{inputId}}" matInput>
-</mat-form-field>
+<input
+  type="text"
+  id="{{inputId}}"
+  #input
+  [placeholder]="shouldLabelFloat ? placeholder : ''">
