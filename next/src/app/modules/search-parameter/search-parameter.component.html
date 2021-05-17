@@ -36,7 +36,7 @@
       </div>
 
       <mat-form-field class="parameter-value"
-        *ngSwitchCase="selectedParameter.type === 'code' || selectedParameter.type === 'CodeableConcept' || selectedParameter.type === 'Coding' ? selectedParameter.type : ''">
+        *ngSwitchCase="CODETYPES.includes(selectedParameter.type) ? selectedParameter.type : ''">
         <mat-label>Search parameter value</mat-label>
         <app-autocomplete-test-value
           [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more">

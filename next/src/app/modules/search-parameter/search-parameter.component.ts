@@ -29,6 +29,7 @@ export class SearchParameterComponent
   @Input() inputResourceType = '';
   fixedResourceType = false;
   readonly OBSERVATIONBYTEST = 'Observation by Test';
+  readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
   definitions: any;
 
   resourceType: FormControl = new FormControl('');
@@ -159,6 +160,11 @@ export class SearchParameterComponent
           ? `&${this.parameterName.value}=le${this.parameterValue.value.to}`
           : '')
       );
+    }
+    if (this.CODETYPES.includes(this.selectedParameter.type)) {
+      return `&${this.parameterName.value}=${this.parameterValue.value.join(
+        ','
+      )}`;
     }
     return `&${this.parameterName.value}=${this.parameterValue.value}`;
   }
