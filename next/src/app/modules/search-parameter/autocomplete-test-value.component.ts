@@ -10,10 +10,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { NgControl } from '@angular/forms';
-import {
-  BaseControlValueAccessor,
-  createControlValueAccessorProviders
-} from '../base-control-value-accessor';
+import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { Subject } from 'rxjs';
@@ -41,8 +38,8 @@ export interface Lookup {
   ]
 })
 export class AutoCompleteTestValueComponent
-  extends BaseControlValueAccessor<Lookup[]>
-  implements OnChanges, AfterViewInit, MatFormFieldControl<Lookup[]> {
+  extends BaseControlValueAccessor<string[]>
+  implements OnChanges, AfterViewInit, MatFormFieldControl<string[]> {
   static idPrefix = 'autocomplete-test-value-';
   static idIndex = 0;
   inputId =
@@ -57,7 +54,7 @@ export class AutoCompleteTestValueComponent
   // Reference to the <input> element
   @ViewChild('input') input: ElementRef<HTMLInputElement>;
 
-  get value(): Lookup[] {
+  get value(): string[] {
     return this.acInstance?.getSelectedCodes() || [];
   }
 
@@ -94,7 +91,6 @@ export class AutoCompleteTestValueComponent
   readonly required = false;
   readonly errorState = false;
   setDescribedByIds(): void {}
-  onContainerClick(event: MouseEvent): void {}
 
   /**
    * Handles focusin event to maintain the focused state.
@@ -118,6 +114,15 @@ export class AutoCompleteTestValueComponent
     ) {
       this.focused = false;
       this.stateChanges.next();
+    }
+  }
+
+  /**
+   * Handles a click on the control's container to maintain the focused state.
+   */
+  onContainerClick(event: MouseEvent): void {
+    if (!this.focused) {
+      document.getElementById(this.inputId).focus();
     }
   }
 
