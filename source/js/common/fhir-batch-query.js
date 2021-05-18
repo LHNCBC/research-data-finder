@@ -100,10 +100,13 @@ export class FhirBatchQuery {
         // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
         this.getWithCache('metadata', { combine: false, retryCount: 2 }),
         // Check if sorting Observations by date is supported
-        this.getWithCache('Observation?_sort=date&_elements=id&_count=1', {
-          combine: false,
-          retryCount: 2
-        }),
+        this.getWithCache(
+          'Observation?date=gt1000-01-01&_elements=id&_count=1',
+          {
+            combine: false,
+            retryCount: 2
+          }
+        ),
         // Check if sorting Observations by age-at-event is supported
         this.getWithCache(
           'Observation?_sort=age-at-event&_elements=id&_count=1',
