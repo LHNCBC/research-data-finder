@@ -47,6 +47,14 @@ export class SearchParameterComponent
 
   selectedLoincItems: FormControl = new FormControl(null);
 
+  get useLookupParamValue(): boolean {
+    return (
+      this.CODETYPES.includes(this.selectedParameter.type) &&
+      Array.isArray(this.parameterValues) &&
+      this.parameterValues.length > 0
+    );
+  }
+
   constructor(private fhirBackend: FhirBackendService) {
     super();
   }
@@ -161,7 +169,7 @@ export class SearchParameterComponent
           : '')
       );
     }
-    if (this.CODETYPES.includes(this.selectedParameter.type)) {
+    if (this.useLookupParamValue) {
       return `&${this.parameterName.value}=${this.parameterValue.value.join(
         ','
       )}`;
