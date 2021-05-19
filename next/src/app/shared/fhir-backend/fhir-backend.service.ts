@@ -104,10 +104,22 @@ export class FhirBackendService implements HttpBackend {
    *   XMLHttpRequest to send requests to a backend server.
    */
   constructor(private defaultBackend: HttpXhrBackend) {
-    const params = new URLSearchParams(window.location.search);
-    const queryServer = params.has('server')
-      ? decodeURIComponent(params.get('server'))
-      : null;
+    let queryServer;
+    if (window.URLSearchParams !== undefined) {
+      const params = new URLSearchParams(window.location.search);
+      queryServer = params.has('server')
+        ? decodeURIComponent(params.get('server'))
+        : null;
+    } else {
+      // IE no support for URLSearchParams
+      const queryMatch = window.location.search.match(
+        new RegExp('[?&]server=([^&]+)', 'i')
+      );
+      queryServer =
+        queryMatch && queryMatch.length
+          ? decodeURIComponent(queryMatch[1])
+          : null;
+    }
     const localStorageServer = localStorage.getItem('server');
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
     this.fhirClient = new FhirBatchQuery({
