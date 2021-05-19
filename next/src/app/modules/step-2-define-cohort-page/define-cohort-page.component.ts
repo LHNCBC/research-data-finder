@@ -28,8 +28,6 @@ export class DefineCohortPageComponent
   implements OnInit {
   defineCohortForm: FormGroup;
 
-  @ViewChild('patientParams') patientParams: SearchParametersComponent;
-
   constructor(private formBuilder: FormBuilder) {
     super();
   }
@@ -48,8 +46,4 @@ export class DefineCohortPageComponent
   }
 
   writeValue(obj: any): void {}
-
-  addParameter(): void {
-    this.patientParams.addParameter();
-  }
 }

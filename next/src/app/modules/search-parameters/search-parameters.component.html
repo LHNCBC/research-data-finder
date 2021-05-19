@@ -5,3 +5,7 @@
   </button>
   <app-search-parameter [formControl]="item" [inputResourceType]="resourceType"></app-search-parameter>
 </div>
+
+<button id="addSearchCriterion" (click)="addParameter()" mat-stroked-button color="secondary">
+  <mat-icon svgIcon="add"></mat-icon>Add a search criterion
+</button>
