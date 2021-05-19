@@ -108,9 +108,10 @@ export class FhirBackendService implements HttpBackend {
     const queryServer = params.has('server')
       ? decodeURIComponent(params.get('server'))
       : null;
+    const localStorageServer = localStorage.getItem('server');
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
     this.fhirClient = new FhirBatchQuery({
-      serviceBaseUrl: queryServer || defaultServer
+      serviceBaseUrl: queryServer || localStorageServer || defaultServer
     });
     this.fhirClient.initialize().then(
       () => this.initialized.next(ConnectionStatus.Ready),

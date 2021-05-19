@@ -55,11 +55,13 @@ export class SettingsPageComponent {
       .get('serviceBaseUrl')
       .statusChanges.pipe(filter((s) => s === 'VALID'))
       .subscribe(() => {
+        const server = this.settingsFormGroup.get('serviceBaseUrl').value;
         // Update url query params after valid server change
-        const newUrl = `${window.location.protocol}//${window.location.host}${
-          window.location.pathname
-        }?server=${this.settingsFormGroup.get('serviceBaseUrl').value}`;
+        const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?server=${server}`;
         window.history.pushState({ path: newUrl }, '', newUrl);
+
+        // Update localStorage
+        localStorage.setItem('server', server);
       });
   }
 
