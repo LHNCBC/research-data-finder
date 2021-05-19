@@ -51,6 +51,16 @@ export class SettingsPageComponent {
       ],
       cacheDisabled: [!this.fhirBackend.cacheEnabled]
     });
+    this.settingsFormGroup
+      .get('serviceBaseUrl')
+      .statusChanges.pipe(filter((s) => s === 'VALID'))
+      .subscribe(() => {
+        // Update url query params after valid server change
+        const newUrl = `${window.location.protocol}//${window.location.host}${
+          window.location.pathname
+        }?server=${this.settingsFormGroup.get('serviceBaseUrl').value}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      });
   }
 
   /**
