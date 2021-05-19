@@ -4,20 +4,6 @@
   You can also save the cohort of Patients and the criteria for later.
 </p>
 
-<mat-accordion>
-  <mat-expansion-panel hideToggle>
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        Cohort of 50 selected Patient resources
-      </mat-panel-title>
-      <mat-panel-description>
-        Data loaded on 1/12/2021 11:24 in 0.3 seconds
-      </mat-panel-description>
-    </mat-expansion-panel-header>
-    <p>Here you will see detailed info about loading data.</p>
-  </mat-expansion-panel>
-</mat-accordion>
-
 <app-resource-table
     [columnDescriptions]="columnDescriptions.getVisibleColumns('Patient') | async"
     resourceType="Patient" [resourceStream]="patientStream">
