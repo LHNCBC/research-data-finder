@@ -73,13 +73,13 @@ export class SearchParameterComponent
       }
       const match = this.resourceTypes.find((rt) => rt === value);
       if (match) {
-        this.selectedParameter = null;
-        this.parameterName.setValue('');
-        this.parameterValue.setValue('');
         this.selectedResourceType = this.definitions.resources[value];
         this.parameterNames = this.selectedResourceType.searchParameters.map(
           (sp) => sp.name
         );
+        this.selectedParameter = null;
+        this.parameterName.setValue('');
+        this.parameterValue.setValue('');
       }
     });
 
