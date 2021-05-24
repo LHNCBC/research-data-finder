@@ -47,6 +47,9 @@ export class SearchParameterComponent
 
   selectedLoincItems: FormControl = new FormControl(null);
 
+  /**
+   * Whether to use lookup control for search parameter value.
+   */
   get useLookupParamValue(): boolean {
     return (
       this.CODETYPES.includes(this.selectedParameter.type) &&

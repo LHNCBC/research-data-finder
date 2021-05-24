@@ -148,6 +148,11 @@ export class AutoCompleteTestValueComponent
     this.setupAutocomplete();
   }
 
+  /**
+   * Set up Autocompleter prefetch options.
+   * Also call this.onChange() of ControlValueAccessor interface on selection event,
+   * so that form control value is updated and can be read from parent form.
+   */
   setupAutocomplete(): void {
     const testInputId = this.inputId;
     this.acInstance = new Def.Autocompleter.Prefetch(
