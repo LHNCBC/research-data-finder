@@ -9,8 +9,6 @@ This project follows [Semantic Versioning](http://semver.org/).
   in the init query which is used to check if sorting Observations by date
   is supported.
 
-npm install --save-dev css-loader@5.2.6
-npm install --save-dev optimize-css-assets-webpack-plugin@6.0.0
 ## [2.6.0] - 2021-03-08
 ### Added
 - $lastn lookup of Observation codes, when supported
