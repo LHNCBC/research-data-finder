@@ -111,7 +111,7 @@ export class FhirBackendService implements HttpBackend {
         ? decodeURIComponent(params.get('server'))
         : null;
     } else {
-      // IE no support for URLSearchParams
+      // IE does not support URLSearchParams
       const queryMatch = window.location.search.match(
         new RegExp('[?&]server=([^&]+)', 'i')
       );
@@ -120,10 +120,9 @@ export class FhirBackendService implements HttpBackend {
           ? decodeURIComponent(queryMatch[1])
           : null;
     }
-    const localStorageServer = localStorage.getItem('server');
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
     this.fhirClient = new FhirBatchQuery({
-      serviceBaseUrl: queryServer || localStorageServer || defaultServer
+      serviceBaseUrl: queryServer || defaultServer
     });
     this.fhirClient.initialize().then(
       () => this.initialized.next(ConnectionStatus.Ready),

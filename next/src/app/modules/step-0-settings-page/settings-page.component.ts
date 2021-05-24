@@ -59,9 +59,6 @@ export class SettingsPageComponent {
         // Update url query params after valid server change
         const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?server=${server}`;
         window.history.pushState({ path: newUrl }, '', newUrl);
-
-        // Update localStorage
-        localStorage.setItem('server', server);
       });
   }
 
