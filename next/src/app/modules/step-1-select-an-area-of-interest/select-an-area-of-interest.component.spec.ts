@@ -16,6 +16,7 @@ describe('SelectAnAreaOfInterestComponent', () => {
   let component: SelectAnAreaOfInterestComponent;
   let fixture: ComponentFixture<SelectAnAreaOfInterestComponent>;
   const fakeHttpClient = jasmine.createSpyObj('HttpClient', ['get']);
+  fakeHttpClient.get.and.returnValue(of({ entry: [], link: [] }));
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -46,7 +47,6 @@ describe('SelectAnAreaOfInterestComponent', () => {
         }
       ]
     }).compileComponents();
-    fakeHttpClient.get.and.returnValue(of({}));
   });
 
   beforeEach(async () => {
