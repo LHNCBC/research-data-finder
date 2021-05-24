@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { Component, Input, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
@@ -26,14 +26,18 @@ interface ObservationTestValue {
   styleUrls: ['./observation-test-value.component.less'],
   providers: createControlValueAccessorProviders(ObservationTestValueComponent)
 })
-export class ObservationTestValueComponent extends BaseControlValueAccessor<ObservationTestValue> {
+export class ObservationTestValueComponent
+  extends BaseControlValueAccessor<ObservationTestValue>
+  implements OnInit {
   @Input() datatype: string;
-  testValuePrefix: FormControl = new FormControl('');
-  testValueModifier: FormControl = new FormControl('');
-  testValue: FormControl = new FormControl('');
-  testValueUnit: FormControl = new FormControl('');
-  from: FormControl = new FormControl('');
-  to: FormControl = new FormControl('');
+  form = new FormGroup({
+    testValuePrefix: new FormControl(''),
+    testValueModifier: new FormControl(''),
+    testValue: new FormControl(''),
+    testValueUnit: new FormControl(''),
+    from: new FormControl(''),
+    to: new FormControl('')
+  });
   // Mapping for supported value[x] properties of Observation
   readonly typeDescriptions = {
     Quantity: {
@@ -61,26 +65,36 @@ export class ObservationTestValueComponent extends BaseControlValueAccessor<Obse
     }
   };
 
+  ngOnInit(): void {
+    this.form.valueChanges.subscribe(() => {
+      this.onChange(this.form.getRawValue());
+    });
+  }
+
   /**
    * Part of the ControlValueAccessor interface
    */
   writeValue(value: ObservationTestValue): void {
-    this.testValuePrefix.setValue(value.testValuePrefix);
+    this.form.setValue(
+      value || {
+        testValuePrefix: '',
+        testValueModifier: '',
+        testValue: '',
+        testValueUnit: '',
+        from: '',
+        to: ''
+      }
+    );
     if (
       !value.testValueModifier &&
       this.typeDescriptions[this.datatype].modifiers &&
       this.typeDescriptions[this.datatype].modifiers.length === 1
-    ) { // default and disable control if only one option
-      this.testValueModifier.setValue(
-        this.typeDescriptions[this.datatype].modifiers[0][1]
-      );
-      this.testValueModifier.disable();
-    } else {
-      this.testValueModifier.setValue(value.testValueModifier);
+    ) {
+      // default and disable control if only one option
+      this.form
+        .get('testValueModifier')
+        .setValue(this.typeDescriptions[this.datatype].modifiers[0][1]);
+      this.form.get('testValueModifier').disable();
     }
-    this.testValue.setValue(value.testValue);
-    this.testValueUnit.setValue(value.testValueUnit);
-    this.from.setValue(value.from);
-    this.to.setValue(value.to);
   }
 }

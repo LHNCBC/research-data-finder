@@ -8,6 +8,11 @@ import {
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { SearchCondition } from '../../types/search.condition';
+import {
+  encodeFhirSearchParameter,
+  escapeFhirSearchParameter
+} from '../../shared/utils';
 
 /**
  * Component for editing one resource search parameter
@@ -69,10 +74,13 @@ export class SearchParameterComponent
 
     this.definitions = this.fhirBackend.getCurrentDefinitions();
     if (!this.inputResourceType) {
-      this.resourceTypes = Object.keys(this.definitions.resources).concat(this.OBSERVATIONBYTEST);
+      this.resourceTypes = Object.keys(this.definitions.resources).concat(
+        this.OBSERVATIONBYTEST
+      );
     } else if (this.inputResourceType === 'Observation') {
       this.resourceTypes = ['Observation', this.OBSERVATIONBYTEST];
-    } else { // single resource type
+    } else {
+      // single resource type
       this.resourceType.setValue(this.inputResourceType);
       this.fixedResourceType = true;
     }
@@ -125,5 +133,71 @@ export class SearchParameterComponent
     this.parameterName.setValue(value.name || '');
     // TODO:
     this.parameterValue.setValue(value.value || '');
+  }
+
+  /**
+   * return resource type and url segment of search string for current search parameter.
+   */
+  getCondition(): SearchCondition {
+    const criteria = this.getCriteria();
+    return criteria
+      ? {
+          resourceType: this.resourceType.value,
+          criteria
+        }
+      : null;
+  }
+
+  /**
+   * get string of url segment describing the search criteria that will be used to search in server.
+   */
+  getCriteria(): string {
+    if (this.resourceType.value === this.OBSERVATIONBYTEST) {
+      return this.getObservationByTestCriteria();
+    }
+    if (this.selectedParameter.type === 'date') {
+      return (
+        (this.parameterValue.value.from
+          ? `&${this.parameterName.value}=ge${this.parameterValue.value.from}`
+          : '') +
+        (this.parameterValue.value.to
+          ? `&${this.parameterName.value}=le${this.parameterValue.value.to}`
+          : '')
+      );
+    }
+    return `&${this.parameterName.value}=${this.parameterValue.value}`;
+  }
+
+  getObservationByTestCriteria(): string {
+    const comboCodes = this.selectedLoincItems.value.codes.filter((c) => c);
+    const codeParam = comboCodes.length
+      ? '&combo-code=' +
+        comboCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
+      : '';
+    const valueParamName = {
+      CodeableConcept: 'combo-value-concept',
+      Quantity: 'combo-value-quantity',
+      string: 'value-string'
+    }[this.selectedLoincItems.value.datatype];
+    const modifier = this.parameterValue.value.testValueModifier;
+    const prefix = this.parameterValue.value.testValuePrefix;
+    const testValue = this.parameterValue.value.testValue
+      ? escapeFhirSearchParameter(
+          this.parameterValue.value.testValue.toString()
+        )
+      : '';
+    const unit = this.parameterValue.value.testValueUnit;
+    const from = this.parameterValue.value.from
+      ? `&date=ge${encodeURIComponent(this.parameterValue.value.from)}`
+      : '';
+    const to = this.parameterValue.value.to
+      ? `&date=le${encodeURIComponent(this.parameterValue.value.to)}`
+      : '';
+    const valueParam = testValue.trim()
+      ? `&${valueParamName}${modifier}=${prefix}${encodeURIComponent(
+          testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
+        )}`
+      : '';
+    return `${codeParam}${valueParam}${from}${to}`;
   }
 }
