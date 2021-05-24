@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
@@ -6,9 +6,10 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { combineLatest, Subscription } from 'rxjs';
+import { combineLatest, Subject, Subscription } from 'rxjs';
 import { filter, tap } from 'rxjs/operators';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import Resource = fhir.Resource;
 
 export enum SelectOptions {
   Skip = 0,
@@ -23,12 +24,11 @@ export enum SelectOptions {
 export class SelectAnAreaOfInterestComponent implements OnDestroy {
   // Publish enum for template
   SelectOptions = SelectOptions;
-
-  @Input()
-  initialBundle: Bundle;
-  showTable = false;
   option = new FormControl(SelectOptions.Skip);
   subscription: Subscription;
+  researchStudyStream: Subject<Resource>;
+  showTable = false;
+  @ViewChild('resourceTableComponent') public resourceTableComponent;
 
   /**
    * Create and initialize instance of component.
@@ -53,16 +53,48 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
         )
       )
       .subscribe(() => {
-        this.http
-          .get('$fhir/ResearchStudy?_count=50')
-          .subscribe((data: Bundle) => {
-            this.initialBundle = data;
-            this.showTable = true;
-          });
+        this.researchStudyStream = new Subject<Resource>();
+        this.showTable = true;
+        this.callBatch('$fhir/ResearchStudy?_count=500');
       });
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+  }
+
+  /**
+   * calls server for a bundle of resources. Will be recursively called if having next bundle.
+   */
+  callBatch(url: string): void {
+    this.http.get(url).subscribe((data: Bundle) => {
+      if (!data.entry) {
+        this.researchStudyStream.complete();
+        return;
+      } else {
+        data.entry?.forEach((item) => {
+          this.researchStudyStream.next(item.resource);
+        });
+        const nextBundleUrl = data.link.find((l) => l.relation === 'next')?.url;
+        if (nextBundleUrl) {
+          this.callBatch(nextBundleUrl);
+        } else {
+          this.researchStudyStream.complete();
+        }
+      }
+    });
+  }
+
+  /**
+   * Get search parameter of selected research studies' IDs
+   */
+  getResearchStudySearchParam(): string[] {
+    if (!this.resourceTableComponent) {
+      return [];
+    } else {
+      return this.resourceTableComponent.selectedResources.selected.map(
+        (r) => r.id
+      );
+    }
   }
 }
