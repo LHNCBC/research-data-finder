@@ -29,6 +29,7 @@ export class SearchParameterComponent
   @Input() inputResourceType = '';
   fixedResourceType = false;
   readonly OBSERVATIONBYTEST = 'Observation by Test';
+  readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
   definitions: any;
 
   resourceType: FormControl = new FormControl('');
@@ -42,10 +43,20 @@ export class SearchParameterComponent
   selectedParameter: any;
 
   parameterValue: FormControl = new FormControl('');
-  parameterValues: string[];
-  filteredParameterValues: Observable<string[]>;
+  parameterValues: any[];
 
   selectedLoincItems: FormControl = new FormControl(null);
+
+  /**
+   * Whether to use lookup control for search parameter value.
+   */
+  get useLookupParamValue(): boolean {
+    return (
+      this.CODETYPES.includes(this.selectedParameter.type) &&
+      Array.isArray(this.parameterValues) &&
+      this.parameterValues.length > 0
+    );
+  }
 
   constructor(private fhirBackend: FhirBackendService) {
     super();
@@ -69,6 +80,9 @@ export class SearchParameterComponent
         this.parameterNames = this.selectedResourceType.searchParameters.map(
           (sp) => sp.name
         );
+        this.selectedParameter = null;
+        this.parameterName.setValue('');
+        this.parameterValue.setValue('');
       }
     });
 
@@ -95,14 +109,13 @@ export class SearchParameterComponent
         this.selectedParameter = this.selectedResourceType.searchParameters.find(
           (p) => p.name === value
         );
-        if (this.selectedParameter && this.selectedParameter.valueSet) {
-          this.parameterValues = this.definitions.valueSets[
-            this.selectedParameter.valueSet
-          ].map((v) => v.display);
-          this.filteredParameterValues = this.parameterValue.valueChanges.pipe(
-            startWith(''),
-            map((v) => this._filter(v, this.parameterValues))
-          );
+        if (this.selectedParameter) {
+          this.parameterValue.setValue('');
+          if (this.selectedParameter.valueSet) {
+            this.parameterValues = this.definitions.valueSets[
+              this.selectedParameter.valueSet
+            ];
+          }
         }
       }
     });
@@ -164,6 +177,11 @@ export class SearchParameterComponent
           ? `&${this.parameterName.value}=le${this.parameterValue.value.to}`
           : '')
       );
+    }
+    if (this.useLookupParamValue) {
+      return `&${this.parameterName.value}=${this.parameterValue.value.join(
+        ','
+      )}`;
     }
     return `&${this.parameterName.value}=${this.parameterValue.value}`;
   }

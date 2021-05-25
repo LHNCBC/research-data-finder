@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [2.6.1] - 2021-05-24
+### Fixed
+- Speed up initialization by replacing "_sort=date" with "date=gt1000-01-01"
+  in the init query which is used to check if sorting Observations by date
+  is supported.
+
 ## [2.6.0] - 2021-03-08
 ### Added
 - $lastn lookup of Observation codes, when supported
