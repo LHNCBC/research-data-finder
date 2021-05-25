@@ -71,7 +71,7 @@ export class SettingsPageComponent {
     control: FormControl
   ): Observable<ValidationErrors | null> {
     // Update serverBaseUrl (ignore trailing backslashes)
-    this.fhirBackend.serviceBaseUrl = control.value.replace(/\/*$/, '');
+    this.fhirBackend.serviceBaseUrl = control.value.replace(/\/+$/, '');
 
     // Wait for response to validate server
     return this.fhirBackend.initialized.pipe(

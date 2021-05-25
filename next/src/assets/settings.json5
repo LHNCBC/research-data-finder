@@ -1,0 +1,18 @@
+/**
+ * This file contains the runtime settings for the application.
+ */
+{
+  // Default settings for all servers
+  default: {
+    // Hide resource table columns for specified elements by default
+    hideElementsByDefault: {
+      "ResearchStudy": ["keyword", "condition"]
+    }
+  },
+  // Settings for servers with the specified URL
+  "customization": {
+    "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1": {
+      // You can override default settings here
+    }
+  }
+}

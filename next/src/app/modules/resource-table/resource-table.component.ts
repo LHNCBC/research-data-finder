@@ -20,6 +20,7 @@ import { ColumnValuesService } from '../../shared/column-values/column-values.se
 import { escapeStringForRegExp } from '@legacy/js/common/utils';
 import { Subject } from 'rxjs';
 import Resource = fhir.Resource;
+import { SettingsService } from '../../shared/settings-service/settings.service';
 
 /**
  * Component for loading table of resources
@@ -49,7 +50,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private http: HttpClient,
     private ngZone: NgZone,
     private columnDescriptionsService: ColumnDescriptionsService,
-    private columnValuesService: ColumnValuesService
+    private columnValuesService: ColumnValuesService,
+    private settings: SettingsService
   ) {}
 
   ngOnInit(): void {}
@@ -68,8 +70,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const allColumns = this.columnDescriptionsService.getAvailableColumns(
       this.resourceType
     );
+    const hiddenByDefault =
+      this.settings.get('hideElementsByDefault')?.[this.resourceType] || [];
     this.columnDescriptions = allColumns.filter(
-      (x) => this.getCellStrings(this.dataSource.data[0], x).length
+      (x) =>
+        hiddenByDefault.indexOf(x.element) === -1 &&
+        this.getCellStrings(this.dataSource.data[0], x).length
     );
     // Save column selections of default
     window.localStorage.setItem(

@@ -9,7 +9,6 @@ import ContactPoint = fhir.ContactPoint;
 import Quantity = fhir.Quantity;
 import HumanName = fhir.HumanName;
 import Address = fhir.Address;
-import { SettingsService } from '../settings-service/settings.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,10 +18,7 @@ export class ColumnValuesService {
     return this.fhirBackend.getCurrentDefinitions();
   }
 
-  constructor(
-    private fhirBackend: FhirBackendService,
-    private settings: SettingsService
-  ) {}
+  constructor(private fhirBackend: FhirBackendService) {}
 
   /**
    * Returns array of string represented the specified value
@@ -127,24 +123,11 @@ export class ColumnValuesService {
    * @param fullPath - property path to value started with resourceType
    */
   getCodeableConceptAsText(v: CodeableConcept, fullPath): string {
-    // Show only the preferred term for Condition and Keyword (for dbGaP)
-    const preferredSystem = this.settings.get('preferredSystem');
-    let coding = v.coding;
-    if (
-      preferredSystem &&
-      ['ResearchStudy.keyword', 'ResearchStudy.condition'].indexOf(fullPath) !==
-        -1 &&
-      !(coding = coding?.filter(({ system }) => system === preferredSystem))
-        ?.length
-    ) {
-      return '';
-    }
-
     if (v.text) {
       return v.text;
     }
-    return coding && coding[0]
-      ? this.getCodingAsText(coding[0], fullPath + '.coding')
+    return v.coding && v.coding[0]
+      ? this.getCodingAsText(v.coding[0], fullPath + '.coding')
       : null;
   }
 

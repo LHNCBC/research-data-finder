@@ -9,6 +9,8 @@ import { CdkScrollable } from '@angular/cdk/overlay';
 import { DebugElement, SimpleChange, SimpleChanges } from '@angular/core';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { SharedModule } from '../../shared/shared.module';
+import { SettingsService } from '../../shared/settings-service/settings.service';
+import Spy = jasmine.Spy;
 
 class Page {
   private fixture: ComponentFixture<ResourceTableComponent>;
@@ -34,23 +36,61 @@ describe('ResourceTableComponent', () => {
   for (let i = 1; i < 51; i++) {
     bundle.entry.push({ resource: { id: i.toString() } });
   }
-  const columnDescriptions: ColumnDescription[] = [
+  const availableColumns: ColumnDescription[] = [
     {
       displayName: 'ID',
       element: 'id',
       types: ['string'],
       isArray: false,
       visible: false
+    },
+    {
+      displayName: 'Another column',
+      element: 'anotherElement',
+      types: ['string'],
+      isArray: false,
+      visible: false
     }
   ];
+  const hiddenElements = {
+    someResourceType: ['anotherElement']
+  };
 
   const spies = [];
   spies.push(jasmine.createSpyObj('HttpClient', ['get']));
   spies.push(
     jasmine.createSpyObj('ColumnDescriptionsService', ['getAvailableColumns'])
   );
+  spies.push(jasmine.createSpyObj('SettingsService', ['get']));
   spies[0].get.and.returnValue(of(bundle));
-  spies[1].getAvailableColumns.and.returnValue(columnDescriptions);
+  spies[1].getAvailableColumns.and.returnValue(availableColumns);
+  spies[2].get.and.returnValue(hiddenElements);
+
+  async function fillTable(columnDescriptions): Promise<void> {
+    component.resourceType = 'someResourceType';
+    const resourceStream = new Subject();
+    component.resourceStream = resourceStream;
+    component.columns = [];
+    component.columnDescriptions = columnDescriptions;
+    const changesObj: SimpleChanges = {
+      resourceStream: new SimpleChange(null, resourceStream, true),
+      columnDescriptions: new SimpleChange(
+        null,
+        { columnDescriptions: [] },
+        true
+      )
+    };
+    component.ngOnChanges(changesObj);
+    for (let i = 1; i < 51; i++) {
+      resourceStream.next({
+        id: i.toString(),
+        anotherElement: 'value-' + i.toString()
+      });
+    }
+    resourceStream.complete();
+    fixture.detectChanges();
+    await fixture.whenStable();
+  }
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -58,41 +98,41 @@ describe('ResourceTableComponent', () => {
       imports: [ResourceTableModule, SharedModule],
       providers: [
         { provide: HttpClient, useValue: spies[0] },
-        { provide: ColumnDescriptionsService, useValue: spies[1] }
+        { provide: ColumnDescriptionsService, useValue: spies[1] },
+        { provide: SettingsService, useValue: spies[2] }
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(ResourceTableComponent);
     page = new Page(fixture);
     component = fixture.componentInstance;
     component.enableClientFiltering = true;
-    component.columns = [];
-    component.columnDescriptions = columnDescriptions;
-    const patientStream = new Subject();
-    component.resourceStream = patientStream;
-    const changesObj: SimpleChanges = {
-      resourceStream: new SimpleChange(null, patientStream, true),
-      columnDescriptions: new SimpleChange(null, { columnDescriptions }, true)
-    };
-    component.ngOnChanges(changesObj);
-    for (let i = 1; i < 51; i++) {
-      patientStream.next({ id: i.toString() });
-    }
-    patientStream.complete();
-    fixture.detectChanges();
-    await fixture.whenStable();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should filter', () => {
+  it('should filter', async () => {
+    await fillTable(availableColumns);
     expect(component.filtersForm).not.toBeNull();
-    expect(component.filterColumns.length).toEqual(1);
+    expect(component.filterColumns.length).toEqual(availableColumns.length);
     expect(component.filtersForm.get('id')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
     component.filtersForm.get('id').setValue('49');
     fixture.detectChanges();
     expect(component.dataSource.filteredData.length).toEqual(1);
+  });
+
+  it('should hide columns by default according to settings', async () => {
+    spyOn(window.localStorage, 'setItem');
+    await fillTable([]);
+    expect(component.filterColumns.length).toEqual(availableColumns.length - 1);
+    expect(component.dataSource.filteredData.length).toEqual(50);
+    expect(
+      (window.localStorage.setItem as Spy).calls.mostRecent().args[0]
+    ).toEqual('someResourceType-columns');
+    expect(
+      (window.localStorage.setItem as Spy).calls.mostRecent().args[1]
+    ).toEqual('id');
   });
 });
