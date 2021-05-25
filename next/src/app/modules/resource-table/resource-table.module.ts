@@ -11,6 +11,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TableVirtualScrollModule } from 'ng-table-virtual-scroll';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 @NgModule({
   declarations: [ResourceTableComponent],
@@ -27,7 +29,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatInputModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
-    MatSelectModule
+    MatSelectModule,
+    TableVirtualScrollModule,
+    ScrollingModule
   ]
 })
 export class ResourceTableModule {}

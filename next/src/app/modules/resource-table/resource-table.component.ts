@@ -20,6 +20,7 @@ import { ColumnValuesService } from '../../shared/column-values/column-values.se
 import { escapeStringForRegExp } from '@legacy/js/common/utils';
 import { Subject } from 'rxjs';
 import Resource = fhir.Resource;
+import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { SettingsService } from '../../shared/settings-service/settings.service';
 
 /**
@@ -40,7 +41,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   filterColumns = [];
   selectedResources = new SelectionModel<Resource>(true, []);
   filtersForm: FormGroup = new FormBuilder().group({});
-  dataSource = new MatTableDataSource<Resource>([]);
+  dataSource = new TableVirtualScrollDataSource<Resource>([]);
   lastResourceElement: HTMLElement;
   isLoading = true;
 
