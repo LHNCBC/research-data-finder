@@ -127,20 +127,6 @@ a.nav-link_only-image:focus {
 }
 /* End of styles for tabs-component */
 
-.lf-form-table .lf-form-table-row.section-header.level1 {
-  background-color: rgb(67, 115, 156);
-  color: white;
-}
-
-.lf-form-body .lf-form-table-row.level1.target-show td {
-  color: #e8f2fc;
-}
-
-a.external:after {
-  content: url(/assets/images/icon-external-link.png);
-  margin: 0 0 0 5px;
-}
-
 th label {
   font-weight: bold;
   width: 30em;
