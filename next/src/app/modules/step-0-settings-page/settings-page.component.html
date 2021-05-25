@@ -11,7 +11,7 @@
       <mat-spinner [diameter]="12"  style="float: left; margin-right: 8px"></mat-spinner>
       Initializing ...
     </mat-hint>
-    <mat-hint align="start" *ngIf="!(isWaitingForConnection | async)">
+    <mat-hint align="start" *ngIf="(isWaitingForConnection | async) === false">
       See <a target="_blank" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for details.
     </mat-hint>
     <mat-error>
