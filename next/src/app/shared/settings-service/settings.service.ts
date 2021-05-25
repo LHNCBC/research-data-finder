@@ -3,7 +3,7 @@
  * to those settings.
  */
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Config } from '../../types/settings';
@@ -26,7 +26,12 @@ export class SettingsService {
    */
   loadJsonConfig(): Observable<any> {
     return this.http
-      .get('assets/settings.json5', { responseType: 'text' })
+      .get('assets/settings.json5', {
+        responseType: 'text',
+        headers: new HttpHeaders({
+          'Cache-Control': 'no-store, max-age=0'
+        })
+      })
       .pipe(
         tap((config) => {
           this.config = json5.parse(config);
