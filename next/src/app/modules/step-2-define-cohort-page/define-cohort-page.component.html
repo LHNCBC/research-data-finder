@@ -12,4 +12,8 @@
   </mat-form-field>
 
   <app-search-parameters #patientParams></app-search-parameters>
+
+  <button id="addSearchCriterion" (click)="patientParams.addParameter()" mat-stroked-button color="secondary">
+    <mat-icon svgIcon="add"></mat-icon>Add a search criterion
+  </button>
 </form>

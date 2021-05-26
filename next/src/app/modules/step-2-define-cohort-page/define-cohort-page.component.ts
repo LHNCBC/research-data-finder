@@ -60,10 +60,6 @@ export class DefineCohortPageComponent
 
   writeValue(obj: any): void {}
 
-  addParameter(): void {
-    this.patientParams.addParameter();
-  }
-
   /**
    * get all search parameters, grouped by resource types.
    */
