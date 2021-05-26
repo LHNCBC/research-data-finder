@@ -19,6 +19,7 @@ import { Subscription } from 'rxjs';
 })
 export class StepperComponent implements OnDestroy {
   @ViewChild('stepper') private myStepper: MatStepper;
+  @ViewChild('defineCohortComponent') public defineCohortComponent;
 
   settings: FormControl = new FormControl();
   defineCohort: FormControl = new FormControl();

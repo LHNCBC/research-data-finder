@@ -23,3 +23,19 @@ export function getNextPageUrl(response: Bundle): string | undefined {
     ) && result
   );
 }
+
+/**
+ * Escapes a FHIR search parameter string
+ * (see https://www.hl7.org/fhir/search.html#escaping)
+ */
+export function escapeFhirSearchParameter(str: string): string {
+  return str.replace(/[$,|]/g, '\\$&');
+}
+
+/**
+ * Escapes a FHIR search parameter string then encode it with encodeURIComponent
+ * (see https://www.hl7.org/fhir/search.html#escaping)
+ */
+export function encodeFhirSearchParameter(str): string {
+  return encodeURIComponent(escapeFhirSearchParameter(str));
+}
