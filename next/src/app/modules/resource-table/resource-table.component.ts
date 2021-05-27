@@ -249,19 +249,20 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (!sort.active || sort.direction === '') {
       return;
     }
+    const isAsc = sort.direction === 'asc';
+    const sortingColumnDescription = this.columnDescriptions.find(
+      (c) => c.element === sort.active
+    );
     this.dataSource.data.sort((a: Resource, b: Resource) => {
-      const isAsc = sort.direction === 'asc';
-      const sortingColumnDescription = this.columnDescriptions.find(
-        (c) => c.element === sort.active
-      );
       const cellValueA = this.getCellStrings(a, sortingColumnDescription).join(
         '; '
       );
       const cellValueB = this.getCellStrings(b, sortingColumnDescription).join(
         '; '
       );
-      return (cellValueA < cellValueB ? -1 : 1) * (isAsc ? 1 : -1);
+      return cellValueA.localeCompare(cellValueB) * (isAsc ? 1 : -1);
     });
+    // Table will re-render only after data reference changed.
     this.dataSource.data = this.dataSource.data.slice();
   }
 }
