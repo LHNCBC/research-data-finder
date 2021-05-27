@@ -11,7 +11,6 @@ import {
 import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { MatTableDataSource } from '@angular/material/table';
 import { ColumnDescription } from '../../types/column.description';
 import { bufferCount } from 'rxjs/operators';
 import { capitalize } from '../../shared/utils';
@@ -22,6 +21,7 @@ import { Subject } from 'rxjs';
 import Resource = fhir.Resource;
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { SettingsService } from '../../shared/settings-service/settings.service';
+import { Sort } from '@angular/material/sort';
 
 /**
  * Component for loading table of resources
@@ -239,5 +239,29 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       output += `${this.dataSource.data.length} rows loaded.`;
       return output;
     }
+  }
+
+  /**
+   * Sort dataSource on table header click
+   * @param sort - sorting event object containing info of table column and sort direction
+   */
+  sortData(sort: Sort): void {
+    if (!sort.active || sort.direction === '') {
+      return;
+    }
+    this.dataSource.data.sort((a: Resource, b: Resource) => {
+      const isAsc = sort.direction === 'asc';
+      const sortingColumnDescription = this.columnDescriptions.find(
+        (c) => c.element === sort.active
+      );
+      const cellValueA = this.getCellStrings(a, sortingColumnDescription).join(
+        '; '
+      );
+      const cellValueB = this.getCellStrings(b, sortingColumnDescription).join(
+        '; '
+      );
+      return (cellValueA < cellValueB ? -1 : 1) * (isAsc ? 1 : -1);
+    });
+    this.dataSource.data = this.dataSource.data.slice();
   }
 }
