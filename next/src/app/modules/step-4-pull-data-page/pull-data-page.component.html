@@ -34,6 +34,7 @@
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button
+                [disabled]="resourceType === 'Observation' && perPatientPerTest.invalid"
                 color="secondary"
                 (click)="loadResources(resourceType, resourceParams.getConditions())">
           <mat-icon svgIcon="refresh"></mat-icon>Load {{getPluralFormOfResourceType(resourceType)}}

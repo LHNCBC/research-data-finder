@@ -65,7 +65,10 @@ export class PullDataPageComponent {
 
   // Stream of resources for ResourceTableComponent
   resourceStream: { [resourceType: string]: Subject<Resource> } = {};
-  perPatientPerTest = new FormControl(1, Validators.required);
+  perPatientPerTest = new FormControl(1, [
+    Validators.required,
+    Validators.min(1)
+  ]);
 
   constructor(
     private fhirBackend: FhirBackendService,
