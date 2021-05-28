@@ -64,9 +64,12 @@ export class SettingsPageComponent {
 
   /**
    * Update FHIR REST API Service configuration parameter from input field by name.
+   * @param name - parameter name
+   * @param value - parameter value
    */
-  updateFhirBackendSetting(name: string): void {
-    const newValue = this.settingsFormGroup.get(name).value;
+  updateFhirBackendSetting(name: string, value?: any): void {
+    const newValue =
+      value !== undefined ? value : this.settingsFormGroup.get(name).value;
     if (this.fhirBackend[name] !== newValue) {
       this.fhirBackend[name] = newValue;
     }

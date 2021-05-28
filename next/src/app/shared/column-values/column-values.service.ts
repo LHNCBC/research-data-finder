@@ -122,12 +122,12 @@ export class ColumnValuesService {
    * @param v - value of type "CodeableConcept"
    * @param fullPath - property path to value started with resourceType
    */
-  getCodeableConceptAsText(v: CodeableConcept, fullPath): string {
+  getCodeableConceptAsText(v: CodeableConcept, fullPath?: string): string {
     if (v.text) {
       return v.text;
     }
     return v.coding && v.coding[0]
-      ? this.getCodingAsText(v.coding[0], fullPath + '.coding')
+      ? this.getCodingAsText(v.coding[0], fullPath ? fullPath + '.coding' : '')
       : null;
   }
 
@@ -137,13 +137,13 @@ export class ColumnValuesService {
    * @param v - value of type "Coding"
    * @param fullPath - property path to value started with resourceType
    */
-  getCodingAsText(v: Coding, fullPath): string {
+  getCodingAsText(v: Coding, fullPath: string): string {
     if (v.display) {
       return v.display;
     }
 
     const valueSet =
-      this.definitions.valueSetMapByPath[fullPath] instanceof Object
+      fullPath && this.definitions.valueSetMapByPath[fullPath] instanceof Object
         ? this.definitions.valueSetMapByPath[fullPath]
         : null;
     return (valueSet && valueSet[v.code]) || v.code;

@@ -13,15 +13,32 @@
   color: unset;
 }
 
-.not-ready-tooltip {
-  background: #b71c1c;
-  font-size: 14px;
-}
-
 .resource-search-parameters {
   margin-top: 6px;
 }
 
 .v-box > .spacer {
   height: 10px;
+}
+
+.remove-tab-btn {
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+}
+
+.tab-label-text {
+  margin-top: .3em;
+}
+
+[hidden] {
+  display: none;
+}
+
+:host ::ng-deep .mat-tab-label {
+  min-width: 88px;
+}
+
+.number-field {
+  width: 13rem;
 }

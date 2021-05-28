@@ -55,7 +55,8 @@
         </div>
 
         <div class="spacer"></div>
-        <mat-checkbox formControlName="cacheDisabled">Disable caching of HTTP requests to the FHIR server</mat-checkbox>
+        <mat-checkbox formControlName="cacheDisabled"
+                      (change)="updateFhirBackendSetting('cacheEnabled', !$event.checked)">Disable caching of HTTP requests to the FHIR server</mat-checkbox>
       </div>
     </ng-template>
   </mat-expansion-panel>

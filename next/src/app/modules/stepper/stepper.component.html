@@ -90,14 +90,19 @@
 
   <mat-step label="Pull data for the cohort">
     <div class="v-box">
-      <app-pull-data-page></app-pull-data-page>
+      <app-pull-data-page #pullDataPageComponent
+                          [patientStream]="defineCohortComponent.patientStream"></app-pull-data-page>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>View cohort
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary">
+        <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.configureColumns()">
+          <mat-icon aria-hidden="false" svgIcon="create"></mat-icon>Configure columns
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.downloadCsv()">
           <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
         </button>
         <div class="spacer"></div>

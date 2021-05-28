@@ -240,4 +240,34 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       return output;
     }
   }
+
+  /**
+   * Creates Blob for download table
+   */
+  getBlob(): Blob {
+    const columnDescriptions = this.columnDescriptions;
+    const header = columnDescriptions
+      .map((columnDescription) => columnDescription.displayName)
+      .join(',');
+    const rows = this.dataSource.data.map((resource) =>
+      columnDescriptions
+        .map((columnDescription) => {
+          const cellText = this.getCellStrings(
+            resource,
+            columnDescription
+          ).join('; ');
+          if (/["\s]/.test(cellText)) {
+            return '"' + cellText.replace(/"/, '""') + '"';
+          } else {
+            return cellText;
+          }
+        })
+        .join(',')
+    );
+
+    return new Blob([[header].concat(rows).join('\n')], {
+      type: 'text/plain;charset=utf-8',
+      endings: 'native'
+    });
+  }
 }
