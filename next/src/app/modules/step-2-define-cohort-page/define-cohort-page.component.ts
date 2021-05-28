@@ -198,7 +198,10 @@ export class DefineCohortPageComponent
               },
               resourceSummaries.length > 1 ? null : maxPatientCount
             )
-            .promise.then(() => {
+            .promise.then((data) => {
+              if (data.entry && data.entry.length) {
+                data.entry.forEach((r) => this.patientStream.next(r));
+              }
               this.patientStream.complete();
             });
         }
@@ -224,45 +227,39 @@ export class DefineCohortPageComponent
     patientId,
     patientResource = null
   ): void {
-    return resourceSummaries
-      .reduce(
-        (promise, item) =>
-          promise.then((result) => {
-            if (!result) {
-              return result;
-            }
-            let url;
+    return resourceSummaries.reduce(
+      (promise, item) =>
+        promise.then((result) => {
+          if (!result) {
+            return result;
+          }
+          let url;
 
-            if (item.resourceType === this.PATIENT) {
-              url = `$fhir/${item.resourceType}?_elements=${elements}${item.criteria}&_id=${patientId}`;
-            } else if (item.resourceType === 'ResearchStudy') {
-              url = `$fhir/${item.resourceType}?_total=accurate&_summary=count${item.criteria}&_has:ResearchSubject:study:individual=Patient/${patientId}`;
-            } else {
-              url = `$fhir/${item.resourceType}?_total=accurate&_summary=count${item.criteria}&subject:Patient=${patientId}`;
-            }
+          if (item.resourceType === this.PATIENT) {
+            url = `$fhir/${item.resourceType}?_elements=${elements}${item.criteria}&_id=${patientId}`;
+          } else if (item.resourceType === 'ResearchStudy') {
+            url = `$fhir/${item.resourceType}?_total=accurate&_summary=count${item.criteria}&_has:ResearchSubject:study:individual=Patient/${patientId}`;
+          } else {
+            url = `$fhir/${item.resourceType}?_total=accurate&_summary=count${item.criteria}&subject:Patient=${patientId}`;
+          }
 
-            return this.http
-              .get(url)
-              .toPromise()
-              .then((data: any) => {
-                const meetsTheConditions = data.total > 0;
-                const resource =
-                  data.entry && data.entry[0] && data.entry[0].resource;
-                if (resource && resource.resourceType === this.PATIENT) {
-                  patientResource = resource;
-                }
+          return this.http
+            .get(url)
+            .toPromise()
+            .then((data: any) => {
+              const meetsTheConditions = data.total > 0;
+              const resource =
+                data.entry && data.entry[0] && data.entry[0].resource;
+              if (resource && resource.resourceType === this.PATIENT) {
+                patientResource = resource;
+              }
 
-                return meetsTheConditions && patientResource
-                  ? patientResource
-                  : meetsTheConditions;
-              });
-          }),
-        Promise.resolve(patientResource ? patientResource : true)
-      )
-      .then((result) => {
-        if (result) {
-          this.patientStream.next(result);
-        }
-      });
+              return meetsTheConditions && patientResource
+                ? patientResource
+                : meetsTheConditions;
+            });
+        }),
+      Promise.resolve(patientResource ? patientResource : true)
+    );
   }
 }
