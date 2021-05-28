@@ -13,7 +13,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatTableDataSource } from '@angular/material/table';
 import { ColumnDescription } from '../../types/column.description';
-import { bufferCount } from 'rxjs/operators';
+import { bufferCount, take } from 'rxjs/operators';
 import { capitalize } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
@@ -37,6 +37,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() enableSelection = false;
   @Input() resourceType;
   @Input() resourceStream: Subject<Resource>;
+  @Input() max: number;
   columns: string[] = [];
   filterColumns = [];
   selectedResources = new SelectionModel<Resource>(true, []);
@@ -92,8 +93,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.isLoading = true;
       this.resourceStream
         .asObservable()
-        // update table for every 50 new rows
-        .pipe(bufferCount(50))
+        // Do not take more than max number of records; Update table for every 50 new rows
+        .pipe(take(this.max), bufferCount(50))
         .subscribe(
           (resouceses) => {
             this.dataSource.data = this.dataSource.data.concat(resouceses);
