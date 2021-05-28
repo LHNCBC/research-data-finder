@@ -7,6 +7,7 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { BehaviorSubject, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 describe('DefineCohortComponent', () => {
   let component: DefineCohortPageComponent;
@@ -18,7 +19,7 @@ describe('DefineCohortComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [DefineCohortPageComponent],
-      imports: [DefineCohortPageModule],
+      imports: [DefineCohortPageModule, MatIconTestingModule],
       providers: [
         {
           provide: FhirBackendService,
