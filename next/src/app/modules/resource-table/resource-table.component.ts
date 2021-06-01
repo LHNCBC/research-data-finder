@@ -37,7 +37,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() enableSelection = false;
   @Input() resourceType;
   @Input() resourceStream: Subject<Resource>;
-  @Input() max: number;
   columns: string[] = [];
   filterColumns = [];
   selectedResources = new SelectionModel<Resource>(true, []);
@@ -91,12 +90,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       this.dataSource.data.length = 0;
       this.isLoading = true;
-      const obs = this.max
-        ? // Do not take more than max number of records, if max is defined.
-          this.resourceStream.pipe(take(this.max), bufferCount(50))
-        : // Update table for every 50 new rows
-          this.resourceStream.pipe(bufferCount(50));
-      obs.subscribe(
+      this.resourceStream.pipe(bufferCount(50)).subscribe(
         (resouceses) => {
           this.dataSource.data = this.dataSource.data.concat(resouceses);
           if (!this.columnDescriptions.length) {
