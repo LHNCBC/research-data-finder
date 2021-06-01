@@ -11,9 +11,8 @@ import {
 import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { MatTableDataSource } from '@angular/material/table';
 import { ColumnDescription } from '../../types/column.description';
-import { bufferCount, take } from 'rxjs/operators';
+import { bufferCount } from 'rxjs/operators';
 import { capitalize } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
