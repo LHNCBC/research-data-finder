@@ -91,23 +91,24 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       this.dataSource.data.length = 0;
       this.isLoading = true;
-      this.resourceStream
-        .asObservable()
-        // Do not take more than max number of records; Update table for every 50 new rows
-        .pipe(take(this.max), bufferCount(50))
-        .subscribe(
-          (resouceses) => {
-            this.dataSource.data = this.dataSource.data.concat(resouceses);
-            if (!this.columnDescriptions.length) {
-              this.setColumnsFromBundle();
-              this.setTableColumns();
-            }
-          },
-          () => {},
-          () => {
-            this.isLoading = false;
+      const obs = this.max
+        ? // Do not take more than max number of records, if max is defined.
+          this.resourceStream.pipe(take(this.max), bufferCount(50))
+        : // Update table for every 50 new rows
+          this.resourceStream.pipe(bufferCount(50));
+      obs.subscribe(
+        (resouceses) => {
+          this.dataSource.data = this.dataSource.data.concat(resouceses);
+          if (!this.columnDescriptions.length) {
+            this.setColumnsFromBundle();
+            this.setTableColumns();
           }
-        );
+        },
+        () => {},
+        () => {
+          this.isLoading = false;
+        }
+      );
     }
     if (changes['columnDescriptions']) {
       this.columns.length = 0;
