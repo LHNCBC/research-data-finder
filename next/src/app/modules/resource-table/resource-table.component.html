@@ -19,7 +19,7 @@
 
       <!-- Data Columns -->
       <ng-container *ngFor="let column of columnDescriptions" [matColumnDef]="column.element">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> {{column.displayName}} </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header aria-label="click to sort by this column"> {{column.displayName}} </th>
         <td mat-cell *matCellDef="let element"> {{getCellStrings(element, column).join('; ')}} </td>
       </ng-container>
 
