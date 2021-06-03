@@ -5,7 +5,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject, of, Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 describe('DefineCohortComponent', () => {
@@ -39,5 +39,19 @@ describe('DefineCohortComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should emit no more than max number of patients', () => {
+    component.patientStream = new Subject<fhir.Resource>();
+    Promise.all([
+      component.checkPatient([], '', 3, 1),
+      component.checkPatient([], '', 3, 2),
+      component.checkPatient([], '', 3, 3),
+      component.checkPatient([], '', 3, 4),
+      component.checkPatient([], '', 3, 5)
+    ]).then(() => {
+      expect(component.patientCount).toEqual(3);
+      expect(component.patientStream.next).toHaveBeenCalledTimes(3);
+    });
   });
 });
