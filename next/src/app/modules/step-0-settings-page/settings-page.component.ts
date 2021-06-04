@@ -70,9 +70,7 @@ export class SettingsPageComponent {
   updateFhirBackendSetting(name: string, value?: any): void {
     const newValue =
       value !== undefined ? value : this.settingsFormGroup.get(name).value;
-    if (this.fhirBackend[name] !== newValue) {
-      this.fhirBackend[name] = newValue;
-    }
+    this.fhirBackend[name] = newValue;
   }
 
   /**

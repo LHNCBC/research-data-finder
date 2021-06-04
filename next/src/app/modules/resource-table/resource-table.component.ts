@@ -256,7 +256,17 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             resource,
             columnDescription
           ).join('; ');
-          if (/["\s]/.test(cellText)) {
+          if (/["\s,]/.test(cellText)) {
+            // According to RFC-4180 which describes common format for CSV files:
+            // Fields containing line breaks (CRLF), double quotes, and commas
+            // should be enclosed in double-quotes.
+            // If double-quotes are used to enclose fields, then a double-quote
+            // appearing inside a field must be escaped by preceding it with
+            // another double quote.
+            // Also, according to https://en.wikipedia.org/wiki/Comma-separated_values:
+            // In CSV implementations that do trim leading or trailing spaces,
+            // fields with such spaces as meaningful data must be quoted.
+            // Therefore, to avoid any problems, data with any spaces is also quoted.
             return '"' + cellText.replace(/"/, '""') + '"';
           } else {
             return cellText;
