@@ -70,8 +70,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const allColumns = this.columnDescriptionsService.getAvailableColumns(
       this.resourceType
     );
-    const hiddenByDefault =
-      this.settings.get('hideElementsByDefault')?.[this.resourceType] || [];
+    const hiddenByDefault = (
+      this.settings.get('hideElementsByDefault')?.[this.resourceType] || []
+    ).concat(this.settings.get('hideElementsByDefault')?.['*'] || []);
     this.columnDescriptions = allColumns.filter(
       (x) =>
         hiddenByDefault.indexOf(x.element) === -1 &&
