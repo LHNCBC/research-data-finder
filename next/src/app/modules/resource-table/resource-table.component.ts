@@ -11,7 +11,6 @@ import {
 import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { MatTableDataSource } from '@angular/material/table';
 import { ColumnDescription } from '../../types/column.description';
 import { bufferCount } from 'rxjs/operators';
 import { capitalize } from '../../shared/utils';
@@ -90,23 +89,19 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       this.dataSource.data.length = 0;
       this.isLoading = true;
-      this.resourceStream
-        .asObservable()
-        // update table for every 50 new rows
-        .pipe(bufferCount(50))
-        .subscribe(
-          (resouceses) => {
-            this.dataSource.data = this.dataSource.data.concat(resouceses);
-            if (!this.columnDescriptions.length) {
-              this.setColumnsFromBundle();
-              this.setTableColumns();
-            }
-          },
-          () => {},
-          () => {
-            this.isLoading = false;
+      this.resourceStream.pipe(bufferCount(50)).subscribe(
+        (resouceses) => {
+          this.dataSource.data = this.dataSource.data.concat(resouceses);
+          if (!this.columnDescriptions.length) {
+            this.setColumnsFromBundle();
+            this.setTableColumns();
           }
-        );
+        },
+        () => {},
+        () => {
+          this.isLoading = false;
+        }
+      );
     }
     if (changes['columnDescriptions']) {
       this.columns.length = 0;
