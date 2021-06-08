@@ -36,6 +36,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() enableSelection = false;
   @Input() resourceType;
   @Input() resourceStream: Subject<Resource>;
+  @Input() loadingStatistics = [];
   columns: string[] = [];
   filterColumns = [];
   selectedResources = new SelectionModel<Resource>(true, []);

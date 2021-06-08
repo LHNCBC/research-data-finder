@@ -35,6 +35,7 @@ export class DefineCohortPageComponent
   PATIENT = 'Patient';
   patientStream: Subject<Resource>;
   patientCount = 0;
+  loadingStatistics = [];
 
   @ViewChild('patientParams') patientParams: SearchParametersComponent;
 
@@ -93,6 +94,7 @@ export class DefineCohortPageComponent
     // make new stream so user can come back and search multiple times
     this.patientStream = new Subject<Resource>();
     this.patientCount = 0;
+    this.loadingStatistics.length = 0;
     setTimeout(() => {
       const resourceSummaries = this.getConditions(researchStudyIds);
       // Load resource summaries
@@ -113,6 +115,16 @@ export class DefineCohortPageComponent
             resourceSummary.total = summaries[index].total;
           });
           resourceSummaries.sort((x, y) => x.total - y.total);
+          this.loadingStatistics.push([
+            'Searches to find the following counts',
+            summaries.length
+          ]);
+          resourceSummaries.forEach((resourceSummary) => {
+            this.loadingStatistics.push([
+              `* Number of matching ${resourceSummary.resourceType} resources`,
+              resourceSummary.total
+            ]);
+          });
         }
 
         if (resourceSummaries[0].total === 0) {

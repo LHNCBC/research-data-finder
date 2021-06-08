@@ -13,6 +13,7 @@ import BundleEntry = fhir.BundleEntry;
 })
 export class ViewCohortPageComponent implements OnInit {
   @Input() patientStream: Subject<BundleEntry>;
+  @Input() loadingStatistics: any;
 
   constructor(public columnDescriptions: ColumnDescriptionsService) {}
 
