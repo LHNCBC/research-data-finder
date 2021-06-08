@@ -71,8 +71,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const allColumns = this.columnDescriptionsService.getAvailableColumns(
       this.resourceType
     );
-    const hiddenByDefault =
-      this.settings.get('hideElementsByDefault')?.[this.resourceType] || [];
+    const hiddenByDefault = (
+      this.settings.get('hideElementsByDefault')?.[this.resourceType] || []
+    ).concat(this.settings.get('hideElementsByDefault')?.['*'] || []);
     this.columnDescriptions = allColumns.filter(
       (x) =>
         hiddenByDefault.indexOf(x.element) === -1 &&
@@ -90,23 +91,19 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       this.dataSource.data.length = 0;
       this.isLoading = true;
-      this.resourceStream
-        .asObservable()
-        // update table for every 50 new rows
-        .pipe(bufferCount(50))
-        .subscribe(
-          (resouceses) => {
-            this.dataSource.data = this.dataSource.data.concat(resouceses);
-            if (!this.columnDescriptions.length) {
-              this.setColumnsFromBundle();
-              this.setTableColumns();
-            }
-          },
-          () => {},
-          () => {
-            this.isLoading = false;
+      this.resourceStream.pipe(bufferCount(50)).subscribe(
+        (resouceses) => {
+          this.dataSource.data = this.dataSource.data.concat(resouceses);
+          if (!this.columnDescriptions.length) {
+            this.setColumnsFromBundle();
+            this.setTableColumns();
           }
-        );
+        },
+        () => {},
+        () => {
+          this.isLoading = false;
+        }
+      );
     }
     if (changes['columnDescriptions']) {
       this.columns.length = 0;
