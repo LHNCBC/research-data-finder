@@ -105,7 +105,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         () => {
           this.loadedDateTime = Date.now();
           this.loadTime =
-            Math.round((this.loadedDateTime - startTime) / 100) / 10 || 0.1;
+            Math.round((this.loadedDateTime - startTime) / 100) / 10;
           this.isLoading = false;
         }
       );
