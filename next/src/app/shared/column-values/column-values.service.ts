@@ -173,7 +173,7 @@ export class ColumnValuesService {
    */
   getPeriodAsText(v: Period): string {
     if (v.start || v.end) {
-      return `${v.start || ''}&ndash;${v.end || ''}`;
+      return `${v.start || ''}–${v.end || ''}`;
     } else {
       return null;
     }

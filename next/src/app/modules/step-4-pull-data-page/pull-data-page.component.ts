@@ -119,6 +119,14 @@ export class PullDataPageComponent {
   }
 
   /**
+   * Returns the tooltip for the remove tab button.
+   * The same text is used for the aria-label.
+   */
+  getRemoveTabButtonTooltip(resourceType: string): string {
+    return `Remove ${this.getPluralFormOfResourceType(resourceType)} tab`;
+  }
+
+  /**
    * Removes tab for specified resource type.
    */
   removeTab(resourceType: string): void {

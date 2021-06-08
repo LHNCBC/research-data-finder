@@ -9,8 +9,8 @@
       <button mat-icon-button
               [hidden]="visibleResourceTypes.length === 1"
               class="remove-tab-btn"
-              aria-label="Remove {{getPluralFormOfResourceType(resourceType)}} tab"
-              matTooltip="Remove {{getPluralFormOfResourceType(resourceType)}} tab"
+              [attr.aria-label]="getRemoveTabButtonTooltip(resourceType)"
+              [matTooltip]="getRemoveTabButtonTooltip(resourceType)"
               (click)="removeTab(resourceType)">
         <mat-icon svgIcon="clear"></mat-icon>
       </button>

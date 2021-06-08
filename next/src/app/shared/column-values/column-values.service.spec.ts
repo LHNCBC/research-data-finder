@@ -62,7 +62,7 @@ describe('ColumnValuesService', () => {
       value: { start: '2137-07-12T13:02:59Z', end: '2137-07-12T13:54:00Z' },
       type: 'Period',
       fullPath: 'Encounter.period',
-      result: '2137-07-12T13:02:59Z&ndash;2137-07-12T13:54:00Z'
+      result: '2137-07-12T13:02:59Z–2137-07-12T13:54:00Z'
     },
     {
       value: '2139-06-19T16:47:00Z',
