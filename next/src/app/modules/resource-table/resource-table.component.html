@@ -12,8 +12,7 @@
     </mat-expansion-panel-header>
     <table *ngIf="loadingStatistics.length" id="loadingStatistics">
       <tr *ngFor="let row of loadingStatistics">
-        <td>{{row[0]}}</td>
-        <td>{{row[1]}}</td>
+        <td *ngFor="let item of row">{{item}}</td>
       </tr>
     </table>
   </mat-expansion-panel>

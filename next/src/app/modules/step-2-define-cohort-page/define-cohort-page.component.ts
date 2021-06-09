@@ -35,7 +35,8 @@ export class DefineCohortPageComponent
   PATIENT = 'Patient';
   patientStream: Subject<Resource>;
   patientCount = 0;
-  loadingStatistics = [];
+  // A matrix of loading info that will be displayed with View Cohort resource table.
+  loadingStatistics: (string | number)[][] = [];
 
   @ViewChild('patientParams') patientParams: SearchParametersComponent;
 
