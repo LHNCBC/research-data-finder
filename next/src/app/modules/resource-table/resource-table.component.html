@@ -1,6 +1,6 @@
 <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
 <mat-accordion *ngIf="!isLoading && dataSource.data.length > 0">
-  <mat-expansion-panel hideToggle [expanded]="loadingStatistics.length > 0">
+  <mat-expansion-panel hideToggle>
     <mat-expansion-panel-header>
       <mat-panel-title>
         <span *ngIf="resourceType === 'Patient'">Cohort of&nbsp;</span>
@@ -8,6 +8,7 @@
       </mat-panel-title>
       <mat-panel-description>
         Data loaded on {{loadedDateTime | date: 'short'}} in {{loadTime}} seconds
+        <span *ngIf="loadingStatistics.length">&nbsp;(click to view/hide details)</span>
       </mat-panel-description>
     </mat-expansion-panel-header>
     <table *ngIf="loadingStatistics.length" id="loadingStatistics">
