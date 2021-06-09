@@ -21,6 +21,7 @@ import { Subject } from 'rxjs';
 import Resource = fhir.Resource;
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { SettingsService } from '../../shared/settings-service/settings.service';
+import { Sort } from '@angular/material/sort';
 
 /**
  * Component for loading table of resources
@@ -73,8 +74,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const allColumns = this.columnDescriptionsService.getAvailableColumns(
       this.resourceType
     );
-    const hiddenByDefault =
-      this.settings.get('hideElementsByDefault')?.[this.resourceType] || [];
+    const hiddenByDefault = (
+      this.settings.get('hideElementsByDefault')?.[this.resourceType] || []
+    ).concat(this.settings.get('hideElementsByDefault')?.['*'] || []);
     this.columnDescriptions = allColumns.filter(
       (x) =>
         hiddenByDefault.indexOf(x.element) === -1 &&
@@ -241,5 +243,30 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       output += `${this.dataSource.data.length} rows loaded.`;
       return output;
     }
+  }
+
+  /**
+   * Sort dataSource on table header click
+   * @param sort - sorting event object containing info of table column and sort direction
+   */
+  sortData(sort: Sort): void {
+    if (!sort.active || sort.direction === '') {
+      return;
+    }
+    const isAsc = sort.direction === 'asc';
+    const sortingColumnDescription = this.columnDescriptions.find(
+      (c) => c.element === sort.active
+    );
+    this.dataSource.data.sort((a: Resource, b: Resource) => {
+      const cellValueA = this.getCellStrings(a, sortingColumnDescription).join(
+        '; '
+      );
+      const cellValueB = this.getCellStrings(b, sortingColumnDescription).join(
+        '; '
+      );
+      return cellValueA.localeCompare(cellValueB) * (isAsc ? 1 : -1);
+    });
+    // Table will re-render only after data reference changed.
+    this.dataSource.data = this.dataSource.data.slice();
   }
 }

@@ -42,8 +42,9 @@ describe('DefineCohortComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should emit no more than max number of patients', () => {
+  it('should emit no more than max number of patients', async () => {
     component.patientStream = new Subject<fhir.Resource>();
+    const nextSpy = spyOn(component.patientStream, 'next');
     Promise.all([
       component.checkPatient([], '', 3, 1),
       component.checkPatient([], '', 3, 2),
@@ -52,7 +53,7 @@ describe('DefineCohortComponent', () => {
       component.checkPatient([], '', 3, 5)
     ]).then(() => {
       expect(component.patientCount).toEqual(3);
-      expect(component.patientStream.next).toHaveBeenCalledTimes(3);
+      expect(nextSpy).toHaveBeenCalledTimes(3);
     });
   });
 });

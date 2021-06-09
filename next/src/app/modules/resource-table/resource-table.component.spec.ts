@@ -12,6 +12,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { SettingsService } from '../../shared/settings-service/settings.service';
 import Spy = jasmine.Spy;
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 class Page {
   private fixture: ComponentFixture<ResourceTableComponent>;
@@ -96,7 +97,12 @@ describe('ResourceTableComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ResourceTableComponent],
-      imports: [ResourceTableModule, SharedModule, MatIconTestingModule],
+      imports: [
+        ResourceTableModule,
+        SharedModule,
+        MatIconTestingModule,
+        NoopAnimationsModule
+      ],
       providers: [
         { provide: HttpClient, useValue: spies[0] },
         { provide: ColumnDescriptionsService, useValue: spies[1] },
