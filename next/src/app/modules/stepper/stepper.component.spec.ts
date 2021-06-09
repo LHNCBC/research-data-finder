@@ -19,6 +19,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnDescription } from '../../types/column.description';
 import { SelectOptions } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 @Component({
   selector: 'app-select-an-area-of-interest',
@@ -73,7 +74,8 @@ describe('StepperComponent', () => {
         CommonModule,
         MatStepperModule,
         MatButtonModule,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        MatIconTestingModule
       ],
       providers: [
         {

@@ -34,6 +34,7 @@ export class DefineCohortPageComponent
   defineCohortForm: FormGroup;
   PATIENT = 'Patient';
   patientStream: Subject<Resource>;
+  patientCount = 0;
 
   @ViewChild('patientParams') patientParams: SearchParametersComponent;
 
@@ -91,6 +92,7 @@ export class DefineCohortPageComponent
   searchForPatients(researchStudyIds: string[]): void {
     // make new stream so user can come back and search multiple times
     this.patientStream = new Subject<Resource>();
+    this.patientCount = 0;
     setTimeout(() => {
       const resourceSummaries = this.getConditions(researchStudyIds);
       // Load resource summaries
@@ -260,9 +262,11 @@ export class DefineCohortPageComponent
         Promise.resolve(patientResource ? patientResource : true)
       )
       .then((result) => {
-        if (result) {
+        if (result && this.patientCount < maxPatientCount) {
           this.patientStream.next(result);
+          this.patientCount++;
         }
+        return result;
       });
   }
 }

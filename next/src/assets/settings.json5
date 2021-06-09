@@ -6,6 +6,7 @@
   default: {
     // Hide resource table columns for specified elements by default
     hideElementsByDefault: {
+      "*": ["id"],
       "ResearchStudy": ["keyword", "condition"]
     }
   },

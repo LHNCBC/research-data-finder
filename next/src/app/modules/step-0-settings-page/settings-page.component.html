@@ -7,16 +7,20 @@
     <mat-label>FHIR server</mat-label>
     <input matInput placeholder="URL" formControlName="serviceBaseUrl"
            (keydown.enter)="$event.target.blur();$event.target.focus()">
-    <mat-hint align="start" *ngIf="isWaitingForConnection | async">
-      <mat-spinner [diameter]="12"  style="float: left; margin-right: 8px"></mat-spinner>
-      Initializing ...
-    </mat-hint>
+    <div class="overlay" *ngIf="isWaitingForConnection | async">
+      <div class="center">
+        <mat-spinner [diameter]="50"></mat-spinner>
+        <p>Initializing ...</p>
+      </div>
+    </div>
     <mat-hint align="start" *ngIf="(isWaitingForConnection | async) === false">
-      See <a target="_blank" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for details.
+      See <a target="_blank" rel="noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
+      details.
     </mat-hint>
     <mat-error>
       Please, specify valid FHIR server URL.
-      See <a target="_blank" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for details.
+      See <a target="_blank" rel="noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
+      details.
     </mat-error>
   </mat-form-field>
 
@@ -34,7 +38,10 @@
           <mat-label>NCBI E-utilities API Key</mat-label>
           <input matInput placeholder="API Key" formControlName="apiKey"
                  (change)="updateFhirBackendSetting('apiKey')">
-          <mat-hint align="start">See <a target="_blank" href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/">New API Keys for the E-utilities article</a> for details</mat-hint>
+          <mat-hint align="start">See <a target="_blank" rel="noreferrer"
+                                         href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/">New
+            API Keys for the E-utilities article</a> for details
+          </mat-hint>
         </mat-form-field>
         <div class="spacer"></div>
         <div class="h-box">
@@ -42,7 +49,9 @@
             <mat-label>Requests per batch</mat-label>
             <input matInput type="number" min="1" formControlName="maxRequestsPerBatch"
                    (change)="updateFhirBackendSetting('maxRequestsPerBatch')">
-            <mat-hint align="start">Combine the specified number of HTTP requests to the FHIR server into a batch request</mat-hint>
+            <mat-hint align="start">Combine the specified number of HTTP requests to the FHIR server into a batch
+              request
+            </mat-hint>
           </mat-form-field>
 
           <div class="spacer"></div>
