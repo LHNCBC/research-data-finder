@@ -1,6 +1,6 @@
 <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
 <mat-accordion *ngIf="!isLoading && dataSource.data.length > 0">
-  <mat-expansion-panel hideToggle>
+  <mat-expansion-panel hideToggle [expanded]="loadingStatistics.length > 0">
     <mat-expansion-panel-header>
       <mat-panel-title>
         <span *ngIf="resourceType === 'Patient'">Cohort of&nbsp;</span>
