@@ -205,6 +205,10 @@ export class FhirBackendService implements HttpBackend {
     const definitions = definitionsIndex.configByVersionName[versionName];
 
     if (!definitions.initialized) {
+      this.columnNameBeforeActive(
+        definitions.resources?.Patient?.columnDescriptions || []
+      );
+
       // Add default common column "id"
       Object.keys(definitions.resources).forEach((resourceType) => {
         definitions.resources[resourceType].columnDescriptions.unshift({
@@ -239,5 +243,21 @@ export class FhirBackendService implements HttpBackend {
     }
 
     return definitions;
+  }
+
+  /**
+   * Make sure 'name' comes before 'active' in columnDescriptions.
+   */
+  private columnNameBeforeActive(columnDescriptions: any[]): void {
+    const nameIndex = columnDescriptions.findIndex((c) => c.element === 'name');
+    const activeIndex = columnDescriptions.findIndex(
+      (c) => c.element === 'active'
+    );
+    // Swap position if 'name' is after 'active'.
+    if (nameIndex !== -1 && activeIndex !== -1 && nameIndex > activeIndex) {
+      const temp = columnDescriptions[nameIndex];
+      columnDescriptions[nameIndex] = columnDescriptions[activeIndex];
+      columnDescriptions[activeIndex] = temp;
+    }
   }
 }
