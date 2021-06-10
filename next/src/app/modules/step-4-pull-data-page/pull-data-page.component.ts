@@ -1,11 +1,12 @@
 import {
+  AfterViewInit,
   ChangeDetectorRef,
   Component,
   Input,
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { concatMap, map, reduce } from 'rxjs/operators';
+import { concatMap, map, reduce, startWith } from 'rxjs/operators';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -32,7 +33,7 @@ import { saveAs } from 'file-saver';
   templateUrl: './pull-data-page.component.html',
   styleUrls: ['./pull-data-page.component.less']
 })
-export class PullDataPageComponent {
+export class PullDataPageComponent implements AfterViewInit {
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
   @ViewChildren(ResourceTableComponent)
   resourceTables: ResourceTableComponent[];
@@ -43,6 +44,9 @@ export class PullDataPageComponent {
 
   // Array of loaded Patients
   patients: Patient[] = [];
+  // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
+  // when the active tab changes
+  currentResourceType$: Observable<string>;
 
   // Input stream of loaded Patients from DefineCohortComponent
   @Input() set patientStream(stream: Observable<Patient>) {
@@ -94,6 +98,13 @@ export class PullDataPageComponent {
       });
   }
 
+  ngAfterViewInit(): void {
+    this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
+      startWith(this.getCurrentResourceType()),
+      map(() => this.getCurrentResourceType())
+    );
+  }
+
   /**
    * Returns plural form of resource type name.
    */
@@ -119,10 +130,9 @@ export class PullDataPageComponent {
   }
 
   /**
-   * Returns the tooltip for the remove tab button.
-   * The same text is used for the aria-label.
+   * Returns text for the remove tab button.
    */
-  getRemoveTabButtonTooltip(resourceType: string): string {
+  getRemoveTabButtonText(resourceType: string): string {
     return `Remove ${this.getPluralFormOfResourceType(resourceType)} tab`;
   }
 
@@ -216,7 +226,7 @@ export class PullDataPageComponent {
               .get(
                 `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}&_count=1000`
               )
-              // toPromise needed to immediately execute query, this allows batch requests
+              // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
               .toPromise()
           );
         })

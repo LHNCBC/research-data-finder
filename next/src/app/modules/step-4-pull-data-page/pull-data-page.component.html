@@ -3,24 +3,36 @@
   At this step, you can search for each type of Patient-related resources and download the resource list in CSV format.
 </p>
 
-<mat-tab-group dynamicHeight>
+<div class="h-box">
+  <button mat-stroked-button
+          [disabled]="!unselectedResourceTypes.length"
+          color="secondary"
+          [matMenuTriggerFor]="menu">
+    <mat-icon svgIcon="add"></mat-icon>Add a new resource tab
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item *ngFor="let resourceType of unselectedResourceTypes"
+            (click)="addTab(resourceType)">
+      <span>{{resourceType}}</span>
+    </button>
+  </mat-menu>
+  <div class="spacer"></div>
+  <button mat-stroked-button
+          *ngIf="visibleResourceTypes.length > 1"
+          color="secondary"
+          (click)="removeTab(getCurrentResourceType())">
+    <mat-icon svgIcon="clear"></mat-icon>{{getRemoveTabButtonText(currentResourceType$ | async)}}
+  </button>
+</div>
+
+<mat-tab-group dynamicHeight class="mat-elevation-z1">
   <mat-tab *ngFor="let resourceType of visibleResourceTypes">
     <ng-template mat-tab-label>
-      <button mat-icon-button
-              [hidden]="visibleResourceTypes.length === 1"
-              class="remove-tab-btn"
-              [attr.aria-label]="getRemoveTabButtonTooltip(resourceType)"
-              [matTooltip]="getRemoveTabButtonTooltip(resourceType)"
-              (click)="removeTab(resourceType)">
-        <mat-icon svgIcon="clear"></mat-icon>
-      </button>
       <span class="tab-label-text">
         {{getPluralFormOfResourceType(resourceType)}}
       </span>
     </ng-template>
     <div class="v-box tab-content">
-      <div class="spacer"></div>
-
       <mat-form-field class="number-field" *ngIf="resourceType === 'Observation'">
         <mat-label>Limit per patient per test</mat-label>
         <input matInput [formControl]="perPatientPerTest" type="number" min="1">
@@ -45,21 +57,5 @@
           resourceType="{{resourceType}}" [resourceStream]="resourceStream[resourceType]">
       </app-resource-table>
     </div>
-  </mat-tab>
-  <mat-tab disabled>
-    <ng-template mat-tab-label>
-      <button mat-icon-button
-              [matMenuTriggerFor]="menu"
-              aria-label="Add a new tab"
-              matTooltip="Add a new tab">
-        <mat-icon svgIcon="add"></mat-icon>
-      </button>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item *ngFor="let resourceType of unselectedResourceTypes"
-        (click)="addTab(resourceType)">
-          <span>{{resourceType}}</span>
-        </button>
-      </mat-menu>
-    </ng-template>
   </mat-tab>
 </mat-tab-group>

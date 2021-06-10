@@ -133,7 +133,7 @@ describe('ObservationCodeLookupComponent', () => {
 
         expect(
           FhirBatchQuery.prototype.getWithCache.calls.mostRecent().args[0]
-        ).toMatch(/_elements=code,value,component&code:text=H/);
+        ).toMatch(/_elements=code,value,component&combo-code:text=H/);
         expect(hostComponent.selectedLoincItems.value.codes.length).toBe(2);
       });
     });

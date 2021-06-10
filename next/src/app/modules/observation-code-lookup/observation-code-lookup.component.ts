@@ -212,7 +212,7 @@ export class ObservationCodeLookupComponent
                   : '$fhir/Observation';
                 const params = {
                   _elements: 'code,value,component',
-                  'code:text': fieldVal,
+                  'combo-code:text': fieldVal,
                   _count: '500'
                 };
                 // Hash of processed codes, used to exclude repeated codes
