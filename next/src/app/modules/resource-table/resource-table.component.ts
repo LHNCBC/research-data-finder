@@ -37,6 +37,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() enableSelection = false;
   @Input() resourceType;
   @Input() resourceStream: Subject<Resource>;
+  @Input() loadingStatistics: (string | number)[][] = [];
   columns: string[] = [];
   filterColumns = [];
   selectedResources = new SelectionModel<Resource>(true, []);
@@ -44,6 +45,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   dataSource = new TableVirtualScrollDataSource<Resource>([]);
   lastResourceElement: HTMLElement;
   isLoading = true;
+  loadTime = 0;
+  loadedDateTime: number;
 
   @HostBinding('class.fullscreen') fullscreen = false;
 
@@ -91,6 +94,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       this.dataSource.data.length = 0;
       this.isLoading = true;
+      const startTime = Date.now();
       this.resourceStream.pipe(bufferCount(50)).subscribe(
         (resouceses) => {
           this.dataSource.data = this.dataSource.data.concat(resouceses);
@@ -101,6 +105,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         },
         () => {},
         () => {
+          this.loadedDateTime = Date.now();
+          this.loadTime =
+            Math.round((this.loadedDateTime - startTime) / 100) / 10;
           this.isLoading = false;
         }
       );

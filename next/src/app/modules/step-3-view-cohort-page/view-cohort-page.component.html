@@ -6,5 +6,5 @@
 
 <app-resource-table
     [columnDescriptions]="columnDescriptions.getVisibleColumns('Patient') | async"
-    resourceType="Patient" [resourceStream]="patientStream">
+    resourceType="Patient" [resourceStream]="patientStream" [loadingStatistics]="loadingStatistics">
 </app-resource-table>

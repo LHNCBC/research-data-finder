@@ -61,7 +61,8 @@
   <mat-step label="View cohort">
     <div class="v-box">
       <app-view-cohort-page *ngIf="serverInitialized"
-          [patientStream]="defineCohortComponent.patientStream">
+          [patientStream]="defineCohortComponent.patientStream"
+          [loadingStatistics]="defineCohortComponent.loadingStatistics">
       </app-view-cohort-page>
       <div class="spacer"></div>
       <div class="h-box">
