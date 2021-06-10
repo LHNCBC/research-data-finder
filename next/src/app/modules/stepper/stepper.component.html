@@ -60,7 +60,7 @@
 
   <mat-step label="View cohort">
     <div class="v-box">
-      <app-view-cohort-page *ngIf="serverInitialized"
+      <app-view-cohort-page *ngIf="serverInitialized" #viewCohortComponent
           [patientStream]="defineCohortComponent.patientStream"
           [loadingStatistics]="defineCohortComponent.loadingStatistics">
       </app-view-cohort-page>
@@ -70,7 +70,7 @@
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Define cohort
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary">
+        <button mat-stroked-button color="secondary" (click)="saveCohort()">
           <mat-icon svgIcon="save"></mat-icon>Save the cohort and criteria for later
         </button>
         <div class="spacer"></div>
