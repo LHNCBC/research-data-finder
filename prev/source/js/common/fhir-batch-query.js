@@ -1,4 +1,3 @@
-import { updateUrlWithParam } from './utils';
 import definitionsIndex from '../search-parameters/definitions/index.json';
 
 let commonRequestCache = {}; // Map from url to result JSON
@@ -799,4 +798,26 @@ export function getVersionNameByNumber(versionNumber) {
   );
 
   return versionName;
+}
+
+/**
+ * Adds/replaces URL parameter. Returns updated URL.
+ * @param {string} url
+ * @param {string} name - parameter name
+ * @param {string|number} value - parameter value
+ * @return {string}
+ */
+export function updateUrlWithParam(url, name, value) {
+  if (!/^([^?]*)(\?([^?]*)|)$/.test(url)) {
+    // This is not correct if the URL has two "?" - do nothing:
+    return url;
+  }
+  const urlWithoutParams = RegExp.$1;
+  const params = (RegExp.$3 || '')
+    .split('&')
+    .filter((item) => item && item.split('=')[0] !== name)
+    .concat(`${name}=${encodeURIComponent(value)}`)
+    .join('&');
+
+  return params ? urlWithoutParams + '?' + params : urlWithoutParams;
 }

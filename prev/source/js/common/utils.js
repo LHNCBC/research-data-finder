@@ -173,28 +173,6 @@ export function getPatientContactsByType(valueSetMapByPath, res, system) {
 }
 
 /**
- * Adds/replaces URL parameter. Returns updated URL.
- * @param {string} url
- * @param {string} name - parameter name
- * @param {string|number} value - parameter value
- * @return {string}
- */
-export function updateUrlWithParam(url, name, value) {
-  if (!/^([^?]*)(\?([^?]*)|)$/.test(url)) {
-    // This is not correct if the URL has two "?" - do nothing:
-    return url;
-  }
-  const urlWithoutParams = RegExp.$1;
-  const params = (RegExp.$3 || '')
-    .split('&')
-    .filter((item) => item && item.split('=')[0] !== name)
-    .concat(`${name}=${encodeURIComponent(value)}`)
-    .join('&');
-
-  return params ? urlWithoutParams + '?' + params : urlWithoutParams;
-}
-
-/**
  * Adds/removes the CSS class for element(s) corresponding to the "selector"
  * depending on the "state" parameter boolean value.
  * If the "state" parameter value is not specified (or not boolean value),

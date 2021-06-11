@@ -39,3 +39,10 @@ export function escapeFhirSearchParameter(str: string): string {
 export function encodeFhirSearchParameter(str): string {
   return encodeURIComponent(escapeFhirSearchParameter(str));
 }
+
+/**
+ * Prepares a string for insertion into a regular expression
+ */
+export function escapeStringForRegExp(str: string): string {
+  return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
+}
