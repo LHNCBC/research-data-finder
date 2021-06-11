@@ -163,8 +163,8 @@ export class SearchParameterComponent
   writeValue(value: SearchParameter): void {
     this.resourceType.setValue(value.resourceType || '');
     this.parameterName.setValue(value.name || '');
-    // TODO:
     this.parameterValue.setValue(value.value || '');
+    this.selectedLoincItems.setValue(value.selectedLoincItems || null);
   }
 
   /**

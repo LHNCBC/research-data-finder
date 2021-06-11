@@ -93,6 +93,7 @@ export class StepperComponent implements OnDestroy {
             .get('maxPatientsNumber')
             .setValue(maxPatientCount);
           // Set search parameter form values.
+          this.defineCohortComponent.patientParams.parameterList.clear();
           (rawCriteria as SearchParameter[]).forEach((searchParam) => {
             this.defineCohortComponent.patientParams.parameterList.push(
               new FormControl(searchParam)
@@ -109,6 +110,10 @@ export class StepperComponent implements OnDestroy {
     event.target.value = '';
   }
 
+  /**
+   * Re-populate the patient table
+   * @private
+   */
   private loadPatientsData(data: Resource[]): void {
     this.defineCohortComponent.patientStream = new Subject<Resource>();
     this.myStepper.next();
