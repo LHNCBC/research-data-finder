@@ -19,7 +19,7 @@
       "dom"
     ],
     "paths": {
-      "@legacy/*": ["../source/*"]
+      "@legacy/*": ["prev/source/*"]
     }
   }
 }
