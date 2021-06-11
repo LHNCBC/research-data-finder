@@ -54,6 +54,7 @@ export class StepperComponent implements OnDestroy {
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
       maxPatientCount: this.defineCohortComponent.defineCohortForm.value
         .maxPatientsNumber,
+      rawCriteria: this.defineCohortComponent.patientParams.parameterList.value,
       data:
         this.viewCohortComponent?.resourceTableComponent?.dataSource?.data || []
     };

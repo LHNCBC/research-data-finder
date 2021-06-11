@@ -47,6 +47,15 @@ export class SearchParameterComponent
 
   selectedLoincItems: FormControl = new FormControl(null);
 
+  get value(): SearchParameter {
+    return {
+      resourceType: this.resourceType.value,
+      name: this.parameterName.value,
+      value: this.parameterValue.value,
+      selectedLoincItems: this.selectedLoincItems.value
+    };
+  }
+
   /**
    * Whether to use lookup control for search parameter value.
    */
@@ -84,6 +93,8 @@ export class SearchParameterComponent
         this.parameterName.setValue('');
         this.parameterValue.setValue('');
       }
+      // tell Angular forms API to update parent form control
+      this.onChange(this.value);
     });
 
     this.definitions = this.fhirBackend.getCurrentDefinitions();
@@ -118,6 +129,14 @@ export class SearchParameterComponent
           }
         }
       }
+      this.onChange(this.value);
+    });
+
+    this.parameterValue.valueChanges.subscribe(() => {
+      this.onChange(this.value);
+    });
+    this.selectedLoincItems.valueChanges.subscribe(() => {
+      this.onChange(this.value);
     });
   }
 
