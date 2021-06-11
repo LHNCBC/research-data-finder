@@ -84,9 +84,10 @@ export class StepperComponent implements OnDestroy {
             data
           } = blobData;
           if (serviceBaseUrl !== this.fhirBackend.serviceBaseUrl) {
-            throw new Error(
-              'Inapplicable data, because it was downloaded from another server.'
+            alert(
+              'Error: Inapplicable data, because it was downloaded from another server.'
             );
+            return;
           }
           // Set max field value.
           this.defineCohortComponent.defineCohortForm
@@ -101,6 +102,9 @@ export class StepperComponent implements OnDestroy {
           });
           // Set patient table data.
           this.loadPatientsData(data);
+          this.defineCohortComponent.loadingStatistics = [
+            [`Data loaded from file ${filename}.`]
+          ];
         } catch (e) {
           alert('Error: ' + e.message);
         }
