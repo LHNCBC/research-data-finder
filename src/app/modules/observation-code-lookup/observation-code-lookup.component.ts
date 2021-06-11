@@ -11,7 +11,6 @@ import {
   ViewChild
 } from '@angular/core';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
-import { escapeStringForRegExp } from '@legacy/js/common/utils';
 // see docs at http://lhncbc.github.io/autocomplete-lhc/docs.html
 import Def from 'autocomplete-lhc';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
@@ -21,7 +20,7 @@ import { NgControl } from '@angular/forms';
 import { EMPTY, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, expand, takeWhile } from 'rxjs/operators';
-import { getNextPageUrl } from '../../shared/utils';
+import { getNextPageUrl, escapeStringForRegExp } from '../../shared/utils';
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;

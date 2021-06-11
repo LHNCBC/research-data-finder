@@ -13,10 +13,9 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ColumnDescription } from '../../types/column.description';
 import { bufferCount } from 'rxjs/operators';
-import { capitalize } from '../../shared/utils';
+import { capitalize, escapeStringForRegExp } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
-import { escapeStringForRegExp } from '@legacy/js/common/utils';
 import { Subject } from 'rxjs';
 import Resource = fhir.Resource;
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
@@ -142,7 +141,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             );
             const cellValue = this.getCellStrings(data, columnDescription);
             const reCondition = new RegExp(
-              '\\b' + escapeStringForRegExp(value),
+              '\\b' + escapeStringForRegExp(value as string),
               'i'
             );
             if (!cellValue.some((item) => reCondition.test(item))) {
