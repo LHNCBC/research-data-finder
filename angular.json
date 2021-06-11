@@ -35,7 +35,7 @@
               "./node_modules/jquery/dist/jquery.min.js"
             ],
             "customWebpackConfig": {
-              "path": "./extra-webpack.config.js",
+              "path": "./webpack/extra-webpack.config.js",
               "mergeRules": {
                 "externals": "replace"
               }
@@ -107,7 +107,7 @@
               "./node_modules/jquery/dist/jquery.min.js"
             ],
             "customWebpackConfig": {
-              "path": "./extra-webpack.config.js",
+              "path": "./webpack/extra-webpack.config.js",
               "mergeRules": {
                 "externals": "replace"
               }
