@@ -1,7 +1,7 @@
 <form [formGroup]="defineCohortForm">
   <p class="info">
     <span class="info-icon" aria-hidden="true"></span>
-    At this step, you can define criteria to build a cohort of Patient
+    In this step, you can define criteria to build a cohort of Patient
     resources for which you want to pull related resource data,
     or load previously saved cohort of Patients and the criteria which selected them.
     Criteria can be defined not only for the Patient resource but also for related resources.
@@ -13,7 +13,9 @@
 
   <app-search-parameters #patientParams></app-search-parameters>
 
-  <button id="addSearchCriterion" (click)="patientParams.addParameter()" mat-stroked-button color="secondary">
+  <button id="addSearchCriterion"
+          type="button"
+          (click)="patientParams.addParameter()" mat-stroked-button color="secondary">
     <mat-icon svgIcon="add"></mat-icon>Add a search criterion
   </button>
 </form>

@@ -21,6 +21,7 @@ import Resource = fhir.Resource;
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { SettingsService } from '../../shared/settings-service/settings.service';
 import { Sort } from '@angular/material/sort';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * Component for loading table of resources
@@ -54,7 +55,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private ngZone: NgZone,
     private columnDescriptionsService: ColumnDescriptionsService,
     private columnValuesService: ColumnValuesService,
-    private settings: SettingsService
+    private settings: SettingsService,
+    private liveAnnoncer: LiveAnnouncer
   ) {}
 
   ngOnInit(): void {}
@@ -93,6 +95,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       this.dataSource.data.length = 0;
       this.isLoading = true;
+      this.liveAnnoncer.announce(
+        `The ${this.resourceType} resources loading process has started`
+      );
       const startTime = Date.now();
       this.resourceStream.pipe(bufferCount(50)).subscribe(
         (resouceses) => {
@@ -108,6 +113,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           this.loadTime =
             Math.round((this.loadedDateTime - startTime) / 100) / 10;
           this.isLoading = false;
+          this.liveAnnoncer.announce(
+            `The ${this.resourceType} resources loading process has finished.` +
+              `${this.dataSource.data.length} rows loaded.`
+          );
         }
       );
     }

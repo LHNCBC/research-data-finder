@@ -29,7 +29,7 @@
         <div class="spacer" *ngIf="selectAnAreaOfInterest.showTable"></div>
         <button mat-stroked-button color="secondary" *ngIf="selectAnAreaOfInterest.showTable"
                 (click)="columnDescriptions.openColumnsDialog('ResearchStudy')">
-          <mat-icon aria-hidden="false" svgIcon="create"></mat-icon>Configure columns
+          <mat-icon svgIcon="create"></mat-icon>Configure columns
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="primary" matStepperNext type="button">
@@ -79,7 +79,7 @@
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary" (click)="columnDescriptions.openColumnsDialog('Patient')">
-          <mat-icon aria-hidden="false" svgIcon="create"></mat-icon>Configure columns
+          <mat-icon svgIcon="create"></mat-icon>Configure columns
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="primary" matStepperNext>
@@ -100,7 +100,7 @@
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.configureColumns()">
-          <mat-icon aria-hidden="false" svgIcon="create"></mat-icon>Configure columns
+          <mat-icon svgIcon="create"></mat-icon>Configure columns
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.downloadCsv()">
