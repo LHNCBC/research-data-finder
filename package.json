@@ -14,7 +14,7 @@
     "test": "npm run unit && npm run e2e",
     "lint": "ng lint",
     "postinstall": "webdriver-manager update --versions.chrome $(google-chrome --version |awk '{print $NF}')",
-    "e2e": "ng e2e --webdriverUpdate=false",
+    "e2e": "ng e2e --webdriverUpdate=false --port=4201",
     "prettier-fix": "prettier --write '**/*.ts'"
   },
   "private": true,
