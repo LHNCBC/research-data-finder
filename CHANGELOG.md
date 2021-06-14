@@ -6,6 +6,8 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [3.0.0] - 2021-06-14
 ### Changed
 - The application has been rewritten to use Angular.
+- The new application uses a wizard-like workflow - content is divided into
+  logical steps.
 
 ## [2.6.1] - 2021-05-24
 ### Fixed
