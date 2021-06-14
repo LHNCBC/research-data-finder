@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.0.0] - 2021-06-14
+### Changed
+- The application has been rewritten to use Angular.
+
 ## [2.6.1] - 2021-05-24
 ### Fixed
 - Speed up initialization by replacing "_sort=date" with "date=gt1000-01-01"
