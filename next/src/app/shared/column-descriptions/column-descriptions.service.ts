@@ -90,9 +90,9 @@ export class ColumnDescriptionsService {
       ? visibleColumnsRawString.split(',')
       : [];
     const sortSettings = this.settings.get('columnSort')?.[resourceType] ?? [];
-    sortSettings.forEach(s => {
-      const match = columnDescriptions.find(c => c.element === s.element);
-      match && (match.sortOrder = s.sortOrder);
+    sortSettings.forEach((s, i) => {
+      const match = columnDescriptions.find(c => c.element === s);
+      match && (match.sortOrder = i + 1);
     });
 
     return (

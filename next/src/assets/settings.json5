@@ -12,10 +12,7 @@
     // Sort orders by resource type.
     // Columns without a sort order defined here will stay in the end.
     columnSort: {
-      Patient: [
-        { element: 'name', sortOrder: 1 },
-        { element: 'active', sortOrder: 2 }
-      ]
+      Patient: ['name', 'active']
     }
   },
   // Settings for servers with the specified URL
