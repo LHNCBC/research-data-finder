@@ -97,4 +97,15 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
       );
     }
   }
+
+  /**
+   * Re-populate research study table with selected items
+   */
+  loadSelectedResearchStudies(data: Resource[]): void {
+    if (!this.resourceTableComponent) {
+      return;
+    }
+    this.resourceTableComponent.selectedResources.clear();
+    this.resourceTableComponent.selectedResources.select(data);
+  }
 }

@@ -12,6 +12,7 @@ import { saveAs } from 'file-saver';
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
 import { SearchParameter } from '../../types/search.parameter';
 import Resource = fhir.Resource;
+import { SelectAnAreaOfInterestComponent } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
@@ -23,6 +24,8 @@ import Resource = fhir.Resource;
 })
 export class StepperComponent implements OnDestroy {
   @ViewChild('stepper') private myStepper: MatStepper;
+  @ViewChild('selectAnAreaOfInterest')
+  public selectAreaOfInterestComponent: SelectAnAreaOfInterestComponent;
   @ViewChild('defineCohortComponent') public defineCohortComponent;
   @ViewChild('viewCohortComponent')
   public viewCohortComponent: ViewCohortPageComponent;
@@ -58,7 +61,11 @@ export class StepperComponent implements OnDestroy {
         .maxPatientsNumber,
       rawCriteria: this.defineCohortComponent.patientParams.parameterList.value,
       data:
-        this.viewCohortComponent?.resourceTableComponent?.dataSource?.data || []
+        this.viewCohortComponent?.resourceTableComponent?.dataSource?.data ??
+        [],
+      researchStudies:
+        this.selectAreaOfInterestComponent.resourceTableComponent
+          ?.selectedResources?.selected ?? []
     };
     const blob = new Blob([JSON.stringify(objectToSave, null, 2)], {
       type: 'text/json;charset=utf-8',
@@ -81,7 +88,8 @@ export class StepperComponent implements OnDestroy {
             serviceBaseUrl,
             maxPatientCount,
             rawCriteria,
-            data
+            data,
+            researchStudies
           } = blobData;
           if (serviceBaseUrl !== this.fhirBackend.serviceBaseUrl) {
             alert(
@@ -100,6 +108,10 @@ export class StepperComponent implements OnDestroy {
               new FormControl(searchParam)
             );
           });
+          // Set selected research studies.
+          this.selectAreaOfInterestComponent.loadSelectedResearchStudies(
+            researchStudies
+          );
           // Set patient table data.
           this.loadPatientsData(data);
           this.defineCohortComponent.loadingStatistics = [
