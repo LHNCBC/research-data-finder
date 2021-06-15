@@ -114,7 +114,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             Math.round((this.loadedDateTime - startTime) / 100) / 10;
           this.isLoading = false;
           this.liveAnnoncer.announce(
-            `The ${this.resourceType} resources loading process has finished.` +
+            `The ${this.resourceType} resources loading process has finished. ` +
               `${this.dataSource.data.length} rows loaded.`
           );
         }
