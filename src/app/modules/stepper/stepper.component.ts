@@ -54,6 +54,9 @@ export class StepperComponent implements OnDestroy {
     this.columnDescriptions.destroy();
   }
 
+  /**
+   * Save criteria and data into json file for future loading.
+   */
   saveCohort(): void {
     const objectToSave = {
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
@@ -63,9 +66,7 @@ export class StepperComponent implements OnDestroy {
       data:
         this.viewCohortComponent?.resourceTableComponent?.dataSource?.data ??
         [],
-      researchStudies:
-        this.selectAreaOfInterestComponent.resourceTableComponent
-          ?.selectedResources?.selected ?? []
+      researchStudies: this.selectAreaOfInterestComponent.getResearchStudySearchParam()
     };
     const blob = new Blob([JSON.stringify(objectToSave, null, 2)], {
       type: 'text/json;charset=utf-8',

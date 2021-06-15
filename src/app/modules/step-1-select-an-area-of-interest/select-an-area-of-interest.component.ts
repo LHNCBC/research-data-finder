@@ -101,11 +101,14 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   /**
    * Re-populate research study table with selected items
    */
-  loadSelectedResearchStudies(data: Resource[]): void {
+  loadSelectedResearchStudies(ids: string[]): void {
     if (!this.resourceTableComponent) {
       return;
     }
     this.resourceTableComponent.selectedResources.clear();
-    this.resourceTableComponent.selectedResources.select(data);
+    const items = this.resourceTableComponent.dataSource.data.filter((r) =>
+      ids.includes(r.id)
+    );
+    this.resourceTableComponent.selectedResources.select(...items);
   }
 }
