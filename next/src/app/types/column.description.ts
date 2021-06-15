@@ -19,4 +19,8 @@ export interface ColumnDescription {
    * Boolean value that determines visibility of the column
    */
   visible: boolean;
+  /**
+   * Number that indicates sort order of the column
+   */
+  sortOrder?: number;
 }
