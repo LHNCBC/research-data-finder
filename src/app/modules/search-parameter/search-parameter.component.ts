@@ -179,6 +179,14 @@ export class SearchParameterComponent
           : '')
       );
     }
+    if (
+      this.resourceType.value === 'Patient' &&
+      this.parameterName.value === 'active' &&
+      this.parameterValue.value === 'true'
+    ) {
+      // Include patients with active field not defined when searching active patients
+      return '&active:not=false';
+    }
     if (this.useLookupParamValue) {
       return `&${this.parameterName.value}=${this.parameterValue.value.join(
         ','
