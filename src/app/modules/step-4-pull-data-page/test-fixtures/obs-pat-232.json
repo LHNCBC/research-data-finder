@@ -1,0 +1,111 @@
+{
+  "resourceType": "Bundle",
+  "id": "1bb13370-bca9-4ae3-bbfd-61487b482b7c",
+  "meta": {
+    "lastUpdated": "2021-06-08T19:51:18.090-04:00"
+  },
+  "type": "searchset",
+  "link": [ {
+    "relation": "self",
+    "url": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation?_count=1000&_sort=patient%2Ccode%2C-date&_type=json&subject=Patient%2Fpat-232"
+  } ],
+  "entry": [ {
+    "fullUrl": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation/200457",
+    "resource": {
+      "resourceType": "Observation",
+      "id": "200457",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2021-02-17T22:23:53.000-05:00",
+        "source": "#D8AoMMZQo7lLe3ib",
+        "tag": [ {
+          "system": "urn:lf:fhir-tags",
+          "code": "ri-10k"
+        } ]
+      },
+      "identifier": [ {
+        "system": "1",
+        "value": "11163"
+      }, {
+        "system": "sid-row",
+        "value": "232-94"
+      } ],
+      "status": "final",
+      "category": [ {
+        "coding": [ {
+          "code": "PHR",
+          "display": "Pharmacy"
+        } ],
+        "text": "Pharmacy"
+      } ],
+      "code": {
+        "coding": [ {
+          "system": "1",
+          "code": "11163",
+          "display": "Lisinopril"
+        } ],
+        "text": "Lisinopril"
+      },
+      "subject": {
+        "reference": "Patient/pat-232",
+        "display": "WANDA BAER"
+      },
+      "effectiveDateTime": "2142-03-16T10:02:01.250Z",
+      "valueQuantity": {
+        "value": 39
+      }
+    },
+    "search": {
+      "mode": "match"
+    }
+  }, {
+    "fullUrl": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation/201709",
+    "resource": {
+      "resourceType": "Observation",
+      "id": "201709",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2021-02-17T22:23:54.000-05:00",
+        "source": "#D8AoMMZQo7lLe3ib",
+        "tag": [ {
+          "system": "urn:lf:fhir-tags",
+          "code": "ri-10k"
+        } ]
+      },
+      "identifier": [ {
+        "system": "1",
+        "value": "11163"
+      }, {
+        "system": "sid-row",
+        "value": "232-147"
+      } ],
+      "status": "final",
+      "category": [ {
+        "coding": [ {
+          "code": "PHR",
+          "display": "Pharmacy"
+        } ],
+        "text": "Pharmacy"
+      } ],
+      "code": {
+        "coding": [ {
+          "system": "1",
+          "code": "11163",
+          "display": "Lisinopril"
+        } ],
+        "text": "Lisinopril"
+      },
+      "subject": {
+        "reference": "Patient/pat-232",
+        "display": "WANDA BAER"
+      },
+      "effectiveDateTime": "2142-01-08T15:52:50.000Z",
+      "valueQuantity": {
+        "value": 9
+      }
+    },
+    "search": {
+      "mode": "match"
+    }
+  } ]
+}

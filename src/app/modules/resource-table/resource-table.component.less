@@ -1,0 +1,68 @@
+.container {
+  position: relative;
+}
+
+.table-container {
+  position: relative;
+  overflow: auto;
+  height: 400px;
+  margin-top: 6px;
+
+  table {
+    width: 100%
+  }
+}
+
+.container .mat-spinner {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  margin-left: -20px;
+}
+
+td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
+  padding-right: 10px;
+}
+
+td.mat-cell {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  vertical-align: top;
+}
+
+th.mat-header-cell:not(.cell-with-icon) {
+  min-width: 90px;
+}
+
+th button[mat-icon-button] {
+  margin-left: -12px;
+}
+
+.fullscreen-button {
+  position: absolute;
+  top: -5px;
+  right: 20px;
+  z-index: 100;
+}
+
+:host.fullscreen {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: 0 5px 0 5px;
+  z-index: 101;
+  background-color: white;
+
+  .table-container {
+    height: calc(100vh - 110px);
+  }
+}
+
+#loadingStatistics {
+  border: none;
+  td {
+    padding-right: 50px;
+  }
+}

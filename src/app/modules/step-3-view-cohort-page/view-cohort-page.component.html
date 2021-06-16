@@ -1,0 +1,10 @@
+<p class="info">
+  <span class="info-icon" aria-hidden="true"></span>
+  In this step, you can view the cohort of Patient resources for which you can pull data in the next step.
+  You can also save the cohort of Patients and the criteria for later.
+</p>
+
+<app-resource-table
+    [columnDescriptions]="columnDescriptions.getVisibleColumns('Patient') | async"
+    resourceType="Patient" [resourceStream]="patientStream" [loadingStatistics]="loadingStatistics">
+</app-resource-table>

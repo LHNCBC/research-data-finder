@@ -1,0 +1,57 @@
+<p class="info">
+  <span class="info-icon" aria-hidden="true"></span>
+  In this step, you can pull cohort data for one or more selected resource types and download it.
+  Each resource type you select will have its own tab in which you can add criteria to limit what is pulled.
+</p>
+
+<div class="h-box">
+  <button mat-stroked-button
+          [disabled]="!unselectedResourceTypes.length"
+          color="secondary"
+          [matMenuTriggerFor]="menu">
+    <mat-icon svgIcon="add"></mat-icon>Add a new resource tab
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item *ngFor="let resourceType of unselectedResourceTypes"
+            (click)="addTab(resourceType)">
+      <span>{{resourceType}}</span>
+    </button>
+  </mat-menu>
+  <div class="spacer"></div>
+  <button mat-stroked-button
+          *ngIf="visibleResourceTypes.length > 1"
+          color="secondary"
+          (click)="removeTab(getCurrentResourceType())">
+    <mat-icon svgIcon="clear"></mat-icon>{{getRemoveTabButtonText(currentResourceType$ | async)}}
+  </button>
+</div>
+
+<mat-tab-group dynamicHeight class="mat-elevation-z1">
+  <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfResourceType(resourceType)">
+    <div class="v-box tab-content">
+      <mat-form-field class="number-field" *ngIf="resourceType === 'Observation'">
+        <mat-label>Limit per patient per test</mat-label>
+        <input matInput [formControl]="perPatientPerTest" type="number" min="1">
+      </mat-form-field>
+
+      <app-search-parameters [resourceType]="resourceType" #resourceParams></app-search-parameters>
+
+      <div class="h-box">
+        <button (click)="resourceParams.addParameter()" mat-stroked-button color="secondary">
+          <mat-icon svgIcon="add"></mat-icon>Add a search criterion
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button
+                [disabled]="resourceType === 'Observation' && perPatientPerTest.invalid"
+                color="secondary"
+                (click)="loadResources(resourceType, resourceParams.getConditions())">
+          <mat-icon svgIcon="refresh"></mat-icon>Load {{getPluralFormOfResourceType(resourceType)}}
+        </button>
+      </div>
+      <app-resource-table *ngIf="resourceStream[resourceType]"
+          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType) | async"
+          resourceType="{{resourceType}}" [resourceStream]="resourceStream[resourceType]">
+      </app-resource-table>
+    </div>
+  </mat-tab>
+</mat-tab-group>

@@ -1,0 +1,117 @@
+<p class="info">
+  <span class="info-icon" aria-hidden="true"></span>
+  This is a tool that allows you to view a FHIR server's resources.
+</p>
+<mat-horizontal-stepper linear="true" #stepper>
+
+  <mat-step [completed]="settings.settingsFormGroup.valid" label="Settings" state="edit">
+    <div class="v-box">
+      <app-settings-page #settings></app-settings-page>
+      <div class="spacer"></div>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperNext type="button">
+          Select an area of interest<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step label="Select an area of interest" state="edit"
+            [optional]="selectAnAreaOfInterest.option.value === selectAnAreaOfInterest.SelectOptions.Skip">
+    <div class="v-box">
+      <app-select-an-area-of-interest #selectAnAreaOfInterest>
+      </app-select-an-area-of-interest>
+      <div class="spacer"></div>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperPrevious>
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Settings
+        </button>
+        <div class="spacer" *ngIf="selectAnAreaOfInterest.showTable"></div>
+        <button mat-stroked-button color="secondary" *ngIf="selectAnAreaOfInterest.showTable"
+                (click)="columnDescriptions.openColumnsDialog('ResearchStudy')">
+          <mat-icon svgIcon="create"></mat-icon>Configure columns
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="primary" matStepperNext type="button">
+          Define cohort<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step [stepControl]="defineCohort" label="Define cohort">
+      <app-define-cohort-page #defineCohortComponent
+        [formControl]="defineCohort"></app-define-cohort-page>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperPrevious>
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Select an area of interest
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="secondary">
+          <mat-icon svgIcon="upload"></mat-icon>Load cohort and criteria
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="primary" matStepperNext
+                (click)="defineCohortComponent.searchForPatients(selectAnAreaOfInterest.getResearchStudySearchParam())">
+          Search for Patients<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+        </button>
+      </div>
+  </mat-step>
+
+  <mat-step label="View cohort">
+    <div class="v-box">
+      <app-view-cohort-page *ngIf="serverInitialized"
+          [patientStream]="defineCohortComponent.patientStream"
+          [loadingStatistics]="defineCohortComponent.loadingStatistics">
+      </app-view-cohort-page>
+      <div class="spacer"></div>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperPrevious>
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Define cohort
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="secondary">
+          <mat-icon svgIcon="save"></mat-icon>Save the cohort and criteria for later
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="secondary">
+          <mat-icon svgIcon="refresh"></mat-icon>Reload
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="secondary" (click)="columnDescriptions.openColumnsDialog('Patient')">
+          <mat-icon svgIcon="create"></mat-icon>Configure columns
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="primary" matStepperNext>
+          Pull data for the cohort<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step label="Pull data for the cohort">
+    <div class="v-box">
+      <app-pull-data-page #pullDataPageComponent
+                          [patientStream]="defineCohortComponent.patientStream"></app-pull-data-page>
+      <div class="spacer"></div>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperPrevious>
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>View cohort
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.configureColumns()">
+          <mat-icon svgIcon="create"></mat-icon>Configure columns
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.downloadCsv()">
+          <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
+        </button>
+        <div class="spacer"></div>
+      </div>
+    </div>
+  </mat-step>
+
+  <ng-template matStepperIcon="edit">
+    <mat-icon svgIcon="create"></mat-icon>
+  </ng-template>
+</mat-horizontal-stepper>
