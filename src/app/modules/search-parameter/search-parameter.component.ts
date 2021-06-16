@@ -96,6 +96,7 @@ export class SearchParameterComponent
     } else {
       // single resource type
       this.resourceType.setValue(this.inputResourceType);
+      this.resourceTypes = [this.inputResourceType];
       this.fixedResourceType = true;
     }
 

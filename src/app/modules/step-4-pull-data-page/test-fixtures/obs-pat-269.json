@@ -1,0 +1,62 @@
+{
+  "resourceType": "Bundle",
+  "id": "b3f05037-c786-40ab-9c0b-2abfcbe62310",
+  "meta": {
+    "lastUpdated": "2021-06-08T19:51:18.090-04:00"
+  },
+  "type": "searchset",
+  "link": [ {
+    "relation": "self",
+    "url": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation?_count=1000&_sort=patient%2Ccode%2C-date&_type=json&subject=Patient%2Fpat-269"
+  } ],
+  "entry": [ {
+    "fullUrl": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation/234256",
+    "resource": {
+      "resourceType": "Observation",
+      "id": "234256",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2021-02-17T22:24:18.000-05:00",
+        "source": "#poujZ389e2WRlDHb",
+        "tag": [ {
+          "system": "urn:lf:fhir-tags",
+          "code": "ri-10k"
+        } ]
+      },
+      "identifier": [ {
+        "system": "1",
+        "value": "10057"
+      }, {
+        "system": "sid-row",
+        "value": "269-122"
+      } ],
+      "status": "final",
+      "category": [ {
+        "coding": [ {
+          "code": "SUP",
+          "display": "Supplies"
+        } ],
+        "text": "Supplies"
+      } ],
+      "code": {
+        "coding": [ {
+          "system": "1",
+          "code": "10057",
+          "display": "Chemstrip Bg Acc"
+        } ],
+        "text": "Chemstrip Bg Acc"
+      },
+      "subject": {
+        "reference": "Patient/pat-269",
+        "display": "OMAR Y. WILLIAMS"
+      },
+      "effectiveDateTime": "2135-05-07T22:51:57.291Z",
+      "valueQuantity": {
+        "value": 0
+      }
+    },
+    "search": {
+      "mode": "match"
+    }
+  } ]
+}

@@ -254,7 +254,7 @@ export class FhirBatchQuery {
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  get(url, { combine = true, retryCount = false }) {
+  get(url, { combine = true, retryCount = false } = {}) {
     return new Promise((resolve, reject) => {
       const fullUrl = this.getFullUrl(url);
       this._pending.push({

@@ -1,7 +1,7 @@
 <form [formGroup]="settingsFormGroup" class="v-box">
   <p class="info">
     <span class="info-icon" aria-hidden="true"></span>
-    At this step, you can select FHIR REST API Service Base URL.
+    In this step, you can select FHIR REST API Service Base URL.
   </p>
   <mat-form-field>
     <mat-label>FHIR server</mat-label>
@@ -64,7 +64,8 @@
         </div>
 
         <div class="spacer"></div>
-        <mat-checkbox formControlName="cacheDisabled">Disable caching of HTTP requests to the FHIR server</mat-checkbox>
+        <mat-checkbox formControlName="cacheDisabled"
+                      (change)="updateFhirBackendSetting('cacheEnabled', !$event.checked)">Disable caching of HTTP requests to the FHIR server</mat-checkbox>
       </div>
     </ng-template>
   </mat-expansion-panel>
