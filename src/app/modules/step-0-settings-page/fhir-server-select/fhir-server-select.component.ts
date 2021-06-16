@@ -1,3 +1,7 @@
+/**
+ * This file contains a component for typing the base URL of a FHIR server
+ * or selecting a base URL from a predefined list of servers.
+ */
 import {
   AfterViewInit,
   Component,
