@@ -28,6 +28,12 @@
           <mat-icon svgIcon='keyboard_arrow_left'></mat-icon>
           Settings
         </button>
+        <div class='spacer'></div>
+        <button mat-stroked-button color='secondary' (click)='hiddenFileInput2.click()'>
+          <mat-icon svgIcon='upload'></mat-icon>
+          Load cohort and criteria
+        </button>
+        <input type='file' #hiddenFileInput2 style='display: none;' (change)='loadCohort($event, true)'>
         <div class='spacer' *ngIf='selectAnAreaOfInterest.showTable'></div>
         <button mat-stroked-button color='secondary' *ngIf='selectAnAreaOfInterest.showTable'
                 (click)="columnDescriptions.openColumnsDialog('ResearchStudy')">

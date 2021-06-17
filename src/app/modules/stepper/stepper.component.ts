@@ -78,7 +78,7 @@ export class StepperComponent implements OnDestroy {
   /**
    * Process file and load criteria and patient list data.
    */
-  loadCohort(event): void {
+  loadCohort(event, fromResearchStudyStep = false): void {
     if (event.target.files.length === 1) {
       const reader = new FileReader();
       const filename = event.target.files[0].name;
@@ -114,7 +114,7 @@ export class StepperComponent implements OnDestroy {
             researchStudies
           );
           // Set patient table data.
-          this.loadPatientsData(data);
+          this.loadPatientsData(data, fromResearchStudyStep);
           this.defineCohortComponent.loadingStatistics = [
             [`Data loaded from file ${filename}.`]
           ];
@@ -131,9 +131,15 @@ export class StepperComponent implements OnDestroy {
    * Re-populate the patient table
    * @private
    */
-  private loadPatientsData(data: Resource[]): void {
+  private loadPatientsData(
+    data: Resource[],
+    fromResearchStudyStep = false
+  ): void {
     this.defineCohortComponent.patientStream = new Subject<Resource>();
     this.myStepper.next();
+    if (fromResearchStudyStep) {
+      this.myStepper.next();
+    }
     setTimeout(() => {
       data.forEach((resource) => {
         this.defineCohortComponent.patientStream.next(resource);
