@@ -28,6 +28,8 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   subscription: Subscription;
   researchStudyStream: Subject<Resource>;
   showTable = false;
+  // A list of items that system will select once table loading is complete.
+  idsToSelect: string[] = [];
   @ViewChild('resourceTableComponent') public resourceTableComponent;
 
   /**
@@ -80,6 +82,10 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
           this.callBatch(nextBundleUrl);
         } else {
           this.researchStudyStream.complete();
+          if (this.idsToSelect.length) {
+            this.selectResearchStudies(this.idsToSelect);
+            this.idsToSelect.length = 0;
+          }
         }
       }
     });
@@ -99,12 +105,29 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   }
 
   /**
-   * Re-populate research study table with selected items
+   * Re-populate research study table with selected items.
+   * Update radio button selection accordingly.
    */
   loadSelectedResearchStudies(ids: string[]): void {
-    if (!this.resourceTableComponent) {
+    if (this.option.value === SelectOptions.ResearchStudy && !ids.length) {
+      this.option.setValue(SelectOptions.Skip);
       return;
     }
+    if (this.option.value === SelectOptions.ResearchStudy && ids.length) {
+      this.selectResearchStudies(ids);
+      return;
+    }
+    if (this.option.value === SelectOptions.Skip && ids.length) {
+      this.idsToSelect = ids;
+      this.option.setValue(SelectOptions.ResearchStudy);
+      return;
+    }
+  }
+
+  /**
+   * Select a list of items in table.
+   */
+  private selectResearchStudies(ids: string[]): void {
     this.resourceTableComponent.selectedResources.clear();
     const items = this.resourceTableComponent.dataSource.data.filter((r) =>
       ids.includes(r.id)
