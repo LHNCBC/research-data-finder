@@ -56,13 +56,13 @@
   <mat-form-field class="flex" *ngIf="resourceType.value === OBSERVATIONBYTEST">
     <mat-label>Observation codes from FHIR server</mat-label>
     <app-observation-code-lookup
-      [formControl]="selectedLoincItems"
+      [formControl]="selectedObservationCodes"
       placeholder="Type and select one or more">
     </app-observation-code-lookup>
   </mat-form-field>
 
-  <app-observation-test-value class="parameter-value" [formControl]="parameterValue" [datatype]="selectedLoincItems.value?.datatype"
-                  *ngIf="resourceType.value === OBSERVATIONBYTEST && selectedLoincItems.value?.datatype">
+  <app-observation-test-value class="parameter-value" [formControl]="parameterValue" [datatype]="selectedObservationCodes.value?.datatype"
+                  *ngIf="resourceType.value === OBSERVATIONBYTEST && selectedObservationCodes.value?.datatype">
   </app-observation-test-value>
 
 </div>

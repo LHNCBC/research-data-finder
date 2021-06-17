@@ -3,5 +3,5 @@ export interface SearchParameter {
   name?: string;
   // TODO: value type TBD
   value?: any;
-  selectedLoincItems?: any;
+  selectedObservationCodes?: any;
 }

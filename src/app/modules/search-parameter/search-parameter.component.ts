@@ -45,14 +45,14 @@ export class SearchParameterComponent
   parameterValue: FormControl = new FormControl('');
   parameterValues: any[];
 
-  selectedLoincItems: FormControl = new FormControl(null);
+  selectedObservationCodes: FormControl = new FormControl(null);
 
   get value(): SearchParameter {
     return {
       resourceType: this.resourceType.value,
       name: this.parameterName.value,
       value: this.parameterValue.value,
-      selectedLoincItems: this.selectedLoincItems.value
+      selectedObservationCodes: this.selectedObservationCodes.value
     };
   }
 
@@ -136,7 +136,7 @@ export class SearchParameterComponent
     this.parameterValue.valueChanges.subscribe(() => {
       this.onChange(this.value);
     });
-    this.selectedLoincItems.valueChanges.subscribe(() => {
+    this.selectedObservationCodes.valueChanges.subscribe(() => {
       this.onChange(this.value);
     });
   }
@@ -165,7 +165,9 @@ export class SearchParameterComponent
     this.resourceType.setValue(value.resourceType || '');
     this.parameterName.setValue(value.name || '');
     this.parameterValue.setValue(value.value || '');
-    this.selectedLoincItems.setValue(value.selectedLoincItems || null);
+    this.selectedObservationCodes.setValue(
+      value.selectedObservationCodes || null
+    );
   }
 
   /**
@@ -207,7 +209,9 @@ export class SearchParameterComponent
   }
 
   getObservationByTestCriteria(): string {
-    const comboCodes = this.selectedLoincItems.value.codes.filter((c) => c);
+    const comboCodes = this.selectedObservationCodes.value.codes.filter(
+      (c) => c
+    );
     const codeParam = comboCodes.length
       ? '&combo-code=' +
         comboCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
@@ -216,7 +220,7 @@ export class SearchParameterComponent
       CodeableConcept: 'combo-value-concept',
       Quantity: 'combo-value-quantity',
       string: 'value-string'
-    }[this.selectedLoincItems.value.datatype];
+    }[this.selectedObservationCodes.value.datatype];
     const modifier = this.parameterValue.value.testValueModifier;
     const prefix = this.parameterValue.value.testValuePrefix;
     const testValue = this.parameterValue.value.testValue
