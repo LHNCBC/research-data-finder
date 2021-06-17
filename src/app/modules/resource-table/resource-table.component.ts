@@ -21,6 +21,7 @@ import Resource = fhir.Resource;
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { SettingsService } from '../../shared/settings-service/settings.service';
 import { Sort } from '@angular/material/sort';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * Component for loading table of resources
@@ -54,7 +55,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private ngZone: NgZone,
     private columnDescriptionsService: ColumnDescriptionsService,
     private columnValuesService: ColumnValuesService,
-    private settings: SettingsService
+    private settings: SettingsService,
+    private liveAnnoncer: LiveAnnouncer
   ) {}
 
   ngOnInit(): void {}
@@ -93,6 +95,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       this.dataSource.data.length = 0;
       this.isLoading = true;
+      this.liveAnnoncer.announce(
+        `The ${this.resourceType} resources loading process has started`
+      );
       const startTime = Date.now();
       this.resourceStream.pipe(bufferCount(50)).subscribe(
         (resouceses) => {
@@ -108,6 +113,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           this.loadTime =
             Math.round((this.loadedDateTime - startTime) / 100) / 10;
           this.isLoading = false;
+          this.liveAnnoncer.announce(
+            `The ${this.resourceType} resources loading process has finished. ` +
+              `${this.dataSource.data.length} rows loaded.`
+          );
         }
       );
     }
@@ -267,5 +276,45 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     });
     // Table will re-render only after data reference changed.
     this.dataSource.data = this.dataSource.data.slice();
+  }
+
+  /**
+   * Creates Blob for download table
+   */
+  getBlob(): Blob {
+    const columnDescriptions = this.columnDescriptions;
+    const header = columnDescriptions
+      .map((columnDescription) => columnDescription.displayName)
+      .join(',');
+    const rows = this.dataSource.data.map((resource) =>
+      columnDescriptions
+        .map((columnDescription) => {
+          const cellText = this.getCellStrings(
+            resource,
+            columnDescription
+          ).join('; ');
+          if (/["\s,]/.test(cellText)) {
+            // According to RFC-4180 which describes common format for CSV files:
+            // Fields containing line breaks (CRLF), double quotes, and commas
+            // should be enclosed in double-quotes.
+            // If double-quotes are used to enclose fields, then a double-quote
+            // appearing inside a field must be escaped by preceding it with
+            // another double quote.
+            // Also, according to https://en.wikipedia.org/wiki/Comma-separated_values:
+            // In CSV implementations that do trim leading or trailing spaces,
+            // fields with such spaces as meaningful data must be quoted.
+            // Therefore, to avoid any problems, data with any spaces is also quoted.
+            return '"' + cellText.replace(/"/, '""') + '"';
+          } else {
+            return cellText;
+          }
+        })
+        .join(',')
+    );
+
+    return new Blob([[header].concat(rows).join('\n')], {
+      type: 'text/plain;charset=utf-8',
+      endings: 'native'
+    });
   }
 }

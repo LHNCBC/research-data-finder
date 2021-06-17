@@ -10,18 +10,39 @@ import { SelectColumnsComponent } from '../../modules/select-columns/select-colu
 import { filter, map } from 'rxjs/operators';
 import { capitalize } from '../utils';
 import { ColumnValuesService } from '../column-values/column-values.service';
+import { SettingsService } from '../settings-service/settings.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ColumnDescriptionsService {
-  visibleColumns: { [key: string]: BehaviorSubject<ColumnDescription[]> } = {};
-  subscriptions: Subscription[] = [];
   constructor(
     private fhirBackend: FhirBackendService,
     private dialog: MatDialog,
-    private columnValues: ColumnValuesService
+    private columnValues: ColumnValuesService,
+    private settings: SettingsService
   ) {}
+  visibleColumns: { [key: string]: BehaviorSubject<ColumnDescription[]> } = {};
+  subscriptions: Subscription[] = [];
+
+  /**
+   * Compare function for column descriptions
+   */
+  private static sortColumns(
+    a: ColumnDescription,
+    b: ColumnDescription
+  ): number {
+    if (!a.sortOrder && !b.sortOrder) {
+      return 0;
+    }
+    if (!a.sortOrder && b.sortOrder) {
+      return 1;
+    }
+    if (a.sortOrder && !b.sortOrder) {
+      return -1;
+    }
+    return a.sortOrder - b.sortOrder;
+  }
 
   /**
    * Open dialog to manage visible columns
@@ -87,6 +108,13 @@ export class ColumnDescriptionsService {
     const visibleColumnNames = visibleColumnsRawString
       ? visibleColumnsRawString.split(',')
       : [];
+    const sortSettings = this.settings.get('columnSort')?.[resourceType] ?? [];
+    sortSettings.forEach((s, i) => {
+      const match = columnDescriptions.find((c) => c.element === s);
+      if (match) {
+        match.sortOrder = i + 1;
+      }
+    });
 
     return (
       columnDescriptions
@@ -112,6 +140,8 @@ export class ColumnDescriptionsService {
         })
         // Exclude unsupported columns
         .filter((column) => column.types.length)
+        // Sort based on settings
+        .sort(ColumnDescriptionsService.sortColumns)
     );
   }
 

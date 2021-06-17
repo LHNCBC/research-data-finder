@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "next": {
+    "fhir-obs-viewer": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
-            "outputPath": "dist/next",
+            "outputPath": "public",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -35,7 +35,7 @@
               "./node_modules/jquery/dist/jquery.min.js"
             ],
             "customWebpackConfig": {
-              "path": "./extra-webpack.config.js",
+              "path": "./webpack/extra-webpack.config.js",
               "mergeRules": {
                 "externals": "replace"
               }
@@ -74,18 +74,19 @@
         "serve": {
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
-            "browserTarget": "next:build"
+            "browserTarget": "fhir-obs-viewer:build",
+            "port": 4201
           },
           "configurations": {
             "production": {
-              "browserTarget": "next:build:production"
+              "browserTarget": "fhir-obs-viewer:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-builders/custom-webpack:extract-i18n",
           "options": {
-            "browserTarget": "next:build"
+            "browserTarget": "fhir-obs-viewer:build"
           }
         },
         "test": {
@@ -107,7 +108,7 @@
               "./node_modules/jquery/dist/jquery.min.js"
             ],
             "customWebpackConfig": {
-              "path": "./extra-webpack.config.js",
+              "path": "./webpack/extra-webpack.config.js",
               "mergeRules": {
                 "externals": "replace"
               }
@@ -131,16 +132,16 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "next:serve"
+            "devServerTarget": "fhir-obs-viewer:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "next:serve:production"
+              "devServerTarget": "fhir-obs-viewer:serve:production"
             }
           }
         }
       }
     }
   },
-  "defaultProject": "next"
+  "defaultProject": "fhir-obs-viewer"
 }

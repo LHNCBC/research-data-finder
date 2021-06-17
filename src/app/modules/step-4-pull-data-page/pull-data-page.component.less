@@ -1,5 +1,9 @@
+mat-tab-group {
+  margin-top: 16px;
+}
+
 .tab-content {
-  margin: 4px;
+  margin: 16px;
 }
 
 .resource-table-container {
@@ -13,15 +17,22 @@
   color: unset;
 }
 
-.not-ready-tooltip {
-  background: #b71c1c;
-  font-size: 14px;
-}
-
 .resource-search-parameters {
   margin-top: 6px;
 }
 
 .v-box > .spacer {
   height: 10px;
+}
+
+[hidden] {
+  display: none;
+}
+
+:host ::ng-deep .mat-tab-label {
+  min-width: 88px;
+}
+
+.number-field {
+  width: 13rem;
 }

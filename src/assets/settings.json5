@@ -8,6 +8,11 @@
     hideElementsByDefault: {
       "*": ["id"],
       "ResearchStudy": ["keyword", "condition"]
+    },
+    // Sort orders by resource type.
+    // Columns without a sort order defined here will stay in the end.
+    columnSort: {
+      Patient: ['name', 'active']
     }
   },
   // Settings for servers with the specified URL
