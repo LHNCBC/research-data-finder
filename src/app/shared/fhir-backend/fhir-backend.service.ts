@@ -14,6 +14,7 @@ import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import * as definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
+import { escapeStringForRegExp } from '../utils';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -151,6 +152,9 @@ export class FhirBackendService implements HttpBackend {
       serviceBaseUrlRegExp,
       this.serviceBaseUrl
     );
+    const serviceBaseUrlWithEndpoint = new RegExp(
+      '^' + escapeStringForRegExp(this.serviceBaseUrl) + '\\/[^?]+'
+    );
     const newRequest = request.clone({
       url: newUrl
     });
@@ -168,9 +172,12 @@ export class FhirBackendService implements HttpBackend {
     return new Observable<HttpResponse<any>>(
       (observer: Observer<HttpResponse<any>>) => {
         this.fhirClient.initialize().then(() => {
+          // Requests to the FHIR server without endpoint cannot be combined
+          // into a batch request
+          const options = { combine: serviceBaseUrlWithEndpoint.test(newUrl) };
           const promise = this.isCacheEnabled
-            ? this.fhirClient.getWithCache(fullUrl)
-            : this.fhirClient.get(fullUrl);
+            ? this.fhirClient.getWithCache(fullUrl, options)
+            : this.fhirClient.get(fullUrl, options);
 
           promise.then(
             ({ status, data }) => {
