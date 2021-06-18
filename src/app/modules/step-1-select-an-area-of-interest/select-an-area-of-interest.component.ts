@@ -83,7 +83,7 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
         } else {
           this.researchStudyStream.complete();
           if (this.idsToSelect.length) {
-            this.selectResearchStudies(this.idsToSelect);
+            this.resourceTableComponent.setSelectedIds(this.idsToSelect);
             this.idsToSelect.length = 0;
           }
         }
@@ -108,30 +108,17 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
    * Re-populate research study table with selected items.
    * Update radio button selection accordingly.
    */
-  loadSelectedResearchStudies(ids: string[]): void {
+  selectLoadedResearchStudies(ids: string[]): void {
     if (this.option.value === SelectOptions.ResearchStudy && !ids.length) {
       this.option.setValue(SelectOptions.Skip);
-      return;
-    }
-    if (this.option.value === SelectOptions.ResearchStudy && ids.length) {
-      this.selectResearchStudies(ids);
-      return;
-    }
-    if (this.option.value === SelectOptions.Skip && ids.length) {
+    } else if (
+      this.option.value === SelectOptions.ResearchStudy &&
+      ids.length
+    ) {
+      this.resourceTableComponent.setSelectedIds(ids);
+    } else if (this.option.value === SelectOptions.Skip && ids.length) {
       this.idsToSelect = ids;
       this.option.setValue(SelectOptions.ResearchStudy);
-      return;
     }
-  }
-
-  /**
-   * Select a list of items in table.
-   */
-  private selectResearchStudies(ids: string[]): void {
-    this.resourceTableComponent.selectedResources.clear();
-    const items = this.resourceTableComponent.dataSource.data.filter((r) =>
-      ids.includes(r.id)
-    );
-    this.resourceTableComponent.selectedResources.select(...items);
   }
 }

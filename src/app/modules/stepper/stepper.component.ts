@@ -110,7 +110,7 @@ export class StepperComponent implements OnDestroy {
             );
           });
           // Set selected research studies.
-          this.selectAreaOfInterestComponent.loadSelectedResearchStudies(
+          this.selectAreaOfInterestComponent.selectLoadedResearchStudies(
             researchStudies
           );
           // Set patient table data.

@@ -162,14 +162,16 @@ export class AutoCompleteTestValueComponent
       { maxSelect: '*', codes: this.options.map((o) => o.code) }
     );
 
-    // Fill autocomplete with data (currentData was set in writeValue).
-    this.currentData.forEach((code) => {
-      const item = this.options.find((o) => o.code === code)?.display;
-      if (item) {
-        this.acInstance.storeSelectedItem(item, code);
-        this.acInstance.addToSelectedArea(item);
-      }
-    });
+    // Fill autocomplete with data (if currentData was set in writeValue).
+    if (this.currentData) {
+      this.currentData.forEach((code) => {
+        const item = this.options.find((o) => o.code === code)?.display;
+        if (item) {
+          this.acInstance.storeSelectedItem(item, code);
+          this.acInstance.addToSelectedArea(item);
+        }
+      });
+    }
 
     Def.Autocompleter.Event.observeListSelections(testInputId, () => {
       this.currentData = this.acInstance.getSelectedCodes() || [];
