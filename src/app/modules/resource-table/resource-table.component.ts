@@ -81,7 +81,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     this.columnDescriptions = allColumns.filter(
       (x) =>
         hiddenByDefault.indexOf(x.element) === -1 &&
-        this.getCellStrings(this.dataSource.data[0], x).length
+        this.dataSource.data.some((row) => this.getCellStrings(row, x).length)
     );
     // Save column selections of default
     window.localStorage.setItem(
