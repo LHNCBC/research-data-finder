@@ -37,6 +37,10 @@ export class FhirServerSelectComponent
 
   options = [
     {
+      description: 'FHIR Tools project FHIR server (fake data)',
+      url: 'https://lforms-fhir.nlm.nih.gov/baseR4'
+    },
+    {
       description: 'dbGap (https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1)',
       url: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
     }
@@ -200,11 +204,9 @@ export class FhirServerSelectComponent
    * Part of the ControlValueAccessor interface.
    */
   writeValue(value: string): void {
+    this.currentValue = value;
     if (this.acInstance) {
-      this.currentValue = value;
       this.acInstance.setFieldVal(value);
-    } else {
-      this.currentValue = value;
     }
   }
 }
