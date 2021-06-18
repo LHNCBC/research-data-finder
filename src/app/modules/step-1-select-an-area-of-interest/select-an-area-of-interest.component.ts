@@ -1,4 +1,9 @@
-import { Component, OnDestroy, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  ViewChild
+} from '@angular/core';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
@@ -7,7 +12,7 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { combineLatest, Subject, Subscription } from 'rxjs';
-import { filter, tap } from 'rxjs/operators';
+import { filter, startWith, tap } from 'rxjs/operators';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
 
@@ -25,7 +30,9 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   // Publish enum for template
   SelectOptions = SelectOptions;
   option = new FormControl(SelectOptions.Skip);
+  showResearchStudiesWithoutSubjects = new FormControl(false);
   subscription: Subscription;
+  researchStudiesSubscription: Subscription;
   researchStudyStream: Subject<Resource>;
   showTable = false;
   @ViewChild('resourceTableComponent') public resourceTableComponent;
@@ -36,53 +43,80 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   constructor(
     private fhirBackend: FhirBackendService,
     private http: HttpClient,
-    public columnDescriptions: ColumnDescriptionsService
+    public columnDescriptions: ColumnDescriptionsService,
+    cdr: ChangeDetectorRef
   ) {
     this.subscription = combineLatest([
       this.option.valueChanges,
-      this.fhirBackend.initialized
+      this.fhirBackend.initialized,
+      this.showResearchStudiesWithoutSubjects.valueChanges.pipe(
+        startWith(this.showResearchStudiesWithoutSubjects.value as boolean)
+      )
     ])
       .pipe(
         tap(() => {
           this.showTable = false;
+          this.researchStudiesSubscription?.unsubscribe();
         }),
-        filter(
-          ([option, initialized]) =>
+        filter(([option, initialized]) => {
+          return (
             option === SelectOptions.ResearchStudy &&
             initialized === ConnectionStatus.Ready
-        )
+          );
+        })
       )
-      .subscribe(() => {
+      .subscribe(([, , showResearchStudiesWithoutSubjects]) => {
         this.researchStudyStream = new Subject<Resource>();
         this.showTable = true;
-        this.callBatch('$fhir/ResearchStudy?_count=500');
+        // Added "detectChanges" to prevent this issue:
+        // If queries are cached, then the values will be sent to the Subject
+        // before the ResourceTableComponent subscribes to the resource stream.
+        cdr.detectChanges();
+        if (showResearchStudiesWithoutSubjects) {
+          this.loadResearchStudies('$fhir/ResearchStudy?_count=500');
+        } else {
+          const statuses = Object.keys(
+            this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
+              'ResearchSubject.status'
+            ]
+          ).join(',');
+          this.loadResearchStudies(
+            `$fhir/ResearchStudy?_count=500&_has:ResearchSubject:study:status=${statuses}`
+          );
+        }
       });
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    this.researchStudiesSubscription?.unsubscribe();
   }
 
   /**
-   * calls server for a bundle of resources. Will be recursively called if having next bundle.
+   * Calls server for a bundle of ResearchStudy resources.
+   * Will be recursively called if having next bundle.
+   * @param url - request URL
    */
-  callBatch(url: string): void {
-    this.http.get(url).subscribe((data: Bundle) => {
-      if (!data.entry) {
-        this.researchStudyStream.complete();
-        return;
-      } else {
-        data.entry?.forEach((item) => {
-          this.researchStudyStream.next(item.resource);
-        });
-        const nextBundleUrl = data.link.find((l) => l.relation === 'next')?.url;
-        if (nextBundleUrl) {
-          this.callBatch(nextBundleUrl);
-        } else {
+  loadResearchStudies(url: string): void {
+    this.researchStudiesSubscription = this.http
+      .get(url)
+      .subscribe((data: Bundle) => {
+        if (!data.entry) {
           this.researchStudyStream.complete();
+          return;
+        } else {
+          data.entry?.forEach((item) => {
+            this.researchStudyStream.next(item.resource);
+          });
+          const nextBundleUrl = data.link.find((l) => l.relation === 'next')
+            ?.url;
+          if (nextBundleUrl) {
+            this.loadResearchStudies(nextBundleUrl);
+          } else {
+            this.researchStudyStream.complete();
+          }
         }
-      }
-    });
+      });
   }
 
   /**

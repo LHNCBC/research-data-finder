@@ -4,6 +4,7 @@ import { SelectAnAreaOfInterestComponent } from './select-an-area-of-interest.co
 import { MatRadioModule } from '@angular/material/radio';
 import { ResourceTableModule } from '../resource-table/resource-table.module';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @NgModule({
   declarations: [SelectAnAreaOfInterestComponent],
@@ -12,7 +13,8 @@ import { ReactiveFormsModule } from '@angular/forms';
     CommonModule,
     MatRadioModule,
     ResourceTableModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatCheckboxModule
   ]
 })
 export class SelectAnAreaOfInterestModule {}

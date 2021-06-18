@@ -11,6 +11,7 @@ import { BehaviorSubject, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import { MatCheckbox } from '@angular/material/checkbox';
 
 describe('SelectAnAreaOfInterestComponent', () => {
   let component: SelectAnAreaOfInterestComponent;
@@ -24,6 +25,7 @@ describe('SelectAnAreaOfInterestComponent', () => {
         SelectAnAreaOfInterestComponent,
         MockComponent(MatRadioGroup),
         MockComponent(MatRadioButton),
+        MockComponent(MatCheckbox),
         MockComponent(ResourceTableComponent)
       ],
       imports: [ReactiveFormsModule],
@@ -31,7 +33,14 @@ describe('SelectAnAreaOfInterestComponent', () => {
         {
           provide: FhirBackendService,
           useValue: {
-            initialized: new BehaviorSubject(ConnectionStatus.Ready)
+            initialized: new BehaviorSubject(ConnectionStatus.Ready),
+            getCurrentDefinitions: () => {
+              return {
+                valueSetMapByPath: {
+                  'ResearchSubject.status': []
+                }
+              };
+            }
           }
         },
         {
