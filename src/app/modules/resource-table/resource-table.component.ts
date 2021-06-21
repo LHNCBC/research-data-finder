@@ -185,6 +185,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Deselect all rows.
+   */
+  clearSelection(): void {
+    this.selectedResources.clear();
+  }
+
+  /**
    * Clear filters on all columns
    */
   clearColumnFilters(): void {

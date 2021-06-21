@@ -50,7 +50,10 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
       this.option.valueChanges,
       this.fhirBackend.initialized,
       this.showResearchStudiesWithoutSubjects.valueChanges.pipe(
-        startWith(this.showResearchStudiesWithoutSubjects.value as boolean)
+        startWith(this.showResearchStudiesWithoutSubjects.value as boolean),
+        tap(() => {
+          this.resourceTableComponent?.clearSelection();
+        })
       )
     ])
       .pipe(
