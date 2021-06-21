@@ -88,10 +88,6 @@ export class PullDataPageComponent implements AfterViewInit {
         this.unselectedResourceTypes = connected
           ? Object.keys(fhirBackend.getCurrentDefinitions().resources).filter(
               (resourceType) =>
-                // Currently, we don't support pulling Patient data for
-                // a cohort of Patient, but you can see all Patient data
-                // in the View cohort step
-                resourceType !== 'Patient' &&
                 this.visibleResourceTypes.indexOf(resourceType) === -1
             )
           : [];
@@ -203,6 +199,8 @@ export class PullDataPageComponent implements AfterViewInit {
 
           if (resourceType === 'ResearchStudy') {
             linkToPatient = `_has:ResearchSubject:study:individual=Patient/${patient.id}`;
+          } else if (resourceType === 'Patient') {
+            linkToPatient = `_id=${patient.id}`;
           } else {
             linkToPatient = `subject=Patient/${patient.id}`;
           }
