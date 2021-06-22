@@ -221,10 +221,14 @@ export class PullDataPageComponent implements AfterViewInit {
             });
           }
 
+          const count =
+            resourceType === 'Observation'
+              ? 1000
+              : this.perPatientPerTest.value;
           return (
             this.http
               .get(
-                `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}&_count=${this.perPatientPerTest.value}`
+                `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}&_count=${count}`
               )
               // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
               .toPromise()
