@@ -115,7 +115,9 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
       this.option.value === SelectOptions.ResearchStudy &&
       ids.length
     ) {
-      this.resourceTableComponent.setSelectedIds(ids);
+      this.resourceTableComponent.isLoading
+        ? (this.idsToSelect = ids)
+        : this.resourceTableComponent.setSelectedIds(ids);
     } else if (this.option.value === SelectOptions.Skip && ids.length) {
       this.idsToSelect = ids;
       this.option.setValue(SelectOptions.ResearchStudy);
