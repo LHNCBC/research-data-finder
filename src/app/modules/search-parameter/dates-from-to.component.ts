@@ -32,6 +32,7 @@ export class DatesFromToComponent
     };
   }
 
+  // Default value to be used when user creates a second date range criterion.
   static defaultValue: DatesFromTo = null;
 
   from: FormControl = new FormControl('');
@@ -54,6 +55,7 @@ export class DatesFromToComponent
   }
 
   ngAfterViewInit(): void {
+    // Write with default value.
     if (
       !this.value.from &&
       !this.value.to &&
