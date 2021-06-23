@@ -31,7 +31,7 @@
     <div class="v-box tab-content">
       <mat-form-field class="number-field">
         <mat-label>Limit per patient<span *ngIf='resourceType === "Observation"'>&nbsp;per test</span></mat-label>
-        <input matInput [formControl]="perPatientPerTest" type="number" min="1">
+        <input matInput [formControl]="perPatientFormControls[resourceType]" type="number" min="1">
       </mat-form-field>
 
       <app-search-parameters [resourceType]="resourceType" #resourceParams></app-search-parameters>
@@ -42,7 +42,7 @@
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button
-                [disabled]="resourceType === 'Observation' && perPatientPerTest.invalid"
+                [disabled]="perPatientFormControls[resourceType].invalid"
                 color="secondary"
                 (click)="loadResources(resourceType, resourceParams.getConditions())">
           <mat-icon svgIcon="refresh"></mat-icon>Load {{getPluralFormOfResourceType(resourceType)}}
