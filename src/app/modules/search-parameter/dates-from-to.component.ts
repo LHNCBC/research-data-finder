@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
@@ -24,10 +24,7 @@ export interface DatesFromTo {
 })
 export class DatesFromToComponent
   extends BaseControlValueAccessor<DatesFromTo>
-  implements OnInit {
-  from: FormControl = new FormControl('');
-  to: FormControl = new FormControl('');
-
+  implements OnInit, AfterViewInit {
   get value(): DatesFromTo {
     return {
       from: this.from.value,
@@ -35,14 +32,36 @@ export class DatesFromToComponent
     };
   }
 
+  static defaultValue: DatesFromTo = null;
+
+  from: FormControl = new FormControl('');
+  to: FormControl = new FormControl('');
+
   ngOnInit(): void {
     // tell Angular forms API to update parent form control
-    this.from.valueChanges.subscribe(() => {
+    this.from.valueChanges.subscribe((from) => {
       this.onChange(this.value);
+      if (from) {
+        DatesFromToComponent.defaultValue = this.value;
+      }
     });
-    this.to.valueChanges.subscribe(() => {
+    this.to.valueChanges.subscribe((to) => {
       this.onChange(this.value);
+      if (to) {
+        DatesFromToComponent.defaultValue = this.value;
+      }
     });
+  }
+
+  ngAfterViewInit(): void {
+    if (
+      !this.value.from &&
+      !this.value.to &&
+      DatesFromToComponent.defaultValue.from &&
+      DatesFromToComponent.defaultValue.to
+    ) {
+      this.writeValue(DatesFromToComponent.defaultValue);
+    }
   }
 
   /**
