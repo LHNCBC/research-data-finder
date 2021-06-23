@@ -1,6 +1,7 @@
 <p class="info">
   <span class="info-icon" aria-hidden="true"></span>
-  This is a tool that allows you to view a FHIR server's resources.
+  This is a query tool that allows you search a FHIR server’s resources
+  to select a cohort of patients, and then pull data for those patients.
 </p>
 <mat-horizontal-stepper linear="true" #stepper>
 
@@ -10,13 +11,13 @@
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperNext type="button">
-          Select an area of interest<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+          Select Research Studies<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
   </mat-step>
 
-  <mat-step label="Select an area of interest" state="edit"
+  <mat-step label="Select Research Studies" state="edit"
             [optional]="selectAnAreaOfInterest.option.value === selectAnAreaOfInterest.SelectOptions.Skip">
     <div class="v-box">
       <app-select-an-area-of-interest #selectAnAreaOfInterest>
@@ -44,7 +45,7 @@
         [formControl]="defineCohort"></app-define-cohort-page>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Select an area of interest
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Select Research Studies
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary">

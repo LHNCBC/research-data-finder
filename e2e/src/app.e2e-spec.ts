@@ -1,5 +1,5 @@
 import { AppPage } from './app.po';
-import { $, browser, logging, Key, ExpectedConditions } from 'protractor';
+import { $, browser, logging, Key } from 'protractor';
 import { ProtractorHarnessEnvironment } from '@angular/cdk/testing/protractor';
 import {
   MatStepHarness,
@@ -71,7 +71,9 @@ describe('Research Data Finder', () => {
       ['Maximum active requests', 'maxActiveRequests']
     ].forEach(([displayName, controlName]) => {
       it(`should not allow empty "${displayName}"`, async () => {
-        const inputField = $(`[formControlName="${controlName}"]`);
+        const inputField = $(
+          `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
+        );
         inputField.sendKeys(
           Key.chord(Key.CONTROL, 'a'),
           Key.chord(Key.CONTROL, 'x')
@@ -91,13 +93,13 @@ describe('Research Data Finder', () => {
     expect(await settingsStep.isSelected()).toBe(true);
   });
 
-  it('should allow skipping the Select an area of interest step', async () => {
+  it('should allow skipping the Select Research Studies step', async () => {
     await defineCohortStep.select();
     expect(await defineCohortStep.isSelected()).toBe(true);
     await settingsStep.select();
   });
 
-  it('should allow to proceed to the Select an area of interest step', async () => {
+  it('should allow to proceed to the Select Research Studies step', async () => {
     await nextPageBtn.click();
     expect(await selectAnAreaOfInterestStep.isSelected()).toBe(true);
   });
