@@ -1,12 +1,15 @@
 <form [formGroup]="settingsFormGroup" class="v-box">
   <p class="info">
     <span class="info-icon" aria-hidden="true"></span>
-    In this step, you can select FHIR REST API Service Base URL.
+    <span>
+      Select the FHIR server you wish to search. You may also enter the
+      <a target="_blank" rel="noreferrer" href="https://www.hl7.org/fhir/http.html#root">base URL</a>
+      for your own FHIR server.
+    </span>
   </p>
   <mat-form-field>
     <mat-label>FHIR server</mat-label>
-    <input matInput placeholder="URL" formControlName="serviceBaseUrl"
-           (keydown.enter)="$event.target.blur();$event.target.focus()">
+    <app-fhir-server-select placeholder="URL" formControlName="serviceBaseUrl"></app-fhir-server-select>
     <div class="overlay" *ngIf="isWaitingForConnection | async">
       <div class="center">
         <mat-spinner [diameter]="50"></mat-spinner>
