@@ -16,7 +16,7 @@ import { SettingsService } from '../settings-service/settings.service';
 
 // Cell value retrieval context
 interface Context {
-  // Property path to value started with resourceType.
+  // Property path to value starting with resourceType.
   fullPath?: string;
   // Coding system for filtering data in resource cell.
   preferredCodeSystem?: string;
@@ -51,15 +51,15 @@ export class ColumnValuesService {
   ): string[] {
     const singleValueFn = this.getValueFn(type);
 
-    // If there is a coding with specified "preferredCodeSystem", then the rest
-    // of the terms will be dropped when displaying a value for that column.
-    const preferredCodeSystem =
-      type === 'CodeableConcept'
-        ? this.settings.get(`preferredCodeSystem.${fullPath}`)
-        : '';
-
     if (isArray) {
       if (value && value.length) {
+        // If there is a coding with specified "preferredCodeSystem", then the rest
+        // of the terms will be dropped when displaying a value for that column.
+        const preferredCodeSystem =
+          type === 'CodeableConcept'
+            ? this.settings.get(`preferredCodeSystem.${fullPath}`)
+            : '';
+
         // Filter values by preferred code system
         if (preferredCodeSystem) {
           const filteredValues = value

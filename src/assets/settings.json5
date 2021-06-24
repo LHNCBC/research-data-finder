@@ -15,8 +15,8 @@
       Patient: ['name', 'active']
     }
   },
-  // Settings for servers with the specified URL,
-  // you can override default settings here
+  // Settings for servers with the specified URL.
+  // You can override default settings here
   "customization": {
     "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1": {
       // Coding system per resource per element for filtering data in
