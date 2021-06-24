@@ -94,6 +94,11 @@ export class FhirBackendService implements HttpBackend {
     return this.fhirClient.getFeatures();
   }
 
+  // Version name e.g. "R4"
+  get currentVersion(): string {
+    return this.fhirClient.getVersionName();
+  }
+
   // Javascript client from the old version of Research Data Finder
   // for FHIR with the ability to automatically combine requests in a batch .
   fhirClient: FhirBatchQuery;
@@ -201,7 +206,7 @@ export class FhirBackendService implements HttpBackend {
    * Returns definitions of columns, search params, value sets for current FHIR version
    */
   getCurrentDefinitions(): any {
-    const versionName = this.fhirClient.getVersionName();
+    const versionName = this.currentVersion;
     const definitions = definitionsIndex.configByVersionName[versionName];
 
     if (!definitions.initialized) {

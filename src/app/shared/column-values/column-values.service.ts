@@ -44,7 +44,7 @@ export class ColumnValuesService {
    * @param fullPath - property path to value started with resourceType
    */
   valueToStrings(
-    value: any,
+    value: Array<any>,
     type: string,
     isArray: boolean = false,
     fullPath: string
@@ -58,44 +58,38 @@ export class ColumnValuesService {
         ? this.settings.get(`preferredCodeSystem.${fullPath}`)
         : '';
 
-    if (isArray) {
-      if (value && value.length) {
-        // Filter values by preferred code system
-        if (preferredCodeSystem) {
-          const filteredValues = value
-            .map((item) =>
-              singleValueFn.apply(this, [
-                item,
-                {
-                  fullPath,
-                  preferredCodeSystem
-                }
-              ])
-            )
-            // remove empty strings
-            .filter((item) => item);
+    if (value && value.length) {
+      // Filter values by preferred code system
+      if (preferredCodeSystem) {
+        const filteredValues = value
+          .map((item) =>
+            singleValueFn.apply(this, [
+              item,
+              {
+                fullPath,
+                preferredCodeSystem
+              }
+            ])
+          )
+          // remove empty strings
+          .filter((item) => item);
 
-          if (filteredValues.length > 0) {
-            // If there are values filtered by preferred code system,
-            // return those values
-            return filteredValues;
-          }
+        if (filteredValues.length > 0) {
+          // If there are values filtered by preferred code system,
+          // return those values
+          return filteredValues;
         }
-
-        return (
-          value
-            .map((item) => singleValueFn.apply(this, [item, { fullPath }]))
-            // remove empty strings
-            .filter((item) => item)
-        );
-      } else {
-        return [];
       }
-    }
 
-    return value !== undefined
-      ? [singleValueFn.apply(this, [value, { fullPath }])]
-      : [];
+      return (
+        value
+          .map((item) => singleValueFn.apply(this, [item, { fullPath }]))
+          // remove empty strings
+          .filter((item) => item)
+      );
+    } else {
+      return [];
+    }
   }
 
   /**
@@ -117,6 +111,7 @@ export class ColumnValuesService {
       canonical: this.identity,
       uri: this.identity,
       ContactPoint: this.getContactPointAsText,
+      Count: this.getQuantityAsText,
       Quantity: this.getQuantityAsText,
       decimal: this.identity,
       Money: this.getMoneyAsText,

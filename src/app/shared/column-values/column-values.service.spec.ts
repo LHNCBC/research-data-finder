@@ -181,7 +181,7 @@ describe('ColumnValuesService', () => {
     }
   ].forEach(({ value, type, fullPath, result }) => {
     it(`should convert a value of ${type} to string`, () => {
-      expect(service.valueToStrings(value, type, false, fullPath)).toEqual([
+      expect(service.valueToStrings([value], type, false, fullPath)).toEqual([
         result
       ]);
     });

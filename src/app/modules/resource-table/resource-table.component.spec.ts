@@ -55,7 +55,7 @@ describe('ResourceTableComponent', () => {
     }
   ];
   const hiddenElements = {
-    someResourceType: ['anotherElement']
+    SomeResourceType: ['anotherElement']
   };
 
   const spies = [];
@@ -69,7 +69,7 @@ describe('ResourceTableComponent', () => {
   spies[2].get.and.returnValue(hiddenElements);
 
   async function fillTable(columnDescriptions): Promise<void> {
-    component.resourceType = 'someResourceType';
+    component.resourceType = 'SomeResourceType';
     const resourceStream = new Subject();
     component.resourceStream = resourceStream;
     component.columns = [];
@@ -85,6 +85,7 @@ describe('ResourceTableComponent', () => {
     component.ngOnChanges(changesObj);
     for (let i = 1; i < 51; i++) {
       resourceStream.next({
+        resourceType: component.resourceType,
         id: i.toString(),
         anotherElement: 'value-' + i.toString()
       });
@@ -137,7 +138,7 @@ describe('ResourceTableComponent', () => {
     expect(component.dataSource.filteredData.length).toEqual(50);
     expect(
       (window.localStorage.setItem as Spy).calls.mostRecent().args[0]
-    ).toEqual('someResourceType-columns');
+    ).toEqual('SomeResourceType-columns');
     expect(
       (window.localStorage.setItem as Spy).calls.mostRecent().args[1]
     ).toEqual('id');
