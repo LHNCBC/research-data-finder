@@ -15,7 +15,11 @@
   <div class="v-box" *ngIf="showTable">
     <div class="spacer"></div>
 
-    <mat-checkbox [formControl]="showResearchStudiesWithoutSubjects">Show ResearchStudies without ResearchSubjects</mat-checkbox>
+    <div class="h-box">
+      <mat-checkbox
+          matTooltip="When selected, all research studies will be listed regardless of whether you have access to the data in the study."
+          [formControl]="showResearchStudiesWithoutSubjects">Show all research studies</mat-checkbox>
+    </div>
 
     <div class="spacer"></div>
 

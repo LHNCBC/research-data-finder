@@ -3,6 +3,15 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.1.0] - 2021-06-24
+### Added
+- Option to filter ResearchStudies if the user has access to their data.
+### Fixed  
+- Detection of columns visible by default.
+- Requests to the FHIR server without endpoint - they cannot be combined
+  into a batch request.
+- Title of the configure columns dialog.  
+
 ## [3.0.0] - 2021-06-14
 ### Changed
 - The application has been rewritten to use Angular.

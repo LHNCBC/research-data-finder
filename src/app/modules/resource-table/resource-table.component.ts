@@ -64,7 +64,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy(): void {}
 
   /**
-   * Use columns present in bundle info as default, if empty column descriptions is passed in
+   * Use columns present in bundle info as default, if empty column descriptions is passed in.
+   * We show all columns with data on very first run of the application and when
+   * the user doesn't select any columns to show in the column selection dialog.
    */
   private setColumnsFromBundle(): void {
     // Don't update if no data is available
@@ -78,6 +80,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const hiddenByDefault = (
       this.settings.get('hideElementsByDefault')?.[this.resourceType] || []
     ).concat(this.settings.get('hideElementsByDefault')?.['*'] || []);
+    // Remove columns without data.
+    // Note: We check all rows, because the first row may
+    // be missing columns that are in the second and subsequent ones.
+    // For example, Patient.interpretation.
+    // I also saw completely blank rows at the beginning of the ResearchStudy
+    // table for dbGap, which was the main reason for checking all rows,
+    // but now these lines are gone.
     this.columnDescriptions = allColumns.filter(
       (x) =>
         hiddenByDefault.indexOf(x.element) === -1 &&
