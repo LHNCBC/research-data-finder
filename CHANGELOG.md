@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.0.1] - 2021-06-24
+### Changed
+- When user searches for active patients, the application now tries to also
+  return patients without the 'active' field defined.
+
 ## [3.0.0] - 2021-06-14
 ### Changed
 - The application has been rewritten to use Angular.
