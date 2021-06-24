@@ -211,7 +211,7 @@ export class ObservationCodeLookupComponent
                   : '$fhir/Observation';
                 const params = {
                   _elements: 'code,value,component',
-                  'combo-code:text': fieldVal,
+                  // 'combo-code:text': fieldVal,
                   _count: '500'
                 };
                 // Hash of processed codes, used to exclude repeated codes
@@ -370,8 +370,9 @@ export class ObservationCodeLookupComponent
             .filter((coding) => {
               const matched =
                 !processedCodes[coding.code] &&
-                isMatchToFieldVal.test(coding.display) &&
-                selectedCodes.indexOf(coding.code) === -1;
+                selectedCodes.indexOf(coding.code) === -1 &&
+                (isMatchToFieldVal.test(coding.code) ||
+                  isMatchToFieldVal.test(coding.display));
               processedCodes[coding.code] = true;
               return matched;
             })
