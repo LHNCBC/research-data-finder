@@ -16,7 +16,7 @@ import { SettingsService } from '../settings-service/settings.service';
 
 // Cell value retrieval context
 interface Context {
-  // Property path to value started with resourceType.
+  // Property path to value starting with resourceType.
   fullPath?: string;
   // Coding system for filtering data in resource cell.
   preferredCodeSystem?: string;
