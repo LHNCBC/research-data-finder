@@ -37,8 +37,7 @@ export class SettingsPageComponent {
     this.settingsFormGroup = this.formBuilder.group({
       serviceBaseUrl: new FormControl(this.fhirBackend.serviceBaseUrl, {
         validators: Validators.required,
-        asyncValidators: this.serviceBaseUrlValidator.bind(this),
-        updateOn: 'blur'
+        asyncValidators: this.serviceBaseUrlValidator.bind(this)
       }),
       apiKey: [''],
       maxRequestsPerBatch: [
