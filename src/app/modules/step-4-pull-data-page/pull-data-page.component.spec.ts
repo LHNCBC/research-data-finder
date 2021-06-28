@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { PullDataPageComponent } from './pull-data-page.component';
 import { PullDataPageModule } from './pull-data-page.module';
 import { SharedModule } from '../../shared/shared.module';
@@ -9,6 +8,7 @@ import metadata from '../observation-code-lookup/test-fixtures/metadata.json';
 import observationsForPat106 from './test-fixtures/obs-pat-106.json';
 import observationsForPat232 from './test-fixtures/obs-pat-232.json';
 import observationsForPat269 from './test-fixtures/obs-pat-269.json';
+import encountersForSmart880378 from './test-fixtures/encounter-smart-880378.json';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -16,7 +16,7 @@ import {
 import { filter, take, tap } from 'rxjs/operators';
 import { from } from 'rxjs';
 
-fdescribe('PullDataForCohortComponent', () => {
+describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
   let fixture: ComponentFixture<PullDataPageComponent>;
   let fhirBackend: FhirBackendService;
@@ -24,7 +24,12 @@ fdescribe('PullDataForCohortComponent', () => {
   beforeEach(async () => {
     spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
       const HTTP_OK = 200;
-      if (/subject=Patient\/([^&]*)&/.test(url)) {
+      if (url.includes('smart-880378')) {
+        return Promise.resolve({
+          status: HTTP_OK,
+          data: encountersForSmart880378
+        });
+      } else if (/subject=Patient\/([^&]*)&/.test(url)) {
         return Promise.resolve({
           status: HTTP_OK,
           data: {
@@ -124,5 +129,31 @@ fdescribe('PullDataForCohortComponent', () => {
         new RegExp(`subject=Patient\\/${arrayOfPatients[i].id}`)
       );
     });
+  });
+
+  it('should load Encounters with correct numbers per patient', async () => {
+    const arrayOfPatients = [{ id: 'smart-880378' }];
+    component.patientStream = from(arrayOfPatients);
+    // Should collect Patients from input stream
+    expect(component.patients).toEqual(arrayOfPatients);
+
+    component.addTab('Encounter');
+    fixture.detectChanges();
+    component.perPatientFormControls['Encounter'].setValue(2);
+    component.loadResources('Encounter', []);
+    // Should load 2 resources from test fixtures (2 encounters per Patient)
+    let loadedResourceCount = 0;
+    await component.resourceStream['Encounter']
+      .pipe(
+        tap({
+          next: () => {
+            loadedResourceCount++;
+          },
+          complete: () => {
+            expect(loadedResourceCount).toBe(2);
+          }
+        })
+      )
+      .toPromise();
   });
 });

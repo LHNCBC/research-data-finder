@@ -1,0 +1,105 @@
+{
+  "resourceType": "Bundle",
+  "id": "956834d0-4cca-4b94-b6aa-47ad284a5100",
+  "meta": {
+    "lastUpdated": "2021-06-28T14:56:43.892-04:00"
+  },
+  "type": "searchset",
+  "total": 19,
+  "link": [
+    {
+      "relation": "self",
+      "url": "https://lforms-fhir.nlm.nih.gov/baseR4/Encounter?_count=2&subject=Patient%2Fsmart-880378"
+    },
+    {
+      "relation": "next",
+      "url": "https://lforms-fhir.nlm.nih.gov/baseR4?_getpages=956834d0-4cca-4b94-b6aa-47ad284a5100&_getpagesoffset=2&_count=2&_pretty=true&_bundletype=searchset"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "https://lforms-fhir.nlm.nih.gov/baseR4/Encounter/smart-924",
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "smart-924",
+        "meta": {
+          "versionId": "1",
+          "lastUpdated": "2021-02-17T23:49:44.000-05:00",
+          "source": "#6DU3pMRHAqSEuvm3"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">2006-04-24: ambulatory encounter</div>"
+        },
+        "status": "finished",
+        "class": {
+          "code": "ambulatory"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info",
+                "code": "270427003",
+                "display": "Patient-initiated encounter"
+              }
+            ],
+            "text": "Patient-initiated ambulatory encounter"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/smart-880378"
+        },
+        "period": {
+          "start": "2006-04-24",
+          "end": "2006-04-24"
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://lforms-fhir.nlm.nih.gov/baseR4/Encounter/smart-915",
+      "resource": {
+        "resourceType": "Encounter",
+        "id": "smart-915",
+        "meta": {
+          "versionId": "1",
+          "lastUpdated": "2021-02-17T23:49:44.000-05:00",
+          "source": "#6DU3pMRHAqSEuvm3"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">2004-09-10: ambulatory encounter</div>"
+        },
+        "status": "finished",
+        "class": {
+          "code": "ambulatory"
+        },
+        "type": [
+          {
+            "coding": [
+              {
+                "system": "http://snomed.info",
+                "code": "270427003",
+                "display": "Patient-initiated encounter"
+              }
+            ],
+            "text": "Patient-initiated ambulatory encounter"
+          }
+        ],
+        "subject": {
+          "reference": "Patient/smart-880378"
+        },
+        "period": {
+          "start": "2004-09-10",
+          "end": "2004-09-10"
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    }
+  ]
+}
