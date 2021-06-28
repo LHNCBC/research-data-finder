@@ -5,6 +5,9 @@ This project follows [Semantic Versioning](http://semver.org/).
 
 ## [3.1.0] - 2021-06-24
 ### Added
+- Filtering of values in the ResearchStudy.condition column by preferred code
+  system.
+- Columns for research study content (dbGap only).
 - Option to filter ResearchStudies if the user has access to their data.
 ### Fixed  
 - Detection of columns visible by default.

@@ -26,6 +26,25 @@ export class ColumnDescriptionsService {
   ) {}
 
   /**
+   * Compare function for column descriptions
+   */
+  private static sortColumns(
+    a: ColumnDescription,
+    b: ColumnDescription
+  ): number {
+    if (!a.sortOrder && !b.sortOrder) {
+      return 0;
+    }
+    if (!a.sortOrder && b.sortOrder) {
+      return 1;
+    }
+    if (a.sortOrder && !b.sortOrder) {
+      return -1;
+    }
+    return a.sortOrder - b.sortOrder;
+  }
+
+  /**
    * Open dialog to manage visible columns
    */
   openColumnsDialog(resourceType: string): void {
@@ -91,12 +110,15 @@ export class ColumnDescriptionsService {
       : [];
     const sortSettings = this.settings.get('columnSort')?.[resourceType] ?? [];
     sortSettings.forEach((s, i) => {
-      const match = columnDescriptions.find(c => c.element === s);
-      match && (match.sortOrder = i + 1);
+      const match = columnDescriptions.find((c) => c.element === s);
+      if (match) {
+        match.sortOrder = i + 1;
+      }
     });
 
     return (
       columnDescriptions
+        .concat(this.settings.get(`customColumns.${resourceType}`) || [])
         .map((column) => {
           const displayName =
             column.displayName ||
@@ -122,22 +144,6 @@ export class ColumnDescriptionsService {
         // Sort based on settings
         .sort(ColumnDescriptionsService.sortColumns)
     );
-  }
-
-  /**
-   * Compare function for column descriptions
-   */
-  private static sortColumns(a: ColumnDescription, b: ColumnDescription): number {
-    if (!a.sortOrder && !b.sortOrder) {
-      return 0;
-    }
-    if (!a.sortOrder && b.sortOrder) {
-      return 1;
-    }
-    if (a.sortOrder && !b.sortOrder) {
-      return -1;
-    }
-    return a.sortOrder - b.sortOrder;
   }
 
   /**

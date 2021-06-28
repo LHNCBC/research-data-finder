@@ -8,9 +8,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { FhirServerSelectComponent } from './fhir-server-select/fhir-server-select.component';
 
 @NgModule({
-  declarations: [SettingsPageComponent],
+  declarations: [SettingsPageComponent, FhirServerSelectComponent],
   exports: [SettingsPageComponent],
   imports: [
     CommonModule,
