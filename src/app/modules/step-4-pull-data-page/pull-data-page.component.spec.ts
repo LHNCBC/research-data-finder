@@ -16,7 +16,7 @@ import {
 import { filter, take, tap } from 'rxjs/operators';
 import { from } from 'rxjs';
 
-describe('PullDataForCohortComponent', () => {
+fdescribe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
   let fixture: ComponentFixture<PullDataPageComponent>;
   let fhirBackend: FhirBackendService;
@@ -84,7 +84,16 @@ describe('PullDataForCohortComponent', () => {
     );
   });
 
-  it('should add/remove tab', () => {
+  it('should add/remove tab', async () => {
+    await fhirBackend.initialized
+      .pipe(
+        filter((status) => {
+          return status === ConnectionStatus.Ready;
+        }),
+        take(1)
+      )
+      .toPromise();
+    fixture.detectChanges();
     component.addTab('Encounter');
     fixture.detectChanges();
     expect(component.getCurrentResourceType()).toEqual('Encounter');
