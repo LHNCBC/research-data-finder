@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.0.3] - 2021-06-28
+### Added
+- User input to define number of resources per patient for all resource types
+  in Pull Data step.
+
 ## [3.0.0] - 2021-06-14
 ### Changed
 - The application has been rewritten to use Angular.
