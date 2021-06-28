@@ -12,16 +12,22 @@ import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ColumnDescription } from '../../types/column.description';
-import { bufferCount } from 'rxjs/operators';
-import { capitalize, escapeStringForRegExp } from '../../shared/utils';
+import { bufferCount, filter } from 'rxjs/operators';
+import { escapeStringForRegExp } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import Resource = fhir.Resource;
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { SettingsService } from '../../shared/settings-service/settings.service';
 import { Sort } from '@angular/material/sort';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import * as fhirpath from 'fhirpath';
+import * as fhirPathModelR4 from 'fhirpath/fhir-context/r4';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
 
 /**
  * Component for loading table of resources
@@ -47,21 +53,34 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   isLoading = true;
   loadTime = 0;
   loadedDateTime: number;
+  subscription: Subscription;
+  fhirPathModel: any;
 
   @HostBinding('class.fullscreen') fullscreen = false;
 
   constructor(
+    private fhirBackend: FhirBackendService,
     private http: HttpClient,
     private ngZone: NgZone,
     private columnDescriptionsService: ColumnDescriptionsService,
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
     private liveAnnoncer: LiveAnnouncer
-  ) {}
+  ) {
+    this.subscription = fhirBackend.initialized
+      .pipe(filter((status) => status === ConnectionStatus.Ready))
+      .subscribe(() => {
+        this.fhirPathModel = {
+          R4: fhirPathModelR4
+        }[fhirBackend.currentVersion];
+      });
+  }
 
   ngOnInit(): void {}
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
 
   /**
    * Use columns present in bundle info as default, if empty column descriptions is passed in
@@ -142,8 +161,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.columnDescriptions.forEach((column) => {
         this.filtersForm.addControl(column.element, new FormControl());
       });
-      this.dataSource.filterPredicate = ((data, filter) => {
-        for (const [key, value] of Object.entries(filter)) {
+      this.dataSource.filterPredicate = ((data, filterValues) => {
+        for (const [key, value] of Object.entries(filterValues)) {
           if (value) {
             const columnDescription = this.columnDescriptions.find(
               (c) => c.element === key
@@ -204,14 +223,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param column - column description
    */
   getCellStrings(row: Resource, column: ColumnDescription): string[] {
-    const fullPath = column.element
-      ? this.resourceType + '.' + column.element
-      : '';
+    const expression = column.expression || column.element.replace('[x]', '');
+    const fullPath = expression ? this.resourceType + '.' + expression : '';
 
     for (const type of column.types) {
-      const element = column.element.replace('[x]', capitalize(type));
       const output = this.columnValuesService.valueToStrings(
-        row[element],
+        fhirpath.evaluate(row, fullPath, {}, this.fhirPathModel),
         type,
         column.isArray,
         fullPath
