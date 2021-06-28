@@ -59,6 +59,7 @@ export class DatesFromToComponent
     if (
       !this.value.from &&
       !this.value.to &&
+      DatesFromToComponent.defaultValue &&
       DatesFromToComponent.defaultValue.from &&
       DatesFromToComponent.defaultValue.to
     ) {

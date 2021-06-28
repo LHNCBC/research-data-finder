@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.0.4] - 2021-06-28
+### Changed
+- After user enters a date range value, the application will use that as
+  default value for later date range controls. Refreshing page will clear
+  the default value.
+
 ## [3.0.0] - 2021-06-14
 ### Changed
 - The application has been rewritten to use Angular.
