@@ -155,5 +155,10 @@ describe('PullDataForCohortComponent', () => {
         })
       )
       .toPromise();
+
+    // Verify that matching requests have been sent
+    const requests = FhirBatchQuery.prototype.getWithCache.calls.all();
+    const [request] = requests.slice(-1);
+    expect(request.args[0]).toMatch(new RegExp(`_count=2`));
   });
 });
