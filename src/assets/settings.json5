@@ -15,10 +15,19 @@
       Patient: ['name', 'active']
     }
   },
-  // Settings for servers with the specified URL
+  // Settings for servers with the specified URL.
+  // You can override default settings here
   "customization": {
     "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1": {
-      // You can override default settings here
+      // Coding system per resource per element for filtering data in
+      // resource tables. If there is a coding with specified "system",
+      // then the rest of the terms will be dropped when displaying
+      // a value for that column.
+      preferredCodeSystem: {
+        ResearchStudy: {
+          condition: 'urn:oid:2.16.840.1.113883.6.177'
+        }
+      }
     }
   }
 }

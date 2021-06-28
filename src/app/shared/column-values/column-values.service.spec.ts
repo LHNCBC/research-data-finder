@@ -3,9 +3,13 @@ import { TestBed } from '@angular/core/testing';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import { ColumnValuesService } from './column-values.service';
 import { FhirBackendModule } from '../fhir-backend/fhir-backend.module';
+import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import { SettingsService } from '../settings-service/settings.service';
 
 describe('ColumnValuesService', () => {
   let service: ColumnValuesService;
+  let fhirBackend: FhirBackendService;
+  let settingsService: SettingsService;
 
   beforeEach(() => {
     spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
@@ -13,6 +17,8 @@ describe('ColumnValuesService', () => {
     TestBed.configureTestingModule({
       imports: [FhirBackendModule]
     });
+    fhirBackend = TestBed.inject(FhirBackendService);
+    settingsService = TestBed.inject(SettingsService);
     service = TestBed.inject(ColumnValuesService);
   });
 
@@ -184,5 +190,34 @@ describe('ColumnValuesService', () => {
         service.valueToStrings([value, value], type, true, fullPath)
       ).toEqual([result, result]);
     });
+  });
+
+  it('should use preferredCodeSystem correctly', async () => {
+    spyOnProperty(fhirBackend, 'serviceBaseUrl').and.returnValue(
+      'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+    );
+    await settingsService.loadJsonConfig().toPromise();
+
+    expect(
+      service.valueToStrings(
+        [
+          {
+            coding: [
+              {
+                system: 'someCode',
+                code: 'value1'
+              },
+              {
+                system: 'urn:oid:2.16.840.1.113883.6.177',
+                code: 'value2'
+              }
+            ]
+          }
+        ],
+        'CodeableConcept',
+        true,
+        'ResearchStudy.condition'
+      )
+    ).toEqual(['value2']);
   });
 });

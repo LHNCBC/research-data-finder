@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Config } from '../../types/settings';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import getPropertyByPath from 'lodash/get';
 import json5 from 'json5';
 
 @Injectable({
@@ -40,13 +41,13 @@ export class SettingsService {
   }
 
   /**
-   * Returns a settings parameter for the current FHIR server by name.
+   * Returns a settings parameter for the current FHIR server by property path.
    */
-  get(paramName): any {
+  get(paramPath): any {
     const url = this.fhirBackend.serviceBaseUrl;
     return (
-      this.config?.customization?.[url]?.[paramName] ||
-      this.config?.default?.[paramName]
+      getPropertyByPath(this.config, `customization['${url}'].${paramPath}`) ||
+      getPropertyByPath(this.config, `default.${paramPath}`)
     );
   }
 }
