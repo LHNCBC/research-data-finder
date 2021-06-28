@@ -8,6 +8,12 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Filtering of values in the ResearchStudy.condition column by preferred code
   system.
 - Columns for research study content (dbGap only).
+- Option to filter ResearchStudies if the user has access to their data.
+### Fixed  
+- Detection of columns visible by default.
+- Requests to the FHIR server without endpoint - they cannot be combined
+  into a batch request.
+- Title of the configure columns dialog.  
 
 ## [3.0.0] - 2021-06-14
 ### Changed

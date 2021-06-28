@@ -16,6 +16,7 @@ import { Subject } from 'rxjs';
 import Resource = fhir.Resource;
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { HttpClient } from '@angular/common/http';
+import Patient = fhir.Patient;
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -238,7 +239,7 @@ export class DefineCohortPageComponent
     maxPatientCount,
     patientId,
     patientResource = null
-  ): void {
+  ): Promise<boolean | Patient> {
     return resourceSummaries
       .reduce(
         (promise, item) =>
