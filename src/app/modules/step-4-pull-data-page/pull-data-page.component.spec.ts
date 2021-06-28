@@ -22,13 +22,6 @@ fdescribe('PullDataForCohortComponent', () => {
   let fhirBackend: FhirBackendService;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [PullDataPageComponent],
-      imports: [PullDataPageModule, SharedModule]
-    }).compileComponents();
-  });
-
-  beforeEach(() => {
     spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
       const HTTP_OK = 200;
       if (/subject=Patient\/([^&]*)&/.test(url)) {
@@ -46,9 +39,21 @@ fdescribe('PullDataForCohortComponent', () => {
         return Promise.resolve({ status: HTTP_OK, data: metadata });
       }
     });
+    await TestBed.configureTestingModule({
+      declarations: [PullDataPageComponent],
+      imports: [PullDataPageModule, SharedModule]
+    }).compileComponents();
     fixture = TestBed.createComponent(PullDataPageComponent);
     fhirBackend = TestBed.inject(FhirBackendService);
     component = fixture.componentInstance;
+    await fhirBackend.initialized
+      .pipe(
+        filter((status) => {
+          return status === ConnectionStatus.Ready;
+        }),
+        take(1)
+      )
+      .toPromise();
     fixture.detectChanges();
   });
 
@@ -61,15 +66,6 @@ fdescribe('PullDataForCohortComponent', () => {
   });
 
   it('should initialize on connect', async () => {
-    expect(component.unselectedResourceTypes.length).toBe(0);
-    await fhirBackend.initialized
-      .pipe(
-        filter((status) => {
-          return status === ConnectionStatus.Ready;
-        }),
-        take(1)
-      )
-      .toPromise();
     expect(component.unselectedResourceTypes.length).toBeGreaterThan(0);
   });
 
@@ -85,14 +81,6 @@ fdescribe('PullDataForCohortComponent', () => {
   });
 
   it('should add/remove tab', async () => {
-    await fhirBackend.initialized
-      .pipe(
-        filter((status) => {
-          return status === ConnectionStatus.Ready;
-        }),
-        take(1)
-      )
-      .toPromise();
     fixture.detectChanges();
     component.addTab('Encounter');
     fixture.detectChanges();
