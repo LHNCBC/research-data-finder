@@ -7,12 +7,14 @@ import {
   FhirBackendService
 } from '../fhir-backend/fhir-backend.service';
 import { BehaviorSubject } from 'rxjs';
+import { SharedModule } from '../shared.module';
 
 describe('ColumnDescriptionsService', () => {
   let service: ColumnDescriptionsService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [SharedModule],
       providers: [
         { provide: MatDialog, useValue: {} },
         {
