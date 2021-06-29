@@ -118,6 +118,7 @@ export class ColumnDescriptionsService {
 
     return (
       columnDescriptions
+        .concat(this.settings.get(`customColumns.${resourceType}`) || [])
         .map((column) => {
           const displayName =
             column.displayName ||

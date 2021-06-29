@@ -14,6 +14,7 @@ import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import * as definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
+import { escapeStringForRegExp } from '../utils';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -94,6 +95,11 @@ export class FhirBackendService implements HttpBackend {
     return this.fhirClient.getFeatures();
   }
 
+  // Version name e.g. "R4"
+  get currentVersion(): string {
+    return this.fhirClient.getVersionName();
+  }
+
   // Javascript client from the old version of Research Data Finder
   // for FHIR with the ability to automatically combine requests in a batch .
   fhirClient: FhirBatchQuery;
@@ -151,6 +157,9 @@ export class FhirBackendService implements HttpBackend {
       serviceBaseUrlRegExp,
       this.serviceBaseUrl
     );
+    const serviceBaseUrlWithEndpoint = new RegExp(
+      '^' + escapeStringForRegExp(this.serviceBaseUrl) + '\\/[^?]+'
+    );
     const newRequest = request.clone({
       url: newUrl
     });
@@ -168,9 +177,12 @@ export class FhirBackendService implements HttpBackend {
     return new Observable<HttpResponse<any>>(
       (observer: Observer<HttpResponse<any>>) => {
         this.fhirClient.initialize().then(() => {
+          // Requests to the FHIR server without endpoint cannot be combined
+          // into a batch request
+          const options = { combine: serviceBaseUrlWithEndpoint.test(newUrl) };
           const promise = this.isCacheEnabled
-            ? this.fhirClient.getWithCache(fullUrl)
-            : this.fhirClient.get(fullUrl);
+            ? this.fhirClient.getWithCache(fullUrl, options)
+            : this.fhirClient.get(fullUrl, options);
 
           promise.then(
             ({ status, data }) => {
@@ -201,7 +213,7 @@ export class FhirBackendService implements HttpBackend {
    * Returns definitions of columns, search params, value sets for current FHIR version
    */
   getCurrentDefinitions(): any {
-    const versionName = this.fhirClient.getVersionName();
+    const versionName = this.currentVersion;
     const definitions = definitionsIndex.configByVersionName[versionName];
 
     if (!definitions.initialized) {

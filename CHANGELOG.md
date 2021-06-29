@@ -3,10 +3,22 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.0.2] - 2021-06-25
+## [3.1.2] - 2021-06-28
 ### Added
 - Functionality to save cohort data and criteria into file.
 - Functionality to load cohort data and criteria from file.
+
+## [3.1.0] - 2021-06-24
+### Added
+- Filtering of values in the ResearchStudy.condition column by preferred code
+  system.
+- Columns for research study content (dbGap only).
+- Option to filter ResearchStudies if the user has access to their data.
+### Fixed
+- Detection of columns visible by default.
+- Requests to the FHIR server without endpoint - they cannot be combined
+  into a batch request.
+- Title of the configure columns dialog.
 
 ## [3.0.0] - 2021-06-14
 ### Changed

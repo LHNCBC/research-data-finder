@@ -1,3 +1,6 @@
+/**
+ * This file contains a service for retrieving the values of the resource table cells.
+ */
 import { Injectable } from '@angular/core';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import Identifier = fhir.Identifier;
@@ -9,6 +12,15 @@ import ContactPoint = fhir.ContactPoint;
 import Quantity = fhir.Quantity;
 import HumanName = fhir.HumanName;
 import Address = fhir.Address;
+import { SettingsService } from '../settings-service/settings.service';
+
+// Cell value retrieval context
+interface Context {
+  // Property path to value starting with resourceType.
+  fullPath?: string;
+  // Coding system for filtering data in resource cell.
+  preferredCodeSystem?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +30,10 @@ export class ColumnValuesService {
     return this.fhirBackend.getCurrentDefinitions();
   }
 
-  constructor(private fhirBackend: FhirBackendService) {}
+  constructor(
+    private fhirBackend: FhirBackendService,
+    private settings: SettingsService
+  ) {}
 
   /**
    * Returns array of string represented the specified value
@@ -29,29 +44,52 @@ export class ColumnValuesService {
    * @param fullPath - property path to value started with resourceType
    */
   valueToStrings(
-    value: any,
+    value: Array<any>,
     type: string,
     isArray: boolean = false,
     fullPath: string
   ): string[] {
     const singleValueFn = this.getValueFn(type);
 
-    if (isArray) {
-      if (value && value.length) {
-        return (
-          value
-            .map((item) => singleValueFn.apply(this, [item, fullPath]))
-            // remove empty strings
-            .filter((item) => item)
-        );
-      } else {
-        return [];
-      }
-    }
+    // If there is a coding with specified "preferredCodeSystem", then the rest
+    // of the terms will be dropped when displaying a value for that column.
+    const preferredCodeSystem =
+      type === 'CodeableConcept'
+        ? this.settings.get(`preferredCodeSystem.${fullPath}`)
+        : '';
 
-    return value !== undefined
-      ? [singleValueFn.apply(this, [value, fullPath])]
-      : [];
+    if (value && value.length) {
+      // Filter values by preferred code system
+      if (preferredCodeSystem) {
+        const filteredValues = value
+          .map((item) =>
+            singleValueFn.apply(this, [
+              item,
+              {
+                fullPath,
+                preferredCodeSystem
+              }
+            ])
+          )
+          // remove empty strings
+          .filter((item) => item);
+
+        if (filteredValues.length > 0) {
+          // If there are values filtered by preferred code system,
+          // return those values
+          return filteredValues;
+        }
+      }
+
+      return (
+        value
+          .map((item) => singleValueFn.apply(this, [item, { fullPath }]))
+          // remove empty strings
+          .filter((item) => item)
+      );
+    } else {
+      return [];
+    }
   }
 
   /**
@@ -61,7 +99,7 @@ export class ColumnValuesService {
    */
   getValueFn(
     type: string
-  ): (element: any, fullPath?: string) => string | undefined {
+  ): (element: any, { fullPath }: Context) => string | undefined {
     return {
       Identifier: this.getIdentifierAsText,
       code: this.getCodeAsText,
@@ -73,6 +111,7 @@ export class ColumnValuesService {
       canonical: this.identity,
       uri: this.identity,
       ContactPoint: this.getContactPointAsText,
+      Count: this.getQuantityAsText,
       Quantity: this.getQuantityAsText,
       decimal: this.identity,
       Money: this.getMoneyAsText,
@@ -100,7 +139,7 @@ export class ColumnValuesService {
    * @param v - value of type "code"
    * @param fullPath - property path to value started with resourceType
    */
-  getCodeAsText(v: string, fullPath: string): string {
+  getCodeAsText(v: string, { fullPath }: Context): string {
     const valueSet =
       this.definitions.valueSetMapByPath[fullPath] instanceof Object
         ? this.definitions.valueSetMapByPath[fullPath]
@@ -120,14 +159,27 @@ export class ColumnValuesService {
    * Returns a textual representation of "CodeableConcept" value
    * see https://www.hl7.org/fhir/datatypes.html#CodeableConcept
    * @param v - value of type "CodeableConcept"
-   * @param fullPath - property path to value started with resourceType
+   * @param context - context in which we get the cell value
+   * @param context.fullPath - property path to value started with resourceType
+   * @param context.preferredCodeSystem - coding system for filtering data in resource cell
    */
-  getCodeableConceptAsText(v: CodeableConcept, fullPath?: string): string {
-    if (v.text) {
+  getCodeableConceptAsText(v: CodeableConcept, context: Context = {}): string {
+    const { fullPath, preferredCodeSystem } = context;
+    let coding = v.coding || [];
+
+    if (preferredCodeSystem) {
+      coding = coding.filter(({ system }) => system === preferredCodeSystem);
+      if (!coding.length) {
+        return '';
+      }
+    } else if (v.text) {
       return v.text;
     }
-    return v.coding && v.coding[0]
-      ? this.getCodingAsText(v.coding[0], fullPath ? fullPath + '.coding' : '')
+
+    return coding && coding[0]
+      ? this.getCodingAsText(coding[0], {
+          fullPath: fullPath ? fullPath + '.coding' : ''
+        })
       : null;
   }
 
@@ -137,7 +189,7 @@ export class ColumnValuesService {
    * @param v - value of type "Coding"
    * @param fullPath - property path to value started with resourceType
    */
-  getCodingAsText(v: Coding, fullPath: string): string {
+  getCodingAsText(v: Coding, { fullPath }: Context): string {
     if (v.display) {
       return v.display;
     }
@@ -235,7 +287,7 @@ export class ColumnValuesService {
    * @param v - value of type "Address"
    * @param fullPath - property path to value started with resourceType
    */
-  getAddressAsText(v: Address, fullPath): string {
+  getAddressAsText(v: Address, { fullPath }: Context): string {
     const addressString = [v.line, v.city, v.state, v.postalCode, v.country]
       .filter((item) => item)
       .join(', ');

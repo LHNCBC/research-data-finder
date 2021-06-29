@@ -3,7 +3,7 @@
     <span class="info-icon" aria-hidden="true"></span>
     <span>
       Select the FHIR server you wish to search. You may also enter the
-      <a target="_blank" rel="noreferrer" href="https://www.hl7.org/fhir/http.html#root">base URL</a>
+      <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">base URL</a>
       for your own FHIR server.
     </span>
   </p>
@@ -17,12 +17,12 @@
       </div>
     </div>
     <mat-hint align="start" *ngIf="(isWaitingForConnection | async) === false">
-      See <a target="_blank" rel="noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
+      See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
       details.
     </mat-hint>
     <mat-error>
       Please, specify valid FHIR server URL.
-      See <a target="_blank" rel="noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
+      See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
       details.
     </mat-error>
   </mat-form-field>
@@ -41,7 +41,7 @@
           <mat-label>NCBI E-utilities API Key</mat-label>
           <input matInput placeholder="API Key" formControlName="apiKey"
                  (change)="updateFhirBackendSetting('apiKey')">
-          <mat-hint align="start">See <a target="_blank" rel="noreferrer"
+          <mat-hint align="start">See <a target="_blank" rel="noopener noreferrer"
                                          href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/">New
             API Keys for the E-utilities article</a> for details
           </mat-hint>
