@@ -1,5 +1,5 @@
 import { AppPage } from './app.po';
-import { $, browser, logging, Key } from 'protractor';
+import { $, browser, logging, Key, $$ } from 'protractor';
 import { ProtractorHarnessEnvironment } from '@angular/cdk/testing/protractor';
 import {
   MatStepHarness,
@@ -7,6 +7,9 @@ import {
   MatStepperNextHarness
 } from '@angular/material/stepper/testing';
 import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 // Page objects & harnesses
 // See https://material.angular.io/cdk/test-harnesses/overview for details
@@ -18,8 +21,10 @@ let selectAnAreaOfInterestStep: MatStepHarness;
 let defineCohortStep: MatStepHarness;
 let viewCohortStep: MatStepHarness;
 let pullDataStep: MatStepHarness;
+let fileName: string;
 
 beforeAll(async () => {
+  fileName = `${os.tmpdir()}/cohort-100.json`;
   // Initialize common page objects & harnesses
   page = new AppPage();
   await page.navigateTo();
@@ -127,6 +132,24 @@ describe('Research Data Finder', () => {
   it('should allow to proceed to the View cohort step', async () => {
     await nextPageBtn.click();
     expect(await viewCohortStep.isSelected()).toBe(true);
+  });
+
+  it('should save and load cohort', async () => {
+    // If not set, protractor scripts will hang for some reason once you download file.
+    await browser.waitForAngularEnabled(false);
+    if (fs.existsSync(fileName)) {
+      // Make sure the browser doesn't have to rename the download.
+      fs.unlinkSync(fileName);
+    }
+    $('mat-icon[svgIcon="save"]').click();
+    await browser.driver.wait(() => fs.existsSync(fileName));
+
+    const absolutePath = path.resolve(__dirname, 'cohort-to-upload.json');
+    await defineCohortStep.select();
+    $('#hiddenFileInput').sendKeys(absolutePath);
+    expect(await viewCohortStep.isSelected()).toBe(true);
+    // Verify that 4 rows are loading in table, same as in upload file.
+    expect(await $$('table tbody tr').count()).toEqual(4);
   });
 
   it('should be able to proceed to the Pull data for cohort step', async () => {

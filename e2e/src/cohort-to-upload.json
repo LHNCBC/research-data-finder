@@ -1,0 +1,294 @@
+{
+  "serviceBaseUrl": "https://lforms-fhir.nlm.nih.gov/baseR4",
+  "maxPatientCount": "100",
+  "rawCriteria": [
+    {
+      "resourceType": "Patient",
+      "name": "name",
+      "value": "amy",
+      "selectedObservationCodes": null
+    }
+  ],
+  "data": [
+    {
+      "resourceType": "Patient",
+      "id": "smart-1032702",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2021-02-17T23:45:48.000-05:00",
+        "source": "#QCNNb2pIjZGgR5bI"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Amy Shaw</div>"
+      },
+      "identifier": [
+        {
+          "use": "official",
+          "type": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/v2/0203",
+                "code": "MR",
+                "display": "Medical Record Number"
+              }
+            ],
+            "text": "Medical Record Number"
+          },
+          "system": "http://hospital.smarthealthit.org",
+          "value": "smart-1032702"
+        }
+      ],
+      "active": true,
+      "name": [
+        {
+          "use": "official",
+          "family": "Shaw",
+          "given": [
+            "Amy",
+            "V"
+          ]
+        }
+      ],
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "800-782-6765",
+          "use": "mobile"
+        },
+        {
+          "system": "email",
+          "value": "amy.shaw@example.com"
+        }
+      ],
+      "gender": "female",
+      "birthDate": "2007-03-20",
+      "address": [
+        {
+          "use": "home",
+          "line": [
+            "49 Meadow St"
+          ],
+          "city": "Mounds",
+          "state": "OK",
+          "postalCode": "74047",
+          "country": "USA"
+        }
+      ],
+      "generalPractitioner": [
+        {
+          "reference": "Practitioner/smart-Practitioner-72004454"
+        }
+      ]
+    },
+    {
+      "resourceType": "Patient",
+      "id": "smart-1540505",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2021-02-17T23:46:32.000-05:00",
+        "source": "#UMgZhaAtxPlczKP1"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Amy Clark</div>"
+      },
+      "identifier": [
+        {
+          "use": "official",
+          "type": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/v2/0203",
+                "code": "MR",
+                "display": "Medical Record Number"
+              }
+            ],
+            "text": "Medical Record Number"
+          },
+          "system": "http://hospital.smarthealthit.org",
+          "value": "smart-1540505"
+        }
+      ],
+      "active": true,
+      "name": [
+        {
+          "use": "official",
+          "family": "Clark",
+          "given": [
+            "Amy",
+            "E"
+          ]
+        }
+      ],
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "800-661-3584",
+          "use": "home"
+        },
+        {
+          "system": "email",
+          "value": "amy.clark@example.com"
+        }
+      ],
+      "gender": "female",
+      "birthDate": "1964-01-21",
+      "address": [
+        {
+          "use": "home",
+          "line": [
+            "77 North St"
+          ],
+          "city": "Bixby",
+          "state": "OK",
+          "postalCode": "74008",
+          "country": "USA"
+        }
+      ],
+      "generalPractitioner": [
+        {
+          "reference": "Practitioner/smart-Practitioner-71482713"
+        }
+      ]
+    },
+    {
+      "resourceType": "Patient",
+      "id": "smart-724111",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2021-02-17T23:49:16.000-05:00",
+        "source": "#4tQmy5XcoPvrx16B"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Amy Morgan</div>"
+      },
+      "identifier": [
+        {
+          "use": "official",
+          "type": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/v2/0203",
+                "code": "MR",
+                "display": "Medical Record Number"
+              }
+            ],
+            "text": "Medical Record Number"
+          },
+          "system": "http://hospital.smarthealthit.org",
+          "value": "smart-724111"
+        }
+      ],
+      "active": true,
+      "name": [
+        {
+          "use": "official",
+          "family": "Morgan",
+          "given": [
+            "Amy",
+            "C"
+          ]
+        }
+      ],
+      "telecom": [
+        {
+          "system": "phone",
+          "value": "800-439-6984",
+          "use": "home"
+        },
+        {
+          "system": "email",
+          "value": "amy.morgan@example.com"
+        }
+      ],
+      "gender": "female",
+      "birthDate": "1991-06-07",
+      "address": [
+        {
+          "use": "home",
+          "line": [
+            "56 North Rd"
+          ],
+          "city": "Mounds",
+          "state": "OK",
+          "postalCode": "74047",
+          "country": "USA"
+        }
+      ],
+      "generalPractitioner": [
+        {
+          "reference": "Practitioner/smart-Practitioner-72004454"
+        }
+      ]
+    },
+    {
+      "resourceType": "Patient",
+      "id": "smart-880378",
+      "meta": {
+        "versionId": "1",
+        "lastUpdated": "2021-02-17T23:49:44.000-05:00",
+        "source": "#6DU3pMRHAqSEuvm3"
+      },
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Amy Lee</div>"
+      },
+      "identifier": [
+        {
+          "use": "official",
+          "type": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/v2/0203",
+                "code": "MR",
+                "display": "Medical Record Number"
+              }
+            ],
+            "text": "Medical Record Number"
+          },
+          "system": "http://hospital.smarthealthit.org",
+          "value": "smart-880378"
+        }
+      ],
+      "active": true,
+      "name": [
+        {
+          "use": "official",
+          "family": "Lee",
+          "given": [
+            "Amy",
+            "R"
+          ]
+        }
+      ],
+      "telecom": [
+        {
+          "system": "email",
+          "value": "amy.lee@example.com"
+        }
+      ],
+      "gender": "female",
+      "birthDate": "1999-12-08",
+      "address": [
+        {
+          "use": "home",
+          "line": [
+            "35 Ridge St"
+          ],
+          "city": "Tulsa",
+          "state": "OK",
+          "postalCode": "74117",
+          "country": "USA"
+        }
+      ],
+      "generalPractitioner": [
+        {
+          "reference": "Practitioner/smart-Practitioner-72080416"
+        }
+      ]
+    }
+  ],
+  "researchStudies": []
+}
