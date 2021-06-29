@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { PullDataPageComponent } from './pull-data-page.component';
 import { PullDataPageModule } from './pull-data-page.module';
 import { SharedModule } from '../../shared/shared.module';
@@ -9,6 +8,7 @@ import metadata from '../observation-code-lookup/test-fixtures/metadata.json';
 import observationsForPat106 from './test-fixtures/obs-pat-106.json';
 import observationsForPat232 from './test-fixtures/obs-pat-232.json';
 import observationsForPat269 from './test-fixtures/obs-pat-269.json';
+import encountersForSmart880378 from './test-fixtures/encounter-smart-880378.json';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -22,16 +22,14 @@ describe('PullDataForCohortComponent', () => {
   let fhirBackend: FhirBackendService;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [PullDataPageComponent],
-      imports: [PullDataPageModule, SharedModule]
-    }).compileComponents();
-  });
-
-  beforeEach(() => {
     spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
       const HTTP_OK = 200;
-      if (/subject=Patient\/([^&]*)&/.test(url)) {
+      if (url.includes('smart-880378')) {
+        return Promise.resolve({
+          status: HTTP_OK,
+          data: encountersForSmart880378
+        });
+      } else if (/subject=Patient\/([^&]*)&/.test(url)) {
         return Promise.resolve({
           status: HTTP_OK,
           data: {
@@ -46,9 +44,21 @@ describe('PullDataForCohortComponent', () => {
         return Promise.resolve({ status: HTTP_OK, data: metadata });
       }
     });
+    await TestBed.configureTestingModule({
+      declarations: [PullDataPageComponent],
+      imports: [PullDataPageModule, SharedModule]
+    }).compileComponents();
     fixture = TestBed.createComponent(PullDataPageComponent);
     fhirBackend = TestBed.inject(FhirBackendService);
     component = fixture.componentInstance;
+    await fhirBackend.initialized
+      .pipe(
+        filter((status) => {
+          return status === ConnectionStatus.Ready;
+        }),
+        take(1)
+      )
+      .toPromise();
     fixture.detectChanges();
   });
 
@@ -61,15 +71,6 @@ describe('PullDataForCohortComponent', () => {
   });
 
   it('should initialize on connect', async () => {
-    expect(component.unselectedResourceTypes.length).toBe(0);
-    await fhirBackend.initialized
-      .pipe(
-        filter((status) => {
-          return status === ConnectionStatus.Ready;
-        }),
-        take(1)
-      )
-      .toPromise();
     expect(component.unselectedResourceTypes.length).toBeGreaterThan(0);
   });
 
@@ -84,7 +85,8 @@ describe('PullDataForCohortComponent', () => {
     );
   });
 
-  it('should add/remove tab', () => {
+  it('should add/remove tab', async () => {
+    fixture.detectChanges();
     component.addTab('Encounter');
     fixture.detectChanges();
     expect(component.getCurrentResourceType()).toEqual('Encounter');
@@ -127,5 +129,36 @@ describe('PullDataForCohortComponent', () => {
         new RegExp(`subject=Patient\\/${arrayOfPatients[i].id}`)
       );
     });
+  });
+
+  it('should load Encounters with correct numbers per patient', async () => {
+    const arrayOfPatients = [{ id: 'smart-880378' }];
+    component.patientStream = from(arrayOfPatients);
+    // Should collect Patients from input stream
+    expect(component.patients).toEqual(arrayOfPatients);
+
+    component.addTab('Encounter');
+    fixture.detectChanges();
+    component.perPatientFormControls['Encounter'].setValue(2);
+    component.loadResources('Encounter', []);
+    // Should load 2 resources from test fixtures (2 encounters per Patient)
+    let loadedResourceCount = 0;
+    await component.resourceStream['Encounter']
+      .pipe(
+        tap({
+          next: () => {
+            loadedResourceCount++;
+          },
+          complete: () => {
+            expect(loadedResourceCount).toBe(2);
+          }
+        })
+      )
+      .toPromise();
+
+    // Verify that matching requests have been sent
+    const requests = FhirBatchQuery.prototype.getWithCache.calls.all();
+    const [request] = requests.slice(-1);
+    expect(request.args[0]).toMatch(new RegExp(`_count=2`));
   });
 });

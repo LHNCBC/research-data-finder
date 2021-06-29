@@ -74,11 +74,27 @@ describe('FhirBackendService', () => {
     });
   });
 
-  it('should pass GET FHIR requests to FhirBatchQuery', (done) => {
+  it('should pass GET FHIR requests with endpoint to FhirBatchQuery with option combine=true', (done) => {
     httpClient.get('$fhir/some_related_url').subscribe((response) => {
       expect(response).toBe(responseFromFhirBatchQueryCache.data);
       expect(FhirBatchQuery.prototype.getWithCache).toHaveBeenCalledWith(
-        service.serviceBaseUrl + '/some_related_url'
+        service.serviceBaseUrl + '/some_related_url',
+        {
+          combine: true
+        }
+      );
+      done();
+    });
+  });
+
+  it('should pass GET FHIR requests without endpoint to FhirBatchQuery with option combine=false', (done) => {
+    httpClient.get('$fhir?some_params').subscribe((response) => {
+      expect(response).toBe(responseFromFhirBatchQueryCache.data);
+      expect(FhirBatchQuery.prototype.getWithCache).toHaveBeenCalledWith(
+        service.serviceBaseUrl + '?some_params',
+        {
+          combine: false
+        }
       );
       done();
     });
@@ -88,9 +104,11 @@ describe('FhirBackendService', () => {
     service.cacheEnabled = false;
     httpClient.get('$fhir/some_related_url').subscribe((response) => {
       expect(response).toBe(responseFromFhirBatchQuery.data);
-      expect(FhirBatchQuery.prototype.get).toHaveBeenCalledWith(
-        service.serviceBaseUrl + '/some_related_url'
-      );
+      expect(
+        FhirBatchQuery.prototype.get
+      ).toHaveBeenCalledWith(service.serviceBaseUrl + '/some_related_url', {
+        combine: true
+      });
       done();
     });
   });
