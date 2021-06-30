@@ -85,6 +85,7 @@ export class ObservationCodeLookupComponent
   listSelectionsObserver: (eventData: any) => void;
   // Subscription used to cancel the previous loading process
   subscription: Subscription;
+  subscriptionCode: Subscription;
 
   /**
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
@@ -211,8 +212,13 @@ export class ObservationCodeLookupComponent
                   : '$fhir/Observation';
                 const params = {
                   _elements: 'code,value,component',
-                  // 'combo-code:text': fieldVal,
+                  'code:text': fieldVal,
                   _count: '500'
+                };
+                const paramsCode = {
+                  _elements: 'code,value,component',
+                  code: fieldVal,
+                  _count: '1'
                 };
                 // Hash of processed codes, used to exclude repeated codes
                 const processedCodes = {};
@@ -225,6 +231,22 @@ export class ObservationCodeLookupComponent
 
                 this.loading = true;
                 this.subscription?.unsubscribe();
+                this.subscriptionCode?.unsubscribe();
+
+                this.subscriptionCode = this.httpClient
+                  .get(url, {
+                    params: paramsCode
+                  })
+                  .subscribe((response: Bundle) => {
+                    contains.push(
+                      ...this.getAutocompleteItems(
+                        response,
+                        processedCodes,
+                        selectedCodes,
+                        isMatchToFieldVal
+                      )
+                    );
+                  });
 
                 this.subscription = this.httpClient
                   // Load first page of Observation resources
