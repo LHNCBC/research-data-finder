@@ -69,10 +69,8 @@ export class PullDataPageComponent implements AfterViewInit {
 
   // Stream of resources for ResourceTableComponent
   resourceStream: { [resourceType: string]: Subject<Resource> } = {};
-  perPatientPerTest = new FormControl(1, [
-    Validators.required,
-    Validators.min(1)
-  ]);
+  // Form controls of 'per patient' input
+  perPatientFormControls: { [resourceType: string]: FormControl } = {};
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -91,6 +89,18 @@ export class PullDataPageComponent implements AfterViewInit {
                 this.visibleResourceTypes.indexOf(resourceType) === -1
             )
           : [];
+        this.perPatientFormControls = {
+          Observation: new FormControl(1, [
+            Validators.required,
+            Validators.min(1)
+          ])
+        };
+        this.unselectedResourceTypes.forEach((r) => {
+          this.perPatientFormControls[r] = new FormControl(1000, [
+            Validators.required,
+            Validators.min(1)
+          ]);
+        });
       });
   }
 
@@ -211,7 +221,7 @@ export class PullDataPageComponent implements AfterViewInit {
               return (
                 this.http
                   .get(
-                    `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}&_count=${this.perPatientPerTest.value}&combo-code=${code}`
+                    `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}&_count=${this.perPatientFormControls.Observation.value}&combo-code=${code}`
                   )
                   // toPromise needed to immediately execute query, this allows batch requests
                   .toPromise()
@@ -219,10 +229,14 @@ export class PullDataPageComponent implements AfterViewInit {
             });
           }
 
+          const count =
+            resourceType === 'Observation'
+              ? 1000
+              : this.perPatientFormControls[resourceType].value;
           return (
             this.http
               .get(
-                `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}&_count=1000`
+                `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}&_count=${count}`
               )
               // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
               .toPromise()
@@ -259,7 +273,8 @@ export class PullDataPageComponent implements AfterViewInit {
           if (resourceType === 'Observation' && !observationCodes.length) {
             // When no code is specified in criteria and we loaded last 1000 Observations.
             // Per Clem, we will only show perPatientPerTest results per patient per test.
-            const perPatientPerTest = this.perPatientPerTest.value;
+            const perPatientPerTest = this.perPatientFormControls.Observation
+              .value;
             return res.filter((obs: Observation) => {
               const patientRef = obs.subject.reference;
               const codeStr = this.columnValues.getCodeableConceptAsText(

@@ -13,6 +13,10 @@ import { SettingsService } from '../../shared/settings-service/settings.service'
 import Spy = jasmine.Spy;
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
 
 class Page {
   private fixture: ComponentFixture<ResourceTableComponent>;
@@ -52,24 +56,42 @@ describe('ResourceTableComponent', () => {
       types: ['string'],
       isArray: false,
       visible: false
+    },
+    {
+      displayName: 'Custom column',
+      element: 'customElement',
+      expression:
+        "extension('http://hl7.org/fhir/StructureDefinition/someExtension').value",
+      types: ['Count'],
+      isArray: false,
+      visible: false
     }
   ];
   const hiddenElements = {
-    someResourceType: ['anotherElement']
+    SomeResourceType: ['anotherElement']
   };
 
-  const spies = [];
-  spies.push(jasmine.createSpyObj('HttpClient', ['get']));
-  spies.push(
-    jasmine.createSpyObj('ColumnDescriptionsService', ['getAvailableColumns'])
+  const spies = {
+    HttpClient: jasmine.createSpyObj('HttpClient', ['get']),
+    ColumnDescriptionsService: jasmine.createSpyObj(
+      'ColumnDescriptionsService',
+      ['getAvailableColumns']
+    ),
+    SettingsService: jasmine.createSpyObj('SettingsService', ['get']),
+    FhirBackendService: jasmine.createSpyObj('FhirBackendService', [], {
+      initialized: of(ConnectionStatus.Ready),
+      currentVersion: 'R4'
+    })
+  };
+
+  spies.HttpClient.get.and.returnValue(of(bundle));
+  spies.ColumnDescriptionsService.getAvailableColumns.and.returnValue(
+    availableColumns
   );
-  spies.push(jasmine.createSpyObj('SettingsService', ['get']));
-  spies[0].get.and.returnValue(of(bundle));
-  spies[1].getAvailableColumns.and.returnValue(availableColumns);
-  spies[2].get.and.returnValue(hiddenElements);
+  spies.SettingsService.get.and.returnValue(hiddenElements);
 
   async function fillTable(columnDescriptions): Promise<void> {
-    component.resourceType = 'someResourceType';
+    component.resourceType = 'SomeResourceType';
     const resourceStream = new Subject();
     component.resourceStream = resourceStream;
     component.columns = [];
@@ -85,8 +107,19 @@ describe('ResourceTableComponent', () => {
     component.ngOnChanges(changesObj);
     for (let i = 1; i < 51; i++) {
       resourceStream.next({
+        resourceType: component.resourceType,
         id: i.toString(),
-        anotherElement: 'value-' + i.toString()
+        anotherElement: 'value-' + i.toString(),
+        extension: [
+          {
+            url: 'http://hl7.org/fhir/StructureDefinition/someExtension',
+            valueCount: {
+              value: i,
+              system: 'http://unitsofmeasure.org',
+              code: '1'
+            }
+          }
+        ]
       });
     }
     resourceStream.complete();
@@ -104,9 +137,13 @@ describe('ResourceTableComponent', () => {
         NoopAnimationsModule
       ],
       providers: [
-        { provide: HttpClient, useValue: spies[0] },
-        { provide: ColumnDescriptionsService, useValue: spies[1] },
-        { provide: SettingsService, useValue: spies[2] }
+        { provide: HttpClient, useValue: spies.HttpClient },
+        {
+          provide: ColumnDescriptionsService,
+          useValue: spies.ColumnDescriptionsService
+        },
+        { provide: SettingsService, useValue: spies.SettingsService },
+        { provide: FhirBackendService, useValue: spies.FhirBackendService }
       ]
     }).compileComponents();
     fixture = TestBed.createComponent(ResourceTableComponent);
@@ -137,9 +174,23 @@ describe('ResourceTableComponent', () => {
     expect(component.dataSource.filteredData.length).toEqual(50);
     expect(
       (window.localStorage.setItem as Spy).calls.mostRecent().args[0]
-    ).toEqual('someResourceType-columns');
+    ).toEqual('SomeResourceType-columns');
     expect(
       (window.localStorage.setItem as Spy).calls.mostRecent().args[1]
-    ).toEqual('id');
+    ).toEqual('id,customElement');
+  });
+
+  it('should get a cell strings correctly', async () => {
+    await fillTable(availableColumns);
+    const rowNumber = 6;
+    const cellValues = ['5', 'value-5', '5'];
+    for (let i = 0; cellValues.length < 3; i++) {
+      expect(
+        component.getCellStrings(
+          component.dataSource.data[rowNumber],
+          component.columnDescriptions[i]
+        )
+      ).toEqual([cellValues[i]]);
+    }
   });
 });

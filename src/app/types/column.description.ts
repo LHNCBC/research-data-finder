@@ -8,6 +8,11 @@ export interface ColumnDescription {
    */
   element: string;
   /**
+   * FhirPath expression without resource type to get the value of the column cell.
+   * Used for custom columns.
+   */
+  expression?: string;
+  /**
    * Possible value types in the column
    */
   types: string[];

@@ -72,6 +72,24 @@ button.mat-stroked-button .mat-icon {
   outline-style: none;
 }
 
+/**
+ * Remove original style for autocompletion input fields whose input does not match
+ * any value in the list.  (The redundancy here is for overriding another
+ * background setting on input[type='text'].)
+ */
+.ansList.no_match, input[type='text'].ansList.no_match, .search_field.no_match {
+  background-color: transparent;
+  color: currentColor;
+  font-style: inherit;
+}
+
+/**
+ * Correct down arrow position
+ */
+.ansList.ac_multiple, .ansList.ac_multiple:focus {
+  width: calc(100% - 14px);
+}
+
 // Remove original error state - we use MatFormField to show an error state
 input.search_field.invalid {
   border-width: 0;
@@ -206,4 +224,10 @@ input.search_field.invalid {
       text-decoration: underline;
     }
   }
+}
+
+// Tooltip styles
+.mat-tooltip-panel .mat-tooltip {
+  font-size: 14px;
+  max-width: unset;
 }
