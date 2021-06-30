@@ -3,27 +3,23 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.1.2] - 2021-06-28
-### Added
-- User input to define number of resources per patient for all resource types
-  in Pull Data step.
-
-## [3.1.1] - 2021-06-24
-### Changed
-- When user searches for active patients, the application now tries to also
-  return patients without the 'active' field defined.
-
-## [3.1.0] - 2021-06-24
+## [3.1.0] - 2021-06-30
 ### Added
 - Filtering of values in the ResearchStudy.condition column by preferred code
   system.
 - Columns for research study content (dbGap only).
 - Option to filter ResearchStudies if the user has access to their data.
+- User input to define number of resources per patient for all resource types
+  in Pull Data step.
+### Changed
+- When user searches for active patients, the application now tries to also
+  return patients without the 'active' field defined.
 ### Fixed
 - Detection of columns visible by default.
 - Requests to the FHIR server without endpoint - they cannot be combined
   into a batch request.
 - Title of the configure columns dialog.
+- Slowness to load Patients from a ResearchStudy.
 
 ## [3.0.0] - 2021-06-14
 ### Changed
