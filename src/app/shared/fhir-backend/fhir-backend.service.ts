@@ -45,10 +45,7 @@ export class FhirBackendService implements HttpBackend {
   set serviceBaseUrl(url: string) {
     if (this.serviceBaseUrl !== url) {
       this.initialized.next(ConnectionStatus.Pending);
-      this.fhirClient.initialize(url).then(
-        () => this.initialized.next(ConnectionStatus.Ready),
-        () => this.initialized.next(ConnectionStatus.Error)
-      );
+      this.initializeFhirBatchQuery();
     }
   }
   get serviceBaseUrl(): string {
@@ -130,6 +127,13 @@ export class FhirBackendService implements HttpBackend {
     this.fhirClient = new FhirBatchQuery({
       serviceBaseUrl: queryServer || defaultServer
     });
+    this.initializeFhirBatchQuery();
+  }
+
+  /**
+   * Initialize FhirBatchQuery
+   */
+  initializeFhirBatchQuery(): void {
     this.fhirClient.initialize().then(
       () => this.initialized.next(ConnectionStatus.Ready),
       () => this.initialized.next(ConnectionStatus.Error)
