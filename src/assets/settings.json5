@@ -15,10 +15,73 @@
       Patient: ['name', 'active']
     }
   },
-  // Settings for servers with the specified URL
+  // Settings for servers with the specified URL.
+  // You can override default settings here
   "customization": {
     "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1": {
-      // You can override default settings here
+      // Coding system per resource per element for filtering data in
+      // resource tables. If there is a coding with specified "system",
+      // then the rest of the terms will be dropped when displaying
+      // a value for that column.
+      preferredCodeSystem: {
+        ResearchStudy: {
+          condition: 'urn:oid:2.16.840.1.113883.6.177'
+        }
+      },
+      // Additional columns per resource type
+      customColumns: {
+        // See these column descriptions here: https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content
+        ResearchStudy: [
+          {
+            displayName: "Number of Analyses",
+            element: "NumAnalyses",
+            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumAnalyses').value",
+            types: ["Count"]
+          },
+          {
+            displayName: "Number of Documents",
+            element: "NumDocuments",
+            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumDocuments').value",
+            types: ["Count"]
+          },
+          {
+            displayName: "Number of Molecular Datasets",
+            element: "NumMolecularDatasets",
+            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumMolecularDatasets').value",
+            types: ["Count"]
+          },
+          {
+            displayName: "Number of Phenotype Datasets",
+            element: "NumPhenotypeDatasets",
+            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumPhenotypeDatasets').value",
+            types: ["Count"]
+          },
+          {
+            displayName: "Number of Samples",
+            element: "NumSamples",
+            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSamples').value",
+            types: ["Count"]
+          },
+          {
+            displayName: "Number of Sub-studies",
+            element: "NumSubStudies",
+            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubStudies').value",
+            types: ["Count"]
+          },
+          {
+            displayName: "Number of Subjects",
+            element: "NumSubjects",
+            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubjects').value",
+            types: ["Count"]
+          },
+          {
+            displayName: "Number of Variables",
+            element: "NumVariables",
+            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumVariables').value",
+            types: ["Count"]
+          }
+        ]
+      }
     }
   }
 }

@@ -33,5 +33,5 @@
     "RiskAssessment",
     "ServiceRequest"
   ],
-  "additionalExpressions": ["Patient.telecom.use"]
+  "additionalExpressions": ["Patient.telecom.use", "ResearchSubject.status"]
 }
