@@ -21,6 +21,7 @@ describe('DatesFromToComponent', () => {
   });
 
   it('should default date range values', () => {
+    DatesFromToComponent.defaultValue = { from: null, to: null };
     component.writeValue({
       from: '01-02-2019',
       to: '06-28-2021'
@@ -30,5 +31,18 @@ describe('DatesFromToComponent', () => {
     expect(component2.value).not.toBeNull();
     expect(component2.value.from).toEqual('01-02-2019');
     expect(component2.value.to).toEqual('06-28-2021');
+  });
+
+  it('should default from date value', () => {
+    DatesFromToComponent.defaultValue = { from: null, to: null };
+    component.writeValue({
+      from: '01-02-2021',
+      to: null
+    });
+    const component2 = new DatesFromToComponent();
+    component2.ngAfterViewInit();
+    expect(component2.value).not.toBeNull();
+    expect(component2.value.from).toEqual('01-02-2021');
+    expect(component2.value.to).toBeNull();
   });
 });
