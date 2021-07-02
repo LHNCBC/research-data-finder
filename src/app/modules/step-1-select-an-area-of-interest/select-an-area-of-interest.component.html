@@ -12,10 +12,21 @@
     <mat-radio-button [value]="SelectOptions.ResearchStudy">Select ResearchStudies</mat-radio-button>
   </mat-radio-group>
 
-  <div class="spacer" *ngIf="showTable"></div>
-  <app-resource-table *ngIf="showTable" #resourceTableComponent
-      [columnDescriptions]="columnDescriptions.getVisibleColumns('ResearchStudy') | async"
-      [enableClientFiltering]="true" [enableSelection]="true"
-      [resourceStream]="researchStudyStream"
-      resourceType="ResearchStudy"></app-resource-table>
+  <div class="v-box" *ngIf="showTable">
+    <div class="spacer"></div>
+
+    <div class="h-box">
+      <mat-checkbox
+          matTooltip="When selected, all research studies will be listed regardless of whether you have access to the data in the study."
+          [formControl]="showResearchStudiesWithoutSubjects">Show all research studies</mat-checkbox>
+    </div>
+
+    <div class="spacer"></div>
+
+    <app-resource-table #resourceTableComponent
+        [columnDescriptions]="columnDescriptions.getVisibleColumns('ResearchStudy') | async"
+        [enableClientFiltering]="true" [enableSelection]="true"
+        [resourceStream]="researchStudyStream"
+        resourceType="ResearchStudy"></app-resource-table>
+  </div>
 </div>
