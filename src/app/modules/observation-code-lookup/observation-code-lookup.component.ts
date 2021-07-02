@@ -238,7 +238,7 @@ export class ObservationCodeLookupComponent
                     params: paramsCode
                   })
                   .subscribe((response: Bundle) => {
-                    contains.push(
+                    contains.unshift(
                       ...this.getAutocompleteItems(
                         response,
                         processedCodes,

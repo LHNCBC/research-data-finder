@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.3.0] - 2021-07-02
+### Added
+- When searching for observation codes, the system now tries to match code
+  as well as text. A code will be returned if user input matches exactly the
+  code, or part of the code text.
+
 ## [3.1.2] - 2021-06-28
 ### Added
 - User input to define number of resources per patient for all resource types
