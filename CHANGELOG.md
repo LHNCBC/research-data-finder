@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.2.0] - 2021-06-28
+## [3.2.0] - 2021-07-02
 ### Added
 - User input to define number of resources per patient for all resource types
   in Pull Data step.
