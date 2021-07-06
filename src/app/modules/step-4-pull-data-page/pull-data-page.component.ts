@@ -207,10 +207,11 @@ export class PullDataPageComponent implements AfterViewInit {
       sortParam = '&_sort=' + sortFields.join(',');
     }
 
-    // To optimize ResearchStudy loading, we load ResearchStudies for 10 Patients
+    // To optimize ResearchStudy and Patient loading, we load them for 10 Patients
     // in one query. We don't use this optimization for other resource types
     // because we need to limit the number of resources per Patient.
-    const numberOfPatientsInRequest = resourceType === 'ResearchStudy' ? 10 : 1;
+    const numberOfPatientsInRequest =
+      resourceType === 'ResearchStudy' || resourceType === 'Patient' ? 10 : 1;
     from(
       [].concat(
         ...chunk(this.patients, numberOfPatientsInRequest).map((patients) => {
@@ -221,7 +222,9 @@ export class PullDataPageComponent implements AfterViewInit {
               .map((patient) => patient.id)
               .join(',')}`;
           } else if (resourceType === 'Patient') {
-            linkToPatient = `_id=${patient.id}`;
+            linkToPatient = `_id=${patients
+              .map((patient) => patient.id)
+              .join(',')}`;
           } else {
             linkToPatient = `subject=${patients
               .map((patient) => 'Patient/' + patient.id)
