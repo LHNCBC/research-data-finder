@@ -181,7 +181,7 @@ describe('PullDataForCohortComponent', () => {
         .expectOne(
           `$fhir/ResearchStudy?_has:ResearchSubject:study:individual=${patients
             .map((patient) => patient.id)
-            .join(',')}`
+            .join(',')}&_count=1000`
         )
         .flush(researchStudies);
     });
