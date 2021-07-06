@@ -87,10 +87,6 @@ export class PullDataPageComponent implements AfterViewInit {
         this.unselectedResourceTypes = connected
           ? Object.keys(fhirBackend.getCurrentDefinitions().resources).filter(
               (resourceType) =>
-                // Currently, we don't support pulling Patient data for
-                // a cohort of Patient, but you can see all Patient data
-                // in the View cohort step
-                resourceType !== 'Patient' &&
                 this.visibleResourceTypes.indexOf(resourceType) === -1
             )
           : [];
@@ -103,7 +99,7 @@ export class PullDataPageComponent implements AfterViewInit {
         this.unselectedResourceTypes.forEach((r) => {
           // Due to optimization, we cannot control the number of ResearchStudies
           // per Patient. Luckily it doesn't make much sense.
-          if (r !== 'ResearchStudy') {
+          if (r !== 'ResearchStudy' && r !== 'Patient') {
             this.perPatientFormControls[r] = new FormControl(1000, [
               Validators.required,
               Validators.min(1)
@@ -224,6 +220,8 @@ export class PullDataPageComponent implements AfterViewInit {
             linkToPatient = `_has:ResearchSubject:study:individual=${patients
               .map((patient) => patient.id)
               .join(',')}`;
+          } else if (resourceType === 'Patient') {
+            linkToPatient = `_id=${patient.id}`;
           } else {
             linkToPatient = `subject=${patients
               .map((patient) => 'Patient/' + patient.id)

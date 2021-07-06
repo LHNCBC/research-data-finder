@@ -200,4 +200,15 @@ describe('PullDataForCohortComponent', () => {
       )
       .toPromise();
   });
+
+  it('should add/remove Patient tab', async () => {
+    fixture.detectChanges();
+    component.addTab('Patient');
+    fixture.detectChanges();
+    expect(component.getCurrentResourceType()).toEqual('Patient');
+
+    component.removeTab('Patient');
+    fixture.detectChanges();
+    expect(component.getCurrentResourceType()).toEqual('Observation');
+  });
 });
