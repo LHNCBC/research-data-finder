@@ -17,9 +17,9 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 import { SelectedLoincCodes } from '../../types/selected-loinc-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { NgControl } from '@angular/forms';
-import { EMPTY, Subject, Subscription } from 'rxjs';
+import { EMPTY, forkJoin, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { catchError, expand, takeWhile } from 'rxjs/operators';
+import { catchError, expand, map, takeWhile, tap } from 'rxjs/operators';
 import { getNextPageUrl, escapeStringForRegExp } from '../../shared/utils';
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
@@ -85,7 +85,6 @@ export class ObservationCodeLookupComponent
   listSelectionsObserver: (eventData: any) => void;
   // Subscription used to cancel the previous loading process
   subscription: Subscription;
-  subscriptionCode: Subscription;
 
   /**
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
@@ -231,24 +230,30 @@ export class ObservationCodeLookupComponent
 
                 this.loading = true;
                 this.subscription?.unsubscribe();
-                this.subscriptionCode?.unsubscribe();
 
-                this.subscriptionCode = this.httpClient
+                const obsCode = this.httpClient
                   .get(url, {
                     params: paramsCode
                   })
-                  .subscribe((response: Bundle) => {
-                    contains.unshift(
-                      ...this.getAutocompleteItems(
-                        response,
-                        processedCodes,
-                        selectedCodes,
-                        isMatchToFieldVal
-                      )
-                    );
-                  });
+                  .pipe(
+                    tap((response: Bundle) => {
+                      contains.unshift(
+                        ...this.getAutocompleteItems(
+                          response,
+                          processedCodes,
+                          selectedCodes,
+                          isMatchToFieldVal
+                        )
+                      );
+                    }),
+                    catchError((error) => {
+                      this.loading = false;
+                      reject(error);
+                      throw error;
+                    })
+                  );
 
-                this.subscription = this.httpClient
+                const obs = this.httpClient
                   // Load first page of Observation resources
                   .get(url, {
                     params
@@ -256,6 +261,14 @@ export class ObservationCodeLookupComponent
                   .pipe(
                     // Modifying the Observable to load the following pages sequentially
                     expand((response: Bundle) => {
+                      contains.push(
+                        ...this.getAutocompleteItems(
+                          response,
+                          processedCodes,
+                          selectedCodes,
+                          isMatchToFieldVal
+                        )
+                      );
                       const nextPageUrl = getNextPageUrl(response);
                       if (nextPageUrl && contains.length < count) {
                         if (this.fhirBackend.features.lastnLookup) {
@@ -269,23 +282,6 @@ export class ObservationCodeLookupComponent
                           });
                         }
                       } else {
-                        // Emit a complete notification
-                        return EMPTY;
-                      }
-                    }),
-                    // Process each page of Observation resources until we get the required number of values
-                    takeWhile((response: Bundle) => {
-                      contains.push(
-                        ...this.getAutocompleteItems(
-                          response,
-                          processedCodes,
-                          selectedCodes,
-                          isMatchToFieldVal
-                        )
-                      );
-                      const nextPageUrl = getNextPageUrl(response);
-                      const stop = !nextPageUrl || contains.length >= count;
-                      if (stop) {
                         if (
                           this.fhirBackend.features.lastnLookup &&
                           response.total
@@ -297,24 +293,28 @@ export class ObservationCodeLookupComponent
                         if (contains.length > count) {
                           contains.length = count;
                         }
-                        resolve({
-                          resourceType: 'ValueSet',
-                          expansion: {
-                            total: Number.isInteger(total) ? total : Infinity,
-                            contains
-                          }
-                        });
-                        this.loading = false;
+                        // Emit a complete notification
+                        return EMPTY;
                       }
-                      return !stop;
                     }),
                     catchError((error) => {
                       this.loading = false;
                       reject(error);
                       throw error;
                     })
-                  )
-                  .subscribe();
+                  );
+
+                // Resolve autocomplete dropdown after both code and text searches are done.
+                this.subscription = forkJoin([obs, obsCode]).subscribe(() => {
+                  resolve({
+                    resourceType: 'ValueSet',
+                    expansion: {
+                      total: Number.isInteger(total) ? total : Infinity,
+                      contains
+                    }
+                  });
+                  this.loading = false;
+                });
               }
             };
           }

@@ -132,8 +132,10 @@ describe('ObservationCodeLookupComponent', () => {
 
         // search by text
         expect(
-          FhirBatchQuery.prototype.getWithCache.calls.mostRecent().args[0]
-        ).toMatch(/_elements=code,value,component&code:text=H/);
+          FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
+            x.args[0].match(/_elements=code,value,component&code:text=H/)
+          )
+        ).toBeTruthy();
         // search by code
         expect(
           FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
