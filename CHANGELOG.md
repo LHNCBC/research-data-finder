@@ -3,9 +3,15 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.4.0] - 2021-07-02
+## [3.3.0] - 2021-07-06
 ### Added
 - User can now pull data for Patient the same way as other resource types.
+
+## [3.2.0] - 2021-07-02
+### Changed
+- After user enters a date range value, the application will use that as
+  default value for later date range controls. Refreshing page will clear
+  the default value.
 
 ## [3.1.2] - 2021-06-28
 ### Added
