@@ -161,4 +161,15 @@ describe('PullDataForCohortComponent', () => {
     const [request] = requests.slice(-1);
     expect(request.args[0]).toMatch(new RegExp(`_count=2`));
   });
+
+  it('should add/remove Patient tab', async () => {
+    fixture.detectChanges();
+    component.addTab('Patient');
+    fixture.detectChanges();
+    expect(component.getCurrentResourceType()).toEqual('Patient');
+
+    component.removeTab('Patient');
+    fixture.detectChanges();
+    expect(component.getCurrentResourceType()).toEqual('Observation');
+  });
 });

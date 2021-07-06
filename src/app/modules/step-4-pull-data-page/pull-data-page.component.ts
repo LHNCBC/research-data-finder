@@ -86,10 +86,6 @@ export class PullDataPageComponent implements AfterViewInit {
         this.unselectedResourceTypes = connected
           ? Object.keys(fhirBackend.getCurrentDefinitions().resources).filter(
               (resourceType) =>
-                // Currently, we don't support pulling Patient data for
-                // a cohort of Patient, but you can see all Patient data
-                // in the View cohort step
-                resourceType !== 'Patient' &&
                 this.visibleResourceTypes.indexOf(resourceType) === -1
             )
           : [];
@@ -213,6 +209,8 @@ export class PullDataPageComponent implements AfterViewInit {
 
           if (resourceType === 'ResearchStudy') {
             linkToPatient = `_has:ResearchSubject:study:individual=Patient/${patient.id}`;
+          } else if (resourceType === 'Patient') {
+            linkToPatient = `_id=${patient.id}`;
           } else {
             linkToPatient = `subject=Patient/${patient.id}`;
           }
@@ -233,12 +231,14 @@ export class PullDataPageComponent implements AfterViewInit {
 
           const count =
             resourceType === 'Observation'
-              ? 1000
-              : this.perPatientFormControls[resourceType].value;
+              ? '$_count=1000'
+              : resourceType === 'Patient'
+              ? ''
+              : `&_count=${this.perPatientFormControls[resourceType].value}`;
           return (
             this.http
               .get(
-                `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}&_count=${count}`
+                `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}${count}`
               )
               // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
               .toPromise()
