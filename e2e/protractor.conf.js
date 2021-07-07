@@ -23,7 +23,7 @@ exports.config = {
       prefs: {
         download: {
           prompt_for_download: false,
-          default_directory: os.tmpdir()
+          default_directory: `${os.tmpdir()}/e2e_temp`
         }
       }
     }

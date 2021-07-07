@@ -24,7 +24,7 @@ let pullDataStep: MatStepHarness;
 let fileName: string;
 
 beforeAll(async () => {
-  fileName = `${os.tmpdir()}/cohort-100.json`;
+  fileName = `${os.tmpdir()}/e2e_temp/cohort-100.json`;
   // Initialize common page objects & harnesses
   page = new AppPage();
   await page.navigateTo();
