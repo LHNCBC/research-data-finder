@@ -3,10 +3,36 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.1.2] - 2021-06-28
+## [3.5.0] - 2021-07-07
 ### Added
 - Functionality to save cohort data and criteria into file.
 - Functionality to load cohort data and criteria from file.
+
+## [3.4.0] - 2021-07-06
+### Added
+- When searching for observation codes, the system now tries to match code
+  as well as text. A code will be returned if user input matches exactly the
+  code, or part of the code text.
+
+## [3.3.0] - 2021-07-06
+### Added
+- User can now pull data for Patient the same way as other resource types.
+
+## [3.2.0] - 2021-07-02
+### Changed
+- After user enters a date range value, the application will use that as
+  default value for later date range controls. Refreshing page will clear
+  the default value.
+
+## [3.1.2] - 2021-06-28
+### Added
+- User input to define number of resources per patient for all resource types
+  in Pull Data step.
+
+## [3.1.1] - 2021-06-24
+### Changed
+- When user searches for active patients, the application now tries to also
+  return patients without the 'active' field defined.
 
 ## [3.1.0] - 2021-06-24
 ### Added

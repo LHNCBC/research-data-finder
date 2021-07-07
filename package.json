@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "3.1.2",
+  "version": "3.7.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
@@ -48,7 +48,6 @@
     "@types/node": "^12.11.1",
     "autocomplete-lhc": "^18.1.1",
     "codelyzer": "^6.0.0",
-    "@types/file-saver": "^2.0.2",
     "jasmine-core": "~3.6.0",
     "jasmine-spec-reporter": "~5.0.0",
     "jquery": "^3.6.0",
