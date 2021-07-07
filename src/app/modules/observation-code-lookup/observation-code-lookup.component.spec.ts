@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ObservationCodeLookupComponent } from './observation-code-lookup.component';
 import { ObservationCodeLookupModule } from './observation-code-lookup.module';
 import { Component, ViewChild } from '@angular/core';
@@ -131,9 +130,18 @@ describe('ObservationCodeLookupComponent', () => {
         await keyDownInAutocompleteInput(input, ARROW_DOWN);
         await keyDownInAutocompleteInput(input, ENTER);
 
+        // search by text
         expect(
-          FhirBatchQuery.prototype.getWithCache.calls.mostRecent().args[0]
-        ).toMatch(/_elements=code,value,component&combo-code:text=H/);
+          FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
+            x.args[0].match(/_elements=code,value,component&code:text=H/)
+          )
+        ).toBeTruthy();
+        // search by code
+        expect(
+          FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
+            x.args[0].match(/_elements=code,value,component&code=H/)
+          )
+        ).toBeTruthy();
         expect(hostComponent.selectedLoincItems.value.codes.length).toBe(2);
       });
     });
