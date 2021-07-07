@@ -1,18 +1,4 @@
 <div class="search-parameter">
-  <mat-form-field class="resource-type" *ngIf="!fixedResourceType">
-    <mat-label>Resource type</mat-label>
-    <input type="text"
-           aria-label="Resource type"
-           matInput
-           [formControl]="resourceType"
-           [matAutocomplete]="autocomplete">
-    <mat-autocomplete #autocomplete="matAutocomplete" panelWidth="auto">
-      <mat-option *ngFor="let option of filteredResourceTypes | async" [value]="option">
-        {{option}}
-      </mat-option>
-    </mat-autocomplete>
-  </mat-form-field>
-
   <mat-form-field class="parameter-name" *ngIf="selectedResourceType">
     <mat-label>Search parameter name</mat-label>
     <input type="text"
