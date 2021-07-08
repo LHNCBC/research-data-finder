@@ -48,6 +48,7 @@ export class AutoCompleteTestValueComponent
   @Input() options: Lookup[];
   @Input() placeholder = '';
 
+  currentData: string[] = [];
   ngControl: NgControl = null;
   // Autocompleter instance
   acInstance: Def.Autocompleter.Prefetch;
@@ -55,7 +56,7 @@ export class AutoCompleteTestValueComponent
   @ViewChild('input') input: ElementRef<HTMLInputElement>;
 
   get value(): string[] {
-    return this.acInstance?.getSelectedCodes() || [];
+    return this.currentData;
   }
 
   /**
@@ -160,7 +161,20 @@ export class AutoCompleteTestValueComponent
       this.options.map((o) => o.display),
       { maxSelect: '*', codes: this.options.map((o) => o.code) }
     );
+
+    // Fill autocomplete with data (if currentData was set in writeValue).
+    if (this.currentData) {
+      this.currentData.forEach((code) => {
+        const item = this.options.find((o) => o.code === code)?.display;
+        if (item) {
+          this.acInstance.storeSelectedItem(item, code);
+          this.acInstance.addToSelectedArea(item);
+        }
+      });
+    }
+
     Def.Autocompleter.Event.observeListSelections(testInputId, () => {
+      this.currentData = this.acInstance.getSelectedCodes() || [];
       this.onChange(this.value);
     });
   }
@@ -168,5 +182,7 @@ export class AutoCompleteTestValueComponent
   /**
    * Part of the ControlValueAccessor interface
    */
-  writeValue(): void {}
+  writeValue(value: string[]): void {
+    this.currentData = value;
+  }
 }
