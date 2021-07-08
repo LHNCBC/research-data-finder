@@ -56,6 +56,7 @@ class DefineCohortPageComponentStub {
 
 describe('StepperComponent', () => {
   let component: StepperComponent;
+  let fhirBackend: FhirBackendService;
   let fixture: ComponentFixture<StepperComponent>;
 
   beforeEach(async () => {
@@ -81,14 +82,14 @@ describe('StepperComponent', () => {
         {
           provide: FhirBackendService,
           useValue: {
-            initialized: new BehaviorSubject(ConnectionStatus.Ready)
+            initialized: new BehaviorSubject(ConnectionStatus.Ready),
+            disconnect: () => {}
           }
         },
         {
           provide: ColumnDescriptionsService,
           useValue: {
-            getVisibleColumns: () => of([]),
-            destroy: () => {}
+            getVisibleColumns: () => of([])
           }
         }
       ]
@@ -96,11 +97,12 @@ describe('StepperComponent', () => {
   });
 
   beforeEach(async () => {
+    fhirBackend = TestBed.inject(FhirBackendService);
+    spyOn(fhirBackend, 'disconnect').and.callThrough();
     fixture = TestBed.createComponent(StepperComponent);
     component = fixture.componentInstance;
     await fixture.detectChanges();
     spyOn(component.subscription, 'unsubscribe').and.callThrough();
-    spyOn(component.columnDescriptions, 'destroy').and.callThrough();
   });
 
   it('should create', () => {
@@ -114,6 +116,6 @@ describe('StepperComponent', () => {
   it('should unsubscribe on destroy', () => {
     component.ngOnDestroy();
     expect(component.subscription.unsubscribe).toHaveBeenCalledOnceWith();
-    expect(component.columnDescriptions.destroy).toHaveBeenCalledOnceWith();
+    expect(fhirBackend.disconnect).toHaveBeenCalledOnceWith();
   });
 });

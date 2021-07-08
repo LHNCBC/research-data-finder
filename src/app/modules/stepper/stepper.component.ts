@@ -42,6 +42,6 @@ export class StepperComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
-    this.columnDescriptions.destroy();
+    this.fhirBackend.disconnect();
   }
 }

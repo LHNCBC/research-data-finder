@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.5.0] - 2021-07-07
+### Added
+- Limit list of resources to what has data (dbGaP)
+
 ## [3.4.1] - 2021-07-06
 ### Fixed
 - Slowness to load Patients from a ResearchStudy.

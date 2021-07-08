@@ -52,6 +52,7 @@ describe('FhirBackendService', () => {
   });
 
   it('should initialize FhirBatchQuery', () => {
+    service.initializeFhirBatchQuery();
     expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith('');
   });
 
