@@ -2,64 +2,57 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PullDataPageComponent } from './pull-data-page.component';
 import { PullDataPageModule } from './pull-data-page.module';
 import { SharedModule } from '../../shared/shared.module';
-import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
-import observations from '../observation-code-lookup/test-fixtures/observations.json';
-import metadata from '../observation-code-lookup/test-fixtures/metadata.json';
 import observationsForPat106 from './test-fixtures/obs-pat-106.json';
 import observationsForPat232 from './test-fixtures/obs-pat-232.json';
 import observationsForPat269 from './test-fixtures/obs-pat-269.json';
 import encountersForSmart880378 from './test-fixtures/encounter-smart-880378.json';
+import researchStudies from './test-fixtures/research-studies.json';
+import chunk from 'lodash/chunk';
 import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { filter, take, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { from } from 'rxjs';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
   let fixture: ComponentFixture<PullDataPageComponent>;
   let fhirBackend: FhirBackendService;
-
+  let mockHttp: HttpTestingController;
   beforeEach(async () => {
-    spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
-      const HTTP_OK = 200;
-      if (url.includes('smart-880378')) {
-        return Promise.resolve({
-          status: HTTP_OK,
-          data: encountersForSmart880378
-        });
-      } else if (/subject=Patient\/([^&]*)&/.test(url)) {
-        return Promise.resolve({
-          status: HTTP_OK,
-          data: {
-            'pat-106': observationsForPat106,
-            'pat-232': observationsForPat232,
-            'pat-269': observationsForPat269
-          }[RegExp.$1]
-        });
-      } else if (/\$lastn\?/.test(url) || /Observation/.test(url)) {
-        return Promise.resolve({ status: HTTP_OK, data: observations });
-      } else if (/metadata$/.test(url)) {
-        return Promise.resolve({ status: HTTP_OK, data: metadata });
-      }
-    });
     await TestBed.configureTestingModule({
       declarations: [PullDataPageComponent],
-      imports: [PullDataPageModule, SharedModule]
+      imports: [
+        PullDataPageModule,
+        SharedModule,
+        HttpClientTestingModule,
+        MatIconTestingModule
+      ]
     }).compileComponents();
-    fixture = TestBed.createComponent(PullDataPageComponent);
+    spyOn(FhirBackendService.prototype, 'initializeFhirBatchQuery');
     fhirBackend = TestBed.inject(FhirBackendService);
+    spyOnProperty(fhirBackend, 'currentVersion').and.returnValue('R4');
+    spyOnProperty(fhirBackend, 'features').and.returnValue({
+      lastnLookup: true,
+      sortObservationsByDate: true,
+      sortObservationsByAgeAtEvent: false
+    });
+    fhirBackend.initialized.next(ConnectionStatus.Ready);
+    mockHttp = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(PullDataPageComponent);
     component = fixture.componentInstance;
-    await fhirBackend.initialized
-      .pipe(
-        filter((status) => {
-          return status === ConnectionStatus.Ready;
-        }),
-        take(1)
-      )
-      .toPromise();
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    // Verify that no unmatched requests are outstanding
+    mockHttp.verify();
   });
 
   it('should create', () => {
@@ -97,16 +90,25 @@ describe('PullDataForCohortComponent', () => {
   });
 
   it('should load Observations for cohort of Patients', async () => {
-    const arrayOfPatients = [
-      { id: 'pat-106' },
-      { id: 'pat-232' },
-      { id: 'pat-269' }
+    const testData = [
+      { patient: { id: 'pat-106' }, observations: observationsForPat106 },
+      { patient: { id: 'pat-232' }, observations: observationsForPat232 },
+      { patient: { id: 'pat-269' }, observations: observationsForPat269 }
     ];
+    const arrayOfPatients = testData.map((item) => item.patient);
     component.patientStream = from(arrayOfPatients);
     // Should collect Patients from input stream
     expect(component.patients).toEqual(arrayOfPatients);
 
     component.loadResources('Observation', []);
+    testData.forEach((item) => {
+      const patientId = item.patient.id;
+      mockHttp
+        .expectOne(
+          `$fhir/Observation?subject=Patient/${patientId}&_sort=patient,code,-date&_count=1000`
+        )
+        .flush(item.observations);
+    });
     // Should load 4 of 5 Observations from test fixtures (one Observation per Patient per test)
     let loadedResourceCount = 0;
     await component.resourceStream['Observation']
@@ -121,26 +123,32 @@ describe('PullDataForCohortComponent', () => {
         })
       )
       .toPromise();
-
-    // Verify that matching requests have been sent
-    const requests = FhirBatchQuery.prototype.getWithCache.calls.all();
-    requests.slice(-3).forEach((request, i) => {
-      expect(request.args[0]).toMatch(
-        new RegExp(`subject=Patient\\/${arrayOfPatients[i].id}`)
-      );
-    });
   });
 
   it('should load Encounters with correct numbers per patient', async () => {
-    const arrayOfPatients = [{ id: 'smart-880378' }];
+    const testData = [
+      { patient: { id: 'smart-880378' }, encounters: encountersForSmart880378 }
+    ];
+    const arrayOfPatients = testData.map((item) => item.patient);
+    const encountersPerPatient = 2;
     component.patientStream = from(arrayOfPatients);
     // Should collect Patients from input stream
     expect(component.patients).toEqual(arrayOfPatients);
 
     component.addTab('Encounter');
     fixture.detectChanges();
-    component.perPatientFormControls['Encounter'].setValue(2);
+    component.perPatientFormControls['Encounter'].setValue(
+      encountersPerPatient
+    );
     component.loadResources('Encounter', []);
+    testData.forEach((item) => {
+      const patientId = item.patient.id;
+      mockHttp
+        .expectOne(
+          `$fhir/Encounter?subject=Patient/${patientId}&_count=${encountersPerPatient}`
+        )
+        .flush(item.encounters);
+    });
     // Should load 2 resources from test fixtures (2 encounters per Patient)
     let loadedResourceCount = 0;
     await component.resourceStream['Encounter']
@@ -155,11 +163,42 @@ describe('PullDataForCohortComponent', () => {
         })
       )
       .toPromise();
+  });
 
-    // Verify that matching requests have been sent
-    const requests = FhirBatchQuery.prototype.getWithCache.calls.all();
-    const [request] = requests.slice(-1);
-    expect(request.args[0]).toMatch(new RegExp(`_count=2`));
+  it('should load unique ResearchStudies', async () => {
+    const arrayOfPatients = Array.from({ length: 30 }, (_, index) => ({
+      id: 'smart-' + index
+    }));
+    component.patientStream = from(arrayOfPatients);
+    // Should collect Patients from input stream
+    expect(component.patients).toEqual(arrayOfPatients);
+
+    component.addTab('ResearchStudy');
+    fixture.detectChanges();
+    component.loadResources('ResearchStudy', []);
+    chunk(arrayOfPatients, 10).forEach((patients) => {
+      mockHttp
+        .expectOne(
+          `$fhir/ResearchStudy?_has:ResearchSubject:study:individual=${patients
+            .map((patient) => patient.id)
+            .join(',')}&_count=1000`
+        )
+        .flush(researchStudies);
+    });
+    // Should load 2 unique (not repeated) resources from test fixtures
+    let loadedResourceCount = 0;
+    await component.resourceStream['ResearchStudy']
+      .pipe(
+        tap({
+          next: () => {
+            loadedResourceCount++;
+          },
+          complete: () => {
+            expect(loadedResourceCount).toBe(2);
+          }
+        })
+      )
+      .toPromise();
   });
 
   it('should add/remove Patient tab', async () => {
