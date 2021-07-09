@@ -3,5 +3,12 @@
           (click)="removeParameter(item)">
     <mat-icon svgIcon="clear"></mat-icon>
   </button>
+
   <app-search-parameter-group [formControl]="item"></app-search-parameter-group>
 </div>
+
+<button id="addResourceType"
+        type="button"
+        (click)="addParameter()" mat-stroked-button color="secondary">
+  <mat-icon svgIcon="add"></mat-icon>Add a resource type
+</button>
