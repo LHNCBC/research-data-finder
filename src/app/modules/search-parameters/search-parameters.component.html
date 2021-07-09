@@ -1,7 +1,7 @@
-<div *ngFor="let item of parameterList.controls" class="search-parameter-row">
+<div *ngFor="let item of parameterList.controls" class="search-parameter-group">
   <button type="button" mat-icon-button aria-label="Remove search parameter"
           (click)="removeParameter(item)">
     <mat-icon svgIcon="clear"></mat-icon>
   </button>
-  <app-search-parameter [formControl]="item" [inputResourceType]="resourceType"></app-search-parameter>
+  <app-search-parameter-group [formControl]="item"></app-search-parameter-group>
 </div>

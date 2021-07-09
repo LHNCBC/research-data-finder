@@ -26,15 +26,11 @@ import {
 export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>
   implements OnInit {
-  @Input() inputResourceType = '';
-  fixedResourceType = false;
+  @Input() resourceType = '';
   readonly OBSERVATIONBYTEST = 'Observation by Test';
   readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
   definitions: any;
 
-  resourceType: FormControl = new FormControl('');
-  resourceTypes: string[] = [];
-  filteredResourceTypes: Observable<string[]>;
   selectedResourceType: any;
 
   parameterName: FormControl = new FormControl('');
@@ -49,7 +45,6 @@ export class SearchParameterComponent
 
   get value(): SearchParameter {
     return {
-      resourceType: this.resourceType.value,
       name: this.parameterName.value,
       value: this.parameterValue.value,
       selectedObservationCodes: this.selectedObservationCodes.value
@@ -72,44 +67,12 @@ export class SearchParameterComponent
   }
 
   ngOnInit(): void {
-    this.filteredResourceTypes = this.resourceType.valueChanges.pipe(
-      startWith(''),
-      map((value) => this._filter(value, this.resourceTypes))
-    );
-
-    this.resourceType.valueChanges.subscribe((value) => {
-      if (value === this.OBSERVATIONBYTEST) {
-        this.selectedParameter = null;
-        this.selectedResourceType = null;
-        return;
-      }
-      const match = this.resourceTypes.find((rt) => rt === value);
-      if (match) {
-        this.selectedResourceType = this.definitions.resources[value];
-        this.parameterNames = this.selectedResourceType.searchParameters.map(
-          (sp) => sp.name
-        );
-        this.selectedParameter = null;
-        this.parameterName.setValue('');
-        this.parameterValue.setValue('');
-      }
-      // tell Angular forms API to update parent form control
-      this.onChange(this.value);
-    });
-
     this.definitions = this.fhirBackend.getCurrentDefinitions();
-    if (!this.inputResourceType) {
-      this.resourceTypes = Object.keys(this.definitions.resources).concat(
-        this.OBSERVATIONBYTEST
-      );
-    } else if (this.inputResourceType === 'Observation') {
-      this.resourceTypes = ['Observation', this.OBSERVATIONBYTEST];
-    } else {
-      // single resource type
-      this.resourceType.setValue(this.inputResourceType);
-      this.resourceTypes = [this.inputResourceType];
-      this.fixedResourceType = true;
-    }
+    this.selectedResourceType = this.definitions.resources[this.resourceType];
+    this.parameterNames = this.selectedResourceType.searchParameters.map(
+      (sp) => sp.name
+    );
+    this.selectedParameter = null;
 
     this.filteredParameterNames = this.parameterName.valueChanges.pipe(
       startWith(''),
@@ -162,7 +125,6 @@ export class SearchParameterComponent
    * @param value New value to be written to the model.
    */
   writeValue(value: SearchParameter): void {
-    this.resourceType.setValue(value.resourceType || '');
     this.parameterName.setValue(value.name || '');
     this.parameterValue.setValue(value.value || '');
     this.selectedObservationCodes.setValue(
@@ -171,23 +133,10 @@ export class SearchParameterComponent
   }
 
   /**
-   * return resource type and url segment of search string for current search parameter.
-   */
-  getCondition(): SearchCondition {
-    const criteria = this.getCriteria();
-    return criteria
-      ? {
-          resourceType: this.resourceType.value,
-          criteria
-        }
-      : null;
-  }
-
-  /**
    * get string of url segment describing the search criteria that will be used to search in server.
    */
   getCriteria(): string {
-    if (this.resourceType.value === this.OBSERVATIONBYTEST) {
+    if (this.resourceType === this.OBSERVATIONBYTEST) {
       return this.getObservationByTestCriteria();
     }
     if (this.selectedParameter.type === 'date') {
@@ -201,7 +150,7 @@ export class SearchParameterComponent
       );
     }
     if (
-      this.resourceType.value === 'Patient' &&
+      this.resourceType === 'Patient' &&
       this.parameterName.value === 'active' &&
       this.parameterValue.value === 'true'
     ) {

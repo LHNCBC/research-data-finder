@@ -7,6 +7,7 @@ import {
 import { SearchParameter } from 'src/app/types/search.parameter';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 import { SearchCondition } from '../../types/search.condition';
+import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 
 /**
  * Component for managing resources search parameters
@@ -20,12 +21,8 @@ import { SearchCondition } from '../../types/search.condition';
 export class SearchParametersComponent extends BaseControlValueAccessor<
   SearchParameter[]
 > {
-  /**
-   * Limits the list of available search parameters to only parameters for this resource type
-   */
-  @Input() resourceType = '';
-  @ViewChildren(SearchParameterComponent)
-  searchParameterComponents: QueryList<SearchParameterComponent>;
+  @ViewChildren(SearchParameterGroupComponent)
+  searchParameterGroupComponents: QueryList<SearchParameterGroupComponent>;
   parameterList = new FormArray([]);
   readonly OBSERVATIONBYTEST = 'Observation by Test';
 
@@ -40,11 +37,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
    * Add new search parameter to search parameter list
    */
   public addParameter(): void {
-    this.parameterList.push(
-      new FormControl({
-        resourceType: this.resourceType
-      })
-    );
+    this.parameterList.push(new FormControl({}));
   }
 
   /**
@@ -60,32 +53,16 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 
   // Get search conditions from each row, group them on the resource type
   getConditions(): SearchCondition[] {
-    const conditions = this.searchParameterComponents.map((c) =>
-      c.getCondition()
+    const conditions = this.searchParameterGroupComponents.map((c) =>
+      c.getConditions()
     );
-    const groupedConditions = [];
-    // add default Patient condition if missing
-    groupedConditions.push({
-      resourceType: 'Patient',
-      criteria: ''
-    });
-    conditions.forEach((item) => {
-      const match = groupedConditions.find(
-        (x) => x.resourceType === item.resourceType
-      );
-      // do not combine conditions for 'Observation by Test'
-      if (match && item.resourceType !== this.OBSERVATIONBYTEST) {
-        match.criteria += item.criteria;
-      } else {
-        groupedConditions.push(item);
-      }
-    });
-    conditions.map((item) => {
-      // for 'Observation by Test', search url needs to use 'Observation'
-      if (item.resourceType === this.OBSERVATIONBYTEST) {
-        item.resourceType = 'Observation';
-      }
-    });
-    return groupedConditions;
+    if (!conditions.some((c) => c.resourceType === 'Patient')) {
+      // add default Patient condition if missing
+      conditions.push({
+        resourceType: 'Patient',
+        criteria: ''
+      });
+    }
+    return conditions;
   }
 }

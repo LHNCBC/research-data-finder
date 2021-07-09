@@ -1,0 +1,26 @@
+
+.resource-type {
+  width: 210px;
+}
+
+.search-parameter-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  & app-search-parameter {
+    flex: 1 1;
+  }
+
+  & .mat-icon-button:not(:hover) mat-icon {
+    opacity: .4;
+  }
+
+  & button {
+    margin-top: 0.4em;
+  }
+}
+
+#addSearchCriterion {
+  display: block;
+  margin-bottom: 20px;
+}

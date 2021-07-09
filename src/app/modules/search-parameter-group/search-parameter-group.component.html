@@ -18,6 +18,14 @@
             (click)="removeParameter(item)">
       <mat-icon svgIcon="clear"></mat-icon>
     </button>
-    <app-search-parameter [formControl]="item" [inputResourceType]="resourceType.value"></app-search-parameter>
+    <app-search-parameter [formControl]="item" [resourceType]="resourceType.value"></app-search-parameter>
   </div>
+
+  <button *ngIf='resourceTypeSet'
+          id="addSearchCriterion"
+          type="button"
+          (click)="addParameter()"
+          mat-stroked-button color="secondary">
+    <mat-icon svgIcon="add"></mat-icon>Add {{resourceType.value}} criterion
+  </button>
 </div>

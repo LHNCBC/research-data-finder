@@ -39,7 +39,7 @@
     </ng-container>
   </ng-container>
 
-  <mat-form-field class="flex" *ngIf="resourceType.value === OBSERVATIONBYTEST">
+  <mat-form-field class="flex" *ngIf="resourceType === OBSERVATIONBYTEST">
     <mat-label>Observation codes from FHIR server</mat-label>
     <app-observation-code-lookup
       [formControl]="selectedObservationCodes"
@@ -48,7 +48,7 @@
   </mat-form-field>
 
   <app-observation-test-value class="parameter-value" [formControl]="parameterValue" [datatype]="selectedObservationCodes.value?.datatype"
-                  *ngIf="resourceType.value === OBSERVATIONBYTEST && selectedObservationCodes.value?.datatype">
+                  *ngIf="resourceType === OBSERVATIONBYTEST && selectedObservationCodes.value?.datatype">
   </app-observation-test-value>
 
 </div>
