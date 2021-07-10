@@ -14,8 +14,11 @@ import { SearchParameter } from 'src/app/types/search.parameter';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 import { SearchCondition } from '../../types/search.condition';
 import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { filter, map, startWith, take } from 'rxjs/operators';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
 
 /**
  * Component for managing search parameters of a resource type
@@ -29,35 +32,46 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 export class SearchParameterGroupComponent
   extends BaseControlValueAccessor<SearchParameter[]>
   implements OnInit {
+  @Input() inputResourceType = '';
   @ViewChildren(SearchParameterComponent)
   searchParameterComponents: QueryList<SearchParameterComponent>;
   parameterList = new FormArray([]);
   resourceType: FormControl = new FormControl('');
   resourceTypes: string[] = [];
   filteredResourceTypes: Observable<string[]>;
-  resourceTypeSet = false;
-  definitions: any;
 
   constructor(private fhirBackend: FhirBackendService) {
     super();
+    fhirBackend.initialized
+      .pipe(
+        filter((status) => status === ConnectionStatus.Ready),
+        take(1)
+      )
+      .subscribe(() => {
+        const definitions = this.fhirBackend.getCurrentDefinitions();
+        this.resourceTypes = Object.keys(definitions.resources);
+      });
     this.parameterList.valueChanges.subscribe((value) => {
       this.onChange(value);
     });
   }
 
   ngOnInit(): void {
-    this.filteredResourceTypes = this.resourceType.valueChanges.pipe(
-      startWith(''),
-      map((value) => this._filter(value, this.resourceTypes))
-    );
-    this.resourceType.valueChanges.subscribe((value) => {
-      const match = this.resourceTypes.find((rt) => rt === value);
-      if (match) {
-        this.resourceTypeSet = true;
-      }
-    });
-    this.definitions = this.fhirBackend.getCurrentDefinitions();
-    this.resourceTypes = Object.keys(this.definitions.resources);
+    if (this.inputResourceType) {
+      this.resourceType.setValue(this.inputResourceType);
+      this.resourceType.disable();
+    } else {
+      this.filteredResourceTypes = this.resourceType.valueChanges.pipe(
+        startWith(''),
+        map((value) => this._filter(value, this.resourceTypes))
+      );
+      this.resourceType.valueChanges.subscribe((value) => {
+        const match = this.resourceTypes.find((rt) => rt === value);
+        if (match) {
+          this.resourceType.disable({ emitEvent: false });
+        }
+      });
+    }
   }
 
   private _filter(

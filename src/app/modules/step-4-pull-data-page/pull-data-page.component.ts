@@ -174,7 +174,7 @@ export class PullDataPageComponent implements AfterViewInit {
    * @param resourceType - resource type
    * @param conditions - criteria
    */
-  loadResources(resourceType: string, conditions: SearchCondition[]): void {
+  loadResources(resourceType: string, criteria: string): void {
     this.resourceStream[resourceType] = new Subject<Resource>();
 
     // Added "detectChanges" to prevent this issue:
@@ -182,7 +182,6 @@ export class PullDataPageComponent implements AfterViewInit {
     // before the ResourceTableComponent subscribes to the resource stream.
     this.cdr.detectChanges();
 
-    let criteria = conditions.map((condition) => condition.criteria).join('');
     const observationCodes = [];
     const patientToCodeToCount = {};
     let sortParam = '';
@@ -231,7 +230,7 @@ export class PullDataPageComponent implements AfterViewInit {
 
           const count =
             resourceType === 'Observation'
-              ? '$_count=1000'
+              ? '&_count=1000'
               : resourceType === 'Patient'
               ? ''
               : `&_count=${this.perPatientFormControls[resourceType].value}`;

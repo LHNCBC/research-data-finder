@@ -1,5 +1,5 @@
 <div class="search-parameter">
-  <mat-form-field class="resource-type">
+  <mat-form-field class="resource-type" *ngIf='!inputResourceType'>
     <mat-label>Resource type</mat-label>
     <input type="text"
            aria-label="Resource type"
@@ -21,7 +21,7 @@
     <app-search-parameter [formControl]="item" [resourceType]="resourceType.value"></app-search-parameter>
   </div>
 
-  <button *ngIf='resourceTypeSet'
+  <button *ngIf='resourceType.disabled'
           id="addSearchCriterion"
           type="button"
           (click)="addParameter()"
