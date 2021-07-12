@@ -1,11 +1,10 @@
-import { Component, Input, ViewChildren, QueryList } from '@angular/core';
+import { Component, ViewChildren, QueryList } from '@angular/core';
 import { AbstractControl, FormArray, FormControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 import { SearchParameter } from 'src/app/types/search.parameter';
-import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 import { SearchCondition } from '../../types/search.condition';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 
@@ -37,7 +36,12 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
    * Add new search parameter to search parameter list
    */
   public addParameter(): void {
-    this.parameterList.push(new FormControl({}));
+    this.parameterList.push(
+      new FormControl({
+        resourceType: '',
+        parameters: []
+      })
+    );
   }
 
   /**

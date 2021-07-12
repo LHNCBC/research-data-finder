@@ -10,7 +10,6 @@ import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
-import { SearchParameter } from 'src/app/types/search.parameter';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 import { SearchCondition } from '../../types/search.condition';
 import { Observable } from 'rxjs';
@@ -19,6 +18,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
+import { SearchParameterGroup } from '../../types/search-parameter-group';
 
 /**
  * Component for managing search parameters of a resource type
@@ -30,7 +30,7 @@ import {
   providers: createControlValueAccessorProviders(SearchParameterGroupComponent)
 })
 export class SearchParameterGroupComponent
-  extends BaseControlValueAccessor<SearchParameter[]>
+  extends BaseControlValueAccessor<SearchParameterGroup>
   implements OnInit {
   @Input() inputResourceType = '';
   @ViewChildren(SearchParameterComponent)
@@ -39,6 +39,13 @@ export class SearchParameterGroupComponent
   resourceType: FormControl = new FormControl('');
   resourceTypes: string[] = [];
   filteredResourceTypes: Observable<string[]>;
+
+  get value(): SearchParameterGroup {
+    return {
+      resourceType: this.resourceType.value,
+      parameters: this.parameterList.value
+    };
+  }
 
   constructor(private fhirBackend: FhirBackendService) {
     super();
@@ -51,8 +58,8 @@ export class SearchParameterGroupComponent
         const definitions = this.fhirBackend.getCurrentDefinitions();
         this.resourceTypes = Object.keys(definitions.resources);
       });
-    this.parameterList.valueChanges.subscribe((value) => {
-      this.onChange(value);
+    this.parameterList.valueChanges.subscribe(() => {
+      this.onChange(this.value);
     });
   }
 
@@ -102,8 +109,12 @@ export class SearchParameterGroupComponent
     this.parameterList.removeAt(this.parameterList.controls.indexOf(item));
   }
 
-  writeValue(value: SearchParameter[]): void {
-    // TODO
+  writeValue(value: SearchParameterGroup): void {
+    this.resourceType.setValue(value?.resourceType);
+    this.parameterList.clear();
+    value?.parameters?.forEach((v) =>
+      this.parameterList.push(new FormControl(v))
+    );
   }
 
   // Get and group search conditions for a resource type.

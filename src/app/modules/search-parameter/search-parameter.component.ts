@@ -8,7 +8,6 @@ import {
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
-import { SearchCondition } from '../../types/search.condition';
 import {
   encodeFhirSearchParameter,
   escapeFhirSearchParameter
