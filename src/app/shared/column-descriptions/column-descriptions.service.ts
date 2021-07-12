@@ -118,11 +118,6 @@ export class ColumnDescriptionsService {
           const visibleColumns = this.getAvailableColumns(resourceType).filter(
             (x) => x.visible
           );
-          console.log(
-            '[combineLatest]',
-            resourceType,
-            visibleColumns.map((i) => i.element).join(',')
-          );
 
           return visibleColumns;
         })

@@ -149,11 +149,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       );
     }
     if (changes['columnDescriptions']) {
-      console.log(
-        '[ngOnChange]',
-        this.resourceType,
-        this.columnDescriptions.map((i) => i.element).join(',')
-      );
       this.columns.length = 0;
       if (this.enableSelection) {
         this.columns.push('select');
