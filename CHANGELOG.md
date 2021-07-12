@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.5.0] - 2021-07-12
+### Added
+- Functionality to save cohort data and criteria into file.
+- Functionality to load cohort data and criteria from file.
+
 ## [3.4.1] - 2021-07-06
 ### Fixed
 - Slowness to load Patients from a ResearchStudy.

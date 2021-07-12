@@ -14,7 +14,7 @@ import metadata from './test-fixtures/metadata.json';
   template: ` <mat-form-field class="flex">
     <mat-label>Observation codes from FHIR server</mat-label>
     <app-observation-code-lookup
-      [formControl]="selectedLoincItems"
+      [formControl]="selectedObservationCodes"
       placeholder="Type and select one or more"
     >
     </app-observation-code-lookup>
@@ -23,7 +23,7 @@ import metadata from './test-fixtures/metadata.json';
 class TestHostComponent {
   @ViewChild(ObservationCodeLookupComponent)
   component: ObservationCodeLookupComponent;
-  selectedLoincItems = new FormControl({
+  selectedObservationCodes = new FormControl({
     codes: ['3137-7'],
     items: ['Height cm'],
     datatype: 'Quantity'
@@ -109,10 +109,10 @@ describe('ObservationCodeLookupComponent', () => {
       it('should initialize autocomplete correctly', () => {
         expect(component.acInstance).toBeTruthy();
         expect(component.acInstance.getSelectedCodes()).toEqual(
-          hostComponent.selectedLoincItems.value.codes
+          hostComponent.selectedObservationCodes.value.codes
         );
         expect(component.acInstance.getSelectedItems()).toEqual(
-          hostComponent.selectedLoincItems.value.items
+          hostComponent.selectedObservationCodes.value.items
         );
       });
 
@@ -142,7 +142,7 @@ describe('ObservationCodeLookupComponent', () => {
             x.args[0].match(/_elements=code,value,component&code=H/)
           )
         ).toBeTruthy();
-        expect(hostComponent.selectedLoincItems.value.codes.length).toBe(2);
+        expect(hostComponent.selectedObservationCodes.value.codes.length).toBe(2);
       });
     });
   });

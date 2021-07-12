@@ -35,6 +35,8 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   researchStudiesSubscription: Subscription;
   researchStudyStream: Subject<Resource>;
   showTable = false;
+  // A list of items that system will select once table loading is complete.
+  idsToSelect: string[] = [];
   @ViewChild('resourceTableComponent') public resourceTableComponent;
 
   /**
@@ -117,6 +119,10 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
             this.loadResearchStudies(nextBundleUrl);
           } else {
             this.researchStudyStream.complete();
+            if (this.idsToSelect.length) {
+              this.resourceTableComponent.setSelectedIds(this.idsToSelect);
+              this.idsToSelect.length = 0;
+            }
           }
         }
       });
@@ -132,6 +138,26 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
       return this.resourceTableComponent.selectedResources.selected.map(
         (r) => r.id
       );
+    }
+  }
+
+  /**
+   * Re-populate research study table with selected items.
+   * Update radio button selection accordingly.
+   */
+  selectLoadedResearchStudies(ids: string[]): void {
+    if (this.option.value === SelectOptions.ResearchStudy && !ids.length) {
+      this.option.setValue(SelectOptions.Skip);
+    } else if (
+      this.option.value === SelectOptions.ResearchStudy &&
+      ids.length
+    ) {
+      this.resourceTableComponent.isLoading
+        ? (this.idsToSelect = ids)
+        : this.resourceTableComponent.setSelectedIds(ids);
+    } else if (this.option.value === SelectOptions.Skip && ids.length) {
+      this.idsToSelect = ids;
+      this.option.setValue(SelectOptions.ResearchStudy);
     }
   }
 }
