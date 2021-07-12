@@ -26,7 +26,7 @@ export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>
   implements OnInit {
   @Input() resourceType = '';
-  readonly OBSERVATIONBYTEST = 'Observation by Test';
+  readonly OBSERVATIONBYTEST = 'code text';
   readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
   definitions: any;
 
@@ -71,6 +71,9 @@ export class SearchParameterComponent
     this.parameterNames = this.selectedResourceType.searchParameters.map(
       (sp) => sp.name
     );
+    if (this.resourceType === 'Observation') {
+      this.parameterNames.unshift(this.OBSERVATIONBYTEST);
+    }
     this.selectedParameter = null;
 
     this.filteredParameterNames = this.parameterName.valueChanges.pipe(
@@ -135,7 +138,7 @@ export class SearchParameterComponent
    * get string of url segment describing the search criteria that will be used to search in server.
    */
   getCriteria(): string {
-    if (this.resourceType === this.OBSERVATIONBYTEST) {
+    if (this.parameterName.value === this.OBSERVATIONBYTEST) {
       return this.getObservationByTestCriteria();
     }
     if (this.selectedParameter.type === 'date') {

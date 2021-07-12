@@ -23,7 +23,6 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   @ViewChildren(SearchParameterGroupComponent)
   searchParameterGroupComponents: QueryList<SearchParameterGroupComponent>;
   parameterList = new FormArray([]);
-  readonly OBSERVATIONBYTEST = 'Observation by Test';
 
   constructor() {
     super();
