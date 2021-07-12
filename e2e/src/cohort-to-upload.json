@@ -4,9 +4,13 @@
   "rawCriteria": [
     {
       "resourceType": "Patient",
-      "name": "name",
-      "value": "amy",
-      "selectedObservationCodes": null
+      "parameters": [
+        {
+          "name": "name",
+          "value": "amy",
+          "selectedObservationCodes": null
+        }
+      ]
     }
   ],
   "data": [

@@ -16,7 +16,13 @@ describe('SearchParameterComponent', () => {
           provide: FhirBackendService,
           useValue: {
             getCurrentDefinitions: () => {
-              return { resources: [] };
+              return {
+                resources: {
+                  Observation: {
+                    searchParameters: [{ name: 'code' }]
+                  }
+                }
+              };
             }
           }
         }
@@ -27,10 +33,17 @@ describe('SearchParameterComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(SearchParameterComponent);
     component = fixture.componentInstance;
+    component.resourceType = 'Observation';
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should have code text parameter', () => {
+    expect(component.parameterNames).not.toBeNull();
+    expect(component.parameterNames.length).toEqual(2);
+    expect(component.parameterNames.includes('code text')).toBeTrue();
   });
 });

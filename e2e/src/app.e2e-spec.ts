@@ -115,10 +115,12 @@ describe('Research Data Finder', () => {
   });
 
   it('should add search criterion', async () => {
-    const addButton = $('#addSearchCriterion');
-    await addButton.click();
+    await $('#addResourceType').click();
     expect(await $('.resource-type').isDisplayed()).toBe(true);
     await $('.resource-type input').sendKeys('Patient');
+    // Blur out of resource type input so its dropdown doesn't block #addSearchCriterion button.
+    await $('app-define-cohort-page').click();
+    await $('app-define-cohort-page #addSearchCriterion').click();
     expect(await $('.parameter-name').isDisplayed()).toBe(true);
     await $('.parameter-name input').sendKeys('address');
     expect(await $('.parameter-value').isDisplayed()).toBe(true);

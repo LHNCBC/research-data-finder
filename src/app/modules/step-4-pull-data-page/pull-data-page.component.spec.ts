@@ -106,7 +106,7 @@ describe('PullDataForCohortComponent', () => {
     // Should collect Patients from input stream
     expect(component.patients).toEqual(arrayOfPatients);
 
-    component.loadResources('Observation', []);
+    component.loadResources('Observation', '');
     // Should load 4 of 5 Observations from test fixtures (one Observation per Patient per test)
     let loadedResourceCount = 0;
     await component.resourceStream['Observation']
@@ -140,7 +140,7 @@ describe('PullDataForCohortComponent', () => {
     component.addTab('Encounter');
     fixture.detectChanges();
     component.perPatientFormControls['Encounter'].setValue(2);
-    component.loadResources('Encounter', []);
+    component.loadResources('Encounter', '');
     // Should load 2 resources from test fixtures (2 encounters per Patient)
     let loadedResourceCount = 0;
     await component.resourceStream['Encounter']
