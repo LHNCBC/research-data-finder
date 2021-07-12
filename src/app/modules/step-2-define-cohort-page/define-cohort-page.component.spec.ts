@@ -42,6 +42,15 @@ describe('DefineCohortComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should add ResearchStudy ids to search parameters', () => {
+    expect(component.getConditions(['someResearchStudyId'])).toEqual([
+      {
+        resourceType: 'Patient',
+        criteria: '&_has:ResearchSubject:individual:study=someResearchStudyId'
+      }
+    ]);
+  });
+
   it('should emit no more than max number of patients', async (done) => {
     component.patientStream = new Subject<fhir.Resource>();
     const nextSpy = spyOn(component.patientStream, 'next');

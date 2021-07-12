@@ -70,18 +70,12 @@ export class DefineCohortPageComponent
   getConditions(researchStudyIds: string[]): SearchCondition[] {
     const conditions = this.patientParams.getConditions();
     if (researchStudyIds.length) {
-      const criteria = `&_id=${researchStudyIds.join(',')}`;
-      const researchStudyCondition = conditions.find(
-        (c) => c.resourceType === 'ResearchStudy'
+      const patientCondition = conditions.find(
+        (c) => c.resourceType === 'Patient'
       );
-      if (researchStudyCondition) {
-        researchStudyCondition.criteria += criteria;
-      } else {
-        conditions.push({
-          resourceType: 'ResearchStudy',
-          criteria
-        });
-      }
+      patientCondition.criteria += `&_has:ResearchSubject:individual:study=${researchStudyIds.join(
+        ','
+      )}`;
     }
     return conditions;
   }

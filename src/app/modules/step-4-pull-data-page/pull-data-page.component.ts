@@ -6,7 +6,8 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { concatMap, map, reduce, startWith } from 'rxjs/operators';
+import { concatMap, distinct, map, reduce, startWith } from 'rxjs/operators';
+import chunk from 'lodash/chunk';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -16,7 +17,6 @@ import { from, Observable, Subject } from 'rxjs';
 import Patient = fhir.Patient;
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { HttpClient } from '@angular/common/http';
-import { SearchCondition } from '../../types/search.condition';
 import { FormControl, Validators } from '@angular/forms';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 import Resource = fhir.Resource;
@@ -96,10 +96,14 @@ export class PullDataPageComponent implements AfterViewInit {
           ])
         };
         this.unselectedResourceTypes.forEach((r) => {
-          this.perPatientFormControls[r] = new FormControl(1000, [
-            Validators.required,
-            Validators.min(1)
-          ]);
+          // Due to optimization, we cannot control the number of ResearchStudies
+          // per Patient. Luckily it doesn't make much sense.
+          if (r !== 'ResearchStudy' && r !== 'Patient') {
+            this.perPatientFormControls[r] = new FormControl(1000, [
+              Validators.required,
+              Validators.min(1)
+            ]);
+          }
         });
       });
   }
@@ -172,7 +176,7 @@ export class PullDataPageComponent implements AfterViewInit {
   /**
    * Loads resources of the specified type for a cohort of Patients.
    * @param resourceType - resource type
-   * @param conditions - criteria
+   * @param criteria - criteria
    */
   loadResources(resourceType: string, criteria: string): void {
     this.resourceStream[resourceType] = new Subject<Resource>();
@@ -201,17 +205,28 @@ export class PullDataPageComponent implements AfterViewInit {
       sortParam = '&_sort=' + sortFields.join(',');
     }
 
+    // To optimize ResearchStudy and Patient loading, we load them for 10 Patients
+    // in one query. We don't use this optimization for other resource types
+    // because we need to limit the number of resources per Patient.
+    const numberOfPatientsInRequest =
+      resourceType === 'ResearchStudy' || resourceType === 'Patient' ? 10 : 1;
     from(
       [].concat(
-        ...this.patients.map((patient) => {
+        ...chunk(this.patients, numberOfPatientsInRequest).map((patients) => {
           let linkToPatient;
 
           if (resourceType === 'ResearchStudy') {
-            linkToPatient = `_has:ResearchSubject:study:individual=Patient/${patient.id}`;
+            linkToPatient = `_has:ResearchSubject:study:individual=${patients
+              .map((patient) => patient.id)
+              .join(',')}`;
           } else if (resourceType === 'Patient') {
-            linkToPatient = `_id=${patient.id}`;
+            linkToPatient = `_id=${patients
+              .map((patient) => patient.id)
+              .join(',')}`;
           } else {
-            linkToPatient = `subject=Patient/${patient.id}`;
+            linkToPatient = `subject=${patients
+              .map((patient) => 'Patient/' + patient.id)
+              .join(',')}`;
           }
 
           if (observationCodes.length) {
@@ -228,16 +243,15 @@ export class PullDataPageComponent implements AfterViewInit {
             });
           }
 
-          const count =
-            resourceType === 'Observation'
+          const countParam =
+            resourceType === 'Observation' ||
+            !this.perPatientFormControls[resourceType]
               ? '&_count=1000'
-              : resourceType === 'Patient'
-              ? ''
               : `&_count=${this.perPatientFormControls[resourceType].value}`;
           return (
             this.http
               .get(
-                `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}${count}`
+                `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}${countParam}`
               )
               // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
               .toPromise()
@@ -299,7 +313,9 @@ export class PullDataPageComponent implements AfterViewInit {
           }
 
           return res;
-        })
+        }),
+        // Exclude duplicates (e.g. when fetching ResearchStudies by Patients)
+        distinct((resource) => resource.id)
       )
       // Sequentially send the loaded resources to the resource table
       .subscribe(this.resourceStream[resourceType]);
