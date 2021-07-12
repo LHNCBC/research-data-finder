@@ -17,10 +17,10 @@ import { SettingsService } from '../settings-service/settings.service';
 })
 export class ColumnDescriptionsService {
   // The subject that should generate the next value when changing the visibility of columns
-  isVisibilityChanged: { [key: string]: BehaviorSubject<void> } = {};
+  visibilityChanged: { [key: string]: BehaviorSubject<void> } = {};
 
   // Object which maps each resource type to the Observable of the visible column descriptions
-  observableVisibleColumns: {
+  visibleColumns: {
     [key: string]: Observable<ColumnDescription[]>;
   } = {};
 
@@ -30,6 +30,25 @@ export class ColumnDescriptionsService {
     private columnValues: ColumnValuesService,
     private settings: SettingsService
   ) {}
+
+  /**
+   * Compare function for column descriptions
+   */
+  private static sortColumns(
+    a: ColumnDescription,
+    b: ColumnDescription
+  ): number {
+    if (!a.sortOrder && !b.sortOrder) {
+      return 0;
+    }
+    if (!a.sortOrder && b.sortOrder) {
+      return 1;
+    }
+    if (a.sortOrder && !b.sortOrder) {
+      return -1;
+    }
+    return a.sortOrder - b.sortOrder;
+  }
 
   /**
    * Stores visible resource table column names in localStorage
@@ -58,25 +77,6 @@ export class ColumnDescriptionsService {
   }
 
   /**
-   * Compare function for column descriptions
-   */
-  private static sortColumns(
-    a: ColumnDescription,
-    b: ColumnDescription
-  ): number {
-    if (!a.sortOrder && !b.sortOrder) {
-      return 0;
-    }
-    if (!a.sortOrder && b.sortOrder) {
-      return 1;
-    }
-    if (a.sortOrder && !b.sortOrder) {
-      return -1;
-    }
-    return a.sortOrder - b.sortOrder;
-  }
-
-  /**
    * Open dialog to manage visible columns
    */
   openColumnsDialog(resourceType: string): void {
@@ -96,7 +96,7 @@ export class ColumnDescriptionsService {
         resourceType,
         visibleColumns.map((c) => c.element)
       );
-      this.isVisibilityChanged[resourceType].next();
+      this.visibilityChanged[resourceType].next();
     });
   }
 
@@ -105,25 +105,23 @@ export class ColumnDescriptionsService {
    * @param resourceType - resource type
    */
   getVisibleColumns(resourceType: string): Observable<ColumnDescription[]> {
-    if (!this.observableVisibleColumns[resourceType]) {
-      this.isVisibilityChanged[resourceType] = new BehaviorSubject<void>(
+    if (!this.visibleColumns[resourceType]) {
+      this.visibilityChanged[resourceType] = new BehaviorSubject<void>(
         undefined
       );
-      this.observableVisibleColumns[resourceType] = combineLatest([
+      this.visibleColumns[resourceType] = combineLatest([
         this.fhirBackend.initialized,
-        this.isVisibilityChanged[resourceType]
+        this.visibilityChanged[resourceType]
       ]).pipe(
         filter(([status]) => status === ConnectionStatus.Ready),
         map(() => {
-          const visibleColumns = this.getAvailableColumns(resourceType).filter(
-            (x) => x.visible
+          return this.getAvailableColumns(resourceType).filter(
+              (x) => x.visible
           );
-
-          return visibleColumns;
         })
       );
     }
-    return this.observableVisibleColumns[resourceType];
+    return this.visibleColumns[resourceType];
   }
 
   /**
