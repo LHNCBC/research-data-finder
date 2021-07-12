@@ -6,7 +6,7 @@ a cohort of patients, and then pull data for those patients.
 ## Demo
 Try it out on the [demo page](https://lhcforms.nlm.nih.gov/fhir/research-data-finder/).
 
-## Installation and run
+## How to run it locally
 1. Install required node packages:
 
         npm install
