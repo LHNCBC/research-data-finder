@@ -28,6 +28,13 @@ export class SearchParameterComponent
   @Input() resourceType = '';
   readonly OBSERVATIONBYTEST = 'code text';
   readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
+  // Observation search parameter names to be hidden
+  readonly OBSERVATIONHIDDENPARAMETERNAMES = [
+    'combo-code',
+    'combo-value-concept',
+    'combo-value-quantity',
+    'value-string'
+  ];
   definitions: any;
 
   selectedResourceType: any;
@@ -72,6 +79,9 @@ export class SearchParameterComponent
       (sp) => sp.name
     );
     if (this.resourceType === 'Observation') {
+      this.parameterNames = this.parameterNames.filter(
+        (n) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(n)
+      );
       this.parameterNames.unshift(this.OBSERVATIONBYTEST);
     }
     this.selectedParameter = null;
@@ -188,17 +198,11 @@ export class SearchParameterComponent
         )
       : '';
     const unit = this.parameterValue.value.testValueUnit;
-    const from = this.parameterValue.value.from
-      ? `&date=ge${encodeURIComponent(this.parameterValue.value.from)}`
-      : '';
-    const to = this.parameterValue.value.to
-      ? `&date=le${encodeURIComponent(this.parameterValue.value.to)}`
-      : '';
     const valueParam = testValue.trim()
       ? `&${valueParamName}${modifier}=${prefix}${encodeURIComponent(
           testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
         )}`
       : '';
-    return `${codeParam}${valueParam}${from}${to}`;
+    return `${codeParam}${valueParam}`;
   }
 }
