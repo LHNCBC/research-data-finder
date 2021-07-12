@@ -6,7 +6,7 @@ a cohort of patients, and then pull data for those patients.
 ## Demo
 Try it out on the [demo page](https://lhcforms.nlm.nih.gov/fhir/research-data-finder/).
 
-### Installation, run, build, test and analyze in development environment
+## Installation and run
 1. Install required node packages:
 
         npm install
@@ -15,42 +15,22 @@ Try it out on the [demo page](https://lhcforms.nlm.nih.gov/fhir/research-data-fi
 
         npm start
 
-3. Run app in development mode (public, not recommended):
+## Testing and building
+1. Run all tests (unit + e2e)
 
-        npm start-public
+        npm test
 
-4. Run app in development mode using production build configuration (locally):
-
-        npm start-dist
-
-5. Run app in development mode using production build configuration (public, not recommended):
-
-        npm start-dist-public
-
-6. Build the app for production
+2. Build the app for production
 
         npm run build
 
    The generated files are in **public** directory, which can be moved to a production server.
 
 
-7. Run visual bundle analyzer (calculate uncompressed size)
+3. Run visual bundle analyzer (calculate uncompressed size)
 
         npm run analyze
 
-8. Run visual bundle analyzer (calculate gzip size)
+4. Run visual bundle analyzer (calculate gzip size)
 
         npm run analyze-gzip
-
-9. Run all tests (unit + e2e)
-
-        npm test
-
-10. Run unit tests
-
-        npm run unit
-
-11. Run e2e tests
-
-        npm run e2e
-
