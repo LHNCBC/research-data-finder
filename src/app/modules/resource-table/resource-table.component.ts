@@ -17,7 +17,6 @@ import { escapeStringForRegExp } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 import { Subject, Subscription } from 'rxjs';
-import Resource = fhir.Resource;
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { SettingsService } from '../../shared/settings-service/settings.service';
 import { Sort } from '@angular/material/sort';
@@ -28,6 +27,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
+import Resource = fhir.Resource;
 
 /**
  * Component for loading table of resources
@@ -112,9 +112,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.dataSource.data.some((row) => this.getCellStrings(row, x).length)
     );
     // Save column selections of default
-    window.localStorage.setItem(
-      this.resourceType + '-columns',
-      this.columnDescriptions.map((x) => x.element).join(',')
+    this.columnDescriptionsService.setVisibleColumnNames(
+      this.resourceType,
+      this.columnDescriptions.map((x) => x.element)
     );
   }
 
@@ -149,6 +149,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       );
     }
     if (changes['columnDescriptions']) {
+      console.log(
+        '[ngOnChange]',
+        this.resourceType,
+        this.columnDescriptions.map((i) => i.element).join(',')
+      );
       this.columns.length = 0;
       if (this.enableSelection) {
         this.columns.push('select');

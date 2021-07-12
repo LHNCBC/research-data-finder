@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ColumnDescription } from '../../types/column.description';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -16,18 +16,45 @@ import { SettingsService } from '../settings-service/settings.service';
   providedIn: 'root'
 })
 export class ColumnDescriptionsService {
-  visibleColumns: { [key: string]: BehaviorSubject<ColumnDescription[]> } = {};
-  subscriptions: Subscription[] = [];
+  // The subject that should generate the next value when changing the visibility of columns
+  isVisibilityChanged: { [key: string]: BehaviorSubject<void> } = {};
+
+  // Object which maps each resource type to the Observable of the visible column descriptions
+  observableVisibleColumns: {
+    [key: string]: Observable<ColumnDescription[]>;
+  } = {};
+
   constructor(
     private fhirBackend: FhirBackendService,
     private dialog: MatDialog,
     private columnValues: ColumnValuesService,
     private settings: SettingsService
-  ) {
-    // Cleanup on disconnect from server
-    this.fhirBackend.initialized
-      .pipe(filter((status) => status === ConnectionStatus.Disconnect))
-      .subscribe(() => this.cleanup());
+  ) {}
+
+  /**
+   * Stores visible resource table column names in localStorage
+   * @param resourceType - resource type
+   * @param columnNames - column names
+   */
+  setVisibleColumnNames(resourceType: string, columnNames: string[]): void {
+    window.localStorage.setItem(
+      this.fhirBackend.serviceBaseUrl + '-' + resourceType + '-columns',
+      columnNames.join(',')
+    );
+  }
+
+  /**
+   * Gets visible resource table column names from localStorage
+   * @param resourceType - resource type
+   */
+  getVisibleColumnNames(resourceType: string): string[] {
+    return (
+      window.localStorage
+        .getItem(
+          this.fhirBackend.serviceBaseUrl + '-' + resourceType + '-columns'
+        )
+        ?.split(',') || []
+    );
   }
 
   /**
@@ -64,14 +91,12 @@ export class ColumnDescriptionsService {
       if (!columns) {
         return;
       }
-      this.visibleColumns[resourceType].next(columns.filter((x) => x.visible));
-      window.localStorage.setItem(
-        resourceType + '-columns',
-        columns
-          .filter((x) => x.visible)
-          .map((x) => x.element)
-          .join(',')
+      const visibleColumns = columns.filter((c) => c.visible);
+      this.setVisibleColumnNames(
+        resourceType,
+        visibleColumns.map((c) => c.element)
       );
+      this.isVisibilityChanged[resourceType].next();
     });
   }
 
@@ -80,23 +105,30 @@ export class ColumnDescriptionsService {
    * @param resourceType - resource type
    */
   getVisibleColumns(resourceType: string): Observable<ColumnDescription[]> {
-    if (!this.visibleColumns[resourceType]) {
-      this.visibleColumns[resourceType] = new BehaviorSubject([]);
-      this.subscriptions.push(
-        // Initialize visible columns on server initialization
-        this.fhirBackend.initialized
-          .pipe(
-            filter((status) => status === ConnectionStatus.Ready),
-            map(() => this.getAvailableColumns(resourceType))
-          )
-          .subscribe((columns) => {
-            this.visibleColumns[resourceType].next(
-              columns.filter((x) => x.visible)
-            );
-          })
+    if (!this.observableVisibleColumns[resourceType]) {
+      this.isVisibilityChanged[resourceType] = new BehaviorSubject<void>(
+        undefined
+      );
+      this.observableVisibleColumns[resourceType] = combineLatest([
+        this.fhirBackend.initialized,
+        this.isVisibilityChanged[resourceType]
+      ]).pipe(
+        filter(([status]) => status === ConnectionStatus.Ready),
+        map(() => {
+          const visibleColumns = this.getAvailableColumns(resourceType).filter(
+            (x) => x.visible
+          );
+          console.log(
+            '[combineLatest]',
+            resourceType,
+            visibleColumns.map((i) => i.element).join(',')
+          );
+
+          return visibleColumns;
+        })
       );
     }
-    return this.visibleColumns[resourceType];
+    return this.observableVisibleColumns[resourceType];
   }
 
   /**
@@ -107,12 +139,7 @@ export class ColumnDescriptionsService {
     const currentDefinitions = this.fhirBackend.getCurrentDefinitions();
     const columnDescriptions =
       currentDefinitions.resources[resourceType].columnDescriptions;
-    const visibleColumnsRawString = window.localStorage.getItem(
-      resourceType + '-columns'
-    );
-    const visibleColumnNames = visibleColumnsRawString
-      ? visibleColumnsRawString.split(',')
-      : [];
+    const visibleColumnNames = this.getVisibleColumnNames(resourceType);
     const sortSettings = this.settings.get('columnSort')?.[resourceType] ?? [];
     sortSettings.forEach((s, i) => {
       const match = columnDescriptions.find((c) => c.element === s);
@@ -149,13 +176,5 @@ export class ColumnDescriptionsService {
         // Sort based on settings
         .sort(ColumnDescriptionsService.sortColumns)
     );
-  }
-
-  /**
-   * Unsubscribe from all subscriptions and remove subjects.
-   */
-  cleanup(): void {
-    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
-    this.visibleColumns = {};
   }
 }
