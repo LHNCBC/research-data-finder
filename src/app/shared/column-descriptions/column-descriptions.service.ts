@@ -16,8 +16,6 @@ import { SettingsService } from '../settings-service/settings.service';
   providedIn: 'root'
 })
 export class ColumnDescriptionsService {
-  visibleColumns: { [key: string]: BehaviorSubject<ColumnDescription[]> } = {};
-  subscriptions: Subscription[] = [];
   constructor(
     private fhirBackend: FhirBackendService,
     private dialog: MatDialog,
@@ -29,6 +27,8 @@ export class ColumnDescriptionsService {
       .pipe(filter((status) => status === ConnectionStatus.Disconnect))
       .subscribe(() => this.cleanup());
   }
+  visibleColumns: { [key: string]: BehaviorSubject<ColumnDescription[]> } = {};
+  subscriptions: Subscription[] = [];
 
   /**
    * Compare function for column descriptions
