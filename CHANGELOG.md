@@ -5,7 +5,10 @@ This project follows [Semantic Versioning](http://semver.org/).
 
 ## [3.6.0] - 2021-07-07
 ### Added
-- Limit list of resources to what has data (dbGaP)
+- Limit list of resources to what has data (dbGaP).
+### Fixed
+- It was possible to switch to the View cohort step without
+  searching for Patients.
 
 ## [3.5.0] - 2021-07-12
 ### Added
