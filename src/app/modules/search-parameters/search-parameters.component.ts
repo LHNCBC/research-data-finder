@@ -58,9 +58,10 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 
   // Get search conditions from each row
   getConditions(): SearchCondition[] {
-    const conditions = this.searchParameterGroupComponents.map((c) =>
-      c.getConditions()
-    );
+    const conditions = this.searchParameterGroupComponents
+      .map((c) => c.getConditions())
+      // Filter out empty resource type or criteria
+      .filter((c) => c.resourceType && c.criteria);
     if (!conditions.some((c) => c.resourceType === 'Patient')) {
       // add default Patient condition if missing
       conditions.push({

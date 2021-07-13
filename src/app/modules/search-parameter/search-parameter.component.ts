@@ -180,6 +180,10 @@ export class SearchParameterComponent
   }
 
   getObservationByTestCriteria(): string {
+    // Ignore criteria if no code selected.
+    if (!this.selectedObservationCodes.value) {
+      return '';
+    }
     const comboCodes = this.selectedObservationCodes.value.codes.filter(
       (c) => c
     );
