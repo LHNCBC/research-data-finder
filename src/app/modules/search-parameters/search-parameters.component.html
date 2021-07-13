@@ -1,6 +1,6 @@
-<div *ngFor="let item of parameterList.controls" class="search-parameter-group">
+<div *ngFor="let item of parameterGroupList.controls" class="search-parameter-group">
   <button type="button" mat-icon-button aria-label="Remove search parameter"
-          (click)="removeParameter(item)">
+          (click)="removeParameterGroup(item)">
     <mat-icon svgIcon="clear"></mat-icon>
   </button>
 
@@ -9,6 +9,6 @@
 
 <button id="addResourceType"
         type="button"
-        (click)="addParameter()" mat-stroked-button color="secondary">
+        (click)="addParameterGroup()" mat-stroked-button color="secondary">
   <mat-icon svgIcon="add"></mat-icon>Add a resource type
 </button>

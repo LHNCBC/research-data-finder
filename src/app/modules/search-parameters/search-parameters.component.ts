@@ -22,20 +22,20 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 > {
   @ViewChildren(SearchParameterGroupComponent)
   searchParameterGroupComponents: QueryList<SearchParameterGroupComponent>;
-  parameterList = new FormArray([]);
+  parameterGroupList = new FormArray([]);
 
   constructor() {
     super();
-    this.parameterList.valueChanges.subscribe((value) => {
+    this.parameterGroupList.valueChanges.subscribe((value) => {
       this.onChange(value);
     });
   }
 
   /**
-   * Add new search parameter to search parameter list
+   * Add new search parameter group to search parameter group list
    */
-  public addParameter(): void {
-    this.parameterList.push(
+  public addParameterGroup(): void {
+    this.parameterGroupList.push(
       new FormControl({
         resourceType: '',
         parameters: []
@@ -44,17 +44,19 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   }
 
   /**
-   * Remove search parameter from search parameter list
+   * Remove search parameter group from search parameter group list
    */
-  public removeParameter(item: AbstractControl): void {
-    this.parameterList.removeAt(this.parameterList.controls.indexOf(item));
+  public removeParameterGroup(item: AbstractControl): void {
+    this.parameterGroupList.removeAt(
+      this.parameterGroupList.controls.indexOf(item)
+    );
   }
 
   writeValue(value: SearchParameter[]): void {
     // TODO
   }
 
-  // Get search conditions from each row, group them on the resource type
+  // Get search conditions from each row
   getConditions(): SearchCondition[] {
     const conditions = this.searchParameterGroupComponents.map((c) =>
       c.getConditions()

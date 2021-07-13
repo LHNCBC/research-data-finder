@@ -62,7 +62,7 @@ export class StepperComponent implements OnDestroy {
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
       maxPatientCount: this.defineCohortComponent.defineCohortForm.value
         .maxPatientsNumber,
-      rawCriteria: this.defineCohortComponent.patientParams.parameterList.getRawValue(),
+      rawCriteria: this.defineCohortComponent.patientParams.parameterGroupList.getRawValue(),
       data:
         this.viewCohortComponent?.resourceTableComponent?.dataSource?.data ??
         [],
@@ -103,9 +103,9 @@ export class StepperComponent implements OnDestroy {
             .get('maxPatientsNumber')
             .setValue(maxPatientCount);
           // Set search parameter form values.
-          this.defineCohortComponent.patientParams.parameterList.clear();
+          this.defineCohortComponent.patientParams.parameterGroupList.clear();
           (rawCriteria as SearchParameter[]).forEach((searchParam) => {
-            this.defineCohortComponent.patientParams.parameterList.push(
+            this.defineCohortComponent.patientParams.parameterGroupList.push(
               new FormControl(searchParam)
             );
           });
