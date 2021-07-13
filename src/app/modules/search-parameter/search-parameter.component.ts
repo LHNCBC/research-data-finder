@@ -92,17 +92,15 @@ export class SearchParameterComponent
     );
 
     this.parameterName.valueChanges.subscribe((value) => {
-      if (this.selectedResourceType) {
-        this.selectedParameter = this.selectedResourceType.searchParameters.find(
-          (p) => p.name === value
-        );
-        if (this.selectedParameter) {
-          this.parameterValue.setValue('');
-          if (this.selectedParameter.valueSet) {
-            this.parameterValues = this.definitions.valueSets[
-              this.selectedParameter.valueSet
-            ];
-          }
+      this.selectedParameter = this.selectedResourceType.searchParameters.find(
+        (p) => p.name === value
+      );
+      if (this.selectedParameter) {
+        this.parameterValue.setValue('');
+        if (this.selectedParameter.valueSet) {
+          this.parameterValues = this.definitions.valueSets[
+            this.selectedParameter.valueSet
+          ];
         }
       }
       this.onChange(this.value);
@@ -148,6 +146,10 @@ export class SearchParameterComponent
    * get string of url segment describing the search criteria that will be used to search in server.
    */
   getCriteria(): string {
+    // Return empty if parameter name is not selected.
+    if (!this.parameterName.value) {
+      return '';
+    }
     if (this.parameterName.value === this.OBSERVATIONBYTEST) {
       return this.getObservationByTestCriteria();
     }

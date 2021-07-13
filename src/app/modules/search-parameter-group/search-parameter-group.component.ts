@@ -70,7 +70,11 @@ export class SearchParameterGroupComponent
     } else {
       this.filteredResourceTypes = this.resourceType.valueChanges.pipe(
         startWith(''),
-        map((value) => this._filter(value, this.resourceTypes))
+        map((value: string) =>
+          this.resourceTypes.filter((r) =>
+            r.toLowerCase().includes(value.toLowerCase())
+          )
+        )
       );
       this.resourceType.valueChanges.subscribe((value) => {
         const match = this.resourceTypes.find((rt) => rt === value);
@@ -79,20 +83,6 @@ export class SearchParameterGroupComponent
         }
       });
     }
-  }
-
-  private _filter(
-    value: string,
-    options: string[],
-    selected: string[] = null
-  ): string[] {
-    const filterValue = value.toLowerCase();
-
-    return options.filter(
-      (option) =>
-        option.toLowerCase().includes(filterValue) &&
-        (selected ? selected.indexOf(option) === -1 : true)
-    );
   }
 
   /**
