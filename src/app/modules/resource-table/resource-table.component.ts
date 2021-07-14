@@ -148,7 +148,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }
       );
     }
-    if (changes['columnDescriptions']) {
+    if (changes['columnDescriptions'] && this.columnDescriptions) {
       this.columns.length = 0;
       if (this.enableSelection) {
         this.columns.push('select');
