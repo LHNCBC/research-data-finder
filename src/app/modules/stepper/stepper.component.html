@@ -11,13 +11,15 @@
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperNext type="button">
-          Select Research Studies<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+          {{settings.serverHasResearchStudy ? 'Select Research Studies' : 'Define Cohort'}}
+          <mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
   </mat-step>
 
-  <mat-step label="Select Research Studies" state="edit"
+  <mat-step *ngIf='settings.serverHasResearchStudy'
+            label="Select Research Studies" state="edit"
             [optional]="selectAnAreaOfInterest.option.value === selectAnAreaOfInterest.SelectOptions.Skip">
     <div class="v-box">
       <app-select-an-area-of-interest #selectAnAreaOfInterest>
@@ -51,7 +53,8 @@
         [formControl]="defineCohort"></app-define-cohort-page>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Select Research Studies
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>
+          {{settings.serverHasResearchStudy ? 'Select Research Studies' : 'Settings'}}
         </button>
         <div class='spacer'></div>
         <button mat-stroked-button color='secondary' (click)='hiddenFileInput.click()'>
@@ -61,7 +64,7 @@
         <input type='file' id='hiddenFileInput' #hiddenFileInput style='display: none;' (change)='loadCohort($event)'>
         <div class="spacer"></div>
         <button mat-stroked-button color="primary" matStepperNext
-                (click)="defineCohortComponent.searchForPatients(selectAnAreaOfInterest.getResearchStudySearchParam())">
+                (click)="searchForPatients()">
           Search for Patients<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>

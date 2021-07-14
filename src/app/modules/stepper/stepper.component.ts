@@ -147,4 +147,17 @@ export class StepperComponent implements OnDestroy {
       this.defineCohortComponent.patientStream.complete();
     });
   }
+
+  /**
+   * On Search button click
+   */
+  searchForPatients(): void {
+    if (this.selectAreaOfInterestComponent) {
+      this.defineCohortComponent.searchForPatients(
+        this.selectAreaOfInterestComponent.getResearchStudySearchParam()
+      );
+    } else {
+      this.defineCohortComponent.searchForPatients();
+    }
+  }
 }
