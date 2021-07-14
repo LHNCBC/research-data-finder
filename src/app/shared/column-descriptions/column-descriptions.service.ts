@@ -16,6 +16,13 @@ import { SettingsService } from '../settings-service/settings.service';
   providedIn: 'root'
 })
 export class ColumnDescriptionsService {
+  constructor(
+    private fhirBackend: FhirBackendService,
+    private dialog: MatDialog,
+    private columnValues: ColumnValuesService,
+    private settings: SettingsService
+  ) {}
+
   // The subject that should generate the next value when changing the visibility of columns
   visibilityChanged: { [key: string]: BehaviorSubject<void> } = {};
 
@@ -24,12 +31,6 @@ export class ColumnDescriptionsService {
     [key: string]: Observable<ColumnDescription[]>;
   } = {};
 
-  constructor(
-    private fhirBackend: FhirBackendService,
-    private dialog: MatDialog,
-    private columnValues: ColumnValuesService,
-    private settings: SettingsService
-  ) {}
 
   /**
    * Compare function for column descriptions

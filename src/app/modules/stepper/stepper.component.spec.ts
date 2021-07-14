@@ -109,8 +109,11 @@ describe('StepperComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize', () => {
-    expect(component.serverInitialized).toBe(true);
+  it('should initialize correctly', () => {
+    component.stepper.steps.forEach((step) => {
+      // Only the first step is completed
+      expect(step.completed).toBe(step === component.stepper.steps.first);
+    });
   });
 
   it('should unsubscribe on destroy', () => {

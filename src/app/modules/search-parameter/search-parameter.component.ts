@@ -45,7 +45,16 @@ export class SearchParameterComponent
   parameterValue: FormControl = new FormControl('');
   parameterValues: any[];
 
-  selectedLoincItems: FormControl = new FormControl(null);
+  selectedObservationCodes: FormControl = new FormControl(null);
+
+  get value(): SearchParameter {
+    return {
+      resourceType: this.resourceType.value,
+      name: this.parameterName.value,
+      value: this.parameterValue.value,
+      selectedObservationCodes: this.selectedObservationCodes.value
+    };
+  }
 
   /**
    * Whether to use lookup control for search parameter value.
@@ -84,6 +93,8 @@ export class SearchParameterComponent
         this.parameterName.setValue('');
         this.parameterValue.setValue('');
       }
+      // tell Angular forms API to update parent form control
+      this.onChange(this.value);
     });
 
     this.definitions = this.fhirBackend.getCurrentDefinitions();
@@ -119,6 +130,14 @@ export class SearchParameterComponent
           }
         }
       }
+      this.onChange(this.value);
+    });
+
+    this.parameterValue.valueChanges.subscribe(() => {
+      this.onChange(this.value);
+    });
+    this.selectedObservationCodes.valueChanges.subscribe(() => {
+      this.onChange(this.value);
     });
   }
 
@@ -145,8 +164,10 @@ export class SearchParameterComponent
   writeValue(value: SearchParameter): void {
     this.resourceType.setValue(value.resourceType || '');
     this.parameterName.setValue(value.name || '');
-    // TODO:
     this.parameterValue.setValue(value.value || '');
+    this.selectedObservationCodes.setValue(
+      value.selectedObservationCodes || null
+    );
   }
 
   /**
@@ -196,7 +217,9 @@ export class SearchParameterComponent
   }
 
   getObservationByTestCriteria(): string {
-    const comboCodes = this.selectedLoincItems.value.codes.filter((c) => c);
+    const comboCodes = this.selectedObservationCodes.value.codes.filter(
+      (c) => c
+    );
     const codeParam = comboCodes.length
       ? '&combo-code=' +
         comboCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
@@ -205,7 +228,7 @@ export class SearchParameterComponent
       CodeableConcept: 'combo-value-concept',
       Quantity: 'combo-value-quantity',
       string: 'value-string'
-    }[this.selectedLoincItems.value.datatype];
+    }[this.selectedObservationCodes.value.datatype];
     const modifier = this.parameterValue.value.testValueModifier;
     const prefix = this.parameterValue.value.testValuePrefix;
     const testValue = this.parameterValue.value.testValue

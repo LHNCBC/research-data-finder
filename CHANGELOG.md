@@ -3,14 +3,22 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.5.1] - 2021-07-12
+## [3.6.1] - 2021-07-12
 ### Changed
 - Show Patient id (dbGaP)
 - Store visible table columns for each service base URL separately
 
-## [3.5.0] - 2021-07-07
+## [3.6.0] - 2021-07-07
 ### Added
-- Limit list of resources to what has data (dbGaP)
+- Limit list of resources to what has data (dbGaP).
+### Fixed
+- It was possible to switch to the View cohort step without
+  searching for Patients.
+
+## [3.5.0] - 2021-07-12
+### Added
+- Functionality to save cohort data and criteria into file.
+- Functionality to load cohort data and criteria from file.
 
 ## [3.4.1] - 2021-07-06
 ### Fixed
