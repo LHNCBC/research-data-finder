@@ -3,9 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.6.0] - 2021-07-15
-### Added
-- Descriptions for search parameter names
+## [3.5.1] - 2021-07-15
+### Changed  
+- Added descriptions for search parameter names.
+- Provided a way to unset the "prefix" or "modifier" for observation search
+  parameter value.
 
 ## [3.5.0] - 2021-07-12
 ### Added

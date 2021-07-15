@@ -38,6 +38,7 @@ export class ObservationTestValueComponent
   readonly typeDescriptions = {
     Quantity: {
       searchValPrefixes: [
+        ['no value', ''],
         ['=', 'eq'],
         ['not equal', 'ne'],
         ['>', 'gt'],
@@ -48,11 +49,15 @@ export class ObservationTestValueComponent
       unit: true
     },
     CodeableConcept: {
-      modifiers: [['starts with', ':text']],
+      modifiers: [
+        ['no value', ''],
+        ['starts with', ':text']
+      ],
       unit: false
     },
     string: {
       modifiers: [
+        ['no value', ''],
         ['starts with', ''],
         ['contains', ':contains'],
         ['exact', ':exact']
