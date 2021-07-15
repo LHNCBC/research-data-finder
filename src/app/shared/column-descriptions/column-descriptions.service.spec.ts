@@ -46,7 +46,7 @@ describe('ColumnDescriptionsService', () => {
       ]
     });
     spyOn(window.localStorage, 'getItem').and.callFake((paramName) => {
-      if (paramName === 'someUrl-Patient-columns') {
+      if (paramName === 'someUrl-Patient-someContext-columns') {
         return 'name';
       }
       return '';
@@ -59,11 +59,13 @@ describe('ColumnDescriptionsService', () => {
   });
 
   it('should get columns', (done) => {
-    service.getVisibleColumns('Patient').subscribe((visibleColumns) => {
-      expect(visibleColumns).toEqual([
-        jasmine.objectContaining({ displayName: 'Name' })
-      ]);
-      done();
-    });
+    service
+      .getVisibleColumns('Patient', 'someContext')
+      .subscribe((visibleColumns) => {
+        expect(visibleColumns).toEqual([
+          jasmine.objectContaining({ displayName: 'Name' })
+        ]);
+        done();
+      });
   });
 });

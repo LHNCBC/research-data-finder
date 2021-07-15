@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.7.0] - 2021-07-14
+### Added
+- Patient Id column to ResearchStudy table in the step of pulling data
+  for cohort
+
 ## [3.6.1] - 2021-07-12
 ### Changed
 - Show Patient id (dbGaP)

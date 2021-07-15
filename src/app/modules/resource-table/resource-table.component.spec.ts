@@ -172,7 +172,7 @@ describe('ResourceTableComponent', () => {
     expect(component.dataSource.filteredData.length).toEqual(50);
     expect(
       spies.ColumnDescriptionsService.setVisibleColumnNames
-    ).toHaveBeenCalledOnceWith('SomeResourceType', ['id', 'customElement']);
+    ).toHaveBeenCalledOnceWith('SomeResourceType', '', ['id', 'customElement']);
   });
 
   it('should get a cell strings correctly', async () => {
