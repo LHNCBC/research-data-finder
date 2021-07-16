@@ -146,12 +146,12 @@ export class SearchParameterComponent
    * get string of url segment describing the search criteria that will be used to search in server.
    */
   getCriteria(): string {
-    // Return empty if parameter name is not selected.
-    if (!this.parameterName.value) {
-      return '';
-    }
     if (this.parameterName.value === this.OBSERVATIONBYTEST) {
       return this.getObservationByTestCriteria();
+    }
+    // Return empty if parameter name is not selected.
+    if (!this.selectedParameter) {
+      return '';
     }
     if (this.selectedParameter.type === 'date') {
       return (
