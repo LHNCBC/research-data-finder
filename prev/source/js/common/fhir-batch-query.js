@@ -115,7 +115,19 @@ export class FhirBatchQuery {
         this.getWithCache(
           'Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1',
           { combine: false, retryCount: 2 }
-        )
+        ),
+        // Check if batch request is supported
+        this._request({
+          method: 'POST',
+          url: this._serviceBaseUrl,
+          body: JSON.stringify({
+            resourceType: 'Bundle',
+            type: 'batch'
+          }),
+          logPrefix: 'Batch',
+          combine: false,
+          retryCount: 2
+        })
       ];
 
       this._initializationPromise = Promise.allSettled(
@@ -125,7 +137,8 @@ export class FhirBatchQuery {
           metadata,
           observationsSortedByDate,
           observationsSortedByAgeAtEvent,
-          lastnLookup
+          lastnLookup,
+          batch
         ]) => {
           if (metadata.status === 'fulfilled') {
             const fhirVersion = metadata.value.data.fhirVersion;
@@ -148,7 +161,8 @@ export class FhirBatchQuery {
               observationsSortedByDate.value.data.entry.length > 0,
             sortObservationsByAgeAtEvent:
               observationsSortedByAgeAtEvent.status === 'fulfilled',
-            lastnLookup: lastnLookup.status === 'fulfilled'
+            lastnLookup: lastnLookup.status === 'fulfilled',
+            batch: batch.status === 'fulfilled'
           };
         }
       );
