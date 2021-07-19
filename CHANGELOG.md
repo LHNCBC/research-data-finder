@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.7.0] - 2021-07-19
+### Changed
+- Automatically fallback to single requests if batching is not supported.
+
 ## [3.5.0] - 2021-07-12
 ### Added
 - Functionality to save cohort data and criteria into file.
