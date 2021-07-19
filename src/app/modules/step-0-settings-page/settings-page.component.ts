@@ -13,7 +13,6 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
-import Bundle = fhir.Bundle;
 
 /**
  * Settings page component for defining general parameters such as FHIR REST API Service Base URL.
@@ -26,7 +25,6 @@ import Bundle = fhir.Bundle;
 export class SettingsPageComponent {
   settingsFormGroup: FormGroup;
   isWaitingForConnection: Observable<boolean>;
-  serverHasResearchStudy = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -60,24 +58,6 @@ export class SettingsPageComponent {
         // Update url query params after valid server change
         const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?server=${server}`;
         window.history.pushState({ path: newUrl }, '', newUrl);
-      });
-
-    // Check if Research Study data exists on initialized server.
-    fhirBackend.initialized
-      .pipe(filter((status) => status === ConnectionStatus.Ready))
-      .subscribe(() => {
-        const statuses = Object.keys(
-          this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
-            'ResearchSubject.status'
-          ]
-        ).join(',');
-        this.http
-          .get(
-            `$fhir/ResearchStudy?_count=1&_has:ResearchSubject:study:status=${statuses}`
-          )
-          .subscribe((data: Bundle) => {
-            this.serverHasResearchStudy = data.total > 0;
-          });
       });
   }
 

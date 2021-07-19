@@ -37,7 +37,7 @@ export class StepperComponent implements OnDestroy {
 
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
-    private fhirBackend: FhirBackendService
+    public fhirBackend: FhirBackendService
   ) {
     this.subscription = fhirBackend.initialized
       .pipe(

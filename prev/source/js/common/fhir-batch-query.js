@@ -115,7 +115,12 @@ export class FhirBatchQuery {
         this.getWithCache(
           'Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1',
           { combine: false, retryCount: 2 }
-        )
+        ),
+        // Check if server has Research Study data
+        this.getWithCache('ResearchStudy?_elements=id&_count=1', {
+          combine: false,
+          retryCount: 2
+        })
       ];
 
       this._initializationPromise = Promise.allSettled(
@@ -125,7 +130,8 @@ export class FhirBatchQuery {
           metadata,
           observationsSortedByDate,
           observationsSortedByAgeAtEvent,
-          lastnLookup
+          lastnLookup,
+          hasResearchStudy
         ]) => {
           if (metadata.status === 'fulfilled') {
             const fhirVersion = metadata.value.data.fhirVersion;
@@ -148,7 +154,11 @@ export class FhirBatchQuery {
               observationsSortedByDate.value.data.entry.length > 0,
             sortObservationsByAgeAtEvent:
               observationsSortedByAgeAtEvent.status === 'fulfilled',
-            lastnLookup: lastnLookup.status === 'fulfilled'
+            lastnLookup: lastnLookup.status === 'fulfilled',
+            hasResearchStudy:
+              hasResearchStudy.status === 'fulfilled' &&
+              hasResearchStudy.value.data.entry &&
+              hasResearchStudy.value.data.entry.length > 0
           };
         }
       );

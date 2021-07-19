@@ -11,14 +11,14 @@
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperNext type="button">
-          {{settings.serverHasResearchStudy ? 'Select Research Studies' : 'Define Cohort'}}
+          {{fhirBackend.features.hasResearchStudy ? 'Select Research Studies' : 'Define Cohort'}}
           <mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
   </mat-step>
 
-  <mat-step *ngIf='settings.serverHasResearchStudy'
+  <mat-step *ngIf='fhirBackend.features.hasResearchStudy'
             label="Select Research Studies" state="edit"
             [optional]="selectAnAreaOfInterest.option.value === selectAnAreaOfInterest.SelectOptions.Skip">
     <div class="v-box">
@@ -54,7 +54,7 @@
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>
-          {{settings.serverHasResearchStudy ? 'Select Research Studies' : 'Settings'}}
+          {{fhirBackend.features.hasResearchStudy ? 'Select Research Studies' : 'Settings'}}
         </button>
         <div class='spacer'></div>
         <button mat-stroked-button color='secondary' (click)='hiddenFileInput.click()'>
