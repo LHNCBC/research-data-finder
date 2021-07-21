@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.6.0] - 2021-07-21
+### Added  
+- List of units for LOINC codes from CTSS.
+
 ## [3.5.1] - 2021-07-15
 ### Changed  
 - Added descriptions for search parameter names.

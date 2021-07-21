@@ -182,9 +182,9 @@ describe('ResourceTableComponent', () => {
 
   it('should get a cell strings correctly', async () => {
     await fillTable(availableColumns);
-    const rowNumber = 6;
+    const rowNumber = 4;
     const cellValues = ['5', 'value-5', '5'];
-    for (let i = 0; cellValues.length < 3; i++) {
+    for (let i = 0; i < 3; i++) {
       expect(
         component.getCellStrings(
           component.dataSource.data[rowNumber],

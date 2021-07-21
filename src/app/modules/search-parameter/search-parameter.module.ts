@@ -11,13 +11,16 @@ import { ObservationTestValueComponent } from './observation-test-value.componen
 import { MatSelectModule } from '@angular/material/select';
 import { AutoCompleteTestValueComponent } from './autocomplete-test-value.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ObservationTestValueUnitComponent } from './observation-test-value-unit/observation-test-value-unit.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [
     SearchParameterComponent,
     DatesFromToComponent,
     AutoCompleteTestValueComponent,
-    ObservationTestValueComponent
+    ObservationTestValueComponent,
+    ObservationTestValueUnitComponent
   ],
   exports: [SearchParameterComponent],
   imports: [
@@ -28,7 +31,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatInputModule,
     ObservationCodeLookupModule,
     MatSelectModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressSpinnerModule
   ]
 })
 export class SearchParameterModule {}

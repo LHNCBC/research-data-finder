@@ -24,7 +24,7 @@ class TestHostComponent {
   @ViewChild(ObservationCodeLookupComponent)
   component: ObservationCodeLookupComponent;
   selectedObservationCodes = new FormControl({
-    codes: ['3137-7'],
+    coding: [{ code: '3137-7', system: 'http://loinc.org' }],
     items: ['Height cm'],
     datatype: 'Quantity'
   });
@@ -94,8 +94,6 @@ describe('ObservationCodeLookupComponent', () => {
 
       beforeEach(async () => {
         beforeEachFn();
-        console.log('>>> start');
-        spyOn(FhirBatchQuery.prototype, 'resourcesMapFilter').and.callThrough();
         fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         hostComponent = fixture.componentInstance;
@@ -109,7 +107,7 @@ describe('ObservationCodeLookupComponent', () => {
       it('should initialize autocomplete correctly', () => {
         expect(component.acInstance).toBeTruthy();
         expect(component.acInstance.getSelectedCodes()).toEqual(
-          hostComponent.selectedObservationCodes.value.codes
+          hostComponent.selectedObservationCodes.value.coding
         );
         expect(component.acInstance.getSelectedItems()).toEqual(
           hostComponent.selectedObservationCodes.value.items
@@ -142,7 +140,9 @@ describe('ObservationCodeLookupComponent', () => {
             x.args[0].match(/_elements=code,value,component&code=H/)
           )
         ).toBeTruthy();
-        expect(hostComponent.selectedObservationCodes.value.codes.length).toBe(2);
+        expect(hostComponent.selectedObservationCodes.value.coding.length).toBe(
+          2
+        );
       });
     });
   });
