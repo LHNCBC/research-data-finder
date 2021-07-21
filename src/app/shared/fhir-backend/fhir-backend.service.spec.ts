@@ -45,6 +45,7 @@ describe('FhirBackendService', () => {
     spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
       of(responseFromDefaultBackend)
     );
+    service.fhirClient._features = { batch: true };
   });
 
   it('should be created', () => {
