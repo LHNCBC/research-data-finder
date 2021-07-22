@@ -180,6 +180,7 @@ describe('Research Data Finder', () => {
       .then((entries) => {
         // Ignore these errors:
         // * sorting parameter "age-at-event" is not supported
+        // * $lastn on Observation is not supported
         // * favicon.ico is missing
         return entries.filter(
           (entry) =>
