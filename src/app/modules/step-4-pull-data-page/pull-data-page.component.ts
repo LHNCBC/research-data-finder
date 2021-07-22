@@ -7,7 +7,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import { concatMap, distinct, map, reduce, startWith } from 'rxjs/operators';
-import chunk from 'lodash/chunk';
+import { chunk } from 'lodash-es';
 import {
   ConnectionStatus,
   FhirBackendService

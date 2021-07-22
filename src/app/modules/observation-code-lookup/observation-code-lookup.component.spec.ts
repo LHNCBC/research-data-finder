@@ -94,7 +94,6 @@ describe('ObservationCodeLookupComponent', () => {
 
       beforeEach(async () => {
         beforeEachFn();
-        console.log('>>> start');
         spyOn(FhirBatchQuery.prototype, 'resourcesMapFilter').and.callThrough();
         fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
