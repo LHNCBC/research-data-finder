@@ -6,8 +6,8 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [3.5.1] - 2021-07-15
 ### Changed  
 - Added descriptions for search parameter names.
-- Provided a way to unset the "prefix" or "modifier" for observation search
-  parameter value.
+- Renamed "Test value prefix" and "Test value modifier" to "Comparator".
+- The default comparator for the test value is "=".
 
 ## [3.5.0] - 2021-07-12
 ### Added
