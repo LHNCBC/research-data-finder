@@ -3,22 +3,26 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.7.0] - 2021-07-14
+## [3.7.0] - 2021-07-22
 ### Added
 - Patient Id column to ResearchStudy table in the step of pulling data
   for cohort
 
-## [3.6.1] - 2021-07-12
+## [3.6.1] - 2021-07-22
 ### Changed
 - Show Patient id (dbGaP)
 - Store visible table columns for each service base URL separately
 
-## [3.6.0] - 2021-07-07
+## [3.6.0] - 2021-07-22
 ### Added
 - Limit list of resources to what has data (dbGaP).
 ### Fixed
 - It was possible to switch to the View cohort step without
   searching for Patients.
+
+## [3.5.1] - 2021-07-22
+### Fixed
+- README.md
 
 ## [3.5.0] - 2021-07-12
 ### Added
