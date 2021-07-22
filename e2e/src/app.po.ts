@@ -2,8 +2,8 @@ import { browser, by, element } from 'protractor';
 import { ElementFinder } from 'protractor/built/element';
 
 export class AppPage {
-  async navigateTo(): Promise<unknown> {
-    return browser.get(browser.baseUrl);
+  async navigateTo(url = ''): Promise<unknown> {
+    return browser.get(browser.baseUrl + url);
   }
 
   getAppDescription(): ElementFinder {

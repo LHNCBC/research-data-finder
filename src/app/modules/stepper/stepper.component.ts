@@ -66,7 +66,8 @@ export class StepperComponent implements OnDestroy {
       data:
         this.viewCohortComponent?.resourceTableComponent?.dataSource?.data ??
         [],
-      researchStudies: this.selectAreaOfInterestComponent.getResearchStudySearchParam()
+      researchStudies:
+        this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
     };
     const blob = new Blob([JSON.stringify(objectToSave, null, 2)], {
       type: 'text/json;charset=utf-8',
@@ -110,7 +111,7 @@ export class StepperComponent implements OnDestroy {
             );
           });
           // Set selected research studies.
-          this.selectAreaOfInterestComponent.selectLoadedResearchStudies(
+          this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
             researchStudies
           );
           // Set patient table data.

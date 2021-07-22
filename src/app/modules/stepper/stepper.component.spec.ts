@@ -54,7 +54,7 @@ class DefineCohortPageComponentStub {
   @Input() formControl: FormControl;
 }
 
-describe('StepperComponent', () => {
+fdescribe('StepperComponent', () => {
   let component: StepperComponent;
   let fixture: ComponentFixture<StepperComponent>;
 
@@ -81,7 +81,8 @@ describe('StepperComponent', () => {
         {
           provide: FhirBackendService,
           useValue: {
-            initialized: new BehaviorSubject(ConnectionStatus.Ready)
+            initialized: new BehaviorSubject(ConnectionStatus.Ready),
+            features: { batch: true }
           }
         },
         {
