@@ -21,6 +21,7 @@ describe('ColumnDescriptionsService', () => {
           provide: FhirBackendService,
           useValue: {
             initialized: new BehaviorSubject(ConnectionStatus.Ready),
+            serviceBaseUrl: 'someUrl',
             getCurrentDefinitions: () => ({
               resources: {
                 Patient: {
@@ -45,7 +46,7 @@ describe('ColumnDescriptionsService', () => {
       ]
     });
     spyOn(window.localStorage, 'getItem').and.callFake((paramName) => {
-      if (paramName === 'Patient-columns') {
+      if (paramName === 'someUrl-Patient-columns') {
         return 'name';
       }
       return '';
