@@ -68,8 +68,7 @@ export class StepperComponent implements OnDestroy {
     this.cdr.detectChanges();
     if (this.stepper.selected.completed) {
       this.defineCohortComponent.searchForPatients(
-        this.selectAreaOfInterestComponent.getResearchStudySearchParam(),
-        this.stepper
+        this.selectAreaOfInterestComponent.getResearchStudySearchParam()
       );
       this.stepper.next();
     } else {

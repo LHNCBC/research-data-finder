@@ -15,6 +15,10 @@ This project follows [Semantic Versioning](http://semver.org/).
 - It was possible to switch to the View cohort step without
   searching for Patients.
 
+## [3.5.1] - 2021-07-22
+### Fixed
+- README.md
+
 ## [3.5.0] - 2021-07-12
 ### Added
 - Functionality to save cohort data and criteria into file.
