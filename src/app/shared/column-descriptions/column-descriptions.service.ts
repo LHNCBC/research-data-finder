@@ -161,7 +161,10 @@ export class ColumnDescriptionsService {
    *  tables of the same resource type that may appear more than once in the
    *  application
    */
-  getAvailableColumns(resourceType: string, context = ''): ColumnDescription[] {
+  getAvailableColumns(
+    resourceType: string,
+    context: string
+  ): ColumnDescription[] {
     const currentDefinitions = this.fhirBackend.getCurrentDefinitions();
     const columnDescriptions = currentDefinitions.resources[
       resourceType

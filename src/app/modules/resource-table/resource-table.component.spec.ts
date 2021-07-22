@@ -171,6 +171,9 @@ describe('ResourceTableComponent', () => {
     expect(component.filterColumns.length).toEqual(availableColumns.length - 1);
     expect(component.dataSource.filteredData.length).toEqual(50);
     expect(
+      spies.ColumnDescriptionsService.getAvailableColumns
+    ).toHaveBeenCalledOnceWith('SomeResourceType', '');
+    expect(
       spies.ColumnDescriptionsService.setVisibleColumnNames
     ).toHaveBeenCalledOnceWith('SomeResourceType', '', ['id', 'customElement']);
   });
