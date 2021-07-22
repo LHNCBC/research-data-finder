@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.5.1] - 2021-07-22
+### Fixed
+- README.md
+
 ## [3.5.0] - 2021-07-12
 ### Added
 - Functionality to save cohort data and criteria into file.
