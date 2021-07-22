@@ -16,14 +16,14 @@ import { SettingsService } from '../settings-service/settings.service';
   providedIn: 'root'
 })
 export class ColumnDescriptionsService {
-  visibleColumns: { [key: string]: BehaviorSubject<ColumnDescription[]> } = {};
-  subscriptions: Subscription[] = [];
   constructor(
     private fhirBackend: FhirBackendService,
     private dialog: MatDialog,
     private columnValues: ColumnValuesService,
     private settings: SettingsService
   ) {}
+  visibleColumns: { [key: string]: BehaviorSubject<ColumnDescription[]> } = {};
+  subscriptions: Subscription[] = [];
 
   /**
    * Compare function for column descriptions

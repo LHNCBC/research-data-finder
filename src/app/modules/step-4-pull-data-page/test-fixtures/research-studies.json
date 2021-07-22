@@ -1,0 +1,70 @@
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 2,
+  "link": [],
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "ResearchStudy",
+        "id": "phs001603.v1.p1",
+        "title": "TOPMed: CHS Integrative Genomics and Environmental Research of Asthma (IGERA)",
+        "status": "completed",
+        "category": [
+          {
+            "coding": [
+              {
+                "display": "Case-Control"
+              }
+            ],
+            "text": "Case-Control"
+          }
+        ],
+        "focus": [
+          {
+            "coding": [
+              {
+                "display": "Asthma"
+              }
+            ],
+            "text": "Asthma"
+          }
+        ]
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ResearchStudy",
+        "id": "phs000007.v32.p13",
+        "title": "Framingham Cohort",
+        "status": "completed",
+        "category": [
+          {
+            "coding": [
+              {
+                "display": "Prospective Longitudinal Cohort"
+              }
+            ],
+            "text": "Prospective Longitudinal Cohort"
+          }
+        ],
+        "focus": [
+          {
+            "coding": [
+              {
+                "display": "Cardiovascular Diseases"
+              }
+            ],
+            "text": "Cardiovascular Diseases"
+          }
+        ]
+      },
+      "search": {
+        "mode": "match"
+      }
+    }
+  ]
+}

@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ObservationCodeLookupComponent } from './observation-code-lookup.component';
 import { ObservationCodeLookupModule } from './observation-code-lookup.module';
 import { Component, ViewChild } from '@angular/core';
@@ -15,7 +14,7 @@ import metadata from './test-fixtures/metadata.json';
   template: ` <mat-form-field class="flex">
     <mat-label>Observation codes from FHIR server</mat-label>
     <app-observation-code-lookup
-      [formControl]="selectedLoincItems"
+      [formControl]="selectedObservationCodes"
       placeholder="Type and select one or more"
     >
     </app-observation-code-lookup>
@@ -24,7 +23,7 @@ import metadata from './test-fixtures/metadata.json';
 class TestHostComponent {
   @ViewChild(ObservationCodeLookupComponent)
   component: ObservationCodeLookupComponent;
-  selectedLoincItems = new FormControl({
+  selectedObservationCodes = new FormControl({
     codes: ['3137-7'],
     items: ['Height cm'],
     datatype: 'Quantity'
@@ -110,10 +109,10 @@ describe('ObservationCodeLookupComponent', () => {
       it('should initialize autocomplete correctly', () => {
         expect(component.acInstance).toBeTruthy();
         expect(component.acInstance.getSelectedCodes()).toEqual(
-          hostComponent.selectedLoincItems.value.codes
+          hostComponent.selectedObservationCodes.value.codes
         );
         expect(component.acInstance.getSelectedItems()).toEqual(
-          hostComponent.selectedLoincItems.value.items
+          hostComponent.selectedObservationCodes.value.items
         );
       });
 
@@ -131,10 +130,19 @@ describe('ObservationCodeLookupComponent', () => {
         await keyDownInAutocompleteInput(input, ARROW_DOWN);
         await keyDownInAutocompleteInput(input, ENTER);
 
+        // search by text
         expect(
-          FhirBatchQuery.prototype.getWithCache.calls.mostRecent().args[0]
-        ).toMatch(/_elements=code,value,component&combo-code:text=H/);
-        expect(hostComponent.selectedLoincItems.value.codes.length).toBe(2);
+          FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
+            x.args[0].match(/_elements=code,value,component&code:text=H/)
+          )
+        ).toBeTruthy();
+        // search by code
+        expect(
+          FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
+            x.args[0].match(/_elements=code,value,component&code=H/)
+          )
+        ).toBeTruthy();
+        expect(hostComponent.selectedObservationCodes.value.codes.length).toBe(2);
       });
     });
   });

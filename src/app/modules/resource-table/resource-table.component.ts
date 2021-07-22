@@ -350,4 +350,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       endings: 'native'
     });
   }
+
+  /**
+   * Select a list of items by ID in table.
+   */
+  setSelectedIds(ids: string[]): void {
+    this.selectedResources.clear();
+    const items = this.dataSource.data.filter((r) => ids.includes(r.id));
+    this.selectedResources.select(...items);
+  }
 }

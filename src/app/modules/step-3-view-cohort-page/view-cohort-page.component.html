@@ -4,7 +4,7 @@
   You can also save the cohort of Patients and the criteria for later.
 </p>
 
-<app-resource-table
+<app-resource-table #resourceTableComponent
     [columnDescriptions]="columnDescriptions.getVisibleColumns('Patient') | async"
     resourceType="Patient" [resourceStream]="patientStream" [loadingStatistics]="loadingStatistics">
 </app-resource-table>
