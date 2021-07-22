@@ -3,6 +3,14 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.7.0] - 2021-07-23
+### Changed
+- Search criteria in Define Cohort step now has categorized structure based
+  on resource types.
+- "Observation by Test" is now combined into "Observation" resource type
+  as parameter name "code text".
+- Removed the date fields in "code text" search parameter.
+
 ## [3.6.1] - 2021-07-22
 ### Changed
 - Show Patient id (dbGaP)
