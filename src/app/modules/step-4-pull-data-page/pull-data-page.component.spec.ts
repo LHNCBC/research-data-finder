@@ -7,7 +7,7 @@ import observationsForPat232 from './test-fixtures/obs-pat-232.json';
 import observationsForPat269 from './test-fixtures/obs-pat-269.json';
 import encountersForSmart880378 from './test-fixtures/encounter-smart-880378.json';
 import researchStudies from './test-fixtures/research-studies.json';
-import chunk from 'lodash/chunk';
+import { chunk } from 'lodash-es';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -19,6 +19,7 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { SettingsService } from '../../shared/settings-service/settings.service';
 
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
@@ -43,6 +44,7 @@ describe('PullDataForCohortComponent', () => {
       sortObservationsByDate: true,
       sortObservationsByAgeAtEvent: false
     });
+    fhirBackend.settings = TestBed.inject(SettingsService);
     fhirBackend.initialized.next(ConnectionStatus.Ready);
     mockHttp = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(PullDataPageComponent);

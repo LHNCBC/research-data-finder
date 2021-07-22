@@ -21,7 +21,12 @@ export class ColumnDescriptionsService {
     private dialog: MatDialog,
     private columnValues: ColumnValuesService,
     private settings: SettingsService
-  ) {}
+  ) {
+    // Cleanup on disconnect from server
+    this.fhirBackend.initialized
+      .pipe(filter((status) => status === ConnectionStatus.Disconnect))
+      .subscribe(() => this.cleanup());
+  }
   visibleColumns: { [key: string]: BehaviorSubject<ColumnDescription[]> } = {};
   subscriptions: Subscription[] = [];
 
@@ -147,9 +152,10 @@ export class ColumnDescriptionsService {
   }
 
   /**
-   * Unsubscribe from all subscriptions.
+   * Unsubscribe from all subscriptions and remove subjects.
    */
-  destroy(): void {
+  cleanup(): void {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+    this.visibleColumns = {};
   }
 }

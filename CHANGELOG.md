@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.6.0] - 2021-07-07
+### Added
+- Limit list of resources to what has data (dbGaP).
+### Fixed
+- It was possible to switch to the View cohort step without
+  searching for Patients.
+
 ## [3.5.1] - 2021-07-22
 ### Fixed
 - README.md

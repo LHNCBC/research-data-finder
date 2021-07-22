@@ -81,7 +81,11 @@
             types: ["Count"]
           }
         ]
-      }
+      },
+      // Limit list of resource types
+      availableResourceTypes: [
+        'ResearchStudy', 'Patient', 'Observation'
+      ]
     }
   }
 }
