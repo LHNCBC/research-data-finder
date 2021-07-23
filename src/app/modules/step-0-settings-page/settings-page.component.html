@@ -48,7 +48,7 @@
         </mat-form-field>
         <div class="spacer"></div>
         <div class="h-box">
-          <mat-form-field class="number-field">
+          <mat-form-field class="number-field" *ngIf='fhirBackend.features.batch'>
             <mat-label>Requests per batch</mat-label>
             <input matInput type="number" min="1" formControlName="maxRequestsPerBatch"
                    (change)="updateFhirBackendSetting('maxRequestsPerBatch')">
@@ -56,8 +56,7 @@
               request
             </mat-hint>
           </mat-form-field>
-
-          <div class="spacer"></div>
+          <div class="spacer" *ngIf='fhirBackend.features.batch'></div>
           <mat-form-field class="number-field">
             <mat-label>Maximum active requests</mat-label>
             <input matInput type="number" min="1" formControlName="maxActiveRequests"
