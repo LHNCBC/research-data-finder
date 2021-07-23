@@ -15,6 +15,8 @@ import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import * as definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp } from '../utils';
+import { SettingsService } from '../settings-service/settings.service';
+import { pick } from 'lodash-es';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -24,7 +26,8 @@ const serviceBaseUrlRegExp = /^\$fhir/;
 export enum ConnectionStatus {
   Pending = 0,
   Ready,
-  Error
+  Error,
+  Disconnect
 }
 
 /**
@@ -44,6 +47,7 @@ export class FhirBackendService implements HttpBackend {
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
     if (this.serviceBaseUrl !== url) {
+      this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
       this.initializeFhirBatchQuery(url);
     }
@@ -101,6 +105,12 @@ export class FhirBackendService implements HttpBackend {
   // for FHIR with the ability to automatically combine requests in a batch .
   fhirClient: FhirBatchQuery;
 
+  // Can't be injected in constructor because of circular dependency
+  settings: SettingsService;
+
+  // Definitions of columns, search params, value sets for current FHIR version
+  private currentDefinitions: any;
+
   /**
    * Creates and initializes an instance of FhirBackendService
    * @param defaultBackend - default Angular final HttpHandler which uses
@@ -127,7 +137,6 @@ export class FhirBackendService implements HttpBackend {
     this.fhirClient = new FhirBatchQuery({
       serviceBaseUrl: queryServer || defaultServer
     });
-    this.initializeFhirBatchQuery();
   }
 
   /**
@@ -135,6 +144,8 @@ export class FhirBackendService implements HttpBackend {
    * @param [serviceBaseUrl] - new FHIR REST API Service Base URL
    */
   initializeFhirBatchQuery(serviceBaseUrl: string = ''): void {
+    // Cleanup definitions before initialize
+    this.currentDefinitions = null;
     this.fhirClient.initialize(serviceBaseUrl).then(
       () => this.initialized.next(ConnectionStatus.Ready),
       () => this.initialized.next(ConnectionStatus.Error)
@@ -219,12 +230,24 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
+   * Disconnect from server (run on destroying the main component)
+   */
+  disconnect(): void {
+    this.initialized.next(ConnectionStatus.Disconnect);
+  }
+
+  /**
    * Returns definitions of columns, search params, value sets for current FHIR version
    */
   getCurrentDefinitions(): any {
+    if (this.currentDefinitions) {
+      return this.currentDefinitions;
+    }
+
     const versionName = this.currentVersion;
     const definitions = definitionsIndex.configByVersionName[versionName];
 
+    // Initialize common definitions
     if (!definitions.initialized) {
       // Add default common column "id"
       Object.keys(definitions.resources).forEach((resourceType) => {
@@ -259,6 +282,18 @@ export class FhirBackendService implements HttpBackend {
       definitions.initialized = true;
     }
 
-    return definitions;
+    // Create a shallow copy of the common definitions according to settings
+    this.currentDefinitions = Object.assign({}, definitions);
+    const availableResourceTypes = this.settings.get('availableResourceTypes');
+    if (availableResourceTypes) {
+      Object.assign(this.currentDefinitions, {
+        resources: pick(
+          definitions.resources,
+          this.settings.get('availableResourceTypes')
+        )
+      });
+    }
+
+    return this.currentDefinitions;
   }
 }
