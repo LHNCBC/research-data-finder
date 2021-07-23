@@ -81,6 +81,16 @@
             types: ["Count"]
           }
         ]
+      },
+      // Limit list of resource types
+      availableResourceTypes: [
+        'ResearchStudy', 'Patient', 'Observation'
+      ],
+      // Hide resource table columns for specified elements
+      hideElementsByDefault: {
+        "*": [],
+        "Observation": ["id"],
+        "ResearchStudy": ["id", "keyword", "condition"]
       }
     }
   }

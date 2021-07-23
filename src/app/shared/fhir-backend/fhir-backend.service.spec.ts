@@ -45,6 +45,7 @@ describe('FhirBackendService', () => {
     spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
       of(responseFromDefaultBackend)
     );
+    service.fhirClient._features = { batch: true };
   });
 
   it('should be created', () => {
@@ -52,6 +53,7 @@ describe('FhirBackendService', () => {
   });
 
   it('should initialize FhirBatchQuery', () => {
+    service.initializeFhirBatchQuery();
     expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith('');
   });
 

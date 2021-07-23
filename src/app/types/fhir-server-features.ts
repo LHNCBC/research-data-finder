@@ -9,4 +9,6 @@ export interface FhirServerFeatures {
   sortObservationsByAgeAtEvent: boolean;
   // Whether server has Research Study data
   hasResearchStudy: boolean;
+  // Whether batching request is supported
+  batch: boolean;
 }

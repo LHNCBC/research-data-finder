@@ -120,6 +120,18 @@ export class FhirBatchQuery {
         this.getWithCache('ResearchStudy?_elements=id&_count=1', {
           combine: false,
           retryCount: 2
+        }),
+        // Check if batch request is supported
+        this._request({
+          method: 'POST',
+          url: this._serviceBaseUrl,
+          body: JSON.stringify({
+            resourceType: 'Bundle',
+            type: 'batch'
+          }),
+          logPrefix: 'Batch',
+          combine: false,
+          retryCount: 2
         })
       ];
 
@@ -131,7 +143,8 @@ export class FhirBatchQuery {
           observationsSortedByDate,
           observationsSortedByAgeAtEvent,
           lastnLookup,
-          hasResearchStudy
+          hasResearchStudy,
+          batch
         ]) => {
           if (metadata.status === 'fulfilled') {
             const fhirVersion = metadata.value.data.fhirVersion;
@@ -158,7 +171,8 @@ export class FhirBatchQuery {
             hasResearchStudy:
               hasResearchStudy.status === 'fulfilled' &&
               hasResearchStudy.value.data.entry &&
-              hasResearchStudy.value.data.entry.length > 0
+              hasResearchStudy.value.data.entry.length > 0,
+            batch: batch.status === 'fulfilled'
           };
         }
       );
