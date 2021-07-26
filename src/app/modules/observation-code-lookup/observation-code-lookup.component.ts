@@ -336,9 +336,9 @@ export class ObservationCodeLookupComponent
 
     // Restore mapping from code to datatype from preselected data
     this.currentData.coding.forEach((code) => {
-      if (!this.code2Type[code.code + '|' + code.system]) {
+      if (!this.code2Type[code.system + '|' + code.code]) {
         this.code2Type[
-          code.code + '|' + code.system
+          code.system + '|' + code.code
         ] = this.currentData.datatype;
       }
     });
@@ -348,7 +348,7 @@ export class ObservationCodeLookupComponent
       const items = acInstance.getSelectedItems();
       let datatype = '';
       if (coding.length > 0) {
-        datatype = this.code2Type[coding[0].code + '|' + coding[0].system];
+        datatype = this.code2Type[coding[0].system + '|' + coding[0].code];
         if (!eventData.removed) {
           acInstance.domCache.set('elemVal', eventData.val_typed_in);
           acInstance.useSearchFn(
@@ -404,7 +404,7 @@ export class ObservationCodeLookupComponent
               return matched;
             })
             .map((coding) => {
-              this.code2Type[coding.code + '|' + coding.system] = datatype;
+              this.code2Type[coding.system + '|' + coding.code] = datatype;
               return {
                 code: { code: coding.code, system: coding.system },
                 display: coding.display

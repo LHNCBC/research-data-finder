@@ -1,26 +1,83 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ObservationTestValueUnitComponent } from './observation-test-value-unit.component';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
+import { Component, ViewChild } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+@Component({
+  template: ` <mat-form-field class="flex">
+    <mat-label>Test value unit</mat-label>
+    <app-observation-test-value-units
+      [formControl]="testValueUnit"
+      [loincCodes]="loincCodes"
+      placeholder="unit code"
+    >
+    </app-observation-test-value-units>
+  </mat-form-field>`
+})
+class TestHostComponent {
+  @ViewChild(ObservationTestValueUnitComponent)
+  component: ObservationTestValueUnitComponent;
+  testValueUnit = new FormControl('');
+  loincCodes = ['3137-7', '8303-0'];
+}
 
 describe('ObservationTestValueUnitComponent', () => {
   let component: ObservationTestValueUnitComponent;
-  let fixture: ComponentFixture<ObservationTestValueUnitComponent>;
+  let hostComponent: TestHostComponent;
+  let fixture: ComponentFixture<TestHostComponent>;
+  let mockHttp: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ObservationTestValueUnitComponent],
-      imports: [HttpClientTestingModule]
+      declarations: [TestHostComponent, ObservationTestValueUnitComponent],
+      imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        MatFormFieldModule,
+        MatProgressSpinnerModule,
+        NoopAnimationsModule,
+        HttpClientTestingModule
+      ]
     }).compileComponents();
-  });
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ObservationTestValueUnitComponent);
-    component = fixture.componentInstance;
+    mockHttp = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
+    hostComponent = fixture.componentInstance;
+    component = hostComponent.component;
   });
 
-  it('should create', () => {
+  afterEach(() => {
+    // Verify that no unmatched requests are outstanding
+    mockHttp.verify();
+  });
+
+  it('should create and initialize', () => {
+    mockHttp
+      .expectOne(
+        `https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?df=&type=question&ef=units&maxList&terms=&q=LOINC_NUM:3137-7%20OR%208303-0`
+      )
+      .flush([
+        2,
+        ['3137-7', '8303-0'],
+        {
+          units: [
+            [{ unit: '[in_us]' }, { unit: 'cm' }, { unit: 'm' }],
+            [{ unit: '%' }]
+          ]
+        },
+        [[''], ['']]
+      ]);
     expect(component).toBeTruthy();
+    expect(component.acInstance.listIsEmpty()).toBeFalsy();
   });
 });

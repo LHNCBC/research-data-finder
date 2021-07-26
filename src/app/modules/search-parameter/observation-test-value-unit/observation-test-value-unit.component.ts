@@ -5,9 +5,11 @@ import {
   HostBinding,
   HostListener,
   Input,
+  OnChanges,
   OnDestroy,
   Optional,
   Self,
+  SimpleChanges,
   ViewChild
 } from '@angular/core';
 // see docs at http://lhncbc.github.io/autocomplete-lhc/docs.html
@@ -15,12 +17,9 @@ import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { BaseControlValueAccessor } from '../../base-control-value-accessor';
 import { NgControl } from '@angular/forms';
-import { Subject, Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { escapeStringForRegExp } from '../../../shared/utils';
 import { catchError } from 'rxjs/operators';
-
-import ValueSet = fhir.ValueSet;
 
 // Mapping from LOINC code to units
 const code2units: { [code: string]: string[] } = {};
@@ -41,7 +40,7 @@ const code2units: { [code: string]: string[] } = {};
 })
 export class ObservationTestValueUnitComponent
   extends BaseControlValueAccessor<string>
-  implements MatFormFieldControl<string>, AfterViewInit, OnDestroy {
+  implements MatFormFieldControl<string>, AfterViewInit, OnDestroy, OnChanges {
   constructor(
     @Optional() @Self() ngControl: NgControl,
     private elementRef: ElementRef,
@@ -72,9 +71,9 @@ export class ObservationTestValueUnitComponent
   @ViewChild('input') input: ElementRef<HTMLInputElement>;
 
   /**
-   * Whether the control is in a loading state.
+   * Number of active queries.
    */
-  @HostBinding('class.loading') loading = false;
+  @HostBinding('class.loading') numberOfActiveQueries = 0;
 
   /**
    * Implemented as part of MatFormFieldControl.
@@ -92,8 +91,6 @@ export class ObservationTestValueUnitComponent
   acInstance: Def.Autocompleter.Search;
   // Callback to handle changes
   listSelectionsObserver: (eventData: any) => void;
-  // Subscription used to cancel the previous loading process
-  subscription: Subscription;
 
   /**
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
@@ -140,14 +137,23 @@ export class ObservationTestValueUnitComponent
   readonly stateChanges = new Subject<void>();
 
   /**
-   * Clean up the autocompleter instance
+   * A callback method that is invoked immediately after the default change
+   * detector has checked data-bound properties if at least one has changed,
+   * and before the view and content children are checked.
+   * @param changes - changed properties.
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['loincCodes']) {
+      this.loadUnits();
+    }
+  }
+
+  /**
+   * Performs a cleanup when a component instance is destroyed.
    */
   ngOnDestroy(): void {
     this.stateChanges.complete();
-    this.subscription?.unsubscribe();
-    if (this.acInstance) {
-      this.acInstance.destroy();
-    }
+    this.destroyAutocomplete();
   }
 
   /**
@@ -175,102 +181,91 @@ export class ObservationTestValueUnitComponent
   setupAutocomplete(): void {
     const testInputId = this.inputId;
 
-    this.acInstance = new Def.Autocompleter.Search(testInputId, null, {
-      suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
-      fhir: {
-        search: (fieldVal, count) => {
-          const isMatchToFieldVal = new RegExp(
-            escapeStringForRegExp(fieldVal),
-            'i'
-          );
+    this.destroyAutocomplete();
 
-          return {
-            then: (resolve, reject) => {
-              const unloadedCodes = this.loincCodes.filter(
-                (c) => !code2units[c]
-              );
-              if (!unloadedCodes.length) {
-                resolve(this.getAutocompleteValueSet(isMatchToFieldVal, count));
-              } else {
-                this.loading = true;
-                this.httpClient
-                  .get(
-                    'https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?df=&type=question&ef=units&maxList&terms=',
-                    {
-                      params: {
-                        q: 'LOINC_NUM:' + unloadedCodes.join(' OR ')
-                      }
-                    }
-                  )
-                  .pipe(
-                    catchError((error) => {
-                      this.loading = false;
-                      reject(error);
-                      throw error;
-                    })
-                  )
-                  .subscribe((res: Array<any>) => {
-                    this.loading = false;
-                    const [, codes, extraFields] = res;
-                    codes.forEach((code, i) => {
-                      code2units[code] =
-                        extraFields?.units[i]?.map((item) => item.unit) || [];
-                    });
-                    resolve(
-                      this.getAutocompleteValueSet(isMatchToFieldVal, count)
-                    );
-                  });
-              }
-            }
-          };
-        }
-      },
-      useResultCache: false,
-      maxSelect: 1,
-      // This is a trick to get around this condition in autocomplete-lhc:
-      //   this.options.minChars || 1
-      minChars: '0',
-      matchListValue: false
-    });
-
-    this.listSelectionsObserver = (eventData) => {
-      this.currentData = eventData.final_val;
-      this.onChange(this.value);
-    };
-    Def.Autocompleter.Event.observeListSelections(
-      testInputId,
-      this.listSelectionsObserver
+    const units = this.loincCodes.reduce<string[]>(
+      (arr, c) => arr.concat(code2units[c] || []),
+      []
     );
+    const uniqueFilteredUnits = [...new Set(units)].sort();
+
+    if (uniqueFilteredUnits.length > 0) {
+      this.acInstance = new Def.Autocompleter.Prefetch(
+        testInputId,
+        uniqueFilteredUnits,
+        {
+          maxSelect: 1,
+          codes: uniqueFilteredUnits,
+          matchListValue: false
+        }
+      );
+
+      this.listSelectionsObserver = (eventData) => {
+        this.currentData = eventData.final_val;
+        this.onChange(this.value);
+      };
+      Def.Autocompleter.Event.observeListSelections(
+        testInputId,
+        this.listSelectionsObserver
+      );
+    }
   }
 
   /**
-   * Returns autocomplete value set
+   * Destroy the autocompleter
    */
-  getAutocompleteValueSet(isMatchToFieldVal: RegExp, count: number): ValueSet {
-    const units = this.loincCodes.reduce<string[]>(
-      (arr, c) => arr.concat(code2units[c]),
-      []
-    );
-    const uniqueFilteredUnits = [...new Set(units)]
-      .filter((c) => isMatchToFieldVal.test(c))
-      .sort();
-    if (uniqueFilteredUnits.length > count) {
-      uniqueFilteredUnits.length = count;
+  destroyAutocomplete(): void {
+    if (this.acInstance) {
+      this.acInstance.destroy();
+      Def.Autocompleter.Event.removeCallback(
+        this.inputId,
+        'LIST_SEL',
+        this.listSelectionsObserver
+      );
     }
+  }
 
-    return {
-      status: undefined,
-      resourceType: 'ValueSet',
-      expansion: {
-        identifier: null,
-        timestamp: '',
-        total: uniqueFilteredUnits.length,
-        contains: uniqueFilteredUnits.map((unit) => ({
-          code: unit,
-          display: unit
-        }))
+  /**
+   * Load the list of units from CTSS
+   */
+  loadUnits(): void {
+    const unloadedCodes = this.loincCodes.filter((c) => !code2units[c]);
+
+    if (unloadedCodes.length) {
+      this.numberOfActiveQueries++;
+      this.httpClient
+        .get(
+          'https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search?df=&type=question&ef=units&maxList&terms=',
+          {
+            params: {
+              q: 'LOINC_NUM:' + unloadedCodes.join(' OR ')
+            }
+          }
+        )
+        .pipe(
+          catchError((error) => {
+            this.numberOfActiveQueries--;
+            throw error;
+          })
+        )
+        .subscribe((res: Array<any>) => {
+          this.numberOfActiveQueries--;
+          const [, codes, extraFields] = res;
+          codes.forEach((code, i) => {
+            code2units[code] =
+              extraFields?.units[i]?.map((item) => item.unit) || [];
+          });
+          if (this.numberOfActiveQueries === 0) {
+            this.setupAutocomplete();
+          }
+        });
+    } else {
+      // If the input element is not created at this point,
+      // setupAutocomplete will execute in ngAfterViewInit
+      if (this.input) {
+        this.setupAutocomplete();
       }
-    };
+    }
   }
 
   /**
