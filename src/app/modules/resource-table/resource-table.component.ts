@@ -264,7 +264,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (this.isLoading) {
       return 'Loading ...';
     } else if (this.dataSource.data.length === 0) {
-      return `No ${this.resourceType} resources were found on the server.`;
+      return `No matching ${this.resourceType} resources were found on the server.`;
     } else {
       return 'Loading complete.';
     }

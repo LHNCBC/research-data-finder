@@ -12,6 +12,7 @@ import { ResourceTableModule } from '../resource-table/resource-table.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
+import { SearchParameterGroupModule } from '../search-parameter-group/search-parameter-group.module';
 
 @NgModule({
   declarations: [PullDataPageComponent],
@@ -19,7 +20,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   imports: [
     CommonModule,
     MatTabsModule,
-    SearchParametersModule,
+    SearchParameterGroupModule,
     MatTableModule,
     MatIconModule,
     MatTooltipModule,

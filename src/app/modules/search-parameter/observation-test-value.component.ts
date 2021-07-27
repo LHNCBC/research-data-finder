@@ -13,8 +13,6 @@ interface ObservationTestValue {
   testValueModifier: string;
   testValue: number | string;
   testValueUnit: string;
-  from: string;
-  to: string;
 }
 
 /**
@@ -34,9 +32,7 @@ export class ObservationTestValueComponent
     testValuePrefix: new FormControl(''),
     testValueModifier: new FormControl(''),
     testValue: new FormControl(''),
-    testValueUnit: new FormControl(''),
-    from: new FormControl(''),
-    to: new FormControl('')
+    testValueUnit: new FormControl('')
   });
   // Mapping for supported value[x] properties of Observation
   readonly typeDescriptions = {
@@ -80,9 +76,7 @@ export class ObservationTestValueComponent
         testValuePrefix: '',
         testValueModifier: '',
         testValue: '',
-        testValueUnit: '',
-        from: '',
-        to: ''
+        testValueUnit: ''
       }
     );
     if (

@@ -17,7 +17,6 @@ import { from, Observable, Subject } from 'rxjs';
 import Patient = fhir.Patient;
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { HttpClient } from '@angular/common/http';
-import { SearchCondition } from '../../types/search.condition';
 import { FormControl, Validators } from '@angular/forms';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 import Resource = fhir.Resource;
@@ -177,9 +176,9 @@ export class PullDataPageComponent implements AfterViewInit {
   /**
    * Loads resources of the specified type for a cohort of Patients.
    * @param resourceType - resource type
-   * @param conditions - criteria
+   * @param criteria - criteria
    */
-  loadResources(resourceType: string, conditions: SearchCondition[]): void {
+  loadResources(resourceType: string, criteria: string): void {
     this.resourceStream[resourceType] = new Subject<Resource>();
 
     // Added "detectChanges" to prevent this issue:
@@ -187,7 +186,6 @@ export class PullDataPageComponent implements AfterViewInit {
     // before the ResourceTableComponent subscribes to the resource stream.
     this.cdr.detectChanges();
 
-    let criteria = conditions.map((condition) => condition.criteria).join('');
     const observationCodes = [];
     const patientToCodeToCount = {};
     let sortParam = '';

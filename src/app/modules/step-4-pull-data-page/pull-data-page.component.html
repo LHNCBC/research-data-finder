@@ -34,17 +34,13 @@
         <input matInput [formControl]="perPatientFormControls[resourceType]" type="number" min="1">
       </mat-form-field>
 
-      <app-search-parameters [resourceType]="resourceType" #resourceParams></app-search-parameters>
+      <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams></app-search-parameter-group>
 
       <div class="h-box">
-        <button (click)="resourceParams.addParameter()" mat-stroked-button color="secondary">
-          <mat-icon svgIcon="add"></mat-icon>Add a search criterion
-        </button>
-        <div class="spacer"></div>
         <button mat-stroked-button
                 [disabled]="perPatientFormControls[resourceType]?.invalid"
                 color="secondary"
-                (click)="loadResources(resourceType, resourceParams.getConditions())">
+                (click)="loadResources(resourceType, resourceParams.getConditions().criteria)">
           <mat-icon svgIcon="refresh"></mat-icon>Load {{getPluralFormOfResourceType(resourceType)}}
         </button>
       </div>
