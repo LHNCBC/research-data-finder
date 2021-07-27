@@ -116,6 +116,11 @@ export class FhirBatchQuery {
           'Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1',
           { combine: false, retryCount: 2 }
         ),
+        // Check if server has Research Study data
+        this.getWithCache('ResearchStudy?_elements=id&_count=1', {
+          combine: false,
+          retryCount: 2
+        }),
         // Check if batch request is supported
         this._request({
           method: 'POST',
@@ -138,6 +143,7 @@ export class FhirBatchQuery {
           observationsSortedByDate,
           observationsSortedByAgeAtEvent,
           lastnLookup,
+          hasResearchStudy,
           batch
         ]) => {
           if (metadata.status === 'fulfilled') {
@@ -162,6 +168,10 @@ export class FhirBatchQuery {
             sortObservationsByAgeAtEvent:
               observationsSortedByAgeAtEvent.status === 'fulfilled',
             lastnLookup: lastnLookup.status === 'fulfilled',
+            hasResearchStudy:
+              hasResearchStudy.status === 'fulfilled' &&
+              hasResearchStudy.value.data.entry &&
+              hasResearchStudy.value.data.entry.length > 0,
             batch: batch.status === 'fulfilled'
           };
         }

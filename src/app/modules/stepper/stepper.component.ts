@@ -44,7 +44,7 @@ export class StepperComponent implements OnDestroy {
 
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
-    private fhirBackend: FhirBackendService,
+    public fhirBackend: FhirBackendService,
     private cdr: ChangeDetectorRef
   ) {
     this.subscription = fhirBackend.initialized
@@ -67,9 +67,13 @@ export class StepperComponent implements OnDestroy {
     this.searchedForPatients = true;
     this.cdr.detectChanges();
     if (this.stepper.selected.completed) {
-      this.defineCohortComponent.searchForPatients(
-        this.selectAreaOfInterestComponent.getResearchStudySearchParam()
-      );
+      if (this.selectAreaOfInterestComponent) {
+        this.defineCohortComponent.searchForPatients(
+          this.selectAreaOfInterestComponent.getResearchStudySearchParam()
+        );
+      } else {
+        this.defineCohortComponent.searchForPatients();
+      }
       this.stepper.next();
     } else {
       // The search for Patients was not started
@@ -89,7 +93,8 @@ export class StepperComponent implements OnDestroy {
       data:
         this.viewCohortComponent?.resourceTableComponent?.dataSource?.data ??
         [],
-      researchStudies: this.selectAreaOfInterestComponent.getResearchStudySearchParam()
+      researchStudies:
+        this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
     };
     const blob = new Blob([JSON.stringify(objectToSave, null, 2)], {
       type: 'text/json;charset=utf-8',
@@ -133,7 +138,7 @@ export class StepperComponent implements OnDestroy {
             );
           });
           // Set selected research studies.
-          this.selectAreaOfInterestComponent.selectLoadedResearchStudies(
+          this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
             researchStudies
           );
           // Set patient table data.
@@ -170,4 +175,5 @@ export class StepperComponent implements OnDestroy {
       this.defineCohortComponent.patientStream.complete();
     });
   }
+
 }
