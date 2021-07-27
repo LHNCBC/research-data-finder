@@ -53,10 +53,13 @@ describe('ObservationCodeLookupComponent', () => {
       beforeEachFn: () => {
         spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
           const HTTP_OK = 200;
+          const HTTP_ERROR = 404;
           if (/\$lastn\?/.test(url) || /Observation/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: observations });
           } else if (/metadata$/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: metadata });
+          } else if (/ResearchStudy/.test(url)) {
+            return Promise.reject({ status: HTTP_ERROR, error: 'error' });
           }
         });
       }
@@ -73,6 +76,8 @@ describe('ObservationCodeLookupComponent', () => {
             return Promise.resolve({ status: HTTP_OK, data: observations });
           } else if (/metadata$/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: metadata });
+          } else if (/ResearchStudy/.test(url)) {
+            return Promise.reject({ status: HTTP_ERROR, error: 'error' });
           }
         });
       }
@@ -141,7 +146,9 @@ describe('ObservationCodeLookupComponent', () => {
             x.args[0].match(/_elements=code,value,component&code=H/)
           )
         ).toBeTruthy();
-        expect(hostComponent.selectedObservationCodes.value.codes.length).toBe(2);
+        expect(hostComponent.selectedObservationCodes.value.codes.length).toBe(
+          2
+        );
       });
     });
   });

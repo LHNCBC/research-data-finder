@@ -11,6 +11,10 @@ This project follows [Semantic Versioning](http://semver.org/).
   as parameter name "code text".
 - Removed the date fields in "code text" search parameter.
 
+## [3.8.0] - 2021-07-23
+### Changed
+- Hide Research Study step if server has no Research Study data.
+
 ## [3.7.0] - 2021-07-23
 ### Changed
 - Automatically fallback to single requests if batching is not supported.
