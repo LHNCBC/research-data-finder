@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.10.0] - 2021-07-28
+### Added
+- Patient Id column to ResearchStudy table in the step of pulling data
+  for cohort
+
 ## [3.9.0] - 2021-07-23
 ### Changed
 - Search criteria in Define Cohort step now has categorized structure based
