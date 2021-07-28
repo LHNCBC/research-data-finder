@@ -19,6 +19,7 @@ describe('ColumnValuesService', () => {
     });
     fhirBackend = TestBed.inject(FhirBackendService);
     settingsService = TestBed.inject(SettingsService);
+    fhirBackend.settings = settingsService;
     service = TestBed.inject(ColumnValuesService);
   });
 

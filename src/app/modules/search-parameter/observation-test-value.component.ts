@@ -40,8 +40,9 @@ export class ObservationTestValueComponent
   readonly typeDescriptions = {
     Quantity: {
       searchValPrefixes: [
-        ['no value', ''],
-        ['=', 'eq'],
+        // See https://www.hl7.org/fhir/search.html#prefix
+        // if no prefix is present, the prefix 'eq' is assumed.
+        ['=', ''],
         ['not equal', 'ne'],
         ['>', 'gt'],
         ['<', 'lt'],
@@ -51,15 +52,11 @@ export class ObservationTestValueComponent
       unit: true
     },
     CodeableConcept: {
-      modifiers: [
-        ['no value', ''],
-        ['starts with', ':text']
-      ],
+      modifiers: [['starts with', ':text']],
       unit: false
     },
     string: {
       modifiers: [
-        ['no value', ''],
         ['starts with', ''],
         ['contains', ':contains'],
         ['exact', ':exact']

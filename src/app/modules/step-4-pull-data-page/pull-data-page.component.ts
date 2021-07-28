@@ -6,8 +6,8 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { concatMap, distinct, map, reduce, startWith } from 'rxjs/operators';
-import chunk from 'lodash/chunk';
+import { concatMap, map, reduce, startWith } from 'rxjs/operators';
+import { chunk } from 'lodash-es';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -24,6 +24,8 @@ import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { saveAs } from 'file-saver';
+
+type PatientMixin = { patientData: Patient };
 
 /**
  * The main component for pulling Patient-related resources data
@@ -170,7 +172,10 @@ export class PullDataPageComponent implements AfterViewInit {
    * Opens a dialog for configuring resource table columns.
    */
   configureColumns(): void {
-    this.columnDescriptions.openColumnsDialog(this.getCurrentResourceType());
+    this.columnDescriptions.openColumnsDialog(
+      this.getCurrentResourceType(),
+      'pull-data'
+    );
   }
 
   /**
@@ -205,11 +210,10 @@ export class PullDataPageComponent implements AfterViewInit {
       sortParam = '&_sort=' + sortFields.join(',');
     }
 
-    // To optimize ResearchStudy and Patient loading, we load them for 10 Patients
+    // To optimize Patient loading, we load them for 10 Patients
     // in one query. We don't use this optimization for other resource types
     // because we need to limit the number of resources per Patient.
-    const numberOfPatientsInRequest =
-      resourceType === 'ResearchStudy' || resourceType === 'Patient' ? 10 : 1;
+    const numberOfPatientsInRequest = resourceType === 'Patient' ? 10 : 1;
     from(
       [].concat(
         ...chunk(this.patients, numberOfPatientsInRequest).map((patients) => {
@@ -239,6 +243,10 @@ export class PullDataPageComponent implements AfterViewInit {
                   )
                   // toPromise needed to immediately execute query, this allows batch requests
                   .toPromise()
+                  .then((bundle) => ({
+                    bundle,
+                    patientData: patients.length === 1 ? patients[0] : null
+                  }))
               );
             });
           }
@@ -255,19 +263,26 @@ export class PullDataPageComponent implements AfterViewInit {
               )
               // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
               .toPromise()
+              .then((bundle) => ({
+                bundle,
+                patientData: patients.length === 1 ? patients[0] : null
+              }))
           );
         })
       )
     )
       .pipe(
-        concatMap((bundlePromise: Promise<Bundle>) => {
-          return from(bundlePromise);
-          // TODO: Currently we load only 1000 resources per Patient.
-          //       (In the previous version of Research Data Finder,
-          //       we only loaded the first page with the default size)
-          //       Uncommenting the below code will allow loading all resources,
-          //       but this could take time.
-          /*.pipe(
+        concatMap(
+          (
+            bundlePromise: Promise<{ bundle: Bundle; patientData: Patient }>
+          ) => {
+            return from(bundlePromise);
+            // TODO: Currently we load only 1000 resources per Patient.
+            //       (In the previous version of Research Data Finder,
+            //       we only loaded the first page with the default size)
+            //       Uncommenting the below code will allow loading all resources,
+            //       but this could take time.
+            /*.pipe(
             // Modifying the Observable to load the following pages sequentially
             expand((response: Bundle) => {
               const nextPageUrl = getNextPageUrl(response);
@@ -279,18 +294,23 @@ export class PullDataPageComponent implements AfterViewInit {
               }
             })
           )*/
-        }),
+          }
+        ),
 
         // Generate a sequence of resources
-        concatMap((bundle: Bundle) => {
-          const res = bundle?.entry?.map((entry) => entry.resource) || [];
+        concatMap(({ bundle, patientData }) => {
+          const res: (Resource & PatientMixin)[] =
+            bundle?.entry?.map((entry) => ({
+              ...entry.resource,
+              patientData
+            })) || [];
 
           if (resourceType === 'Observation' && !observationCodes.length) {
             // When no code is specified in criteria and we loaded last 1000 Observations.
             // Per Clem, we will only show perPatientPerTest results per patient per test.
             const perPatientPerTest = this.perPatientFormControls.Observation
               .value;
-            return res.filter((obs: Observation) => {
+            return res.filter((obs: Observation & PatientMixin) => {
               const patientRef = obs.subject.reference;
               const codeStr = this.columnValues.getCodeableConceptAsText(
                 obs.code
@@ -313,9 +333,7 @@ export class PullDataPageComponent implements AfterViewInit {
           }
 
           return res;
-        }),
-        // Exclude duplicates (e.g. when fetching ResearchStudies by Patients)
-        distinct((resource) => resource.id)
+        })
       )
       // Sequentially send the loaded resources to the resource table
       .subscribe(this.resourceStream[resourceType]);

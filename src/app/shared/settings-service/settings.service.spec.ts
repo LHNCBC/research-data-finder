@@ -24,8 +24,11 @@ describe('SettingsService', () => {
     );
     await service.loadJsonConfig().toPromise();
     expect(service.get('hideElementsByDefault').ResearchStudy).toEqual([
+      'id',
       'keyword',
       'condition'
     ]);
+    expect(service.get('hideElementsByDefault').Patient).toBeUndefined();
+    expect(service.get('hideElementsByDefault')['*']).toEqual([]);
   });
 });
