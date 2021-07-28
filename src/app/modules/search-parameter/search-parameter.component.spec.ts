@@ -42,8 +42,10 @@ describe('SearchParameterComponent', () => {
   });
 
   it('should have code text parameter', () => {
-    expect(component.parameterNames).not.toBeNull();
-    expect(component.parameterNames.length).toEqual(2);
-    expect(component.parameterNames.includes('code text')).toBeTrue();
+    expect(component.parameters).not.toBeNull();
+    expect(component.parameters.length).toEqual(2);
+    expect(component.parameters).toContain(
+      jasmine.objectContaining({ name: 'code text' })
+    );
   });
 });

@@ -7,8 +7,8 @@
            [formControl]="parameterName"
            [matAutocomplete]="auto1">
     <mat-autocomplete #auto1="matAutocomplete">
-      <mat-option *ngFor="let option of filteredParameterNames | async" [value]="option">
-        {{option}}
+      <mat-option *ngFor="let option of filteredParameters | async" [value]="option.name">
+        {{option.name}} <span class="option-desc" [matTooltip]="option.description">({{option.description}})</span>
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>

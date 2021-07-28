@@ -10,6 +10,7 @@ import { DatesFromToComponent } from './dates-from-to.component';
 import { ObservationTestValueComponent } from './observation-test-value.component';
 import { MatSelectModule } from '@angular/material/select';
 import { AutoCompleteTestValueComponent } from './autocomplete-test-value.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { AutoCompleteTestValueComponent } from './autocomplete-test-value.compon
     ReactiveFormsModule,
     MatInputModule,
     ObservationCodeLookupModule,
-    MatSelectModule
+    MatSelectModule,
+    MatTooltipModule
   ]
 })
 export class SearchParameterModule {}

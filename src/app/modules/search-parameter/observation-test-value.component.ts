@@ -38,7 +38,9 @@ export class ObservationTestValueComponent
   readonly typeDescriptions = {
     Quantity: {
       searchValPrefixes: [
-        ['=', 'eq'],
+        // See https://www.hl7.org/fhir/search.html#prefix
+        // if no prefix is present, the prefix 'eq' is assumed.
+        ['=', ''],
         ['not equal', 'ne'],
         ['>', 'gt'],
         ['<', 'lt'],

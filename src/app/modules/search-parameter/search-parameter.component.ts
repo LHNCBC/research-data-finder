@@ -27,6 +27,8 @@ export class SearchParameterComponent
   implements OnInit {
   @Input() resourceType = '';
   readonly OBSERVATIONBYTEST = 'code text';
+  readonly OBSERVATIONBYTESTDESC =
+    'The display text associated with the code of the observation type';
   readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
   // Observation search parameter names to be hidden
   readonly OBSERVATIONHIDDENPARAMETERNAMES = [
@@ -40,8 +42,8 @@ export class SearchParameterComponent
   selectedResourceType: any;
 
   parameterName: FormControl = new FormControl('');
-  parameterNames: string[] = [];
-  filteredParameterNames: Observable<string[]>;
+  parameters: any[] = [];
+  filteredParameters: Observable<any[]>;
   selectedParameter: any;
 
   parameterValue: FormControl = new FormControl('');
@@ -75,20 +77,21 @@ export class SearchParameterComponent
   ngOnInit(): void {
     this.definitions = this.fhirBackend.getCurrentDefinitions();
     this.selectedResourceType = this.definitions.resources[this.resourceType];
-    this.parameterNames = this.selectedResourceType.searchParameters.map(
-      (sp) => sp.name
-    );
+    this.parameters = this.selectedResourceType.searchParameters;
     if (this.resourceType === 'Observation') {
-      this.parameterNames = this.parameterNames.filter(
-        (n) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(n)
+      this.parameters = this.parameters.filter(
+        (p) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(p.name)
       );
-      this.parameterNames.unshift(this.OBSERVATIONBYTEST);
+      this.parameters.unshift({
+        name: this.OBSERVATIONBYTEST,
+        description: this.OBSERVATIONBYTESTDESC
+      });
     }
     this.selectedParameter = null;
 
-    this.filteredParameterNames = this.parameterName.valueChanges.pipe(
+    this.filteredParameters = this.parameterName.valueChanges.pipe(
       startWith(''),
-      map((value) => this._filter(value, this.parameterNames))
+      map((value) => this._filter(value, this.parameters))
     );
 
     this.parameterName.valueChanges.subscribe((value) => {
@@ -114,17 +117,11 @@ export class SearchParameterComponent
     });
   }
 
-  private _filter(
-    value: string,
-    options: string[],
-    selected: string[] = null
-  ): string[] {
+  private _filter(value: string, options: any[]): string[] {
     const filterValue = value.toLowerCase();
 
-    return options.filter(
-      (option) =>
-        option.toLowerCase().includes(filterValue) &&
-        (selected ? selected.indexOf(option) === -1 : true)
+    return options.filter((option) =>
+      option.name.toLowerCase().includes(filterValue)
     );
   }
 

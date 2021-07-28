@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.10.1] - 2021-07-28
+### Changed  
+- Added descriptions for search parameter names.
+- Renamed "Test value prefix" and "Test value modifier" to "Comparator".
+- The default comparator for the test value is "=".
+
 ## [3.10.0] - 2021-07-28
 ### Added
 - Patient Id column to ResearchStudy table in the step of pulling data
