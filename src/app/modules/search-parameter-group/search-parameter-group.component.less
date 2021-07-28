@@ -1,8 +1,16 @@
-.search-parameter-group {
+.resource-type {
+  width: 210px;
+}
+
+.resource-type-label {
+  font-weight: bold;
+}
+
+.search-parameter-row {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  & app-search-parameter-group {
+  & app-search-parameter {
     flex: 1 1;
   }
 
@@ -11,11 +19,11 @@
   }
 
   & button {
-     margin-top: 0.4em;
+    margin-top: 0.4em;
   }
 }
 
-#addResourceType {
+#addSearchCriterion {
   display: block;
   margin-bottom: 20px;
 }

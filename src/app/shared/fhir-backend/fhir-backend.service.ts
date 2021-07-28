@@ -195,7 +195,11 @@ export class FhirBackendService implements HttpBackend {
         this.fhirClient.initialize().then(() => {
           // Requests to the FHIR server without endpoint cannot be combined
           // into a batch request
-          const options = { combine: serviceBaseUrlWithEndpoint.test(newUrl) };
+          const options = {
+            combine:
+              this.fhirClient.getFeatures().batch &&
+              serviceBaseUrlWithEndpoint.test(newUrl)
+          };
           const promise = this.isCacheEnabled
             ? this.fhirClient.getWithCache(fullUrl, options)
             : this.fhirClient.get(fullUrl, options);

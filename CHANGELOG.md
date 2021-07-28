@@ -3,10 +3,26 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.7.0] - 2021-07-22
+## [3.10.0] - 2021-07-28
 ### Added
 - Patient Id column to ResearchStudy table in the step of pulling data
   for cohort
+
+## [3.9.0] - 2021-07-23
+### Changed
+- Search criteria in Define Cohort step now has categorized structure based
+  on resource types.
+- "Observation by Test" is now combined into "Observation" resource type
+  as parameter name "code text".
+- Removed the date fields in "code text" search parameter.
+
+## [3.8.0] - 2021-07-23
+### Changed
+- Hide Research Study step if server has no Research Study data.
+
+## [3.7.0] - 2021-07-23
+### Changed
+- Automatically fallback to single requests if batching is not supported.
 
 ## [3.6.1] - 2021-07-22
 ### Changed

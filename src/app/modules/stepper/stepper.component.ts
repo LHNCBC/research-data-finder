@@ -44,7 +44,7 @@ export class StepperComponent implements OnDestroy {
 
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
-    private fhirBackend: FhirBackendService,
+    public fhirBackend: FhirBackendService,
     private cdr: ChangeDetectorRef
   ) {
     this.subscription = fhirBackend.initialized
@@ -67,9 +67,13 @@ export class StepperComponent implements OnDestroy {
     this.searchedForPatients = true;
     this.cdr.detectChanges();
     if (this.stepper.selected.completed) {
-      this.defineCohortComponent.searchForPatients(
-        this.selectAreaOfInterestComponent.getResearchStudySearchParam()
-      );
+      if (this.selectAreaOfInterestComponent) {
+        this.defineCohortComponent.searchForPatients(
+          this.selectAreaOfInterestComponent.getResearchStudySearchParam()
+        );
+      } else {
+        this.defineCohortComponent.searchForPatients();
+      }
       this.stepper.next();
     } else {
       // The search for Patients was not started
@@ -85,11 +89,12 @@ export class StepperComponent implements OnDestroy {
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
       maxPatientCount: this.defineCohortComponent.defineCohortForm.value
         .maxPatientsNumber,
-      rawCriteria: this.defineCohortComponent.patientParams.parameterList.value,
+      rawCriteria: this.defineCohortComponent.patientParams.parameterGroupList.getRawValue(),
       data:
         this.viewCohortComponent?.resourceTableComponent?.dataSource?.data ??
         [],
-      researchStudies: this.selectAreaOfInterestComponent.getResearchStudySearchParam()
+      researchStudies:
+        this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
     };
     const blob = new Blob([JSON.stringify(objectToSave, null, 2)], {
       type: 'text/json;charset=utf-8',
@@ -126,14 +131,14 @@ export class StepperComponent implements OnDestroy {
             .get('maxPatientsNumber')
             .setValue(maxPatientCount);
           // Set search parameter form values.
-          this.defineCohortComponent.patientParams.parameterList.clear();
+          this.defineCohortComponent.patientParams.parameterGroupList.clear();
           (rawCriteria as SearchParameter[]).forEach((searchParam) => {
-            this.defineCohortComponent.patientParams.parameterList.push(
+            this.defineCohortComponent.patientParams.parameterGroupList.push(
               new FormControl(searchParam)
             );
           });
           // Set selected research studies.
-          this.selectAreaOfInterestComponent.selectLoadedResearchStudies(
+          this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
             researchStudies
           );
           // Set patient table data.
@@ -170,4 +175,5 @@ export class StepperComponent implements OnDestroy {
       this.defineCohortComponent.patientStream.complete();
     });
   }
+
 }

@@ -102,7 +102,7 @@ describe('PullDataForCohortComponent', () => {
     // Should collect Patients from input stream
     expect(component.patients).toEqual(arrayOfPatients);
 
-    component.loadResources('Observation', []);
+    component.loadResources('Observation', '');
     testData.forEach((item) => {
       const patientId = item.patient.id;
       mockHttp
@@ -142,7 +142,7 @@ describe('PullDataForCohortComponent', () => {
     component.perPatientFormControls['Encounter'].setValue(
       encountersPerPatient
     );
-    component.loadResources('Encounter', []);
+    component.loadResources('Encounter', '');
     testData.forEach((item) => {
       const patientId = item.patient.id;
       mockHttp
@@ -177,7 +177,7 @@ describe('PullDataForCohortComponent', () => {
 
     component.addTab('ResearchStudy');
     fixture.detectChanges();
-    component.loadResources('ResearchStudy', []);
+    component.loadResources('ResearchStudy', '');
     chunk(arrayOfPatients, 1).forEach((patients) => {
       mockHttp
         .expectOne(
