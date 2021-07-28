@@ -12,7 +12,23 @@
     // Sort orders by resource type.
     // Columns without a sort order defined here will stay in the end.
     columnSort: {
-      Patient: ['name', 'active']
+      Patient: ['name', 'active'],
+      ResearchStudy: ['contextPatientId']
+    },
+    contextColumns: {
+      // Columns added to the resource table in the context of pulling data
+      "pull-data": {
+        "ResearchStudy": [
+          {
+            displayName: "Patient Id",
+            element: "contextPatientId",
+            expression: "patientData.id",
+            types: [
+              "string"
+            ]
+          }
+        ],
+      }
     }
   },
   // Settings for servers with the specified URL.
@@ -81,6 +97,16 @@
             types: ["Count"]
           }
         ]
+      },
+      // Limit list of resource types
+      availableResourceTypes: [
+        'ResearchStudy', 'Patient', 'Observation'
+      ],
+      // Hide resource table columns for specified elements
+      hideElementsByDefault: {
+        "*": [],
+        "Observation": ["id"],
+        "ResearchStudy": ["id", "keyword", "condition"]
       }
     }
   }

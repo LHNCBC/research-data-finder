@@ -1,4 +1,9 @@
-import { Component, OnDestroy, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  ViewChild
+} from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatStepper } from '@angular/material/stepper';
 import {
@@ -6,7 +11,7 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import { filter, take } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { Subject, Subscription } from 'rxjs';
 import { saveAs } from 'file-saver';
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
@@ -23,7 +28,7 @@ import { SelectAnAreaOfInterestComponent } from '../step-1-select-an-area-of-int
   styleUrls: ['./stepper.component.less']
 })
 export class StepperComponent implements OnDestroy {
-  @ViewChild('stepper') private myStepper: MatStepper;
+  @ViewChild('stepper') public stepper: MatStepper;
   @ViewChild('selectAnAreaOfInterest')
   public selectAreaOfInterestComponent: SelectAnAreaOfInterestComponent;
   @ViewChild('defineCohortComponent') public defineCohortComponent;
@@ -34,24 +39,46 @@ export class StepperComponent implements OnDestroy {
   defineCohort: FormControl = new FormControl();
   serverInitialized = false;
   subscription: Subscription;
+  // Whether the search for Patients has been started
+  searchedForPatients = false;
 
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
-    private fhirBackend: FhirBackendService
+    public fhirBackend: FhirBackendService,
+    private cdr: ChangeDetectorRef
   ) {
     this.subscription = fhirBackend.initialized
-      .pipe(
-        filter((status) => status === ConnectionStatus.Ready),
-        take(1)
-      )
+      .pipe(filter((status) => status === ConnectionStatus.Disconnect))
       .subscribe(() => {
-        this.serverInitialized = true;
+        this.searchedForPatients = false;
+        this.stepper.steps.forEach((s) => s.reset());
       });
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
-    this.columnDescriptions.destroy();
+    this.fhirBackend.disconnect();
+  }
+
+  /**
+   * Runs searching for Patient resources
+   */
+  searchForPatients(): void {
+    this.searchedForPatients = true;
+    this.cdr.detectChanges();
+    if (this.stepper.selected.completed) {
+      if (this.selectAreaOfInterestComponent) {
+        this.defineCohortComponent.searchForPatients(
+          this.selectAreaOfInterestComponent.getResearchStudySearchParam()
+        );
+      } else {
+        this.defineCohortComponent.searchForPatients();
+      }
+      this.stepper.next();
+    } else {
+      // The search for Patients was not started
+      this.searchedForPatients = false;
+    }
   }
 
   /**
@@ -66,7 +93,8 @@ export class StepperComponent implements OnDestroy {
       data:
         this.viewCohortComponent?.resourceTableComponent?.dataSource?.data ??
         [],
-      researchStudies: this.selectAreaOfInterestComponent.getResearchStudySearchParam()
+      researchStudies:
+        this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
     };
     const blob = new Blob([JSON.stringify(objectToSave, null, 2)], {
       type: 'text/json;charset=utf-8',
@@ -110,7 +138,7 @@ export class StepperComponent implements OnDestroy {
             );
           });
           // Set selected research studies.
-          this.selectAreaOfInterestComponent.selectLoadedResearchStudies(
+          this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
             researchStudies
           );
           // Set patient table data.
@@ -136,9 +164,9 @@ export class StepperComponent implements OnDestroy {
     fromResearchStudyStep = false
   ): void {
     this.defineCohortComponent.patientStream = new Subject<Resource>();
-    this.myStepper.next();
+    this.stepper.next();
     if (fromResearchStudyStep) {
-      this.myStepper.next();
+      this.stepper.next();
     }
     setTimeout(() => {
       data.forEach((resource) => {
@@ -147,4 +175,5 @@ export class StepperComponent implements OnDestroy {
       this.defineCohortComponent.patientStream.complete();
     });
   }
+
 }

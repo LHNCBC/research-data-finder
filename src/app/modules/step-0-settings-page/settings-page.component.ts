@@ -6,7 +6,6 @@ import {
   ValidationErrors,
   Validators
 } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -28,8 +27,7 @@ export class SettingsPageComponent {
 
   constructor(
     private formBuilder: FormBuilder,
-    private http: HttpClient,
-    private fhirBackend: FhirBackendService
+    public fhirBackend: FhirBackendService
   ) {
     this.isWaitingForConnection = fhirBackend.initialized.pipe(
       map((status) => status === ConnectionStatus.Pending)

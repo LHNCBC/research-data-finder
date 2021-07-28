@@ -3,11 +3,48 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.5.1] - 2021-07-15
+## [3.10.1] - 2021-07-28
 ### Changed  
 - Added descriptions for search parameter names.
 - Renamed "Test value prefix" and "Test value modifier" to "Comparator".
 - The default comparator for the test value is "=".
+
+## [3.10.0] - 2021-07-28
+### Added
+- Patient Id column to ResearchStudy table in the step of pulling data
+  for cohort
+
+## [3.9.0] - 2021-07-23
+### Changed
+- Search criteria in Define Cohort step now has categorized structure based
+  on resource types.
+- "Observation by Test" is now combined into "Observation" resource type
+  as parameter name "code text".
+- Removed the date fields in "code text" search parameter.
+
+## [3.8.0] - 2021-07-23
+### Changed
+- Hide Research Study step if server has no Research Study data.
+
+## [3.7.0] - 2021-07-23
+### Changed
+- Automatically fallback to single requests if batching is not supported.
+
+## [3.6.1] - 2021-07-22
+### Changed
+- Show Patient id (dbGaP)
+- Store visible table columns for each service base URL separately
+
+## [3.6.0] - 2021-07-22
+### Added
+- Limit list of resources to what has data (dbGaP).
+### Fixed
+- It was possible to switch to the View cohort step without
+  searching for Patients.
+
+## [3.5.1] - 2021-07-22
+### Fixed
+- README.md
 
 ## [3.5.0] - 2021-07-12
 ### Added

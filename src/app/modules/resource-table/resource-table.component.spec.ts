@@ -10,7 +10,6 @@ import { DebugElement, SimpleChange, SimpleChanges } from '@angular/core';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { SharedModule } from '../../shared/shared.module';
 import { SettingsService } from '../../shared/settings-service/settings.service';
-import Spy = jasmine.Spy;
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import {
@@ -75,7 +74,7 @@ describe('ResourceTableComponent', () => {
     HttpClient: jasmine.createSpyObj('HttpClient', ['get']),
     ColumnDescriptionsService: jasmine.createSpyObj(
       'ColumnDescriptionsService',
-      ['getAvailableColumns']
+      ['getAvailableColumns', 'setVisibleColumnNames']
     ),
     SettingsService: jasmine.createSpyObj('SettingsService', ['get']),
     FhirBackendService: jasmine.createSpyObj('FhirBackendService', [], {
@@ -168,16 +167,15 @@ describe('ResourceTableComponent', () => {
   });
 
   it('should hide columns by default according to settings', async () => {
-    spyOn(window.localStorage, 'setItem');
     await fillTable([]);
     expect(component.filterColumns.length).toEqual(availableColumns.length - 1);
     expect(component.dataSource.filteredData.length).toEqual(50);
     expect(
-      (window.localStorage.setItem as Spy).calls.mostRecent().args[0]
-    ).toEqual('SomeResourceType-columns');
+      spies.ColumnDescriptionsService.getAvailableColumns
+    ).toHaveBeenCalledOnceWith('SomeResourceType', '');
     expect(
-      (window.localStorage.setItem as Spy).calls.mostRecent().args[1]
-    ).toEqual('id,customElement');
+      spies.ColumnDescriptionsService.setVisibleColumnNames
+    ).toHaveBeenCalledOnceWith('SomeResourceType', '', ['id', 'customElement']);
   });
 
   it('should get a cell strings correctly', async () => {

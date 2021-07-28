@@ -27,7 +27,7 @@ beforeAll(async () => {
   fileName = `${os.tmpdir()}/e2e_temp/cohort-100.json`;
   // Initialize common page objects & harnesses
   page = new AppPage();
-  await page.navigateTo();
+  await page.navigateTo('?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1');
   const harnessLoader = ProtractorHarnessEnvironment.loader();
   stepper = await harnessLoader.getHarness(MatStepperHarness);
   stepsArray = await stepper.getSteps();
@@ -114,6 +114,19 @@ describe('Research Data Finder', () => {
     expect(await defineCohortStep.isSelected()).toBe(true);
   });
 
+  it('should hide Research Study step if server has no data', async () => {
+    await page.navigateTo('?server=https://lforms-fhir.nlm.nih.gov/baseR4');
+    const harnessLoader = ProtractorHarnessEnvironment.loader();
+    stepper = await harnessLoader.getHarness(MatStepperHarness);
+    stepsArray = await stepper.getSteps();
+    expect(stepsArray.length).toEqual(4);
+    [settingsStep, defineCohortStep, viewCohortStep, pullDataStep] = stepsArray;
+    const currentStep = (await stepper.getSteps({ selected: true }))[0];
+    nextPageBtn = await currentStep.getHarness(MatStepperNextHarness);
+    await nextPageBtn.click();
+    expect(await defineCohortStep.isSelected()).toBe(true);
+  });
+
   it('should add search criterion', async () => {
     await $('#addResourceType').click();
     expect(await $('.resource-type').isDisplayed()).toBe(true);
@@ -122,8 +135,9 @@ describe('Research Data Finder', () => {
     await $('app-define-cohort-page').click();
     await $('app-define-cohort-page #addSearchCriterion').click();
     expect(await $('.parameter-name').isDisplayed()).toBe(true);
-    await $('.parameter-name input').sendKeys('address');
+    await $('.parameter-name input').sendKeys('name');
     expect(await $('.parameter-value').isDisplayed()).toBe(true);
+    await $('.parameter-value input').sendKeys('a');
   });
 
   it('should not allow skipping the View cohort (search for patients) step', async () => {
@@ -168,10 +182,11 @@ describe('Research Data Finder', () => {
       .then((entries) => {
         // Ignore these errors:
         // * sorting parameter "age-at-event" is not supported
+        // * $lastn on Observation is not supported
         // * favicon.ico is missing
         return entries.filter(
           (entry) =>
-            !/Observation\?_sort=age-at-event|\/favicon\.ico/.test(
+            !/Observation\?_sort=age-at-event|code:text=zzzzz|\/favicon\.ico/.test(
               entry.message
             )
         );

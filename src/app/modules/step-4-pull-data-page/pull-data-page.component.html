@@ -46,7 +46,8 @@
       </div>
       <div class="spacer"></div>
       <app-resource-table *ngIf="resourceStream[resourceType]"
-          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType) | async"
+          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'pull-data') | async"
+          context="pull-data"
           resourceType="{{resourceType}}" [resourceStream]="resourceStream[resourceType]">
       </app-resource-table>
     </div>

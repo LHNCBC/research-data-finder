@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Config } from '../../types/settings';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
-import getPropertyByPath from 'lodash/get';
+import { get as getPropertyByPath } from 'lodash-es';
 import json5 from 'json5';
 
 @Injectable({
@@ -36,6 +36,8 @@ export class SettingsService {
       .pipe(
         tap((config) => {
           this.config = json5.parse(config);
+          this.fhirBackend.settings = this;
+          this.fhirBackend.initializeFhirBatchQuery();
         })
       );
   }

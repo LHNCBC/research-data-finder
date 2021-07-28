@@ -99,6 +99,12 @@ export class SearchParameterGroupComponent
     this.parameterList.removeAt(this.parameterList.controls.indexOf(item));
   }
 
+  /**
+   * Part of the ControlValueAccessor interface
+   * required to integrate with Angular's core forms API.
+   *
+   * @param value New value to be written to the model.
+   */
   writeValue(value: SearchParameterGroup): void {
     this.resourceType.setValue(value?.resourceType);
     this.parameterList.clear();
@@ -107,7 +113,9 @@ export class SearchParameterGroupComponent
     );
   }
 
-  // Get and group search conditions for a resource type.
+  /**
+   * Get and group search conditions for a resource type.
+   */
   getConditions(): SearchCondition {
     const conditions = this.searchParameterComponents
       .map((c) => c.getCriteria())

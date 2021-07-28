@@ -86,7 +86,7 @@ export class DefineCohortPageComponent
    * searches from server and checks patient records against all search parameters,
    * and emits patient records that matches all search parameters through {patientStream}
    */
-  searchForPatients(researchStudyIds: string[]): void {
+  searchForPatients(researchStudyIds: string[] = []): void {
     // make new stream so user can come back and search multiple times
     this.patientStream = new Subject<Resource>();
     this.patientCount = 0;
