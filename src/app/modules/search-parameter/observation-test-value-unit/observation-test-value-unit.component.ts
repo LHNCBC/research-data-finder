@@ -21,9 +21,6 @@ import { Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 
-// Mapping from LOINC code to units
-const code2units: { [code: string]: string[] } = {};
-
 /**
  * Component to select the unit of the Observation value.
  */
@@ -54,6 +51,9 @@ export class ObservationTestValueUnitComponent
       ngControl.valueAccessor = this;
     }
   }
+
+  // Mapping from LOINC code to units
+  static code2units: { [code: string]: string[] } = {};
 
   static idPrefix = 'unit-selector-';
   static idIndex = 0;
@@ -96,7 +96,7 @@ export class ObservationTestValueUnitComponent
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
    */
   get empty(): boolean {
-    return !this.input?.nativeElement.value;
+    return !this.currentData;
   }
 
   /**
@@ -164,6 +164,9 @@ export class ObservationTestValueUnitComponent
    */
   writeValue(value: string | null): void {
     this.currentData = value || '';
+    if (this.input) {
+      this.input.nativeElement.value = this.currentData;
+    }
   }
 
   /**
@@ -172,6 +175,9 @@ export class ObservationTestValueUnitComponent
    * not ready yet on ngOnInit
    */
   ngAfterViewInit(): void {
+    // Fill autocomplete with data (if currentData was set in writeValue
+    // at the moment when input field was not created).
+    this.input.nativeElement.value = this.currentData;
     this.setupAutocomplete();
   }
 
@@ -184,7 +190,8 @@ export class ObservationTestValueUnitComponent
     this.destroyAutocomplete();
 
     const units = this.loincCodes.reduce<string[]>(
-      (arr, c) => arr.concat(code2units[c] || []),
+      (arr, c) =>
+        arr.concat(ObservationTestValueUnitComponent.code2units[c] || []),
       []
     );
     const uniqueFilteredUnits = [...new Set(units)].sort();
@@ -194,9 +201,7 @@ export class ObservationTestValueUnitComponent
         testInputId,
         uniqueFilteredUnits,
         {
-          maxSelect: 1,
-          codes: uniqueFilteredUnits,
-          matchListValue: false
+          codes: uniqueFilteredUnits
         }
       );
 
@@ -229,7 +234,9 @@ export class ObservationTestValueUnitComponent
    * Load the list of units from CTSS
    */
   loadUnits(): void {
-    const unloadedCodes = this.loincCodes.filter((c) => !code2units[c]);
+    const unloadedCodes = this.loincCodes.filter(
+      (c) => !ObservationTestValueUnitComponent.code2units[c]
+    );
 
     if (unloadedCodes.length) {
       this.numberOfActiveQueries++;
@@ -252,7 +259,7 @@ export class ObservationTestValueUnitComponent
           this.numberOfActiveQueries--;
           const [, codes, extraFields] = res;
           codes.forEach((code, i) => {
-            code2units[code] =
+            ObservationTestValueUnitComponent.code2units[code] =
               extraFields?.units[i]?.map((item) => item.unit) || [];
           });
           if (this.numberOfActiveQueries === 0) {

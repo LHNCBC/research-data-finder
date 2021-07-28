@@ -115,6 +115,7 @@ export class SearchParameterComponent
       this.onChange(this.value);
     });
     this.selectedObservationCodes.valueChanges.subscribe((value) => {
+      // Prepare a list of LOINC codes for ObservationTestValueUnitComponent
       this.loincCodes =
         value?.coding
           .filter((c) => c.system === 'http://loinc.org')
