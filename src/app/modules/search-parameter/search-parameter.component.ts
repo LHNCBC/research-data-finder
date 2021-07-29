@@ -12,6 +12,7 @@ import {
   encodeFhirSearchParameter,
   escapeFhirSearchParameter
 } from '../../shared/utils';
+import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 
 /**
  * Component for editing one resource search parameter
@@ -50,6 +51,7 @@ export class SearchParameterComponent
   parameterValues: any[];
 
   selectedObservationCodes: FormControl = new FormControl(null);
+  loincCodes: string[] = [];
 
   get value(): SearchParameter {
     return {
@@ -112,7 +114,12 @@ export class SearchParameterComponent
     this.parameterValue.valueChanges.subscribe(() => {
       this.onChange(this.value);
     });
-    this.selectedObservationCodes.valueChanges.subscribe(() => {
+    this.selectedObservationCodes.valueChanges.subscribe((value) => {
+      // Prepare a list of LOINC codes for ObservationTestValueUnitComponent
+      this.loincCodes =
+        value?.coding
+          .filter((c) => c.system === 'http://loinc.org')
+          .map((c) => c.code) || [];
       this.onChange(this.value);
     });
   }
@@ -177,16 +184,16 @@ export class SearchParameterComponent
   }
 
   getObservationByTestCriteria(): string {
+    const selectedCodes = this.selectedObservationCodes
+      .value as SelectedObservationCodes;
     // Ignore criteria if no code selected.
-    if (!this.selectedObservationCodes.value) {
+    if (!selectedCodes) {
       return '';
     }
-    const comboCodes = this.selectedObservationCodes.value.codes.filter(
-      (c) => c
-    );
-    const codeParam = comboCodes.length
+    const coding = selectedCodes.coding.filter((c) => c);
+    const codeParam = coding.length
       ? '&combo-code=' +
-        comboCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
+        coding.map((code) => encodeFhirSearchParameter(code.code)).join(',')
       : '';
     const valueParamName = {
       CodeableConcept: 'combo-value-concept',

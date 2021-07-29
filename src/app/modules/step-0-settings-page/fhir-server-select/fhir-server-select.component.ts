@@ -175,7 +175,7 @@ export class FhirServerSelectComponent
     this.acInstance = new Def.Autocompleter.Prefetch(
       testInputId,
       this.options.map((o) => o.description),
-      { maxSelect: 1, codes: this.options.map((o) => o.url) }
+      { codes: this.options.map((o) => o.url) }
     );
     this.acInstance.setFieldVal(this.currentValue);
     Def.Autocompleter.Event.observeListSelections(testInputId, (eventData) => {

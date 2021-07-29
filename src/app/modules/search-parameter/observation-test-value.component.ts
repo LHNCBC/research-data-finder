@@ -28,6 +28,8 @@ export class ObservationTestValueComponent
   extends BaseControlValueAccessor<ObservationTestValue>
   implements OnInit {
   @Input() datatype: string;
+  @Input() loincCodes: string[] = [];
+
   form = new FormGroup({
     testValuePrefix: new FormControl(''),
     testValueModifier: new FormControl(''),
