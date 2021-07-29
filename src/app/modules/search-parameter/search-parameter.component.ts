@@ -151,7 +151,7 @@ export class SearchParameterComponent
    */
   getCriteria(): string {
     if (this.parameterName.value === this.OBSERVATIONBYTEST) {
-      return this.getObservationByTestCriteria();
+      return this.getObservationCodeTextCriteria();
     }
     // Return empty if parameter name is not selected.
     if (!this.selectedParameter) {
@@ -189,7 +189,10 @@ export class SearchParameterComponent
     return `&${this.parameterName.value}=${this.parameterValue.value}`;
   }
 
-  private getObservationByTestCriteria(): string {
+  /**
+   * Get criteria string for Observation "code text" parameter
+   */
+  private getObservationCodeTextCriteria(): string {
     const selectedCodes = this.selectedObservationCodes
       .value as SelectedObservationCodes;
     // Ignore criteria if no code selected.
@@ -213,6 +216,10 @@ export class SearchParameterComponent
     return `${codeParam}${valueParam}`;
   }
 
+  /**
+   * Get criteria string for composite test value controls
+   * e.g. prefix + value + unit
+   */
   private getCompositeTestValueCriteria(): string {
     const modifier = this.parameterValue.value.testValueModifier;
     const prefix = this.parameterValue.value.testValuePrefix;

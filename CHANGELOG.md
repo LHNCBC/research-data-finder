@@ -3,12 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.12.0] - 2021-07-29
+### Changed
+- Observation search parameter of type "Quantity" now uses the composite
+  test value controls.
+
 ## [3.11.0] - 2021-07-28
-### Added  
+### Added
 - List of units for LOINC codes from CTSS.
 
 ## [3.10.1] - 2021-07-28
-### Changed  
+### Changed
 - Added descriptions for search parameter names.
 - Renamed "Test value prefix" and "Test value modifier" to "Comparator".
 - The default comparator for the test value is "=".
