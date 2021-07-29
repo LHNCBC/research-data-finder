@@ -14,12 +14,12 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
 // see docs at http://lhncbc.github.io/autocomplete-lhc/docs.html
 import Def from 'autocomplete-lhc';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
-import { SelectedLoincCodes } from '../../types/selected-loinc-codes';
+import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { NgControl } from '@angular/forms';
 import { EMPTY, forkJoin, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { catchError, expand, map, takeWhile, tap } from 'rxjs/operators';
+import { catchError, expand, tap } from 'rxjs/operators';
 import { getNextPageUrl, escapeStringForRegExp } from '../../shared/utils';
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
@@ -40,8 +40,11 @@ import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
   ]
 })
 export class ObservationCodeLookupComponent
-  extends BaseControlValueAccessor<SelectedLoincCodes>
-  implements MatFormFieldControl<SelectedLoincCodes>, AfterViewInit, OnDestroy {
+  extends BaseControlValueAccessor<SelectedObservationCodes>
+  implements
+    MatFormFieldControl<SelectedObservationCodes>,
+    AfterViewInit,
+    OnDestroy {
   static reValueKey = /^value(.*)/;
 
   static idPrefix = 'code-selector-';
@@ -66,16 +69,16 @@ export class ObservationCodeLookupComponent
    * datatype - type of data for the selected Observation codes
    * codes - Observation codes
    */
-  currentData: SelectedLoincCodes = {
+  currentData: SelectedObservationCodes = {
     datatype: '',
-    codes: [],
+    coding: [],
     items: []
   };
 
   /**
    * Implemented as part of MatFormFieldControl.
    */
-  get value(): SelectedLoincCodes {
+  get value(): SelectedObservationCodes {
     return this.currentData;
   }
 
@@ -165,10 +168,10 @@ export class ObservationCodeLookupComponent
    *
    * @param value New value to be written to the model.
    */
-  writeValue(value: SelectedLoincCodes | null): void {
+  writeValue(value: SelectedObservationCodes | null): void {
     this.currentData = value || {
       datatype: '',
-      codes: [],
+      coding: [],
       items: []
     };
     if (this.acInstance) {
@@ -327,23 +330,25 @@ export class ObservationCodeLookupComponent
 
     // Fill component with data (see writeValue)
     this.currentData.items.forEach((item, index) => {
-      this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
+      this.acInstance.storeSelectedItem(item, this.currentData.coding[index]);
       this.acInstance.addToSelectedArea(item);
     });
 
     // Restore mapping from code to datatype from preselected data
-    this.currentData.codes.forEach((code) => {
-      if (!this.code2Type[code]) {
-        this.code2Type[code] = this.currentData.datatype;
+    this.currentData.coding.forEach((code) => {
+      if (!this.code2Type[code.system + '|' + code.code]) {
+        this.code2Type[
+          code.system + '|' + code.code
+        ] = this.currentData.datatype;
       }
     });
 
     this.listSelectionsObserver = (eventData) => {
-      const codes = acInstance.getSelectedCodes();
+      const coding = acInstance.getSelectedCodes();
       const items = acInstance.getSelectedItems();
       let datatype = '';
-      if (codes.length > 0) {
-        datatype = this.code2Type[codes[0]];
+      if (coding.length > 0) {
+        datatype = this.code2Type[coding[0].system + '|' + coding[0].code];
         if (!eventData.removed) {
           acInstance.domCache.set('elemVal', eventData.val_typed_in);
           acInstance.useSearchFn(
@@ -353,7 +358,7 @@ export class ObservationCodeLookupComponent
         }
       }
       this.currentData = {
-        codes,
+        coding,
         datatype,
         items
       };
@@ -399,9 +404,9 @@ export class ObservationCodeLookupComponent
               return matched;
             })
             .map((coding) => {
-              this.code2Type[coding.code] = datatype;
+              this.code2Type[coding.system + '|' + coding.code] = datatype;
               return {
-                code: coding.code,
+                code: { code: coding.code, system: coding.system },
                 display: coding.display
               };
             })

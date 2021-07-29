@@ -171,15 +171,18 @@ describe('ResourceTableComponent', () => {
     expect(component.filterColumns.length).toEqual(availableColumns.length - 1);
     expect(component.dataSource.filteredData.length).toEqual(50);
     expect(
+      spies.ColumnDescriptionsService.getAvailableColumns
+    ).toHaveBeenCalledOnceWith('SomeResourceType', '');
+    expect(
       spies.ColumnDescriptionsService.setVisibleColumnNames
-    ).toHaveBeenCalledOnceWith('SomeResourceType', ['id', 'customElement']);
+    ).toHaveBeenCalledOnceWith('SomeResourceType', '', ['id', 'customElement']);
   });
 
   it('should get a cell strings correctly', async () => {
     await fillTable(availableColumns);
-    const rowNumber = 6;
+    const rowNumber = 4;
     const cellValues = ['5', 'value-5', '5'];
-    for (let i = 0; cellValues.length < 3; i++) {
+    for (let i = 0; i < cellValues.length; i++) {
       expect(
         component.getCellStrings(
           component.dataSource.data[rowNumber],

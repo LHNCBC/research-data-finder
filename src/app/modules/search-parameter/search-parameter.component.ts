@@ -12,6 +12,7 @@ import {
   encodeFhirSearchParameter,
   escapeFhirSearchParameter
 } from '../../shared/utils';
+import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 
 /**
  * Component for editing one resource search parameter
@@ -27,6 +28,8 @@ export class SearchParameterComponent
   implements OnInit {
   @Input() resourceType = '';
   readonly OBSERVATIONBYTEST = 'code text';
+  readonly OBSERVATIONBYTESTDESC =
+    'The display text associated with the code of the observation type';
   readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
   // Observation search parameter names to be hidden
   readonly OBSERVATIONHIDDENPARAMETERNAMES = [
@@ -40,14 +43,15 @@ export class SearchParameterComponent
   selectedResourceType: any;
 
   parameterName: FormControl = new FormControl('');
-  parameterNames: string[] = [];
-  filteredParameterNames: Observable<string[]>;
+  parameters: any[] = [];
+  filteredParameters: Observable<any[]>;
   selectedParameter: any;
 
   parameterValue: FormControl = new FormControl('');
   parameterValues: any[];
 
   selectedObservationCodes: FormControl = new FormControl(null);
+  loincCodes: string[] = [];
 
   get value(): SearchParameter {
     return {
@@ -75,20 +79,21 @@ export class SearchParameterComponent
   ngOnInit(): void {
     this.definitions = this.fhirBackend.getCurrentDefinitions();
     this.selectedResourceType = this.definitions.resources[this.resourceType];
-    this.parameterNames = this.selectedResourceType.searchParameters.map(
-      (sp) => sp.name
-    );
+    this.parameters = this.selectedResourceType.searchParameters;
     if (this.resourceType === 'Observation') {
-      this.parameterNames = this.parameterNames.filter(
-        (n) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(n)
+      this.parameters = this.parameters.filter(
+        (p) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(p.name)
       );
-      this.parameterNames.unshift(this.OBSERVATIONBYTEST);
+      this.parameters.unshift({
+        name: this.OBSERVATIONBYTEST,
+        description: this.OBSERVATIONBYTESTDESC
+      });
     }
     this.selectedParameter = null;
 
-    this.filteredParameterNames = this.parameterName.valueChanges.pipe(
+    this.filteredParameters = this.parameterName.valueChanges.pipe(
       startWith(''),
-      map((value) => this._filter(value, this.parameterNames))
+      map((value) => this._filter(value, this.parameters))
     );
 
     this.parameterName.valueChanges.subscribe((value) => {
@@ -109,22 +114,21 @@ export class SearchParameterComponent
     this.parameterValue.valueChanges.subscribe(() => {
       this.onChange(this.value);
     });
-    this.selectedObservationCodes.valueChanges.subscribe(() => {
+    this.selectedObservationCodes.valueChanges.subscribe((value) => {
+      // Prepare a list of LOINC codes for ObservationTestValueUnitComponent
+      this.loincCodes =
+        value?.coding
+          .filter((c) => c.system === 'http://loinc.org')
+          .map((c) => c.code) || [];
       this.onChange(this.value);
     });
   }
 
-  private _filter(
-    value: string,
-    options: string[],
-    selected: string[] = null
-  ): string[] {
+  private _filter(value: string, options: any[]): string[] {
     const filterValue = value.toLowerCase();
 
-    return options.filter(
-      (option) =>
-        option.toLowerCase().includes(filterValue) &&
-        (selected ? selected.indexOf(option) === -1 : true)
+    return options.filter((option) =>
+      option.name.toLowerCase().includes(filterValue)
     );
   }
 
@@ -186,16 +190,16 @@ export class SearchParameterComponent
   }
 
   private getObservationByTestCriteria(): string {
+    const selectedCodes = this.selectedObservationCodes
+      .value as SelectedObservationCodes;
     // Ignore criteria if no code selected.
-    if (!this.selectedObservationCodes.value) {
+    if (!selectedCodes) {
       return '';
     }
-    const comboCodes = this.selectedObservationCodes.value.codes.filter(
-      (c) => c
-    );
-    const codeParam = comboCodes.length
+    const coding = selectedCodes.coding.filter((c) => c);
+    const codeParam = coding.length
       ? '&combo-code=' +
-        comboCodes.map((code) => encodeFhirSearchParameter(code)).join(',')
+        coding.map((code) => encodeFhirSearchParameter(code.code)).join(',')
       : '';
     const valueParamName = {
       CodeableConcept: 'combo-value-concept',

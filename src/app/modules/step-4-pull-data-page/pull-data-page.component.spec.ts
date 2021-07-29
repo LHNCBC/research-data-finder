@@ -167,7 +167,7 @@ describe('PullDataForCohortComponent', () => {
       .toPromise();
   });
 
-  it('should load unique ResearchStudies', async () => {
+  it('should load all (non-unique) ResearchStudies', async () => {
     const arrayOfPatients = Array.from({ length: 30 }, (_, index) => ({
       id: 'smart-' + index
     }));
@@ -178,7 +178,7 @@ describe('PullDataForCohortComponent', () => {
     component.addTab('ResearchStudy');
     fixture.detectChanges();
     component.loadResources('ResearchStudy', '');
-    chunk(arrayOfPatients, 10).forEach((patients) => {
+    chunk(arrayOfPatients, 1).forEach((patients) => {
       mockHttp
         .expectOne(
           `$fhir/ResearchStudy?_has:ResearchSubject:study:individual=${patients
@@ -187,7 +187,7 @@ describe('PullDataForCohortComponent', () => {
         )
         .flush(researchStudies);
     });
-    // Should load 2 unique (not repeated) resources from test fixtures
+    // Should load all (non-unique) resources from test fixtures
     let loadedResourceCount = 0;
     await component.resourceStream['ResearchStudy']
       .pipe(
@@ -196,7 +196,7 @@ describe('PullDataForCohortComponent', () => {
             loadedResourceCount++;
           },
           complete: () => {
-            expect(loadedResourceCount).toBe(2);
+            expect(loadedResourceCount).toBe(60);
           }
         })
       )

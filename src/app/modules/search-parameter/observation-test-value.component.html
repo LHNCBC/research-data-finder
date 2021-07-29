@@ -1,14 +1,14 @@
 <form [formGroup]="form">
   <div class="test-value">
     <mat-form-field *ngIf="typeDescriptions[datatype].searchValPrefixes">
-      <mat-label>Test value prefix</mat-label>
+      <mat-label>Comparator</mat-label>
       <mat-select formControlName="testValuePrefix">
         <mat-option *ngFor="let option of typeDescriptions[datatype].searchValPrefixes"
                     [value]="option[1]">{{option[0]}}</mat-option>
       </mat-select>
     </mat-form-field>
     <mat-form-field *ngIf="typeDescriptions[datatype].modifiers">
-      <mat-label>Test value modifier</mat-label>
+      <mat-label>Comparator</mat-label>
       <mat-select formControlName="testValueModifier">
         <mat-option *ngFor="let option of typeDescriptions[datatype].modifiers"
                     [value]="option[1]">{{option[0]}}</mat-option>
@@ -21,9 +21,14 @@
       <input *ngIf="datatype !== 'Quantity'" type="text" matInput formControlName="testValue"
              placeholder="enter string value">
     </mat-form-field>
+
     <mat-form-field *ngIf="typeDescriptions[datatype].unit">
       <mat-label>Test value unit</mat-label>
-      <input matInput formControlName="testValueUnit" placeholder="unit code">
+      <app-observation-test-value-units
+          formControlName="testValueUnit"
+          [loincCodes]="loincCodes"
+          placeholder="unit code">
+      </app-observation-test-value-units>
     </mat-form-field>
   </div>
 </form>

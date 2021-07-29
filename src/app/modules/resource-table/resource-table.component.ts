@@ -42,6 +42,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
   @Input() resourceType;
+  @Input() context = '';
   @Input() resourceStream: Subject<Resource>;
   @Input() loadingStatistics: (string | number)[][] = [];
   columns: string[] = [];
@@ -94,7 +95,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     const allColumns = this.columnDescriptionsService.getAvailableColumns(
-      this.resourceType
+      this.resourceType,
+      this.context
     );
     const hiddenByDefault = (
       this.settings.get('hideElementsByDefault')?.[this.resourceType] || []
@@ -114,6 +116,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     // Save column selections of default
     this.columnDescriptionsService.setVisibleColumnNames(
       this.resourceType,
+      this.context,
       this.columnDescriptions.map((x) => x.element)
     );
   }
