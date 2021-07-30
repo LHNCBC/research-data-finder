@@ -213,6 +213,12 @@ export class ObservationTestValueUnitComponent
         testInputId,
         this.listSelectionsObserver
       );
+    } else {
+      // In case of no auto-complete list, listen to input change to update parent form control.
+      this.input.nativeElement.addEventListener('change', (e) => {
+        this.currentData = (e.target as HTMLInputElement).value;
+        this.onChange(this.value);
+      });
     }
   }
 
