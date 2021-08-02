@@ -151,7 +151,7 @@ export class SearchParameterComponent
    */
   getCriteria(): string {
     if (this.parameterName.value === this.OBSERVATIONBYTEST) {
-      return this.getObservationByTestCriteria();
+      return this.getObservationCodeTextCriteria();
     }
     // Return empty if parameter name is not selected.
     if (!this.selectedParameter) {
@@ -180,10 +180,19 @@ export class SearchParameterComponent
         ','
       )}`;
     }
+    if (this.selectedParameter.type === 'Quantity') {
+      const testValueCriteria = this.getCompositeTestValueCriteria();
+      return testValueCriteria
+        ? `&${this.parameterName.value}${testValueCriteria}`
+        : '';
+    }
     return `&${this.parameterName.value}=${this.parameterValue.value}`;
   }
 
-  getObservationByTestCriteria(): string {
+  /**
+   * Get criteria string for Observation "code text" parameter
+   */
+  private getObservationCodeTextCriteria(): string {
     const selectedCodes = this.selectedObservationCodes
       .value as SelectedObservationCodes;
     // Ignore criteria if no code selected.
@@ -200,6 +209,18 @@ export class SearchParameterComponent
       Quantity: 'combo-value-quantity',
       string: 'value-string'
     }[this.selectedObservationCodes.value.datatype];
+    const testValueCriteria = this.getCompositeTestValueCriteria();
+    const valueParam = testValueCriteria
+      ? `&${valueParamName}${testValueCriteria}`
+      : '';
+    return `${codeParam}${valueParam}`;
+  }
+
+  /**
+   * Get criteria string for composite test value controls
+   * e.g. prefix + value + unit
+   */
+  private getCompositeTestValueCriteria(): string {
     const modifier = this.parameterValue.value.testValueModifier;
     const prefix = this.parameterValue.value.testValuePrefix;
     const testValue = this.parameterValue.value.testValue
@@ -208,11 +229,10 @@ export class SearchParameterComponent
         )
       : '';
     const unit = this.parameterValue.value.testValueUnit;
-    const valueParam = testValue.trim()
-      ? `&${valueParamName}${modifier}=${prefix}${encodeURIComponent(
+    return testValue.trim()
+      ? `${modifier}=${prefix}${encodeURIComponent(
           testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
         )}`
       : '';
-    return `${codeParam}${valueParam}`;
   }
 }

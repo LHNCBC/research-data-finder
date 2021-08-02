@@ -31,6 +31,10 @@
 
       <app-dates-from-to *ngSwitchCase="'date'" [formControl]="parameterValue" class="parameter-value"></app-dates-from-to>
 
+      <app-observation-test-value *ngSwitchCase="'Quantity'" class="parameter-value" [formControl]="parameterValue"
+                                  datatype="Quantity">
+      </app-observation-test-value>
+
       <mat-form-field *ngSwitchDefault class="parameter-value">
         <mat-label>Search parameter value</mat-label>
         <input matInput [formControl]="parameterValue" [placeholder]="selectedParameter.description">
