@@ -45,7 +45,7 @@
           <span [attr.aria-label]="column.displayName + '. click to sort by this column'">
             {{column.displayName}}
           </span>
-          <mat-icon [svgIcon]="hasFilter(column.element) ? 'filter_list' : 'search'" (click)='openFilterDialog($event, column.element)'></mat-icon>
+          <mat-icon [svgIcon]="hasFilter(column.element) ? 'filter_list' : 'search'" (click)='openFilterDialog($event, column)'></mat-icon>
         </th>
         <td mat-cell *matCellDef="let element"> {{getCellStrings(element, column).join('; ')}} </td>
       </ng-container>

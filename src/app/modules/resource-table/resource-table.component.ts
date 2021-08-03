@@ -57,6 +57,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   loadedDateTime: number;
   subscription: Subscription;
   fhirPathModel: any;
+  readonly listFilterColumns: string[];
 
   @HostBinding('class.fullscreen') fullscreen = false;
 
@@ -77,6 +78,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           R4: fhirPathModelR4
         }[fhirBackend.currentVersion];
       });
+    this.listFilterColumns = settings.get('listFilterColumns');
   }
 
   ngOnInit(): void {}
@@ -364,10 +366,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     this.selectedResources.select(...items);
   }
 
-  openFilterDialog(event, column: string): void {
+  openFilterDialog(event, column: ColumnDescription): void {
     const rect = event.target.getBoundingClientRect();
     const dialogConfig = new MatDialogConfig();
     dialogConfig.hasBackdrop = true;
+
     // Position the popup right below the invoking icon.
     dialogConfig.position = { top: `${rect.bottom}px` };
     if (rect.left < window.innerWidth / 2) {
@@ -375,16 +378,26 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       dialogConfig.position.right = `${window.innerWidth - rect.right}px`;
     }
+
+    const useAutocomplete = this.listFilterColumns.includes(column.element);
+    let options: string[] = [];
+    if (useAutocomplete) {
+      const columnValues = this.dataSource.data
+        .map((row) => this.getCellStrings(row, column).join('; '))
+        .filter((v) => v);
+      options = [...new Set(columnValues)];
+    }
     dialogConfig.data = {
-      column,
-      value: this.filtersForm.get(column).value
+      value: this.filtersForm.get(column.element).value,
+      useAutocomplete,
+      options
     };
     const dialogRef = this.dialog.open(
       ResourceTableFilterComponent,
       dialogConfig
     );
     dialogRef.afterClosed().subscribe((value) => {
-      this.filtersForm.get(column).setValue(value);
+      this.filtersForm.get(column.element).setValue(value);
     });
   }
 

@@ -8,6 +8,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import Def from 'autocomplete-lhc';
 
 /**
  * Component for filtering criteria of a resource table column
@@ -23,25 +24,46 @@ export class ResourceTableFilterComponent implements AfterViewInit {
   inputId =
     ResourceTableFilterComponent.idPrefix +
     ++ResourceTableFilterComponent.idIndex;
-  column: string;
-  value: string;
   @ViewChild('input') input: ElementRef<HTMLInputElement>;
+  value: string | string[];
+  useAutocomplete = false;
+  options: string[] = [];
+  // Autocompleter instance
+  acInstance: Def.Autocompleter.Prefetch;
 
   constructor(
     private dialogRef: MatDialogRef<ResourceTableFilterComponent>,
     @Inject(MAT_DIALOG_DATA) data
   ) {
-    this.column = data.column;
     this.value = data.value;
+    this.useAutocomplete = data.useAutocomplete;
+    this.options = data.options;
   }
 
   ngAfterViewInit(): void {
-    this.input.nativeElement.value = this.value;
+    if (this.useAutocomplete) {
+      this.acInstance = new Def.Autocompleter.Prefetch(
+        this.inputId,
+        this.options,
+        { maxSelect: '*' }
+      );
+      if (this.value && this.value.length) {
+        (this.value as string[]).forEach((v) => {
+          this.acInstance.addToSelectedArea(v);
+        });
+      }
+    } else {
+      this.input.nativeElement.value = this.value as string;
+    }
     this.dialogRef.backdropClick().subscribe(() => this.close());
   }
 
   close(): void {
-    this.dialogRef.close(this.input.nativeElement.value);
+    if (this.useAutocomplete) {
+      this.dialogRef.close(this.acInstance.getSelectedItems());
+    } else {
+      this.dialogRef.close(this.input.nativeElement.value);
+    }
   }
 
   @HostListener('document:keydown.escape') onKeyDown(): void {
