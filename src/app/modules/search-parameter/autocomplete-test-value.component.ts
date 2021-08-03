@@ -24,7 +24,7 @@ export interface Lookup {
 }
 
 /**
- * Component for from/to date inputs combined together as one control
+ * Component for search parameter value as autocomplete multi-select
  */
 @Component({
   selector: 'app-autocomplete-test-value',

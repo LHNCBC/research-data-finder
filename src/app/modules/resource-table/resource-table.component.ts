@@ -28,6 +28,8 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import Resource = fhir.Resource;
+import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
+import { ResourceTableFilterComponent } from '../resource-table-filter/resource-table-filter.component';
 
 /**
  * Component for loading table of resources
@@ -46,7 +48,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() resourceStream: Subject<Resource>;
   @Input() loadingStatistics: (string | number)[][] = [];
   columns: string[] = [];
-  filterColumns = [];
   selectedResources = new SelectionModel<Resource>(true, []);
   filtersForm: FormGroup = new FormBuilder().group({});
   dataSource = new TableVirtualScrollDataSource<Resource>([]);
@@ -66,7 +67,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private columnDescriptionsService: ColumnDescriptionsService,
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
-    private liveAnnoncer: LiveAnnouncer
+    private liveAnnoncer: LiveAnnouncer,
+    private dialog: MatDialog
   ) {
     this.subscription = fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Ready))
@@ -169,9 +171,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     );
     if (this.enableClientFiltering) {
       this.filtersForm = new FormBuilder().group({});
-      this.filterColumns = this.columns.map((c) => c + 'Filter');
       this.columnDescriptions.forEach((column) => {
-        this.filtersForm.addControl(column.element, new FormControl());
+        this.filtersForm.addControl(column.element, new FormControl(''));
       });
       this.dataSource.filterPredicate = ((data, filterValues) => {
         for (const [key, value] of Object.entries(filterValues)) {
@@ -361,5 +362,33 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     this.selectedResources.clear();
     const items = this.dataSource.data.filter((r) => ids.includes(r.id));
     this.selectedResources.select(...items);
+  }
+
+  openFilterDialog(event, column: string): void {
+    const rect = event.target.getBoundingClientRect();
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.hasBackdrop = true;
+    // Position the popup right below the invoking icon.
+    dialogConfig.position = { top: `${rect.bottom}px` };
+    if (rect.left < window.innerWidth / 2) {
+      dialogConfig.position.left = `${rect.left}px`;
+    } else {
+      dialogConfig.position.right = `${window.innerWidth - rect.right}px`;
+    }
+    dialogConfig.data = {
+      column,
+      value: this.filtersForm.get(column).value
+    };
+    const dialogRef = this.dialog.open(
+      ResourceTableFilterComponent,
+      dialogConfig
+    );
+    dialogRef.afterClosed().subscribe((value) => {
+      this.filtersForm.get(column).setValue(value);
+    });
+  }
+
+  private hasFilter(column: string): boolean {
+    return this.filtersForm.get(column).value !== '';
   }
 }
