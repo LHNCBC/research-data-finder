@@ -5,7 +5,12 @@ import {
   QueryList,
   OnInit
 } from '@angular/core';
-import { AbstractControl, FormArray, FormControl } from '@angular/forms';
+import {
+  AbstractControl,
+  FormArray,
+  FormControl,
+  Validators
+} from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
@@ -36,7 +41,7 @@ export class SearchParameterGroupComponent
   @ViewChildren(SearchParameterComponent)
   searchParameterComponents: QueryList<SearchParameterComponent>;
   parameterList = new FormArray([]);
-  resourceType: FormControl = new FormControl('');
+  resourceType: FormControl = new FormControl('', Validators.required);
   resourceTypes: string[] = [];
   filteredResourceTypes: Observable<string[]>;
 

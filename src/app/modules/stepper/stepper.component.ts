@@ -1,11 +1,6 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  ViewChild
-} from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { MatStepper } from '@angular/material/stepper';
+import { MatStep, MatStepper } from '@angular/material/stepper';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -27,34 +22,42 @@ import { SelectAnAreaOfInterestComponent } from '../step-1-select-an-area-of-int
   templateUrl: './stepper.component.html',
   styleUrls: ['./stepper.component.less']
 })
-export class StepperComponent implements OnDestroy {
+export class StepperComponent implements AfterViewInit, OnDestroy {
   @ViewChild('stepper') public stepper: MatStepper;
+  @ViewChild('defineCohortStep') public defineCohortStep: MatStep;
   @ViewChild('selectAnAreaOfInterest')
   public selectAreaOfInterestComponent: SelectAnAreaOfInterestComponent;
   @ViewChild('defineCohortComponent') public defineCohortComponent;
   @ViewChild('viewCohortComponent')
   public viewCohortComponent: ViewCohortPageComponent;
 
-  settings: FormControl = new FormControl();
   defineCohort: FormControl = new FormControl();
   serverInitialized = false;
   subscription: Subscription;
-  // Whether the search for Patients has been started
-  searchedForPatients = false;
 
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
-    public fhirBackend: FhirBackendService,
-    private cdr: ChangeDetectorRef
+    public fhirBackend: FhirBackendService
   ) {
-    this.subscription = fhirBackend.initialized
+    this.subscription = this.fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Disconnect))
       .subscribe(() => {
-        this.searchedForPatients = false;
+        this.defineCohortStep.completed = false;
         this.stepper.steps.forEach((s) => s.reset());
       });
   }
 
+  /**
+   * A lifecycle hook that is called after Angular has fully initialized
+   * a component's view.
+   */
+  ngAfterViewInit(): void {
+    this.defineCohortStep.completed = false;
+  }
+
+  /**
+   * Performs cleanup when a component instance is destroyed.
+   */
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
     this.fhirBackend.disconnect();
@@ -64,9 +67,8 @@ export class StepperComponent implements OnDestroy {
    * Runs searching for Patient resources
    */
   searchForPatients(): void {
-    this.searchedForPatients = true;
-    this.cdr.detectChanges();
-    if (this.stepper.selected.completed) {
+    this.defineCohortStep.completed = !this.defineCohortComponent.hasErrors();
+    if (this.defineCohortStep.completed) {
       if (this.selectAreaOfInterestComponent) {
         this.defineCohortComponent.searchForPatients(
           this.selectAreaOfInterestComponent.getResearchStudySearchParam()
@@ -76,8 +78,7 @@ export class StepperComponent implements OnDestroy {
       }
       this.stepper.next();
     } else {
-      // The search for Patients was not started
-      this.searchedForPatients = false;
+      this.defineCohortComponent.showErrors();
     }
   }
 
@@ -175,5 +176,4 @@ export class StepperComponent implements OnDestroy {
       this.defineCohortComponent.patientStream.complete();
     });
   }
-
 }

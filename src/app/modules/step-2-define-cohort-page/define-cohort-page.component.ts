@@ -17,6 +17,7 @@ import Resource = fhir.Resource;
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { HttpClient } from '@angular/common/http';
 import Patient = fhir.Patient;
+import { ErrorManager } from '../../shared/custom-error-state-matcher/error-manager.service';
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -25,9 +26,12 @@ import Patient = fhir.Patient;
   selector: 'app-define-cohort-page',
   templateUrl: './define-cohort-page.component.html',
   styleUrls: ['./define-cohort-page.component.less'],
-  providers: createControlValueAccessorAndValidatorProviders(
-    DefineCohortPageComponent
-  )
+  providers: [
+    ...createControlValueAccessorAndValidatorProviders(
+      DefineCohortPageComponent
+    ),
+    ErrorManager
+  ]
 })
 export class DefineCohortPageComponent
   extends BaseControlValueAccessorAndValidator<any>
@@ -44,7 +48,8 @@ export class DefineCohortPageComponent
   constructor(
     private formBuilder: FormBuilder,
     private fhirBackend: FhirBackendService,
-    private http: HttpClient
+    private http: HttpClient,
+    private errorManager: ErrorManager
   ) {
     super();
   }
@@ -276,5 +281,19 @@ export class DefineCohortPageComponent
         }
         return result;
       });
+  }
+
+  /**
+   * Checks for errors
+   */
+  hasErrors(): boolean {
+    return this.errorManager.errors !== null;
+  }
+
+  /**
+   * Shows errors for existing formControls
+   */
+  showErrors(): void {
+    this.errorManager.showErrors();
   }
 }

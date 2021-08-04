@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { SearchParameter } from 'src/app/types/search.parameter';
@@ -42,15 +42,22 @@ export class SearchParameterComponent
 
   selectedResourceType: any;
 
-  parameterName: FormControl = new FormControl('');
+  parameterName: FormControl = new FormControl('', Validators.required);
   parameters: any[] = [];
   filteredParameters: Observable<any[]>;
   selectedParameter: any;
 
-  parameterValue: FormControl = new FormControl('');
+  parameterValue: FormControl = new FormControl('', (control) => {
+    return this.selectedObservationCodes?.value?.datatype
+      ? null
+      : Validators.required(control);
+  });
   parameterValues: any[];
 
-  selectedObservationCodes: FormControl = new FormControl(null);
+  selectedObservationCodes: FormControl = new FormControl(
+    null,
+    Validators.required
+  );
   loincCodes: string[] = [];
 
   get value(): SearchParameter {
@@ -101,7 +108,9 @@ export class SearchParameterComponent
         (p) => p.name === value
       );
       if (this.selectedParameter) {
-        this.parameterValue.setValue('');
+        this.parameterValue.setValue(
+          this.selectedParameter.type === 'boolean' ? 'true' : ''
+        );
         if (this.selectedParameter.valueSet) {
           this.parameterValues = this.definitions.valueSets[
             this.selectedParameter.valueSet

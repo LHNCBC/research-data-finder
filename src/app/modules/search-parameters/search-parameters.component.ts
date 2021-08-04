@@ -7,6 +7,8 @@ import {
 import { SearchParameter } from 'src/app/types/search.parameter';
 import { SearchCondition } from '../../types/search.condition';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
+import { ErrorStateMatcher } from '@angular/material/core';
+import { ErrorManager } from '../../shared/custom-error-state-matcher/error-manager.service';
 
 /**
  * Component for managing resources search parameters
@@ -15,7 +17,13 @@ import { SearchParameterGroupComponent } from '../search-parameter-group/search-
   selector: 'app-search-parameters',
   templateUrl: './search-parameters.component.html',
   styleUrls: ['./search-parameters.component.less'],
-  providers: createControlValueAccessorProviders(SearchParametersComponent)
+  providers: [
+    ...createControlValueAccessorProviders(SearchParametersComponent),
+    {
+      provide: ErrorStateMatcher,
+      useExisting: ErrorManager
+    }
+  ]
 })
 export class SearchParametersComponent extends BaseControlValueAccessor<
   SearchParameter[]
