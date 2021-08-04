@@ -7,7 +7,7 @@ describe('ErrorManager', () => {
   const invalidControl = new FormControl('', Validators.required);
 
   beforeEach(() => {
-    service = new ErrorManager();
+    service = new ErrorManager(null);
   });
 
   it('should return errors', () => {

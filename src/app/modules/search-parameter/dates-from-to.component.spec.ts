@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SharedModule } from '../../shared/shared.module';
 import { DatesFromToComponent } from './dates-from-to.component';
 import { SearchParameterModule } from './search-parameter.module';
-import { ErrorManager } from '../../shared/custom-error-state-matcher/error-manager.service';
+import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 
 describe('DatesFromToComponent', () => {
   let component: DatesFromToComponent;

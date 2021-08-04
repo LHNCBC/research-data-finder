@@ -5,11 +5,7 @@ import {
   QueryList,
   OnInit
 } from '@angular/core';
-import {
-  AbstractControl,
-  FormArray,
-  FormControl
-} from '@angular/forms';
+import { AbstractControl, FormArray, FormControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
@@ -23,7 +19,7 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { SearchParameterGroup } from '../../types/search-parameter-group';
-import { ErrorManager } from '../../shared/custom-error-state-matcher/error-manager.service';
+import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 
 /**

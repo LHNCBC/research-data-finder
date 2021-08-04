@@ -13,7 +13,7 @@ describe('FormControlCollectorDirective', () => {
     formControlDirective = {
       control: formControl
     } as FormControlDirective;
-    errorManager = new ErrorManager();
+    errorManager = new ErrorManager(null);
     spyOn(errorManager, 'addControl');
     spyOn(errorManager, 'removeControl');
     directive = new FormControlCollectorDirective(
