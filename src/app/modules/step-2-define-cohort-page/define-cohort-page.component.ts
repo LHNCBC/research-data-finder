@@ -287,7 +287,7 @@ export class DefineCohortPageComponent
    * Checks for errors
    */
   hasErrors(): boolean {
-    return this.errorManager.errors !== null;
+    return this.errorManager.errors !== null || this.defineCohortForm.invalid;
   }
 
   /**

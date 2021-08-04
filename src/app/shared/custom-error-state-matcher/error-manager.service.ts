@@ -6,13 +6,19 @@ import {
   NgForm,
   ValidationErrors
 } from '@angular/forms';
-import { Injectable } from '@angular/core';
+import { Injectable, Optional, SkipSelf } from '@angular/core';
 
 /**
  * Service for managing validation and displaying errors.
  */
 @Injectable()
 export class ErrorManager implements ErrorStateMatcher {
+  constructor(@SkipSelf() @Optional() parent: ErrorManager) {
+    if (parent) {
+      // Use previously provided instance if exists
+      return parent;
+    }
+  }
   // Array of controls for which errors should be displayed
   controlToShowErrors: FormControl[] = [];
   // Array of all controls

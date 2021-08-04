@@ -47,16 +47,15 @@ export class SearchParameterComponent
   filteredParameters: Observable<any[]>;
   selectedParameter: any;
 
-  parameterValue: FormControl = new FormControl('', (control) => {
-    return this.selectedObservationCodes?.value?.datatype
+  parameterValue: FormControl = new FormControl('', (control) =>
+    this.selectedObservationCodes?.value?.datatype
       ? null
-      : Validators.required(control);
-  });
+      : Validators.required(control)
+  );
   parameterValues: any[];
 
-  selectedObservationCodes: FormControl = new FormControl(
-    null,
-    Validators.required
+  selectedObservationCodes: FormControl = new FormControl(null, () =>
+    this.selectedObservationCodes?.value?.datatype ? null : { required: true }
   );
   loincCodes: string[] = [];
 

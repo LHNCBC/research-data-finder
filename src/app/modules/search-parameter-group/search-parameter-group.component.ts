@@ -8,8 +8,7 @@ import {
 import {
   AbstractControl,
   FormArray,
-  FormControl,
-  Validators
+  FormControl
 } from '@angular/forms';
 import {
   BaseControlValueAccessor,
@@ -24,6 +23,8 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { SearchParameterGroup } from '../../types/search-parameter-group';
+import { ErrorManager } from '../../shared/custom-error-state-matcher/error-manager.service';
+import { ErrorStateMatcher } from '@angular/material/core';
 
 /**
  * Component for managing search parameters of a resource type
@@ -32,7 +33,14 @@ import { SearchParameterGroup } from '../../types/search-parameter-group';
   selector: 'app-search-parameter-group',
   templateUrl: './search-parameter-group.component.html',
   styleUrls: ['./search-parameter-group.component.less'],
-  providers: createControlValueAccessorProviders(SearchParameterGroupComponent)
+  providers: [
+    ...createControlValueAccessorProviders(SearchParameterGroupComponent),
+    ErrorManager,
+    {
+      provide: ErrorStateMatcher,
+      useExisting: ErrorManager
+    }
+  ]
 })
 export class SearchParameterGroupComponent
   extends BaseControlValueAccessor<SearchParameterGroup>
@@ -41,7 +49,7 @@ export class SearchParameterGroupComponent
   @ViewChildren(SearchParameterComponent)
   searchParameterComponents: QueryList<SearchParameterComponent>;
   parameterList = new FormArray([]);
-  resourceType: FormControl = new FormControl('', Validators.required);
+  resourceType: FormControl = new FormControl('');
   resourceTypes: string[] = [];
   filteredResourceTypes: Observable<string[]>;
 
@@ -52,7 +60,10 @@ export class SearchParameterGroupComponent
     };
   }
 
-  constructor(private fhirBackend: FhirBackendService) {
+  constructor(
+    private fhirBackend: FhirBackendService,
+    private errorManager: ErrorManager
+  ) {
     super();
     fhirBackend.initialized
       .pipe(
@@ -129,5 +140,19 @@ export class SearchParameterGroupComponent
       resourceType: this.resourceType.value,
       criteria: conditions
     };
+  }
+
+  /**
+   * Checks for errors
+   */
+  hasErrors(): boolean {
+    return this.errorManager.errors !== null;
+  }
+
+  /**
+   * Shows errors for existing formControls
+   */
+  showErrors(): void {
+    this.errorManager.showErrors();
   }
 }
