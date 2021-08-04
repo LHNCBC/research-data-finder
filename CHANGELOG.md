@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.13.0] - 2021-08-04
+### Added
+- Validation for criteria.
+
 ## [3.12.0] - 2021-07-29
 ### Changed
 - Observation search parameter of type "Quantity" now uses the composite
