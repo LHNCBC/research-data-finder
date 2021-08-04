@@ -4,7 +4,6 @@ import {
   ElementRef,
   HostListener,
   Inject,
-  OnInit,
   ViewChild
 } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -49,6 +48,7 @@ export class ResourceTableFilterComponent implements AfterViewInit {
       );
       if (this.value && this.value.length) {
         (this.value as string[]).forEach((v) => {
+          this.acInstance.storeSelectedItem(v);
           this.acInstance.addToSelectedArea(v);
         });
       }

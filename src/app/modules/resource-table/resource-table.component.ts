@@ -178,11 +178,18 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       });
       this.dataSource.filterPredicate = ((data, filterValues) => {
         for (const [key, value] of Object.entries(filterValues)) {
-          if (value) {
-            const columnDescription = this.columnDescriptions.find(
-              (c) => c.element === key
-            );
-            const cellValue = this.getCellStrings(data, columnDescription);
+          if (!value || (value as string[]).length === 0) {
+            continue;
+          }
+          const columnDescription = this.columnDescriptions.find(
+            (c) => c.element === key
+          );
+          const cellValue = this.getCellStrings(data, columnDescription);
+          if (Array.isArray(value)) {
+            if (!value.includes(cellValue.join('; '))) {
+              return false;
+            }
+          } else {
             const reCondition = new RegExp(
               '\\b' + escapeStringForRegExp(value as string),
               'i'
@@ -366,6 +373,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     this.selectedResources.select(...items);
   }
 
+  /**
+   * Open popup of filter criteria right below the table header of interest.
+   * Filter input could be plain text or multi-select with a list of possible column values.
+   * @param event - click event
+   * @param column - column description of the header being clicked
+   */
   openFilterDialog(event, column: ColumnDescription): void {
     const rect = event.target.getBoundingClientRect();
     const dialogConfig = new MatDialogConfig();
@@ -382,10 +395,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const useAutocomplete = this.listFilterColumns.includes(column.element);
     let options: string[] = [];
     if (useAutocomplete) {
-      const columnValues = this.dataSource.data
-        .map((row) => this.getCellStrings(row, column).join('; '))
-        .filter((v) => v);
-      options = [...new Set(columnValues)];
+      const columnValues = this.dataSource.data.map((row) =>
+        this.getCellStrings(row, column).join('; ')
+      );
+      options = [...new Set(columnValues)].filter((v) => v);
     }
     dialogConfig.data = {
       value: this.filtersForm.get(column.element).value,
@@ -401,7 +414,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
+  /**
+   * Whether the column has filter criteria entered.
+   */
   private hasFilter(column: string): boolean {
-    return this.filtersForm.get(column).value !== '';
+    return (
+      this.filtersForm.get(column).value &&
+      this.filtersForm.get(column).value.length
+    );
   }
 }
