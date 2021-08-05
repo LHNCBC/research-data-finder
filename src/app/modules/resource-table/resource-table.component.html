@@ -41,12 +41,14 @@
 
       <!-- Data Columns -->
       <ng-container *ngFor="let column of columnDescriptions" [matColumnDef]="column.element">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header title='click on header to sort by this column'>
           <span [attr.aria-label]="column.displayName + '. click to sort by this column'">
             {{column.displayName}}
           </span>
           <button *ngIf='enableClientFiltering' aria-label='open filter criteria for this column'
-                  (click)='openFilterDialog($event, column)'>
+                  title='open filter criteria for this column'
+                  (click)='openFilterDialog($event, column)'
+                  (keydown)='openFilterDialog($event, column)'>
             <mat-icon [svgIcon]="hasFilter(column.element) ? 'filter_list' : 'search'"></mat-icon>
           </button>
         </th>

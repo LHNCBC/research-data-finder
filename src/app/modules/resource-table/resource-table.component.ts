@@ -40,6 +40,54 @@ import { ResourceTableFilterComponent } from '../resource-table-filter/resource-
   styleUrls: ['./resource-table.component.less']
 })
 export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
+  constructor(
+    private fhirBackend: FhirBackendService,
+    private http: HttpClient,
+    private ngZone: NgZone,
+    private columnDescriptionsService: ColumnDescriptionsService,
+    private columnValuesService: ColumnValuesService,
+    private settings: SettingsService,
+    private liveAnnoncer: LiveAnnouncer,
+    private dialog: MatDialog
+  ) {
+    this.subscription = fhirBackend.initialized
+      .pipe(filter((status) => status === ConnectionStatus.Ready))
+      .subscribe(() => {
+        this.fhirPathModel = {
+          R4: fhirPathModelR4
+        }[fhirBackend.currentVersion];
+      });
+    this.listFilterColumns = settings.get('listFilterColumns');
+  }
+
+  /**
+   * Get loading message according to loading status
+   */
+  get loadingMessage(): string {
+    if (this.isLoading) {
+      return 'Loading ...';
+    } else if (this.dataSource.data.length === 0) {
+      return `No matching ${this.resourceType} resources were found on the server.`;
+    } else {
+      return 'Loading complete.';
+    }
+  }
+
+  /**
+   * Get count message according to number of resources loaded
+   */
+  get countMessage(): string {
+    if (this.dataSource.data.length === 0) {
+      return '';
+    } else {
+      let output = '';
+      if (this.enableSelection) {
+        output += `Selected ${this.selectedResources.selected.length} out of `;
+      }
+      output += `${this.dataSource.data.length} rows loaded.`;
+      return output;
+    }
+  }
   @Input() columnDescriptions: ColumnDescription[];
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
@@ -61,24 +109,17 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
   @HostBinding('class.fullscreen') fullscreen = false;
 
-  constructor(
-    private fhirBackend: FhirBackendService,
-    private http: HttpClient,
-    private ngZone: NgZone,
-    private columnDescriptionsService: ColumnDescriptionsService,
-    private columnValuesService: ColumnValuesService,
-    private settings: SettingsService,
-    private liveAnnoncer: LiveAnnouncer,
-    private dialog: MatDialog
-  ) {
-    this.subscription = fhirBackend.initialized
-      .pipe(filter((status) => status === ConnectionStatus.Ready))
-      .subscribe(() => {
-        this.fhirPathModel = {
-          R4: fhirPathModelR4
-        }[fhirBackend.currentVersion];
-      });
-    this.listFilterColumns = settings.get('listFilterColumns');
+  /**
+   * Whether it's a valid click event in accessibility sense.
+   * A mouse click, The ENTER key or the SPACE key.
+   */
+  private static isA11yClick(event): boolean {
+    if (event.type === 'click') {
+      return true;
+    }
+    return (
+      event.type === 'keydown' && (event.key === 'ENTER' || event.key === ' ')
+    );
   }
 
   ngOnInit(): void {}
@@ -271,35 +312,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Get loading message according to loading status
-   */
-  get loadingMessage(): string {
-    if (this.isLoading) {
-      return 'Loading ...';
-    } else if (this.dataSource.data.length === 0) {
-      return `No matching ${this.resourceType} resources were found on the server.`;
-    } else {
-      return 'Loading complete.';
-    }
-  }
-
-  /**
-   * Get count message according to number of resources loaded
-   */
-  get countMessage(): string {
-    if (this.dataSource.data.length === 0) {
-      return '';
-    } else {
-      let output = '';
-      if (this.enableSelection) {
-        output += `Selected ${this.selectedResources.selected.length} out of `;
-      }
-      output += `${this.dataSource.data.length} rows loaded.`;
-      return output;
-    }
-  }
-
-  /**
    * Sort dataSource on table header click
    * @param sort - sorting event object containing info of table column and sort direction
    */
@@ -381,6 +393,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   openFilterDialog(event, column: ColumnDescription): void {
     event.stopPropagation();
+    // The button that sits inside the table header with mat-sort-header attribute does not
+    // fire the 'click' event properly. Have to listen to 'keydown' event here.
+    if (!ResourceTableComponent.isA11yClick(event)) {
+      return;
+    }
     const rect = event.target.getBoundingClientRect();
     const dialogConfig = new MatDialogConfig();
     dialogConfig.hasBackdrop = true;
