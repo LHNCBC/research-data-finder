@@ -380,6 +380,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param column - column description of the header being clicked
    */
   openFilterDialog(event, column: ColumnDescription): void {
+    event.stopPropagation();
     const rect = event.target.getBoundingClientRect();
     const dialogConfig = new MatDialogConfig();
     dialogConfig.hasBackdrop = true;
