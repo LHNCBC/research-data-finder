@@ -118,7 +118,8 @@
           <mat-icon svgIcon="create"></mat-icon>Configure columns
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.downloadCsv()">
+        <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.downloadCsv()"
+                [disabled]="!pullDataPageComponent.canDownload()">
           <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
         </button>
         <div class="spacer"></div>

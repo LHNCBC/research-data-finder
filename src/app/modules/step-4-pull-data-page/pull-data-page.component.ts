@@ -349,6 +349,20 @@ export class PullDataPageComponent implements AfterViewInit {
   }
 
   /**
+   * Checks if the resourceTable data is ready for download
+   */
+  canDownload(): boolean {
+    if (!this.tabGroup || !Object.keys(this.resourceStream).length) {
+      return false;
+    }
+    const currentResourceType = this.getCurrentResourceType();
+    const currentResourceTable = this.resourceTables.find(
+      (resourceTable) => resourceTable.resourceType === currentResourceType
+    );
+    return currentResourceTable.isReadyForDownloadData();
+  }
+
+  /**
    * Initiates downloading of resourceTable data in CSV format.
    */
   downloadCsv(): void {

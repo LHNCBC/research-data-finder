@@ -56,6 +56,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   loadedDateTime: number;
   subscription: Subscription;
   fhirPathModel: any;
+  compiledExpressions: { [expression: string]: (row: Resource) => any };
 
   @HostBinding('class.fullscreen') fullscreen = false;
 
@@ -74,6 +75,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.fhirPathModel = {
           R4: fhirPathModelR4
         }[fhirBackend.currentVersion];
+        this.compiledExpressions = {};
       });
   }
 
@@ -237,6 +239,19 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Returns a function for evaluating the passed FHIRPath expression.
+   * @param expression - FHIRPath expression
+   */
+  getEvaluator(expression: string): (row: Resource) => any {
+    let compiledExpression = this.compiledExpressions[expression];
+    if (!compiledExpression) {
+      compiledExpression = fhirpath.compile(expression, this.fhirPathModel);
+      this.compiledExpressions[expression] = compiledExpression;
+    }
+    return compiledExpression;
+  }
+
+  /**
    * Returns string values to display in a cell
    * @param row - data for a row of table (entry in the bundle)
    * @param column - column description
@@ -247,7 +262,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
     for (const type of column.types) {
       const output = this.columnValuesService.valueToStrings(
-        fhirpath.evaluate(row, fullPath, {}, this.fhirPathModel),
+        this.getEvaluator(fullPath)(row),
         type,
         column.isArray,
         fullPath
@@ -352,6 +367,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       type: 'text/plain;charset=utf-8',
       endings: 'native'
     });
+  }
+
+  /**
+   * Checks if the table data is ready for download
+   */
+  isReadyForDownloadData(): boolean {
+    return !this.isLoading && this.dataSource.data.length > 0;
   }
 
   /**
