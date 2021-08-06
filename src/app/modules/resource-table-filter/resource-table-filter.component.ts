@@ -76,15 +76,13 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  @HostListener('keydown.escape')
+  @HostListener('keydown.enter')
   close(): void {
     if (this.useAutocomplete) {
       this.dialogRef.close(this.acInstance.getSelectedItems());
     } else {
       this.dialogRef.close(this.input.nativeElement.value);
     }
-  }
-
-  @HostListener('document:keydown.escape') onKeyDown(): void {
-    this.close();
   }
 }
