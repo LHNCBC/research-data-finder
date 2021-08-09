@@ -89,6 +89,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       return output;
     }
   }
+
   @Input() columnDescriptions: ColumnDescription[];
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
@@ -389,6 +390,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       type: 'text/plain;charset=utf-8',
       endings: 'native'
     });
+  }
+
+  /**
+   * Checks if the table data is ready for download
+   */
+  isReadyForDownloadData(): boolean {
+    return !this.isLoading && this.dataSource.data.length > 0;
   }
 
   /**

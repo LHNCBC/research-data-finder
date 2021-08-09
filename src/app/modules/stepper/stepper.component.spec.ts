@@ -97,12 +97,12 @@ describe('StepperComponent', () => {
     }).compileComponents();
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     fhirBackend = TestBed.inject(FhirBackendService);
     spyOn(fhirBackend, 'disconnect').and.callThrough();
     fixture = TestBed.createComponent(StepperComponent);
     component = fixture.componentInstance;
-    await fixture.detectChanges();
+    fixture.detectChanges();
     spyOn(component.subscription, 'unsubscribe').and.callThrough();
   });
 

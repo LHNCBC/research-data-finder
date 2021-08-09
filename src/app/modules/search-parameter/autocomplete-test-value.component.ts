@@ -9,11 +9,12 @@ import {
   Self,
   ViewChild
 } from '@angular/core';
-import { NgControl } from '@angular/forms';
+import { FormControl, NgControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { Subject } from 'rxjs';
+import { ErrorStateMatcher } from '@angular/material/core';
 
 /**
  * data type used for this control
@@ -85,12 +86,22 @@ export class AutoCompleteTestValueComponent
   readonly stateChanges = new Subject<void>();
 
   /**
+   * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
+   */
+  get errorState(): boolean {
+    const formControl = this.ngControl?.control as FormControl;
+    return (
+      this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
+      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
+    );
+  }
+
+  /**
    * These properties currently unused but required by MatFormFieldControl:
    */
   readonly disabled: boolean = false;
   readonly id: string;
   readonly required = false;
-  readonly errorState = false;
   setDescribedByIds(): void {}
 
   /**
@@ -129,10 +140,12 @@ export class AutoCompleteTestValueComponent
 
   constructor(
     @Optional() @Self() ngControl: NgControl,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private errorStateMatcher: ErrorStateMatcher
   ) {
     super();
     if (ngControl != null) {
+      this.ngControl = ngControl;
       // Setting the value accessor directly (instead of using
       // the providers) to avoid running into a circular import.
       ngControl.valueAccessor = this;

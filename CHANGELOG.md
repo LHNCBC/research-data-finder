@@ -11,6 +11,14 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Moved the filter into popup modals that you can open by clicking the
   filter icon on table headers.
 
+## [3.13.0] - 2021-08-04
+### Added
+- Validation for criteria.
+### Changed
+- Disabled download button until the resource table data has been loaded.
+### Fixed
+- Slow evaluation of the contents of the resource table cells.
+
 ## [3.12.0] - 2021-07-29
 ### Changed
 - Observation search parameter of type "Quantity" now uses the composite

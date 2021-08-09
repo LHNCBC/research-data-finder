@@ -48,7 +48,7 @@
     </div>
   </mat-step>
 
-  <mat-step [completed]="defineCohort.valid && searchedForPatients" label="Define cohort">
+  <mat-step #defineCohortStep label="Define cohort">
       <app-define-cohort-page #defineCohortComponent
         [formControl]="defineCohort"></app-define-cohort-page>
       <div class="h-box">
@@ -118,7 +118,8 @@
           <mat-icon svgIcon="create"></mat-icon>Configure columns
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.downloadCsv()">
+        <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.downloadCsv()"
+                [disabled]="!pullDataPageComponent.canDownload()">
           <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
         </button>
         <div class="spacer"></div>
