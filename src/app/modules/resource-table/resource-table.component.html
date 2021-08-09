@@ -42,7 +42,7 @@
       <!-- Data Columns -->
       <ng-container *ngFor="let column of columnDescriptions" [matColumnDef]="column.element">
         <th mat-header-cell *matHeaderCellDef mat-sort-header title='click on header to sort by this column'>
-          <span class='bold' [attr.aria-label]="column.displayName + '. click to sort by this column'">
+          <span [attr.aria-label]="column.displayName + '. click to sort by this column'">
             {{column.displayName}}
           </span>
           <button *ngIf='enableClientFiltering' aria-label='open filter criteria for this column'

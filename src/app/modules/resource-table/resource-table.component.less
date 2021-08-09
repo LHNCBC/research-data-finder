@@ -34,14 +34,20 @@ th.mat-header-cell:not(.cell-with-icon) {
   min-width: 90px;
 }
 
+.mat-header-cell {
+  font-weight: bold;
+  color: black;
+}
+
 th button[mat-icon-button] {
   margin-left: -12px;
 }
 
 th button {
   margin-left: 5px;
-  border-radius: 5px;
+  border: 0;
   padding: 0;
+  background: none;
   cursor: pointer;
   mat-icon {
     width: 16px;
@@ -76,9 +82,4 @@ th button {
   td {
     padding-right: 50px;
   }
-}
-
-.bold {
-  font-weight: bold;
-  font-size: larger;
 }
