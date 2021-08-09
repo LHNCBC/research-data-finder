@@ -23,7 +23,9 @@ const icons = [
   'fullscreen_black',
   'fullscreen_exit_black',
   'search',
-  'filter_list'
+  'filter_list',
+  'filter_outlined',
+  'filter_filled'
 ];
 
 @NgModule({
