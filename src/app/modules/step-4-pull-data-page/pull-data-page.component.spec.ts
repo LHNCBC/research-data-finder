@@ -20,12 +20,20 @@ import {
 } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { SettingsService } from '../../shared/settings-service/settings.service';
+import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
   let fixture: ComponentFixture<PullDataPageComponent>;
   let fhirBackend: FhirBackendService;
   let mockHttp: HttpTestingController;
+  const emptyParameterGroup = {
+    hasErrors: () => false,
+    getConditions: () => ({
+      criteria: ''
+    })
+  } as SearchParameterGroupComponent;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [PullDataPageComponent],
@@ -102,7 +110,7 @@ describe('PullDataForCohortComponent', () => {
     // Should collect Patients from input stream
     expect(component.patients).toEqual(arrayOfPatients);
 
-    component.loadResources('Observation', '');
+    component.loadResources('Observation', emptyParameterGroup);
     testData.forEach((item) => {
       const patientId = item.patient.id;
       mockHttp
@@ -142,7 +150,7 @@ describe('PullDataForCohortComponent', () => {
     component.perPatientFormControls['Encounter'].setValue(
       encountersPerPatient
     );
-    component.loadResources('Encounter', '');
+    component.loadResources('Encounter', emptyParameterGroup);
     testData.forEach((item) => {
       const patientId = item.patient.id;
       mockHttp
@@ -177,7 +185,7 @@ describe('PullDataForCohortComponent', () => {
 
     component.addTab('ResearchStudy');
     fixture.detectChanges();
-    component.loadResources('ResearchStudy', '');
+    component.loadResources('ResearchStudy', emptyParameterGroup);
     chunk(arrayOfPatients, 1).forEach((patients) => {
       mockHttp
         .expectOne(

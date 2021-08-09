@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
+import { FormControlCollectorModule } from '../../shared/error-manager/form-control-collector.module';
 
 @NgModule({
   declarations: [SearchParameterGroupComponent],
@@ -17,6 +18,7 @@ import { MatInputModule } from '@angular/material/input';
     SearchParameterModule,
     MatIconModule,
     ReactiveFormsModule,
+    FormControlCollectorModule,
     MatButtonModule,
     MatFormFieldModule,
     MatAutocompleteModule,

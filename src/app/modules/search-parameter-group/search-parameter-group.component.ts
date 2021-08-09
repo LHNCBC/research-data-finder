@@ -19,6 +19,8 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { SearchParameterGroup } from '../../types/search-parameter-group';
+import { ErrorManager } from '../../shared/error-manager/error-manager.service';
+import { ErrorStateMatcher } from '@angular/material/core';
 
 /**
  * Component for managing search parameters of a resource type
@@ -27,7 +29,14 @@ import { SearchParameterGroup } from '../../types/search-parameter-group';
   selector: 'app-search-parameter-group',
   templateUrl: './search-parameter-group.component.html',
   styleUrls: ['./search-parameter-group.component.less'],
-  providers: createControlValueAccessorProviders(SearchParameterGroupComponent)
+  providers: [
+    ...createControlValueAccessorProviders(SearchParameterGroupComponent),
+    ErrorManager,
+    {
+      provide: ErrorStateMatcher,
+      useExisting: ErrorManager
+    }
+  ]
 })
 export class SearchParameterGroupComponent
   extends BaseControlValueAccessor<SearchParameterGroup>
@@ -47,7 +56,10 @@ export class SearchParameterGroupComponent
     };
   }
 
-  constructor(private fhirBackend: FhirBackendService) {
+  constructor(
+    private fhirBackend: FhirBackendService,
+    private errorManager: ErrorManager
+  ) {
     super();
     fhirBackend.initialized
       .pipe(
@@ -124,5 +136,19 @@ export class SearchParameterGroupComponent
       resourceType: this.resourceType.value,
       criteria: conditions
     };
+  }
+
+  /**
+   * Checks for errors
+   */
+  hasErrors(): boolean {
+    return this.errorManager.errors !== null;
+  }
+
+  /**
+   * Shows errors for existing formControls
+   */
+  showErrors(): void {
+    this.errorManager.showErrors();
   }
 }

@@ -16,7 +16,7 @@ import Def from 'autocomplete-lhc';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { NgControl } from '@angular/forms';
+import { FormControl, NgControl } from '@angular/forms';
 import { EMPTY, forkJoin, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
@@ -24,6 +24,7 @@ import { getNextPageUrl, escapeStringForRegExp } from '../../shared/utils';
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
+import { ErrorStateMatcher } from '@angular/material/core';
 
 /**
  * Component for selecting LOINC variables.
@@ -110,7 +111,11 @@ export class ObservationCodeLookupComponent
    * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
    */
   get errorState(): boolean {
-    return this.input?.nativeElement.className.indexOf('invalid') >= 0 || false;
+    const formControl = this.ngControl?.control as FormControl;
+    return (
+      this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
+      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
+    );
   }
 
   // Mapping from code to datatype
@@ -140,11 +145,13 @@ export class ObservationCodeLookupComponent
     private fhirBackend: FhirBackendService,
     @Optional() @Self() ngControl: NgControl,
     private elementRef: ElementRef,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private errorStateMatcher: ErrorStateMatcher
   ) {
     super();
 
     if (ngControl != null) {
+      this.ngControl = ngControl;
       // Setting the value accessor directly (instead of using
       // the providers) to avoid running into a circular import.
       ngControl.valueAccessor = this;

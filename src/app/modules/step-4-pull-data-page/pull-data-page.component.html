@@ -40,7 +40,7 @@
         <button mat-stroked-button
                 [disabled]="perPatientFormControls[resourceType]?.invalid"
                 color="secondary"
-                (click)="loadResources(resourceType, resourceParams.getConditions().criteria)">
+                (click)="loadResources(resourceType, resourceParams)">
           <mat-icon svgIcon="refresh"></mat-icon>Load {{getPluralFormOfResourceType(resourceType)}}
         </button>
       </div>

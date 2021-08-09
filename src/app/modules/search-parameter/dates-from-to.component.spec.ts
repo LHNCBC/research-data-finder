@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SharedModule } from '../../shared/shared.module';
 import { DatesFromToComponent } from './dates-from-to.component';
 import { SearchParameterModule } from './search-parameter.module';
+import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 
 describe('DatesFromToComponent', () => {
   let component: DatesFromToComponent;
@@ -10,18 +11,19 @@ describe('DatesFromToComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [DatesFromToComponent],
-      imports: [SearchParameterModule, SharedModule]
+      imports: [SearchParameterModule, SharedModule],
+      providers: [ErrorManager]
     }).compileComponents();
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(DatesFromToComponent);
     component = fixture.componentInstance;
+    DatesFromToComponent.defaultValue = { from: null, to: null };
     fixture.detectChanges();
   });
 
   it('should default date range values', () => {
-    DatesFromToComponent.defaultValue = { from: null, to: null };
     component.writeValue({
       from: '01-02-2019',
       to: '06-28-2021'
@@ -34,7 +36,6 @@ describe('DatesFromToComponent', () => {
   });
 
   it('should default from date value', () => {
-    DatesFromToComponent.defaultValue = { from: null, to: null };
     component.writeValue({
       from: '01-02-2021',
       to: null

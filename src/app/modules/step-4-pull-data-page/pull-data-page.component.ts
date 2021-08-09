@@ -24,6 +24,7 @@ import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { saveAs } from 'file-saver';
+import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 
 type PatientMixin = { patientData: Patient };
 
@@ -181,9 +182,17 @@ export class PullDataPageComponent implements AfterViewInit {
   /**
    * Loads resources of the specified type for a cohort of Patients.
    * @param resourceType - resource type
-   * @param criteria - criteria
+   * @param parameterGroup - component for managing search parameters of the resource type
    */
-  loadResources(resourceType: string, criteria: string): void {
+  loadResources(
+    resourceType: string,
+    parameterGroup: SearchParameterGroupComponent
+  ): void {
+    if (parameterGroup.hasErrors()) {
+      parameterGroup.showErrors();
+      return;
+    }
+    let criteria = parameterGroup.getConditions().criteria;
     this.resourceStream[resourceType] = new Subject<Resource>();
 
     // Added "detectChanges" to prevent this issue:
@@ -337,6 +346,20 @@ export class PullDataPageComponent implements AfterViewInit {
       )
       // Sequentially send the loaded resources to the resource table
       .subscribe(this.resourceStream[resourceType]);
+  }
+
+  /**
+   * Checks if the resourceTable data is ready for download
+   */
+  canDownload(): boolean {
+    if (!this.tabGroup || !Object.keys(this.resourceStream).length) {
+      return false;
+    }
+    const currentResourceType = this.getCurrentResourceType();
+    const currentResourceTable = this.resourceTables.find(
+      (resourceTable) => resourceTable.resourceType === currentResourceType
+    );
+    return currentResourceTable.isReadyForDownloadData();
   }
 
   /**
