@@ -6,14 +6,24 @@
   default: {
     // Hide resource table columns for specified elements by default
     hideElementsByDefault: {
-      "*": ["id"],
-      "ResearchStudy": ["keyword", "condition"]
+      "*": [
+        "id"
+      ],
+      "ResearchStudy": [
+        "keyword",
+        "condition"
+      ]
     },
     // Sort orders by resource type.
     // Columns without a sort order defined here will stay in the end.
     columnSort: {
-      Patient: ['name', 'active'],
-      ResearchStudy: ['contextPatientId']
+      Patient: [
+        'name',
+        'active'
+      ],
+      ResearchStudy: [
+        'contextPatientId'
+      ]
     },
     contextColumns: {
       // Columns added to the resource table in the context of pulling data
@@ -52,65 +62,101 @@
             displayName: "Number of Analyses",
             element: "NumAnalyses",
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumAnalyses').value",
-            types: ["Count"]
+            types: [
+              "Count"
+            ]
           },
           {
             displayName: "Number of Documents",
             element: "NumDocuments",
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumDocuments').value",
-            types: ["Count"]
+            types: [
+              "Count"
+            ]
           },
           {
             displayName: "Number of Molecular Datasets",
             element: "NumMolecularDatasets",
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumMolecularDatasets').value",
-            types: ["Count"]
+            types: [
+              "Count"
+            ]
           },
           {
             displayName: "Number of Phenotype Datasets",
             element: "NumPhenotypeDatasets",
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumPhenotypeDatasets').value",
-            types: ["Count"]
+            types: [
+              "Count"
+            ]
           },
           {
             displayName: "Number of Samples",
             element: "NumSamples",
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSamples').value",
-            types: ["Count"]
+            types: [
+              "Count"
+            ]
           },
           {
             displayName: "Number of Sub-studies",
             element: "NumSubStudies",
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubStudies').value",
-            types: ["Count"]
+            types: [
+              "Count"
+            ]
           },
           {
             displayName: "Number of Subjects",
             element: "NumSubjects",
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubjects').value",
-            types: ["Count"]
+            types: [
+              "Count"
+            ]
           },
           {
             displayName: "Number of Variables",
             element: "NumVariables",
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumVariables').value",
-            types: ["Count"]
+            types: [
+              "Count"
+            ]
           }
         ]
       },
       // Limit list of resource types
       availableResourceTypes: [
-        'ResearchStudy', 'Patient', 'Observation'
+        'ResearchStudy',
+        'Patient',
+        'Observation'
       ],
       // Hide resource table columns for specified elements
       hideElementsByDefault: {
         "*": [],
-        "Observation": ["id"],
-        "ResearchStudy": ["id", "keyword", "condition"]
+        "Observation": [
+          "id"
+        ],
+        "ResearchStudy": [
+          "id",
+          "keyword",
+          "condition",
+          "NumAnalyses",
+          "NumDocuments",
+          "NumMolecularDatasets",
+          "NumPhenotypeDatasets",
+          "NumSamples",
+          "NumSubStudies",
+          "NumSubjects",
+          "NumVariables"
+        ]
       },
       // table columns that will apply autocomplete multi-select control
       listFilterColumns: [
-        'category', 'focus', 'enrollment', 'sponsor', 'status'
+        'category',
+        'focus',
+        'enrollment',
+        'sponsor',
+        'status'
       ]
     }
   }
