@@ -46,7 +46,7 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
       this.acInstance = new Def.Autocompleter.Prefetch(
         this.inputId,
         this.options,
-        { maxSelect: '*' }
+        { maxSelect: '*', matchListValue: true }
       );
       if (this.value && this.value.length) {
         (this.value as string[]).forEach((v) => {
