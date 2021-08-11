@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.13.1] - 2021-08-11
+### Fixed
+- Quantity units should not have units in single quotes.
+
 ## [3.13.0] - 2021-08-04
 ### Added
 - Validation for criteria.
