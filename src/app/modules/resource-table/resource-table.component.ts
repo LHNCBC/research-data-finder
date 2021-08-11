@@ -97,6 +97,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() context = '';
   @Input() resourceStream: Subject<Resource>;
   @Input() loadingStatistics: (string | number)[][] = [];
+  @Input() myStudyIds: string[] = [];
   columns: string[] = [];
   selectedResources = new SelectionModel<Resource>(true, []);
   filtersForm: FormGroup = new FormBuilder().group({});
@@ -253,20 +254,22 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  /** Whether the number of selected elements matches the total number of rows. */
+  /** Whether the number of selected elements matches the total number of selectable rows. */
   isAllSelected(): boolean {
     const numSelected = this.selectedResources.selected.length;
-    const numRows = this.dataSource.data.length;
+    const numRows = this.myStudyIds.length;
     return numSelected === numRows;
   }
 
-  /** Selects all rows if they are not all selected; otherwise clear selection. */
+  /** Selects all applicable rows if they are not all selected; otherwise clear selection. */
   masterToggle(): void {
     this.isAllSelected()
       ? this.selectedResources.clear()
-      : this.dataSource.data.forEach((row) =>
-          this.selectedResources.select(row)
-        );
+      : this.dataSource.data.forEach((row) => {
+          if (this.myStudyIds.includes(row.id)) {
+            this.selectedResources.select(row);
+          }
+        });
   }
 
   /**

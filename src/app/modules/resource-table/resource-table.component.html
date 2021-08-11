@@ -32,7 +32,8 @@
           </mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row" class="cell-with-icon">
-          <mat-checkbox (click)="$event.stopPropagation()"
+          <mat-checkbox *ngIf='myStudyIds.includes(row.id)'
+                        (click)="$event.stopPropagation()"
                         (change)="$event ? selectedResources.toggle(row) : null"
                         [checked]="selectedResources.isSelected(row)">
           </mat-checkbox>

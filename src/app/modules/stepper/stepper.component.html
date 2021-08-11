@@ -19,8 +19,7 @@
   </mat-step>
 
   <mat-step *ngIf='fhirBackend.features.hasResearchStudy'
-            label="Select Research Studies" state="edit"
-            [optional]="selectAnAreaOfInterest.option.value === selectAnAreaOfInterest.SelectOptions.Skip">
+            label="Select Research Studies" state="edit">
     <div class="v-box">
       <app-select-an-area-of-interest #selectAnAreaOfInterest>
       </app-select-an-area-of-interest>
