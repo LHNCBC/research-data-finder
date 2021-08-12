@@ -131,6 +131,9 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
             if (this.idsToSelect.length) {
               this.resourceTableComponent.setSelectedIds(this.idsToSelect);
               this.idsToSelect.length = 0;
+            } else {
+              // Select all applicable rows by default.
+              this.resourceTableComponent.setSelectedIds(this.myStudyIds);
             }
           }
         }

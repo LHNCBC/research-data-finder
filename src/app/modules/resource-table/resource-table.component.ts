@@ -197,6 +197,16 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             `The ${this.resourceType} resources loading process has finished. ` +
               `${this.dataSource.data.length} rows loaded.`
           );
+          if (this.enableClientFiltering) {
+            // Move selectable studies to the beginning of table.
+            const myStudies = this.dataSource.data.filter((r) =>
+              this.myStudyIds.includes(r.id)
+            );
+            const otherStudies = this.dataSource.data.filter(
+              (r) => !this.myStudyIds.includes(r.id)
+            );
+            this.dataSource.data = [...myStudies, ...otherStudies];
+          }
         }
       );
     }
