@@ -21,7 +21,11 @@ const icons = [
   'file_download',
   'create',
   'fullscreen_black',
-  'fullscreen_exit_black'
+  'fullscreen_exit_black',
+  'search',
+  'filter_list',
+  'filter_outlined',
+  'filter_filled'
 ];
 
 @NgModule({

@@ -25,6 +25,9 @@ class Page {
   get scrollable(): DebugElement {
     return this.fixture.debugElement.query(By.directive(CdkScrollable));
   }
+  get filterIcons(): DebugElement[] {
+    return this.fixture.debugElement.queryAll(By.css('th button mat-icon'));
+  }
 }
 
 describe('ResourceTableComponent', () => {
@@ -59,8 +62,7 @@ describe('ResourceTableComponent', () => {
     {
       displayName: 'Custom column',
       element: 'customElement',
-      expression:
-        "extension('http://hl7.org/fhir/StructureDefinition/someExtension').value",
+      expression: `extension('http://hl7.org/fhir/StructureDefinition/someExtension').value`,
       types: ['Count'],
       isArray: false,
       visible: false
@@ -155,10 +157,15 @@ describe('ResourceTableComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should show filter icons', async () => {
+    await fillTable(availableColumns);
+    expect(page.filterIcons).not.toBeNull();
+    expect(page.filterIcons.length).toEqual(3);
+  });
+
   it('should filter', async () => {
     await fillTable(availableColumns);
     expect(component.filtersForm).not.toBeNull();
-    expect(component.filterColumns.length).toEqual(availableColumns.length);
     expect(component.filtersForm.get('id')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
     component.filtersForm.get('id').setValue('49');
@@ -168,7 +175,6 @@ describe('ResourceTableComponent', () => {
 
   it('should hide columns by default according to settings', async () => {
     await fillTable([]);
-    expect(component.filterColumns.length).toEqual(availableColumns.length - 1);
     expect(component.dataSource.filteredData.length).toEqual(50);
     expect(
       spies.ColumnDescriptionsService.getAvailableColumns
