@@ -69,10 +69,6 @@ describe('SelectAnAreaOfInterestComponent', () => {
   });
 
   it('should show table of ResearchStudies', async () => {
-    expect(component.showTable).toBeFalse();
-    expect(fakeHttpClient.get).not.toHaveBeenCalled();
-    component.option.setValue(component.SelectOptions.ResearchStudy);
-    await fixture.detectChanges();
     expect(component.showTable).toBeTruthy();
     expect(fakeHttpClient.get).toHaveBeenCalledWith(
       jasmine.stringMatching(/ResearchStudy/)
