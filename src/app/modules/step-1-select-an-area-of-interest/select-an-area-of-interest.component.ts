@@ -146,11 +146,17 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
   getResearchStudySearchParam(): string[] {
     if (!this.resourceTableComponent) {
       return [];
-    } else {
-      return this.resourceTableComponent.selectedResources.selected.map(
-        (r) => r.id
-      );
     }
+    if (
+      this.resourceTableComponent.selectedResources.selected.length ===
+      this.myStudyIds.length
+    ) {
+      // If all applicable rows are selected, use empty array (same as no rows selected).
+      return [];
+    }
+    return this.resourceTableComponent.selectedResources.selected.map(
+      (r) => r.id
+    );
   }
 
   /**
