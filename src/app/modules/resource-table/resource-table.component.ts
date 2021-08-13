@@ -27,9 +27,10 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import Resource = fhir.Resource;
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ResourceTableFilterComponent } from '../resource-table-filter/resource-table-filter.component';
+import { FilterType } from '../../types/filter-type';
+import Resource = fhir.Resource;
 
 /**
  * Component for loading table of resources
@@ -433,9 +434,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       dialogConfig.position.right = `${window.innerWidth - rect.right}px`;
     }
 
-    const useAutocomplete = this.listFilterColumns.includes(column.element);
+    const filterType = this.listFilterColumns.includes(column.element)
+      ? FilterType.Autocomplete
+      : FilterType.Text;
     let options: string[] = [];
-    if (useAutocomplete) {
+    if (filterType === FilterType.Autocomplete) {
       const columnValues = this.dataSource.data.map((row) =>
         this.getCellStrings(row, column).join('; ')
       );
@@ -443,7 +446,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     }
     dialogConfig.data = {
       value: this.filtersForm.get(column.element).value,
-      useAutocomplete,
+      filterType,
       options
     };
     const dialogRef = this.dialog.open(

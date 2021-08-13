@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import Def from 'autocomplete-lhc';
+import { FilterType } from '../../types/filter-type';
 
 /**
  * Component for filtering criteria of a resource table column
@@ -26,23 +27,29 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
     ++ResourceTableFilterComponent.idIndex;
   @ViewChild('input') input: ElementRef<HTMLInputElement>;
   value: string | string[];
-  useAutocomplete = false;
+  filterType = FilterType.Text;
   options: string[] = [];
   // Autocompleter instance
   acInstance: Def.Autocompleter.Prefetch;
   searchResultsElm: HTMLElement;
+
+  readonly INSTRUCTIONS = [
+    'Filter by text.',
+    'Select one or more to filter by.'
+  ];
+  readonly PLACEHOLDERS = ['Type here.', 'Start typing here.'];
 
   constructor(
     private dialogRef: MatDialogRef<ResourceTableFilterComponent>,
     @Inject(MAT_DIALOG_DATA) data
   ) {
     this.value = data.value;
-    this.useAutocomplete = data.useAutocomplete;
+    this.filterType = data.filterType;
     this.options = data.options;
   }
 
   ngAfterViewInit(): void {
-    if (this.useAutocomplete) {
+    if (this.filterType === FilterType.Autocomplete) {
       this.acInstance = new Def.Autocompleter.Prefetch(
         this.inputId,
         this.options,
@@ -79,7 +86,7 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
   @HostListener('keydown.escape')
   @HostListener('keydown.enter')
   close(): void {
-    if (this.useAutocomplete) {
+    if (this.filterType === FilterType.Autocomplete) {
       this.dialogRef.close(this.acInstance.getSelectedItems());
     } else {
       this.dialogRef.close(this.input.nativeElement.value);
