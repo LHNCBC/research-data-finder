@@ -230,11 +230,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             (c) => c.element === key
           );
           const cellValue = this.getCellStrings(data, columnDescription);
-          if (Array.isArray(value)) {
-            if (!value.includes(cellValue.join('; '))) {
+          const filterType = this.getFilterType(columnDescription);
+          if (filterType === FilterType.Autocomplete) {
+            if (!(value as string[]).includes(cellValue.join('; '))) {
               return false;
             }
-          } else {
+          }
+          if (filterType === FilterType.Text) {
             const reCondition = new RegExp(
               '\\b' + escapeStringForRegExp(value as string),
               'i'
@@ -434,9 +436,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       dialogConfig.position.right = `${window.innerWidth - rect.right}px`;
     }
 
-    const filterType = this.listFilterColumns.includes(column.element)
-      ? FilterType.Autocomplete
-      : FilterType.Text;
+    const filterType = this.getFilterType(column);
     let options: string[] = [];
     if (filterType === FilterType.Autocomplete) {
       const columnValues = this.dataSource.data.map((row) =>
@@ -466,5 +466,16 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.filtersForm.get(column).value &&
       this.filtersForm.get(column).value.length
     );
+  }
+
+  /**
+   * Get filter type for column description.
+   */
+  getFilterType(column: ColumnDescription): FilterType {
+    return this.listFilterColumns.includes(column.element)
+      ? FilterType.Autocomplete
+      : column.displayName.startsWith('Number of')
+      ? FilterType.Number
+      : FilterType.Text;
   }
 }

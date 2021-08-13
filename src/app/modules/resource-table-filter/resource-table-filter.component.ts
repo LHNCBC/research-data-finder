@@ -35,9 +35,14 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
 
   readonly INSTRUCTIONS = [
     'Filter by text.',
-    'Select one or more to filter by.'
+    'Select one or more to filter by.',
+    'Type a range filter.'
   ];
-  readonly PLACEHOLDERS = ['Type here.', 'Start typing here.'];
+  readonly TOOLTIPS = [
+    'Type here.',
+    'Start typing here.',
+    'Examples: >5000, <=10, 50, 10 - 19.'
+  ];
 
   constructor(
     private dialogRef: MatDialogRef<ResourceTableFilterComponent>,

@@ -1,7 +1,7 @@
 <p>
   {{INSTRUCTIONS[filterType]}}
 </p>
-<input type='text' id="{{inputId}}" #input [placeholder]='PLACEHOLDERS[filterType]'>
+<input type='text' id="{{inputId}}" #input [title]='TOOLTIPS[filterType]'>
 <div>
   <button (click)='close()'>Close</button>
 </div>
