@@ -76,7 +76,7 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  @HostListener('keydown.escape')
+  @HostListener('document:keydown.escape')
   @HostListener('keydown.enter')
   close(): void {
     if (this.useAutocomplete) {
