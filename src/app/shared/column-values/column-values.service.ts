@@ -246,7 +246,9 @@ export class ColumnValuesService {
    * @param v - value of type "Quantity"
    */
   getQuantityAsText(v: Quantity): string {
-    return v.value != null ? v.value + (v.unit ? ' ' + v.unit : '') : null;
+    return v.value != null
+      ? v.value + (v.unit ? ' ' + v.unit.replace(/(^'|'$)/g, '') : '')
+      : null;
   }
 
   /**

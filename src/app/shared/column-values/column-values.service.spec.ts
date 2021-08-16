@@ -103,6 +103,18 @@ describe('ColumnValuesService', () => {
       result: '1'
     },
     {
+      value: { value: 10, unit: "'cm'" },
+      type: 'Quantity',
+      fullPath: 'Observation.value',
+      result: '10 cm'
+    },
+    {
+      value: { value: 12, unit: 'cm' },
+      type: 'Quantity',
+      fullPath: 'Observation.value',
+      result: '12 cm'
+    },
+    {
       value: 1.1,
       type: 'decimal',
       result: '1.1'
