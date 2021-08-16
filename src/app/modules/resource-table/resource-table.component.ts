@@ -245,6 +245,52 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
               return false;
             }
           }
+          if (filterType === FilterType.Number) {
+            const cellNumber = +cellValue.join('; ');
+            if (/^\d+\s?-\s?\d+$/.test(value as string)) {
+              const filterTextNumberMatchs = (value as string).match(/\d+/g);
+              if (
+                cellNumber < +filterTextNumberMatchs[0] ||
+                cellNumber > +filterTextNumberMatchs[1]
+              ) {
+                return false;
+              }
+            } else {
+              const filterTextNumberMatch = /\d+/.exec(value as string);
+              const filterNumber = +filterTextNumberMatch[0];
+              const compareOperator = (value as string).slice(
+                0,
+                filterTextNumberMatch.index
+              );
+              switch (compareOperator) {
+                case '>':
+                  if (cellNumber <= filterNumber) {
+                    return false;
+                  }
+                  break;
+                case '>=':
+                  if (cellNumber < filterNumber) {
+                    return false;
+                  }
+                  break;
+                case '<':
+                  if (cellNumber >= filterNumber) {
+                    return false;
+                  }
+                  break;
+                case '<=':
+                  if (cellNumber > filterNumber) {
+                    return false;
+                  }
+                  break;
+                case '':
+                  if (cellNumber !== filterNumber) {
+                    return false;
+                  }
+                  break;
+              }
+            }
+          }
         }
         return true;
         // casting method signature here because filterPredicate defines filter param as string
