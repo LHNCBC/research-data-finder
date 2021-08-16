@@ -182,6 +182,16 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.resourceStream.pipe(bufferCount(50)).subscribe(
         (resouceses) => {
           this.dataSource.data = this.dataSource.data.concat(resouceses);
+          if (this.enableClientFiltering) {
+            // Move selectable studies to the beginning of table.
+            const myStudies = this.dataSource.data.filter((r) =>
+              this.myStudyIds.includes(r.id)
+            );
+            const otherStudies = this.dataSource.data.filter(
+              (r) => !this.myStudyIds.includes(r.id)
+            );
+            this.dataSource.data = [...myStudies, ...otherStudies];
+          }
           if (!this.columnDescriptions.length) {
             this.setColumnsFromBundle();
             this.setTableColumns();
@@ -197,16 +207,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             `The ${this.resourceType} resources loading process has finished. ` +
               `${this.dataSource.data.length} rows loaded.`
           );
-          if (this.enableClientFiltering) {
-            // Move selectable studies to the beginning of table.
-            const myStudies = this.dataSource.data.filter((r) =>
-              this.myStudyIds.includes(r.id)
-            );
-            const otherStudies = this.dataSource.data.filter(
-              (r) => !this.myStudyIds.includes(r.id)
-            );
-            this.dataSource.data = [...myStudies, ...otherStudies];
-          }
         }
       );
     }
@@ -359,7 +359,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const cellValueB = this.getCellStrings(b, sortingColumnDescription).join(
         '; '
       );
-      return cellValueA.localeCompare(cellValueB) * (isAsc ? 1 : -1);
+      return cellValueA.localeCompare(cellValueB) * (isAsc ? -1 : 1);
     });
     // Table will re-render only after data reference changed.
     this.dataSource.data = this.dataSource.data.slice();

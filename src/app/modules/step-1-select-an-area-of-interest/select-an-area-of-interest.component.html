@@ -1,13 +1,12 @@
 <div class="v-box">
   <p class="info">
     <span class="info-icon" aria-hidden="true"></span>
-    In this step, you can browse and select ResearchStudy resources
-    from which you want to start building a cohort of Patients,
-    or you can skip this step.
+    In this step, you can select research studies from which to pull data.
+    By default, data will be pulled from all research studies to which you have access.
+    You can also view research studies to which you do not have access, but you won’t be able to pull data from those.
   </p>
 
-  <mat-radio-group aria-label="Select an option" class="h-box" [formControl]="option"
-    matTooltip='You can select research studies from which to pull data.  By default, data will be pulled from all research studies to which you have access.  You can also view research studies to which you do not have access, but you won’t be able to pull data from those'>
+  <mat-radio-group aria-label="Select an option" class="h-box" [formControl]="option">
     <mat-radio-button [value]="SelectOptions.showOnlyStudiesWithSubjects">Only show studies to which I have access</mat-radio-button>
     <div class="spacer"></div>
     <mat-radio-button [value]="SelectOptions.showAllStudies">Show all research studies</mat-radio-button>
