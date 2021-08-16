@@ -28,6 +28,8 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import Resource = fhir.Resource;
+import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
+import { ResourceTableFilterComponent } from '../resource-table-filter/resource-table-filter.component';
 
 /**
  * Component for loading table of resources
@@ -38,28 +40,6 @@ import Resource = fhir.Resource;
   styleUrls: ['./resource-table.component.less']
 })
 export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() columnDescriptions: ColumnDescription[];
-  @Input() enableClientFiltering = false;
-  @Input() enableSelection = false;
-  @Input() resourceType;
-  @Input() context = '';
-  @Input() resourceStream: Subject<Resource>;
-  @Input() loadingStatistics: (string | number)[][] = [];
-  columns: string[] = [];
-  filterColumns = [];
-  selectedResources = new SelectionModel<Resource>(true, []);
-  filtersForm: FormGroup = new FormBuilder().group({});
-  dataSource = new TableVirtualScrollDataSource<Resource>([]);
-  lastResourceElement: HTMLElement;
-  isLoading = true;
-  loadTime = 0;
-  loadedDateTime: number;
-  subscription: Subscription;
-  fhirPathModel: any;
-  compiledExpressions: { [expression: string]: (row: Resource) => any };
-
-  @HostBinding('class.fullscreen') fullscreen = false;
-
   constructor(
     private fhirBackend: FhirBackendService,
     private http: HttpClient,
@@ -67,7 +47,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private columnDescriptionsService: ColumnDescriptionsService,
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
-    private liveAnnoncer: LiveAnnouncer
+    private liveAnnoncer: LiveAnnouncer,
+    private dialog: MatDialog
   ) {
     this.subscription = fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Ready))
@@ -77,6 +58,71 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }[fhirBackend.currentVersion];
         this.compiledExpressions = {};
       });
+    this.listFilterColumns = settings.get('listFilterColumns');
+  }
+
+  /**
+   * Get loading message according to loading status
+   */
+  get loadingMessage(): string {
+    if (this.isLoading) {
+      return 'Loading ...';
+    } else if (this.dataSource.data.length === 0) {
+      return `No matching ${this.resourceType} resources were found on the server.`;
+    } else {
+      return 'Loading complete.';
+    }
+  }
+
+  /**
+   * Get count message according to number of resources loaded
+   */
+  get countMessage(): string {
+    if (this.dataSource.data.length === 0) {
+      return '';
+    } else {
+      let output = '';
+      if (this.enableSelection) {
+        output += `Selected ${this.selectedResources.selected.length} out of `;
+      }
+      output += `${this.dataSource.data.length} rows loaded.`;
+      return output;
+    }
+  }
+
+  @Input() columnDescriptions: ColumnDescription[];
+  @Input() enableClientFiltering = false;
+  @Input() enableSelection = false;
+  @Input() resourceType;
+  @Input() context = '';
+  @Input() resourceStream: Subject<Resource>;
+  @Input() loadingStatistics: (string | number)[][] = [];
+  columns: string[] = [];
+  selectedResources = new SelectionModel<Resource>(true, []);
+  filtersForm: FormGroup = new FormBuilder().group({});
+  dataSource = new TableVirtualScrollDataSource<Resource>([]);
+  lastResourceElement: HTMLElement;
+  isLoading = true;
+  loadTime = 0;
+  loadedDateTime: number;
+  subscription: Subscription;
+  fhirPathModel: any;
+  readonly listFilterColumns: string[];
+  compiledExpressions: { [expression: string]: (row: Resource) => any };
+
+  @HostBinding('class.fullscreen') fullscreen = false;
+
+  /**
+   * Whether it's a valid click event in accessibility sense.
+   * A mouse click, The ENTER key or the SPACE key.
+   */
+  private static isA11yClick(event): boolean {
+    if (event.type === 'click') {
+      return true;
+    }
+    return (
+      event.type === 'keydown' && (event.key === 'ENTER' || event.key === ' ')
+    );
   }
 
   ngOnInit(): void {}
@@ -171,17 +217,23 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     );
     if (this.enableClientFiltering) {
       this.filtersForm = new FormBuilder().group({});
-      this.filterColumns = this.columns.map((c) => c + 'Filter');
       this.columnDescriptions.forEach((column) => {
-        this.filtersForm.addControl(column.element, new FormControl());
+        this.filtersForm.addControl(column.element, new FormControl(''));
       });
       this.dataSource.filterPredicate = ((data, filterValues) => {
         for (const [key, value] of Object.entries(filterValues)) {
-          if (value) {
-            const columnDescription = this.columnDescriptions.find(
-              (c) => c.element === key
-            );
-            const cellValue = this.getCellStrings(data, columnDescription);
+          if (!value || (value as string[]).length === 0) {
+            continue;
+          }
+          const columnDescription = this.columnDescriptions.find(
+            (c) => c.element === key
+          );
+          const cellValue = this.getCellStrings(data, columnDescription);
+          if (Array.isArray(value)) {
+            if (!value.includes(cellValue.join('; '))) {
+              return false;
+            }
+          } else {
             const reCondition = new RegExp(
               '\\b' + escapeStringForRegExp(value as string),
               'i'
@@ -276,35 +328,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Get loading message according to loading status
-   */
-  get loadingMessage(): string {
-    if (this.isLoading) {
-      return 'Loading ...';
-    } else if (this.dataSource.data.length === 0) {
-      return `No matching ${this.resourceType} resources were found on the server.`;
-    } else {
-      return 'Loading complete.';
-    }
-  }
-
-  /**
-   * Get count message according to number of resources loaded
-   */
-  get countMessage(): string {
-    if (this.dataSource.data.length === 0) {
-      return '';
-    } else {
-      let output = '';
-      if (this.enableSelection) {
-        output += `Selected ${this.selectedResources.selected.length} out of `;
-      }
-      output += `${this.dataSource.data.length} rows loaded.`;
-      return output;
-    }
-  }
-
-  /**
    * Sort dataSource on table header click
    * @param sort - sorting event object containing info of table column and sort direction
    */
@@ -383,5 +406,62 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     this.selectedResources.clear();
     const items = this.dataSource.data.filter((r) => ids.includes(r.id));
     this.selectedResources.select(...items);
+  }
+
+  /**
+   * Open popup of filter criteria right below the table header of interest.
+   * Filter input could be plain text or multi-select with a list of possible column values.
+   * @param event - click event
+   * @param column - column description of the header being clicked
+   */
+  openFilterDialog(event, column: ColumnDescription): void {
+    event.stopPropagation();
+    // The button that sits inside the table header with mat-sort-header attribute does not
+    // fire the 'click' event properly. Have to listen to 'keydown' event here.
+    if (!ResourceTableComponent.isA11yClick(event)) {
+      return;
+    }
+    const rect = event.target.getBoundingClientRect();
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.hasBackdrop = true;
+
+    // Position the popup right below the invoking icon.
+    dialogConfig.position = { top: `${rect.bottom}px` };
+    if (rect.left < window.innerWidth / 2) {
+      dialogConfig.position.left = `${rect.left}px`;
+    } else {
+      dialogConfig.position.right = `${window.innerWidth - rect.right}px`;
+    }
+
+    const useAutocomplete = this.listFilterColumns.includes(column.element);
+    let options: string[] = [];
+    if (useAutocomplete) {
+      const columnValues = this.dataSource.data.map((row) =>
+        this.getCellStrings(row, column).join('; ')
+      );
+      options = [...new Set(columnValues)].filter((v) => v);
+    }
+    dialogConfig.data = {
+      value: this.filtersForm.get(column.element).value,
+      useAutocomplete,
+      options
+    };
+    const dialogRef = this.dialog.open(
+      ResourceTableFilterComponent,
+      dialogConfig
+    );
+    dialogRef.afterClosed().subscribe((value) => {
+      this.filtersForm.get(column.element).setValue(value);
+    });
+  }
+
+  /**
+   * Whether the column has filter criteria entered.
+   */
+  hasFilter(column: string): boolean {
+    return (
+      this.filtersForm.get(column).value &&
+      this.filtersForm.get(column).value.length
+    );
   }
 }

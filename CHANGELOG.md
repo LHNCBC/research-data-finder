@@ -3,9 +3,21 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.13.1] - 2021-08-11
+## [3.14.2] - 2021-08-11
 ### Fixed
 - Quantity units should not have units in single quotes.
+
+## [3.14.1] - 2021-08-11
+### Fixed
+- Autocomplete-lhc dropdown styles.
+
+## [3.14.0] - 2021-08-09
+### Added
+- Ability to filter column using autocomplete control with a list of
+  possible column values to choose from.
+### Changed
+- Moved the filter into popup modals that you can open by clicking the
+  filter icon on table headers.
 
 ## [3.13.0] - 2021-08-04
 ### Added

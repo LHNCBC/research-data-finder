@@ -107,7 +107,11 @@
         "*": [],
         "Observation": ["id"],
         "ResearchStudy": ["id", "keyword", "condition"]
-      }
+      },
+      // table columns that will apply autocomplete multi-select control
+      listFilterColumns: [
+        'category', 'focus', 'enrollment', 'sponsor', 'status'
+      ]
     }
   }
 }
