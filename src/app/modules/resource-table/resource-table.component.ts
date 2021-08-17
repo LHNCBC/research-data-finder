@@ -180,17 +180,16 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       );
       const startTime = Date.now();
       this.resourceStream.pipe(bufferCount(50)).subscribe(
-        (resouceses) => {
-          this.dataSource.data = this.dataSource.data.concat(resouceses);
+        (resources) => {
+          this.dataSource.data = this.dataSource.data.concat(resources);
           if (this.enableClientFiltering) {
             // Move selectable studies to the beginning of table.
-            const myStudies = this.dataSource.data.filter((r) =>
-              this.myStudyIds.includes(r.id)
-            );
-            const otherStudies = this.dataSource.data.filter(
-              (r) => !this.myStudyIds.includes(r.id)
-            );
-            this.dataSource.data = [...myStudies, ...otherStudies];
+            this.dataSource.data.sort((a, b) => {
+              return !this.myStudyIds.includes(a.id) &&
+                this.myStudyIds.includes(b.id)
+                ? 1
+                : -1;
+            });
           }
           if (!this.columnDescriptions.length) {
             this.setColumnsFromBundle();
