@@ -473,6 +473,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const rect = event.target.getBoundingClientRect();
     const dialogConfig = new MatDialogConfig();
     dialogConfig.hasBackdrop = true;
+    dialogConfig.disableClose = true;
 
     // Position the popup right below the invoking icon.
     dialogConfig.position = { top: `${rect.bottom}px` };

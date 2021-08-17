@@ -91,6 +91,14 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
   @HostListener('keydown.escape')
   @HostListener('keydown.enter')
   close(): void {
+    if (
+      this.filterType === FilterType.Number &&
+      this.input.nativeElement.value &&
+      !/^\d+\s?-\s?\d+$|^[<>]?=?\d+$/.test(this.input.nativeElement.value)
+    ) {
+      alert('Please type a range filter, examples: >5000, <=10, 50, 10 - 19.');
+      return;
+    }
     if (this.filterType === FilterType.Autocomplete) {
       this.dialogRef.close(this.acInstance.getSelectedItems());
     } else {
