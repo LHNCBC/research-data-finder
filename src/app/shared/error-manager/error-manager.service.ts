@@ -22,15 +22,7 @@ export class ErrorManager implements ErrorStateMatcher {
   // Array of controls for which errors should be displayed
   controlToShowErrors: FormControl[] = [];
   // Array of all controls
-  allControls: FormArray = new FormArray([], (formArray: FormArray) => {
-    const length = formArray.controls.length;
-    for (let i = 0; i < length; ++i) {
-      if (formArray.controls[i].invalid) {
-        return { required: true };
-      }
-    }
-    return null;
-  });
+  allControls: FormControl[] = [];
 
   // Determines the visibility of an error
   isErrorState(
@@ -52,8 +44,8 @@ export class ErrorManager implements ErrorStateMatcher {
    * Removes formControl
    */
   removeControl(control: FormControl): void {
-    const index = this.allControls.controls.indexOf(control);
-    this.allControls.removeAt(index);
+    const index = this.allControls.indexOf(control);
+    this.allControls.splice(index, 1);
     if (index < this.controlToShowErrors.length) {
       this.controlToShowErrors.splice(index, 1);
     }
@@ -63,13 +55,19 @@ export class ErrorManager implements ErrorStateMatcher {
    * Shows errors for existing formControls
    */
   showErrors(): void {
-    this.controlToShowErrors = this.allControls.controls.concat() as FormControl[];
+    this.controlToShowErrors = this.allControls.concat();
   }
 
   /**
    * Returns errors
    */
   get errors(): ValidationErrors | null {
-    return this.allControls.errors;
+    const length = this.allControls.length;
+    for (let i = 0; i < length; ++i) {
+      if (this.allControls[i].invalid) {
+        return { required: true };
+      }
+    }
+    return null;
   }
 }

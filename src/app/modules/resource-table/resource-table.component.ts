@@ -378,7 +378,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             // In CSV implementations that do trim leading or trailing spaces,
             // fields with such spaces as meaningful data must be quoted.
             // Therefore, to avoid any problems, data with any spaces is also quoted.
-            return '"' + cellText.replace(/"/, '""') + '"';
+            return '"' + cellText.replace(/"/g, '""') + '"';
           } else {
             return cellText;
           }
