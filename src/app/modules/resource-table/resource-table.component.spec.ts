@@ -60,7 +60,7 @@ describe('ResourceTableComponent', () => {
       visible: false
     },
     {
-      displayName: 'Custom column',
+      displayName: 'Number of Analyses',
       element: 'customElement',
       expression: `extension('http://hl7.org/fhir/StructureDefinition/someExtension').value`,
       types: ['Count'],
@@ -89,7 +89,10 @@ describe('ResourceTableComponent', () => {
   spies.ColumnDescriptionsService.getAvailableColumns.and.returnValue(
     availableColumns
   );
-  spies.SettingsService.get.and.returnValue(hiddenElements);
+  spies.SettingsService.get
+    .withArgs('hideElementsByDefault')
+    .and.returnValue(hiddenElements);
+  spies.SettingsService.get.withArgs('listFilterColumns').and.returnValue([]);
 
   async function fillTable(columnDescriptions): Promise<void> {
     component.resourceType = 'SomeResourceType';
@@ -196,5 +199,35 @@ describe('ResourceTableComponent', () => {
         )
       ).toEqual([cellValues[i]]);
     }
+  });
+
+  it('should filter number column - greater than', async () => {
+    await fillTable(availableColumns);
+    expect(component.filtersForm).not.toBeNull();
+    expect(component.filtersForm.get('customElement')).not.toBeNull();
+    expect(component.dataSource.filteredData.length).toEqual(50);
+    component.filtersForm.get('customElement').setValue('>=49');
+    fixture.detectChanges();
+    expect(component.dataSource.filteredData.length).toEqual(2);
+  });
+
+  it('should filter number column - smaller than', async () => {
+    await fillTable(availableColumns);
+    expect(component.filtersForm).not.toBeNull();
+    expect(component.filtersForm.get('customElement')).not.toBeNull();
+    expect(component.dataSource.filteredData.length).toEqual(50);
+    component.filtersForm.get('customElement').setValue('<49');
+    fixture.detectChanges();
+    expect(component.dataSource.filteredData.length).toEqual(48);
+  });
+
+  it('should filter number column - range', async () => {
+    await fillTable(availableColumns);
+    expect(component.filtersForm).not.toBeNull();
+    expect(component.filtersForm.get('customElement')).not.toBeNull();
+    expect(component.dataSource.filteredData.length).toEqual(50);
+    component.filtersForm.get('customElement').setValue('40 - 49');
+    fixture.detectChanges();
+    expect(component.dataSource.filteredData.length).toEqual(10);
   });
 });
