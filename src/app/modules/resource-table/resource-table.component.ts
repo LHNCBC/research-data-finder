@@ -212,6 +212,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  /**
+   * Set material table columns from column descriptions.
+   * Set up filter form and table filtering logic if client filtering is enabled.
+   */
   setTableColumns(): void {
     this.columns = this.columns.concat(
       this.columnDescriptions.map((c) => c.element)
@@ -221,6 +225,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.columnDescriptions.forEach((column) => {
         this.filtersForm.addControl(column.element, new FormControl(''));
       });
+      // The method to determine if a row satisfies all filter criteria by returning
+      // true or false. filterValues is extracted from this.filtersForm.
       this.dataSource.filterPredicate = ((data, filterValues) => {
         for (const [key, value] of Object.entries(filterValues)) {
           if (!value || (value as string[]).length === 0) {
@@ -247,21 +253,23 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           }
           if (filterType === FilterType.Number) {
             const cellNumber = +cellValue.join('; ');
-            if (/^\d+\s?-\s?\d+$/.test(value as string)) {
-              const filterTextNumberMatchs = (value as string).match(/\d+/g);
+            if (isNaN(cellNumber)) {
+              return false;
+            }
+            if (/^\d+\s*-\s*\d+$/.test(value as string)) {
+              const filterTextNumberMatches = (value as string).match(/\d+/g);
               if (
-                cellNumber < +filterTextNumberMatchs[0] ||
-                cellNumber > +filterTextNumberMatchs[1]
+                cellNumber < +filterTextNumberMatches[0] ||
+                cellNumber > +filterTextNumberMatches[1]
               ) {
                 return false;
               }
             } else {
               const filterTextNumberMatch = /\d+/.exec(value as string);
               const filterNumber = +filterTextNumberMatch[0];
-              const compareOperator = (value as string).slice(
-                0,
-                filterTextNumberMatch.index
-              );
+              const compareOperator = (value as string)
+                .slice(0, filterTextNumberMatch.index)
+                .trim();
               switch (compareOperator) {
                 case '>':
                   if (cellNumber <= filterNumber) {
