@@ -384,10 +384,7 @@ function getSearchParametersConfig(
           type: type || item.resource.type,
           expression,
           path,
-          description:
-            item.resource.base.length > 1
-              ? getDescription(resourceType, item.resource.description)
-              : item.resource.description.trim()
+          description: getDescription(resourceType, item.resource.description)
         };
         if (param.type === 'token') {
           Object.assign(param, getTypeDescriptionByPath(resultConfig, path));
