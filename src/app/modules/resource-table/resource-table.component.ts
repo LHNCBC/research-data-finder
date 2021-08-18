@@ -181,24 +181,27 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const startTime = Date.now();
       this.resourceStream.pipe(bufferCount(50)).subscribe(
         (resources) => {
-          this.dataSource.data = this.dataSource.data.concat(resources);
           if (this.enableClientFiltering) {
             // Move selectable studies to the beginning of table.
-            this.dataSource.data.sort((a, b) => {
-              if (
-                !this.myStudyIds.includes(a.id) &&
-                this.myStudyIds.includes(b.id)
-              ) {
-                return 1;
+            this.dataSource.data = [...this.dataSource.data, ...resources].sort(
+              (a, b) => {
+                if (
+                  !this.myStudyIds.includes(a.id) &&
+                  this.myStudyIds.includes(b.id)
+                ) {
+                  return 1;
+                }
+                if (
+                  this.myStudyIds.includes(a.id) &&
+                  !this.myStudyIds.includes(b.id)
+                ) {
+                  return -1;
+                }
+                return 0;
               }
-              if (
-                this.myStudyIds.includes(a.id) &&
-                !this.myStudyIds.includes(b.id)
-              ) {
-                return -1;
-              }
-              return 0;
-            });
+            );
+          } else {
+            this.dataSource.data = this.dataSource.data.concat(resources);
           }
           if (!this.columnDescriptions.length) {
             this.setColumnsFromBundle();
