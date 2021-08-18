@@ -185,10 +185,19 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           if (this.enableClientFiltering) {
             // Move selectable studies to the beginning of table.
             this.dataSource.data.sort((a, b) => {
-              return !this.myStudyIds.includes(a.id) &&
+              if (
+                !this.myStudyIds.includes(a.id) &&
                 this.myStudyIds.includes(b.id)
-                ? 1
-                : -1;
+              ) {
+                return 1;
+              }
+              if (
+                this.myStudyIds.includes(a.id) &&
+                !this.myStudyIds.includes(b.id)
+              ) {
+                return -1;
+              }
+              return 0;
             });
           }
           if (!this.columnDescriptions.length) {
