@@ -3,13 +3,19 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.15.0] - 2021-08-09
+## [3.15.0] - 2021-08-18
 ### Changed
 - Only Research Studies user has access to can be selected.
 - By default, all selectable Research Study rows are checked and displayed
   at the beginning of the table.
 - Removed "Skip this step" radio button.
 - Reduced number of columns shown by default in Research Study table.
+
+## [3.14.3] - 2021-08-17
+### Fixed
+- Not all criteria were saved while saving cohort and criteria.
+- Not all characters were escaped correctly when downloading a CSV file.
+- Descriptions of not all criteria were correctly extracted from the specification.
 
 ## [3.14.2] - 2021-08-11
 ### Fixed
