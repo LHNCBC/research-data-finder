@@ -230,4 +230,14 @@ describe('ResourceTableComponent', () => {
     fixture.detectChanges();
     expect(component.dataSource.filteredData.length).toEqual(10);
   });
+
+  it('should filter numbers', () => {
+    expect(ResourceTableComponent.checkNumberFilter('10', '>3')).toBeTrue();
+    expect(ResourceTableComponent.checkNumberFilter('10', '<3')).toBeFalse();
+    expect(ResourceTableComponent.checkNumberFilter('10', '>=3')).toBeTrue();
+    expect(ResourceTableComponent.checkNumberFilter('10', '<=10')).toBeTrue();
+    expect(ResourceTableComponent.checkNumberFilter('10', '10')).toBeTrue();
+    expect(ResourceTableComponent.checkNumberFilter('10', '3 - 7')).toBeFalse();
+    expect(ResourceTableComponent.checkNumberFilter('10', '3 - 13')).toBeTrue();
+  });
 });

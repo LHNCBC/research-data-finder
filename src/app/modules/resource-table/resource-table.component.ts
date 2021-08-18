@@ -126,6 +126,65 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     );
   }
 
+  /**
+   * Check if a cell value satisfies the number (range) filter.
+   * @param cellValue - table cell display.
+   * @param filterValue - filter, examples: Type a range filter, examples: >5000, <=10, 50, 10 - 19.
+   * @private
+   */
+  public static checkNumberFilter(
+    cellValue: string,
+    filterValue: string
+  ): boolean {
+    const cellNumber = +cellValue;
+    if (isNaN(cellNumber)) {
+      return false;
+    }
+    if (/^\d+\s*-\s*\d+$/.test(filterValue)) {
+      const filterTextNumberMatches = filterValue.match(/\d+/g);
+      if (
+        cellNumber < +filterTextNumberMatches[0] ||
+        cellNumber > +filterTextNumberMatches[1]
+      ) {
+        return false;
+      }
+    } else {
+      const filterTextNumberMatch = /\d+/.exec(filterValue);
+      const filterNumber = +filterTextNumberMatch[0];
+      const compareOperator = filterValue
+        .slice(0, filterTextNumberMatch.index)
+        .trim();
+      switch (compareOperator) {
+        case '>':
+          if (cellNumber <= filterNumber) {
+            return false;
+          }
+          break;
+        case '>=':
+          if (cellNumber < filterNumber) {
+            return false;
+          }
+          break;
+        case '<':
+          if (cellNumber >= filterNumber) {
+            return false;
+          }
+          break;
+        case '<=':
+          if (cellNumber > filterNumber) {
+            return false;
+          }
+          break;
+        case '':
+          if (cellNumber !== filterNumber) {
+            return false;
+          }
+          break;
+      }
+    }
+    return true;
+  }
+
   ngOnInit(): void {}
 
   ngOnDestroy(): void {
@@ -252,51 +311,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             }
           }
           if (filterType === FilterType.Number) {
-            const cellNumber = +cellValue.join('; ');
-            if (isNaN(cellNumber)) {
+            if (
+              !ResourceTableComponent.checkNumberFilter(
+                cellValue.join('; '),
+                value as string
+              )
+            ) {
               return false;
-            }
-            if (/^\d+\s*-\s*\d+$/.test(value as string)) {
-              const filterTextNumberMatches = (value as string).match(/\d+/g);
-              if (
-                cellNumber < +filterTextNumberMatches[0] ||
-                cellNumber > +filterTextNumberMatches[1]
-              ) {
-                return false;
-              }
-            } else {
-              const filterTextNumberMatch = /\d+/.exec(value as string);
-              const filterNumber = +filterTextNumberMatch[0];
-              const compareOperator = (value as string)
-                .slice(0, filterTextNumberMatch.index)
-                .trim();
-              switch (compareOperator) {
-                case '>':
-                  if (cellNumber <= filterNumber) {
-                    return false;
-                  }
-                  break;
-                case '>=':
-                  if (cellNumber < filterNumber) {
-                    return false;
-                  }
-                  break;
-                case '<':
-                  if (cellNumber >= filterNumber) {
-                    return false;
-                  }
-                  break;
-                case '<=':
-                  if (cellNumber > filterNumber) {
-                    return false;
-                  }
-                  break;
-                case '':
-                  if (cellNumber !== filterNumber) {
-                    return false;
-                  }
-                  break;
-              }
             }
           }
         }
