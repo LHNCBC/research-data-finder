@@ -26,7 +26,15 @@ describe('SettingsService', () => {
     expect(service.get('hideElementsByDefault').ResearchStudy).toEqual([
       'id',
       'keyword',
-      'condition'
+      'condition',
+      'NumAnalyses',
+      'NumDocuments',
+      'NumMolecularDatasets',
+      'NumPhenotypeDatasets',
+      'NumSamples',
+      'NumSubStudies',
+      'NumSubjects',
+      'NumVariables'
     ]);
     expect(service.get('hideElementsByDefault').Patient).toBeUndefined();
     expect(service.get('hideElementsByDefault')['*']).toEqual([]);

@@ -2,6 +2,7 @@ import {
   ChangeDetectorRef,
   Component,
   OnDestroy,
+  OnInit,
   ViewChild
 } from '@angular/core';
 import Bundle = fhir.Bundle;
@@ -17,8 +18,8 @@ import { ColumnDescriptionsService } from '../../shared/column-descriptions/colu
 import Resource = fhir.Resource;
 
 export enum SelectOptions {
-  Skip = 0,
-  ResearchStudy
+  showOnlyStudiesWithSubjects = 0,
+  showAllStudies
 }
 
 @Component({
@@ -26,10 +27,10 @@ export enum SelectOptions {
   templateUrl: './select-an-area-of-interest.component.html',
   styleUrls: ['./select-an-area-of-interest.component.less']
 })
-export class SelectAnAreaOfInterestComponent implements OnDestroy {
+export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
   // Publish enum for template
   SelectOptions = SelectOptions;
-  option = new FormControl(SelectOptions.Skip);
+  option = new FormControl(SelectOptions.showOnlyStudiesWithSubjects);
   showResearchStudiesWithoutSubjects = new FormControl(false);
   subscription: Subscription;
   researchStudiesSubscription: Subscription;
@@ -37,6 +38,7 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   showTable = false;
   // A list of items that system will select once table loading is complete.
   idsToSelect: string[] = [];
+  myStudyIds: string[] = [];
   @ViewChild('resourceTableComponent') public resourceTableComponent;
 
   /**
@@ -46,47 +48,45 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
     private fhirBackend: FhirBackendService,
     private http: HttpClient,
     public columnDescriptions: ColumnDescriptionsService,
-    cdr: ChangeDetectorRef
-  ) {
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
     this.subscription = combineLatest([
-      this.option.valueChanges,
-      this.fhirBackend.initialized,
-      this.showResearchStudiesWithoutSubjects.valueChanges.pipe(
-        startWith(this.showResearchStudiesWithoutSubjects.value as boolean),
-        tap(() => {
-          this.resourceTableComponent?.clearSelection();
-        })
-      )
+      this.option.valueChanges.pipe(
+        startWith(SelectOptions.showOnlyStudiesWithSubjects)
+      ),
+      this.fhirBackend.initialized
     ])
       .pipe(
         tap(() => {
           this.showTable = false;
           this.researchStudiesSubscription?.unsubscribe();
+          this.resourceTableComponent?.clearSelection();
         }),
-        filter(([option, initialized]) => {
-          return (
-            option === SelectOptions.ResearchStudy &&
-            initialized === ConnectionStatus.Ready
-          );
+        filter(([_, initialized]) => {
+          return initialized === ConnectionStatus.Ready;
         })
       )
-      .subscribe(([, , showResearchStudiesWithoutSubjects]) => {
+      .subscribe(([showResearchStudiesWithoutSubjects, _]) => {
         this.researchStudyStream = new Subject<Resource>();
         this.showTable = true;
         // Added "detectChanges" to prevent this issue:
         // If queries are cached, then the values will be sent to the Subject
         // before the ResourceTableComponent subscribes to the resource stream.
-        cdr.detectChanges();
+        this.cdr.detectChanges();
         if (showResearchStudiesWithoutSubjects) {
           this.loadResearchStudies('$fhir/ResearchStudy?_count=500');
         } else {
+          this.option.disable({ emitEvent: false });
           const statuses = Object.keys(
             this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
               'ResearchSubject.status'
             ]
           ).join(',');
           this.loadResearchStudies(
-            `$fhir/ResearchStudy?_count=500&_has:ResearchSubject:study:status=${statuses}`
+            `$fhir/ResearchStudy?_count=500&_has:ResearchSubject:study:status=${statuses}`,
+            true
           );
         }
       });
@@ -100,9 +100,11 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   /**
    * Calls server for a bundle of ResearchStudy resources.
    * Will be recursively called if having next bundle.
-   * @param url - request URL
+   * @param url - request URL.
+   * @param myStudiesOnly - whether it's loading only studies that user has access to.
    */
-  loadResearchStudies(url: string): void {
+  loadResearchStudies(url: string, myStudiesOnly = false): void {
+    const myStudyIds: string[] = [];
     this.researchStudiesSubscription = this.http
       .get(url)
       .subscribe((data: Bundle) => {
@@ -112,16 +114,26 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
         } else {
           data.entry?.forEach((item) => {
             this.researchStudyStream.next(item.resource);
+            if (myStudiesOnly) {
+              myStudyIds.push(item.resource.id);
+            }
           });
           const nextBundleUrl = data.link.find((l) => l.relation === 'next')
             ?.url;
           if (nextBundleUrl) {
-            this.loadResearchStudies(nextBundleUrl);
+            this.loadResearchStudies(nextBundleUrl, myStudiesOnly);
           } else {
             this.researchStudyStream.complete();
+            if (myStudiesOnly) {
+              this.myStudyIds = myStudyIds;
+              this.option.enable({ emitEvent: false });
+            }
             if (this.idsToSelect.length) {
               this.resourceTableComponent.setSelectedIds(this.idsToSelect);
               this.idsToSelect.length = 0;
+            } else {
+              // Select all applicable rows by default.
+              this.resourceTableComponent.setSelectedIds(this.myStudyIds);
             }
           }
         }
@@ -134,30 +146,25 @@ export class SelectAnAreaOfInterestComponent implements OnDestroy {
   getResearchStudySearchParam(): string[] {
     if (!this.resourceTableComponent) {
       return [];
-    } else {
-      return this.resourceTableComponent.selectedResources.selected.map(
-        (r) => r.id
-      );
     }
+    if (
+      this.resourceTableComponent.selectedResources.selected.length ===
+      this.myStudyIds.length
+    ) {
+      // If all applicable rows are selected, use empty array (same as no rows selected).
+      return [];
+    }
+    return this.resourceTableComponent.selectedResources.selected.map(
+      (r) => r.id
+    );
   }
 
   /**
    * Re-populate research study table with selected items.
-   * Update radio button selection accordingly.
    */
   selectLoadedResearchStudies(ids: string[]): void {
-    if (this.option.value === SelectOptions.ResearchStudy && !ids.length) {
-      this.option.setValue(SelectOptions.Skip);
-    } else if (
-      this.option.value === SelectOptions.ResearchStudy &&
-      ids.length
-    ) {
-      this.resourceTableComponent.isLoading
-        ? (this.idsToSelect = ids)
-        : this.resourceTableComponent.setSelectedIds(ids);
-    } else if (this.option.value === SelectOptions.Skip && ids.length) {
-      this.idsToSelect = ids;
-      this.option.setValue(SelectOptions.ResearchStudy);
-    }
+    this.resourceTableComponent.isLoading
+      ? (this.idsToSelect = ids)
+      : this.resourceTableComponent.setSelectedIds(ids);
   }
 }

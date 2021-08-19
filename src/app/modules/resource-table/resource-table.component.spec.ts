@@ -197,4 +197,11 @@ describe('ResourceTableComponent', () => {
       ).toEqual([cellValues[i]]);
     }
   });
+
+  it('should show selectable rows at beginning of table', async () => {
+    component.myStudyIds = ['30'];
+    await fillTable(availableColumns);
+    const firstRow = component.dataSource.data[0];
+    expect(firstRow.id).toEqual('30');
+  });
 });

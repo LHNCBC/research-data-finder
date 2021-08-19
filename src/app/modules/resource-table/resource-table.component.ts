@@ -97,6 +97,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() context = '';
   @Input() resourceStream: Subject<Resource>;
   @Input() loadingStatistics: (string | number)[][] = [];
+  @Input() myStudyIds: string[] = [];
   columns: string[] = [];
   selectedResources = new SelectionModel<Resource>(true, []);
   filtersForm: FormGroup = new FormBuilder().group({});
@@ -179,8 +180,29 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       );
       const startTime = Date.now();
       this.resourceStream.pipe(bufferCount(50)).subscribe(
-        (resouceses) => {
-          this.dataSource.data = this.dataSource.data.concat(resouceses);
+        (resources) => {
+          if (this.enableClientFiltering) {
+            // Move selectable studies to the beginning of table.
+            this.dataSource.data = [...this.dataSource.data, ...resources].sort(
+              (a, b) => {
+                if (
+                  !this.myStudyIds.includes(a.id) &&
+                  this.myStudyIds.includes(b.id)
+                ) {
+                  return 1;
+                }
+                if (
+                  this.myStudyIds.includes(a.id) &&
+                  !this.myStudyIds.includes(b.id)
+                ) {
+                  return -1;
+                }
+                return 0;
+              }
+            );
+          } else {
+            this.dataSource.data = this.dataSource.data.concat(resources);
+          }
           if (!this.columnDescriptions.length) {
             this.setColumnsFromBundle();
             this.setTableColumns();
@@ -253,20 +275,22 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  /** Whether the number of selected elements matches the total number of rows. */
+  /** Whether the number of selected elements matches the total number of selectable rows. */
   isAllSelected(): boolean {
     const numSelected = this.selectedResources.selected.length;
-    const numRows = this.dataSource.data.length;
+    const numRows = this.myStudyIds.length;
     return numSelected === numRows;
   }
 
-  /** Selects all rows if they are not all selected; otherwise clear selection. */
+  /** Selects all applicable rows if they are not all selected; otherwise clear selection. */
   masterToggle(): void {
     this.isAllSelected()
       ? this.selectedResources.clear()
-      : this.dataSource.data.forEach((row) =>
-          this.selectedResources.select(row)
-        );
+      : this.dataSource.data.forEach((row) => {
+          if (this.myStudyIds.includes(row.id)) {
+            this.selectedResources.select(row);
+          }
+        });
   }
 
   /**
@@ -346,7 +370,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const cellValueB = this.getCellStrings(b, sortingColumnDescription).join(
         '; '
       );
-      return cellValueA.localeCompare(cellValueB) * (isAsc ? 1 : -1);
+      return cellValueA.localeCompare(cellValueB) * (isAsc ? -1 : 1);
     });
     // Table will re-render only after data reference changed.
     this.dataSource.data = this.dataSource.data.slice();
