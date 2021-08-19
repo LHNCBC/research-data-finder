@@ -27,9 +27,10 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import Resource = fhir.Resource;
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ResourceTableFilterComponent } from '../resource-table-filter/resource-table-filter.component';
+import { FilterType } from '../../types/filter-type';
+import Resource = fhir.Resource;
 
 /**
  * Component for loading table of resources
@@ -124,6 +125,65 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     return (
       event.type === 'keydown' && (event.key === 'ENTER' || event.key === ' ')
     );
+  }
+
+  /**
+   * Check if a cell value satisfies the number (range) filter.
+   * @param cellValue - table cell display.
+   * @param filterValue - filter, examples: Type a range filter, examples: >5000, <=10, 50, 10 - 19.
+   * @private
+   */
+  public static checkNumberFilter(
+    cellValue: string,
+    filterValue: string
+  ): boolean {
+    const cellNumber = +cellValue;
+    if (isNaN(cellNumber)) {
+      return false;
+    }
+    if (/^\d+\s*-\s*\d+$/.test(filterValue)) {
+      const filterTextNumberMatches = filterValue.match(/\d+/g);
+      if (
+        cellNumber < +filterTextNumberMatches[0] ||
+        cellNumber > +filterTextNumberMatches[1]
+      ) {
+        return false;
+      }
+    } else {
+      const filterTextNumberMatch = /\d+/.exec(filterValue);
+      const filterNumber = +filterTextNumberMatch[0];
+      const compareOperator = filterValue
+        .slice(0, filterTextNumberMatch.index)
+        .trim();
+      switch (compareOperator) {
+        case '>':
+          if (cellNumber <= filterNumber) {
+            return false;
+          }
+          break;
+        case '>=':
+          if (cellNumber < filterNumber) {
+            return false;
+          }
+          break;
+        case '<':
+          if (cellNumber >= filterNumber) {
+            return false;
+          }
+          break;
+        case '<=':
+          if (cellNumber > filterNumber) {
+            return false;
+          }
+          break;
+        case '':
+          if (cellNumber !== filterNumber) {
+            return false;
+          }
+          break;
+      }
+    }
+    return true;
   }
 
   ngOnInit(): void {}
@@ -233,6 +293,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  /**
+   * Set material table columns from column descriptions.
+   * Set up filter form and table filtering logic if client filtering is enabled.
+   */
   setTableColumns(): void {
     this.columns = this.columns.concat(
       this.columnDescriptions.map((c) => c.element)
@@ -242,6 +306,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.columnDescriptions.forEach((column) => {
         this.filtersForm.addControl(column.element, new FormControl(''));
       });
+      // The method to determine if a row satisfies all filter criteria by returning
+      // true or false. filterValues is extracted from this.filtersForm.
       this.dataSource.filterPredicate = ((data, filterValues) => {
         for (const [key, value] of Object.entries(filterValues)) {
           if (!value || (value as string[]).length === 0) {
@@ -251,16 +317,28 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             (c) => c.element === key
           );
           const cellValue = this.getCellStrings(data, columnDescription);
-          if (Array.isArray(value)) {
-            if (!value.includes(cellValue.join('; '))) {
+          const filterType = this.getFilterType(columnDescription);
+          if (filterType === FilterType.Autocomplete) {
+            if (!(value as string[]).includes(cellValue.join('; '))) {
               return false;
             }
-          } else {
+          }
+          if (filterType === FilterType.Text) {
             const reCondition = new RegExp(
               '\\b' + escapeStringForRegExp(value as string),
               'i'
             );
             if (!cellValue.some((item) => reCondition.test(item))) {
+              return false;
+            }
+          }
+          if (filterType === FilterType.Number) {
+            if (
+              !ResourceTableComponent.checkNumberFilter(
+                cellValue.join('; '),
+                value as string
+              )
+            ) {
               return false;
             }
           }
@@ -448,6 +526,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const rect = event.target.getBoundingClientRect();
     const dialogConfig = new MatDialogConfig();
     dialogConfig.hasBackdrop = true;
+    dialogConfig.disableClose = true;
 
     // Position the popup right below the invoking icon.
     dialogConfig.position = { top: `${rect.bottom}px` };
@@ -457,9 +536,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       dialogConfig.position.right = `${window.innerWidth - rect.right}px`;
     }
 
-    const useAutocomplete = this.listFilterColumns.includes(column.element);
+    const filterType = this.getFilterType(column);
     let options: string[] = [];
-    if (useAutocomplete) {
+    if (filterType === FilterType.Autocomplete) {
       const columnValues = this.dataSource.data.map((row) =>
         this.getCellStrings(row, column).join('; ')
       );
@@ -467,7 +546,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     }
     dialogConfig.data = {
       value: this.filtersForm.get(column.element).value,
-      useAutocomplete,
+      filterType,
       options
     };
     const dialogRef = this.dialog.open(
@@ -487,5 +566,16 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.filtersForm.get(column).value &&
       this.filtersForm.get(column).value.length
     );
+  }
+
+  /**
+   * Get filter type for column description.
+   */
+  getFilterType(column: ColumnDescription): FilterType {
+    return this.listFilterColumns.includes(column.element)
+      ? FilterType.Autocomplete
+      : column.displayName.startsWith('Number of')
+      ? FilterType.Number
+      : FilterType.Text;
   }
 }
