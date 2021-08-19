@@ -27,7 +27,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 })
 // tslint:disable-next-line:component-class-suffix
 class SelectAnAreaOfInterestComponentStub {
-  option = { value: SelectOptions.Skip };
+  option = { value: SelectOptions.showOnlyStudiesWithSubjects };
   SelectOptions = SelectOptions;
   @Input() columnDescriptions: ColumnDescription[];
 }

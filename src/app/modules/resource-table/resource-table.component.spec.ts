@@ -201,6 +201,13 @@ describe('ResourceTableComponent', () => {
     }
   });
 
+  it('should show selectable rows at beginning of table', async () => {
+    component.myStudyIds = ['30'];
+    await fillTable(availableColumns);
+    const firstRow = component.dataSource.data[0];
+    expect(firstRow.id).toEqual('30');
+  });
+
   it('should filter number column - greater than', async () => {
     await fillTable(availableColumns);
     expect(component.filtersForm).not.toBeNull();
