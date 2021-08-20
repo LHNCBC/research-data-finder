@@ -3,24 +3,33 @@ import { TestBed } from '@angular/core/testing';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import { ColumnValuesService } from './column-values.service';
 import { FhirBackendModule } from '../fhir-backend/fhir-backend.module';
-import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../fhir-backend/fhir-backend.service';
 import { SettingsService } from '../settings-service/settings.service';
+import { filter, take } from 'rxjs/operators';
 
 describe('ColumnValuesService', () => {
   let service: ColumnValuesService;
   let fhirBackend: FhirBackendService;
-  let settingsService: SettingsService;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
     spyOn(FhirBatchQuery.prototype, 'getVersionName').and.returnValue('R4');
     TestBed.configureTestingModule({
       imports: [FhirBackendModule]
     });
     fhirBackend = TestBed.inject(FhirBackendService);
-    settingsService = TestBed.inject(SettingsService);
-    fhirBackend.settings = settingsService;
+    const settingsService = TestBed.inject(SettingsService);
+    settingsService.loadJsonConfig().subscribe();
     service = TestBed.inject(ColumnValuesService);
+    await fhirBackend.initialized
+      .pipe(
+        filter((status) => status === ConnectionStatus.Ready),
+        take(1)
+      )
+      .toPromise();
   });
 
   it('should be created', () => {
@@ -209,7 +218,6 @@ describe('ColumnValuesService', () => {
     spyOnProperty(fhirBackend, 'serviceBaseUrl').and.returnValue(
       'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
     );
-    await settingsService.loadJsonConfig().toPromise();
 
     expect(
       service.valueToStrings(

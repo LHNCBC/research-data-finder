@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "3.16.0",
+  "version": "3.17.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
@@ -32,8 +32,10 @@
     "fhirpath": "^2.9.1",
     "file-saver": "^2.0.5",
     "json5": "^2.2.0",
+    "json5-writer": "^0.2.0",
     "lodash-es": "^4.17.21",
     "ng-table-virtual-scroll": "^1.3.6",
+    "read-excel-file": "^5.2.8",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",
     "zone.js": "~0.10.2"

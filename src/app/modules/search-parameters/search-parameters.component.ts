@@ -9,6 +9,11 @@ import { SearchCondition } from '../../types/search.condition';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
+import { filter } from 'rxjs/operators';
 
 /**
  * Component for managing resources search parameters
@@ -32,11 +37,17 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   searchParameterGroupComponents: QueryList<SearchParameterGroupComponent>;
   parameterGroupList = new FormArray([]);
 
-  constructor() {
+  constructor(private fhirBackend: FhirBackendService) {
     super();
     this.parameterGroupList.valueChanges.subscribe((value) => {
       this.onChange(value);
     });
+    // Clear search parameters on server change
+    fhirBackend.initialized
+      .pipe(filter((status) => status === ConnectionStatus.Ready))
+      .subscribe(() => {
+        this.parameterGroupList.clear();
+      });
   }
 
   /**

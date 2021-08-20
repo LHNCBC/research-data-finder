@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.17.0] - 2021-08-20
+### Added
+- Using XLSX file(s) to configure search parameters and resource table columns.
+### Fixed
+- Switching to the View Cohort step after loading criteria and cohort.
+
 ## [3.16.0] - 2021-08-17
 ### Added
 - Ability to filter number columns by range.

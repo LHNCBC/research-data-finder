@@ -12,7 +12,8 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { tap } from 'rxjs/operators';
+import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import { filter, take, tap } from 'rxjs/operators';
 import { from } from 'rxjs';
 import {
   HttpClientTestingModule,
@@ -44,7 +45,7 @@ describe('PullDataForCohortComponent', () => {
         MatIconTestingModule
       ]
     }).compileComponents();
-    spyOn(FhirBackendService.prototype, 'initializeFhirBatchQuery');
+    spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
     fhirBackend = TestBed.inject(FhirBackendService);
     spyOnProperty(fhirBackend, 'currentVersion').and.returnValue('R4');
     spyOnProperty(fhirBackend, 'features').and.returnValue({
@@ -52,12 +53,47 @@ describe('PullDataForCohortComponent', () => {
       sortObservationsByDate: true,
       sortObservationsByAgeAtEvent: false
     });
-    fhirBackend.settings = TestBed.inject(SettingsService);
-    fhirBackend.initialized.next(ConnectionStatus.Ready);
+
+    // Mock service base URL to apply default settings
+    spyOnProperty(fhirBackend, 'serviceBaseUrl').and.returnValue(
+      'someDefaultURL'
+    );
+
+    const settingsService = TestBed.inject(SettingsService);
     mockHttp = TestBed.inject(HttpTestingController);
+    settingsService.loadJsonConfig().subscribe();
+
+    // Pass-through for settings file
+    mockHttp
+      .expectOne(`assets/settings.json5`)
+      .flush(await fetch('assets/settings.json5').then((r) => r.text()));
+
     fixture = TestBed.createComponent(PullDataPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  beforeEach(async () => {
+    // Pass-through for CSV files
+    const request = mockHttp.expectOne((req) => {
+      if (req.url.startsWith('conf/csv')) {
+        fetch(req.url)
+          .then((r) => r.text())
+          .then((responseText) => {
+            request.flush(responseText);
+          });
+        return true;
+      }
+      return false;
+    });
+
+    // Wait for initialization
+    await fhirBackend.initialized
+      .pipe(
+        filter((status) => status === ConnectionStatus.Ready),
+        take(1)
+      )
+      .toPromise();
   });
 
   afterEach(() => {
@@ -183,8 +219,8 @@ describe('PullDataForCohortComponent', () => {
     // Should collect Patients from input stream
     expect(component.patients).toEqual(arrayOfPatients);
 
-    component.addTab('ResearchStudy');
-    fixture.detectChanges();
+    // component.addTab('ResearchStudy');
+    // fixture.detectChanges();
     component.loadResources('ResearchStudy', emptyParameterGroup);
     chunk(arrayOfPatients, 1).forEach((patients) => {
       mockHttp

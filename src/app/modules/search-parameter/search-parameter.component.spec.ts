@@ -56,7 +56,15 @@ describe('SearchParameterComponent', () => {
                 resources: {
                   Observation: {
                     searchParameters: [
-                      { name: 'value-quantity', type: 'Quantity' }
+                      {
+                        element: 'code text',
+                        displayName: 'Some name'
+                      },
+                      {
+                        element: 'value-quantity',
+                        displayName: 'value quantity',
+                        type: 'Quantity'
+                      }
                     ]
                   }
                 }
@@ -84,7 +92,7 @@ describe('SearchParameterComponent', () => {
     expect(component.parameters).not.toBeNull();
     expect(component.parameters.length).toEqual(2);
     expect(component.parameters).toContain(
-      jasmine.objectContaining({ name: 'code text' })
+      jasmine.objectContaining({ element: 'code text' })
     );
   });
 

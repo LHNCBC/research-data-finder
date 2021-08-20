@@ -164,6 +164,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     data: Resource[],
     fromResearchStudyStep = false
   ): void {
+    this.defineCohortStep.completed = true;
     this.defineCohortComponent.patientStream = new Subject<Resource>();
     this.stepper.next();
     if (fromResearchStudyStep) {

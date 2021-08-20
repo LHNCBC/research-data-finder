@@ -28,4 +28,5 @@ export interface ColumnDescription {
    * Number that indicates sort order of the column
    */
   sortOrder?: number;
+  displayByDefault?: boolean;
 }

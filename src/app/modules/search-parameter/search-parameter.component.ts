@@ -61,7 +61,7 @@ export class SearchParameterComponent
 
   get value(): SearchParameter {
     return {
-      name: this.parameterName.value,
+      element: this.parameterName.value,
       value: this.parameterValue.value,
       selectedObservationCodes: this.selectedObservationCodes.value
     };
@@ -88,12 +88,8 @@ export class SearchParameterComponent
     this.parameters = this.selectedResourceType.searchParameters;
     if (this.resourceType === 'Observation') {
       this.parameters = this.parameters.filter(
-        (p) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(p.name)
+        (p) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(p.element)
       );
-      this.parameters.unshift({
-        name: this.OBSERVATIONBYTEST,
-        description: this.OBSERVATIONBYTESTDESC
-      });
     }
     this.selectedParameter = null;
 
@@ -104,7 +100,7 @@ export class SearchParameterComponent
 
     this.parameterName.valueChanges.subscribe((value) => {
       this.selectedParameter = this.selectedResourceType.searchParameters.find(
-        (p) => p.name === value
+        (p) => p.element === value && p.element !== this.OBSERVATIONBYTEST
       );
       if (this.selectedParameter) {
         this.parameterValue.setValue(
@@ -136,7 +132,7 @@ export class SearchParameterComponent
     const filterValue = value.toLowerCase();
 
     return options.filter((option) =>
-      option.name.toLowerCase().includes(filterValue)
+      option.displayName.toLowerCase().includes(filterValue)
     );
   }
 
@@ -147,7 +143,7 @@ export class SearchParameterComponent
    * @param value New value to be written to the model.
    */
   writeValue(value: SearchParameter): void {
-    this.parameterName.setValue(value.name || '');
+    this.parameterName.setValue(value.element || '');
     this.parameterValue.setValue(value.value || '');
     this.selectedObservationCodes.setValue(
       value.selectedObservationCodes || null

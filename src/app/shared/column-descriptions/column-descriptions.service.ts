@@ -169,7 +169,6 @@ export class ColumnDescriptionsService {
     const columnDescriptions = currentDefinitions.resources[
       resourceType
     ].columnDescriptions.concat(
-      this.settings.get(`customColumns.${resourceType}`) || [],
       (context &&
         this.settings.get(`contextColumns.${context}.${resourceType}`)) ||
         []
