@@ -77,37 +77,15 @@ function updateAppSettings(url2desc) {
   const updateSettingsObj = { default: {}, customization: {} };
   const settings = JSON5.parse(fs.readFileSync(settingsPath).toString());
 
-  // Remove references to previous CSV data files in the settings before placing new references
-  delete updateSettingsObj.default[definitionsFilePropName];
-  if (updateSettingsObj.customization) {
-    Object.keys(updateSettingsObj.customization).forEach((url) => {
-      if (updateSettingsObj.customization[url]) {
-        delete updateSettingsObj.customization[url][definitionsFilePropName];
-      }
-    });
-  }
-
   for (let i = 0; i < allUrls.length; i++) {
     const url = allUrls[i];
     const toFilename = 'desc-' + i + '.csv';
     if (url === 'default') {
-      Object.keys(settings.default).forEach((key) => {
-        updateSettingsObj.default[key] = undefined;
-      });
       updateSettingsObj.default[definitionsFilePropName] = toFilename;
     } else {
-      if (!updateSettingsObj.customization) {
-        updateSettingsObj.customization = {};
-      }
-      updateSettingsObj.customization[url] = {};
-      if (settings.customization[url]) {
-        Object.keys(settings.customization[url]).forEach((key) => {
-          updateSettingsObj.customization[url][key] = undefined;
-        });
-      }
-      updateSettingsObj.customization[url][
-        definitionsFilePropName
-      ] = toFilename;
+      updateSettingsObj.customization[url] = {
+        [definitionsFilePropName]: toFilename
+      };
     }
 
     fs.writeFileSync(
@@ -115,6 +93,24 @@ function updateAppSettings(url2desc) {
       url2desc[url].map((row) => createCsvRow(row)).join('\n')
     );
   }
+
+  // json5-writer will remove any property that does not exist in updateSettingsObj.
+  // To keep an existing properties, we need to pass undefined.
+  Object.keys(settings.default).forEach((key) => {
+    if (key !== definitionsFilePropName) {
+      updateSettingsObj.default[key] = undefined;
+    }
+  });
+  Object.keys(settings.customization).forEach((url) => {
+    if (!updateSettingsObj.customization[url]) {
+      updateSettingsObj.customization[url] = {};
+    }
+    Object.keys(settings.customization[url]).forEach((key) => {
+      if (key !== definitionsFilePropName) {
+        updateSettingsObj.customization[url][key] = undefined;
+      }
+    });
+  });
 
   const settingsWriter = json5Writer.load(
     fs.readFileSync(settingsPath).toString()

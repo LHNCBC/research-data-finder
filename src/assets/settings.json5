@@ -4,6 +4,8 @@
 {
   // Default settings for all servers
   default: {
+    definitionsFile: 'desc-2.csv',
+
     // Sort orders by resource type.
     // Columns without a sort order defined here will stay in the end.
     columnSort: {
@@ -31,8 +33,6 @@
         ],
       }
     },
-
-    definitionsFile: 'desc-2.csv',
   },
   // Settings for servers with the specified URL.
   // You can override default settings here
@@ -42,6 +42,8 @@
     },
 
     "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1": {
+      definitionsFile: 'desc-1.csv',
+
       // Coding system per resource per element for filtering data in
       // resource tables. If there is a coding with specified "system",
       // then the rest of the terms will be dropped when displaying
@@ -60,8 +62,6 @@
         'sponsor',
         'status'
       ],
-
-      definitionsFile: 'desc-1.csv',
     }
   }
 }
