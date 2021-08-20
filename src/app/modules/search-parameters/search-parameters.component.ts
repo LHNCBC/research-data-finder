@@ -42,10 +42,11 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
     this.parameterGroupList.valueChanges.subscribe((value) => {
       this.onChange(value);
     });
-    // Clear search parameters on server change
+
     fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Ready))
       .subscribe(() => {
+        // Clear search parameters on server change
         this.parameterGroupList.clear();
       });
   }

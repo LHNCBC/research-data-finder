@@ -98,7 +98,7 @@ describe('SearchParameterComponent', () => {
 
   it('should use composite controls for value-quantity search parameter', () => {
     expect(page.compositeTestValue).toBeNull();
-    component.parameterName.setValue('value-quantity');
+    component.parameterName.setValue('value quantity');
     fixture.detectChanges(false);
     expect(page.compositeTestValue).not.toBeNull();
   });

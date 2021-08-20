@@ -7,13 +7,13 @@
            [formControl]="parameterName"
            [matAutocomplete]="auto1">
     <mat-autocomplete #auto1="matAutocomplete">
-      <mat-option *ngFor="let option of filteredParameters | async" [value]="option.element">
+      <mat-option *ngFor="let option of filteredParameters | async" [value]="option.displayName">
         {{option.displayName}} <span class="option-desc" [matTooltip]="option.description">({{option.description}})</span>
       </mat-option>
     </mat-autocomplete>
   </mat-form-field>
 
-  <ng-container *ngIf="selectedParameter">
+  <ng-container *ngIf="selectedParameter && selectedParameter.element !== OBSERVATIONBYTEST">
     <ng-container [ngSwitch]="selectedParameter.type">
 
       <div *ngSwitchCase="'boolean'" class="parameter-value">
@@ -43,7 +43,7 @@
     </ng-container>
   </ng-container>
 
-  <mat-form-field class="flex" *ngIf="parameterName.value === OBSERVATIONBYTEST">
+  <mat-form-field class="flex" *ngIf="selectedParameter?.element === OBSERVATIONBYTEST">
     <mat-label>Observation codes from FHIR server</mat-label>
     <app-observation-code-lookup
       [formControl]="selectedObservationCodes"
@@ -53,7 +53,7 @@
 
   <app-observation-test-value class="parameter-value" [formControl]="parameterValue" [datatype]="selectedObservationCodes.value?.datatype"
                   [loincCodes]="loincCodes"
-                  *ngIf="parameterName.value === OBSERVATIONBYTEST && selectedObservationCodes.value?.datatype">
+                  *ngIf="selectedParameter?.element === OBSERVATIONBYTEST && selectedObservationCodes.value?.datatype">
   </app-observation-test-value>
 
 </div>

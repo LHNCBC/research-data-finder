@@ -43,6 +43,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       .pipe(filter((status) => status === ConnectionStatus.Disconnect))
       .subscribe(() => {
         this.defineCohortStep.completed = false;
+        this.defineCohortComponent.patientStream = new Subject<Resource>();
         this.stepper.steps.forEach((s) => s.reset());
       });
   }
