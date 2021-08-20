@@ -219,8 +219,8 @@ describe('PullDataForCohortComponent', () => {
     // Should collect Patients from input stream
     expect(component.patients).toEqual(arrayOfPatients);
 
-    // component.addTab('ResearchStudy');
-    // fixture.detectChanges();
+    component.addTab('ResearchStudy');
+    fixture.detectChanges();
     component.loadResources('ResearchStudy', emptyParameterGroup);
     chunk(arrayOfPatients, 1).forEach((patients) => {
       mockHttp
