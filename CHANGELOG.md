@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.16.1] - 2021-08-20
+### Fixed
+- Exceptions when determining the ability to download CVS with pulled data.
+
 ## [3.16.0] - 2021-08-17
 ### Added
 - Ability to filter number columns by range.

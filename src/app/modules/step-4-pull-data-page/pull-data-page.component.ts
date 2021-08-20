@@ -3,17 +3,18 @@ import {
   ChangeDetectorRef,
   Component,
   Input,
+  QueryList,
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { concatMap, map, reduce, startWith } from 'rxjs/operators';
+import { concatMap, map, reduce, startWith, switchMap } from 'rxjs/operators';
 import { chunk } from 'lodash-es';
 import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { MatTabGroup } from '@angular/material/tabs';
-import { from, Observable, Subject } from 'rxjs';
+import { combineLatest, from, Observable, of, Subject } from 'rxjs';
 import Patient = fhir.Patient;
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { HttpClient } from '@angular/common/http';
@@ -39,7 +40,10 @@ type PatientMixin = { patientData: Patient };
 export class PullDataPageComponent implements AfterViewInit {
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
   @ViewChildren(ResourceTableComponent)
-  resourceTables: ResourceTableComponent[];
+  resourceTables: QueryList<ResourceTableComponent>;
+  // Resource table data ready to download
+  canDownload$: Observable<boolean>;
+
   // Array of visible resource type names
   visibleResourceTypes: string[];
   // Array of not visible resource type names
@@ -115,6 +119,17 @@ export class PullDataPageComponent implements AfterViewInit {
     this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
       startWith(this.getCurrentResourceType()),
       map(() => this.getCurrentResourceType())
+    );
+    this.canDownload$ = combineLatest([
+      this.currentResourceType$,
+      this.resourceTables.changes
+    ]).pipe(
+      switchMap(([currentResourceType]) => {
+        const currentResourceTable = this.resourceTables.find(
+          (resourceTable) => resourceTable.resourceType === currentResourceType
+        );
+        return currentResourceTable?.hasLoadedData$ || of(false);
+      })
     );
   }
 
@@ -346,20 +361,6 @@ export class PullDataPageComponent implements AfterViewInit {
       )
       // Sequentially send the loaded resources to the resource table
       .subscribe(this.resourceStream[resourceType]);
-  }
-
-  /**
-   * Checks if the resourceTable data is ready for download
-   */
-  canDownload(): boolean {
-    if (!this.tabGroup || !Object.keys(this.resourceStream).length) {
-      return false;
-    }
-    const currentResourceType = this.getCurrentResourceType();
-    const currentResourceTable = this.resourceTables.find(
-      (resourceTable) => resourceTable.resourceType === currentResourceType
-    );
-    return currentResourceTable.isReadyForDownloadData();
   }
 
   /**
