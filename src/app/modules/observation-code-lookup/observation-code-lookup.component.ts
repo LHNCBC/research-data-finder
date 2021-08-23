@@ -234,7 +234,7 @@ export class ObservationCodeLookupComponent
                 // Array of result items for autocompleter
                 const contains: ValueSetExpansionContains[] = [];
                 // Total amount of items
-                let total = Infinity;
+                let total;
                 // Already selected codes
                 const selectedCodes = acInstance.getSelectedCodes();
 
@@ -319,7 +319,7 @@ export class ObservationCodeLookupComponent
                   resolve({
                     resourceType: 'ValueSet',
                     expansion: {
-                      total: Number.isInteger(total) ? total : Infinity,
+                      total: Number.isInteger(total) ? total : undefined,
                       contains
                     }
                   });
