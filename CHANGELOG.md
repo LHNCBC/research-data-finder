@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.16.2] - 2021-08-30
+### Changed
+- Preserve filter values when changing column selections, unless the column
+  with filters is removed.
+- Trigger table filtering after column change.
+
 ## [3.16.0] - 2021-08-17
 ### Added
 - Ability to filter number columns by range.
