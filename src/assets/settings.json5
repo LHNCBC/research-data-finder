@@ -64,7 +64,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumAnalyses').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Number of analyses that are part of this study"
           },
           {
             displayName: "Number of Documents",
@@ -72,7 +73,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumDocuments').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Number of documents that are part of this study"
           },
           {
             displayName: "Number of Molecular Datasets",
@@ -80,7 +82,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumMolecularDatasets').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Number of molecular datasets that are part of this study"
           },
           {
             displayName: "Number of Phenotype Datasets",
@@ -88,7 +91,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumPhenotypeDatasets').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Number of phenotype datasets that are part of this study"
           },
           {
             displayName: "Number of Samples",
@@ -96,7 +100,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSamples').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Number of samples that are part of this study"
           },
           {
             displayName: "Number of Sub-studies",
@@ -104,7 +109,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubStudies').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Number of sub-studies that are part of this study"
           },
           {
             displayName: "Number of Subjects",
@@ -112,7 +118,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubjects').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Number of subjects that are part of this study"
           },
           {
             displayName: "Number of Variables",
@@ -120,7 +127,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumVariables').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Number of variables that are part of this study"
           }
         ]
       },

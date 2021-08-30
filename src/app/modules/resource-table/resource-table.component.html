@@ -48,6 +48,9 @@
           <span [attr.aria-label]="column.displayName + '. click to sort by this column'">
             {{column.displayName}}
           </span>
+          <button *ngIf='column.description' class="info-icon"
+                  [attr.aria-label]='column.description'
+                  [matTooltip]='column.description' matTooltipPosition='above'></button>
           <button *ngIf='enableClientFiltering' aria-label='open filter criteria for this column'
                   title='open filter criteria for this column'
                   (click)='openFilterDialog($event, column)'
