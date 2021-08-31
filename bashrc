@@ -6,7 +6,7 @@
 #     You may set variables before sourcing this to change execution
 # of it.
 # Use the globally installed node and its modules
-NODE_DIR=node-v10.14.1-linux-x64
+NODE_DIR=node-v14.16.1-linux-x64
 # Set path
 PATH=~/${NODE_DIR}/bin:/bin:/usr/local/bin:/usr/bin:/usr/sbin:/sbin:/etc
 
