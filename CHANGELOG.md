@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.17.0] - 2021-09-01
+### Changed
+- Updated to Angular version 12.
+
 ## [3.16.0] - 2021-08-17
 ### Added
 - Ability to filter number columns by range.
