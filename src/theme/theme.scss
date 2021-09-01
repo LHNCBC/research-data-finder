@@ -1,71 +1,9 @@
-@use 'sass:map';
 @use '~@angular/material' as mat;
 @use '../../node_modules/@angular/material/core/theming/theming';
 @use '../../node_modules/@angular/material/core/style/private';
 @use '../../node_modules/@angular/material/core/typography/typography';
 @use '../../node_modules/@angular/material/core/typography/typography-utils';
-@use './variables';
-
-@mixin outline-color($config-or-theme) {
-  $config: theming.get-color-config($config-or-theme);
-  $primary: map.get($config, primary);
-  $accent: map.get($config, accent);
-  $warn: map.get($config, warn);
-  $foreground: map.get($config, foreground);
-  $is-dark-theme: map.get($config, is-dark);
-
-  $label-disabled-color: theming.get-color-from-palette($foreground, disabled-text);
-  $outline-color:
-    theming.get-color-from-palette($foreground, divider, if($is-dark-theme, 0.3, 0.12));
-  $outline-color-hover:
-    theming.get-color-from-palette($foreground, divider, if($is-dark-theme, 1, 0.87));
-  $outline-color-primary: theming.get-color-from-palette($primary);
-  $outline-color-accent: theming.get-color-from-palette($accent);
-  $outline-color-warn: theming.get-color-from-palette($warn);
-  $outline-color-disabled:
-    theming.get-color-from-palette($foreground, divider, if($is-dark-theme, 0.15, 0.06));
-
-  .mat-form-field-appearance-outline {
-    .mat-form-field-outline {
-      color: $outline-color;
-    }
-
-    .mat-form-field-outline-thick {
-      color: $outline-color-hover;
-    }
-
-    &.mat-focused {
-      .mat-form-field-outline-thick {
-        color: $outline-color-primary;
-      }
-
-      &.mat-accent .mat-form-field-outline-thick {
-        color: $outline-color-accent;
-      }
-
-      &.mat-warn .mat-form-field-outline-thick {
-        color: $outline-color-warn;
-      }
-    }
-
-    // Class repeated so that rule is specific enough to override focused accent color case.
-    &.mat-form-field-invalid.mat-form-field-invalid {
-      .mat-form-field-outline-thick {
-        color: $outline-color-warn;
-      }
-    }
-
-    &.mat-form-field-disabled {
-      .mat-form-field-label {
-        color: $label-disabled-color;
-      }
-
-      .mat-form-field-outline {
-        color: $outline-color-disabled;
-      }
-    }
-  }
-}
+@import './variables';
 
 // Used to make instances of the _mat-form-field-label-floating mixin negligibly different,
 // and prevent Google's CSS Optimizer from collapsing the declarations. This is needed because some
@@ -75,8 +13,7 @@ $outline-dedupe: 0;
 
 // Applies a floating label above the form field control itself.
 @mixin _label-floating($font-scale, $infix-padding, $infix-margin-top) {
-  transform: translateY(-$infix-margin-top - $infix-padding + $outline-dedupe)
-  scale($font-scale);
+  transform: translateY(-$infix-margin-top - $infix-padding + $outline-dedupe) scale($font-scale);
   width: private.private-div(100%, $font-scale) + $outline-dedupe;
 
   $outline-dedupe: $outline-dedupe + 0.00001 !global;
@@ -85,8 +22,7 @@ $outline-dedupe: 0;
 // To make form fields more compact we should override "mat-form-field-outline-typography" mixin
 // to change local variable "$infix-padding" value
 // See source code here:
-// https://github.com/angular/components/blob/11.0.4/src/material/form-field/_form-field-outline-theme.scss
-//noinspection CssInvalidPseudoSelector
+// https://github.com/angular/components/blob/12.2.3/src/material/form-field/_form-field-outline-theme.scss
 @mixin outline-typography($config-or-theme) {
   $config: typography.private-typography-to-2014-config(
       theming.get-typography-config($config-or-theme));
@@ -95,10 +31,9 @@ $outline-dedupe: 0;
   // The amount to scale the font for the floating label and subscript.
   $subscript-font-scale: 0.75;
   // The padding above and below the infix.
-  $infix-padding: 0.5em;
+  $infix-padding: $form-field-infix-padding;
   // The margin applied to the form-field-infix to reserve space for the floating label.
-  $infix-margin-top:
-    $subscript-font-scale * typography-utils.private-coerce-unitless-to-em($line-height);
+  $infix-margin-top: $subscript-font-scale * typography-utils.private-coerce-unitless-to-em($line-height);
   // The space between the bottom of the .mat-form-field-flex area and the subscript wrapper.
   // Mocks show half of the text size, but this margin is applied to an element with the subscript
   // text font size, so we need to divide by the scale factor to make it half of the original text
@@ -141,27 +76,6 @@ $outline-dedupe: 0;
   }
 }
 
-@mixin private-form-field-outline-density($config-or-theme) {}
-
-@mixin outline-theme($theme-or-color-config) {
-  $theme: theming.private-legacy-get-theme($theme-or-color-config);
-  @include theming.private-check-duplicate-theme-styles($theme, 'mat-form-field-outline') {
-    $color: theming.get-color-config($theme);
-    $density: theming.get-density-config($theme);
-    $typography: theming.get-typography-config($theme);
-
-    @if $color != null {
-      @include outline-color($color);
-    }
-    @if $density != null {
-      @include private-form-field-outline-density($density);
-    }
-    @if $typography != null {
-      @include outline-typography($typography);
-    }
-  }
-}
-
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
@@ -171,22 +85,24 @@ $outline-dedupe: 0;
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
 $app-primary: mat.define-palette(mat.$indigo-palette);
-$app-accent:  mat.define-palette(mat.$pink-palette, A200, A100, A400);
+$app-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
 
 // The warn palette is optional (defaults to red).
-$app-warn:    mat.define-palette(mat.$red-palette);
+$app-warn: mat.define-palette(mat.$red-palette);
 
 // Create the theme object. A theme consists of configurations for individual
 // theming systems such as `color` or `typography`.
 $app-theme: mat.define-light-theme((
-        color: (
-                primary: $app-primary,
-                accent: $app-accent,
-                warn: $app-warn,
-        )
+  color: (
+    primary: $app-primary,
+    accent: $app-accent,
+    warn: $app-warn,
+  ),
+  typography: mat.define-typography-config()
 ));
 
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
 @include mat.all-component-themes($app-theme);
+@include outline-typography($app-theme);
