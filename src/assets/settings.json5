@@ -110,7 +110,7 @@
             types: [
               "Count"
             ],
-            description: "Subset of the study that is distinguished from others by separate (funding or research focus) from other arms of the study. Access control in dbGaP is at the parent study level."
+            description: "Subset of the study that is distinguished from others by separate (funding or research) focus from other arms of the study. Access control in dbGaP is at the parent study level."
           },
           {
             displayName: "Number of Subjects",
