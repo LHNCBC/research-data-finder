@@ -3,11 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.16.2] - 2021-09-02
+## [3.16.3] - 2021-09-07
 ### Changed
 - UI updates to make resource table more readable.
 
-## [3.16.1] - 2021-08-30
+## [3.16.2] - 2021-08-30
 ### Changed
 - Preserve filter values when changing column selections, unless the column
   with filters is removed.
