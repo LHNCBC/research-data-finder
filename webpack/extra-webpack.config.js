@@ -75,7 +75,8 @@ async function prepareCsvData() {
 function updateAppSettings(url2desc) {
   const allUrls = Object.keys(url2desc);
   const updateSettingsObj = { default: {}, customization: {} };
-  const settings = JSON5.parse(fs.readFileSync(settingsPath).toString());
+  const settingsJsonString = fs.readFileSync(settingsPath).toString();
+  const settings = JSON5.parse(settingsJsonString);
 
   for (let i = 0; i < allUrls.length; i++) {
     const url = allUrls[i];
@@ -112,9 +113,7 @@ function updateAppSettings(url2desc) {
     });
   });
 
-  const settingsWriter = json5Writer.load(
-    fs.readFileSync(settingsPath).toString()
-  );
+  const settingsWriter = json5Writer.load(settingsJsonString);
   settingsWriter.write(updateSettingsObj);
   fs.writeFileSync(settingsPath, settingsWriter.toSource());
 }

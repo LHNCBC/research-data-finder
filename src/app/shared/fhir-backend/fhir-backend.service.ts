@@ -257,7 +257,7 @@ export class FhirBackendService implements HttpBackend {
    * Returns definitions of columns, search params, value sets for current FHIR version
    */
   getCurrentDefinitions(): any {
-    // Prepare CVS definitions only on first call
+    // Prepare CSV definitions only on first call
     if (this.currentDefinitions?.initialized) {
       return this.currentDefinitions;
     }
