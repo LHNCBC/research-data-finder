@@ -5,7 +5,9 @@ This project follows [Semantic Versioning](http://semver.org/).
 
 ## [3.16.1] - 2021-08-20
 ### Fixed
-- Exceptions when determining the ability to download CVS with pulled data.
+- Adding a new resource tab in the Pull data for cohort step after or when
+  loading Observations data threw exceptions that blocked further operation
+  of the application.
 
 ## [3.16.0] - 2021-08-17
 ### Added
