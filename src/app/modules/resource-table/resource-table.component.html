@@ -28,14 +28,16 @@
         <th mat-header-cell *matHeaderCellDef class="cell-with-icon">
           <mat-checkbox (change)="$event ? masterToggle() : null"
                         [checked]="selectedResources.hasValue() && isAllSelected()"
-                        [indeterminate]="selectedResources.hasValue() && !isAllSelected()">
+                        [indeterminate]="selectedResources.hasValue() && !isAllSelected()"
+                        matTooltip='Select/Unselect all'>
           </mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row" class="cell-with-icon">
           <mat-checkbox *ngIf='myStudyIds.includes(row.id)'
                         (click)="$event.stopPropagation()"
                         (change)="$event ? selectedResources.toggle(row) : null"
-                        [checked]="selectedResources.isSelected(row)">
+                        [checked]="selectedResources.isSelected(row)"
+                        matTooltip='Select this research study to pull data in the next step'>
           </mat-checkbox>
         </td>
       </ng-container>
@@ -43,9 +45,15 @@
       <!-- Data Columns -->
       <ng-container *ngFor="let column of columnDescriptions" [matColumnDef]="column.element">
         <th mat-header-cell *matHeaderCellDef mat-sort-header title='click on header to sort by this column'>
-          <span [attr.aria-label]="column.displayName + '. click to sort by this column'">
+          <span [attr.aria-label]="column.displayName + '. click to sort by this column.'">
             {{column.displayName}}
           </span>
+          <button *ngIf='column.description'
+                  [attr.aria-label]='column.description'
+                  #tooltip="matTooltip" (focusin)="tooltip.show()"
+                  [matTooltip]='column.description' matTooltipPosition='above'>
+            <mat-icon svgIcon='info'></mat-icon>
+          </button>
           <button *ngIf='enableClientFiltering' aria-label='open filter criteria for this column'
                   title='open filter criteria for this column'
                   (click)='openFilterDialog($event, column)'

@@ -1,25 +1,44 @@
-@import '../../node_modules/@angular/material/theming';
+@use '~@angular/material' as mat;
+@use '../../node_modules/@angular/material/core/theming/theming';
+@use '../../node_modules/@angular/material/core/style/private';
+@use '../../node_modules/@angular/material/core/typography/typography';
+@use '../../node_modules/@angular/material/core/typography/typography-utils';
 @import './variables';
+
+// Used to make instances of the _mat-form-field-label-floating mixin negligibly different,
+// and prevent Google's CSS Optimizer from collapsing the declarations. This is needed because some
+// of the selectors contain pseudo-classes not recognized in all browsers. If a browser encounters
+// an unknown pseudo-class it will discard the entire rule set.
+$outline-dedupe: 0;
+
+// Applies a floating label above the form field control itself.
+@mixin _label-floating($font-scale, $infix-padding, $infix-margin-top) {
+  transform: translateY(-$infix-margin-top - $infix-padding + $outline-dedupe) scale($font-scale);
+  width: private.private-div(100%, $font-scale) + $outline-dedupe;
+
+  $outline-dedupe: $outline-dedupe + 0.00001 !global;
+}
 
 // To make form fields more compact we should override "mat-form-field-outline-typography" mixin
 // to change local variable "$infix-padding" value
 // See source code here:
-// https://github.com/angular/components/blob/11.0.4/src/material/form-field/_form-field-outline-theme.scss
-@mixin mat-form-field-outline-typography($config-or-theme) {
-  $config: mat-get-typography-config($config-or-theme);
+// https://github.com/angular/components/blob/12.2.3/src/material/form-field/_form-field-outline-theme.scss
+@mixin outline-typography($config-or-theme) {
+  $config: typography.private-typography-to-2014-config(
+      theming.get-typography-config($config-or-theme));
   // The unit-less line-height from the font config.
-  $line-height: mat-line-height($config, input);
+  $line-height: typography-utils.line-height($config, input);
   // The amount to scale the font for the floating label and subscript.
   $subscript-font-scale: 0.75;
   // The padding above and below the infix.
   $infix-padding: $form-field-infix-padding;
   // The margin applied to the form-field-infix to reserve space for the floating label.
-  $infix-margin-top: 1em * $line-height * $subscript-font-scale;
+  $infix-margin-top: $subscript-font-scale * typography-utils.private-coerce-unitless-to-em($line-height);
   // The space between the bottom of the .mat-form-field-flex area and the subscript wrapper.
   // Mocks show half of the text size, but this margin is applied to an element with the subscript
   // text font size, so we need to divide by the scale factor to make it half of the original text
   // size.
-  $subscript-margin-top: 0.5em / $subscript-font-scale;
+  $subscript-margin-top: private.private-div(0.5em, $subscript-font-scale);
   // The padding applied to the form-field-wrapper to reserve space for the subscript, since it's
   // absolutely positioned. This is a combination of the subscript's margin and line-height, but we
   // need to multiply by the subscript font scale factor since the wrapper has a larger font size.
@@ -40,18 +59,18 @@
     &.mat-form-field-can-float {
       &.mat-form-field-should-float .mat-form-field-label,
       .mat-input-server:focus + .mat-form-field-label-wrapper .mat-form-field-label {
-        @include _mat-form-field-outline-label-floating(
-                $subscript-font-scale, $infix-padding + $outline-appearance-label-offset,
-                $infix-margin-top);
+        @include _label-floating(
+            $subscript-font-scale, $infix-padding + $outline-appearance-label-offset,
+            $infix-margin-top);
       }
 
       // Server-side rendered matInput with a label attribute but label not shown
       // (used as a pure CSS stand-in for mat-form-field-should-float).
       .mat-input-server[label]:not(:label-shown) + .mat-form-field-label-wrapper
       .mat-form-field-label {
-        @include _mat-form-field-outline-label-floating(
-                $subscript-font-scale, $infix-padding + $outline-appearance-label-offset,
-                $infix-margin-top);
+        @include _label-floating(
+            $subscript-font-scale, $infix-padding + $outline-appearance-label-offset,
+            $infix-margin-top);
       }
     }
   }
@@ -60,28 +79,30 @@
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
-@include mat-core();
+@include mat.core();
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
-$app-primary: mat-palette($mat-indigo);
-$app-accent:  mat-palette($mat-pink, A200, A100, A400);
+$app-primary: mat.define-palette(mat.$indigo-palette);
+$app-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
 
 // The warn palette is optional (defaults to red).
-$app-warn:    mat-palette($mat-red);
+$app-warn: mat.define-palette(mat.$red-palette);
 
 // Create the theme object. A theme consists of configurations for individual
 // theming systems such as `color` or `typography`.
-$app-theme: mat-light-theme((
-        color: (
-                primary: $app-primary,
-                accent: $app-accent,
-                warn: $app-warn,
-        )
+$app-theme: mat.define-light-theme((
+  color: (
+    primary: $app-primary,
+    accent: $app-accent,
+    warn: $app-warn,
+  ),
+  typography: mat.define-typography-config()
 ));
 
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
-@include angular-material-theme($app-theme);
+@include mat.all-component-themes($app-theme);
+@include outline-typography($app-theme);
