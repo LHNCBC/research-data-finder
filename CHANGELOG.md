@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.17.1] - 2021-09-08
+### Changed
+- Sort number columns by number in resource table.
+
 ## [3.17.0] - 2021-09-08
 ### Changed
 - Updated to Angular version 12.
