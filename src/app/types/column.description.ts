@@ -28,4 +28,9 @@ export interface ColumnDescription {
    * Number that indicates sort order of the column
    */
   sortOrder?: number;
+  /**
+   * Description of column
+   * Used as helper text in column headers
+   */
+  description?: string;
 }

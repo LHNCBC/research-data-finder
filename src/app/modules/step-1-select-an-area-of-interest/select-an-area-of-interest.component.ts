@@ -31,7 +31,6 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
   // Publish enum for template
   SelectOptions = SelectOptions;
   option = new FormControl(SelectOptions.showOnlyStudiesWithSubjects);
-  showResearchStudiesWithoutSubjects = new FormControl(false);
   subscription: Subscription;
   researchStudiesSubscription: Subscription;
   researchStudyStream: Subject<Resource>;
@@ -108,33 +107,24 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
     this.researchStudiesSubscription = this.http
       .get(url)
       .subscribe((data: Bundle) => {
-        if (!data.entry) {
-          this.researchStudyStream.complete();
-          return;
+        data.entry?.forEach((item) => {
+          this.researchStudyStream.next(item.resource);
+          if (myStudiesOnly) {
+            myStudyIds.push(item.resource.id);
+          }
+        });
+        const nextBundleUrl = data.link.find((l) => l.relation === 'next')?.url;
+        if (nextBundleUrl) {
+          this.loadResearchStudies(nextBundleUrl, myStudiesOnly);
         } else {
-          data.entry?.forEach((item) => {
-            this.researchStudyStream.next(item.resource);
-            if (myStudiesOnly) {
-              myStudyIds.push(item.resource.id);
-            }
-          });
-          const nextBundleUrl = data.link.find((l) => l.relation === 'next')
-            ?.url;
-          if (nextBundleUrl) {
-            this.loadResearchStudies(nextBundleUrl, myStudiesOnly);
-          } else {
-            this.researchStudyStream.complete();
-            if (myStudiesOnly) {
-              this.myStudyIds = myStudyIds;
-              this.option.enable({ emitEvent: false });
-            }
-            if (this.idsToSelect.length) {
-              this.resourceTableComponent.setSelectedIds(this.idsToSelect);
-              this.idsToSelect.length = 0;
-            } else {
-              // Select all applicable rows by default.
-              this.resourceTableComponent.setSelectedIds(this.myStudyIds);
-            }
+          this.researchStudyStream.complete();
+          if (myStudiesOnly) {
+            this.myStudyIds = myStudyIds;
+            this.option.enable({ emitEvent: false });
+          }
+          if (this.idsToSelect.length) {
+            this.resourceTableComponent.setSelectedIds(this.idsToSelect);
+            this.idsToSelect.length = 0;
           }
         }
       });

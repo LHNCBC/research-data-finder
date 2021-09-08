@@ -86,7 +86,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       if (this.enableSelection) {
         output += `Selected ${this.selectedResources.selected.length} out of `;
       }
-      output += `${this.dataSource.data.length} rows loaded.`;
+      output += `${this.dataSource.data.length} ${this.resourceType} resources loaded.`;
       return output;
     }
   }
@@ -302,9 +302,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.columnDescriptions.map((c) => c.element)
     );
     if (this.enableClientFiltering) {
+      const oldFilterValues = this.filtersForm.value;
       this.filtersForm = new FormBuilder().group({});
       this.columnDescriptions.forEach((column) => {
-        this.filtersForm.addControl(column.element, new FormControl(''));
+        this.filtersForm.addControl(
+          column.element,
+          new FormControl(oldFilterValues[column.element] || '')
+        );
       });
       // The method to determine if a row satisfies all filter criteria by returning
       // true or false. filterValues is extracted from this.filtersForm.
@@ -349,6 +353,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       }) as (BundleEntry, string) => boolean;
       this.filtersForm.valueChanges.subscribe((value) => {
         this.dataSource.filter = { ...value } as string;
+      });
+      this.filtersForm.updateValueAndValidity({
+        onlySelf: true,
+        emitEvent: true
       });
     }
   }
