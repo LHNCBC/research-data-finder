@@ -118,7 +118,17 @@ export class PullDataPageComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
       startWith(this.getCurrentResourceType()),
-      map(() => this.getCurrentResourceType())
+      map(() => {
+        // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
+        // displaying an empty table when the active tab is changed.
+        // This event runs _changeListener in ViewportRuler which run checkViewportSize
+        // in CdkVirtualScrollViewport.
+        // See code for details:
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
+        window.dispatchEvent(new Event('resize'));
+        return this.getCurrentResourceType();
+      })
     );
     this.canDownload$ = combineLatest([
       this.currentResourceType$,
