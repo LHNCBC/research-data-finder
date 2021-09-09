@@ -86,7 +86,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       if (this.enableSelection) {
         output += `Selected ${this.selectedResources.selected.length} out of `;
       }
-      output += `${this.dataSource.data.length} rows loaded.`;
+      output += `${this.dataSource.data.length} ${this.resourceType} resources loaded.`;
       return output;
     }
   }

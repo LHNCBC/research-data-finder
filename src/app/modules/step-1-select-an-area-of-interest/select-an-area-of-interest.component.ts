@@ -31,7 +31,6 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
   // Publish enum for template
   SelectOptions = SelectOptions;
   option = new FormControl(SelectOptions.showOnlyStudiesWithSubjects);
-  showResearchStudiesWithoutSubjects = new FormControl(false);
   subscription: Subscription;
   researchStudiesSubscription: Subscription;
   researchStudyStream: Subject<Resource>;
@@ -126,9 +125,6 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
           if (this.idsToSelect.length) {
             this.resourceTableComponent.setSelectedIds(this.idsToSelect);
             this.idsToSelect.length = 0;
-          } else {
-            // Select all applicable rows by default.
-            this.resourceTableComponent.setSelectedIds(this.myStudyIds);
           }
         }
       });

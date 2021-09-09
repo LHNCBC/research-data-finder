@@ -12,7 +12,7 @@ import {
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
-import * as definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
+import definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
