@@ -11,6 +11,14 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Issue with displaying an empty table when changing the active tab in
   the Pull data for cohort step.
 
+## [3.17.0] - 2021-09-08
+### Changed
+- Updated to Angular version 12.
+
+## [3.16.2] - 2021-09-07
+### Changed
+- UI updates to make resource table more readable.
+
 ## [3.16.1] - 2021-08-30
 ### Changed
 - Preserve filter values when changing column selections, unless the column

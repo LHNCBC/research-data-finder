@@ -64,7 +64,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumAnalyses').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "An \"analysis\" is a table of the results (p-values, betas) of the genome wide association analysis (GWAS) between genomic variations and phenotype. Typical analyses have millions of p-values across the genome."
           },
           {
             displayName: "Number of Documents",
@@ -72,7 +73,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumDocuments').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Study collection instruments (questionnaires) or protocols describing the data collection, cleaning or analysis."
           },
           {
             displayName: "Number of Molecular Datasets",
@@ -80,7 +82,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumMolecularDatasets').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Matrices of positions on the genome, and samples from subjects, where the cells are the genotype (A/A, A/B, B/B) for a variation for that sample. Typically PLINK, .VCF or .MAF format."
           },
           {
             displayName: "Number of Phenotype Datasets",
@@ -88,7 +91,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumPhenotypeDatasets').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Tables of demographic, clinical or exposure variables in which the rows are study participants (subjects), the columns are variables, and the cells are the value measured for that subject for that variable."
           },
           {
             displayName: "Number of Samples",
@@ -96,7 +100,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSamples').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Biological samples taken from the study participants (subjects). There can be more than one sample taken from each subject."
           },
           {
             displayName: "Number of Sub-studies",
@@ -104,7 +109,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubStudies').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "Subset of the study that is distinguished from others by separate (funding or research) focus from other arms of the study. Access control in dbGaP is at the parent study level."
           },
           {
             displayName: "Number of Subjects",
@@ -112,7 +118,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubjects').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "The number of study participants in the study."
           },
           {
             displayName: "Number of Variables",
@@ -120,7 +127,8 @@
             expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumVariables').value",
             types: [
               "Count"
-            ]
+            ],
+            description: "A variable is demographic, clinical or exposure measurement of a study subject or sample from a subject (e.g., height, weight, blood pressure, etc)."
           }
         ]
       },
