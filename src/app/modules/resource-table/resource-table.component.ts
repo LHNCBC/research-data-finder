@@ -449,6 +449,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const sortingColumnDescription = this.columnDescriptions.find(
       (c) => c.element === sort.active
     );
+    const filterType = this.getFilterType(sortingColumnDescription);
     this.dataSource.data.sort((a: Resource, b: Resource) => {
       const cellValueA = this.getCellStrings(a, sortingColumnDescription).join(
         '; '
@@ -456,7 +457,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const cellValueB = this.getCellStrings(b, sortingColumnDescription).join(
         '; '
       );
-      return cellValueA.localeCompare(cellValueB) * (isAsc ? -1 : 1);
+      return filterType === FilterType.Number
+        ? (+cellValueA - +cellValueB) * (isAsc ? -1 : 1)
+        : cellValueA.localeCompare(cellValueB) * (isAsc ? -1 : 1);
     });
     // Table will re-render only after data reference changed.
     this.dataSource.data = this.dataSource.data.slice();
