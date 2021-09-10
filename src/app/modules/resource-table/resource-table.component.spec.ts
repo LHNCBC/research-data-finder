@@ -249,4 +249,18 @@ describe('ResourceTableComponent', () => {
     expect(ResourceTableComponent.checkNumberFilter('10', '3 - 7')).toBeFalse();
     expect(ResourceTableComponent.checkNumberFilter('10', '3 - 13')).toBeTrue();
   });
+
+  it('should sort number column as numbers', async () => {
+    await fillTable(availableColumns);
+    component.sortData({
+      direction: 'asc',
+      active: 'customElement'
+    });
+    console.log(component.dataSource.data);
+    const index50 = component.dataSource.data.findIndex((x) => x.id === '50');
+    const index12 = component.dataSource.data.findIndex((x) => x.id === '12');
+    const index9 = component.dataSource.data.findIndex((x) => x.id === '9');
+    expect(index50 < index12).toBeTrue();
+    expect(index12 < index9).toBeTrue();
+  });
 });

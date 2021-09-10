@@ -9,6 +9,10 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Switching to the View Cohort step after loading criteria and cohort.
 
+## [3.17.1] - 2021-09-08
+### Changed
+- Sort number columns by number in resource table.
+
 ## [3.17.0] - 2021-09-08
 ### Changed
 - Updated to Angular version 12.
