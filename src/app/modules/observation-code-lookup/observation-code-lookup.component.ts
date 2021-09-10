@@ -20,11 +20,16 @@ import { FormControl, NgControl } from '@angular/forms';
 import { EMPTY, forkJoin, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
-import { getNextPageUrl, escapeStringForRegExp } from '../../shared/utils';
+import {
+  getNextPageUrl,
+  escapeStringForRegExp,
+  modifyStringForSynonyms
+} from '../../shared/utils';
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import { ErrorStateMatcher } from '@angular/material/core';
+import WORDSYNONYMS from '../../../../word-synonyms.json';
 
 /**
  * Component for selecting LOINC variables.
@@ -221,7 +226,7 @@ export class ObservationCodeLookupComponent
                   : '$fhir/Observation';
                 const params = {
                   _elements: 'code,value,component',
-                  'code:text': fieldVal,
+                  'code:text': modifyStringForSynonyms(WORDSYNONYMS, fieldVal),
                   _count: '500'
                 };
                 const paramsCode = {

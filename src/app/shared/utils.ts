@@ -46,3 +46,33 @@ export function encodeFhirSearchParameter(str): string {
 export function escapeStringForRegExp(str: string): string {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
 }
+
+export function modifyWordForSynonyms(
+  wordSynonyms: string[][],
+  str: string
+): string {
+  if (!str) {
+    return str;
+  }
+  const match = wordSynonyms.find((x) => x.includes(str));
+  if (!match) {
+    return str;
+  }
+  return match.join(',');
+}
+
+/**
+ * Prepares a string for searching together with word synonyms.
+ */
+export function modifyStringForSynonyms(
+  wordSynonyms: string[][],
+  str: string
+): string {
+  if (!str) {
+    return str;
+  }
+  return str
+    .split(' ')
+    .map((x) => modifyWordForSynonyms(wordSynonyms, x))
+    .join(' ');
+}
