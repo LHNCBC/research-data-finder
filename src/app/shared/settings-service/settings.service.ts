@@ -104,7 +104,8 @@ export class SettingsService {
                     displayName,
                     types: types.split(','),
                     expression,
-                    displayByDefault: hideShow === 'show'
+                    displayByDefault: hideShow === 'show',
+                    description
                   });
                 } else {
                   throw new Error(`Unexpected description type "${type}"`);
