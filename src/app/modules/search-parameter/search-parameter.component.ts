@@ -61,7 +61,7 @@ export class SearchParameterComponent
 
   get value(): SearchParameter {
     return {
-      name: this.parameterName.value,
+      element: this.selectedParameter?.element || '',
       value: this.parameterValue.value,
       selectedObservationCodes: this.selectedObservationCodes.value
     };
@@ -88,12 +88,8 @@ export class SearchParameterComponent
     this.parameters = this.selectedResourceType.searchParameters;
     if (this.resourceType === 'Observation') {
       this.parameters = this.parameters.filter(
-        (p) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(p.name)
+        (p) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(p.element)
       );
-      this.parameters.unshift({
-        name: this.OBSERVATIONBYTEST,
-        description: this.OBSERVATIONBYTESTDESC
-      });
     }
     this.selectedParameter = null;
 
@@ -104,7 +100,7 @@ export class SearchParameterComponent
 
     this.parameterName.valueChanges.subscribe((value) => {
       this.selectedParameter = this.selectedResourceType.searchParameters.find(
-        (p) => p.name === value
+        (p) => p.displayName === value
       );
       if (this.selectedParameter) {
         this.parameterValue.setValue(
@@ -136,7 +132,7 @@ export class SearchParameterComponent
     const filterValue = value.toLowerCase();
 
     return options.filter((option) =>
-      option.name.toLowerCase().includes(filterValue)
+      option.displayName.toLowerCase().includes(filterValue)
     );
   }
 
@@ -147,7 +143,8 @@ export class SearchParameterComponent
    * @param value New value to be written to the model.
    */
   writeValue(value: SearchParameter): void {
-    this.parameterName.setValue(value.name || '');
+    const param = this.parameters.find((p) => p.element === value.element);
+    this.parameterName.setValue(param?.displayName || '');
     this.parameterValue.setValue(value.value || '');
     this.selectedObservationCodes.setValue(
       value.selectedObservationCodes || null
@@ -158,43 +155,43 @@ export class SearchParameterComponent
    * get string of url segment describing the search criteria that will be used to search in server.
    */
   getCriteria(): string {
-    if (this.parameterName.value === this.OBSERVATIONBYTEST) {
-      return this.getObservationCodeTextCriteria();
-    }
     // Return empty if parameter name is not selected.
     if (!this.selectedParameter) {
       return '';
     }
+    if (this.selectedParameter.element === this.OBSERVATIONBYTEST) {
+      return this.getObservationCodeTextCriteria();
+    }
     if (this.selectedParameter.type === 'date') {
       return (
         (this.parameterValue.value.from
-          ? `&${this.parameterName.value}=ge${this.parameterValue.value.from}`
+          ? `&${this.selectedParameter.element}=ge${this.parameterValue.value.from}`
           : '') +
         (this.parameterValue.value.to
-          ? `&${this.parameterName.value}=le${this.parameterValue.value.to}`
+          ? `&${this.selectedParameter.element}=le${this.parameterValue.value.to}`
           : '')
       );
     }
     if (
       this.resourceType === 'Patient' &&
-      this.parameterName.value === 'active' &&
+      this.selectedParameter.element === 'active' &&
       this.parameterValue.value === 'true'
     ) {
       // Include patients with active field not defined when searching active patients
       return '&active:not=false';
     }
     if (this.useLookupParamValue) {
-      return `&${this.parameterName.value}=${this.parameterValue.value.join(
-        ','
-      )}`;
+      return `&${
+        this.selectedParameter.element
+      }=${this.parameterValue.value.join(',')}`;
     }
     if (this.selectedParameter.type === 'Quantity') {
       const testValueCriteria = this.getCompositeTestValueCriteria();
       return testValueCriteria
-        ? `&${this.parameterName.value}${testValueCriteria}`
+        ? `&${this.selectedParameter.element}${testValueCriteria}`
         : '';
     }
-    return `&${this.parameterName.value}=${this.parameterValue.value}`;
+    return `&${this.selectedParameter.element}=${this.parameterValue.value}`;
   }
 
   /**

@@ -193,35 +193,17 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Use columns present in bundle info as default, if empty column descriptions is passed in.
-   * We show all columns with data on very first run of the application and when
+   * Sets default columns.
+   * We show default columns on very first run of the application and when
    * the user doesn't select any columns to show in the column selection dialog.
    */
-  private setColumnsFromBundle(): void {
-    // Don't update if no data is available
-    if (!this.dataSource.data.length) {
-      return;
-    }
-
+  private setDefaultColumns(): void {
     const allColumns = this.columnDescriptionsService.getAvailableColumns(
       this.resourceType,
       this.context
     );
-    const hiddenByDefault = (
-      this.settings.get('hideElementsByDefault')?.[this.resourceType] || []
-    ).concat(this.settings.get('hideElementsByDefault')?.['*'] || []);
-    // Remove columns without data.
-    // Note: We check all rows, because the first row may
-    // be missing columns that are in the second and subsequent ones.
-    // For example, Patient.interpretation.
-    // I also saw completely blank rows at the beginning of the ResearchStudy
-    // table for dbGap, which was the main reason for checking all rows,
-    // but now these lines are gone.
-    this.columnDescriptions = allColumns.filter(
-      (x) =>
-        hiddenByDefault.indexOf(x.element) === -1 &&
-        this.dataSource.data.some((row) => this.getCellStrings(row, x).length)
-    );
+    this.columnDescriptions = allColumns.filter((x) => x.displayByDefault);
+
     // Save column selections of default
     this.columnDescriptionsService.setVisibleColumnNames(
       this.resourceType,
@@ -263,10 +245,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           } else {
             this.dataSource.data = this.dataSource.data.concat(resources);
           }
-          if (!this.columnDescriptions.length) {
-            this.setColumnsFromBundle();
-            this.setTableColumns();
-          }
         },
         () => {},
         () => {
@@ -287,7 +265,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.columns.push('select');
       }
       if (!this.columnDescriptions.length) {
-        this.setColumnsFromBundle();
+        this.setDefaultColumns();
       }
       this.setTableColumns();
     }

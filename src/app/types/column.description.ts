@@ -33,4 +33,5 @@ export interface ColumnDescription {
    * Used as helper text in column headers
    */
   description?: string;
+  displayByDefault?: boolean;
 }

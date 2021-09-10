@@ -50,7 +50,8 @@ describe('ResourceTableComponent', () => {
       element: 'id',
       types: ['string'],
       isArray: false,
-      visible: false
+      visible: false,
+      displayByDefault: true
     },
     {
       displayName: 'Another column',
@@ -65,7 +66,8 @@ describe('ResourceTableComponent', () => {
       expression: `extension('http://hl7.org/fhir/StructureDefinition/someExtension').value`,
       types: ['Count'],
       isArray: false,
-      visible: false
+      visible: false,
+      displayByDefault: true
     }
   ];
   const hiddenElements = {

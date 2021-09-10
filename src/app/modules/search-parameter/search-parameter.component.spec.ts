@@ -56,7 +56,15 @@ describe('SearchParameterComponent', () => {
                 resources: {
                   Observation: {
                     searchParameters: [
-                      { name: 'value-quantity', type: 'Quantity' }
+                      {
+                        element: 'code text',
+                        displayName: 'Some name'
+                      },
+                      {
+                        element: 'value-quantity',
+                        displayName: 'value quantity',
+                        type: 'Quantity'
+                      }
                     ]
                   }
                 }
@@ -84,13 +92,13 @@ describe('SearchParameterComponent', () => {
     expect(component.parameters).not.toBeNull();
     expect(component.parameters.length).toEqual(2);
     expect(component.parameters).toContain(
-      jasmine.objectContaining({ name: 'code text' })
+      jasmine.objectContaining({ element: 'code text' })
     );
   });
 
   it('should use composite controls for value-quantity search parameter', () => {
     expect(page.compositeTestValue).toBeNull();
-    component.parameterName.setValue('value-quantity');
+    component.parameterName.setValue('value quantity');
     fixture.detectChanges(false);
     expect(page.compositeTestValue).not.toBeNull();
   });
