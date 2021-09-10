@@ -3,13 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.17.1] - 2021-09-09
+## [3.17.2] - 2021-09-09
 ### Fixed
 - Adding a new resource tab in the Pull data for cohort step after or when
   loading Observations data threw exceptions that blocked further operation
   of the application.
 - Issue with displaying an empty table when changing the active tab in
   the Pull data for cohort step.
+
+## [3.17.1] - 2021-09-08
+### Changed
+- Sort number columns by number in resource table.
 
 ## [3.17.0] - 2021-09-08
 ### Changed
