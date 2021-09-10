@@ -215,10 +215,6 @@ export class ObservationCodeLookupComponent
         suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
         fhir: {
           search: (fieldVal, count) => {
-            const isMatchToFieldVal = new RegExp(
-              escapeStringForRegExp(fieldVal),
-              'i'
-            );
             return {
               then: (resolve, reject) => {
                 const url = this.fhirBackend.features.lastnLookup
@@ -256,8 +252,7 @@ export class ObservationCodeLookupComponent
                         ...this.getAutocompleteItems(
                           response,
                           processedCodes,
-                          selectedCodes,
-                          isMatchToFieldVal
+                          selectedCodes
                         )
                       );
                     }),
@@ -280,8 +275,7 @@ export class ObservationCodeLookupComponent
                         ...this.getAutocompleteItems(
                           response,
                           processedCodes,
-                          selectedCodes,
-                          isMatchToFieldVal
+                          selectedCodes
                         )
                       );
                       const nextPageUrl = getNextPageUrl(response);
@@ -388,14 +382,11 @@ export class ObservationCodeLookupComponent
    * @param processedCodes - hash of processed codes,
    *   used to exclude repeated codes
    * @param selectedCodes - already selected codes
-   * @param isMatchToFieldVal - RegExp to check if
-   *   a string matches the value of the input field
    */
   getAutocompleteItems(
     bundle: Bundle,
     processedCodes: { [key: string]: boolean },
-    selectedCodes: Array<string>,
-    isMatchToFieldVal: RegExp
+    selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
     return (bundle.entry || []).reduce((acc, entry) => {
       const observation = entry.resource as Observation;
@@ -409,9 +400,7 @@ export class ObservationCodeLookupComponent
             .filter((coding) => {
               const matched =
                 !processedCodes[coding.code] &&
-                selectedCodes.indexOf(coding.code) === -1 &&
-                (isMatchToFieldVal.test(coding.code) ||
-                  isMatchToFieldVal.test(coding.display));
+                selectedCodes.indexOf(coding.code) === -1;
               processedCodes[coding.code] = true;
               return matched;
             })
