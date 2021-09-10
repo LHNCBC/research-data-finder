@@ -47,22 +47,24 @@ export function escapeStringForRegExp(str: string): string {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
 }
 
-export function modifyWordForSynonyms(
+/**
+ * Gets a list containing the word itself and its synonyms, if any.
+ */
+export function getWordSynonyms(
   wordSynonyms: string[][],
   str: string
-): string {
+): string[] {
   if (!str) {
-    return str;
+    return [''];
   }
   const match = wordSynonyms.find((x) => x.includes(str));
-  if (!match) {
-    return str;
-  }
-  return match.join(',');
+  return match ? match : [str];
 }
 
 /**
  * Prepares a string for searching together with word synonyms.
+ * example: 'AB' => 'AB,ANTIBODY,ANTIBODIES'.
+ * example: 'AB TITR' => 'AB TITR,ANTIBODY TITR,ANTIBODIES TITR'.
  */
 export function modifyStringForSynonyms(
   wordSynonyms: string[][],
@@ -72,7 +74,16 @@ export function modifyStringForSynonyms(
     return str;
   }
   return str
+    .toUpperCase()
     .split(' ')
-    .map((x) => modifyWordForSynonyms(wordSynonyms, x))
-    .join(' ');
+    .map((x) => getWordSynonyms(wordSynonyms, x))
+    .reduce(
+      (prev: string[], curr: string[]) => {
+        return [].concat(
+          ...prev.map((x) => curr.map((y) => (x ? `${x} ${y}` : y)))
+        );
+      },
+      ['']
+    )
+    .join(',');
 }
