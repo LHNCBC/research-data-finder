@@ -126,7 +126,17 @@ export class PullDataPageComponent implements AfterViewInit {
         // See code for details:
         // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
         // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
-        window.dispatchEvent(new Event('resize'));
+        if (typeof Event === 'function') {
+          // fire resize event for modern browsers
+          window.dispatchEvent(new Event('resize'));
+        } else {
+          // for IE and other old browsers
+          // causes deprecation warning on modern browsers
+          const evt = window.document.createEvent('UIEvents');
+          // @ts-ignore
+          evt.initUIEvent('resize', true, false, window, 0);
+          window.dispatchEvent(evt);
+        }
         return this.getCurrentResourceType();
       })
     );
