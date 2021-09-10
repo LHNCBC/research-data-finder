@@ -166,10 +166,12 @@ export class ColumnDescriptionsService {
     context: string
   ): ColumnDescription[] {
     const currentDefinitions = this.fhirBackend.getCurrentDefinitions();
+    if (!currentDefinitions.resources[resourceType]) {
+      return [];
+    }
     const columnDescriptions = currentDefinitions.resources[
       resourceType
     ].columnDescriptions.concat(
-      this.settings.get(`customColumns.${resourceType}`) || [],
       (context &&
         this.settings.get(`contextColumns.${context}.${resourceType}`)) ||
         []

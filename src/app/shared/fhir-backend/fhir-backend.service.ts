@@ -16,7 +16,7 @@ import definitionsIndex from '@legacy/js/search-parameters/definitions/index.jso
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
-import { pick } from 'lodash-es';
+import { find } from 'lodash-es';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -147,8 +147,25 @@ export class FhirBackendService implements HttpBackend {
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
     this.fhirClient.initialize(serviceBaseUrl).then(
-      () => this.initialized.next(ConnectionStatus.Ready),
-      () => this.initialized.next(ConnectionStatus.Error)
+      () => {
+        // Load definitions of search parameters and columns from CSV file
+        this.settings.loadCsvDefinitions().subscribe(
+          (resourceDefinitions) => {
+            this.currentDefinitions = { resources: resourceDefinitions };
+            this.initialized.next(ConnectionStatus.Ready);
+          },
+          (err) => {
+            if (!(err instanceof HttpErrorResponse)) {
+              // Show exceptions from loadCsvDefinitions in console
+              console.error(err.message);
+            }
+            this.initialized.next(ConnectionStatus.Error);
+          }
+        );
+      },
+      () => {
+        this.initialized.next(ConnectionStatus.Error);
+      }
     );
   }
 
@@ -240,7 +257,8 @@ export class FhirBackendService implements HttpBackend {
    * Returns definitions of columns, search params, value sets for current FHIR version
    */
   getCurrentDefinitions(): any {
-    if (this.currentDefinitions) {
+    // Prepare CSV definitions only on first call
+    if (this.currentDefinitions?.initialized) {
       return this.currentDefinitions;
     }
 
@@ -258,7 +276,17 @@ export class FhirBackendService implements HttpBackend {
         });
       });
 
-      // prepare definitions on first request
+      // Normalize spec definitions
+      Object.keys(definitions.resources).forEach((resourceType) => {
+        definitions.resources[resourceType].searchParameters.forEach(
+          (param) => {
+            param.element = param.displayName = param.name;
+            delete param.name;
+          }
+        );
+      });
+
+      // Prepare spec definitions only on first call
       const valueSets = definitions.valueSets;
       const valueSetMaps = (definitions.valueSetMaps = Object.keys(
         valueSets
@@ -282,17 +310,34 @@ export class FhirBackendService implements HttpBackend {
       definitions.initialized = true;
     }
 
-    // Create a shallow copy of the common definitions according to settings
-    this.currentDefinitions = Object.assign({}, definitions);
-    const availableResourceTypes = this.settings.get('availableResourceTypes');
-    if (availableResourceTypes) {
-      Object.assign(this.currentDefinitions, {
-        resources: pick(
-          definitions.resources,
-          this.settings.get('availableResourceTypes')
-        )
+    // Merge definitions(from spec) with currentDefinitions(from CSV)
+    // TODO: Modify the webpack loader to exclude unnecessary data retrieving
+    //       from the specification
+    this.currentDefinitions = {
+      ...definitions,
+      resources: this.currentDefinitions.resources
+    };
+
+    Object.keys(this.currentDefinitions.resources).forEach((resourceType) => {
+      const currentParameters = this.currentDefinitions.resources[resourceType]
+        .searchParameters;
+      const specParameters =
+        definitions.resources[resourceType].searchParameters;
+      currentParameters.forEach((parameter) => {
+        const specParameter = find(specParameters, {
+          element: parameter.element
+        });
+        if (specParameter) {
+          Object.assign(parameter, {
+            // expression: specParameter.expression,
+            // path: specParameter.path,
+            valueSet: specParameter.valueSet
+          });
+        }
       });
-    }
+    });
+
+    this.currentDefinitions.initialized = true;
 
     return this.currentDefinitions;
   }

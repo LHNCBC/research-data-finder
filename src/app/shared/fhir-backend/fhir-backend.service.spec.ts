@@ -10,6 +10,7 @@ import {
   HttpXhrBackend
 } from '@angular/common/http';
 import { of } from 'rxjs';
+import { SettingsService } from '../settings-service/settings.service';
 
 describe('FhirBackendService', () => {
   let service: FhirBackendService;
@@ -46,6 +47,7 @@ describe('FhirBackendService', () => {
       of(responseFromDefaultBackend)
     );
     service.fhirClient._features = { batch: true };
+    service.settings = TestBed.inject(SettingsService);
   });
 
   it('should be created', () => {

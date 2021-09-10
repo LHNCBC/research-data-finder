@@ -4,16 +4,8 @@
 {
   // Default settings for all servers
   default: {
-    // Hide resource table columns for specified elements by default
-    hideElementsByDefault: {
-      "*": [
-        "id"
-      ],
-      "ResearchStudy": [
-        "keyword",
-        "condition"
-      ]
-    },
+    definitionsFile: 'desc-2.csv',
+
     // Sort orders by resource type.
     // Columns without a sort order defined here will stay in the end.
     columnSort: {
@@ -25,6 +17,7 @@
         'contextPatientId'
       ]
     },
+
     contextColumns: {
       // Columns added to the resource table in the context of pulling data
       "pull-data": {
@@ -39,12 +32,18 @@
           }
         ],
       }
-    }
+    },
   },
   // Settings for servers with the specified URL.
   // You can override default settings here
   "customization": {
+    'https://lforms-fhir.nlm.nih.gov/baseR4': {
+      definitionsFile: 'desc-0.csv',
+    },
+
     "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1": {
+      definitionsFile: 'desc-1.csv',
+
       // Coding system per resource per element for filtering data in
       // resource tables. If there is a coding with specified "system",
       // then the rest of the terms will be dropped when displaying
@@ -54,110 +53,7 @@
           condition: 'urn:oid:2.16.840.1.113883.6.177'
         }
       },
-      // Additional columns per resource type
-      customColumns: {
-        // See these column descriptions here: https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content
-        ResearchStudy: [
-          {
-            displayName: "Number of Analyses",
-            element: "NumAnalyses",
-            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumAnalyses').value",
-            types: [
-              "Count"
-            ],
-            description: "An \"analysis\" is a table of the results (p-values, betas) of the genome wide association analysis (GWAS) between genomic variations and phenotype. Typical analyses have millions of p-values across the genome."
-          },
-          {
-            displayName: "Number of Documents",
-            element: "NumDocuments",
-            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumDocuments').value",
-            types: [
-              "Count"
-            ],
-            description: "Study collection instruments (questionnaires) or protocols describing the data collection, cleaning or analysis."
-          },
-          {
-            displayName: "Number of Molecular Datasets",
-            element: "NumMolecularDatasets",
-            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumMolecularDatasets').value",
-            types: [
-              "Count"
-            ],
-            description: "Matrices of positions on the genome, and samples from subjects, where the cells are the genotype (A/A, A/B, B/B) for a variation for that sample. Typically PLINK, .VCF or .MAF format."
-          },
-          {
-            displayName: "Number of Phenotype Datasets",
-            element: "NumPhenotypeDatasets",
-            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumPhenotypeDatasets').value",
-            types: [
-              "Count"
-            ],
-            description: "Tables of demographic, clinical or exposure variables in which the rows are study participants (subjects), the columns are variables, and the cells are the value measured for that subject for that variable."
-          },
-          {
-            displayName: "Number of Samples",
-            element: "NumSamples",
-            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSamples').value",
-            types: [
-              "Count"
-            ],
-            description: "Biological samples taken from the study participants (subjects). There can be more than one sample taken from each subject."
-          },
-          {
-            displayName: "Number of Sub-studies",
-            element: "NumSubStudies",
-            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubStudies').value",
-            types: [
-              "Count"
-            ],
-            description: "Subset of the study that is distinguished from others by separate (funding or research) focus from other arms of the study. Access control in dbGaP is at the parent study level."
-          },
-          {
-            displayName: "Number of Subjects",
-            element: "NumSubjects",
-            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubjects').value",
-            types: [
-              "Count"
-            ],
-            description: "The number of study participants in the study."
-          },
-          {
-            displayName: "Number of Variables",
-            element: "NumVariables",
-            expression: "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumVariables').value",
-            types: [
-              "Count"
-            ],
-            description: "A variable is demographic, clinical or exposure measurement of a study subject or sample from a subject (e.g., height, weight, blood pressure, etc)."
-          }
-        ]
-      },
-      // Limit list of resource types
-      availableResourceTypes: [
-        'ResearchStudy',
-        'Patient',
-        'Observation'
-      ],
-      // Hide resource table columns for specified elements
-      hideElementsByDefault: {
-        "*": [],
-        "Observation": [
-          "id"
-        ],
-        "ResearchStudy": [
-          "id",
-          "keyword",
-          "condition",
-          "NumAnalyses",
-          "NumDocuments",
-          "NumMolecularDatasets",
-          "NumPhenotypeDatasets",
-          "NumSamples",
-          "NumSubStudies",
-          "NumSubjects",
-          "NumVariables"
-        ]
-      },
+
       // table columns that will apply autocomplete multi-select control
       listFilterColumns: [
         'category',
@@ -165,7 +61,7 @@
         'enrollment',
         'sponsor',
         'status'
-      ]
+      ],
     }
   }
 }
