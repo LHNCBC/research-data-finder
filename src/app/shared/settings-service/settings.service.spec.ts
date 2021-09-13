@@ -23,20 +23,5 @@ describe('SettingsService', () => {
       'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
     );
     await service.loadJsonConfig().toPromise();
-    expect(service.get('hideElementsByDefault').ResearchStudy).toEqual([
-      'id',
-      'keyword',
-      'condition',
-      'NumAnalyses',
-      'NumDocuments',
-      'NumMolecularDatasets',
-      'NumPhenotypeDatasets',
-      'NumSamples',
-      'NumSubStudies',
-      'NumSubjects',
-      'NumVariables'
-    ]);
-    expect(service.get('hideElementsByDefault').Patient).toBeUndefined();
-    expect(service.get('hideElementsByDefault')['*']).toEqual([]);
   });
 });

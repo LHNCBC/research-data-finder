@@ -2,6 +2,7 @@ import {
   escapeStringForRegExp,
   escapeFhirSearchParameter,
   encodeFhirSearchParameter,
+  csvStringToArray,
   modifyStringForSynonyms
 } from './utils';
 
@@ -36,6 +37,27 @@ describe('utils.escapeStringForRegExp returns expected value for certain input',
   ].forEach(([input, output]) => {
     it(`${input}  -->  ${output}`, () => {
       expect(escapeStringForRegExp(input)).toBe(output);
+    });
+  });
+});
+
+describe('utils.csvStringToArray returns expected value for certain input', () => {
+  [
+    ['1,2,3', [['1', '2', '3']]],
+    ['"1\n2",3', [['1\n2', '3']]],
+    ['1,"2,3"', [['1', '2,3']]],
+    [
+      '1,"2,\n3"\n4,5,"""6"""',
+      [
+        ['1', '2,\n3'],
+        ['4', '5', '"6"']
+      ]
+    ]
+  ].forEach(([input, output]) => {
+    it(`${(input as string).replace(/\n/g, '\\n')}  -->  ${JSON.stringify(
+      output
+    )}`, () => {
+      expect(csvStringToArray(input as string)).toEqual(output as string[][]);
     });
   });
 });

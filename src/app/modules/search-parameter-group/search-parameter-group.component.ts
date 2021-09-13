@@ -13,7 +13,7 @@ import {
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 import { SearchCondition } from '../../types/search.condition';
 import { Observable } from 'rxjs';
-import { filter, map, startWith, take } from 'rxjs/operators';
+import { map, startWith } from 'rxjs/operators';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -61,15 +61,15 @@ export class SearchParameterGroupComponent
     private errorManager: ErrorManager
   ) {
     super();
-    fhirBackend.initialized
-      .pipe(
-        filter((status) => status === ConnectionStatus.Ready),
-        take(1)
-      )
-      .subscribe(() => {
+    fhirBackend.initialized.subscribe((status) => {
+      if (status === ConnectionStatus.Ready) {
         const definitions = this.fhirBackend.getCurrentDefinitions();
         this.resourceTypes = Object.keys(definitions.resources);
-      });
+      } else if (status === ConnectionStatus.Disconnect) {
+        // Clear search parameters on server change
+        this.parameterList.clear();
+      }
+    });
     this.parameterList.valueChanges.subscribe(() => {
       this.onChange(this.value);
     });

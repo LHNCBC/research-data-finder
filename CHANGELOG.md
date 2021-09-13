@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.18.0] - 2021-09-09
+### Added
+- Using XLSX file(s) to configure search parameters and resource table columns.
+### Fixed
+- Switching to the View Cohort step after loading criteria and cohort.
+
 ## [3.17.1] - 2021-09-08
 ### Changed
 - Sort number columns by number in resource table.
@@ -11,11 +17,11 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Changed
 - Updated to Angular version 12.
 
-## [3.16.3] - 2021-09-07
+## [3.16.2] - 2021-09-07
 ### Changed
 - UI updates to make resource table more readable.
 
-## [3.16.2] - 2021-08-30
+## [3.16.1] - 2021-08-30
 ### Changed
 - Preserve filter values when changing column selections, unless the column
   with filters is removed.

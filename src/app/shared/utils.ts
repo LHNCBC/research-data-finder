@@ -48,6 +48,29 @@ export function escapeStringForRegExp(str: string): string {
 }
 
 /**
+ * Converts a CSV string to an array of arrays of cell values, if possible,
+ * Otherwise returns null.
+ * The idea of code borrowed from https://gist.github.com/Jezternz/c8e9fafc2c114e079829974e3764db75
+ */
+export function csvStringToArray(csvString: string): string[][] | null {
+  const re = /(,|\r?\n|\r|^)(?:"([^"]*(?:""[^"]*)*)"|([^,\r\n]*))/gi;
+  const result = [[]];
+  let lastIndex = 0;
+  let matches;
+  // tslint:disable-next-line:no-conditional-assignment
+  while ((matches = re.exec(csvString))) {
+    if (matches[1].length && matches[1] !== ',') {
+      result.push([]);
+    }
+    result[result.length - 1].push(
+      matches[2] !== undefined ? matches[2].replace(/""/g, '"') : matches[3]
+    );
+    lastIndex = re.lastIndex;
+  }
+  return lastIndex === csvString.length ? result : null;
+}
+
+/**
  * Gets a list containing the word itself and its synonyms, if any.
  */
 export function getWordSynonyms(
