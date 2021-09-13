@@ -62,14 +62,19 @@ describe('utils.csvStringToArray returns expected value for certain input', () =
   });
 });
 
-describe('modifyStringForSynonyms', () => {
+fdescribe('modifyStringForSynonyms', () => {
   const WORDSYNONYMS = [
     ['AAA', 'BBB'],
     ['AB', 'ANTIBODY', 'ANTIBODIES']
   ];
   [
     ['AB', 'AB,ANTIBODY,ANTIBODIES'],
-    ['AB TITR', 'AB TITR,ANTIBODY TITR,ANTIBODIES TITR']
+    ['AB TITR', 'AB TITR,ANTIBODY TITR,ANTIBODIES TITR'],
+    ['TITR AB', 'TITR AB,TITR ANTIBODY,TITR ANTIBODIES'],
+    [
+      'AB AAA',
+      'AB AAA,AB BBB,ANTIBODY AAA,ANTIBODY BBB,ANTIBODIES AAA,ANTIBODIES BBB'
+    ]
   ].forEach(([input, output]) => {
     it(`${input}  -->  ${output}`, () => {
       expect(modifyStringForSynonyms(WORDSYNONYMS, input)).toBe(output);
