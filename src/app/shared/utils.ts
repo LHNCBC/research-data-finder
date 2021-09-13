@@ -71,26 +71,12 @@ export function csvStringToArray(csvString: string): string[][] | null {
 }
 
 /**
- * Gets a list containing the word itself and its synonyms, if any.
- */
-export function getWordSynonyms(
-  wordSynonyms: string[][],
-  str: string
-): string[] {
-  if (!str) {
-    return [''];
-  }
-  const match = wordSynonyms.find((x) => x.includes(str));
-  return match ? match : [str];
-}
-
-/**
  * Prepares a string for searching together with word synonyms.
  * example: 'AB' => 'AB,ANTIBODY,ANTIBODIES'.
  * example: 'AB TITR' => 'AB TITR,ANTIBODY TITR,ANTIBODIES TITR'.
  */
 export function modifyStringForSynonyms(
-  wordSynonyms: string[][],
+  wordSynonyms: object,
   str: string
 ): string {
   if (!str) {
@@ -99,7 +85,7 @@ export function modifyStringForSynonyms(
   return str
     .toUpperCase()
     .split(' ')
-    .map((x) => getWordSynonyms(wordSynonyms, x))
+    .map((x) => wordSynonyms[x] || [x])
     .reduce(
       (prev: string[], curr: string[]) => {
         return [].concat(
@@ -109,4 +95,17 @@ export function modifyStringForSynonyms(
       ['']
     )
     .join(',');
+}
+
+/**
+ * Generates a lookup object from synonyms json array, for faster retrieval.
+ */
+export function generateSynonymLookup(synonyms: string[][]): object {
+  const lookup = {};
+  synonyms.forEach((x) => {
+    x.forEach((y) => {
+      lookup[y] = x;
+    });
+  });
+  return lookup;
 }

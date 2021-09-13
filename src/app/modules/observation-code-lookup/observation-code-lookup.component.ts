@@ -22,8 +22,8 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
 import {
   getNextPageUrl,
-  escapeStringForRegExp,
-  modifyStringForSynonyms
+  modifyStringForSynonyms,
+  generateSynonymLookup
 } from '../../shared/utils';
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
@@ -51,6 +51,7 @@ export class ObservationCodeLookupComponent
     MatFormFieldControl<SelectedObservationCodes>,
     AfterViewInit,
     OnDestroy {
+  static readonly wordSynonymsLookup = generateSynonymLookup(WORDSYNONYMS);
   static reValueKey = /^value(.*)/;
 
   static idPrefix = 'code-selector-';
@@ -222,7 +223,10 @@ export class ObservationCodeLookupComponent
                   : '$fhir/Observation';
                 const params = {
                   _elements: 'code,value,component',
-                  'code:text': modifyStringForSynonyms(WORDSYNONYMS, fieldVal),
+                  'code:text': modifyStringForSynonyms(
+                    ObservationCodeLookupComponent.wordSynonymsLookup,
+                    fieldVal
+                  ),
                   _count: '500'
                 };
                 const paramsCode = {

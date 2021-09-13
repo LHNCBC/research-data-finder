@@ -3,7 +3,8 @@ import {
   escapeFhirSearchParameter,
   encodeFhirSearchParameter,
   csvStringToArray,
-  modifyStringForSynonyms
+  modifyStringForSynonyms,
+  generateSynonymLookup
 } from './utils';
 
 describe('utils.escapeFhirSearchParameter returns expected value for certain input', () => {
@@ -62,11 +63,12 @@ describe('utils.csvStringToArray returns expected value for certain input', () =
   });
 });
 
-fdescribe('modifyStringForSynonyms', () => {
+describe('modifyStringForSynonyms', () => {
   const WORDSYNONYMS = [
     ['AAA', 'BBB'],
     ['AB', 'ANTIBODY', 'ANTIBODIES']
   ];
+  const wordSynonymsLookup = generateSynonymLookup(WORDSYNONYMS);
   [
     ['AB', 'AB,ANTIBODY,ANTIBODIES'],
     ['AB TITR', 'AB TITR,ANTIBODY TITR,ANTIBODIES TITR'],
@@ -77,7 +79,7 @@ fdescribe('modifyStringForSynonyms', () => {
     ]
   ].forEach(([input, output]) => {
     it(`${input}  -->  ${output}`, () => {
-      expect(modifyStringForSynonyms(WORDSYNONYMS, input)).toBe(output);
+      expect(modifyStringForSynonyms(wordSynonymsLookup, input)).toBe(output);
     });
   });
 });
