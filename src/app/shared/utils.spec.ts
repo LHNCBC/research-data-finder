@@ -76,7 +76,8 @@ describe('modifyStringForSynonyms', () => {
     [
       'AB AAA',
       'AB AAA,AB BBB,ANTIBODY AAA,ANTIBODY BBB,ANTIBODIES AAA,ANTIBODIES BBB'
-    ]
+    ],
+    ['AB  TITR', 'AB  TITR,ANTIBODY  TITR,ANTIBODIES  TITR']
   ].forEach(([input, output]) => {
     it(`${input}  -->  ${output}`, () => {
       expect(modifyStringForSynonyms(wordSynonymsLookup, input)).toBe(output);

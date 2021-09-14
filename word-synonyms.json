@@ -525,8 +525,7 @@
   [
     "FACE",
     "FACIAL",
-    "FACIES",
-    ""
+    "FACIES"
   ],
   [
     "FAMILY",
@@ -1016,8 +1015,7 @@
     "NODULAR",
     "MULTINODULAR",
     "NODULUS",
-    "NODE",
-    ""
+    "NODE"
   ],
   [
     "NEGATIVE",
@@ -1107,8 +1105,7 @@
     "PERFORATE",
     "PERFORATED",
     "PERFORATION",
-    "RUPTURED",
-    ""
+    "RUPTURED"
   ],
   [
     "PHOSPHATE",
@@ -1304,8 +1301,7 @@
     "SHIFTED",
     "DISPLACE",
     "DEVIATE",
-    "DEVIATION",
-    ""
+    "DEVIATION"
   ],
   [
     "SHOE",
@@ -1546,8 +1542,7 @@
     "VARICOSE",
     "VARICOSITY",
     "VARICOSITIES",
-    "VARIX",
-    ""
+    "VARIX"
   ],
   [
     "VOCAL",
