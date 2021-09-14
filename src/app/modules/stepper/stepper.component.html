@@ -118,7 +118,7 @@
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.downloadCsv()"
-                [disabled]="!pullDataPageComponent.canDownload()">
+                [disabled]="!(pullDataPageComponent.canDownload$ | async)">
           <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
         </button>
         <div class="spacer"></div>

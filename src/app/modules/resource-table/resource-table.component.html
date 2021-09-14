@@ -1,5 +1,5 @@
-<mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
-<mat-accordion *ngIf="!isLoading && dataSource.data.length > 0">
+<mat-progress-bar *ngIf="isLoading$ | async" mode="indeterminate"></mat-progress-bar>
+<mat-accordion *ngIf="hasLoadedData$ | async">
   <mat-expansion-panel hideToggle>
     <mat-expansion-panel-header>
       <mat-panel-title>
@@ -77,7 +77,6 @@
           (click)="toggleFullscreen()">
     <mat-icon [svgIcon]="fullscreen ? 'fullscreen_exit_black' : 'fullscreen_black'"></mat-icon>
   </button>
-  <!--  <mat-spinner *ngIf="isLoading" diameter="40"></mat-spinner>-->
 </div>
 <p>
   {{loadingMessage}}
