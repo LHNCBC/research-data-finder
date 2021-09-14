@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.19.0] - 2021-09-14
+### Added
+- Include word synonyms when querying server for autocompletion.
+
 ## [3.18.0] - 2021-09-09
 ### Added
 - Using XLSX file(s) to configure search parameters and resource table columns.
