@@ -12,11 +12,11 @@ import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ColumnDescription } from '../../types/column.description';
-import { bufferCount, filter } from 'rxjs/operators';
+import { bufferCount, filter, map } from 'rxjs/operators';
 import { escapeStringForRegExp } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
-import { Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { SettingsService } from '../../shared/settings-service/settings.service';
 import { Sort } from '@angular/material/sort';
@@ -66,7 +66,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * Get loading message according to loading status
    */
   get loadingMessage(): string {
-    if (this.isLoading) {
+    if (this.isLoading$.value) {
       return 'Loading ...';
     } else if (this.dataSource.data.length === 0) {
       return `No matching ${this.resourceType} resources were found on the server.`;
@@ -104,7 +104,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   filtersForm: FormGroup = new FormBuilder().group({});
   dataSource = new TableVirtualScrollDataSource<Resource>([]);
   lastResourceElement: HTMLElement;
-  isLoading = true;
+  // Data is loading
+  isLoading$ = new BehaviorSubject(false);
+  // Loading is complete and there is data in the table
+  hasLoadedData$ = this.isLoading$.pipe(
+    map((isLoading) => !isLoading && this.dataSource.data.length > 0)
+  );
   loadTime = 0;
   loadedDateTime: number;
   subscription: Subscription;
@@ -216,7 +221,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     // update resource table if user searches again
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       this.dataSource.data.length = 0;
-      this.isLoading = true;
+      this.isLoading$.next(true);
       this.liveAnnoncer.announce(
         `The ${this.resourceType} resources loading process has started`
       );
@@ -251,7 +256,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           this.loadedDateTime = Date.now();
           this.loadTime =
             Math.round((this.loadedDateTime - startTime) / 100) / 10;
-          this.isLoading = false;
+          this.isLoading$.next(false);
           this.liveAnnoncer.announce(
             `The ${this.resourceType} resources loading process has finished. ` +
               `${this.dataSource.data.length} rows loaded.`
@@ -481,13 +486,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       type: 'text/plain;charset=utf-8',
       endings: 'native'
     });
-  }
-
-  /**
-   * Checks if the table data is ready for download
-   */
-  isReadyForDownloadData(): boolean {
-    return !this.isLoading && this.dataSource.data.length > 0;
   }
 
   /**
