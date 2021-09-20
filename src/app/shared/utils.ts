@@ -69,3 +69,43 @@ export function csvStringToArray(csvString: string): string[][] | null {
   }
   return lastIndex === csvString.length ? result : null;
 }
+
+/**
+ * Prepares a string for searching together with word synonyms.
+ * example: 'AB' => 'AB,ANTIBODY,ANTIBODIES'.
+ * example: 'AB TITR' => 'AB TITR,ANTIBODY TITR,ANTIBODIES TITR'.
+ */
+export function modifyStringForSynonyms(
+  wordSynonyms: object,
+  str: string
+): string {
+  if (!str) {
+    return str;
+  }
+  return str
+    .toUpperCase()
+    .split(' ')
+    .map((x) => wordSynonyms[x] || [x])
+    .reduce(
+      (prev: string[], curr: string[]) => {
+        return [].concat(
+          ...prev.map((x) => curr.map((y) => (x ? `${x} ${y}` : y)))
+        );
+      },
+      ['']
+    )
+    .join(',');
+}
+
+/**
+ * Generates a lookup object from synonyms json array, for faster retrieval.
+ */
+export function generateSynonymLookup(synonyms: string[][]): object {
+  const lookup = {};
+  synonyms.forEach((x) => {
+    x.forEach((y) => {
+      lookup[y] = x;
+    });
+  });
+  return lookup;
+}

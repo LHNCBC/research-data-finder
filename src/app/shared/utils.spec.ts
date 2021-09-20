@@ -2,7 +2,9 @@ import {
   escapeStringForRegExp,
   escapeFhirSearchParameter,
   encodeFhirSearchParameter,
-  csvStringToArray
+  csvStringToArray,
+  modifyStringForSynonyms,
+  generateSynonymLookup
 } from './utils';
 
 describe('utils.escapeFhirSearchParameter returns expected value for certain input', () => {
@@ -57,6 +59,28 @@ describe('utils.csvStringToArray returns expected value for certain input', () =
       output
     )}`, () => {
       expect(csvStringToArray(input as string)).toEqual(output as string[][]);
+    });
+  });
+});
+
+describe('modifyStringForSynonyms', () => {
+  const WORDSYNONYMS = [
+    ['AAA', 'BBB'],
+    ['AB', 'ANTIBODY', 'ANTIBODIES']
+  ];
+  const wordSynonymsLookup = generateSynonymLookup(WORDSYNONYMS);
+  [
+    ['AB', 'AB,ANTIBODY,ANTIBODIES'],
+    ['AB TITR', 'AB TITR,ANTIBODY TITR,ANTIBODIES TITR'],
+    ['TITR AB', 'TITR AB,TITR ANTIBODY,TITR ANTIBODIES'],
+    [
+      'AB AAA',
+      'AB AAA,AB BBB,ANTIBODY AAA,ANTIBODY BBB,ANTIBODIES AAA,ANTIBODIES BBB'
+    ],
+    ['AB  TITR', 'AB  TITR,ANTIBODY  TITR,ANTIBODIES  TITR']
+  ].forEach(([input, output]) => {
+    it(`${input}  -->  ${output}`, () => {
+      expect(modifyStringForSynonyms(wordSynonymsLookup, input)).toBe(output);
     });
   });
 });
