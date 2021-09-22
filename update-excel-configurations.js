@@ -9,7 +9,8 @@ for (let i = 0; i < sheets.length; i++) {
   }
   let data = [];
   const temp = reader.utils.sheet_to_json(file.Sheets[file.SheetNames[i]], {
-    header: 'A'
+    header: 'A',
+    blankrows: true
   });
   temp.forEach((res) => {
     if (res.__EMPTY_1 === 'search parameter') {
