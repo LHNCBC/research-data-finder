@@ -8,7 +8,9 @@ for (let i = 0; i < sheets.length; i++) {
     break;
   }
   let data = [];
-  const temp = reader.utils.sheet_to_json(file.Sheets[file.SheetNames[i]]);
+  const temp = reader.utils.sheet_to_json(file.Sheets[file.SheetNames[i]], {
+    header: 'A'
+  });
   temp.forEach((res) => {
     if (res.__EMPTY_1 === 'search parameter') {
       res.__EMPTY_3 = 'hide';
@@ -17,7 +19,10 @@ for (let i = 0; i < sheets.length; i++) {
   });
   console.log(data);
 
-  const ws = reader.utils.json_to_sheet(data);
+  const ws = reader.utils.json_to_sheet(data, {
+    header: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+    skipHeader: true
+  });
   reader.utils.book_append_sheet(file, ws, 'Sheet3');
   reader.writeFile(
     file,
