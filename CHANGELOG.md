@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.19.1] - 2021-09-20
+### Changed
+- Current tab of the stepper will stay highlighted.
+
 ## [3.19.0] - 2021-09-14
 ### Added
 - Include word synonyms when querying server for autocompletion.
