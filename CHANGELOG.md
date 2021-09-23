@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.21.0] - 2021-09-23
+### Added
+- A program to automatically determine whether search parameters have data
+  on corresponding server and update the .xlsx configuration file for the
+  'show/hide' column.
+
 ## [3.19.0] - 2021-09-14
 ### Added
 - Include word synonyms when querying server for autocompletion.
