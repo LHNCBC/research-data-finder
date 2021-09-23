@@ -1,8 +1,9 @@
 /**
  * This program updates src/conf/xlsx/column-and-parameter-descriptions.xlsx for show/hide
  * properties of search parameters, depending on whether server has data.
- * When server data might have updated, run this program by:
+ * When server data might have updated, run:
  *     node update-excel-configurations.js
+ *     npm run build
  * and check in configuration file changes.
  */
 const reader = require('xlsx');
