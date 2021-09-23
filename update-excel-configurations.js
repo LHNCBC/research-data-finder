@@ -4,10 +4,9 @@ const https = require('https');
 
 const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const filePath_old = 'src/conf/xlsx/column-and-parameter-descriptions_old.xlsx';
-const file = reader.readFile(filePath);
+const file = reader.readFile(filePath, { cellStyles: true });
 
 //fs.rename(filePath, filePath_old, () => {
-const sheets = file.SheetNames;
 const httpPromises = [];
 // update first 2 sheets to hide search parameters that don't have data on the corresponding server.
 for (let i = 0; i < 2; i++) {
