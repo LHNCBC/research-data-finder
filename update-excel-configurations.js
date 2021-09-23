@@ -8,35 +8,29 @@ const file = reader.readFile(filePath);
 
 //fs.rename(filePath, filePath_old, () => {
 const sheets = file.SheetNames;
-const wb = reader.utils.book_new();
-const sheetPromises = [];
+const httpPromises = [];
 // update first 2 sheets to hide search parameters that don't have data on the corresponding server.
 for (let i = 0; i < 2; i++) {
-  let data = [];
-  const sheetJsonObj = reader.utils.sheet_to_json(
-    file.Sheets[file.SheetNames[i]],
-    {
-      header: 'A',
-      blankrows: true
-    }
-  );
-  const serviceBaseUrl = sheetJsonObj[8].B;
-  const httpPromises = [];
+  const sheet = file.Sheets[file.SheetNames[i]];
+  const serviceBaseUrl = sheet['B9'].v;
+  const maxRowNumber = sheet['!ref'].slice(4);
   let resourceType;
-  sheetJsonObj.forEach((row) => {
-    if (row.A) {
-      resourceType = row.A;
-    }
-    if (row.C === 'search parameter') {
-      const url = `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${row.B}:not=zzz`;
+  for (let rowNum = 12; rowNum <= maxRowNumber; rowNum++) {
+    resourceType = sheet[`A${rowNum}`]?.v || resourceType;
+    if (sheet[`C${rowNum}`]?.v === 'search parameter') {
+      const url = `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${
+        sheet[`B${rowNum}`].v
+      }:not=zzz`;
       const promise = new Promise((resolve, reject) => {
         https.get(url, (res) => {
           const { statusCode } = res;
-          if (statusCode !== 200) {
+          if (statusCode < 200 || statusCode >= 300) {
             console.error(
-              `Status! ${row.B} hide - HTTPS failed with code ${statusCode}`
+              `Hide! ${resourceType} ${
+                sheet[`B${rowNum}`].v
+              } - HTTPS failed with code ${statusCode}`
             );
-            row.E = 'hide';
+            sheet[`E${rowNum}`].v = 'hide';
             reject();
           }
           res.setEncoding('utf8');
@@ -45,20 +39,14 @@ for (let i = 0; i < 2; i++) {
             rawData += chunk;
           });
           res.on('end', () => {
-            try {
-              const parsedData = JSON.parse(rawData);
-              if (parsedData.entry && parsedData.entry.length > 0) {
-                console.log(`Success! ${row.B} show.`);
-                row.E = 'show';
-                resolve();
-              } else {
-                console.log(`Length! ${row.B} hide.`);
-                row.E = 'hide';
-                reject();
-              }
-            } catch (e) {
-              console.error(e.message);
-              row.E = 'hide';
+            const parsedData = JSON.parse(rawData);
+            if (parsedData.entry && parsedData.entry.length > 0) {
+              console.log(`Show! ${resourceType} ${sheet[`B${rowNum}`].v}`);
+              sheet[`E${rowNum}`].v = 'show';
+              resolve();
+            } else {
+              console.log(`Hide! ${resourceType} ${sheet[`B${rowNum}`].v}`);
+              sheet[`E${rowNum}`].v = 'hide';
               reject();
             }
           });
@@ -66,20 +54,10 @@ for (let i = 0; i < 2; i++) {
       });
       httpPromises.push(promise);
     }
-    data.push(row);
-  });
-
-  const sheetPromise = Promise.allSettled(httpPromises).then(() => {
-    const ws = reader.utils.json_to_sheet(data, {
-      header: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
-      skipHeader: true
-    });
-    reader.utils.book_append_sheet(wb, ws, file.SheetNames[i]);
-  });
-  sheetPromises.push(sheetPromise);
+  }
 }
 
-Promise.all(sheetPromises).then(() => {
-  reader.writeFile(wb, filePath_old);
+Promise.allSettled(httpPromises).then(() => {
+  reader.writeFile(file, filePath_old);
 });
 //});
