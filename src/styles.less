@@ -1,11 +1,18 @@
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
 
 .v-box {
   display: flex;
   flex-direction: column;
+
   & > .spacer {
     height: 16px;
   }
@@ -14,6 +21,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .h-box {
   display: flex;
   flex-direction: row;
+
   & > .spacer {
     width: 16px;
   }
@@ -143,6 +151,7 @@ input.search_field.invalid {
 .ng-animating mat-expansion-panel:not(.mat-expanded) mat-expansion-panel-header {
   height: 48px;
 }
+
 .ng-animating mat-expansion-panel:not(.mat-expanded) div.mat-expansion-panel-content {
   height: 0;
   visibility: hidden;
@@ -166,6 +175,7 @@ input.search_field.invalid {
       & .expand-collapse-icon::before {
         content: url(assets/keyboard_arrow_down_black-24px.svg);
       }
+
       border-bottom-left-radius: initial;
       border-bottom-right-radius: initial;
     }
@@ -210,6 +220,7 @@ input.search_field.invalid {
 // Style mat-hint for big chunks of text
 .mat-form-field-wrapper {
   padding-bottom: 0;
+
   & .mat-form-field-subscript-wrapper {
     position: relative;
   }
@@ -223,7 +234,7 @@ input.search_field.invalid {
   }
 
   .mat-step-label.mat-step-label-selected {
-    .mat-step-text-label{
+    .mat-step-text-label {
       //color: #3f51b5;
       text-decoration: underline;
     }
@@ -238,7 +249,7 @@ input.search_field.invalid {
 
 // Autocomplete dropdown list
 #searchResults.form_auto_complete {
-  z-index: 1100;  // must be greater than modal z-index of 1000
+  z-index: 1100; // must be greater than modal z-index of 1000
   margin-top: 9px;
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
   border-bottom-left-radius: 4px;
@@ -270,4 +281,9 @@ input.search_field.invalid {
   #completionOptionsScroller {
     border: 0;
   }
+}
+
+// Highlight current tab
+mat-step-header[aria-selected=true] {
+  background-color: rgba(0, 0, 0, .04);
 }
