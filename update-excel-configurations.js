@@ -44,7 +44,7 @@ for (let i = 0; i < 2; i++) {
       const url = `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${
         sheet[`B${rowNum}`].v
       }:not=zzz`;
-      const promise = new Promise((resolve, reject) => {
+      const promise = new Promise((resolve, _) => {
         https.get(url, (res) => {
           const { statusCode } = res;
           if (statusCode < 200 || statusCode >= 300) {
@@ -54,7 +54,7 @@ for (let i = 0; i < 2; i++) {
               } - HTTPS failed with code ${statusCode}`
             );
             sheet[`E${rowNum}`].v = 'hide';
-            reject();
+            resolve();
           }
           res.setEncoding('utf8');
           let rawData = '';
@@ -70,7 +70,7 @@ for (let i = 0; i < 2; i++) {
             } else {
               console.log(`Hide! ${resourceType} ${sheet[`B${rowNum}`].v}`);
               sheet[`E${rowNum}`].v = 'hide';
-              reject();
+              resolve();
             }
           });
         });
@@ -80,7 +80,7 @@ for (let i = 0; i < 2; i++) {
   }
 }
 
-Promise.allSettled(httpPromises).then(() => {
+Promise.all(httpPromises).then(() => {
   const sheetsData = [];
   for (let i = 1; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
