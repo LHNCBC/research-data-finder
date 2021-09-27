@@ -9,6 +9,7 @@
 const reader = require('xlsx');
 const fs = require('fs');
 const https = require('https');
+const writeXlsxFile = require('write-excel-file/node');
 
 const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
