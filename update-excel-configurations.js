@@ -54,9 +54,8 @@ for (let i = 0; i < 2; i++) {
       }
     }
     if (sheet[`C${rowNum}`]?.v === SEARCHPARAMETER) {
-      const url = `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${
-        sheet[`B${rowNum}`].v
-      }:not=zzz`;
+      const paramName = sheet[`B${rowNum}`].v;
+      const url = `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}:not=zzz`;
       const promise = new Promise((resolve, _) => {
         https.get(url, (res) => {
           const { statusCode } = res;

@@ -14,7 +14,6 @@ ResearchStudy,,,,,,,
 ,focus,"search parameter",focus,show,CodeableConcept,,"Drugs, devices, etc. under study"
 ,identifier,"search parameter",identifier,show,Identifier,,"Business Identifier for study"
 ,identifier,column,Identifier,hide,Identifier,,"Business Identifier for study"
-,keyword,"search parameter",keyword,show,CodeableConcept,,"Used to search for the study"
 ,keyword,column,Keyword,hide,CodeableConcept,,"Used to search for the study"
 ,location,column,Location,hide,CodeableConcept,,"Geographic region(s) for study"
 ,note,column,Note,hide,Annotation,,"Comments made about the study"
