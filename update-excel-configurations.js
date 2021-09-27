@@ -82,7 +82,7 @@ for (let i = 0; i < 2; i++) {
 
 Promise.all(httpPromises).then(() => {
   const sheetsData = [];
-  for (let i = 1; i < file.SheetNames.length; i++) {
+  for (let i = 0; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
     const maxRowNumber = sheet['!ref'].slice(4);
     const columnCount = sheet['!cols'].length;
