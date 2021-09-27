@@ -11,10 +11,18 @@ const fs = require('fs');
 const https = require('https');
 const writeXlsxFile = require('write-excel-file/node');
 
+const SERVICEBASEURL = '---SERVICE BASE URL:';
+const SEARCHPARAMETER = 'search parameter';
 const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
 const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 
+/**
+ * Constructs data of a sheet row to be used by write-excel-file library.
+ * @param sheet WorkSheet object
+ * @param rowNum current row number in the sheet
+ * @param columnCount total number of columns
+ */
 function getRowData(sheet, rowNum, columnCount) {
   const row = [];
   for (let i = 0; i < columnCount; i++) {
@@ -35,12 +43,17 @@ const httpPromises = [];
 // Update first 2 sheets to hide search parameters that don't have data on the corresponding server.
 for (let i = 0; i < 2; i++) {
   const sheet = file.Sheets[file.SheetNames[i]];
-  const serviceBaseUrl = sheet['B9'].v;
-  const maxRowNumber = sheet['!ref'].slice(4);
+  let serviceBaseUrl = '';
   let resourceType;
-  for (let rowNum = 12; rowNum <= maxRowNumber; rowNum++) {
-    resourceType = sheet[`A${rowNum}`]?.v || resourceType;
-    if (sheet[`C${rowNum}`]?.v === 'search parameter') {
+  const maxRowNumber = sheet['!ref'].slice(4);
+  for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
+    if (sheet[`A${rowNum}`]?.v) {
+      resourceType = sheet[`A${rowNum}`]?.v;
+      if (sheet[`A${rowNum}`]?.v === SERVICEBASEURL) {
+        serviceBaseUrl = sheet[`B${rowNum}`]?.v;
+      }
+    }
+    if (sheet[`C${rowNum}`]?.v === SEARCHPARAMETER) {
       const url = `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${
         sheet[`B${rowNum}`].v
       }:not=zzz`;
@@ -85,7 +98,9 @@ Promise.all(httpPromises).then(() => {
   for (let i = 0; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
     const maxRowNumber = sheet['!ref'].slice(4);
-    const columnCount = sheet['!cols'].length;
+    const maxColumnLetter = sheet['!ref'].charAt(3);
+    const columnCount =
+      xlsxColumnHeaders.findIndex((x) => x === maxColumnLetter) + 1;
     const sheetData = [];
     for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
       sheetData.push(getRowData(sheet, rowNum, columnCount));
