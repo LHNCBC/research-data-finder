@@ -13,6 +13,23 @@ const writeXlsxFile = require('write-excel-file/node');
 
 const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
+const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+
+function getRowData(sheet, rowNum, columnCount) {
+  const row = [];
+  for (let i = 0; i < columnCount; i++) {
+    const cell = sheet[`${xlsxColumnHeaders[i]}${rowNum}`];
+    if (!cell) {
+      row.push({ value: '' });
+    } else if (cell.s.fgColor) {
+      row.push({ value: cell.v, backgroundColor: `#${cell.s.fgColor.rgb}` });
+    } else {
+      row.push({ value: cell.v });
+    }
+  }
+  return row;
+}
+
 fs.unlinkSync(filePath);
 const httpPromises = [];
 // Update first 2 sheets to hide search parameters that don't have data on the corresponding server.
@@ -64,5 +81,19 @@ for (let i = 0; i < 2; i++) {
 }
 
 Promise.allSettled(httpPromises).then(() => {
-  reader.writeFile(file, filePath);
+  const sheetsData = [];
+  for (let i = 1; i < file.SheetNames.length; i++) {
+    const sheet = file.Sheets[file.SheetNames[i]];
+    const maxRowNumber = sheet['!ref'].slice(4);
+    const columnCount = sheet['!cols'].length;
+    const sheetData = [];
+    for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
+      sheetData.push(getRowData(sheet, rowNum, columnCount));
+    }
+    sheetsData.push(sheetData);
+  }
+  writeXlsxFile(sheetsData, {
+    sheets: file.SheetNames,
+    filePath
+  });
 });
