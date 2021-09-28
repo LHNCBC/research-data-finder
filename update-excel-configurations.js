@@ -55,7 +55,11 @@ for (let i = 0; i < 2; i++) {
     }
     if (sheet[`C${rowNum}`]?.v === SEARCHPARAMETER) {
       const paramName = sheet[`B${rowNum}`].v;
-      const url = `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}:not=zzz`;
+      const paramType = sheet[`F${rowNum}`].v;
+      const url =
+        paramType === 'date' || paramType === 'dateTime'
+          ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}=gt1000-01-01`
+          : `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}:not=zzz`;
       const promise = new Promise((resolve, _) => {
         https.get(url, (res) => {
           const { statusCode } = res;
