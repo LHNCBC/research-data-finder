@@ -72,6 +72,7 @@ for (let i = 0; i < 2; i++) {
             );
             sheet[`E${rowNum}`].v = 'hide';
             resolve();
+            return;
           }
           res.setEncoding('utf8');
           let rawData = '';
@@ -99,7 +100,6 @@ for (let i = 0; i < 2; i++) {
 
 Promise.all(httpPromises).then(() => {
   const sheetsData = [];
-  const sheetsColumns = [];
   for (let i = 0; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
     const maxRowNumber = sheet['!ref'].slice(4);
@@ -111,11 +111,12 @@ Promise.all(httpPromises).then(() => {
       sheetData.push(getRowData(sheet, rowNum, columnCount));
     }
     sheetsData.push(sheetData);
-    sheetsColumns.push(sheet['!cols']);
   }
+  // Writing with column width data from 1st sheet, since you can only pass in one column width array.
+  const columns = file.Sheets[file.SheetNames[0]]['!cols'];
   writeXlsxFile(sheetsData, {
     sheets: file.SheetNames,
-    columns: sheetsColumns,
+    columns,
     filePath
   });
 });
