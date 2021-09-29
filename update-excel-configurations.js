@@ -45,6 +45,7 @@ for (let i = 0; i < 2; i++) {
   const sheet = file.Sheets[file.SheetNames[i]];
   let serviceBaseUrl = '';
   let resourceType;
+  // sheet['!ref'] returns the sheet range as in format 'A1:H100'.
   const maxRowNumber = sheet['!ref'].slice(4);
   for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
     if (sheet[`A${rowNum}`]?.v) {
@@ -98,6 +99,7 @@ for (let i = 0; i < 2; i++) {
 
 Promise.all(httpPromises).then(() => {
   const sheetsData = [];
+  const sheetsColumns = [];
   for (let i = 0; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
     const maxRowNumber = sheet['!ref'].slice(4);
@@ -109,9 +111,11 @@ Promise.all(httpPromises).then(() => {
       sheetData.push(getRowData(sheet, rowNum, columnCount));
     }
     sheetsData.push(sheetData);
+    sheetsColumns.push(sheet['!cols']);
   }
   writeXlsxFile(sheetsData, {
     sheets: file.SheetNames,
+    columns: sheetsColumns,
     filePath
   });
 });
