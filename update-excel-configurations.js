@@ -110,7 +110,10 @@ for (let i = 0; i < file.SheetNames.length; i++) {
         }
       }
     }
-    if (sheet[`C${rowNum}`]?.v === SEARCHPARAMETER) {
+    if (
+      sheet[`C${rowNum}`]?.v === SEARCHPARAMETER &&
+      sheet[`B${rowNum}`]?.v !== 'code text'
+    ) {
       const paramName = sheet[`B${rowNum}`].v;
       const paramType = sheet[`F${rowNum}`].v;
       const url =
