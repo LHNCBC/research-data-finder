@@ -16,6 +16,18 @@ const SEARCHPARAMETER = 'search parameter';
 const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
 const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+const doNotUpdateList = [
+  'code text',
+  'name',
+  'family',
+  'given',
+  'address',
+  'address-city',
+  'address-country',
+  'address-postalcode',
+  'address-state',
+  'address-use'
+];
 
 /**
  * Constructs data of a sheet row to be used by write-excel-file library.
@@ -112,7 +124,7 @@ for (let i = 0; i < file.SheetNames.length; i++) {
     }
     if (
       sheet[`C${rowNum}`]?.v === SEARCHPARAMETER &&
-      sheet[`B${rowNum}`]?.v !== 'code text'
+      !doNotUpdateList.includes(sheet[`B${rowNum}`]?.v)
     ) {
       const paramName = sheet[`B${rowNum}`].v;
       const paramType = sheet[`F${rowNum}`].v;
