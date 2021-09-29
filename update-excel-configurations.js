@@ -38,10 +38,54 @@ function getRowData(sheet, rowNum, columnCount) {
   return row;
 }
 
+/**
+ * Creates a promise that will resolve after trying to query server with the search parameter.
+ * Updates sheet object for show/hide column.
+ * @param url server query to determine if the search parameter has value
+ * @param resourceType resource type
+ * @param rowNum row number
+ * @param sheet WorkSheet object
+ */
+function createHttpsPromise(url, resourceType, rowNum, sheet) {
+  console.log(url);
+  return new Promise((resolve, _) => {
+    https.get(url, (res) => {
+      const { statusCode } = res;
+      if (statusCode < 200 || statusCode >= 300) {
+        console.error(
+          `Hide! ${resourceType} ${
+            sheet[`B${rowNum}`].v
+          } - HTTPS failed with code ${statusCode}`
+        );
+        sheet[`E${rowNum}`].v = 'hide';
+        resolve();
+        return;
+      }
+      res.setEncoding('utf8');
+      let rawData = '';
+      res.on('data', (chunk) => {
+        rawData += chunk;
+      });
+      res.on('end', () => {
+        const parsedData = JSON.parse(rawData);
+        if (parsedData.entry && parsedData.entry.length > 0) {
+          console.log(`Show! ${resourceType} ${sheet[`B${rowNum}`].v}`);
+          sheet[`E${rowNum}`].v = 'show';
+          resolve();
+        } else {
+          console.log(`Hide! ${resourceType} ${sheet[`B${rowNum}`].v}`);
+          sheet[`E${rowNum}`].v = 'hide';
+          resolve();
+        }
+      });
+    });
+  });
+}
+
 fs.unlinkSync(filePath);
 const httpPromises = [];
-// Update first 2 sheets to hide search parameters that don't have data on the corresponding server.
-for (let i = 0; i < 2; i++) {
+// Update sheets to hide search parameters that don't have data on the corresponding server.
+for (let i = 0; i < file.SheetNames.length; i++) {
   const sheet = file.Sheets[file.SheetNames[i]];
   let serviceBaseUrl = '';
   let resourceType;
@@ -52,6 +96,10 @@ for (let i = 0; i < 2; i++) {
       resourceType = sheet[`A${rowNum}`]?.v;
       if (sheet[`A${rowNum}`]?.v === SERVICEBASEURL) {
         serviceBaseUrl = sheet[`B${rowNum}`]?.v;
+        // Do not update default sheet.
+        if (serviceBaseUrl === 'default') {
+          break;
+        }
       }
     }
     if (sheet[`C${rowNum}`]?.v === SEARCHPARAMETER) {
@@ -61,38 +109,7 @@ for (let i = 0; i < 2; i++) {
         paramType === 'date' || paramType === 'dateTime'
           ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}=gt1000-01-01`
           : `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}:not=zzz`;
-      const promise = new Promise((resolve, _) => {
-        https.get(url, (res) => {
-          const { statusCode } = res;
-          if (statusCode < 200 || statusCode >= 300) {
-            console.error(
-              `Hide! ${resourceType} ${
-                sheet[`B${rowNum}`].v
-              } - HTTPS failed with code ${statusCode}`
-            );
-            sheet[`E${rowNum}`].v = 'hide';
-            resolve();
-            return;
-          }
-          res.setEncoding('utf8');
-          let rawData = '';
-          res.on('data', (chunk) => {
-            rawData += chunk;
-          });
-          res.on('end', () => {
-            const parsedData = JSON.parse(rawData);
-            if (parsedData.entry && parsedData.entry.length > 0) {
-              console.log(`Show! ${resourceType} ${sheet[`B${rowNum}`].v}`);
-              sheet[`E${rowNum}`].v = 'show';
-              resolve();
-            } else {
-              console.log(`Hide! ${resourceType} ${sheet[`B${rowNum}`].v}`);
-              sheet[`E${rowNum}`].v = 'hide';
-              resolve();
-            }
-          });
-        });
-      });
+      const promise = createHttpsPromise(url, resourceType, rowNum, sheet);
       httpPromises.push(promise);
     }
   }
