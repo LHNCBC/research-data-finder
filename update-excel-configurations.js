@@ -24,16 +24,24 @@ const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
  * @param columnCount total number of columns
  */
 function getRowData(sheet, rowNum, columnCount) {
+  const firstCellValue = sheet[`A${rowNum}`]?.v;
+  const isBold =
+    firstCellValue === 'Legend' || firstCellValue === 'Resource type';
   const row = [];
   for (let i = 0; i < columnCount; i++) {
     const cell = sheet[`${xlsxColumnHeaders[i]}${rowNum}`];
     if (!cell) {
       row.push({ value: '' });
-    } else if (cell.s.fgColor) {
-      row.push({ value: cell.v, backgroundColor: `#${cell.s.fgColor.rgb}` });
-    } else {
-      row.push({ value: cell.v });
+      continue;
     }
+    let data = { value: cell.v };
+    if (cell.s.fgColor) {
+      data.backgroundColor = `#${cell.s.fgColor.rgb}`;
+    }
+    if (isBold) {
+      data.fontWeight = 'bold';
+    }
+    row.push(data);
   }
   return row;
 }
