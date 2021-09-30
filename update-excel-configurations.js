@@ -75,16 +75,16 @@ function createHttpsPromise(url, resourceType, rowNum, sheet) {
 /**
  * Makes https request to server, retries if server returns 429.
  */
-function callServer(resolve, url, resourceType, rowNum, sheet, retry = true) {
+function callServer(resolve, url, resourceType, rowNum, sheet, retryCount = 0) {
   https.get(url, (res) => {
     const { statusCode } = res;
     const paramName = sheet[`B${rowNum}`].v;
-    if (statusCode === 429 && retry) {
+    if (statusCode === 429) {
       console.log(
-        `Hide! ${resourceType} ${paramName} - HTTPS returned code 429, retrying...`
+        `Hide! ${resourceType} ${paramName} - HTTPS returned code 429, retrying... ${++retryCount}`
       );
       setTimeout(() => {
-        callServer(resolve, url, resourceType, rowNum, sheet, false);
+        callServer(resolve, url, resourceType, rowNum, sheet, retryCount);
       }, 1000);
       return;
     }
