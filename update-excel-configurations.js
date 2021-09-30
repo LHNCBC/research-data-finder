@@ -69,35 +69,53 @@ function getRowData(sheet, rowNum, columnCount) {
 function createHttpsPromise(url, resourceType, rowNum, sheet) {
   console.log(url);
   return new Promise((resolve, _) => {
-    https.get(url, (res) => {
-      const { statusCode } = res;
-      if (statusCode < 200 || statusCode >= 300) {
-        console.error(
-          `Hide! ${resourceType} ${
-            sheet[`B${rowNum}`].v
-          } - HTTPS failed with code ${statusCode}`
-        );
+    callServer(resolve, url, resourceType, rowNum, sheet);
+  });
+}
+
+/**
+ * Makes https request to server, retries if server returns 429.
+ */
+function callServer(resolve, url, resourceType, rowNum, sheet, retry = true) {
+  https.get(url, (res) => {
+    const { statusCode } = res;
+    if (statusCode === 429 && retry) {
+      console.log(
+        `Hide! ${resourceType} ${
+          sheet[`B${rowNum}`].v
+        } - HTTPS returned code 429, retrying...`
+      );
+      setTimeout(() => {
+        callServer(resolve, url, resourceType, rowNum, sheet, false);
+      }, 1000);
+      return;
+    }
+    if (statusCode < 200 || statusCode >= 300) {
+      console.error(
+        `Hide! ${resourceType} ${
+          sheet[`B${rowNum}`].v
+        } - HTTPS failed with code ${statusCode}`
+      );
+      sheet[`E${rowNum}`].v = 'hide';
+      resolve();
+      return;
+    }
+    res.setEncoding('utf8');
+    let rawData = '';
+    res.on('data', (chunk) => {
+      rawData += chunk;
+    });
+    res.on('end', () => {
+      const parsedData = JSON.parse(rawData);
+      if (parsedData.entry && parsedData.entry.length > 0) {
+        console.log(`Show! ${resourceType} ${sheet[`B${rowNum}`].v}`);
+        sheet[`E${rowNum}`].v = 'show';
+        resolve();
+      } else {
+        console.log(`Hide! ${resourceType} ${sheet[`B${rowNum}`].v}`);
         sheet[`E${rowNum}`].v = 'hide';
         resolve();
-        return;
       }
-      res.setEncoding('utf8');
-      let rawData = '';
-      res.on('data', (chunk) => {
-        rawData += chunk;
-      });
-      res.on('end', () => {
-        const parsedData = JSON.parse(rawData);
-        if (parsedData.entry && parsedData.entry.length > 0) {
-          console.log(`Show! ${resourceType} ${sheet[`B${rowNum}`].v}`);
-          sheet[`E${rowNum}`].v = 'show';
-          resolve();
-        } else {
-          console.log(`Hide! ${resourceType} ${sheet[`B${rowNum}`].v}`);
-          sheet[`E${rowNum}`].v = 'hide';
-          resolve();
-        }
-      });
     });
   });
 }
