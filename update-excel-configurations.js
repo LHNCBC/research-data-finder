@@ -2,8 +2,7 @@
  * This program updates src/conf/xlsx/column-and-parameter-descriptions.xlsx for show/hide
  * properties of search parameters, depending on whether server has data.
  * When server data might have updated, run:
- *     node update-excel-configurations.js
- *     npm run build
+ *     npm run update-excel-config
  * and check in configuration file changes.
  */
 const reader = require('xlsx');
@@ -17,16 +16,16 @@ const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
 const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 const doNotUpdateList = [
-  'code text',
-  'name',
-  'family',
-  'given',
-  'address',
-  'address-city',
-  'address-country',
-  'address-postalcode',
-  'address-state',
-  'address-use'
+  ['Observation', 'code text'],
+  ['Patient', 'name'],
+  ['Patient', 'family'],
+  ['Patient', 'given'],
+  ['Patient', 'address'],
+  ['Patient', 'address-city'],
+  ['Patient', 'address-country'],
+  ['Patient', 'address-postalcode'],
+  ['Patient', 'address-state'],
+  ['Patient', 'address-use']
 ];
 
 /**
@@ -79,11 +78,10 @@ function createHttpsPromise(url, resourceType, rowNum, sheet) {
 function callServer(resolve, url, resourceType, rowNum, sheet, retry = true) {
   https.get(url, (res) => {
     const { statusCode } = res;
+    const paramName = sheet[`B${rowNum}`].v;
     if (statusCode === 429 && retry) {
       console.log(
-        `Hide! ${resourceType} ${
-          sheet[`B${rowNum}`].v
-        } - HTTPS returned code 429, retrying...`
+        `Hide! ${resourceType} ${paramName} - HTTPS returned code 429, retrying...`
       );
       setTimeout(() => {
         callServer(resolve, url, resourceType, rowNum, sheet, false);
@@ -92,9 +90,7 @@ function callServer(resolve, url, resourceType, rowNum, sheet, retry = true) {
     }
     if (statusCode < 200 || statusCode >= 300) {
       console.error(
-        `Hide! ${resourceType} ${
-          sheet[`B${rowNum}`].v
-        } - HTTPS failed with code ${statusCode}`
+        `Hide! ${resourceType} ${paramName} - HTTPS failed with code ${statusCode}`
       );
       sheet[`E${rowNum}`].v = 'hide';
       resolve();
@@ -108,11 +104,11 @@ function callServer(resolve, url, resourceType, rowNum, sheet, retry = true) {
     res.on('end', () => {
       const parsedData = JSON.parse(rawData);
       if (parsedData.entry && parsedData.entry.length > 0) {
-        console.log(`Show! ${resourceType} ${sheet[`B${rowNum}`].v}`);
+        console.log(`Show! ${resourceType} ${paramName}`);
         sheet[`E${rowNum}`].v = 'show';
         resolve();
       } else {
-        console.log(`Hide! ${resourceType} ${sheet[`B${rowNum}`].v}`);
+        console.log(`Hide! ${resourceType} ${paramName}`);
         sheet[`E${rowNum}`].v = 'hide';
         resolve();
       }
@@ -142,7 +138,9 @@ for (let i = 0; i < file.SheetNames.length; i++) {
     }
     if (
       sheet[`C${rowNum}`]?.v === SEARCHPARAMETER &&
-      !doNotUpdateList.includes(sheet[`B${rowNum}`]?.v)
+      !doNotUpdateList.some(
+        (x) => x[0] === resourceType && x[1] === sheet[`B${rowNum}`]?.v
+      )
     ) {
       const paramName = sheet[`B${rowNum}`].v;
       const paramType = sheet[`F${rowNum}`].v;
