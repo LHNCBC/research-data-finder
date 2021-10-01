@@ -27,6 +27,7 @@ export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>
   implements OnInit {
   @Input() resourceType = '';
+  @Input() isPullData = false;
   readonly OBSERVATIONBYTEST = 'code text';
   readonly OBSERVATIONBYTESTDESC =
     'The display text associated with the code of the observation type';
@@ -48,14 +49,16 @@ export class SearchParameterComponent
   selectedParameter: any;
 
   parameterValue: FormControl = new FormControl('', (control) =>
-    this.selectedObservationCodes?.value?.datatype
+    this.isPullData || this.selectedObservationCodes?.value?.datatype
       ? null
       : Validators.required(control)
   );
   parameterValues: any[];
 
   selectedObservationCodes: FormControl = new FormControl(null, () =>
-    this.selectedObservationCodes?.value?.datatype ? null : { required: true }
+    this.isPullData || this.selectedObservationCodes?.value?.datatype
+      ? null
+      : { required: true }
   );
   loincCodes: string[] = [];
 
@@ -145,6 +148,9 @@ export class SearchParameterComponent
   writeValue(value: SearchParameter): void {
     const param = this.parameters.find((p) => p.element === value.element);
     this.parameterName.setValue(param?.displayName || '');
+    if (this.isPullData) {
+      this.parameterName.disable({ emitEvent: false });
+    }
     this.parameterValue.setValue(value.value || '');
     this.selectedObservationCodes.setValue(
       value.selectedObservationCodes || null
@@ -226,6 +232,9 @@ export class SearchParameterComponent
    * e.g. prefix + value + unit
    */
   private getCompositeTestValueCriteria(): string {
+    if (this.isPullData) {
+      return '';
+    }
     const modifier = this.parameterValue.value.testValueModifier;
     const prefix = this.parameterValue.value.testValuePrefix;
     const testValue = this.parameterValue.value.testValue

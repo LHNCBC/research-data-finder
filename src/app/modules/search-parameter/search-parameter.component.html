@@ -53,7 +53,7 @@
 
   <app-observation-test-value class="parameter-value" [formControl]="parameterValue" [datatype]="selectedObservationCodes.value?.datatype"
                   [loincCodes]="loincCodes"
-                  *ngIf="selectedParameter?.element === OBSERVATIONBYTEST && selectedObservationCodes.value?.datatype">
+                  *ngIf="!isPullData && selectedParameter?.element === OBSERVATIONBYTEST && selectedObservationCodes.value?.datatype">
   </app-observation-test-value>
 
 </div>
