@@ -16,16 +16,13 @@ const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
 const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 const doNotUpdateList = [
-  ['Observation', 'code text'],
-  ['Patient', 'name'],
-  ['Patient', 'family'],
-  ['Patient', 'given'],
-  ['Patient', 'address'],
-  ['Patient', 'address-city'],
-  ['Patient', 'address-country'],
-  ['Patient', 'address-postalcode'],
-  ['Patient', 'address-state'],
-  ['Patient', 'address-use']
+  ['Observation', /^code text$/],
+  ['Patient', /^name$/],
+  ['Patient', /^family$/],
+  ['Patient', /^given$/],
+  ['Patient', /^address$/],
+  ['Patient', /^address-.+$/],
+  ['Observation', /^.*value-.+$/]
 ];
 
 /**
@@ -139,7 +136,7 @@ for (let i = 0; i < file.SheetNames.length; i++) {
     if (
       sheet[`C${rowNum}`]?.v === SEARCHPARAMETER &&
       !doNotUpdateList.some(
-        (x) => x[0] === resourceType && x[1] === sheet[`B${rowNum}`]?.v
+        (x) => x[0] === resourceType && x[1].test(sheet[`B${rowNum}`]?.v)
       )
     ) {
       const paramName = sheet[`B${rowNum}`].v;
