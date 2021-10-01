@@ -12,6 +12,7 @@ ResearchStudy,,,,,,,
 ,description,column,Description,hide,markdown,,"What this is study doing"
 ,enrollment,column,Enrollment,hide,Reference,,"Inclusion & exclusion criteria"
 ,focus,"search parameter",focus,show,CodeableConcept,,"Drugs, devices, etc. under study"
+,identifier,"search parameter",identifier,show,Identifier,,"Business Identifier for study"
 ,identifier,column,Identifier,hide,Identifier,,"Business Identifier for study"
 ,keyword,"search parameter",keyword,show,CodeableConcept,,"Used to search for the study"
 ,keyword,column,Keyword,hide,CodeableConcept,,"Used to search for the study"
@@ -85,6 +86,7 @@ Patient,,,,,,,
 ,deceased[x],column,Deceased,hide,"boolean,dateTime",,"Indicates if the individual is deceased or not"
 ,family,"search parameter",family,show,string,,"A portion of the family name of the patient"
 ,gender,column,Gender,show,code,,"male | female | other | unknown"
+,gender,"search parameter",gender,show,code,,"Gender of the patient"
 ,generalPractitioner,column,"General Practitioner",hide,Reference,,"Patient's nominated primary care provider"
 ,given,"search parameter",given,show,string,,"A portion of the given name of the patient"
 ,id,column,Id,show,string,,
