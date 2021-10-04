@@ -11,6 +11,8 @@ import { QueryEntityDirective } from './query-builder/query-entity.directive';
 import { QueryOperatorDirective } from './query-builder/query-operator.directive';
 import { QueryButtonGroupDirective } from './query-builder/query-button-group.directive';
 import { QuerySwitchGroupDirective } from './query-builder/query-switch-group.directive';
+import { QuerySwitchGroupPrefixDirective } from './query-builder/query-switch-group-prefix.directive';
+import { QueryTreeContainerSuffixDirective } from './query-builder/query-tree-container-suffix.directive';
 import { QueryRemoveButtonDirective } from './query-builder/query-remove-button.directive';
 import { QueryEmptyWarningDirective } from './query-builder/query-empty-warning.directive';
 
@@ -27,6 +29,8 @@ import { QueryEmptyWarningDirective } from './query-builder/query-empty-warning.
     QueryEntityDirective,
     QueryButtonGroupDirective,
     QuerySwitchGroupDirective,
+    QuerySwitchGroupPrefixDirective,
+    QueryTreeContainerSuffixDirective,
     QueryRemoveButtonDirective,
     QueryEmptyWarningDirective,
     QueryArrowIconDirective
@@ -39,6 +43,8 @@ import { QueryEmptyWarningDirective } from './query-builder/query-empty-warning.
     QueryEntityDirective,
     QueryButtonGroupDirective,
     QuerySwitchGroupDirective,
+    QuerySwitchGroupPrefixDirective,
+    QueryTreeContainerSuffixDirective,
     QueryRemoveButtonDirective,
     QueryEmptyWarningDirective,
     QueryArrowIconDirective

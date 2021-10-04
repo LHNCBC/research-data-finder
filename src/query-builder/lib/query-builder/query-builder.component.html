@@ -10,9 +10,7 @@
   </a>
 
   <ng-container *ngIf="getButtonGroupTemplate() as template; else defaultButtonGroup">
-    <div [ngClass]="getClassNames('buttonGroup', 'rightAlign')">
-      <ng-container *ngTemplateOutlet="template; context: getButtonGroupContext()"></ng-container>
-    </div>
+    <ng-container *ngTemplateOutlet="template; context: getButtonGroupContext()"></ng-container>
   </ng-container>
 
   <ng-template #defaultButtonGroup>
@@ -31,12 +29,18 @@
     </div>
   </ng-template>
 
+  <ng-container *ngIf="getSwitchGroupPrefixTemplate() as template; else defaultSwitchGroupPrefix">
+    <ng-container *ngTemplateOutlet="template; context: getGeneralContext()"></ng-container>
+  </ng-container>
+
+  <ng-template #defaultSwitchGroupPrefix></ng-template>
+
   <ng-container *ngIf="getSwitchGroupTemplate() as template; else defaultSwitchGroup">
     <ng-container *ngTemplateOutlet="template; context: getSwitchGroupContext()"></ng-container>
   </ng-container>
 
   <ng-template #defaultSwitchGroup>
-    <div [ngClass]="getClassNames('switchGroup', 'transition')" *ngIf="data">
+    <div [ngClass]="getClassNames('switchGroup', 'transition')" *ngIf="data?.rules?.length">
       <div [ngClass]="getClassNames('switchControl')">
         <input type="radio" [ngClass]="getClassNames('switchRadio')" [(ngModel)]="data.condition" [disabled]=disabled
           value="and" #andOption />
@@ -158,6 +162,8 @@
             [parentChangeCallback]="parentChangeCallback || onChangeCallback" [parentInputTemplates]="parentInputTemplates || inputTemplates"
             [parentOperatorTemplate]="parentOperatorTemplate || operatorTemplate" [parentFieldTemplate]="parentFieldTemplate || fieldTemplate"
             [parentEntityTemplate]="parentEntityTemplate || entityTemplate" [parentSwitchGroupTemplate]="parentSwitchGroupTemplate || switchGroupTemplate"
+            [parentSwitchGroupPrefixTemplate]="parentSwitchGroupPrefixTemplate || switchGroupPrefixTemplate"
+            [parentTreeContainerSuffixTemplate]="parentTreeContainerSuffixTemplate || treeContainerSuffixTemplate"
             [parentButtonGroupTemplate]="parentButtonGroupTemplate || buttonGroupTemplate" [parentRemoveButtonTemplate]="parentRemoveButtonTemplate || removeButtonTemplate"
             [parentEmptyWarningTemplate]="parentEmptyWarningTemplate || emptyWarningTemplate" [parentArrowIconTemplate]="parentArrowIconTemplate || arrowIconTemplate"
             [parentValue]="data" [classNames]="classNames" [config]="config" [allowRuleset]="allowRuleset"
@@ -180,3 +186,11 @@
     </ng-container>
   </ul>
 </div>
+
+<ng-container *ngIf="getTreeContainerSuffixTemplate() as template; else defaultTreeContainerSuffix">
+  <ng-container *ngTemplateOutlet="template; context: getGeneralContext()"></ng-container>
+</ng-container>
+
+<ng-template #defaultTreeContainerSuffix></ng-template>
+
+

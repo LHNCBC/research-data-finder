@@ -10,6 +10,8 @@ import { QueryOperatorDirective } from './query-operator.directive';
 import { QueryFieldDirective } from './query-field.directive';
 import { QueryEntityDirective } from './query-entity.directive';
 import { QuerySwitchGroupDirective } from './query-switch-group.directive';
+import { QuerySwitchGroupPrefixDirective } from './query-switch-group-prefix.directive';
+import { QueryTreeContainerSuffixDirective } from './query-tree-container-suffix.directive';
 import { QueryButtonGroupDirective } from './query-button-group.directive';
 import { QueryInputDirective } from './query-input.directive';
 import { QueryRemoveButtonDirective } from './query-remove-button.directive';
@@ -20,6 +22,7 @@ import {
   Entity,
   Field,
   SwitchGroupContext,
+  GeneralContext,
   EntityContext,
   FieldContext,
   InputContext,
@@ -42,7 +45,6 @@ import {
   forwardRef,
   Input,
   OnChanges,
-  OnInit,
   QueryList,
   SimpleChanges,
   TemplateRef,
@@ -68,7 +70,7 @@ export const VALIDATOR: any = {
   styleUrls: ['./query-builder.component.scss'],
   providers: [CONTROL_VALUE_ACCESSOR, VALIDATOR]
 })
-export class QueryBuilderComponent implements OnInit, OnChanges, ControlValueAccessor, Validator {
+export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, Validator {
   public fields: Field[];
   public filterFields: Field[];
   public entities: Entity[];
@@ -118,9 +120,9 @@ export class QueryBuilderComponent implements OnInit, OnChanges, ControlValueAcc
   public onChangeCallback: () => void;
   public onTouchedCallback: () => any;
 
-  @Input() allowRuleset: boolean = true;
-  @Input() allowCollapse: boolean = false;
-  @Input() emptyMessage: string = 'A ruleset cannot be empty. Please add a rule or remove it all together.';
+  @Input() allowRuleset = true;
+  @Input() allowCollapse = false;
+  @Input() emptyMessage = 'A ruleset cannot be empty. Please add a rule or remove it all together.';
   @Input() classNames: QueryBuilderClassNames;
   @Input() operatorMap: { [key: string]: string[] };
   @Input() parentValue: RuleSet;
@@ -131,17 +133,21 @@ export class QueryBuilderComponent implements OnInit, OnChanges, ControlValueAcc
   @Input() parentFieldTemplate: QueryFieldDirective;
   @Input() parentEntityTemplate: QueryEntityDirective;
   @Input() parentSwitchGroupTemplate: QuerySwitchGroupDirective;
+  @Input() parentSwitchGroupPrefixTemplate: QuerySwitchGroupPrefixDirective;
+  @Input() parentTreeContainerSuffixTemplate: QueryTreeContainerSuffixDirective;
   @Input() parentButtonGroupTemplate: QueryButtonGroupDirective;
   @Input() parentRemoveButtonTemplate: QueryRemoveButtonDirective;
   @Input() parentEmptyWarningTemplate: QueryEmptyWarningDirective;
   @Input() parentChangeCallback: () => void;
   @Input() parentTouchedCallback: () => void;
-  @Input() persistValueOnFieldChange: boolean = false;
+  @Input() persistValueOnFieldChange = false;
 
   @ViewChild('treeContainer', {static: true}) treeContainer: ElementRef;
 
   @ContentChild(QueryButtonGroupDirective) buttonGroupTemplate: QueryButtonGroupDirective;
   @ContentChild(QuerySwitchGroupDirective) switchGroupTemplate: QuerySwitchGroupDirective;
+  @ContentChild(QuerySwitchGroupPrefixDirective) switchGroupPrefixTemplate: QuerySwitchGroupPrefixDirective;
+  @ContentChild(QueryTreeContainerSuffixDirective) treeContainerSuffixTemplate: QueryTreeContainerSuffixDirective;
   @ContentChild(QueryFieldDirective) fieldTemplate: QueryFieldDirective;
   @ContentChild(QueryEntityDirective) entityTemplate: QueryEntityDirective;
   @ContentChild(QueryOperatorDirective) operatorTemplate: QueryOperatorDirective;
@@ -165,13 +171,9 @@ export class QueryBuilderComponent implements OnInit, OnChanges, ControlValueAcc
 
   constructor(private changeDetectorRef: ChangeDetectorRef) { }
 
-  // ----------OnInit Implementation----------
-
-  ngOnInit() { }
-
   // ----------OnChanges Implementation----------
 
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges): void {
     const config = this.config;
     const type = typeof config;
     if (type === 'object') {
@@ -613,6 +615,16 @@ export class QueryBuilderComponent implements OnInit, OnChanges, ControlValueAcc
     return t ? t.template : null;
   }
 
+  getSwitchGroupPrefixTemplate(): TemplateRef<any> {
+    const t = this.parentSwitchGroupPrefixTemplate || this.switchGroupPrefixTemplate;
+    return t ? t.template : null;
+  }
+
+  getTreeContainerSuffixTemplate(): TemplateRef<any> {
+    const t = this.parentTreeContainerSuffixTemplate || this.treeContainerSuffixTemplate;
+    return t ? t.template : null;
+  }
+
   getRemoveButtonTemplate(): TemplateRef<any> {
     const t = this.parentRemoveButtonTemplate || this.removeButtonTemplate;
     return t ? t.template : null;
@@ -662,6 +674,7 @@ export class QueryBuilderComponent implements OnInit, OnChanges, ControlValueAcc
         onChange: this.changeField.bind(this),
         getFields: this.getFields.bind(this),
         getDisabledState: this.getDisabledState,
+        parentRuleSet: this.data,
         fields: this.fields,
         $implicit: rule
       });
@@ -685,6 +698,19 @@ export class QueryBuilderComponent implements OnInit, OnChanges, ControlValueAcc
     return {
       onChange: this.changeCondition.bind(this),
       getDisabledState: this.getDisabledState,
+      $implicit: this.data
+    };
+  }
+
+  getGeneralContext(): GeneralContext {
+    return {
+      addRule: this.addRule.bind(this),
+      addRuleSet: this.allowRuleset && this.addRuleSet.bind(this, null),
+      handleDataChange: () => {
+        this.handleTouched();
+        this.handleDataChange();
+      },
+      removeRuleSet: this.allowRuleset && this.parentValue && this.removeRuleSet.bind(this),
       $implicit: this.data
     };
   }
@@ -773,7 +799,7 @@ export class QueryBuilderComponent implements OnInit, OnChanges, ControlValueAcc
     }
   }
 
-  private validateRulesInRuleset(ruleset: RuleSet, errorStore: any[]) {
+  private validateRulesInRuleset(ruleset: RuleSet, errorStore: any[]): void {
     if (ruleset && ruleset.rules && ruleset.rules.length > 0) {
       ruleset.rules.forEach((item) => {
         if ((item as RuleSet).rules) {

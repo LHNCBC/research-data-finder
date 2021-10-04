@@ -1,5 +1,3 @@
-import { ValidationErrors } from '@angular/forms';
-
 export interface RuleSet {
   condition: string;
   rules: Array<RuleSet | Rule>;
@@ -109,6 +107,14 @@ export interface SwitchGroupContext {
   $implicit: RuleSet;
 }
 
+export interface GeneralContext {
+  addRule: () => void;
+  addRuleSet: () => void;
+  removeRuleSet: () => void;
+  handleDataChange: () => void;
+  $implicit: RuleSet;
+}
+
 export interface EmptyWarningContext {
   getDisabledState: () => boolean;
   message: string;
@@ -131,6 +137,7 @@ export interface FieldContext {
   onChange: (fieldValue: string, rule: Rule) => void;
   getFields: (entityName: string) => void;
   getDisabledState: () => boolean;
+  parentRuleSet: RuleSet;
   fields: Field[];
   $implicit: Rule;
 }
