@@ -34,15 +34,17 @@
         <input matInput [formControl]="perPatientFormControls[resourceType]" type="number" min="1">
       </mat-form-field>
 
-      <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams></app-search-parameter-group>
+<!--      <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams></app-search-parameter-group>-->
 
-      <div class="h-box">
+      <div class="h-box" style='align-items: flex-start;'>
         <button mat-stroked-button
                 [disabled]="perPatientFormControls[resourceType]?.invalid"
                 color="secondary"
                 (click)="loadResources(resourceType, resourceParams)">
           <mat-icon svgIcon="refresh"></mat-icon>Load {{getPluralFormOfResourceType(resourceType)}}
         </button>
+        <span *ngIf='resourceType === "Observation"' class='for-selected-codes'>For selected codes:</span>
+        <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams></app-search-parameter-group>
       </div>
       <div class="spacer"></div>
       <app-resource-table *ngIf="resourceStream[resourceType]"
