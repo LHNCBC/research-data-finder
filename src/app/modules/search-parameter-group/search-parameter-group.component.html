@@ -4,6 +4,7 @@
          aria-label='Resource type'
          matInput
          [formControl]='resourceType'
+         tabToSelect
          [matAutocomplete]='autocomplete'>
   <mat-autocomplete #autocomplete='matAutocomplete' panelWidth='auto'>
     <mat-option *ngFor='let option of filteredResourceTypes | async' [value]='option'>
