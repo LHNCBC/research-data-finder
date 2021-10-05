@@ -36,7 +36,7 @@
 
 <!--      <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams></app-search-parameter-group>-->
 
-      <div class="h-box" style='align-items: flex-start;'>
+      <div class="h-box for-selected-codes">
         <button mat-stroked-button
                 [disabled]="perPatientFormControls[resourceType]?.invalid"
                 color="secondary"
@@ -44,7 +44,7 @@
                 (click)="loadResources(resourceType, resourceParams)">
           <mat-icon svgIcon="refresh"></mat-icon>Load {{getPluralFormOfResourceType(resourceType)}}
         </button>
-        <span *ngIf='resourceType === "Observation"' class='for-selected-codes'>For selected codes:</span>
+        <span *ngIf='resourceType === "Observation"'>For selected codes:</span>
         <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams></app-search-parameter-group>
       </div>
       <div class="spacer"></div>
