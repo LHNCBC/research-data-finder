@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.20.0] - 2021-09-23
+### Added
+- A program to automatically determine whether search parameters have data
+  on corresponding server and update the .xlsx configuration file for the
+  'show/hide' column.
+
 ## [3.19.1] - 2021-09-20
 ### Changed
 - Current tab of the stepper will stay highlighted.

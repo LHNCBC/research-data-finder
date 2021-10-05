@@ -32,13 +32,6 @@ export class SearchParameterComponent
   readonly OBSERVATIONBYTESTDESC =
     'The display text associated with the code of the observation type';
   readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
-  // Observation search parameter names to be hidden
-  readonly OBSERVATIONHIDDENPARAMETERNAMES = [
-    'combo-code',
-    'combo-value-concept',
-    'combo-value-quantity',
-    'value-string'
-  ];
   definitions: any;
 
   selectedResourceType: any;
@@ -89,11 +82,6 @@ export class SearchParameterComponent
     this.definitions = this.fhirBackend.getCurrentDefinitions();
     this.selectedResourceType = this.definitions.resources[this.resourceType];
     this.parameters = this.selectedResourceType.searchParameters;
-    if (this.resourceType === 'Observation') {
-      this.parameters = this.parameters.filter(
-        (p) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(p.element)
-      );
-    }
     this.selectedParameter = null;
 
     this.filteredParameters = this.parameterName.valueChanges.pipe(
