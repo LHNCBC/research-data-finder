@@ -14,6 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ObservationTestValueUnitComponent } from './observation-test-value-unit/observation-test-value-unit.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormControlCollectorModule } from '../../shared/error-manager/form-control-collector.module';
+import { TabToSelectModule } from '../../shared/tab-to-select/tab-to-select.module';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { FormControlCollectorModule } from '../../shared/error-manager/form-cont
     ObservationCodeLookupModule,
     MatSelectModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TabToSelectModule
   ]
 })
 export class SearchParameterModule {}

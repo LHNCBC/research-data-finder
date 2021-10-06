@@ -5,6 +5,7 @@
            aria-label="Search parameter name"
            matInput
            [formControl]="parameterName"
+           tabToSelect
            [matAutocomplete]="auto1">
     <mat-autocomplete #auto1="matAutocomplete">
       <mat-option *ngFor="let option of filteredParameters | async" [value]="option.displayName">

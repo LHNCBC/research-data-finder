@@ -9,8 +9,9 @@ export class TabToSelectDirective {
   observable: any;
   constructor(@Optional() private autoTrigger: MatAutocompleteTrigger) {}
 
-  @HostListener('keydown.tab', ['$event.target']) onTab(): void {
+  @HostListener('keydown.tab') onTab(): void {
     if (this.autoTrigger.activeOption) {
+      this.autoTrigger.writeValue(this.autoTrigger.activeOption.value);
       this.autoTrigger._onChange(this.autoTrigger.activeOption.value);
     }
   }
