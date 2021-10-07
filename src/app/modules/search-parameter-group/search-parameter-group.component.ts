@@ -106,6 +106,10 @@ export class SearchParameterGroupComponent
   public addParameter(): void {
     this.parameterList.push(new FormControl({}));
     this.liveAnnoncer.announce('A new line of search criterion is added.');
+    // Focus the input control of the newly added search parameter line.
+    setTimeout(() => {
+      this.searchParameterComponents.last.focusSearchParamNameInput();
+    }, 0);
   }
 
   /**
