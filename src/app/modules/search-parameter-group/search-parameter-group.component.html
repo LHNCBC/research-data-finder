@@ -1,6 +1,6 @@
 <mat-form-field class='resource-type' *ngIf='!inputResourceType && !resourceType.disabled'>
   <mat-label>Resource type</mat-label>
-  <input type='text'
+  <input type='text' #resourceTypeInput
          aria-label='Resource type'
          matInput
          [formControl]='resourceType'

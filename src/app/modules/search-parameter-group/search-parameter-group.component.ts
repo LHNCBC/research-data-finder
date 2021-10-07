@@ -3,7 +3,9 @@ import {
   Input,
   ViewChildren,
   QueryList,
-  OnInit
+  OnInit,
+  ViewChild,
+  ElementRef
 } from '@angular/core';
 import { AbstractControl, FormArray, FormControl } from '@angular/forms';
 import {
@@ -43,6 +45,7 @@ export class SearchParameterGroupComponent
   extends BaseControlValueAccessor<SearchParameterGroup>
   implements OnInit {
   @Input() inputResourceType = '';
+  @ViewChild('resourceTypeInput') resourceTypeInput: ElementRef;
   @ViewChildren(SearchParameterComponent)
   searchParameterComponents: QueryList<SearchParameterComponent>;
   parameterList = new FormArray([]);
@@ -158,5 +161,13 @@ export class SearchParameterGroupComponent
    */
   showErrors(): void {
     this.errorManager.showErrors();
+  }
+
+  /**
+   * Focus "Resource Type" control.
+   * This is being called from parent component when the "Add a resource type" button is clicked.
+   */
+  focusResourceTypeInput(): void {
+    this.resourceTypeInput.nativeElement.focus();
   }
 }

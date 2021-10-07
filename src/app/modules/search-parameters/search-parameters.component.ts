@@ -66,6 +66,10 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
       })
     );
     this.liveAnnoncer.announce('A new line of resource type is added.');
+    // Focus the input control of the newly added resource type line.
+    setTimeout(() => {
+      this.searchParameterGroupComponents.last.focusResourceTypeInput();
+    }, 0);
   }
 
   /**
