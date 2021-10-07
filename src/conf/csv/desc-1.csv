@@ -43,7 +43,7 @@ Observation,,,,,,,
 ,category,column,Category,show,CodeableConcept,,"Classification of  type of observation"
 ,code,column,Code,show,CodeableConcept,,"Type of observation (code / type)"
 ,code,"search parameter",code,show,CodeableConcept,,"The code of the observation type"
-,"code text","search parameter","code text",show,,,"The display text associated with the code of the observation type"
+,"code text","search parameter","variable name",show,,,"The display text associated with the code of the observation type"
 ,combo-code,"search parameter",combo-code,show,CodeableConcept,,"The code of the observation type or component type"
 ,component,column,Component,hide,BackboneElement,,"Component results"
 ,dataAbsentReason,column,"Data Absent Reason",hide,CodeableConcept,,"Why the result is missing"
