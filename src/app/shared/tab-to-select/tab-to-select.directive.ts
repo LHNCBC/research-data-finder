@@ -1,6 +1,10 @@
 import { Directive, HostListener, Optional } from '@angular/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 
+/**
+ * When applied to a mat-autocomplete control, user can hit TAB key to select
+ * an item and move focus to the next control.
+ */
 @Directive({
   // tslint:disable-next-line:directive-selector
   selector: '[tabToSelect]'
