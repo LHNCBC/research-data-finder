@@ -1,9 +1,10 @@
 <mat-form-field class='resource-type' *ngIf='!inputResourceType && !resourceType.disabled'>
   <mat-label>Resource type</mat-label>
-  <input type='text'
+  <input type='text' #resourceTypeInput
          aria-label='Resource type'
          matInput
          [formControl]='resourceType'
+         tabToSelect
          [matAutocomplete]='autocomplete'>
   <mat-autocomplete #autocomplete='matAutocomplete' panelWidth='auto'>
     <mat-option *ngFor='let option of filteredResourceTypes | async' [value]='option'>
@@ -14,14 +15,14 @@
 <p *ngIf='!inputResourceType && resourceType.disabled' class='resource-type-label'>{{resourceType.value}}</p>
 
 <div *ngFor='let item of parameterList.controls' class='search-parameter-row'>
-  <button type='button' mat-icon-button aria-label='Remove search parameter'
+  <button *ngIf='!inputResourceType' type='button' mat-icon-button aria-label='Remove search parameter'
           (click)='removeParameter(item)'>
     <mat-icon svgIcon='clear'></mat-icon>
   </button>
-  <app-search-parameter [formControl]='item' [resourceType]='resourceType.value'></app-search-parameter>
+  <app-search-parameter [formControl]='item' [resourceType]='resourceType.value' [isPullData]='inputResourceType !== ""'></app-search-parameter>
 </div>
 
-<button *ngIf='resourceType.disabled'
+<button *ngIf='!inputResourceType && resourceType.disabled'
         id='addSearchCriterion'
         type='button'
         (click)='addParameter()'
