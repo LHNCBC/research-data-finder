@@ -837,6 +837,7 @@ MedicationStatement,,,,,,,
 ,subject,column,Subject,show,Reference,,"Who is/was taking  the medication"
 ,subject,"search parameter",subject,show,reference,,"The identity of a patient, animal or group to list statements for"
 Observation,,,,,,,
+,"code text","search parameter","variable name",show,,,"The display text associated with the code of the observation type"
 ,based-on,"search parameter",based-on,show,reference,,"Reference to the service request."
 ,basedOn,column,"Based On",show,Reference,,"Fulfills plan, proposal or order"
 ,bodySite,column,"Body Site",show,CodeableConcept,,"Observed body part"
@@ -844,7 +845,6 @@ Observation,,,,,,,
 ,category,"search parameter",category,show,CodeableConcept,,"The classification of the type of observation"
 ,code,column,Code,show,CodeableConcept,,"Type of observation (code / type)"
 ,code,"search parameter",code,show,CodeableConcept,,"The code of the observation type"
-,"code text","search parameter","variable name",show,,,"The display text associated with the code of the observation type"
 ,code-value-concept,"search parameter",code-value-concept,show,composite,,"Code and coded value parameter pair"
 ,code-value-date,"search parameter",code-value-date,show,composite,,"Code and date/time value parameter pair"
 ,code-value-quantity,"search parameter",code-value-quantity,show,composite,,"Code and quantity value parameter pair"
