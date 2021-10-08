@@ -12,6 +12,7 @@ const writeXlsxFile = require('write-excel-file/node');
 
 const SERVICEBASEURL = '---SERVICE BASE URL:';
 const SEARCHPARAMETER = 'search parameter';
+const COLUMN = 'column';
 const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
 const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
@@ -151,7 +152,20 @@ for (let i = 0; i < file.SheetNames.length; i++) {
   }
 }
 
+function updateColumnRows() {
+  for (let i = 0; i < file.SheetNames.length; i++) {
+    const sheet = file.Sheets[file.SheetNames[i]];
+    const maxRowNumber = sheet['!ref'].slice(4);
+    for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
+      if (sheet[`C${rowNum}`]?.v !== COLUMN) {
+        continue;
+      }
+    }
+  }
+}
+
 Promise.all(httpPromises).then(() => {
+  updateColumnRows();
   const sheetsData = [];
   for (let i = 0; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
