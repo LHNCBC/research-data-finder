@@ -183,6 +183,7 @@ function updateColumnRows() {
         sheet[`C${rowNum - 1}`]?.v === SEARCHPARAMETER &&
         sheet[`E${rowNum - 1}`]?.v !== sheet[`E${rowNum}`].v
       ) {
+        console.log(fhirName);
         sheet[`E${rowNum}`].v = sheet[`E${rowNum - 1}`].v;
         paintRow(
           sheet,
