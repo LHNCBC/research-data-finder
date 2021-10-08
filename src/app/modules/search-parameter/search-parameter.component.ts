@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -27,17 +27,11 @@ export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>
   implements OnInit {
   @Input() resourceType = '';
+  @Input() isPullData = false;
   readonly OBSERVATIONBYTEST = 'code text';
   readonly OBSERVATIONBYTESTDESC =
     'The display text associated with the code of the observation type';
   readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
-  // Observation search parameter names to be hidden
-  readonly OBSERVATIONHIDDENPARAMETERNAMES = [
-    'combo-code',
-    'combo-value-concept',
-    'combo-value-quantity',
-    'value-string'
-  ];
   definitions: any;
 
   selectedResourceType: any;
@@ -48,16 +42,20 @@ export class SearchParameterComponent
   selectedParameter: any;
 
   parameterValue: FormControl = new FormControl('', (control) =>
-    this.selectedObservationCodes?.value?.datatype
+    this.isPullData || this.selectedObservationCodes?.value?.datatype
       ? null
       : Validators.required(control)
   );
   parameterValues: any[];
 
   selectedObservationCodes: FormControl = new FormControl(null, () =>
-    this.selectedObservationCodes?.value?.datatype ? null : { required: true }
+    this.isPullData || this.selectedObservationCodes?.value?.datatype
+      ? null
+      : { required: true }
   );
   loincCodes: string[] = [];
+
+  @ViewChild('searchParamName') searchParamName: ElementRef;
 
   get value(): SearchParameter {
     return {
@@ -86,11 +84,6 @@ export class SearchParameterComponent
     this.definitions = this.fhirBackend.getCurrentDefinitions();
     this.selectedResourceType = this.definitions.resources[this.resourceType];
     this.parameters = this.selectedResourceType.searchParameters;
-    if (this.resourceType === 'Observation') {
-      this.parameters = this.parameters.filter(
-        (p) => !this.OBSERVATIONHIDDENPARAMETERNAMES.includes(p.element)
-      );
-    }
     this.selectedParameter = null;
 
     this.filteredParameters = this.parameterName.valueChanges.pipe(
@@ -145,6 +138,9 @@ export class SearchParameterComponent
   writeValue(value: SearchParameter): void {
     const param = this.parameters.find((p) => p.element === value.element);
     this.parameterName.setValue(param?.displayName || '');
+    if (this.isPullData) {
+      this.parameterName.disable({ emitEvent: false });
+    }
     this.parameterValue.setValue(value.value || '');
     this.selectedObservationCodes.setValue(
       value.selectedObservationCodes || null
@@ -226,6 +222,9 @@ export class SearchParameterComponent
    * e.g. prefix + value + unit
    */
   private getCompositeTestValueCriteria(): string {
+    if (this.isPullData) {
+      return '';
+    }
     const modifier = this.parameterValue.value.testValueModifier;
     const prefix = this.parameterValue.value.testValuePrefix;
     const testValue = this.parameterValue.value.testValue
@@ -239,5 +238,13 @@ export class SearchParameterComponent
           testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
         )}`
       : '';
+  }
+
+  /**
+   * Focus "Search parameter name" control.
+   * This is being called from parent component when the "Add {resource type} criterion" button is clicked.
+   */
+  focusSearchParamNameInput(): void {
+    this.searchParamName.nativeElement.focus();
   }
 }

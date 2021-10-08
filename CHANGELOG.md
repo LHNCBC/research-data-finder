@@ -3,6 +3,24 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.22.0] - 2021-10-08
+### Added
+- Ability for user to use TAB key on a dropdown list to select an item and
+  move to next form control.
+- Cursor will be focused on the input control of the newly added line after
+  user hits "add resource type" or "add search criterion" buttons.
+
+## [3.21.0] - 2021-10-05
+### Changed
+- Simplified pull data step search criteria, keeping only observation code
+  selection criterion.
+
+## [3.20.0] - 2021-09-23
+### Added
+- A program to automatically determine whether search parameters have data
+  on corresponding server and update the .xlsx configuration file for the
+  'show/hide' column.
+
 ## [3.19.1] - 2021-09-20
 ### Changed
 - Current tab of the stepper will stay highlighted.
