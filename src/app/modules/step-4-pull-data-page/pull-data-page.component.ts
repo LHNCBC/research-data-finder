@@ -48,6 +48,8 @@ export class PullDataPageComponent implements AfterViewInit {
   visibleResourceTypes: string[];
   // Array of not visible resource type names
   unselectedResourceTypes: string[];
+  // Array of resource type names that has "code text" search parameter
+  codeTextResourceTypes: string[] = [];
 
   // Array of loaded Patients
   patients: Patient[] = [];
@@ -90,12 +92,19 @@ export class PullDataPageComponent implements AfterViewInit {
       .pipe(map((status) => status === ConnectionStatus.Ready))
       .subscribe((connected) => {
         this.visibleResourceTypes = ['Observation'];
-        this.unselectedResourceTypes = connected
-          ? Object.keys(fhirBackend.getCurrentDefinitions().resources).filter(
-              (resourceType) =>
-                this.visibleResourceTypes.indexOf(resourceType) === -1
+        this.unselectedResourceTypes = [];
+        if (connected) {
+          const resources = fhirBackend.getCurrentDefinitions().resources;
+          this.unselectedResourceTypes = Object.keys(resources).filter(
+            (resourceType) =>
+              this.visibleResourceTypes.indexOf(resourceType) === -1
+          );
+          this.codeTextResourceTypes = Object.entries(resources)
+            .filter((r: [string, any]) =>
+              r[1].searchParameters.some((sp) => sp.element === 'code text')
             )
-          : [];
+            .map((r) => r[0]);
+        }
         this.perPatientFormControls = {
           Observation: new FormControl(1, [
             Validators.required,
@@ -163,6 +172,13 @@ export class PullDataPageComponent implements AfterViewInit {
       }
       return _ + 's';
     });
+  }
+
+  /**
+   * Whether to show code selection after Load button.
+   */
+  showCodeSelection(resourceType: string): boolean {
+    return this.codeTextResourceTypes.includes(resourceType);
   }
 
   /**

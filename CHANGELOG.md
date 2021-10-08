@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.21.0] - 2021-10-05
+### Changed
+- Simplified pull data step search criteria, keeping only observation code
+  selection criterion.
+
 ## [3.20.0] - 2021-09-23
 ### Added
 - A program to automatically determine whether search parameters have data
