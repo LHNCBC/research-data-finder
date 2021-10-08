@@ -64,6 +64,9 @@ export const VALIDATOR: any = {
   multi: true
 };
 
+/**
+ * Component for entering search criteria combined with OR or AND.
+ */
 @Component({
   selector: 'query-builder',
   templateUrl: './query-builder.component.html',
@@ -615,11 +618,17 @@ export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, V
     return t ? t.template : null;
   }
 
+  /**
+   * Returns a custom template for the area preceding the AND/OR buttons
+   */
   getSwitchGroupPrefixTemplate(): TemplateRef<any> {
     const t = this.parentSwitchGroupPrefixTemplate || this.switchGroupPrefixTemplate;
     return t ? t.template : null;
   }
 
+  /**
+   * Returns a custom template for the area following the search criteria tree.
+   */
   getTreeContainerSuffixTemplate(): TemplateRef<any> {
     const t = this.parentTreeContainerSuffixTemplate || this.treeContainerSuffixTemplate;
     return t ? t.template : null;
@@ -702,6 +711,11 @@ export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, V
     };
   }
 
+  /**
+   * Returns a context object with functions and data used in custom templates
+   * for the area preceding the AND/OR buttons and the area following the search
+   * criteria tree.
+   */
   getGeneralContext(): GeneralContext {
     return {
       addRule: this.addRule.bind(this),
