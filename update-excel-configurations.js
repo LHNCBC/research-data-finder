@@ -117,42 +117,43 @@ function callServer(resolve, url, resourceType, rowNum, sheet, retryCount = 0) {
 fs.unlinkSync(filePath);
 const httpPromises = [];
 // Update sheets to hide search parameters that don't have data on the corresponding server.
-for (let i = 0; i < file.SheetNames.length; i++) {
-  const sheet = file.Sheets[file.SheetNames[i]];
-  let serviceBaseUrl = '';
-  let resourceType;
-  // sheet['!ref'] returns the sheet range as in format 'A1:H100'.
-  const maxRowNumber = sheet['!ref'].slice(4);
-  for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
-    if (sheet[`A${rowNum}`]?.v) {
-      resourceType = sheet[`A${rowNum}`]?.v;
-      if (sheet[`A${rowNum}`]?.v === SERVICEBASEURL) {
-        serviceBaseUrl = sheet[`B${rowNum}`]?.v;
-        // Do not update default sheet.
-        if (serviceBaseUrl === 'default') {
-          break;
-        }
-      }
-    }
-    if (
-      sheet[`C${rowNum}`]?.v === SEARCHPARAMETER &&
-      !doNotUpdateList.some(
-        (x) => x[0] === resourceType && x[1].test(sheet[`B${rowNum}`]?.v)
-      )
-    ) {
-      const paramName = sheet[`B${rowNum}`].v;
-      const paramType = sheet[`F${rowNum}`].v;
-      const url =
-        paramType === 'date' || paramType === 'dateTime'
-          ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}=gt1000-01-01`
-          : `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}:not=zzz`;
-      const promise = createHttpsPromise(url, resourceType, rowNum, sheet);
-      httpPromises.push(promise);
-    }
-  }
-}
+// for (let i = 0; i < file.SheetNames.length; i++) {
+//   const sheet = file.Sheets[file.SheetNames[i]];
+//   let serviceBaseUrl = '';
+//   let resourceType;
+//   // sheet['!ref'] returns the sheet range as in format 'A1:H100'.
+//   const maxRowNumber = sheet['!ref'].slice(4);
+//   for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
+//     if (sheet[`A${rowNum}`]?.v) {
+//       resourceType = sheet[`A${rowNum}`]?.v;
+//       if (sheet[`A${rowNum}`]?.v === SERVICEBASEURL) {
+//         serviceBaseUrl = sheet[`B${rowNum}`]?.v;
+//         // Do not update default sheet.
+//         if (serviceBaseUrl === 'default') {
+//           break;
+//         }
+//       }
+//     }
+//     if (
+//       sheet[`C${rowNum}`]?.v === SEARCHPARAMETER &&
+//       !doNotUpdateList.some(
+//         (x) => x[0] === resourceType && x[1].test(sheet[`B${rowNum}`]?.v)
+//       )
+//     ) {
+//       const paramName = sheet[`B${rowNum}`].v;
+//       const paramType = sheet[`F${rowNum}`].v;
+//       const url =
+//         paramType === 'date' || paramType === 'dateTime'
+//           ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}=gt1000-01-01`
+//           : `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}:not=zzz`;
+//       const promise = createHttpsPromise(url, resourceType, rowNum, sheet);
+//       httpPromises.push(promise);
+//     }
+//   }
+// }
 
 function paintRow(sheet, rowNum, columnCount, color) {
+  console.log(`Row number ${rowNum}, color ${color}`);
   for (let i = 0; i < columnCount; i++) {
     sheet[`${xlsxColumnHeaders[i]}${rowNum}`].s.fgColor.rgb = color;
   }
@@ -183,13 +184,10 @@ function updateColumnRows() {
         sheet[`C${rowNum - 1}`].v === SEARCHPARAMETER
       ) {
         console.log(fhirName);
-        sheet[`E${rowNum}`].v = sheet[`E${rowNum - 1}`].v;
-        paintRow(
-          sheet,
-          rowNum,
-          columnCount,
-          colorLegend[sheet[`E${rowNum - 1}`].v]
-        );
+        const updateShowHideValue = sheet[`E${rowNum - 1}`].v;
+        console.log(updateShowHideValue);
+        sheet[`E${rowNum}`].v = updateShowHideValue;
+        paintRow(sheet, rowNum, columnCount, colorLegend[updateShowHideValue]);
         continue;
       }
       if (
@@ -197,13 +195,10 @@ function updateColumnRows() {
         sheet[`C${rowNum + 1}`].v === SEARCHPARAMETER
       ) {
         console.log(fhirName);
-        sheet[`E${rowNum}`].v = sheet[`E${rowNum + 1}`].v;
-        paintRow(
-          sheet,
-          rowNum,
-          columnCount,
-          colorLegend[sheet[`E${rowNum + 1}`].v]
-        );
+        const updateShowHideValue = sheet[`E${rowNum - 1}`].v;
+        console.log(updateShowHideValue);
+        sheet[`E${rowNum}`].v = updateShowHideValue;
+        paintRow(sheet, rowNum, columnCount, colorLegend[updateShowHideValue]);
         continue;
       }
     }
