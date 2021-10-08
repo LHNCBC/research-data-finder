@@ -152,12 +152,44 @@ for (let i = 0; i < file.SheetNames.length; i++) {
   }
 }
 
+function paintRow(sheet, rowNum, columnCount, color) {
+  for (let i = 0; i < columnCount; i++) {
+    sheet[`${xlsxColumnHeaders[i]}${rowNum}`].s.fgColor.rgb = color;
+  }
+}
+
 function updateColumnRows() {
   for (let i = 0; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
+    // Do not update sheets without cell colors (the default sheet).
+    if (sheet['A1']?.v !== 'Legend') {
+      continue;
+    }
+    const colorLegend = {
+      show: sheet['A3'].s.fgColor.rgb,
+      hide: sheet['A4'].s.fgColor.rgb
+    };
     const maxRowNumber = sheet['!ref'].slice(4);
+    const maxColumnLetter = sheet['!ref'].charAt(3);
+    const columnCount =
+      xlsxColumnHeaders.findIndex((x) => x === maxColumnLetter) + 1;
     for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
       if (sheet[`C${rowNum}`]?.v !== COLUMN) {
+        continue;
+      }
+      const fhirName = sheet[`B${rowNum}`].v;
+      if (
+        sheet[`B${rowNum - 1}`]?.v === fhirName &&
+        sheet[`C${rowNum - 1}`]?.v === SEARCHPARAMETER &&
+        sheet[`E${rowNum - 1}`]?.v !== sheet[`E${rowNum}`].v
+      ) {
+        sheet[`E${rowNum}`].v = sheet[`E${rowNum - 1}`].v;
+        paintRow(
+          sheet,
+          rowNum,
+          columnCount,
+          colorLegend[sheet[`E${rowNum - 1}`].v]
+        );
         continue;
       }
     }
