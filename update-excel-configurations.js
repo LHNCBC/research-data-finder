@@ -180,8 +180,7 @@ function updateColumnRows() {
       const fhirName = sheet[`B${rowNum}`].v;
       if (
         sheet[`B${rowNum - 1}`]?.v === fhirName &&
-        sheet[`C${rowNum - 1}`]?.v === SEARCHPARAMETER &&
-        sheet[`E${rowNum - 1}`]?.v !== sheet[`E${rowNum}`].v
+        sheet[`C${rowNum - 1}`].v === SEARCHPARAMETER
       ) {
         console.log(fhirName);
         sheet[`E${rowNum}`].v = sheet[`E${rowNum - 1}`].v;
@@ -190,6 +189,20 @@ function updateColumnRows() {
           rowNum,
           columnCount,
           colorLegend[sheet[`E${rowNum - 1}`].v]
+        );
+        continue;
+      }
+      if (
+        sheet[`B${rowNum + 1}`]?.v === fhirName &&
+        sheet[`C${rowNum + 1}`].v === SEARCHPARAMETER
+      ) {
+        console.log(fhirName);
+        sheet[`E${rowNum}`].v = sheet[`E${rowNum + 1}`].v;
+        paintRow(
+          sheet,
+          rowNum,
+          columnCount,
+          colorLegend[sheet[`E${rowNum + 1}`].v]
         );
         continue;
       }
