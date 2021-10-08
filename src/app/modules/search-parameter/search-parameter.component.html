@@ -1,10 +1,11 @@
 <div class="search-parameter">
   <mat-form-field class="parameter-name" *ngIf='!isPullData'>
     <mat-label>Search parameter name</mat-label>
-    <input type="text"
+    <input type="text" #searchParamName
            aria-label="Search parameter name"
            matInput
            [formControl]="parameterName"
+           tabToSelect
            [matAutocomplete]="auto1">
     <mat-autocomplete #auto1="matAutocomplete">
       <mat-option *ngFor="let option of filteredParameters | async" [value]="option.displayName">

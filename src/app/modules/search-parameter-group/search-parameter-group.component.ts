@@ -3,7 +3,9 @@ import {
   Input,
   ViewChildren,
   QueryList,
-  OnInit
+  OnInit,
+  ViewChild,
+  ElementRef
 } from '@angular/core';
 import { AbstractControl, FormArray, FormControl } from '@angular/forms';
 import {
@@ -21,6 +23,7 @@ import {
 import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * Component for managing search parameters of a resource type
@@ -42,6 +45,7 @@ export class SearchParameterGroupComponent
   extends BaseControlValueAccessor<SearchParameterGroup>
   implements OnInit {
   @Input() inputResourceType = '';
+  @ViewChild('resourceTypeInput') resourceTypeInput: ElementRef;
   @ViewChildren(SearchParameterComponent)
   searchParameterComponents: QueryList<SearchParameterComponent>;
   parameterList = new FormArray([]);
@@ -58,7 +62,8 @@ export class SearchParameterGroupComponent
 
   constructor(
     private fhirBackend: FhirBackendService,
-    private errorManager: ErrorManager
+    private errorManager: ErrorManager,
+    private liveAnnoncer: LiveAnnouncer
   ) {
     super();
     fhirBackend.initialized.subscribe((status) => {
@@ -99,6 +104,7 @@ export class SearchParameterGroupComponent
         const match = this.resourceTypes.find((rt) => rt === value);
         if (match) {
           this.resourceType.disable({ emitEvent: false });
+          this.liveAnnoncer.announce(`Selected resource type ${value}.`);
         }
       });
     }
@@ -109,6 +115,11 @@ export class SearchParameterGroupComponent
    */
   public addParameter(): void {
     this.parameterList.push(new FormControl({}));
+    this.liveAnnoncer.announce('A new line of search criterion is added.');
+    // Focus the input control of the newly added search parameter line.
+    setTimeout(() => {
+      this.searchParameterComponents.last.focusSearchParamNameInput();
+    }, 0);
   }
 
   /**
@@ -157,5 +168,13 @@ export class SearchParameterGroupComponent
    */
   showErrors(): void {
     this.errorManager.showErrors();
+  }
+
+  /**
+   * Focus "Resource Type" control.
+   * This is being called from parent component when the "Add a resource type" button is clicked.
+   */
+  focusResourceTypeInput(): void {
+    this.resourceTypeInput.nativeElement.focus();
   }
 }

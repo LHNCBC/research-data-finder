@@ -14,6 +14,7 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { filter } from 'rxjs/operators';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * Component for managing resources search parameters
@@ -37,7 +38,10 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   searchParameterGroupComponents: QueryList<SearchParameterGroupComponent>;
   parameterGroupList = new FormArray([]);
 
-  constructor(private fhirBackend: FhirBackendService) {
+  constructor(
+    private fhirBackend: FhirBackendService,
+    private liveAnnoncer: LiveAnnouncer
+  ) {
     super();
     this.parameterGroupList.valueChanges.subscribe((value) => {
       this.onChange(value);
@@ -61,6 +65,11 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         parameters: []
       })
     );
+    this.liveAnnoncer.announce('A new line of resource type is added.');
+    // Focus the input control of the newly added resource type line.
+    setTimeout(() => {
+      this.searchParameterGroupComponents.last.focusResourceTypeInput();
+    }, 0);
   }
 
   /**

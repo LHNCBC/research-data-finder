@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { FormControlCollectorModule } from '../../shared/error-manager/form-control-collector.module';
+import { TabToSelectModule } from '../../shared/tab-to-select/tab-to-select.module';
 
 @NgModule({
   declarations: [SearchParameterGroupComponent],
@@ -22,7 +23,8 @@ import { FormControlCollectorModule } from '../../shared/error-manager/form-cont
     MatButtonModule,
     MatFormFieldModule,
     MatAutocompleteModule,
-    MatInputModule
+    MatInputModule,
+    TabToSelectModule
   ]
 })
 export class SearchParameterGroupModule {}

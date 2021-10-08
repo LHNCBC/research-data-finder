@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -54,6 +54,8 @@ export class SearchParameterComponent
       : { required: true }
   );
   loincCodes: string[] = [];
+
+  @ViewChild('searchParamName') searchParamName: ElementRef;
 
   get value(): SearchParameter {
     return {
@@ -236,5 +238,13 @@ export class SearchParameterComponent
           testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
         )}`
       : '';
+  }
+
+  /**
+   * Focus "Search parameter name" control.
+   * This is being called from parent component when the "Add {resource type} criterion" button is clicked.
+   */
+  focusSearchParamNameInput(): void {
+    this.searchParamName.nativeElement.focus();
   }
 }
