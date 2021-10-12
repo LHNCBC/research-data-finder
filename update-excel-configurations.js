@@ -195,7 +195,7 @@ function updateColumnRows() {
         sheet[`C${rowNum + 1}`].v === SEARCHPARAMETER
       ) {
         console.log(fhirName);
-        const updateShowHideValue = sheet[`E${rowNum - 1}`].v;
+        const updateShowHideValue = sheet[`E${rowNum + 1}`].v;
         console.log(updateShowHideValue);
         sheet[`E${rowNum}`].v = updateShowHideValue;
         paintRow(sheet, rowNum, columnCount, colorLegend[updateShowHideValue]);
