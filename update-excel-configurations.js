@@ -155,7 +155,11 @@ const httpPromises = [];
 function paintRow(sheet, rowNum, columnCount, color) {
   console.log(`Row number ${rowNum}, color ${color}`);
   for (let i = 0; i < columnCount; i++) {
-    sheet[`${xlsxColumnHeaders[i]}${rowNum}`].s.fgColor.rgb = color;
+    sheet[`${xlsxColumnHeaders[i]}${rowNum}`].s = {
+      patternType: 'solid',
+      fgColor: { rgb: color },
+      bgColor: { indexed: 64 }
+    };
   }
 }
 
@@ -166,10 +170,13 @@ function updateColumnRows() {
     if (sheet['A1']?.v !== 'Legend') {
       continue;
     }
+    const colorWithData = sheet['A3'].s.fgColor.rgb;
+    const colorWithoutData = sheet['A4'].s.fgColor.rgb;
     const colorLegend = {
-      show: sheet['A3'].s.fgColor.rgb,
-      hide: sheet['A4'].s.fgColor.rgb
+      show: colorWithData,
+      hide: colorWithoutData
     };
+    console.log(colorLegend);
     const maxRowNumber = sheet['!ref'].slice(4);
     const maxColumnLetter = sheet['!ref'].charAt(3);
     const columnCount =
@@ -183,9 +190,7 @@ function updateColumnRows() {
         sheet[`B${rowNum - 1}`]?.v === fhirName &&
         sheet[`C${rowNum - 1}`].v === SEARCHPARAMETER
       ) {
-        console.log(fhirName);
         const updateShowHideValue = sheet[`E${rowNum - 1}`].v;
-        console.log(updateShowHideValue);
         sheet[`E${rowNum}`].v = updateShowHideValue;
         paintRow(sheet, rowNum, columnCount, colorLegend[updateShowHideValue]);
         continue;
@@ -194,9 +199,7 @@ function updateColumnRows() {
         sheet[`B${rowNum + 1}`]?.v === fhirName &&
         sheet[`C${rowNum + 1}`].v === SEARCHPARAMETER
       ) {
-        console.log(fhirName);
         const updateShowHideValue = sheet[`E${rowNum + 1}`].v;
-        console.log(updateShowHideValue);
         sheet[`E${rowNum}`].v = updateShowHideValue;
         paintRow(sheet, rowNum, columnCount, colorLegend[updateShowHideValue]);
         continue;
