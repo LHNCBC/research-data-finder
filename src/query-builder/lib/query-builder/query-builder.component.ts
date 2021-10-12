@@ -1,3 +1,7 @@
+/**
+ * Copied from https://github.com/zebzhao/Angular-QueryBuilder with modifications.
+ * See ../../query-builder-license.md
+ */
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -375,7 +379,7 @@ export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, V
     if (field && field.defaultOperator !== undefined) {
       return this.getDefaultValue(field.defaultOperator);
     } else {
-      const operators = this.getOperators(field.value);
+      const operators = this.getOperators(field?.value);
       if (operators && operators.length) {
         return operators[0];
       } else {

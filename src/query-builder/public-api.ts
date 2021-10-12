@@ -1,3 +1,7 @@
+/**
+ * Copied from https://github.com/zebzhao/Angular-QueryBuilder with modifications.
+ * See ./query-builder-license.md
+ */
 /*
  * Public API Surface of angular2-query-builder
  */

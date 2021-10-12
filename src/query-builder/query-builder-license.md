@@ -1,3 +1,7 @@
+The below license applies to the files in this directory and its subdirectories
+at the time the files were copied from
+https://github.com/zebzhao/Angular-QueryBuilder:
+
 MIT License
 
 Copyright (c) 2018 Zeb Zhao

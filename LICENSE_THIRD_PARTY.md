@@ -14,4 +14,4 @@ via npm.
 
   Third-party files with modifications: ```./src/query-builder/*```.
 
-  Third-party license (at the time the files were copied): ```./src/query-builder/LICENSE```.
+  Third-party license (at the time the files were copied): ```./src/query-builder/query-builder-license.md```.

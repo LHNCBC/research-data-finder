@@ -18,5 +18,4 @@ warranties of performance, merchantability or fitness for any particular
 purpose. All information displayed is provided “as is” and in good faith.
 We cannot commit to updating or maintaining the code repository.
 
-Please cite the authors in any work or product based on this material and
-include a link to a paper you want cited for use of that package.
+Please cite the authors in any work or product based on this material.

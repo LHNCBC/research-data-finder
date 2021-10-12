@@ -1,3 +1,7 @@
+/**
+ * Copied from https://github.com/zebzhao/Angular-QueryBuilder with modifications.
+ * See ../../query-builder-license.md
+ */
 export interface RuleSet {
   condition: string;
   rules: Array<RuleSet | Rule>;

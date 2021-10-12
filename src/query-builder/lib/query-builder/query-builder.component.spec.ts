@@ -1,3 +1,7 @@
+/**
+ * Copied from https://github.com/zebzhao/Angular-QueryBuilder with modifications.
+ * See ../../query-builder-license.md
+ */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { FormsModule, } from '@angular/forms';
