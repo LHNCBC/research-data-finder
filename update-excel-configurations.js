@@ -152,6 +152,13 @@ const httpPromises = [];
 //   }
 // }
 
+function camelCaseToHyphenated(camel) {
+  return camel
+    .split(/(?=[A-Z])/)
+    .join('_')
+    .toLowerCase();
+}
+
 function paintRow(sheet, rowNum, columnCount, color) {
   console.log(`Row number ${rowNum}, color ${color}`);
   for (let i = 0; i < columnCount; i++) {
@@ -187,7 +194,8 @@ function updateColumnRows() {
       }
       const fhirName = sheet[`B${rowNum}`].v;
       if (
-        sheet[`B${rowNum - 1}`]?.v === fhirName &&
+        (sheet[`B${rowNum - 1}`]?.v === fhirName ||
+          sheet[`B${rowNum - 1}`]?.v === camelCaseToHyphenated(fhirName)) &&
         sheet[`C${rowNum - 1}`].v === SEARCHPARAMETER
       ) {
         const updateShowHideValue = sheet[`E${rowNum - 1}`].v;
@@ -196,7 +204,8 @@ function updateColumnRows() {
         continue;
       }
       if (
-        sheet[`B${rowNum + 1}`]?.v === fhirName &&
+        (sheet[`B${rowNum + 1}`]?.v === fhirName ||
+          sheet[`B${rowNum + 1}`]?.v === camelCaseToHyphenated(fhirName)) &&
         sheet[`C${rowNum + 1}`].v === SEARCHPARAMETER
       ) {
         const updateShowHideValue = sheet[`E${rowNum + 1}`].v;
