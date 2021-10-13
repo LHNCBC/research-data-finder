@@ -159,6 +159,35 @@ function camelCaseToHyphenated(camel) {
     .toLowerCase();
 }
 
+function getShowHideValueFromMultipleTypes(sheet, rowNum) {
+  const reg = `^${RegExp.$1}-?.*$`;
+  const regEx = new RegExp(reg);
+  let showHide;
+  let rowNumLow = rowNum - 1;
+  while (
+    regEx.test(sheet[`B${rowNumLow}`]?.v) &&
+    sheet[`C${rowNumLow}`].v === SEARCHPARAMETER
+  ) {
+    showHide = sheet[`E${rowNumLow}`].v;
+    if (showHide === 'show') {
+      return showHide;
+    }
+    rowNumLow--;
+  }
+  let rowNumHigh = rowNum + 1;
+  while (
+    regEx.test(sheet[`B${rowNumHigh}`]?.v) &&
+    sheet[`C${rowNumHigh}`].v === SEARCHPARAMETER
+  ) {
+    showHide = sheet[`E${rowNumHigh}`].v;
+    if (showHide === 'show') {
+      return showHide;
+    }
+    rowNumLow++;
+  }
+  return showHide;
+}
+
 function paintRow(sheet, rowNum, columnCount, color) {
   console.log(`Row number ${rowNum}, color ${color}`);
   for (let i = 0; i < columnCount; i++) {
@@ -212,6 +241,20 @@ function updateColumnRows() {
         sheet[`E${rowNum}`].v = updateShowHideValue;
         paintRow(sheet, rowNum, columnCount, colorLegend[updateShowHideValue]);
         continue;
+      }
+      if (/^(.+)\[x\]$/.test(fhirName)) {
+        const updateShowHideValue = getShowHideValueFromMultipleTypes(
+          sheet,
+          rowNum
+        );
+        if (updateShowHideValue !== undefined) {
+          paintRow(
+            sheet,
+            rowNum,
+            columnCount,
+            colorLegend[updateShowHideValue]
+          );
+        }
       }
     }
   }
