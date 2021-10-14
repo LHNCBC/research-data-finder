@@ -1,6 +1,7 @@
 /**
  * This program updates src/conf/xlsx/column-and-parameter-descriptions.xlsx for show/hide
  * properties of search parameters, depending on whether server has data.
+ * It then updates show/hide properties of columns, based on adjacent search parameter rows.
  * When server data might have updated, run:
  *     npm run update-excel-config
  * and check in configuration file changes.
@@ -117,41 +118,45 @@ function callServer(resolve, url, resourceType, rowNum, sheet, retryCount = 0) {
 fs.unlinkSync(filePath);
 const httpPromises = [];
 // Update sheets to hide search parameters that don't have data on the corresponding server.
-// for (let i = 0; i < file.SheetNames.length; i++) {
-//   const sheet = file.Sheets[file.SheetNames[i]];
-//   let serviceBaseUrl = '';
-//   let resourceType;
-//   // sheet['!ref'] returns the sheet range as in format 'A1:H100'.
-//   const maxRowNumber = sheet['!ref'].slice(4);
-//   for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
-//     if (sheet[`A${rowNum}`]?.v) {
-//       resourceType = sheet[`A${rowNum}`]?.v;
-//       if (sheet[`A${rowNum}`]?.v === SERVICEBASEURL) {
-//         serviceBaseUrl = sheet[`B${rowNum}`]?.v;
-//         // Do not update default sheet.
-//         if (serviceBaseUrl === 'default') {
-//           break;
-//         }
-//       }
-//     }
-//     if (
-//       sheet[`C${rowNum}`]?.v === SEARCHPARAMETER &&
-//       !doNotUpdateList.some(
-//         (x) => x[0] === resourceType && x[1].test(sheet[`B${rowNum}`]?.v)
-//       )
-//     ) {
-//       const paramName = sheet[`B${rowNum}`].v;
-//       const paramType = sheet[`F${rowNum}`].v;
-//       const url =
-//         paramType === 'date' || paramType === 'dateTime'
-//           ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}=gt1000-01-01`
-//           : `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}:not=zzz`;
-//       const promise = createHttpsPromise(url, resourceType, rowNum, sheet);
-//       httpPromises.push(promise);
-//     }
-//   }
-// }
+for (let i = 0; i < file.SheetNames.length; i++) {
+  const sheet = file.Sheets[file.SheetNames[i]];
+  let serviceBaseUrl = '';
+  let resourceType;
+  // sheet['!ref'] returns the sheet range as in format 'A1:H100'.
+  const maxRowNumber = sheet['!ref'].slice(4);
+  for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
+    if (sheet[`A${rowNum}`]?.v) {
+      resourceType = sheet[`A${rowNum}`]?.v;
+      if (sheet[`A${rowNum}`]?.v === SERVICEBASEURL) {
+        serviceBaseUrl = sheet[`B${rowNum}`]?.v;
+        // Do not update default sheet.
+        if (serviceBaseUrl === 'default') {
+          break;
+        }
+      }
+    }
+    if (
+      sheet[`C${rowNum}`]?.v === SEARCHPARAMETER &&
+      !doNotUpdateList.some(
+        (x) => x[0] === resourceType && x[1].test(sheet[`B${rowNum}`]?.v)
+      )
+    ) {
+      const paramName = sheet[`B${rowNum}`].v;
+      const paramType = sheet[`F${rowNum}`].v;
+      const url =
+        paramType === 'date' || paramType === 'dateTime'
+          ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}=gt1000-01-01`
+          : `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}:not=zzz`;
+      const promise = createHttpsPromise(url, resourceType, rowNum, sheet);
+      httpPromises.push(promise);
+    }
+  }
+}
 
+/**
+ * Converts a camel case string into a hyphenated string.
+ * Examples: bodySite -> body-site, episodeOfCare -> episode-of-care.
+ */
 function camelCaseToHyphenated(camel) {
   return camel
     .split(/(?=[A-Z])/)
@@ -159,6 +164,15 @@ function camelCaseToHyphenated(camel) {
     .toLowerCase();
 }
 
+/**
+ * Looks for matching search parameter rows of a '...[x]' column and
+ * returns 'show' if any of those rows has 'show', otherwise return 'hide'.
+ * If no rows match at all, return undefined.
+ * Examples of matching fhir names of 'abatement[x]':
+ * 'abatement', 'abatement-age', 'abatement-date', 'abatement-string'.
+ * @param sheet WorkSheet object
+ * @param rowNum row number corresponding to the '...[x]' column
+ */
 function getShowHideValueFromMultipleTypes(sheet, rowNum) {
   const reg = `^${RegExp.$1}-?.*$`;
   const regEx = new RegExp(reg);
@@ -188,17 +202,32 @@ function getShowHideValueFromMultipleTypes(sheet, rowNum) {
   return showHide;
 }
 
-function paintRow(sheet, rowNum, columnCount, color) {
-  console.log(`Row number ${rowNum}, color ${color}`);
+/**
+ * Paints a single row into a specific color.
+ * @param sheet WorkSheet object
+ * @param rowNum row number to be painted
+ * @param columnCount total column count
+ * @param color the color this row will be painted into
+ * @param doNotUpdateColor a special case that a cell will not be painted if it had this color
+ */
+function paintRow(sheet, rowNum, columnCount, color, doNotUpdateColor) {
   for (let i = 0; i < columnCount; i++) {
-    sheet[`${xlsxColumnHeaders[i]}${rowNum}`].s = {
-      patternType: 'solid',
-      fgColor: { rgb: color },
-      bgColor: { indexed: 64 }
-    };
+    if (
+      sheet[`${xlsxColumnHeaders[i]}${rowNum}`].s?.fgColor?.rgb !==
+      doNotUpdateColor
+    )
+      sheet[`${xlsxColumnHeaders[i]}${rowNum}`].s = {
+        patternType: 'solid',
+        fgColor: { rgb: color },
+        bgColor: { indexed: 64 }
+      };
   }
 }
 
+/**
+ * Updates show/hide values and row colors for columns, based on show/hide values
+ * of corresponding search parameters.
+ */
 function updateColumnRows() {
   for (let i = 0; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
@@ -208,6 +237,7 @@ function updateColumnRows() {
     }
     const colorWithData = sheet['A3'].s.fgColor.rgb;
     const colorWithoutData = sheet['A4'].s.fgColor.rgb;
+    const doNotUpdateColor = sheet['A5'].s.fgColor.rgb;
     const colorLegend = {
       show: colorWithData,
       hide: colorWithoutData
@@ -229,7 +259,13 @@ function updateColumnRows() {
       ) {
         const updateShowHideValue = sheet[`E${rowNum - 1}`].v;
         sheet[`E${rowNum}`].v = updateShowHideValue;
-        paintRow(sheet, rowNum, columnCount, colorLegend[updateShowHideValue]);
+        paintRow(
+          sheet,
+          rowNum,
+          columnCount,
+          colorLegend[updateShowHideValue],
+          doNotUpdateColor
+        );
         continue;
       }
       if (
@@ -239,10 +275,16 @@ function updateColumnRows() {
       ) {
         const updateShowHideValue = sheet[`E${rowNum + 1}`].v;
         sheet[`E${rowNum}`].v = updateShowHideValue;
-        paintRow(sheet, rowNum, columnCount, colorLegend[updateShowHideValue]);
+        paintRow(
+          sheet,
+          rowNum,
+          columnCount,
+          colorLegend[updateShowHideValue],
+          doNotUpdateColor
+        );
         continue;
       }
-      if (/^(.+)\[x\]$/.test(fhirName)) {
+      if (/^(.+)\[x]$/.test(fhirName)) {
         const updateShowHideValue = getShowHideValueFromMultipleTypes(
           sheet,
           rowNum
@@ -253,7 +295,8 @@ function updateColumnRows() {
             sheet,
             rowNum,
             columnCount,
-            colorLegend[updateShowHideValue]
+            colorLegend[updateShowHideValue],
+            doNotUpdateColor
           );
         }
       }
