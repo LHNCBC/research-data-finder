@@ -253,7 +253,7 @@ function updateColumnRows() {
       }
       const fhirName = sheet[`B${rowNum}`].v;
       if (
-        (sheet[`B${rowNum - 1}`]?.v === fhirName ||
+        (sheet[`B${rowNum - 1}`]?.v?.toLowerCase() === fhirName.toLowerCase() ||
           sheet[`B${rowNum - 1}`]?.v === camelCaseToHyphenated(fhirName)) &&
         sheet[`C${rowNum - 1}`].v === SEARCHPARAMETER
       ) {
@@ -269,7 +269,7 @@ function updateColumnRows() {
         continue;
       }
       if (
-        (sheet[`B${rowNum + 1}`]?.v === fhirName ||
+        (sheet[`B${rowNum + 1}`]?.v?.toLowerCase() === fhirName.toLowerCase() ||
           sheet[`B${rowNum + 1}`]?.v === camelCaseToHyphenated(fhirName)) &&
         sheet[`C${rowNum + 1}`].v === SEARCHPARAMETER
       ) {
