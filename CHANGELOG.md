@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.23.0] - 2021-10-14
+### Added
+- Program to pdate the .xlsx configuration file for the 'show/hide' value
+  (and row colors) of columns, based on the 'show/hide' values of matching
+  search parameters.
+
 ## [3.22.0] - 2021-10-08
 ### Added
 - Ability for user to use TAB key on a dropdown list to select an item and
