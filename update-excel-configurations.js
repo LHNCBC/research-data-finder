@@ -248,6 +248,7 @@ function updateColumnRows() {
           rowNum
         );
         if (updateShowHideValue !== undefined) {
+          sheet[`E${rowNum}`].v = updateShowHideValue;
           paintRow(
             sheet,
             rowNum,
