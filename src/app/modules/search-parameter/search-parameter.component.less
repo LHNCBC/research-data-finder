@@ -7,7 +7,8 @@
 mat-form-field ~ app-observation-code-lookup,
 app-observation-code-lookup ~ mat-form-field,
 mat-form-field ~ mat-form-field,
-mat-form-field ~ div {
+mat-form-field ~ mat-radio-group,
+mat-radio-button ~ mat-radio-button {
   margin-left: 16px;
 }
 
@@ -19,8 +20,9 @@ mat-form-field ~ div {
   flex: 1 1;
 }
 
-div.parameter-value {
+mat-radio-group {
   align-self: center;
+  display: flex;
 }
 
 app-observation-code-lookup {

@@ -1,14 +1,100 @@
-<div *ngFor="let item of parameterGroupList.controls" class="search-parameter-group">
-  <button type="button" mat-icon-button aria-label="Remove search parameter group"
-          (click)="removeParameterGroup(item)">
-    <mat-icon svgIcon="clear"></mat-icon>
-  </button>
+<query-builder [formControl]="queryCtrl" [config]="queryBuilderConfig">
+  <!-- Remove default buttons (empty template) -->
+  <ng-container *queryButtonGroup="let ruleset; let addRule=addRule; let addRuleSet=addRuleSet; let removeRuleSet=removeRuleSet">
+  </ng-container>
 
-  <app-search-parameter-group [formControl]="item"></app-search-parameter-group>
-</div>
+  <!-- Prefix for switch group box -->
+  <ng-container *querySwitchGroupPrefix="
+     let ruleset; let addRule=addRule; let addRuleSet=addRuleSet;
+     let handleDataChange=handleDataChange; let removeRuleSet=removeRuleSet">
+    <!-- Prefix for the resource criteria -->
+    <div class="v-box" *ngIf="ruleset.hasOwnProperty('resourceType')">
+      <div class="h-box" >
+        <button type="button" mat-icon-button aria-label="Remove search parameter group"
+                class="remove-btn"
+                (click)="removeRuleSet()">
+          <mat-icon svgIcon="clear"></mat-icon>
+        </button>
+        <app-autocomplete
+            label="Resource type"
+            required
+            [options]="resourceTypes$ | async"
+            [(ngModel)]="ruleset.resourceType"
+            *ngIf="!ruleset.resourceType"></app-autocomplete>
+        <p *ngIf="ruleset.resourceType && ruleset.resourceType !== 'Patient'">Select Patients which have
+          {{getIndefiniteArticle(ruleset.resourceType)}}
+          <b>{{ruleset.resourceType}}</b> resource that meets the criteria below</p>
+        <p *ngIf="ruleset.resourceType === 'Patient'">Select <b>Patients</b> which meet the criteria below</p>
+      </div>
+    </div>
+    <!-- Prefix for the subgroup -->
+    <div class="v-box" *ngIf="removeRuleSet && !ruleset.hasOwnProperty('resourceType')">
+      <div class="h-box">
+        <button type="button" mat-icon-button aria-label="Remove search parameter group"
+                class="remove-btn"
+                (click)="removeRuleSet()">
+          <mat-icon svgIcon="clear"></mat-icon>
+        </button>
+        <p class="group-header">Subgroup of criteria for resource types</p>
+      </div>
+    </div>
+  </ng-container>
 
-<button id="addResourceType"
-        type="button"
-        (click)="addParameterGroup()" mat-stroked-button color="secondary">
-  <mat-icon svgIcon="add"></mat-icon>Add a resource type
-</button>
+  <!-- Suffix for the tree container -->
+  <ng-container *queryTreeContainerSuffix="
+     let ruleset; let addRule=addRule; let addRuleSet=addRuleSet;
+     let handleDataChange=handleDataChange; let removeRuleSet=removeRuleSet">
+    <!-- Add buttons for the root block -->
+    <div class="v-box" *ngIf="!removeRuleSet">
+      <div class="spacer" *ngIf="ruleset.rules?.length"></div>
+      <div class="h-box">
+        <button type="button"
+                (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button color="secondary">
+          <mat-icon svgIcon="add"></mat-icon>Add resource type criteria
+        </button>
+        <div class="spacer"></div>
+        <button type="button"
+                (click)="addRuleSet()" mat-stroked-button color="secondary">
+          <mat-icon svgIcon="add"></mat-icon>Add a subgroup of criteria for resource types
+        </button>
+      </div>
+    </div>
+    <!-- Add button for the resource criteria -->
+    <div class="v-box" *ngIf="ruleset.hasOwnProperty('resourceType')">
+      <div class="spacer" *ngIf="ruleset.resourceType && ruleset.rules.length"></div>
+      <div class="h-box">
+        <button type="button" *ngIf="ruleset.resourceType"
+                (click)="addRule()" mat-stroked-button color="secondary">
+          <mat-icon svgIcon="add"></mat-icon>Add a criterion for the {{ruleset.resourceType}} resource
+        </button>
+      </div>
+    </div>
+    <!-- Add button for the subgroup -->
+    <div class="v-box" *ngIf="removeRuleSet && !ruleset.hasOwnProperty('resourceType')">
+      <div class="spacer" *ngIf="ruleset.rules.length"></div>
+      <div class="h-box">
+        <button type="button"
+                (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button color="secondary">
+          <mat-icon svgIcon="add"></mat-icon>Add resource type criteria
+        </button>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *queryRemoveButton="let rule; let removeRule=removeRule">
+    <button type="button" mat-icon-button aria-label="Remove search parameter"
+            class="remove-btn"
+            (click)="removeRule(rule)">
+      <mat-icon svgIcon="clear"></mat-icon>
+    </button>
+  </ng-container>
+
+  <!-- Search parameter name selector -->
+  <ng-container *queryField="let rule; let fields=fields;  let parentRuleSet=parentRuleSet; let onChange=onChange; let getFields = getFields">
+    <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"></app-search-parameter>
+  </ng-container>
+  <ng-container *queryOperator="let rule; let operators=operators; let onChange=onChange">
+  </ng-container>
+  <ng-container *queryInput="let rule; type: 'search-parameter'; let getDisabledState=getDisabledState">
+  </ng-container>
+</query-builder>

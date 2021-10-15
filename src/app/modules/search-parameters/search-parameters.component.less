@@ -15,7 +15,51 @@
   }
 }
 
-#addResourceType {
-  display: block;
+query-builder {
   margin-bottom: 20px;
+}
+
+.remove-btn {
+  margin-top: 0.4em;
+}
+
+.group-header {
+  font-weight: bold;
+}
+
+:host query-builder ::ng-deep .q-tree-container .q-tree {
+  margin: 0;
+
+  .q-row .q-button-group.q-right-align {
+    float: left;
+  }
+
+  .autocomplete-disabled {
+    font-weight: bold;
+  }
+
+  .q-rule.q-row {
+    border: 0;
+    padding: 0;
+
+    &.q-connector::before {
+      height: 33px;
+    }
+
+  }
+
+  .mat-form-field-subscript-wrapper {
+    display: none;
+  }
+
+  .q-connector::before {
+    top: -7px;
+    height: 38px;
+    width: 10px;
+  }
+
+  .q-connector::after {
+    top: 28px;
+    height: calc(100% - 27px);
+  }
 }

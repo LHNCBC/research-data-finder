@@ -17,10 +17,10 @@
   <ng-container *ngIf="selectedParameter && selectedParameter.element !== OBSERVATIONBYTEST">
     <ng-container [ngSwitch]="selectedParameter.type">
 
-      <div *ngSwitchCase="'boolean'" class="parameter-value">
-        <mat-label><input type="radio" [formControl]="parameterValue" value="true">true</mat-label>
-        <mat-label><input type="radio" [formControl]="parameterValue" value="false">false</mat-label>
-      </div>
+      <mat-radio-group *ngSwitchCase="'boolean'" class="parameter-value" aria-label="Select a boolean value" [formControl]="parameterValue">
+        <mat-radio-button value="true" aria-label="true">true</mat-radio-button>
+        <mat-radio-button value="false" aria-label="false">false</mat-radio-button>
+      </mat-radio-group>
 
       <mat-form-field class="parameter-value"
         *ngSwitchCase="useLookupParamValue ? selectedParameter.type : ''">

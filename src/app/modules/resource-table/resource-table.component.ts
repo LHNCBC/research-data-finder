@@ -59,7 +59,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }[fhirBackend.currentVersion];
         this.compiledExpressions = {};
       });
-    this.listFilterColumns = settings.get('listFilterColumns');
+    this.listFilterColumns = settings.get('listFilterColumns') || [];
   }
 
   /**

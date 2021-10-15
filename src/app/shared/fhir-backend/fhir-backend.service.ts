@@ -17,6 +17,7 @@ import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
 import { find } from 'lodash-es';
+import { filter, map } from 'rxjs/operators';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -43,6 +44,7 @@ export enum ConnectionStatus {
 export class FhirBackendService implements HttpBackend {
   // Whether the connection to server is initialized.
   initialized = new BehaviorSubject(ConnectionStatus.Pending);
+  currentDefinitions$: Observable<any>;
 
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
@@ -137,6 +139,10 @@ export class FhirBackendService implements HttpBackend {
     this.fhirClient = new FhirBatchQuery({
       serviceBaseUrl: queryServer || defaultServer
     });
+    this.currentDefinitions$ = this.initialized.pipe(
+      filter((status) => status === ConnectionStatus.Ready),
+      map(() => this.getCurrentDefinitions())
+    );
   }
 
   /**
