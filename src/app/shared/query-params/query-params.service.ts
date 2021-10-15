@@ -6,22 +6,6 @@ import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 export const OBSERVATIONBYTEST = 'code text';
 export const CODETYPES = ['code', 'CodeableConcept', 'Coding'];
 
-/**
- * Query type
- * @enum {number}
- */
-export enum QueryType {
-  /**
-   * Regular query e.g. '&code=123&value=gt10'
-   */
-  regular = 0,
-  /**
-   * Filter query e.g. 'code eq 123 and value gt 10'
-   * See https://www.hl7.org/fhir/search_filter.html
-   */
-  filter
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -36,13 +20,8 @@ export class QueryParamsService {
    * Returns string of url segment describing the search criteria that will be used to search in server.
    * @param resourceType - resource type
    * @param value - search parameter value
-   * @param type - type of query
    */
-  getQueryParam(
-    resourceType: string,
-    value: SearchParameter,
-    type = QueryType.regular
-  ): string {
+  getQueryParam(resourceType: string, value: SearchParameter): string {
     const selectedParameter = this.definitions.resources[
       resourceType
     ].searchParameters.find((p) => p.element === value?.element);
@@ -53,7 +32,7 @@ export class QueryParamsService {
       return `&${value.element}=${value.value}`;
     }
     if (selectedParameter.element === OBSERVATIONBYTEST) {
-      return this.getObservationCodeTextCriteria(value, type);
+      return this.getObservationCodeTextCriteria(value);
     }
     if (selectedParameter.type === 'date') {
       return (
@@ -77,10 +56,7 @@ export class QueryParamsService {
       return `&${selectedParameter.element}=${value.value.join(',')}`;
     }
     if (selectedParameter.type === 'Quantity') {
-      const testValueCriteria = this.getCompositeTestValueCriteria(
-        value.value,
-        type
-      );
+      const testValueCriteria = this.getCompositeTestValueCriteria(value.value);
       return testValueCriteria
         ? `&${selectedParameter.element}${testValueCriteria}`
         : '';
@@ -91,10 +67,7 @@ export class QueryParamsService {
   /**
    * Get criteria string for Observation "code text" parameter
    */
-  private getObservationCodeTextCriteria(
-    value: SearchParameter,
-    type: QueryType
-  ): string {
+  private getObservationCodeTextCriteria(value: SearchParameter): string {
     const selectedCodes = value.selectedObservationCodes;
     // Ignore criteria if no code selected.
     if (!selectedCodes) {
@@ -110,10 +83,7 @@ export class QueryParamsService {
       Quantity: 'combo-value-quantity',
       string: 'value-string'
     }[selectedCodes.datatype];
-    const testValueCriteria = this.getCompositeTestValueCriteria(
-      value.value,
-      type
-    );
+    const testValueCriteria = this.getCompositeTestValueCriteria(value.value);
     const valueParam = testValueCriteria
       ? `&${valueParamName}${testValueCriteria}`
       : '';
@@ -124,7 +94,7 @@ export class QueryParamsService {
    * Get criteria string for composite test value controls
    * e.g. prefix + value + unit
    */
-  private getCompositeTestValueCriteria(value: any, type: QueryType): string {
+  private getCompositeTestValueCriteria(value: any): string {
     const modifier = value.testValueModifier;
     const prefix = value.testValuePrefix;
     const testValue = value.testValue
