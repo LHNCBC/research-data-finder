@@ -334,7 +334,8 @@ export class ObservationCodeLookupComponent
         },
         useResultCache: false,
         maxSelect: '*',
-        matchListValue: true
+        matchListValue: true,
+        showListOnFocusIfEmpty: true
       }
     ));
 
