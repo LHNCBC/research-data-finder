@@ -112,9 +112,9 @@ export class QueryParamsService {
    * Whether to use lookup control for search parameter value.
    */
   getUseLookupParamValue(selectedParameter: any): boolean {
-    const parameterValues = this.definitions.valueSets[
-      selectedParameter.valueSet
-    ];
+    const parameterValues =
+      selectedParameter.valueSet &&
+      this.definitions.valueSets[selectedParameter.valueSet];
     return (
       CODETYPES.includes(selectedParameter.type) &&
       Array.isArray(parameterValues) &&

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SearchParameterComponent } from './search-parameter.component';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { configureTestingModule } from 'src/test/helpers';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { MockComponent } from 'ng-mocks';
@@ -32,48 +32,43 @@ describe('SearchParameterComponent', () => {
   let page: Page;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [
-        SearchParameterComponent,
-        MockComponent(ObservationTestValueComponent)
-      ],
-      imports: [
-        CommonModule,
-        MatIconModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatAutocompleteModule,
-        MatInputModule,
-        NoopAnimationsModule
-      ],
-      providers: [
-        {
-          provide: FhirBackendService,
-          useValue: {
-            getCurrentDefinitions: () => {
-              return {
-                resources: {
-                  Observation: {
-                    searchParameters: [
-                      {
-                        element: 'code text',
-                        displayName: 'Some name'
-                      },
-                      {
-                        element: 'value-quantity',
-                        displayName: 'value quantity',
-                        type: 'Quantity'
-                      }
-                    ]
-                  }
+    await configureTestingModule(
+      {
+        declarations: [
+          SearchParameterComponent,
+          MockComponent(ObservationTestValueComponent)
+        ],
+        imports: [
+          CommonModule,
+          MatIconModule,
+          ReactiveFormsModule,
+          MatButtonModule,
+          MatFormFieldModule,
+          MatAutocompleteModule,
+          MatInputModule,
+          NoopAnimationsModule
+        ]
+      },
+      {
+        definitions: {
+          resources: {
+            Observation: {
+              searchParameters: [
+                {
+                  element: 'code text',
+                  displayName: 'Some name'
+                },
+                {
+                  element: 'value-quantity',
+                  displayName: 'value quantity',
+                  type: 'Quantity'
                 }
-              };
+              ]
             }
           }
         }
-      ]
-    }).compileComponents();
+      }
+    );
   });
 
   beforeEach(() => {

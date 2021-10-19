@@ -2,11 +2,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SearchParametersComponent } from './search-parameters.component';
 import { SearchParametersModule } from './search-parameters.module';
-import { SharedModule } from '../../shared/shared.module';
 import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
+import { configureTestingModule } from 'src/test/helpers';
 
 describe('SearchParametersComponent', () => {
   let component: SearchParametersComponent;
@@ -14,10 +14,10 @@ describe('SearchParametersComponent', () => {
   let fhirBackend: FhirBackendService;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
+    await configureTestingModule({
       declarations: [SearchParametersComponent],
-      imports: [SearchParametersModule, SharedModule]
-    }).compileComponents();
+      imports: [SearchParametersModule]
+    });
     fhirBackend = TestBed.inject(FhirBackendService);
   });
 

@@ -5,7 +5,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
 import { Config } from '../../types/settings';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import { get as getPropertyByPath } from 'lodash-es';
@@ -27,7 +27,7 @@ export class SettingsService {
   /**
    * Loads settings from JSON file.
    */
-  loadJsonConfig(): Observable<any> {
+  loadJsonConfig(): Observable<void> {
     return this.http
       .get('assets/settings.json5', {
         responseType: 'text',
@@ -36,10 +36,10 @@ export class SettingsService {
         })
       })
       .pipe(
-        tap((config) => {
+        mergeMap((config) => {
           this.config = json5.parse(config);
           this.fhirBackend.settings = this;
-          this.fhirBackend.initializeFhirBatchQuery();
+          return this.fhirBackend.initializeFhirBatchQuery();
         })
       );
   }

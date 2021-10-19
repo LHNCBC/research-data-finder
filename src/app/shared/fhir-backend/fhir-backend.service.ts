@@ -10,14 +10,15 @@ import {
   HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
-import { BehaviorSubject, Observable, Observer } from 'rxjs';
+import { BehaviorSubject, Observable, Observer, throwError } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
 import { find } from 'lodash-es';
-import { filter, map } from 'rxjs/operators';
+import { catchError, filter, map, mergeMap } from 'rxjs/operators';
+import { fromPromise } from 'rxjs/internal-compatibility';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -51,7 +52,7 @@ export class FhirBackendService implements HttpBackend {
     if (this.serviceBaseUrl !== url) {
       this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
-      this.initializeFhirBatchQuery(url);
+      this.initializeFhirBatchQuery(url).subscribe();
     }
   }
   get serviceBaseUrl(): string {
@@ -149,29 +150,27 @@ export class FhirBackendService implements HttpBackend {
    * Initialize/reinitialize FhirBatchQuery instance
    * @param [serviceBaseUrl] - new FHIR REST API Service Base URL
    */
-  initializeFhirBatchQuery(serviceBaseUrl: string = ''): void {
+  initializeFhirBatchQuery(serviceBaseUrl: string = ''): Observable<void> {
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
-    this.fhirClient.initialize(serviceBaseUrl).then(
-      () => {
+    return fromPromise(this.fhirClient.initialize(serviceBaseUrl)).pipe(
+      mergeMap(() => {
         // Load definitions of search parameters and columns from CSV file
-        this.settings.loadCsvDefinitions().subscribe(
-          (resourceDefinitions) => {
+        return this.settings.loadCsvDefinitions().pipe(
+          map((resourceDefinitions) => {
             this.currentDefinitions = { resources: resourceDefinitions };
             this.initialized.next(ConnectionStatus.Ready);
-          },
-          (err) => {
+          }),
+          catchError((err) => {
             if (!(err instanceof HttpErrorResponse)) {
               // Show exceptions from loadCsvDefinitions in console
               console.error(err.message);
             }
             this.initialized.next(ConnectionStatus.Error);
-          }
+            return throwError(err);
+          })
         );
-      },
-      () => {
-        this.initialized.next(ConnectionStatus.Error);
-      }
+      })
     );
   }
 
