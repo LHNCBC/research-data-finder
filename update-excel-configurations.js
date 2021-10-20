@@ -174,9 +174,10 @@ function camelCaseToHyphenated(camel) {
  * 'abatement', 'abatement-age', 'abatement-date', 'abatement-string'.
  * @param sheet WorkSheet object
  * @param rowNum row number corresponding to the '...[x]' column
+ * @param baseString the '...' part of a '...[x]' fhir name
  */
-function getShowHideValueFromMultipleTypes(sheet, rowNum) {
-  const reg = `^${RegExp.$1}-?.*$`;
+function getShowHideValueFromMultipleTypes(sheet, rowNum, baseString) {
+  const reg = `^${baseString}-?.*$`;
   const regEx = new RegExp(reg);
   let showHide;
   let rowNumLow = rowNum - 1;
@@ -289,7 +290,8 @@ function updateColumnRows() {
       if (/^(.+)\[x]$/.test(fhirName)) {
         const updateShowHideValue = getShowHideValueFromMultipleTypes(
           sheet,
-          rowNum
+          rowNum,
+          RegExp.$1
         );
         if (updateShowHideValue !== undefined) {
           sheet[`E${rowNum}`].v = updateShowHideValue;
