@@ -201,6 +201,16 @@ export class AutoCompleteTestValueComponent
           search: (fieldVal, count) => {
             return {
               then: (resolve, reject) => {
+                if (!fieldVal) {
+                  resolve({
+                    resourceType: 'ValueSet',
+                    expansion: {
+                      total: this.options.length,
+                      contains: this.options
+                    }
+                  });
+                  return;
+                }
                 const url = `$fhir/${this.resourceType}`;
                 const params = {
                   _elements: this.searchParameter
