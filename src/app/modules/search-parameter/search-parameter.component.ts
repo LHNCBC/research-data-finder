@@ -1,7 +1,5 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
 import { SearchParameter } from 'src/app/types/search.parameter';
 import {
   BaseControlValueAccessor,
@@ -13,6 +11,10 @@ import {
   QueryParamsService,
   OBSERVATIONBYTEST
 } from '../../shared/query-params/query-params.service';
+import {
+  AutocompleteComponent,
+  AutocompleteOption
+} from '../autocomplete/autocomplete.component';
 
 /**
  * Component for editing one resource search parameter
@@ -35,9 +37,9 @@ export class SearchParameterComponent
 
   selectedResourceType: any;
 
-  parameterName: FormControl = new FormControl('', Validators.required);
+  parameterName: FormControl = new FormControl('');
   parameters: any[] = [];
-  filteredParameters: Observable<any[]>;
+  parameterOptions: AutocompleteOption[] = [];
   selectedParameter: any;
   currentValue = null;
 
@@ -55,7 +57,7 @@ export class SearchParameterComponent
   );
   loincCodes: string[] = [];
 
-  @ViewChild('searchParamName') searchParamName: ElementRef;
+  @ViewChild('searchParamName') searchParamName: AutocompleteComponent;
 
   get value(): SearchParameter {
     return {
@@ -83,12 +85,12 @@ export class SearchParameterComponent
     this.definitions = this.fhirBackend.getCurrentDefinitions();
     this.selectedResourceType = this.definitions.resources[this.resourceType];
     this.parameters = this.selectedResourceType.searchParameters;
+    this.parameterOptions = this.parameters.map((searchParameter) => ({
+      name: searchParameter.displayName,
+      value: searchParameter.displayName,
+      desc: searchParameter.description
+    }));
     this.selectedParameter = null;
-
-    this.filteredParameters = this.parameterName.valueChanges.pipe(
-      startWith(''),
-      map((value) => this._filter(value, this.parameters))
-    );
 
     this.parameterName.valueChanges.subscribe((value) => {
       this.selectedParameter = this.selectedResourceType.searchParameters.find(
@@ -171,6 +173,6 @@ export class SearchParameterComponent
    * This is being called from parent component when the "Add {resource type} criterion" button is clicked.
    */
   focusSearchParamNameInput(): void {
-    this.searchParamName.nativeElement.focus();
+    this.searchParamName.focus();
   }
 }

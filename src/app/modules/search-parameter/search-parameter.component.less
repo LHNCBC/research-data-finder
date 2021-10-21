@@ -4,10 +4,11 @@
   align-items: flex-start;
 }
 
+app-autocomplete ~ mat-form-field,
 mat-form-field ~ app-observation-code-lookup,
 app-observation-code-lookup ~ mat-form-field,
 mat-form-field ~ mat-form-field,
-mat-form-field ~ mat-radio-group,
+app-autocomplete ~ mat-radio-group,
 mat-radio-button ~ mat-radio-button {
   margin-left: 16px;
 }
@@ -27,8 +28,4 @@ mat-radio-group {
 
 app-observation-code-lookup {
   width: 100%;
-}
-
-.option-desc {
-  color: rgba(0, 0, 0, 0.38);
 }

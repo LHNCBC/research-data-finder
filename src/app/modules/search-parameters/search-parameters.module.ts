@@ -9,7 +9,7 @@ import { SearchParameterGroupModule } from '../search-parameter-group/search-par
 import { QueryBuilderModule } from '../../../query-builder/public-api';
 import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
-import { AutocompleteModule } from './autocomplete/autocomplete.module';
+import { AutocompleteModule } from '../autocomplete/autocomplete.module';
 import { SearchParameterModule } from '../search-parameter/search-parameter.module';
 
 @NgModule({

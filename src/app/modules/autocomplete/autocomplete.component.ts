@@ -1,14 +1,27 @@
-import { Attribute, Component, Input, OnInit, Optional } from '@angular/core';
+import {
+  Attribute,
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  Optional,
+  ViewChild
+} from '@angular/core';
 import {
   BaseControlValueAccessorAndValidator,
   createControlValueAccessorAndValidatorProviders
-} from '../../base-control-value-accessor';
-import { ErrorManager } from '../../../shared/error-manager/error-manager.service';
+} from '../base-control-value-accessor';
+import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { FormControl, ValidationErrors } from '@angular/forms';
 import { combineLatest, Observable, ReplaySubject } from 'rxjs';
 import { map, startWith, take } from 'rxjs/operators';
 
+/**
+ * Autocomplete option can have display name, value and description.
+ * In simple cases, when the name is equal to the value and there is no
+ * description, it can be a string or only have a name property.
+ */
 export type AutocompleteOption =
   | {
       name: string;
@@ -17,6 +30,9 @@ export type AutocompleteOption =
     }
   | string;
 
+/**
+ * Component for selecting values from a list of options using autocomplete.
+ */
 @Component({
   selector: 'app-autocomplete',
   templateUrl: './autocomplete.component.html',
@@ -34,10 +50,19 @@ export class AutocompleteComponent
   extends BaseControlValueAccessorAndValidator<any>
   implements OnInit {
   private errors: ValidationErrors = null;
+
+  /**
+   * Constructor
+   * @param required - value of the "required" attribute of the host element,
+   *   used to check for the existence of the attribute. If the attribute exists,
+   *   marks the component that cannot have an empty value.
+   */
   constructor(@Optional() @Attribute('required') required: any) {
     super();
     this.required = required !== null;
+    this.updateValidationStatus();
   }
+
   @Input() set options(options: AutocompleteOption[]) {
     this.options$.next(options);
   }
@@ -45,6 +70,8 @@ export class AutocompleteComponent
   control: FormControl = new FormControl('', () => {
     return this.errors;
   });
+
+  @ViewChild('inputField') inputField: ElementRef;
   private required = false;
   selectedOption = null;
   @Input() label = '';
@@ -88,9 +115,11 @@ export class AutocompleteComponent
               selectedOption
             );
             this.selectedOption = selectedOption;
+            this.updateValidationStatus();
             this.onChange(newValue);
           } else {
             this.selectedOption = null;
+            this.updateValidationStatus();
             this.onChange('');
           }
         }
@@ -128,14 +157,21 @@ export class AutocompleteComponent
    * Performs synchronous validation.
    */
   validate({ value }: FormControl): ValidationErrors {
+    return this.errors;
+  }
+
+  /**
+   * Updates validation status
+   */
+  updateValidationStatus(): void {
     this.errors =
-      !this.required || value
+      !this.required || this.selectedOption
         ? null
         : {
             required: true
           };
 
-    return this.errors;
+    this.control.setErrors(this.errors);
   }
 
   /**
@@ -148,5 +184,12 @@ export class AutocompleteComponent
     } else {
       this.control.enable({ emitEvent: false });
     }
+  }
+
+  /**
+   * Focuses in the input field.
+   */
+  focus(): void {
+    this.inputField.nativeElement.focus();
   }
 }

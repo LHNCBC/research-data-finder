@@ -1,6 +1,7 @@
-<mat-form-field class="autocomplete" *ngIf="!control.disabled">
+<mat-form-field class="autocomplete-form-field" *ngIf="!control.disabled">
   <mat-label>{{label}}</mat-label>
   <input type="text"
+         #inputField
          [attr.aria-label]="label"
          [placeholder]="placeholder"
          matInput

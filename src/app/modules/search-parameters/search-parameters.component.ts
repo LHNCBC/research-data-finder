@@ -1,15 +1,14 @@
 import { Component, ViewChildren, QueryList, ViewChild } from '@angular/core';
-import { AbstractControl, FormArray, FormControl } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 import { SearchParameter } from 'src/app/types/search.parameter';
-import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import {
   Field,
   Option,
@@ -19,8 +18,12 @@ import {
   RuleSet
 } from '../../../query-builder/public-api';
 import { Observable } from 'rxjs';
-import { AutocompleteOption } from './autocomplete/autocomplete.component';
+import {
+  AutocompleteComponent,
+  AutocompleteOption
+} from '../autocomplete/autocomplete.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 
 /**
  * Component for managing resources search parameters
@@ -40,39 +43,28 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 export class SearchParametersComponent extends BaseControlValueAccessor<
   SearchParameter[]
 > {
-  @ViewChildren(SearchParameterGroupComponent)
-  searchParameterGroupComponents: QueryList<SearchParameterGroupComponent>;
-  parameterGroupList = new FormArray([]);
+  @ViewChildren(AutocompleteComponent)
+  resourceTypeComponents: QueryList<AutocompleteComponent>;
+  @ViewChildren(SearchParameterComponent)
+  searchParameterComponents: QueryList<SearchParameterComponent>;
   @ViewChild(QueryBuilderComponent)
   queryBuilderComponent: QueryBuilderComponent;
   public queryCtrl: FormControl = new FormControl({});
   public queryBuilderConfig: QueryBuilderConfig = { fields: {} };
   resourceTypes$: Observable<AutocompleteOption[]>;
-  fieldsCache: {
-    [resourceType: string]: AutocompleteOption[];
-  } = {};
 
   constructor(
     private fhirBackend: FhirBackendService,
     private liveAnnoncer: LiveAnnouncer
   ) {
     super();
-    this.parameterGroupList.valueChanges.subscribe((value) => {
-      this.onChange(value);
-    });
 
     this.resourceTypes$ = fhirBackend.currentDefinitions$.pipe(
-      map((definitions) =>
-        Object.keys(definitions.resources).map((resourceType) => ({
-          name: resourceType
-        }))
-      )
+      map((definitions) => Object.keys(definitions.resources))
     );
 
     fhirBackend.currentDefinitions$.subscribe((definitions) => {
       // Clear search parameters on server change
-      this.parameterGroupList.clear();
-      this.fieldsCache = {};
       const config = {
         allowEmptyRulesets: true,
         fields: {},
@@ -85,6 +77,15 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
               field: {}
             } as Rule
           ]);
+          this.liveAnnoncer.announce(
+            'A new line of search criterion is added.'
+          );
+          // Focus the input control of the newly added search parameter line.
+          this.searchParameterComponents.changes
+            .pipe(take(1))
+            .subscribe((components) => {
+              setTimeout(() => components.last.focusSearchParamNameInput());
+            });
         },
 
         getInputType: (fieldName: string, operator: string): string => {
@@ -122,32 +123,15 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
       // if it has a "resourceType" property
       resourceType: ''
     } as RuleSet);
-  }
 
-  /**
-   * Add new search parameter group to search parameter group list
-   */
-  public addParameterGroup(): void {
-    this.parameterGroupList.push(
-      new FormControl({
-        resourceType: '',
-        parameters: []
-      })
-    );
     this.liveAnnoncer.announce('A new line of resource type is added.');
-    // Focus the input control of the newly added resource type line.
-    setTimeout(() => {
-      this.searchParameterGroupComponents.last.focusResourceTypeInput();
-    }, 0);
-  }
 
-  /**
-   * Remove search parameter group from search parameter group list
-   */
-  public removeParameterGroup(item: AbstractControl): void {
-    this.parameterGroupList.removeAt(
-      this.parameterGroupList.controls.indexOf(item)
-    );
+    // Focus the input control of the newly added resource type line.
+    this.resourceTypeComponents.changes
+      .pipe(take(1))
+      .subscribe((components) => {
+        setTimeout(() => components.last.focus());
+      });
   }
 
   writeValue(value: SearchParameter[]): void {

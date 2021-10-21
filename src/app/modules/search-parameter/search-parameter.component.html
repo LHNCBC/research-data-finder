@@ -1,18 +1,11 @@
 <div class="search-parameter">
-  <mat-form-field class="parameter-name" *ngIf='!isPullData'>
-    <mat-label>Search parameter name</mat-label>
-    <input type="text" #searchParamName
-           aria-label="Search parameter name"
-           matInput
-           [formControl]="parameterName"
-           tabToSelect
-           [matAutocomplete]="auto1">
-    <mat-autocomplete #auto1="matAutocomplete">
-      <mat-option *ngFor="let option of filteredParameters | async" [value]="option.displayName">
-        {{option.displayName}} <span class="option-desc" [matTooltip]="option.description">({{option.description}})</span>
-      </mat-option>
-    </mat-autocomplete>
-  </mat-form-field>
+  <app-autocomplete
+      #searchParamName
+      class="parameter-name"
+      label="Search parameter name"
+      required
+      [options]="parameterOptions"
+      [formControl]="parameterName"></app-autocomplete>
 
   <ng-container *ngIf="selectedParameter && selectedParameter.element !== OBSERVATIONBYTEST">
     <ng-container [ngSwitch]="selectedParameter.type">

@@ -16,6 +16,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormControlCollectorModule } from '../../shared/error-manager/form-control-collector.module';
 import { TabToSelectModule } from '../../shared/tab-to-select/tab-to-select.module';
 import { MatRadioModule } from '@angular/material/radio';
+import { AutocompleteModule } from '../autocomplete/autocomplete.module';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,8 @@ import { MatRadioModule } from '@angular/material/radio';
     MatTooltipModule,
     MatProgressSpinnerModule,
     TabToSelectModule,
-    MatRadioModule
+    MatRadioModule,
+    AutocompleteModule
   ]
 })
 export class SearchParameterModule {}
