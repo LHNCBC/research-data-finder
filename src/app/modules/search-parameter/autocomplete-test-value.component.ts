@@ -219,12 +219,10 @@ export class AutoCompleteTestValueComponent
                 this.subscription?.unsubscribe();
 
                 const obs = this.httpClient
-                  // Load first page of Observation resources
                   .get(url, {
                     params
                   })
                   .pipe(
-                    // Modifying the Observable to load the following pages sequentially
                     expand((response: Bundle) => {
                       contains.push(
                         ...this.getAutocompleteItems(
@@ -291,18 +289,9 @@ export class AutoCompleteTestValueComponent
       });
     }
 
-    Def.Autocompleter.Event.observeListSelections(testInputId, (eventData) => {
+    Def.Autocompleter.Event.observeListSelections(testInputId, () => {
       const coding = acInstance.getSelectedCodes();
       const items = acInstance.getSelectedItems();
-      if (coding.length > 0) {
-        if (!eventData.removed) {
-          acInstance.domCache.set('elemVal', eventData.val_typed_in);
-          acInstance.useSearchFn(
-            eventData.val_typed_in,
-            Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD
-          );
-        }
-      }
       this.currentData = {
         coding,
         items
