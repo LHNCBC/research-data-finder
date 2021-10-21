@@ -202,9 +202,10 @@ export class AutoCompleteTestValueComponent
             return {
               then: (resolve, reject) => {
                 const url = `$fhir/${this.resourceType}`;
-                const params = {};
+                const params = {
+                  _elements: this.searchParameter
+                };
                 params[`${this.searchParameter}`] = fieldVal;
-                console.log(params);
                 // Hash of processed codes, used to exclude repeated codes
                 const processedCodes = {};
                 // Array of result items for autocompleter
