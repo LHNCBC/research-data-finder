@@ -26,7 +26,8 @@
         *ngSwitchCase="useLookupParamValue ? selectedParameter.type : ''">
         <mat-label>Search parameter value</mat-label>
         <app-autocomplete-test-value
-          [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more">
+          [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more"
+          [resourceType]="resourceType" [searchParameter]="selectedParameter.element">
         </app-autocomplete-test-value>
       </mat-form-field>
 

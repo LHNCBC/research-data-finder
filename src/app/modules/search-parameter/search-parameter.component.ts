@@ -179,7 +179,7 @@ export class SearchParameterComponent
     if (this.useLookupParamValue) {
       return `&${
         this.selectedParameter.element
-      }=${this.parameterValue.value.join(',')}`;
+      }=${this.parameterValue.value.coding.join(',')}`;
     }
     if (this.selectedParameter.type === 'Quantity') {
       const testValueCriteria = this.getCompositeTestValueCriteria();
