@@ -214,9 +214,17 @@ describe('Research Data Finder', () => {
   });
 });
 
+/**
+ * Puts text in an input field inside a MatFormField component with the
+ * specified text of the form field's floating label.
+ * @param parent - parent component where to start searching for the input field
+ * @param floatingLabelText - filter based on the text of the form field's
+ *   floating label.
+ * @param text - text to fill the input field
+ */
 async function fillMatFormFieldInput(
   parent: ContentContainerComponentHarness,
-  floatingLabelText: string,
+  floatingLabelText: string | RegExp,
   text: string
 ): Promise<void> {
   const matFormField = await parent.getHarness(
