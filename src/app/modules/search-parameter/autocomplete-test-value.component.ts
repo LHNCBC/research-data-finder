@@ -201,6 +201,7 @@ export class AutoCompleteTestValueComponent
           search: (fieldVal, count) => {
             return {
               then: (resolve, reject) => {
+                // Return local options from definitions if input is empty.
                 if (!fieldVal) {
                   resolve({
                     resourceType: 'ValueSet',
@@ -211,6 +212,7 @@ export class AutoCompleteTestValueComponent
                   });
                   return;
                 }
+
                 const url = `$fhir/${this.resourceType}`;
                 const params = {
                   _elements: this.searchParameter
