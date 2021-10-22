@@ -287,7 +287,8 @@ input.search_field.invalid {
 mat-step-header[aria-selected=true] {
   background-color: rgba(0, 0, 0, .04);
 }
-
+// Remove highlight from cdk-program-focused class alone, since it was causing the
+// wrong tab highlighted for dbGap server where there is a conditional tab.
 .mat-step-header.cdk-program-focused[aria-selected=false] {
   background-color: unset;
 }
