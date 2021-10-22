@@ -13,6 +13,11 @@ const writeXlsxFile = require('write-excel-file/node');
 
 const SERVICEBASEURL = '---SERVICE BASE URL:';
 const SEARCHPARAMETER = 'search parameter';
+const RESOURCETYPECOLUMN = 'A';
+const FHIRNAMECOLUMN = 'B';
+const TYPECOLUMN = 'C';
+const SHOWHIDECOLUMN = 'E';
+const DATATYPECOLUMN = 'F';
 const COLUMN = 'column';
 const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
@@ -36,7 +41,7 @@ const doNotUpdateList = [
  * @param columnCount total number of columns
  */
 function getRowData(sheet, rowNum, columnCount) {
-  const firstCellValue = sheet[`A${rowNum}`]?.v;
+  const firstCellValue = sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v;
   const isBold =
     firstCellValue === 'Legend' || firstCellValue === 'Resource type';
   const row = [];
@@ -79,7 +84,7 @@ function createHttpsPromise(url, resourceType, rowNum, sheet) {
 function callServer(resolve, url, resourceType, rowNum, sheet, retryCount = 0) {
   https.get(url, (res) => {
     const { statusCode } = res;
-    const paramName = sheet[`B${rowNum}`].v;
+    const paramName = sheet[`${FHIRNAMECOLUMN}${rowNum}`].v;
     if (statusCode === 429 || statusCode === 502) {
       console.log(
         `Hide! ${resourceType} ${paramName} - HTTPS returned code ${statusCode}, retrying... ${++retryCount}`
@@ -93,7 +98,7 @@ function callServer(resolve, url, resourceType, rowNum, sheet, retryCount = 0) {
       console.error(
         `Hide! ${resourceType} ${paramName} - HTTPS failed with code ${statusCode}`
       );
-      sheet[`E${rowNum}`].v = 'hide';
+      sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = 'hide';
       resolve();
       return;
     }
@@ -106,11 +111,11 @@ function callServer(resolve, url, resourceType, rowNum, sheet, retryCount = 0) {
       const parsedData = JSON.parse(rawData);
       if (parsedData.entry && parsedData.entry.length > 0) {
         console.log(`Show! ${resourceType} ${paramName}`);
-        sheet[`E${rowNum}`].v = 'show';
+        sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = 'show';
         resolve();
       } else {
         console.log(`Hide! ${resourceType} ${paramName}`);
-        sheet[`E${rowNum}`].v = 'hide';
+        sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = 'hide';
         resolve();
       }
     });
@@ -127,10 +132,10 @@ for (let i = 0; i < file.SheetNames.length; i++) {
   // sheet['!ref'] returns the sheet range as in format 'A1:H100'.
   const maxRowNumber = sheet['!ref'].slice(4);
   for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
-    if (sheet[`A${rowNum}`]?.v) {
-      resourceType = sheet[`A${rowNum}`]?.v;
-      if (sheet[`A${rowNum}`]?.v === SERVICEBASEURL) {
-        serviceBaseUrl = sheet[`B${rowNum}`]?.v;
+    if (sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v) {
+      resourceType = sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v;
+      if (sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v === SERVICEBASEURL) {
+        serviceBaseUrl = sheet[`${FHIRNAMECOLUMN}${rowNum}`]?.v;
         // Do not update default sheet.
         if (serviceBaseUrl === 'default') {
           break;
@@ -138,13 +143,15 @@ for (let i = 0; i < file.SheetNames.length; i++) {
       }
     }
     if (
-      sheet[`C${rowNum}`]?.v === SEARCHPARAMETER &&
+      sheet[`${TYPECOLUMN}${rowNum}`]?.v === SEARCHPARAMETER &&
       !doNotUpdateList.some(
-        (x) => x[0] === resourceType && x[1].test(sheet[`B${rowNum}`]?.v)
+        (x) =>
+          x[0] === resourceType &&
+          x[1].test(sheet[`${FHIRNAMECOLUMN}${rowNum}`]?.v)
       )
     ) {
-      const paramName = sheet[`B${rowNum}`].v;
-      const paramType = sheet[`F${rowNum}`].v;
+      const paramName = sheet[`${FHIRNAMECOLUMN}${rowNum}`].v;
+      const paramType = sheet[`${DATATYPECOLUMN}${rowNum}`].v;
       const url =
         paramType === 'date' || paramType === 'dateTime'
           ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}=gt1000-01-01`
@@ -182,10 +189,10 @@ function getShowHideValueFromMultipleTypes(sheet, rowNum, baseString) {
   let showHide;
   let rowNumLow = rowNum - 1;
   while (
-    regEx.test(sheet[`B${rowNumLow}`]?.v) &&
-    sheet[`C${rowNumLow}`].v === SEARCHPARAMETER
+    regEx.test(sheet[`${FHIRNAMECOLUMN}${rowNumLow}`]?.v) &&
+    sheet[`${TYPECOLUMN}${rowNumLow}`].v === SEARCHPARAMETER
   ) {
-    showHide = sheet[`E${rowNumLow}`].v;
+    showHide = sheet[`${SHOWHIDECOLUMN}${rowNumLow}`].v;
     if (showHide === 'show') {
       return showHide;
     }
@@ -193,10 +200,10 @@ function getShowHideValueFromMultipleTypes(sheet, rowNum, baseString) {
   }
   let rowNumHigh = rowNum + 1;
   while (
-    regEx.test(sheet[`B${rowNumHigh}`]?.v) &&
-    sheet[`C${rowNumHigh}`].v === SEARCHPARAMETER
+    regEx.test(sheet[`${FHIRNAMECOLUMN}${rowNumHigh}`]?.v) &&
+    sheet[`${TYPECOLUMN}${rowNumHigh}`].v === SEARCHPARAMETER
   ) {
-    showHide = sheet[`E${rowNumHigh}`].v;
+    showHide = sheet[`${SHOWHIDECOLUMN}${rowNumHigh}`].v;
     if (showHide === 'show') {
       return showHide;
     }
@@ -250,17 +257,19 @@ function updateColumnRows() {
     const columnCount =
       xlsxColumnHeaders.findIndex((x) => x === maxColumnLetter) + 1;
     for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
-      if (sheet[`C${rowNum}`]?.v !== COLUMN) {
+      if (sheet[`${TYPECOLUMN}${rowNum}`]?.v !== COLUMN) {
         continue;
       }
-      const fhirName = sheet[`B${rowNum}`].v;
+      const fhirName = sheet[`${FHIRNAMECOLUMN}${rowNum}`].v;
       if (
-        (sheet[`B${rowNum - 1}`]?.v?.toLowerCase() === fhirName.toLowerCase() ||
-          sheet[`B${rowNum - 1}`]?.v === camelCaseToHyphenated(fhirName)) &&
-        sheet[`C${rowNum - 1}`].v === SEARCHPARAMETER
+        (sheet[`${FHIRNAMECOLUMN}${rowNum - 1}`]?.v?.toLowerCase() ===
+          fhirName.toLowerCase() ||
+          sheet[`${FHIRNAMECOLUMN}${rowNum - 1}`]?.v ===
+            camelCaseToHyphenated(fhirName)) &&
+        sheet[`${TYPECOLUMN}${rowNum - 1}`].v === SEARCHPARAMETER
       ) {
-        const updateShowHideValue = sheet[`E${rowNum - 1}`].v;
-        sheet[`E${rowNum}`].v = updateShowHideValue;
+        const updateShowHideValue = sheet[`${SHOWHIDECOLUMN}${rowNum - 1}`].v;
+        sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = updateShowHideValue;
         paintRow(
           sheet,
           rowNum,
@@ -271,12 +280,14 @@ function updateColumnRows() {
         continue;
       }
       if (
-        (sheet[`B${rowNum + 1}`]?.v?.toLowerCase() === fhirName.toLowerCase() ||
-          sheet[`B${rowNum + 1}`]?.v === camelCaseToHyphenated(fhirName)) &&
-        sheet[`C${rowNum + 1}`].v === SEARCHPARAMETER
+        (sheet[`${FHIRNAMECOLUMN}${rowNum + 1}`]?.v?.toLowerCase() ===
+          fhirName.toLowerCase() ||
+          sheet[`${FHIRNAMECOLUMN}${rowNum + 1}`]?.v ===
+            camelCaseToHyphenated(fhirName)) &&
+        sheet[`${TYPECOLUMN}${rowNum + 1}`].v === SEARCHPARAMETER
       ) {
-        const updateShowHideValue = sheet[`E${rowNum + 1}`].v;
-        sheet[`E${rowNum}`].v = updateShowHideValue;
+        const updateShowHideValue = sheet[`${SHOWHIDECOLUMN}${rowNum + 1}`].v;
+        sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = updateShowHideValue;
         paintRow(
           sheet,
           rowNum,
@@ -293,7 +304,7 @@ function updateColumnRows() {
           RegExp.$1
         );
         if (updateShowHideValue !== undefined) {
-          sheet[`E${rowNum}`].v = updateShowHideValue;
+          sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = updateShowHideValue;
           paintRow(
             sheet,
             rowNum,
