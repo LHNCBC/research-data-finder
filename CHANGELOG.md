@@ -7,6 +7,10 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Added
 - Script for start-public task.
 
+## [3.22.1] - 2021-10-19
+### Fixed
+- The wrong tab highlighted when the dbGaP server was selected.
+
 ## [3.22.0] - 2021-10-08
 ### Added
 - Ability for user to use TAB key on a dropdown list to select an item and
