@@ -162,7 +162,7 @@ for (let i = 0; i < file.SheetNames.length; i++) {
 function camelCaseToHyphenated(camel) {
   return camel
     .split(/(?=[A-Z])/)
-    .join('_')
+    .join('-')
     .toLowerCase();
 }
 
@@ -245,7 +245,6 @@ function updateColumnRows() {
       show: colorWithData,
       hide: colorWithoutData
     };
-    console.log(colorLegend);
     const maxRowNumber = sheet['!ref'].slice(4);
     const maxColumnLetter = sheet['!ref'].charAt(3);
     const columnCount =
