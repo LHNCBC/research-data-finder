@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TabToSelectModule } from '../../shared/tab-to-select/tab-to-select.module';
 
 @NgModule({
   declarations: [AutocompleteComponent],
@@ -22,7 +23,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatFormFieldModule,
     MatAutocompleteModule,
     MatInputModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TabToSelectModule
   ]
 })
 export class AutocompleteModule {}

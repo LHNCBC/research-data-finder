@@ -150,6 +150,7 @@ export class AutocompleteComponent
       } else {
         this.control.setValue('');
       }
+      this.updateValidationStatus();
     });
   }
 
