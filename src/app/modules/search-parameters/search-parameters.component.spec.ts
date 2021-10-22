@@ -24,7 +24,6 @@ describe('SearchParametersComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(SearchParametersComponent);
     component = fixture.componentInstance;
-    spyOn(component.parameterGroupList, 'clear');
     fixture.detectChanges();
   });
 
@@ -33,8 +32,7 @@ describe('SearchParametersComponent', () => {
   });
 
   it('should clear the search parameters when connecting to a new server', () => {
-    expect(component.parameterGroupList.clear).not.toHaveBeenCalled();
     fhirBackend.initialized.next(ConnectionStatus.Ready);
-    expect(component.parameterGroupList.clear).toHaveBeenCalled();
+    expect(component.queryCtrl.value.rules.length).toBe(0);
   });
 });

@@ -270,14 +270,7 @@ export class DefineCohortPageComponent
       ).pipe(
         // Sequentially execute queries and put the result into the stream.
         concatMap((rules) => {
-          // We can use _has to select Patients if we only have one criterion
-          // for the resource.
-          const useHas =
-            criteria.resourceType !== PATIENT_RESOURCE_TYPE &&
-            rules.length === 1 &&
-            this.queryParams
-              .getQueryParam(criteria.resourceType, rules[0].field)
-              .lastIndexOf('&') === 0;
+          const useHas = this.canUseHas(criteria.resourceType, rules);
           const resourceType = useHas
             ? PATIENT_RESOURCE_TYPE
             : criteria.resourceType;
@@ -395,14 +388,7 @@ export class DefineCohortPageComponent
       ).pipe(
         // Sequentially execute queries and put the result into the stream
         concatMap((rules) => {
-          // We can use _has to select Patients if we only have one criterion
-          // for the resource.
-          const useHas =
-            criteria.resourceType !== PATIENT_RESOURCE_TYPE &&
-            rules.length === 1 &&
-            this.queryParams
-              .getQueryParam(criteria.resourceType, rules[0].field)
-              .lastIndexOf('&') === 0;
+          const useHas = this.canUseHas(criteria.resourceType, rules);
           const resourceType = useHas
             ? PATIENT_RESOURCE_TYPE
             : criteria.resourceType;
@@ -507,14 +493,7 @@ export class DefineCohortPageComponent
                   : [ruleset.rules];
               return forkJoin(
                 rulesets.map((rules) => {
-                  const useHas =
-                    ruleset.resourceType !== PATIENT_RESOURCE_TYPE &&
-                    // We can use _has to select Patients if we only have one
-                    // criterion for the resource:
-                    rules.length === 1 &&
-                    this.queryParams
-                      .getQueryParam(ruleset.resourceType, rules[0].field)
-                      .lastIndexOf('&') === 0;
+                  const useHas = this.canUseHas(ruleset.resourceType, rules);
 
                   const query =
                     '$fhir/' +
@@ -567,6 +546,25 @@ export class DefineCohortPageComponent
               : sortedRules.reduce((total, rule) => total + rule.total, 0)
         };
       })
+    );
+  }
+
+  /**
+   * Returns true if the _has query can be used to retrieve Patient resources
+   * based on the specified criteria for specified resource type.
+   */
+  canUseHas(
+    resourceType: string,
+    criteriaForResourceType: Array<Criterion>
+  ): boolean {
+    // We can use _has to select Patients if we only have one
+    // criterion for the resource type:
+    return (
+      resourceType !== PATIENT_RESOURCE_TYPE &&
+      criteriaForResourceType.length === 1 &&
+      this.queryParams
+        .getQueryParam(resourceType, criteriaForResourceType[0].field)
+        .lastIndexOf('&') === 0
     );
   }
 }

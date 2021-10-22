@@ -3,9 +3,13 @@
  */
 import { TestModuleMetadata, TestBed } from '@angular/core/testing';
 import { SharedModule } from '../app/shared/shared.module';
-import { FhirBackendService } from '../app/shared/fhir-backend/fhir-backend.service';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../app/shared/fhir-backend/fhir-backend.service';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import { SettingsService } from '../app/shared/settings-service/settings.service';
+import { filter, take } from 'rxjs/operators';
 
 /**
  * Wrapper for standard TestBed.configureTestingModule which does additional
@@ -43,6 +47,12 @@ export async function configureTestingModule(
 
   const settingsService = TestBed.inject(SettingsService);
   await settingsService.loadJsonConfig().toPromise();
+  await fhirBackend.initialized
+    .pipe(
+      filter((status) => status === ConnectionStatus.Ready),
+      take(1)
+    )
+    .toPromise();
 
   if (options.definitions) {
     spyOn(fhirBackend, 'getCurrentDefinitions').and.returnValue(

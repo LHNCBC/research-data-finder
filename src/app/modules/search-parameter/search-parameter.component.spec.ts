@@ -13,6 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { AutocompleteComponent } from '../autocomplete/autocomplete.component';
 
 class Page {
   private fixture: ComponentFixture<SearchParameterComponent>;
@@ -36,6 +37,7 @@ describe('SearchParameterComponent', () => {
       {
         declarations: [
           SearchParameterComponent,
+          MockComponent(AutocompleteComponent),
           MockComponent(ObservationTestValueComponent)
         ],
         imports: [

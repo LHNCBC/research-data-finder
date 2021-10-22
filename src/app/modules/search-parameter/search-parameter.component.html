@@ -1,5 +1,6 @@
 <div class="search-parameter">
   <app-autocomplete
+      *ngIf="!isPullData"
       #searchParamName
       class="parameter-name"
       label="Search parameter name"

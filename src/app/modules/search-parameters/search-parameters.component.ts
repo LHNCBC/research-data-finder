@@ -142,6 +142,6 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
    * Returns the indefinite article ('a' or 'an') for the specified word.
    */
   getIndefiniteArticle(word: string): string {
-    return /^[eyuioa]/i.test(word) ? 'an' : 'a';
+    return /^[euioa]/i.test(word) ? 'an' : 'a';
   }
 }
