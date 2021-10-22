@@ -31,7 +31,8 @@ const doNotUpdateList = [
   ['Patient', /^address-.+$/],
   ['Observation', /^.*value-.+$/],
   ['Observation', /^code$/],
-  ['Observation', /^combo-code$/]
+  ['Observation', /^combo-code$/],
+  ['Observation', /^component-code$/]
 ];
 
 /**

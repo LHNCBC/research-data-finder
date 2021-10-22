@@ -181,7 +181,6 @@ Observation,,,,,,,
 ,category,"search parameter",category,show,CodeableConcept,,"The classification of the type of observation"
 ,code,column,Code,hide,CodeableConcept,,"Type of observation (code / type)"
 ,component,column,Component,hide,BackboneElement,,"Component results"
-,component-code,"search parameter",component-code,show,CodeableConcept,,"The component code of the observation type"
 ,dataAbsentReason,column,"Data Absent Reason",hide,CodeableConcept,,"Why the result is missing"
 ,date,"search parameter",date,show,date,,"Obtained date/time. If the obtained element is a period, a date that falls in the period"
 ,derivedFrom,column,"Derived From",hide,Reference,,"Related measurements the observation is made from"
