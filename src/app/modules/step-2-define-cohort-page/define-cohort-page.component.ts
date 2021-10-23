@@ -24,6 +24,7 @@ import {
   map,
   mergeMap,
   share,
+  startWith,
   take,
   tap
 } from 'rxjs/operators';
@@ -350,7 +351,7 @@ export class DefineCohortPageComponent
                     this.check(resource, {
                       ...newCriteria,
                       rules: restRules
-                    })
+                    }).pipe(startWith(null as Resource))
                   )
                 ).pipe(
                   mergeMap((r) => from(r)),
@@ -375,7 +376,7 @@ export class DefineCohortPageComponent
   check(
     resource: Resource,
     criteria: Criteria | ResourceTypeCriteria
-  ): Observable<Resource | null> {
+  ): Observable<Resource> {
     const patientId = this.getPatientIdFromResource(resource);
 
     if ('resourceType' in criteria) {
@@ -444,7 +445,9 @@ export class DefineCohortPageComponent
     } else {
       if (criteria.rules.length > 1) {
         return forkJoin(
-          criteria.rules.map((rule) => this.check(resource, rule))
+          criteria.rules.map((rule) =>
+            this.check(resource, rule).pipe(startWith(null as Resource))
+          )
         ).pipe(
           map((resources) => {
             if (resources.indexOf(null) !== -1) {
