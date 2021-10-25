@@ -183,6 +183,8 @@ function camelCaseToHyphenated(camel) {
  * @param sheet WorkSheet object
  * @param rowNum row number corresponding to the '...[x]' column
  * @param baseString the '...' part of a '...[x]' fhir name
+ * @param startRow range of rows to search for matches
+ * @param endRow range of rows to search for matches
  */
 function getShowHideValueFromMultipleTypes(
   sheet,
@@ -209,6 +211,18 @@ function getShowHideValueFromMultipleTypes(
   return showHide;
 }
 
+/**
+ * Looks for a matching search parameter row of a column row and
+ * returns its show/hide value.
+ * If no rows match at all, return undefined.
+ * Examples of matching fhir names:
+ * 'relatesTo' vs 'relatesto', 'bodySite' vs 'body-site'.
+ * @param sheet WorkSheet object
+ * @param rowNum row number to be matched
+ * @param fhirName fhir name to be matched
+ * @param startRow range of rows to search for matches
+ * @param endRow range of rows to search for matches
+ */
 function getShowHideValueFromSingleMatch(
   sheet,
   rowNum,
