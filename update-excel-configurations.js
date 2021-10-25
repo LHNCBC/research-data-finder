@@ -131,7 +131,7 @@ for (let i = 0; i < file.SheetNames.length; i++) {
   let serviceBaseUrl = '';
   let resourceType;
   // sheet['!ref'] returns the sheet range as in format 'A1:H100'.
-  const maxRowNumber = sheet['!ref'].slice(4);
+  const maxRowNumber = +sheet['!ref'].slice(4);
   for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
     if (sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v) {
       resourceType = sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v;
@@ -287,7 +287,7 @@ function updateColumnRows() {
       show: colorWithData,
       hide: colorWithoutData
     };
-    const maxRowNumber = sheet['!ref'].slice(4);
+    const maxRowNumber = +sheet['!ref'].slice(4);
     const maxColumnLetter = sheet['!ref'].charAt(3);
     const columnCount =
       xlsxColumnHeaders.findIndex((x) => x === maxColumnLetter) + 1;
@@ -309,6 +309,7 @@ function updateColumnRows() {
       }
     }
     resourceTypeRows.push(maxRowNumber + 1);
+    console.log(resourceTypeRows);
 
     for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
       if (sheet[`${TYPECOLUMN}${rowNum}`]?.v !== COLUMN) {
@@ -365,7 +366,7 @@ Promise.all(httpPromises).then(() => {
   const sheetsData = [];
   for (let i = 0; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
-    const maxRowNumber = sheet['!ref'].slice(4);
+    const maxRowNumber = +sheet['!ref'].slice(4);
     const maxColumnLetter = sheet['!ref'].charAt(3);
     const columnCount =
       xlsxColumnHeaders.findIndex((x) => x === maxColumnLetter) + 1;
