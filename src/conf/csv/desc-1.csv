@@ -1,10 +1,10 @@
 ResearchStudy,,,,,,,
 ,id,column,Id,show,string,,
-,title,column,Title,show,string,,"Name for this study"
+,title,column,Title,hide,string,,"Name for this study"
 ,status,column,Status,show,code,,"active | administratively-completed | approved | closed-to-accrual | closed-to-accrual-and-intervention | completed | disapproved | in-review | temporarily-closed-to-accrual | temporarily-closed-to-accrual-and-intervention | withdrawn"
 ,category,column,Category,show,CodeableConcept,,"Classifications for the study"
 ,focus,column,Focus,show,CodeableConcept,,"Drugs, devices, etc. under study"
-,sponsor,column,Sponsor,show,Reference,,"Organization that initiates and is legally responsible for the study"
+,sponsor,column,Sponsor,hide,Reference,,"Organization that initiates and is legally responsible for the study"
 ,arm,column,Arm,hide,BackboneElement,,"Defined path through the study for a subject"
 ,category,"search parameter",category,show,CodeableConcept,,"Classifications for the study"
 ,condition,column,Condition,hide,CodeableConcept,,"Condition being studied"

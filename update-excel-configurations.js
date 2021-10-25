@@ -184,31 +184,51 @@ function camelCaseToHyphenated(camel) {
  * @param rowNum row number corresponding to the '...[x]' column
  * @param baseString the '...' part of a '...[x]' fhir name
  */
-function getShowHideValueFromMultipleTypes(sheet, rowNum, baseString) {
+function getShowHideValueFromMultipleTypes(
+  sheet,
+  rowNum,
+  baseString,
+  startRow,
+  endRow
+) {
   const reg = `^${baseString}-?.*$`;
   const regEx = new RegExp(reg);
   let showHide;
-  let rowNumLow = rowNum - 1;
-  while (
-    regEx.test(sheet[`${FHIRNAMECOLUMN}${rowNumLow}`]?.v) &&
-    sheet[`${TYPECOLUMN}${rowNumLow}`].v === SEARCHPARAMETER
-  ) {
-    showHide = sheet[`${SHOWHIDECOLUMN}${rowNumLow}`].v;
-    if (showHide === 'show') {
-      return showHide;
+  for (let i = startRow; i <= endRow; i++) {
+    if (
+      i !== rowNum &&
+      regEx.test(sheet[`${FHIRNAMECOLUMN}${i}`]?.v) &&
+      sheet[`${TYPECOLUMN}${i}`].v === SEARCHPARAMETER
+    ) {
+      showHide = sheet[`${SHOWHIDECOLUMN}${i}`].v;
+      if (showHide === 'show') {
+        return showHide;
+      }
     }
-    rowNumLow--;
   }
-  let rowNumHigh = rowNum + 1;
-  while (
-    regEx.test(sheet[`${FHIRNAMECOLUMN}${rowNumHigh}`]?.v) &&
-    sheet[`${TYPECOLUMN}${rowNumHigh}`].v === SEARCHPARAMETER
-  ) {
-    showHide = sheet[`${SHOWHIDECOLUMN}${rowNumHigh}`].v;
-    if (showHide === 'show') {
+  return showHide;
+}
+
+function getShowHideValueFromSingleMatch(
+  sheet,
+  rowNum,
+  fhirName,
+  startRow,
+  endRow
+) {
+  let showHide;
+  for (let i = startRow; i <= endRow; i++) {
+    if (
+      i !== rowNum &&
+      (sheet[`${FHIRNAMECOLUMN}${i}`]?.v?.toLowerCase() ===
+        fhirName.toLowerCase() ||
+        sheet[`${FHIRNAMECOLUMN}${i}`]?.v ===
+          camelCaseToHyphenated(fhirName)) &&
+      sheet[`${TYPECOLUMN}${i}`].v === SEARCHPARAMETER
+    ) {
+      showHide = sheet[`${SHOWHIDECOLUMN}${i}`].v;
       return showHide;
     }
-    rowNumLow++;
   }
   return showHide;
 }
@@ -257,52 +277,59 @@ function updateColumnRows() {
     const maxColumnLetter = sheet['!ref'].charAt(3);
     const columnCount =
       xlsxColumnHeaders.findIndex((x) => x === maxColumnLetter) + 1;
+
+    // Row numbers of resource type rows.
+    // Used to divide rows into resource type groups for matching.
+    const resourceTypeRows = [];
+    for (
+      let rowNum = 1, startLogging = false;
+      rowNum <= maxRowNumber;
+      rowNum++
+    ) {
+      if (sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v === 'Resource type') {
+        startLogging = true;
+        continue;
+      }
+      if (startLogging && sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v) {
+        resourceTypeRows.push(rowNum);
+      }
+    }
+    resourceTypeRows.push(maxRowNumber + 1);
+
     for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
       if (sheet[`${TYPECOLUMN}${rowNum}`]?.v !== COLUMN) {
         continue;
       }
       const fhirName = sheet[`${FHIRNAMECOLUMN}${rowNum}`].v;
-      if (
-        (sheet[`${FHIRNAMECOLUMN}${rowNum - 1}`]?.v?.toLowerCase() ===
-          fhirName.toLowerCase() ||
-          sheet[`${FHIRNAMECOLUMN}${rowNum - 1}`]?.v ===
-            camelCaseToHyphenated(fhirName)) &&
-        sheet[`${TYPECOLUMN}${rowNum - 1}`].v === SEARCHPARAMETER
-      ) {
-        const updateShowHideValue = sheet[`${SHOWHIDECOLUMN}${rowNum - 1}`].v;
-        sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = updateShowHideValue;
-        paintRow(
-          sheet,
-          rowNum,
-          columnCount,
-          colorLegend[updateShowHideValue],
-          doNotUpdateColor
-        );
-        continue;
-      }
-      if (
-        (sheet[`${FHIRNAMECOLUMN}${rowNum + 1}`]?.v?.toLowerCase() ===
-          fhirName.toLowerCase() ||
-          sheet[`${FHIRNAMECOLUMN}${rowNum + 1}`]?.v ===
-            camelCaseToHyphenated(fhirName)) &&
-        sheet[`${TYPECOLUMN}${rowNum + 1}`].v === SEARCHPARAMETER
-      ) {
-        const updateShowHideValue = sheet[`${SHOWHIDECOLUMN}${rowNum + 1}`].v;
-        sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = updateShowHideValue;
-        paintRow(
-          sheet,
-          rowNum,
-          columnCount,
-          colorLegend[updateShowHideValue],
-          doNotUpdateColor
-        );
-        continue;
-      }
+      // Finds which section of resource type current rowNum belongs to.
+      const resourceTypeSectionIndex = resourceTypeRows.findIndex(
+        (element, index, array) => rowNum > element && rowNum < array[index + 1]
+      );
       if (/^(.+)\[x]$/.test(fhirName)) {
         const updateShowHideValue = getShowHideValueFromMultipleTypes(
           sheet,
           rowNum,
-          RegExp.$1
+          RegExp.$1,
+          resourceTypeRows[resourceTypeSectionIndex] + 1,
+          resourceTypeRows[resourceTypeSectionIndex + 1] - 1
+        );
+        if (updateShowHideValue !== undefined) {
+          sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = updateShowHideValue;
+          paintRow(
+            sheet,
+            rowNum,
+            columnCount,
+            colorLegend[updateShowHideValue],
+            doNotUpdateColor
+          );
+        }
+      } else {
+        const updateShowHideValue = getShowHideValueFromSingleMatch(
+          sheet,
+          rowNum,
+          fhirName,
+          resourceTypeRows[resourceTypeSectionIndex] + 1,
+          resourceTypeRows[resourceTypeSectionIndex + 1] - 1
         );
         if (updateShowHideValue !== undefined) {
           sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = updateShowHideValue;
