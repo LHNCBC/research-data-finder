@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.23.0] - 2021-10-14
+## [3.23.0] - 2021-10-27
 ### Added
 - Program to update the .xlsx configuration file for the 'show/hide' value
   (and row colors) of columns, based on the 'show/hide' values of matching
