@@ -317,6 +317,10 @@ function updateColumnRows() {
         continue;
       }
       const fhirName = sheet[`${FHIRNAMECOLUMN}${rowNum}`].v;
+      // Do not update "subject" column show/hide. It refers to a patient.
+      if (fhirName === 'subject') {
+        continue;
+      }
       // Finds which section of resource type current rowNum belongs to.
       const resourceTypeSectionIndex = resourceTypeRows.findIndex(
         (element, index, array) => rowNum > element && rowNum < array[index + 1]

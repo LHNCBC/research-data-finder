@@ -62,7 +62,7 @@ Observation,,,,,,,
 ,referenceRange,column,"Reference Range",hide,BackboneElement,,"Provides guide for interpretation"
 ,specimen,column,Specimen,hide,Reference,,"Specimen used for this observation"
 ,status,column,Status,hide,code,,"registered | preliminary | final | amended +"
-,subject,column,Subject,hide,Reference,,"Who and/or what the observation is about"
+,subject,column,Subject,show,Reference,,"Who and/or what the observation is about"
 ,value[x],column,Value,hide,"Quantity,CodeableConcept,string,boolean,integer,Range,Ratio,SampledData,time,dateTime,Period",,"Actual result"
 Patient,,,,,,,
 ,active,column,Active,hide,boolean,,"Whether this patient's record is in active use"

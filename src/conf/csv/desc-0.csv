@@ -20,7 +20,7 @@ Condition,,,,,,,
 ,recorder,column,Recorder,hide,Reference,,"Who recorded the condition"
 ,severity,column,Severity,hide,CodeableConcept,,"Subjective severity of condition"
 ,stage,column,Stage,hide,BackboneElement,,"Stage/grade, usually assessed formally"
-,subject,column,Subject,hide,Reference,,"Who has the condition?"
+,subject,column,Subject,show,Reference,,"Who has the condition?"
 ,verificationStatus,column,"Verification Status",hide,CodeableConcept,,"unconfirmed | provisional | differential | confirmed | refuted | entered-in-error"
 DocumentReference,,,,,,,
 ,authenticator,column,Authenticator,hide,Reference,,"Who/what authenticated the document"
@@ -40,7 +40,7 @@ DocumentReference,,,,,,,
 ,securityLabel,column,"Security Label",hide,CodeableConcept,,"Document security-tags"
 ,status,column,Status,show,code,,"current | superseded | entered-in-error"
 ,status,"search parameter",status,show,code,,"current | superseded | entered-in-error"
-,subject,column,Subject,hide,Reference,,"Who/what is the subject of the document"
+,subject,column,Subject,show,Reference,,"Who/what is the subject of the document"
 ,type,column,Type,show,CodeableConcept,,"Kind of document (LOINC if possible)"
 ,type,"search parameter",type,show,CodeableConcept,,"Kind of document (LOINC if possible)"
 Encounter,,,,,,,
@@ -69,7 +69,7 @@ Encounter,,,,,,,
 ,status,"search parameter",status,show,code,,"planned | arrived | triaged | in-progress | onleave | finished | cancelled +"
 ,status,column,Status,show,code,,"planned | arrived | triaged | in-progress | onleave | finished | cancelled +"
 ,statusHistory,column,"Status History",hide,BackboneElement,,"List of past encounter statuses"
-,subject,column,Subject,hide,Reference,,"The patient or group present at the encounter"
+,subject,column,Subject,show,Reference,,"The patient or group present at the encounter"
 ,type,column,Type,show,CodeableConcept,,"Specific type of encounter"
 ,type,"search parameter",type,show,CodeableConcept,,"Specific type of encounter"
 MedicationDispense,,,,,,,
@@ -95,7 +95,7 @@ MedicationDispense,,,,,,,
 ,status,"search parameter",status,show,code,,"Returns dispenses with a specified dispense status"
 ,status,column,Status,show,code,,"preparation | in-progress | cancelled | on-hold | completed | entered-in-error | stopped | declined | unknown"
 ,statusReason[x],column,"Status Reason",hide,"CodeableConcept,Reference",,"Why a dispense was not performed"
-,subject,column,Subject,hide,Reference,,"Who the dispense is for"
+,subject,column,Subject,show,Reference,,"Who the dispense is for"
 ,substitution,column,Substitution,hide,BackboneElement,,"Whether a substitution was performed on the dispense"
 ,supportingInformation,column,"Supporting Information",hide,Reference,,"Information that supports the dispensing of the medication"
 ,type,column,Type,hide,CodeableConcept,,"Trial fill, partial fill, emergency fill, etc."
@@ -137,7 +137,7 @@ MedicationRequest,,,,,,,
 ,status,column,Status,show,code,,"active | on-hold | cancelled | completed | entered-in-error | stopped | draft | unknown"
 ,status,"search parameter",status,show,code,,"Status of the prescription"
 ,statusReason,column,"Status Reason",hide,CodeableConcept,,"Reason for current status"
-,subject,column,Subject,hide,Reference,,"Who or group medication request is for"
+,subject,column,Subject,show,Reference,,"Who or group medication request is for"
 ,substitution,column,Substitution,hide,BackboneElement,,"Any restrictions on medication substitution"
 ,supportingInformation,column,"Supporting Information",hide,Reference,,"Information to support ordering of the medication"
 Procedure,,,,,,,
@@ -170,7 +170,7 @@ Procedure,,,,,,,
 ,status,"search parameter",status,show,code,,"preparation | in-progress | not-done | on-hold | stopped | completed | entered-in-error | unknown"
 ,status,column,Status,show,code,,"preparation | in-progress | not-done | on-hold | stopped | completed | entered-in-error | unknown"
 ,statusReason,column,"Status Reason",hide,CodeableConcept,,"Reason for current status"
-,subject,column,Subject,hide,Reference,,"Who the procedure was performed on"
+,subject,column,Subject,show,Reference,,"Who the procedure was performed on"
 ,usedCode,column,"Used Code",hide,CodeableConcept,,"Coded items used during the procedure"
 ,usedReference,column,"Used Reference",hide,Reference,,"Items used during procedure"
 Observation,,,,,,,
@@ -203,7 +203,7 @@ Observation,,,,,,,
 ,specimen,column,Specimen,hide,Reference,,"Specimen used for this observation"
 ,status,column,Status,show,code,,"registered | preliminary | final | amended +"
 ,status,"search parameter",status,show,code,,"The status of the observation"
-,subject,column,Subject,hide,Reference,,"Who and/or what the observation is about"
+,subject,column,Subject,show,Reference,,"Who and/or what the observation is about"
 ,value[x],column,Value,hide,"Quantity,CodeableConcept,string,boolean,integer,Range,Ratio,SampledData,time,dateTime,Period",,"Actual result"
 Patient,,,,,,,
 ,active,"search parameter",active,show,boolean,,"Whether the patient record is active"
