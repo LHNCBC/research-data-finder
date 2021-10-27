@@ -13,12 +13,12 @@ const writeXlsxFile = require('write-excel-file/node');
 
 const SERVICEBASEURL = '---SERVICE BASE URL:';
 const SEARCHPARAMETER = 'search parameter';
+const COLUMN = 'column';
 const RESOURCETYPECOLUMN = 'A';
 const FHIRNAMECOLUMN = 'B';
 const TYPECOLUMN = 'C';
 const SHOWHIDECOLUMN = 'E';
 const DATATYPECOLUMN = 'F';
-const COLUMN = 'column';
 const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
 const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
@@ -244,6 +244,7 @@ function getShowHideValueFromSingleMatch(
       return showHide;
     }
   }
+  // noinspection JSUnusedAssignment
   return showHide;
 }
 
