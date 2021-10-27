@@ -11,7 +11,15 @@ import {
   createControlValueAccessorAndValidatorProviders
 } from '../base-control-value-accessor';
 import { SearchParametersComponent } from '../search-parameters/search-parameters.component';
-import { EMPTY, forkJoin, from, Observable, of } from 'rxjs';
+import {
+  BehaviorSubject,
+  EMPTY,
+  forkJoin,
+  from,
+  NEVER,
+  Observable,
+  of
+} from 'rxjs';
 import Resource = fhir.Resource;
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { HttpClient } from '@angular/common/http';
@@ -25,6 +33,7 @@ import {
   mergeMap,
   share,
   startWith,
+  switchMap,
   take,
   tap
 } from 'rxjs/operators';
@@ -64,6 +73,8 @@ export class DefineCohortPageComponent
   patientCount = 0;
   // Processed Patient Ids used to skip already selected Patients
   processedPatientIds: { [patientId: string]: boolean };
+  // The number of patients in processing is used to pause the loading of the next page
+  numberOfProcessingPatients$: BehaviorSubject<number>;
   // A matrix of loading info that will be displayed with View Cohort resource table.
   loadingStatistics: (string | number)[][] = [];
 
@@ -178,6 +189,7 @@ export class DefineCohortPageComponent
     // Reset the number of matched Patients
     this.patientCount = 0;
     this.processedPatientIds = {};
+    this.numberOfProcessingPatients$ = new BehaviorSubject<number>(0);
 
     // Create a new Observable which emits Patient resources that match the criteria.
     // If we have only one block with Patient criteria - load all Patient in one request.
@@ -211,8 +223,21 @@ export class DefineCohortPageComponent
         // if there are criteria for the patient
         return this.check(resource, emptyPatientCriteria);
       }),
-      // Increment the number of matched Patients
-      tap(() => this.patientCount++),
+      tap(() => {
+        // Increment the number of matched Patients
+        this.patientCount++;
+        if (this.patientCount < maxPatientCount) {
+          // Update the number of Patients in processing
+          this.numberOfProcessingPatients$.next(
+            this.numberOfProcessingPatients$.value - 1
+          );
+        } else {
+          // Cancel the loading of the next page if the maximum number of
+          // Patients has been reached
+          this.numberOfProcessingPatients$.next(0);
+          this.numberOfProcessingPatients$.complete();
+        }
+      }),
       // Do not create a new stream for each subscription
       share()
     );
@@ -300,12 +325,26 @@ export class DefineCohortPageComponent
             // Modifying the Observable to load the following pages sequentially
             expand((response) => {
               const nextPageUrl = getNextPageUrl(response);
-              if (nextPageUrl && this.patientCount < maxPatientCount) {
-                return this.http.get<Bundle>(nextPageUrl);
-              } else {
-                // Emit a complete notification
+              if (!nextPageUrl) {
+                // Emit a complete notification if there is no next page
                 return EMPTY;
               }
+              // Do not load next page before processing current page
+              return this.numberOfProcessingPatients$.pipe(
+                switchMap((numberOfProcessingPatients) => {
+                  if (numberOfProcessingPatients > 0) {
+                    // Waiting for processing of already loaded Patients
+                    return NEVER;
+                  }
+                  if (this.patientCount < maxPatientCount) {
+                    // Load the next page of resources
+                    return this.http.get<Bundle>(nextPageUrl);
+                  } else {
+                    // Emit a complete notification
+                    return EMPTY;
+                  }
+                })
+              );
             }),
             // Expand the BundleEntries array into separate resources
             mergeMap((response) =>
@@ -344,6 +383,10 @@ export class DefineCohortPageComponent
               // resources in parallel for the rest of the criteria.
               bufferCount(pageSize),
               mergeMap((resources: Resource[]) => {
+                // Update the number of Patients in processing
+                this.numberOfProcessingPatients$.next(
+                  this.numberOfProcessingPatients$.value + resources.length
+                );
                 // Run a parallel check of the accumulated resources by the rest
                 // of the criteria:
                 return forkJoin(
@@ -354,8 +397,15 @@ export class DefineCohortPageComponent
                     }).pipe(startWith(null as Resource))
                   )
                 ).pipe(
-                  mergeMap((r) => from(r)),
-                  filter((resource) => !!resource)
+                  mergeMap((r) => {
+                    const checkedResources = r.filter((resource) => !!resource);
+                    // Update the number of Patients in processing
+                    this.numberOfProcessingPatients$.next(
+                      this.numberOfProcessingPatients$.value -
+                        (r.length - checkedResources.length)
+                    );
+                    return from(checkedResources);
+                  })
                 );
               })
             );
