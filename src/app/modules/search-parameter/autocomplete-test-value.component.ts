@@ -249,6 +249,7 @@ export class AutoCompleteTestValueComponent
                         if (contains.length > count) {
                           contains.length = count;
                         }
+                        this.loading = false;
                         // Emit a complete notification
                         return EMPTY;
                       }
@@ -268,7 +269,6 @@ export class AutoCompleteTestValueComponent
                       contains
                     }
                   });
-                  this.loading = false;
                 });
               }
             };
