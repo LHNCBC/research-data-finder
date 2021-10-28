@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "3.22.2",
+  "version": "3.23.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
@@ -16,7 +16,7 @@
     "postinstall": "webdriver-manager update --versions.chrome $(google-chrome --version |awk '{print $NF}')",
     "e2e": "ng e2e --webdriverUpdate=false",
     "prettier-fix": "prettier --write '**/*.ts'",
-    "update-excel-config": "node update-excel-configurations.js && npm run build"
+    "update-excel-config": "node bin/update-excel-configurations.js && npm run build"
   },
   "private": true,
   "dependencies": {
