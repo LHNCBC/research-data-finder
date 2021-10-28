@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.24.0] - 2021-10-27
+### Changed
+- Turned search parameter value autocomplete prefetch into search, for
+  example "Observation category".
+- Show example items when the empty control is focused.
+
 ## [3.22.2] - 2021-10-19
 ### Added
 - Script for start-public task.
