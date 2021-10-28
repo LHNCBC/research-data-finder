@@ -27,7 +27,8 @@
         <mat-label>Search parameter value</mat-label>
         <app-autocomplete-test-value
           [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more"
-          [resourceType]="resourceType" [searchParameter]="selectedParameter.element">
+          [resourceType]="resourceType" [searchParameter]="selectedParameter.element"
+          [isRequiredList]="selectedParameter.required">
         </app-autocomplete-test-value>
       </mat-form-field>
 

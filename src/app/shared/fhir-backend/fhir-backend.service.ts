@@ -339,8 +339,6 @@ export class FhirBackendService implements HttpBackend {
     });
 
     this.currentDefinitions.initialized = true;
-    console.log(this.currentDefinitions);
-    console.log(this.currentDefinitions.resources.Patient.searchParameters[11]);
     return this.currentDefinitions;
   }
 }

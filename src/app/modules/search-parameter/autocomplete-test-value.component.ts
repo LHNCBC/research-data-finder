@@ -60,6 +60,7 @@ export class AutoCompleteTestValueComponent
   @Input() placeholder = '';
   @Input() resourceType: string;
   @Input() searchParameter: string;
+  @Input() isRequiredList = false;
 
   currentData: AutocompleteTestValue = {
     coding: [],
@@ -67,7 +68,7 @@ export class AutoCompleteTestValueComponent
   };
   ngControl: NgControl = null;
   // Autocompleter instance
-  acInstance: Def.Autocompleter.Seaech;
+  acInstance: any;
   // Subscription used to cancel the previous loading process
   subscription: Subscription;
   // Reference to the <input> element
@@ -186,100 +187,15 @@ export class AutoCompleteTestValueComponent
   }
 
   /**
-   * Set up Autocompleter search options.
+   * Set up Autocompleter.
+   * It could be a Prefetch or a Search instance depending on this.isRequiredList.
    * Also call this.onChange() of ControlValueAccessor interface on selection event,
    * so that form control value is updated and can be read from parent form.
    */
   setupAutocomplete(): void {
-    const testInputId = this.inputId;
-    const acInstance = (this.acInstance = new Def.Autocompleter.Search(
-      testInputId,
-      null,
-      {
-        suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
-        fhir: {
-          search: (fieldVal, count) => {
-            return {
-              then: (resolve, reject) => {
-                const url = `$fhir/${this.resourceType}`;
-                const params = {
-                  _elements: this.searchParameter
-                };
-                params[`${this.searchParameter}:text`] = fieldVal;
-                // Hash of processed codes, used to exclude repeated codes
-                const processedCodes = {};
-                // Array of result items for autocompleter
-                const contains: ValueSetExpansionContains[] = [];
-                // Total amount of items
-                let total = null;
-                // Already selected codes
-                const selectedCodes = acInstance.getSelectedCodes();
-
-                this.loading = true;
-                this.subscription?.unsubscribe();
-
-                const obs = this.httpClient
-                  .get(url, {
-                    params
-                  })
-                  .pipe(
-                    expand((response: Bundle) => {
-                      contains.push(
-                        ...this.getAutocompleteItems(
-                          response,
-                          processedCodes,
-                          selectedCodes
-                        )
-                      );
-                      const nextPageUrl = getNextPageUrl(response);
-                      if (nextPageUrl && contains.length < count) {
-                        const newParams = { ...params };
-                        newParams[`${this.searchParameter}:not`] = Object.keys(
-                          processedCodes
-                        ).join(',');
-                        return this.httpClient.get(url, {
-                          params: newParams
-                        });
-                      } else {
-                        if (response.total) {
-                          total = response.total;
-                        } else if (!nextPageUrl) {
-                          total = contains.length;
-                        }
-                        if (contains.length > count) {
-                          contains.length = count;
-                        }
-                        this.loading = false;
-                        // Emit a complete notification
-                        return EMPTY;
-                      }
-                    }),
-                    catchError((error) => {
-                      this.loading = false;
-                      reject(error);
-                      throw error;
-                    })
-                  );
-
-                this.subscription = obs.subscribe(() => {
-                  resolve({
-                    resourceType: 'ValueSet',
-                    expansion: {
-                      total: Number.isInteger(total) ? total : null,
-                      contains
-                    }
-                  });
-                });
-              }
-            };
-          }
-        },
-        useResultCache: false,
-        maxSelect: '*',
-        matchListValue: true,
-        showListOnFocusIfEmpty: true
-      }
-    ));
+    this.acInstance = this.isRequiredList
+      ? this.setupAutocompletePrefetch()
+      : this.setupAutocompleteSearch();
 
     // Fill autocomplete with data (if currentData was set in writeValue).
     if (this.currentData) {
@@ -289,15 +205,119 @@ export class AutoCompleteTestValueComponent
       });
     }
 
-    Def.Autocompleter.Event.observeListSelections(testInputId, () => {
-      const coding = acInstance.getSelectedCodes();
-      const items = acInstance.getSelectedItems();
+    Def.Autocompleter.Event.observeListSelections(this.inputId, () => {
+      const coding = this.acInstance.getSelectedCodes();
+      const items = this.acInstance.getSelectedItems();
       this.currentData = {
         coding,
         items
       };
       this.onChange(this.currentData);
     });
+  }
+
+  /**
+   * Set up Autocompleter prefetch options.
+   * Also call this.onChange() of ControlValueAccessor interface on selection event,
+   * so that form control value is updated and can be read from parent form.
+   */
+  setupAutocompletePrefetch(): void {
+    return new Def.Autocompleter.Prefetch(
+      this.inputId,
+      this.options.map((o) => o.display),
+      { maxSelect: '*', codes: this.options.map((o) => o.code) }
+    );
+  }
+
+  /**
+   * Set up Autocompleter search options.
+   */
+  setupAutocompleteSearch(): void {
+    const acInstance = new Def.Autocompleter.Search(this.inputId, null, {
+      suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
+      fhir: {
+        search: (fieldVal, count) => {
+          return {
+            then: (resolve, reject) => {
+              const url = `$fhir/${this.resourceType}`;
+              const params = {
+                _elements: this.searchParameter
+              };
+              params[`${this.searchParameter}:text`] = fieldVal;
+              // Hash of processed codes, used to exclude repeated codes
+              const processedCodes = {};
+              // Array of result items for autocompleter
+              const contains: ValueSetExpansionContains[] = [];
+              // Total amount of items
+              let total = null;
+              // Already selected codes
+              const selectedCodes = acInstance.getSelectedCodes();
+
+              this.loading = true;
+              this.subscription?.unsubscribe();
+
+              const obs = this.httpClient
+                .get(url, {
+                  params
+                })
+                .pipe(
+                  expand((response: Bundle) => {
+                    contains.push(
+                      ...this.getAutocompleteItems(
+                        response,
+                        processedCodes,
+                        selectedCodes
+                      )
+                    );
+                    const nextPageUrl = getNextPageUrl(response);
+                    if (nextPageUrl && contains.length < count) {
+                      const newParams = { ...params };
+                      newParams[`${this.searchParameter}:not`] = Object.keys(
+                        processedCodes
+                      ).join(',');
+                      return this.httpClient.get(url, {
+                        params: newParams
+                      });
+                    } else {
+                      if (response.total) {
+                        total = response.total;
+                      } else if (!nextPageUrl) {
+                        total = contains.length;
+                      }
+                      if (contains.length > count) {
+                        contains.length = count;
+                      }
+                      this.loading = false;
+                      // Emit a complete notification
+                      return EMPTY;
+                    }
+                  }),
+                  catchError((error) => {
+                    this.loading = false;
+                    reject(error);
+                    throw error;
+                  })
+                );
+
+              this.subscription = obs.subscribe(() => {
+                resolve({
+                  resourceType: 'ValueSet',
+                  expansion: {
+                    total: Number.isInteger(total) ? total : null,
+                    contains
+                  }
+                });
+              });
+            }
+          };
+        }
+      },
+      useResultCache: false,
+      maxSelect: '*',
+      matchListValue: true,
+      showListOnFocusIfEmpty: true
+    });
+    return acInstance;
   }
 
   /**
