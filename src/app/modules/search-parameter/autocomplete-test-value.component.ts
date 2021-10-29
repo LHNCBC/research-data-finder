@@ -218,8 +218,6 @@ export class AutoCompleteTestValueComponent
 
   /**
    * Set up Autocompleter prefetch options.
-   * Also call this.onChange() of ControlValueAccessor interface on selection event,
-   * so that form control value is updated and can be read from parent form.
    */
   setupAutocompletePrefetch(): void {
     return new Def.Autocompleter.Prefetch(
