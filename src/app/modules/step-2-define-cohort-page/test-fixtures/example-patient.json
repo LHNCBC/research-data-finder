@@ -1,0 +1,6 @@
+{
+  "resourceType": "Patient",
+  "id": "pat-some-id",
+  "active": false,
+  "gender": "female"
+}

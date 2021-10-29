@@ -11,15 +11,7 @@ import {
   createControlValueAccessorAndValidatorProviders
 } from '../base-control-value-accessor';
 import { SearchParametersComponent } from '../search-parameters/search-parameters.component';
-import {
-  BehaviorSubject,
-  EMPTY,
-  forkJoin,
-  from,
-  NEVER,
-  Observable,
-  of
-} from 'rxjs';
+import { BehaviorSubject, EMPTY, forkJoin, from, Observable, of } from 'rxjs';
 import Resource = fhir.Resource;
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { HttpClient } from '@angular/common/http';
@@ -45,7 +37,7 @@ import {
   Criterion,
   ResourceTypeCriteria
 } from '../../types/search-parameters';
-
+import { uniqBy } from 'lodash-es';
 // Patient resource type name
 const PATIENT_RESOURCE_TYPE = 'Patient';
 
@@ -195,9 +187,7 @@ export class DefineCohortPageComponent
     // If we have only one block with Patient criteria - load all Patient in one request.
     this.patientStream = this.search(
       criteria,
-      criteria.rules.length === 1 &&
-        (criteria.rules[0] as ResourceTypeCriteria).resourceType ===
-          PATIENT_RESOURCE_TYPE
+      this.isOnlyOneBlockWithPatientCriteria(criteria)
         ? maxPatientCount
         : this.getPageSize()
     ).pipe(
@@ -205,6 +195,10 @@ export class DefineCohortPageComponent
       filter((resource) => {
         const patientId = this.getPatientIdFromResource(resource);
         if (this.processedPatientIds[patientId]) {
+          // Update the number of Patients in processing
+          this.numberOfProcessingPatients$.next(
+            this.numberOfProcessingPatients$.value - 1
+          );
           return false;
         }
         this.processedPatientIds[patientId] = true;
@@ -331,11 +325,14 @@ export class DefineCohortPageComponent
               }
               // Do not load next page before processing current page
               return this.numberOfProcessingPatients$.pipe(
-                switchMap((numberOfProcessingPatients) => {
-                  if (numberOfProcessingPatients > 0) {
-                    // Waiting for processing of already loaded Patients
-                    return NEVER;
-                  }
+                // Waiting for processing of already loaded resources
+                filter(
+                  (numberOfProcessingPatients) =>
+                    numberOfProcessingPatients === 0
+                ),
+                // Load each page once
+                take(1),
+                switchMap(() => {
                   if (this.patientCount < maxPatientCount) {
                     // Load the next page of resources
                     return this.http.get<Bundle>(nextPageUrl);
@@ -347,16 +344,14 @@ export class DefineCohortPageComponent
               );
             }),
             // Expand the BundleEntries array into separate resources
-            mergeMap((response) =>
-              from(response?.entry || []).pipe(map((i) => i.resource))
-            ),
-            // Skip already processed Patients
-            filter(
-              (resource) =>
-                !this.processedPatientIds[
-                  this.getPatientIdFromResource(resource)
-                ]
-            )
+            mergeMap((response) => {
+              const resources = (response?.entry || []).map((i) => i.resource);
+              // Update the number of Patients in processing
+              this.numberOfProcessingPatients$.next(
+                this.numberOfProcessingPatients$.value + resources.length
+              );
+              return from(resources);
+            })
           );
         })
       );
@@ -383,26 +378,36 @@ export class DefineCohortPageComponent
               // resources in parallel for the rest of the criteria.
               bufferCount(pageSize),
               mergeMap((resources: Resource[]) => {
-                // Update the number of Patients in processing
-                this.numberOfProcessingPatients$.next(
-                  this.numberOfProcessingPatients$.value + resources.length
+                // Exclude processed and duplicate resources
+                const uncheckedResources = (uniqBy(
+                  resources,
+                  this.getPatientIdFromResource
+                ) as Resource[]).filter(
+                  (resource) =>
+                    !this.processedPatientIds[
+                      this.getPatientIdFromResource(resource)
+                    ]
                 );
+
                 // Run a parallel check of the accumulated resources by the rest
                 // of the criteria:
-                return forkJoin(
-                  resources.map((resource) =>
-                    this.check(resource, {
-                      ...newCriteria,
-                      rules: restRules
-                    }).pipe(startWith(null as Resource))
-                  )
+                return (uncheckedResources.length
+                  ? forkJoin(
+                      uncheckedResources.map((resource) =>
+                        this.check(resource, {
+                          ...newCriteria,
+                          rules: restRules
+                        }).pipe(startWith(null as Resource))
+                      )
+                    )
+                  : of([])
                 ).pipe(
                   mergeMap((r) => {
                     const checkedResources = r.filter((resource) => !!resource);
                     // Update the number of Patients in processing
                     this.numberOfProcessingPatients$.next(
                       this.numberOfProcessingPatients$.value -
-                        (r.length - checkedResources.length)
+                        (resources.length - checkedResources.length)
                     );
                     return from(checkedResources);
                   })
@@ -619,5 +624,30 @@ export class DefineCohortPageComponent
         .getQueryParam(resourceType, criteriaForResourceType[0].field)
         .lastIndexOf('&') === 0
     );
+  }
+
+  /**
+   * Returns true if the specified criteria has only one resource type criteria
+   * block with Patient criteria.
+   */
+  isOnlyOneBlockWithPatientCriteria(
+    criteria: Criteria | ResourceTypeCriteria
+  ): boolean {
+    if ('resourceType' in criteria) {
+      return criteria.resourceType === PATIENT_RESOURCE_TYPE;
+    } else {
+      const oneResourceCriteria =
+        criteria.rules.length === 1 && 'resourceType' in criteria.rules[0]
+          ? criteria.rules[0]
+          : false;
+      return (
+        oneResourceCriteria &&
+        (oneResourceCriteria.resourceType === PATIENT_RESOURCE_TYPE ||
+          this.canUseHas(
+            oneResourceCriteria.resourceType,
+            oneResourceCriteria.rules
+          ))
+      );
+    }
   }
 }

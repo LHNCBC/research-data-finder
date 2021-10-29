@@ -10,6 +10,10 @@ import {
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import { SettingsService } from '../app/shared/settings-service/settings.service';
 import { filter, take } from 'rxjs/operators';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
 
 /**
  * Wrapper for standard TestBed.configureTestingModule which does additional
@@ -29,7 +33,10 @@ export async function configureTestingModule(
     definitions?: any;
   } = {}
 ): Promise<void> {
-  moduleDef.imports = (moduleDef.imports || []).concat(SharedModule);
+  moduleDef.imports = (moduleDef.imports || []).concat(
+    SharedModule,
+    HttpClientTestingModule
+  );
   await TestBed.configureTestingModule(moduleDef).compileComponents();
   spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
   const fhirBackend = TestBed.inject(FhirBackendService);
@@ -46,7 +53,31 @@ export async function configureTestingModule(
   );
 
   const settingsService = TestBed.inject(SettingsService);
-  await settingsService.loadJsonConfig().toPromise();
+  const mockHttp = TestBed.inject(HttpTestingController);
+  settingsService.loadJsonConfig().subscribe();
+
+  // Pass-through for settings file
+  mockHttp
+    .expectOne(`assets/settings.json5`)
+    .flush(await fetch('assets/settings.json5').then((r) => r.text()));
+
+  // We can't expect a request before it is issued, so we give a chance to issue
+  // a request
+  setTimeout(() => {
+    // Pass-through for CSV files
+    const request = mockHttp.expectOne((req) => {
+      if (req.url.startsWith('conf/csv')) {
+        fetch(req.url)
+          .then((r) => r.text())
+          .then((responseText) => {
+            request.flush(responseText);
+          });
+        return true;
+      }
+      return false;
+    });
+  });
+
   await fhirBackend.initialized
     .pipe(
       filter((status) => status === ConnectionStatus.Ready),
