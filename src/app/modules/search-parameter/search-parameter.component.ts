@@ -29,8 +29,6 @@ export class SearchParameterComponent
   @Input() resourceType = '';
   @Input() isPullData = false;
   readonly OBSERVATIONBYTEST = 'code text';
-  readonly OBSERVATIONBYTESTDESC =
-    'The display text associated with the code of the observation type';
   readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
   definitions: any;
 
@@ -155,8 +153,18 @@ export class SearchParameterComponent
     if (!this.selectedParameter) {
       return '';
     }
-    if (this.selectedParameter.element === this.OBSERVATIONBYTEST) {
+    if (
+      this.selectedParameter.element === this.OBSERVATIONBYTEST &&
+      this.resourceType === 'Observation'
+    ) {
       return this.getObservationCodeTextCriteria();
+    }
+    if (
+      this.selectedParameter.element === this.OBSERVATIONBYTEST &&
+      this.resourceType !== 'Observation'
+    ) {
+      // TODO: code
+      return `&code=${this.parameterValue.value.coding.join(',')}`;
     }
     if (this.selectedParameter.type === 'date') {
       return (
