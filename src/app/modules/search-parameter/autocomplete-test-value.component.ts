@@ -271,6 +271,13 @@ export class AutoCompleteTestValueComponent
                     );
                     const nextPageUrl = getNextPageUrl(response);
                     if (nextPageUrl && contains.length < count) {
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(total) ? total : null,
+                          contains
+                        }
+                      });
                       const newParams = { ...params };
                       newParams[`${this.searchParameter}:not`] = Object.keys(
                         processedCodes
@@ -288,6 +295,13 @@ export class AutoCompleteTestValueComponent
                         contains.length = count;
                       }
                       this.loading = false;
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(total) ? total : null,
+                          contains
+                        }
+                      });
                       // Emit a complete notification
                       return EMPTY;
                     }
@@ -299,15 +313,7 @@ export class AutoCompleteTestValueComponent
                   })
                 );
 
-              this.subscription = obs.subscribe(() => {
-                resolve({
-                  resourceType: 'ValueSet',
-                  expansion: {
-                    total: Number.isInteger(total) ? total : null,
-                    contains
-                  }
-                });
-              });
+              this.subscription = obs.subscribe();
             }
           };
         }
