@@ -74,6 +74,7 @@ Encounter,,,,,,,
 ,type,column,Type,show,CodeableConcept,,"Specific type of encounter"
 ,type,"search parameter",type,show,CodeableConcept,,"Specific type of encounter"
 MedicationDispense,,,,,,,
+,"code text","search parameter","medication name",show,,,"The display text associated with the code of the medication being administered"
 ,authorizingPrescription,column,"Authorizing Prescription",hide,Reference,,"Medication order that authorizes the dispense"
 ,category,column,Category,hide,CodeableConcept,,"Type of medication dispense"
 ,code,"search parameter",code,show,CodeableConcept,,"Returns dispenses of this medicine code"
@@ -105,6 +106,7 @@ MedicationDispense,,,,,,,
 ,whenprepared,"search parameter",whenprepared,show,date,,"Returns dispenses prepared on this date"
 ,whenPrepared,column,"When Prepared",show,dateTime,,"When product was packaged and reviewed"
 MedicationRequest,,,,,,,
+,"code text","search parameter","medication name",show,,,"The display text associated with the code of the medication being requested"
 ,authoredOn,column,"Authored On",hide,dateTime,,"When request was initially authored"
 ,basedOn,column,"Based On",hide,Reference,,"What request fulfills"
 ,category,column,Category,hide,CodeableConcept,,"Type of medication usage"
@@ -142,6 +144,7 @@ MedicationRequest,,,,,,,
 ,substitution,column,Substitution,hide,BackboneElement,,"Any restrictions on medication substitution"
 ,supportingInformation,column,"Supporting Information",hide,Reference,,"Information to support ordering of the medication"
 Procedure,,,,,,,
+,"code text","search parameter","procedure name",show,,,"The display text associated with the code of specific procedure that is performed"
 ,asserter,column,Asserter,hide,Reference,,"Person who asserts this procedure"
 ,basedOn,column,"Based On",hide,Reference,,"A request for this procedure"
 ,bodySite,column,"Body Site",hide,CodeableConcept,,"Target body sites"

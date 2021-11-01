@@ -51,8 +51,56 @@ export class AutoCompleteTestValueComponent
     OnChanges,
     AfterViewInit,
     MatFormFieldControl<AutocompleteTestValue> {
+  get value(): AutocompleteTestValue {
+    return this.currentData;
+  }
+
+  /**
+   * Whether the control is empty (Implemented as part of MatFormFieldControl)
+   */
+  get empty(): boolean {
+    return !this.value.coding?.length;
+  }
+
+  /**
+   * Whether the MatFormField label should try to float.
+   */
+  get shouldLabelFloat(): boolean {
+    return this.focused || !this.empty;
+  }
+
+  /**
+   * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
+   */
+  get errorState(): boolean {
+    const formControl = this.ngControl?.control as FormControl;
+    return (
+      this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
+      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
+    );
+  }
+
+  constructor(
+    @Optional() @Self() ngControl: NgControl,
+    private elementRef: ElementRef,
+    private errorStateMatcher: ErrorStateMatcher,
+    private httpClient: HttpClient
+  ) {
+    super();
+    if (ngControl != null) {
+      this.ngControl = ngControl;
+      // Setting the value accessor directly (instead of using
+      // the providers) to avoid running into a circular import.
+      ngControl.valueAccessor = this;
+    }
+  }
   static idPrefix = 'autocomplete-test-value-';
   static idIndex = 0;
+  static codeTextFieldMapping = {
+    MedicationDispense: 'medicationCodeableConcept',
+    MedicationRequest: 'medicationCodeableConcept'
+  };
+
   inputId =
     AutoCompleteTestValueComponent.idPrefix +
     ++AutoCompleteTestValueComponent.idIndex;
@@ -79,45 +127,16 @@ export class AutoCompleteTestValueComponent
    */
   @HostBinding('class.loading') loading = false;
 
-  get value(): AutocompleteTestValue {
-    return this.currentData;
-  }
-
-  /**
-   * Whether the control is empty (Implemented as part of MatFormFieldControl)
-   */
-  get empty(): boolean {
-    return !this.value.coding?.length;
-  }
-
   /**
    * Whether the control is focused (Implemented as part of MatFormFieldControl)
    */
   focused = false;
 
   /**
-   * Whether the MatFormField label should try to float.
-   */
-  get shouldLabelFloat(): boolean {
-    return this.focused || !this.empty;
-  }
-
-  /**
    * Stream that emits whenever the state of the control changes such that
    * the parent `MatFormField` needs to run change detection.
    */
   readonly stateChanges = new Subject<void>();
-
-  /**
-   * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
-   */
-  get errorState(): boolean {
-    const formControl = this.ngControl?.control as FormControl;
-    return (
-      this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
-      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
-    );
-  }
 
   /**
    * These properties currently unused but required by MatFormFieldControl:
@@ -158,21 +177,6 @@ export class AutoCompleteTestValueComponent
   onContainerClick(event: MouseEvent): void {
     if (!this.focused) {
       document.getElementById(this.inputId).focus();
-    }
-  }
-
-  constructor(
-    @Optional() @Self() ngControl: NgControl,
-    private elementRef: ElementRef,
-    private errorStateMatcher: ErrorStateMatcher,
-    private httpClient: HttpClient
-  ) {
-    super();
-    if (ngControl != null) {
-      this.ngControl = ngControl;
-      // Setting the value accessor directly (instead of using
-      // the providers) to avoid running into a circular import.
-      ngControl.valueAccessor = this;
     }
   }
 
@@ -239,7 +243,7 @@ export class AutoCompleteTestValueComponent
             then: (resolve, reject) => {
               const url = `$fhir/${this.resourceType}`;
               const params = {
-                _elements: this.searchParameter
+                _elements: this.getCodeTextField()
               };
               params[`${this.searchParameter}:text`] = fieldVal;
               // Hash of processed codes, used to exclude repeated codes
@@ -330,12 +334,11 @@ export class AutoCompleteTestValueComponent
     processedCodes: { [key: string]: boolean },
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
-    console.log(bundle.entry);
     return (bundle.entry || []).reduce((acc, entry) => {
       acc.push(
         ...(
-          entry.resource[this.searchParameter].coding ||
-          entry.resource[this.searchParameter][0].coding
+          entry.resource[this.getCodeTextField()].coding ||
+          entry.resource[this.getCodeTextField()][0].coding
         ).filter((coding) => {
           const matched =
             !processedCodes[coding.code] &&
@@ -353,5 +356,20 @@ export class AutoCompleteTestValueComponent
    */
   writeValue(value: AutocompleteTestValue): void {
     this.currentData = value;
+  }
+
+  /**
+   * Gets the main code field in case of "code text".
+   * Otherwise return the search parameter for normal parameters.
+   */
+  getCodeTextField(): string {
+    if (this.searchParameter === 'code') {
+      return (
+        AutoCompleteTestValueComponent.codeTextFieldMapping[
+          this.resourceType
+        ] || this.searchParameter
+      );
+    }
+    return this.searchParameter;
   }
 }
