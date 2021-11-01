@@ -22,6 +22,7 @@ import { AutocompleteTestValue } from '../../types/autocomplete-test-value';
 import { HttpClient } from '@angular/common/http';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * data type used for this control
@@ -167,7 +168,8 @@ export class AutoCompleteTestValueComponent
     @Optional() @Self() ngControl: NgControl,
     private elementRef: ElementRef,
     private errorStateMatcher: ErrorStateMatcher,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private liveAnnoncer: LiveAnnouncer
   ) {
     super();
     if (ngControl != null) {
@@ -271,6 +273,7 @@ export class AutoCompleteTestValueComponent
                     );
                     const nextPageUrl = getNextPageUrl(response);
                     if (nextPageUrl && contains.length < count) {
+                      this.liveAnnoncer.announce('New items added to list.');
                       resolve({
                         resourceType: 'ValueSet',
                         expansion: {
@@ -295,6 +298,7 @@ export class AutoCompleteTestValueComponent
                         contains.length = count;
                       }
                       this.loading = false;
+                      this.liveAnnoncer.announce('Finished loading list.');
                       resolve({
                         resourceType: 'ValueSet',
                         expansion: {
