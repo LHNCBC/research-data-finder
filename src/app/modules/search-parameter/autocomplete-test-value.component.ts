@@ -14,7 +14,7 @@ import { FormControl, NgControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { EMPTY, Subject, Subscription } from 'rxjs';
+import { EMPTY, of, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { getNextPageUrl } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
@@ -264,6 +264,12 @@ export class AutoCompleteTestValueComponent
                 })
                 .pipe(
                   expand((response: Bundle) => {
+                    // this.loading is set to false when expand() recurrence comes to
+                    // an end below.
+                    if (!this.loading) {
+                      // Emit a complete notification
+                      return EMPTY;
+                    }
                     contains.push(
                       ...this.getAutocompleteItems(
                         response,
@@ -290,8 +296,10 @@ export class AutoCompleteTestValueComponent
                         contains.length = count;
                       }
                       this.loading = false;
-                      // Emit a complete notification
-                      return EMPTY;
+                      // Since the subscribe() callback is executed before the expand()
+                      // callback here, we call another round of expand() so that changes
+                      // made to contains object will be reflected in subscribe() callback.
+                      return of({});
                     }
                   }),
                   catchError((error) => {
@@ -317,7 +325,7 @@ export class AutoCompleteTestValueComponent
       useResultCache: false,
       maxSelect: '*',
       matchListValue: true,
-      showListOnFocusIfEmpty: true
+      showListOnFocusIfEmpty: this.searchParameter !== 'code'
     });
     return acInstance;
   }

@@ -163,7 +163,6 @@ export class SearchParameterComponent
       this.selectedParameter.element === this.CODETEXT &&
       this.resourceType !== 'Observation'
     ) {
-      // TODO: code
       return `&code=${this.parameterValue.value.coding.join(',')}`;
     }
     if (this.selectedParameter.type === 'date') {
