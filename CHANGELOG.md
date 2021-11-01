@@ -3,10 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.24.0] - 2021-10-27
+## [3.24.0] - 2021-11-1
 ### Changed
 - Turned search parameter value autocomplete prefetch into search, for
-  example "Observation category".
+  lists whose binding is not required, e.g. Observation.category.
 - Show example items when the empty control is focused.
 
 ## [3.23.0] - 2021-10-27

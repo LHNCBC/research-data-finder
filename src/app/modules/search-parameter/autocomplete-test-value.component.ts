@@ -149,6 +149,8 @@ export class AutoCompleteTestValueComponent
     ) {
       this.focused = false;
       this.stateChanges.next();
+      this.loading = false;
+      this.subscription?.unsubscribe();
     }
   }
 
