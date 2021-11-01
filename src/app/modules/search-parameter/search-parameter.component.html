@@ -14,7 +14,7 @@
     </mat-autocomplete>
   </mat-form-field>
 
-  <ng-container *ngIf="selectedParameter && selectedParameter.element !== OBSERVATIONBYTEST">
+  <ng-container *ngIf="selectedParameter && selectedParameter.element !== CODETEXT">
     <ng-container [ngSwitch]="selectedParameter.type">
 
       <div *ngSwitchCase="'boolean'" class="parameter-value">
@@ -46,7 +46,7 @@
     </ng-container>
   </ng-container>
 
-  <mat-form-field class="flex" *ngIf="selectedParameter?.element === OBSERVATIONBYTEST && resourceType !== 'Observation'">
+  <mat-form-field class="flex" *ngIf="selectedParameter?.element === CODETEXT && resourceType !== 'Observation'">
     <mat-label>{{resourceType}} codes from FHIR server</mat-label>
     <app-autocomplete-test-value
       [formControl]="parameterValue" placeholder="Select one or more"
@@ -54,7 +54,7 @@
     </app-autocomplete-test-value>
   </mat-form-field>
 
-  <mat-form-field class="flex" *ngIf="selectedParameter?.element === OBSERVATIONBYTEST && resourceType === 'Observation'">
+  <mat-form-field class="flex" *ngIf="selectedParameter?.element === CODETEXT && resourceType === 'Observation'">
     <mat-label>Observation codes from FHIR server</mat-label>
     <app-observation-code-lookup
       [formControl]="selectedObservationCodes"
@@ -64,7 +64,7 @@
 
   <app-observation-test-value class="parameter-value" [formControl]="parameterValue" [datatype]="selectedObservationCodes.value?.datatype"
                   [loincCodes]="loincCodes"
-                  *ngIf="!isPullData && selectedParameter?.element === OBSERVATIONBYTEST && resourceType === 'Observation' && selectedObservationCodes.value?.datatype">
+                  *ngIf="!isPullData && selectedParameter?.element === CODETEXT && resourceType === 'Observation' && selectedObservationCodes.value?.datatype">
   </app-observation-test-value>
 
 </div>
