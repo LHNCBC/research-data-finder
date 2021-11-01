@@ -65,8 +65,8 @@ export class DefineCohortPageComponent
   patientCount = 0;
   // Processed Patient Ids used to skip already selected Patients
   processedPatientIds: { [patientId: string]: boolean };
-  // The number of patients in processing is used to pause the loading of the next page
-  numberOfProcessingPatients$: BehaviorSubject<number>;
+  // The number of resources in processing is used to pause the loading of the next page
+  numberOfProcessingResources$: BehaviorSubject<number>;
   // A matrix of loading info that will be displayed with View Cohort resource table.
   loadingStatistics: (string | number)[][] = [];
 
@@ -181,7 +181,7 @@ export class DefineCohortPageComponent
     // Reset the number of matched Patients
     this.patientCount = 0;
     this.processedPatientIds = {};
-    this.numberOfProcessingPatients$ = new BehaviorSubject<number>(0);
+    this.numberOfProcessingResources$ = new BehaviorSubject<number>(0);
 
     // Create a new Observable which emits Patient resources that match the criteria.
     // If we have only one block with Patient criteria - load all Patient in one request.
@@ -195,9 +195,9 @@ export class DefineCohortPageComponent
       filter((resource) => {
         const patientId = this.getPatientIdFromResource(resource);
         if (this.processedPatientIds[patientId]) {
-          // Update the number of Patients in processing
-          this.numberOfProcessingPatients$.next(
-            this.numberOfProcessingPatients$.value - 1
+          // Update the number of resources in processing
+          this.numberOfProcessingResources$.next(
+            this.numberOfProcessingResources$.value - 1
           );
           return false;
         }
@@ -221,15 +221,15 @@ export class DefineCohortPageComponent
         // Increment the number of matched Patients
         this.patientCount++;
         if (this.patientCount < maxPatientCount) {
-          // Update the number of Patients in processing
-          this.numberOfProcessingPatients$.next(
-            this.numberOfProcessingPatients$.value - 1
+          // Update the number of resources in processing
+          this.numberOfProcessingResources$.next(
+            this.numberOfProcessingResources$.value - 1
           );
         } else {
           // Cancel the loading of the next page if the maximum number of
           // Patients has been reached
-          this.numberOfProcessingPatients$.next(0);
-          this.numberOfProcessingPatients$.complete();
+          this.numberOfProcessingResources$.next(0);
+          this.numberOfProcessingResources$.complete();
         }
       }),
       // Do not create a new stream for each subscription
@@ -324,11 +324,11 @@ export class DefineCohortPageComponent
                 return EMPTY;
               }
               // Do not load next page before processing current page
-              return this.numberOfProcessingPatients$.pipe(
+              return this.numberOfProcessingResources$.pipe(
                 // Waiting for processing of already loaded resources
                 filter(
-                  (numberOfProcessingPatients) =>
-                    numberOfProcessingPatients === 0
+                  (numberOfProcessingResources) =>
+                    numberOfProcessingResources === 0
                 ),
                 // Load each page once
                 take(1),
@@ -346,9 +346,9 @@ export class DefineCohortPageComponent
             // Expand the BundleEntries array into separate resources
             mergeMap((response) => {
               const resources = (response?.entry || []).map((i) => i.resource);
-              // Update the number of Patients in processing
-              this.numberOfProcessingPatients$.next(
-                this.numberOfProcessingPatients$.value + resources.length
+              // Update the number of resources in processing
+              this.numberOfProcessingResources$.next(
+                this.numberOfProcessingResources$.value + resources.length
               );
               return from(resources);
             })
@@ -404,9 +404,9 @@ export class DefineCohortPageComponent
                 ).pipe(
                   mergeMap((r) => {
                     const checkedResources = r.filter((resource) => !!resource);
-                    // Update the number of Patients in processing
-                    this.numberOfProcessingPatients$.next(
-                      this.numberOfProcessingPatients$.value -
+                    // Update the number of resources in processing
+                    this.numberOfProcessingResources$.next(
+                      this.numberOfProcessingResources$.value -
                         (resources.length - checkedResources.length)
                     );
                     return from(checkedResources);
