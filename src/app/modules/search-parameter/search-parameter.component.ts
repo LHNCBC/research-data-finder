@@ -163,7 +163,7 @@ export class SearchParameterComponent
       this.selectedParameter.element === this.CODETEXT &&
       this.resourceType !== 'Observation'
     ) {
-      return `&code=${this.parameterValue.value.coding.join(',')}`;
+      return `&code=${this.parameterValue.value.codes.join(',')}`;
     }
     if (this.selectedParameter.type === 'date') {
       return (
@@ -186,7 +186,7 @@ export class SearchParameterComponent
     if (this.useLookupParamValue) {
       return `&${
         this.selectedParameter.element
-      }=${this.parameterValue.value.coding.join(',')}`;
+      }=${this.parameterValue.value.codes.join(',')}`;
     }
     if (this.selectedParameter.type === 'Quantity') {
       const testValueCriteria = this.getCompositeTestValueCriteria();

@@ -60,7 +60,7 @@ export class AutocompleteParameterValueComponent
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
    */
   get empty(): boolean {
-    return !this.value.coding?.length;
+    return !this.value.codes?.length;
   }
 
   /**
@@ -98,7 +98,7 @@ export class AutocompleteParameterValueComponent
   @Input() isRequiredList = false;
 
   currentData: AutocompleteParameterValue = {
-    coding: [],
+    codes: [],
     items: []
   };
   ngControl: NgControl = null;
@@ -209,7 +209,7 @@ export class AutocompleteParameterValueComponent
     // Fill autocomplete with data (if currentData was set in writeValue).
     if (this.currentData) {
       this.currentData.items.forEach((item, index) => {
-        this.acInstance.storeSelectedItem(item, this.currentData.coding[index]);
+        this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
         this.acInstance.addToSelectedArea(item);
       });
     }
@@ -218,7 +218,7 @@ export class AutocompleteParameterValueComponent
       const coding = this.acInstance.getSelectedCodes();
       const items = this.acInstance.getSelectedItems();
       this.currentData = {
-        coding,
+        codes: coding,
         items
       };
       this.onChange(this.currentData);
