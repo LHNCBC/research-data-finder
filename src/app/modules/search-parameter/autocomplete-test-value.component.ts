@@ -14,7 +14,7 @@ import { FormControl, NgControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { EMPTY, of, Subject, Subscription } from 'rxjs';
+import { EMPTY, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { getNextPageUrl } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
@@ -22,6 +22,7 @@ import { AutocompleteTestValue } from '../../types/autocomplete-test-value';
 import { HttpClient } from '@angular/common/http';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * data type used for this control
@@ -80,20 +81,6 @@ export class AutoCompleteTestValueComponent
     );
   }
 
-  constructor(
-    @Optional() @Self() ngControl: NgControl,
-    private elementRef: ElementRef,
-    private errorStateMatcher: ErrorStateMatcher,
-    private httpClient: HttpClient
-  ) {
-    super();
-    if (ngControl != null) {
-      this.ngControl = ngControl;
-      // Setting the value accessor directly (instead of using
-      // the providers) to avoid running into a circular import.
-      ngControl.valueAccessor = this;
-    }
-  }
   static idPrefix = 'autocomplete-test-value-';
   static idIndex = 0;
   static codeTextFieldMapping = {
@@ -168,6 +155,8 @@ export class AutoCompleteTestValueComponent
     ) {
       this.focused = false;
       this.stateChanges.next();
+      this.loading = false;
+      this.subscription?.unsubscribe();
     }
   }
 
@@ -177,6 +166,22 @@ export class AutoCompleteTestValueComponent
   onContainerClick(event: MouseEvent): void {
     if (!this.focused) {
       document.getElementById(this.inputId).focus();
+    }
+  }
+
+  constructor(
+    @Optional() @Self() ngControl: NgControl,
+    private elementRef: ElementRef,
+    private errorStateMatcher: ErrorStateMatcher,
+    private httpClient: HttpClient,
+    private liveAnnoncer: LiveAnnouncer
+  ) {
+    super();
+    if (ngControl != null) {
+      this.ngControl = ngControl;
+      // Setting the value accessor directly (instead of using
+      // the providers) to avoid running into a circular import.
+      ngControl.valueAccessor = this;
     }
   }
 
@@ -264,12 +269,6 @@ export class AutoCompleteTestValueComponent
                 })
                 .pipe(
                   expand((response: Bundle) => {
-                    // this.loading is set to false when expand() recurrence comes to
-                    // an end below.
-                    if (!this.loading) {
-                      // Emit a complete notification
-                      return EMPTY;
-                    }
                     contains.push(
                       ...this.getAutocompleteItems(
                         response,
@@ -279,6 +278,14 @@ export class AutoCompleteTestValueComponent
                     );
                     const nextPageUrl = getNextPageUrl(response);
                     if (nextPageUrl && contains.length < count) {
+                      this.liveAnnoncer.announce('New items added to list.');
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(total) ? total : null,
+                          contains
+                        }
+                      });
                       const newParams = { ...params };
                       newParams[`${this.searchParameter}:not`] = Object.keys(
                         processedCodes
@@ -296,10 +303,16 @@ export class AutoCompleteTestValueComponent
                         contains.length = count;
                       }
                       this.loading = false;
-                      // Since the subscribe() callback is executed before the expand()
-                      // callback here, we call another round of expand() so that changes
-                      // made to contains object will be reflected in subscribe() callback.
-                      return of({});
+                      this.liveAnnoncer.announce('Finished loading list.');
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(total) ? total : null,
+                          contains
+                        }
+                      });
+                      // Emit a complete notification
+                      return EMPTY;
                     }
                   }),
                   catchError((error) => {
@@ -309,15 +322,7 @@ export class AutoCompleteTestValueComponent
                   })
                 );
 
-              this.subscription = obs.subscribe(() => {
-                resolve({
-                  resourceType: 'ValueSet',
-                  expansion: {
-                    total: Number.isInteger(total) ? total : null,
-                    contains
-                  }
-                });
-              });
+              this.subscription = obs.subscribe();
             }
           };
         }
@@ -342,6 +347,7 @@ export class AutoCompleteTestValueComponent
     processedCodes: { [key: string]: boolean },
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
+    console.log(bundle.entry);
     return (bundle.entry || []).reduce((acc, entry) => {
       acc.push(
         ...(
