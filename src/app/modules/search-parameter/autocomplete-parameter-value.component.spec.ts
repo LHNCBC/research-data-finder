@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AutoCompleteTestValueComponent } from './autocomplete-test-value.component';
+import { AutocompleteParameterValueComponent } from './autocomplete-parameter-value.component';
 import { Component, ViewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -21,8 +21,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
   </mat-form-field>`
 })
 class TestHostComponent {
-  @ViewChild(AutoCompleteTestValueComponent)
-  component: AutoCompleteTestValueComponent;
+  @ViewChild(AutocompleteParameterValueComponent)
+  component: AutocompleteParameterValueComponent;
   selectedCodes = new FormControl({
     coding: [{ code: 'PHY' }, { code: 'PHR' }],
     items: ['Physician', 'Pharmacy']
@@ -32,11 +32,11 @@ class TestHostComponent {
 fdescribe('AutoCompleteTestValueComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let hostComponent: TestHostComponent;
-  let component: AutoCompleteTestValueComponent;
+  let component: AutocompleteParameterValueComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TestHostComponent, AutoCompleteTestValueComponent],
+      declarations: [TestHostComponent, AutocompleteParameterValueComponent],
       imports: [
         CommonModule,
         ReactiveFormsModule,

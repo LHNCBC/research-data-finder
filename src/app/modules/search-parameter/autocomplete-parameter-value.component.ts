@@ -37,16 +37,16 @@ export interface Lookup {
  */
 @Component({
   selector: 'app-autocomplete-test-value',
-  templateUrl: './autocomplete-test-value.component.html',
-  styleUrls: ['./autocomplete-test-value.component.less'],
+  templateUrl: './autocomplete-parameter-value.component.html',
+  styleUrls: ['./autocomplete-parameter-value.component.less'],
   providers: [
     {
       provide: MatFormFieldControl,
-      useExisting: AutoCompleteTestValueComponent
+      useExisting: AutocompleteParameterValueComponent
     }
   ]
 })
-export class AutoCompleteTestValueComponent
+export class AutocompleteParameterValueComponent
   extends BaseControlValueAccessor<AutocompleteTestValue>
   implements
     OnChanges,
@@ -89,8 +89,8 @@ export class AutoCompleteTestValueComponent
   };
 
   inputId =
-    AutoCompleteTestValueComponent.idPrefix +
-    ++AutoCompleteTestValueComponent.idIndex;
+    AutocompleteParameterValueComponent.idPrefix +
+    ++AutocompleteParameterValueComponent.idIndex;
   @Input() options: Lookup[];
   @Input() placeholder = '';
   @Input() resourceType: string;
@@ -379,7 +379,7 @@ export class AutoCompleteTestValueComponent
   getCodeTextField(): string {
     if (this.searchParameter === 'code') {
       return (
-        AutoCompleteTestValueComponent.codeTextFieldMapping[
+        AutocompleteParameterValueComponent.codeTextFieldMapping[
           this.resourceType
         ] || this.searchParameter
       );
