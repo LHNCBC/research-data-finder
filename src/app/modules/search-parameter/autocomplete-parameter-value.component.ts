@@ -18,7 +18,7 @@ import { EMPTY, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { getNextPageUrl } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
-import { AutocompleteTestValue } from '../../types/autocomplete-test-value';
+import { AutocompleteParameterValue } from '../../types/autocomplete-parameter-value';
 import { HttpClient } from '@angular/common/http';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
@@ -47,12 +47,12 @@ export interface Lookup {
   ]
 })
 export class AutocompleteParameterValueComponent
-  extends BaseControlValueAccessor<AutocompleteTestValue>
+  extends BaseControlValueAccessor<AutocompleteParameterValue>
   implements
     OnChanges,
     AfterViewInit,
-    MatFormFieldControl<AutocompleteTestValue> {
-  get value(): AutocompleteTestValue {
+    MatFormFieldControl<AutocompleteParameterValue> {
+  get value(): AutocompleteParameterValue {
     return this.currentData;
   }
 
@@ -97,7 +97,7 @@ export class AutocompleteParameterValueComponent
   @Input() searchParameter: string;
   @Input() isRequiredList = false;
 
-  currentData: AutocompleteTestValue = {
+  currentData: AutocompleteParameterValue = {
     coding: [],
     items: []
   };
@@ -368,7 +368,7 @@ export class AutocompleteParameterValueComponent
   /**
    * Part of the ControlValueAccessor interface
    */
-  writeValue(value: AutocompleteTestValue): void {
+  writeValue(value: AutocompleteParameterValue): void {
     this.currentData = value;
   }
 
