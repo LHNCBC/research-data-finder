@@ -25,11 +25,11 @@
       <mat-form-field class="parameter-value"
         *ngSwitchCase="useLookupParamValue ? selectedParameter.type : ''">
         <mat-label>Search parameter value</mat-label>
-        <app-autocomplete-test-value
+        <app-autocomplete-parameter-value
           [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more"
           [resourceType]="resourceType" [searchParameter]="selectedParameter.element"
           [isRequiredList]="selectedParameter.required">
-        </app-autocomplete-test-value>
+        </app-autocomplete-parameter-value>
       </mat-form-field>
 
       <app-dates-from-to *ngSwitchCase="'date'" [formControl]="parameterValue" class="parameter-value"></app-dates-from-to>
@@ -48,10 +48,10 @@
 
   <mat-form-field class="flex" *ngIf="selectedParameter?.element === CODETEXT">
     <mat-label>{{resourceType}} codes from FHIR server</mat-label>
-    <app-autocomplete-test-value *ngIf="resourceType !== 'Observation'"
-      [formControl]="parameterValue" placeholder="Select one or more"
-      [resourceType]="resourceType" searchParameter="code">
-    </app-autocomplete-test-value>
+    <app-autocomplete-parameter-value *ngIf="resourceType !== 'Observation'"
+                                      [formControl]="parameterValue" placeholder="Select one or more"
+                                      [resourceType]="resourceType" searchParameter="code">
+    </app-autocomplete-parameter-value>
     <app-observation-code-lookup *ngIf="resourceType === 'Observation'"
       [formControl]="selectedObservationCodes"
       placeholder="Type and select one or more">

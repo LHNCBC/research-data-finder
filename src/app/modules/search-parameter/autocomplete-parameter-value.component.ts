@@ -36,7 +36,7 @@ export interface Lookup {
  * Component for search parameter value as autocomplete multi-select
  */
 @Component({
-  selector: 'app-autocomplete-test-value',
+  selector: 'app-autocomplete-parameter-value',
   templateUrl: './autocomplete-parameter-value.component.html',
   styleUrls: ['./autocomplete-parameter-value.component.less'],
   providers: [

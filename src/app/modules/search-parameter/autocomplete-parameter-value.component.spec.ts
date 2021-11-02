@@ -11,13 +11,13 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 @Component({
   template: ` <mat-form-field class="flex">
     <mat-label>Search parameter value</mat-label>
-    <app-autocomplete-test-value
+    <app-autocomplete-parameter-value
       [formControl]="selectedCodes"
       placeholder="Type and select one or more"
       resourceType="Observation"
       searchParameter="category"
     >
-    </app-autocomplete-test-value>
+    </app-autocomplete-parameter-value>
   </mat-form-field>`
 })
 class TestHostComponent {
