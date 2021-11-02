@@ -46,17 +46,13 @@
     </ng-container>
   </ng-container>
 
-  <mat-form-field class="flex" *ngIf="selectedParameter?.element === CODETEXT && resourceType !== 'Observation'">
+  <mat-form-field class="flex" *ngIf="selectedParameter?.element === CODETEXT">
     <mat-label>{{resourceType}} codes from FHIR server</mat-label>
-    <app-autocomplete-test-value
+    <app-autocomplete-test-value *ngIf="resourceType !== 'Observation'"
       [formControl]="parameterValue" placeholder="Select one or more"
       [resourceType]="resourceType" searchParameter="code">
     </app-autocomplete-test-value>
-  </mat-form-field>
-
-  <mat-form-field class="flex" *ngIf="selectedParameter?.element === CODETEXT && resourceType === 'Observation'">
-    <mat-label>Observation codes from FHIR server</mat-label>
-    <app-observation-code-lookup
+    <app-observation-code-lookup *ngIf="resourceType === 'Observation'"
       [formControl]="selectedObservationCodes"
       placeholder="Type and select one or more">
     </app-observation-code-lookup>
