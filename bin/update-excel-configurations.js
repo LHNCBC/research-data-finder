@@ -322,15 +322,9 @@ function updateColumnRows() {
       if (fhirName === 'subject') {
         continue;
       }
+      // Keep medication column shown, since it's the main "code" field of
+      // MedicationDispense and MedicationRequest.
       if (fhirName === 'medication[x]') {
-        sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = 'show';
-        paintRow(
-          sheet,
-          rowNum,
-          columnCount,
-          colorLegend['show'],
-          doNotUpdateColor
-        );
         continue;
       }
       // Finds which section of resource type current rowNum belongs to.
