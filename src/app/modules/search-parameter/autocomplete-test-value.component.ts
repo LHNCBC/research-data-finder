@@ -276,6 +276,7 @@ export class AutoCompleteTestValueComponent
                     const nextPageUrl = getNextPageUrl(response);
                     if (nextPageUrl && contains.length < count) {
                       this.liveAnnoncer.announce('New items added to list.');
+                      // Update list before calling server for next query.
                       resolve({
                         resourceType: 'ValueSet',
                         expansion: {
