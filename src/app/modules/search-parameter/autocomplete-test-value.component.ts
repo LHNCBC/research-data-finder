@@ -292,10 +292,10 @@ export class AutoCompleteTestValueComponent
                         params: newParams
                       });
                     } else {
-                      if (response.total) {
-                        total = response.total;
-                      } else if (!nextPageUrl) {
+                      if (!nextPageUrl) {
                         total = contains.length;
+                      } else if (response.total) {
+                        total = response.total;
                       }
                       if (contains.length > count) {
                         contains.length = count;
