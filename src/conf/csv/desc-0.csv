@@ -1,5 +1,5 @@
 Condition,,,,,,,
-,"code text","search parameter","variable name",show,,,"The display text associated with the code of the identification of the condition, problem or diagnosis"
+,"code text","search parameter","condition name",show,,,"The display text associated with the code of the identification of the condition, problem or diagnosis"
 ,abatement-date,"search parameter",abatement-date,show,dateTime,,"Date-related abatements (dateTime and period)"
 ,abatement[x],column,Abatement,show,"dateTime,Age,Period,Range,string",,"When in resolution/remission"
 ,asserter,column,Asserter,hide,Reference,,"Person who asserts this condition"
