@@ -29,7 +29,7 @@ class TestHostComponent {
   });
 }
 
-fdescribe('AutoCompleteTestValueComponent', () => {
+describe('AutoCompleteTestValueComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let hostComponent: TestHostComponent;
   let component: AutocompleteParameterValueComponent;

@@ -250,7 +250,9 @@ export class AutocompleteParameterValueComponent
               const params = {
                 _elements: this.getCodeTextField()
               };
-              params[`${this.searchParameter}:text`] = fieldVal;
+              params[`${this.searchParameter}:text`] =
+                fieldVal ||
+                'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z';
               // Hash of processed codes, used to exclude repeated codes
               const processedCodes = {};
               // Array of result items for autocompleter
@@ -349,6 +351,9 @@ export class AutocompleteParameterValueComponent
   ): ValueSetExpansionContains[] {
     console.log(bundle.entry);
     return (bundle.entry || []).reduce((acc, entry) => {
+      if (!entry.resource[this.getCodeTextField()]) {
+        return acc;
+      }
       acc.push(
         ...(
           entry.resource[this.getCodeTextField()].coding ||
