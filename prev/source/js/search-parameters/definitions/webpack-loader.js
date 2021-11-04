@@ -141,6 +141,9 @@ function getSearchParametersConfig(
         type,
         ...(desc.binding && desc.binding.valueSet
           ? { valueSet: desc.binding.valueSet }
+          : {}),
+        ...(desc.binding && desc.binding.strength === 'required'
+          ? { required: true }
           : {})
       };
     } else if (type === 'BackboneElement') {

@@ -69,11 +69,7 @@ export class SearchParameterComponent
    * Whether to use lookup control for search parameter value.
    */
   get useLookupParamValue(): boolean {
-    return (
-      this.CODETYPES.includes(this.selectedParameter.type) &&
-      Array.isArray(this.parameterValues) &&
-      this.parameterValues.length > 0
-    );
+    return this.CODETYPES.includes(this.selectedParameter.type);
   }
 
   constructor(private fhirBackend: FhirBackendService) {
@@ -179,7 +175,7 @@ export class SearchParameterComponent
     if (this.useLookupParamValue) {
       return `&${
         this.selectedParameter.element
-      }=${this.parameterValue.value.join(',')}`;
+      }=${this.parameterValue.value.coding.join(',')}`;
     }
     if (this.selectedParameter.type === 'Quantity') {
       const testValueCriteria = this.getCompositeTestValueCriteria();

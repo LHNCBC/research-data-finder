@@ -331,14 +331,14 @@ export class FhirBackendService implements HttpBackend {
           Object.assign(parameter, {
             // expression: specParameter.expression,
             // path: specParameter.path,
-            valueSet: specParameter.valueSet
+            valueSet: specParameter.valueSet,
+            required: specParameter.required
           });
         }
       });
     });
 
     this.currentDefinitions.initialized = true;
-
     return this.currentDefinitions;
   }
 }

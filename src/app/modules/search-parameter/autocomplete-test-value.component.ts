@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  HostBinding,
   HostListener,
   Input,
   OnChanges,
@@ -13,8 +14,15 @@ import { FormControl, NgControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { Subject } from 'rxjs';
+import { EMPTY, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { getNextPageUrl } from '../../shared/utils';
+import { catchError, expand } from 'rxjs/operators';
+import { AutocompleteTestValue } from '../../types/autocomplete-test-value';
+import { HttpClient } from '@angular/common/http';
+import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
+import Bundle = fhir.Bundle;
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * data type used for this control
@@ -39,8 +47,11 @@ export interface Lookup {
   ]
 })
 export class AutoCompleteTestValueComponent
-  extends BaseControlValueAccessor<string[]>
-  implements OnChanges, AfterViewInit, MatFormFieldControl<string[]> {
+  extends BaseControlValueAccessor<AutocompleteTestValue>
+  implements
+    OnChanges,
+    AfterViewInit,
+    MatFormFieldControl<AutocompleteTestValue> {
   static idPrefix = 'autocomplete-test-value-';
   static idIndex = 0;
   inputId =
@@ -48,15 +59,28 @@ export class AutoCompleteTestValueComponent
     ++AutoCompleteTestValueComponent.idIndex;
   @Input() options: Lookup[];
   @Input() placeholder = '';
+  @Input() resourceType: string;
+  @Input() searchParameter: string;
+  @Input() isRequiredList = false;
 
-  currentData: string[] = [];
+  currentData: AutocompleteTestValue = {
+    coding: [],
+    items: []
+  };
   ngControl: NgControl = null;
   // Autocompleter instance
-  acInstance: Def.Autocompleter.Prefetch;
+  acInstance: any;
+  // Subscription used to cancel the previous loading process
+  subscription: Subscription;
   // Reference to the <input> element
   @ViewChild('input') input: ElementRef<HTMLInputElement>;
 
-  get value(): string[] {
+  /**
+   * Whether the control is in a loading state.
+   */
+  @HostBinding('class.loading') loading = false;
+
+  get value(): AutocompleteTestValue {
     return this.currentData;
   }
 
@@ -64,7 +88,7 @@ export class AutoCompleteTestValueComponent
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
    */
   get empty(): boolean {
-    return !this.value.length;
+    return !this.value.coding?.length;
   }
 
   /**
@@ -126,6 +150,8 @@ export class AutoCompleteTestValueComponent
     ) {
       this.focused = false;
       this.stateChanges.next();
+      this.loading = false;
+      this.subscription?.unsubscribe();
     }
   }
 
@@ -141,7 +167,9 @@ export class AutoCompleteTestValueComponent
   constructor(
     @Optional() @Self() ngControl: NgControl,
     private elementRef: ElementRef,
-    private errorStateMatcher: ErrorStateMatcher
+    private errorStateMatcher: ErrorStateMatcher,
+    private httpClient: HttpClient,
+    private liveAnnoncer: LiveAnnouncer
   ) {
     super();
     if (ngControl != null) {
@@ -163,39 +191,184 @@ export class AutoCompleteTestValueComponent
   }
 
   /**
-   * Set up Autocompleter prefetch options.
+   * Set up Autocompleter.
+   * It could be a Prefetch or a Search instance depending on this.isRequiredList.
    * Also call this.onChange() of ControlValueAccessor interface on selection event,
    * so that form control value is updated and can be read from parent form.
    */
   setupAutocomplete(): void {
-    const testInputId = this.inputId;
-    this.acInstance = new Def.Autocompleter.Prefetch(
-      testInputId,
-      this.options.map((o) => o.display),
-      { maxSelect: '*', codes: this.options.map((o) => o.code) }
-    );
+    this.acInstance = this.isRequiredList
+      ? this.setupAutocompletePrefetch()
+      : this.setupAutocompleteSearch();
 
     // Fill autocomplete with data (if currentData was set in writeValue).
     if (this.currentData) {
-      this.currentData.forEach((code) => {
-        const item = this.options.find((o) => o.code === code)?.display;
-        if (item) {
-          this.acInstance.storeSelectedItem(item, code);
-          this.acInstance.addToSelectedArea(item);
-        }
+      this.currentData.items.forEach((item, index) => {
+        this.acInstance.storeSelectedItem(item, this.currentData.coding[index]);
+        this.acInstance.addToSelectedArea(item);
       });
     }
 
-    Def.Autocompleter.Event.observeListSelections(testInputId, () => {
-      this.currentData = this.acInstance.getSelectedCodes() || [];
-      this.onChange(this.value);
+    Def.Autocompleter.Event.observeListSelections(this.inputId, () => {
+      const coding = this.acInstance.getSelectedCodes();
+      const items = this.acInstance.getSelectedItems();
+      this.currentData = {
+        coding,
+        items
+      };
+      this.onChange(this.currentData);
     });
+  }
+
+  /**
+   * Set up Autocompleter prefetch options.
+   */
+  setupAutocompletePrefetch(): void {
+    return new Def.Autocompleter.Prefetch(
+      this.inputId,
+      this.options.map((o) => o.display),
+      { maxSelect: '*', codes: this.options.map((o) => o.code) }
+    );
+  }
+
+  /**
+   * Set up Autocompleter search options.
+   */
+  setupAutocompleteSearch(): void {
+    const acInstance = new Def.Autocompleter.Search(this.inputId, null, {
+      suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
+      fhir: {
+        search: (fieldVal, count) => {
+          return {
+            then: (resolve, reject) => {
+              const url = `$fhir/${this.resourceType}`;
+              const params = {
+                _elements: this.searchParameter
+              };
+              params[`${this.searchParameter}:text`] =
+                fieldVal ||
+                'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z';
+              // Hash of processed codes, used to exclude repeated codes
+              const processedCodes = {};
+              // Array of result items for autocompleter
+              const contains: ValueSetExpansionContains[] = [];
+              // Total amount of items
+              let total = null;
+              // Already selected codes
+              const selectedCodes = acInstance.getSelectedCodes();
+
+              this.loading = true;
+              this.subscription?.unsubscribe();
+
+              const obs = this.httpClient
+                .get(url, {
+                  params
+                })
+                .pipe(
+                  expand((response: Bundle) => {
+                    contains.push(
+                      ...this.getAutocompleteItems(
+                        response,
+                        processedCodes,
+                        selectedCodes
+                      )
+                    );
+                    const nextPageUrl = getNextPageUrl(response);
+                    if (nextPageUrl && contains.length < count) {
+                      this.liveAnnoncer.announce('New items added to list.');
+                      // Update list before calling server for next query.
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(total) ? total : null,
+                          contains
+                        }
+                      });
+                      const newParams = { ...params };
+                      newParams[`${this.searchParameter}:not`] = Object.keys(
+                        processedCodes
+                      ).join(',');
+                      return this.httpClient.get(url, {
+                        params: newParams
+                      });
+                    } else {
+                      if (!nextPageUrl) {
+                        total = contains.length;
+                      } else if (response.total) {
+                        total = response.total;
+                      }
+                      if (contains.length > count) {
+                        contains.length = count;
+                      }
+                      this.loading = false;
+                      this.liveAnnoncer.announce('Finished loading list.');
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(total) ? total : null,
+                          contains
+                        }
+                      });
+                      // Emit a complete notification
+                      return EMPTY;
+                    }
+                  }),
+                  catchError((error) => {
+                    this.loading = false;
+                    reject(error);
+                    throw error;
+                  })
+                );
+
+              this.subscription = obs.subscribe();
+            }
+          };
+        }
+      },
+      useResultCache: false,
+      maxSelect: '*',
+      matchListValue: true,
+      showListOnFocusIfEmpty: true
+    });
+    return acInstance;
+  }
+
+  /**
+   * Extracts autocomplete items from resource bundle
+   * @param bundle - resource bundle
+   * @param processedCodes - hash of processed codes,
+   *   used to exclude repeated codes
+   * @param selectedCodes - already selected codes
+   */
+  getAutocompleteItems(
+    bundle: Bundle,
+    processedCodes: { [key: string]: boolean },
+    selectedCodes: Array<string>
+  ): ValueSetExpansionContains[] {
+    return (bundle.entry || []).reduce((acc, entry) => {
+      if (!entry.resource[this.searchParameter]) {
+        return acc;
+      }
+      acc.push(
+        ...(
+          entry.resource[this.searchParameter].coding ||
+          entry.resource[this.searchParameter][0].coding
+        ).filter((coding) => {
+          const matched =
+            !processedCodes[coding.code] &&
+            selectedCodes.indexOf(coding.code) === -1;
+          processedCodes[coding.code] = true;
+          return matched;
+        })
+      );
+      return acc;
+    }, []);
   }
 
   /**
    * Part of the ControlValueAccessor interface
    */
-  writeValue(value: string[]): void {
+  writeValue(value: AutocompleteTestValue): void {
     this.currentData = value;
   }
 }
