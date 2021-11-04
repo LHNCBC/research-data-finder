@@ -16,6 +16,7 @@
           <mat-icon svgIcon="clear"></mat-icon>
         </button>
         <app-autocomplete
+            class="resource-type"
             label="Resource type"
             required
             [options]="resourceTypes$ | async"
