@@ -24,7 +24,7 @@ class TestHostComponent {
   @ViewChild(AutocompleteParameterValueComponent)
   component: AutocompleteParameterValueComponent;
   selectedCodes = new FormControl({
-    coding: [{ code: 'PHY' }, { code: 'PHR' }],
+    codes: [{ code: 'PHY' }, { code: 'PHR' }],
     items: ['Physician', 'Pharmacy']
   });
 }
@@ -62,7 +62,7 @@ describe('AutoCompleteTestValueComponent', () => {
   it('should initialize autocomplete search with correct number of selected items', () => {
     expect(component.acInstance).toBeTruthy();
     expect(component.acInstance.getSelectedCodes()).toEqual(
-      hostComponent.selectedCodes.value.coding
+      hostComponent.selectedCodes.value.codes
     );
     expect(component.acInstance.getSelectedItems()).toEqual(
       hostComponent.selectedCodes.value.items
