@@ -20,6 +20,7 @@
             required
             [options]="resourceTypes$ | async"
             [(ngModel)]="ruleset.resourceType"
+            (ngModelChange)="focusOnAddCriterionBtn()"
             *ngIf="!ruleset.resourceType"></app-autocomplete>
         <p *ngIf="ruleset.resourceType && ruleset.resourceType !== 'Patient'">Select Patients which have
           {{getIndefiniteArticle(ruleset.resourceType)}}
@@ -64,6 +65,7 @@
       <div class="spacer" *ngIf="ruleset.resourceType && ruleset.rules.length"></div>
       <div class="h-box">
         <button type="button" *ngIf="ruleset.resourceType"
+                #addCriterionBtn
                 (click)="addRule()" mat-stroked-button color="secondary">
           <mat-icon svgIcon="add"></mat-icon>Add a criterion for the {{ruleset.resourceType}} resource
         </button>

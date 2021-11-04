@@ -24,6 +24,7 @@ import {
 } from '../autocomplete/autocomplete.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
+import { MatButton } from '@angular/material/button';
 
 /**
  * Component for managing resources search parameters
@@ -47,6 +48,8 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   resourceTypeComponents: QueryList<AutocompleteComponent>;
   @ViewChildren(SearchParameterComponent)
   searchParameterComponents: QueryList<SearchParameterComponent>;
+  @ViewChildren('addCriterionBtn')
+  buttons: QueryList<MatButton>;
   @ViewChild(QueryBuilderComponent)
   queryBuilderComponent: QueryBuilderComponent;
   public queryCtrl: FormControl = new FormControl({});
@@ -111,6 +114,17 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
     });
   }
 
+  /**
+   * Focus the input control of the newly added add criterion button.
+   */
+  focusOnAddCriterionBtn(): void {
+    const prevButtons = this.buttons.toArray();
+    this.buttons.changes.pipe(take(1)).subscribe((components) => {
+      setTimeout(() =>
+        components.find((btn) => prevButtons.indexOf(btn) === -1).focus()
+      );
+    });
+  }
   /**
    * Adds a ruleset for a resource type
    * @param ruleset parent ruleset
