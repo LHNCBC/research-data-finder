@@ -24,7 +24,7 @@ export class QueryParamsService {
   getQueryParam(resourceType: string, value: SearchParameter): string {
     const selectedParameter = this.definitions.resources[
       resourceType
-    ].searchParameters.find((p) => p.element === value?.element);
+    ]?.searchParameters.find((p) => p.element === value?.element);
     // If it is not a search parameter
     // (e.g. element === '_has:ResearchSubject:individual:study'),
     // use the default template

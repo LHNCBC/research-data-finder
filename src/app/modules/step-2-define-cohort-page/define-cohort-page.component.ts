@@ -11,16 +11,25 @@ import {
   createControlValueAccessorAndValidatorProviders
 } from '../base-control-value-accessor';
 import { SearchParametersComponent } from '../search-parameters/search-parameters.component';
-import { BehaviorSubject, EMPTY, forkJoin, from, Observable, of } from 'rxjs';
+import {
+  BehaviorSubject,
+  EMPTY,
+  forkJoin,
+  from,
+  Observable,
+  of,
+  OperatorFunction,
+  Subject
+} from 'rxjs';
 import Resource = fhir.Resource;
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { HttpClient } from '@angular/common/http';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import {
-  bufferCount,
   concatMap,
   expand,
   filter,
+  finalize,
   map,
   mergeMap,
   share,
@@ -40,6 +49,10 @@ import {
 import { uniqBy } from 'lodash-es';
 // Patient resource type name
 const PATIENT_RESOURCE_TYPE = 'Patient';
+// ResearchStudy resource type name
+const RESEARCH_STUDY_RESOURCE_TYPE = 'ResearchStudy';
+// ResearchSubject resource type name
+const RESEARCH_SUBJECT_RESOURCE_TYPE = 'ResearchSubject';
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -191,6 +204,8 @@ export class DefineCohortPageComponent
         ? maxPatientCount
         : this.getPageSize()
     ).pipe(
+      // Expand each array of resources into separate resources
+      concatMap((resources) => from(resources)),
       // Skip already processed Patients
       filter((resource) => {
         const patientId = this.getPatientIdFromResource(resource);
@@ -267,16 +282,16 @@ export class DefineCohortPageComponent
   }
 
   /**
-   * Returns a new Observable that emits resources that match the criteria.
-   * If among the criteria there are criteria for Patients, then the Observable
-   * will emit Patient resources.
+   * Returns an Observable that emits arrays of resources (page by page) that
+   * match the criteria. If among the criteria there are criteria for Patients,
+   * then the Observable will emit arrays of Patient resources.
    * @param criteria - criteria tree
    * @param pageSize - the value of the _count parameter
    */
   search(
     criteria: Criteria | ResourceTypeCriteria,
     pageSize: number
-  ): Observable<Resource> {
+  ): Observable<Resource[]> {
     const maxPatientCount = this.defineCohortForm.value.maxPatientsNumber;
 
     // Loading resources by criteria for specified resource type
@@ -289,71 +304,14 @@ export class DefineCohortPageComponent
           : [criteria.rules]
       ).pipe(
         // Sequentially execute queries and put the result into the stream.
-        concatMap((rules) => {
-          const useHas = this.canUseHas(criteria.resourceType, rules);
-          const resourceType = useHas
-            ? PATIENT_RESOURCE_TYPE
-            : criteria.resourceType;
-          // If the resource is not a Patient, we extract only the subject
-          // element in order to further identify the Patient by it.
-          const elements =
-            resourceType !== PATIENT_RESOURCE_TYPE ? '&_elements=subject' : '';
-          const query =
-            `$fhir/${resourceType}?_count=${pageSize}${elements}` +
-            rules
-              .map((criterion: Criterion) => {
-                const urlParamString = this.queryParams.getQueryParam(
-                  criteria.resourceType,
-                  criterion.field
-                );
-                // TODO: Add support for ResearchStudy
-                return useHas
-                  ? urlParamString.replace(
-                      /&/g,
-                      `&_has:${criteria.resourceType}:subject:`
-                    )
-                  : urlParamString;
-              })
-              .join('');
-          return this.http.get<Bundle>(query).pipe(
-            // Modifying the Observable to load the following pages sequentially
-            expand((response) => {
-              const nextPageUrl = getNextPageUrl(response);
-              if (!nextPageUrl) {
-                // Emit a complete notification if there is no next page
-                return EMPTY;
-              }
-              // Do not load next page before processing current page
-              return this.numberOfProcessingResources$.pipe(
-                // Waiting for processing of already loaded resources
-                filter(
-                  (numberOfProcessingResources) =>
-                    numberOfProcessingResources === 0
-                ),
-                // Load each page once
-                take(1),
-                switchMap(() => {
-                  if (this.patientCount < maxPatientCount) {
-                    // Load the next page of resources
-                    return this.http.get<Bundle>(nextPageUrl);
-                  } else {
-                    // Emit a complete notification
-                    return EMPTY;
-                  }
-                })
-              );
-            }),
-            // Expand the BundleEntries array into separate resources
-            mergeMap((response) => {
-              const resources = (response?.entry || []).map((i) => i.resource);
-              // Update the number of resources in processing
-              this.numberOfProcessingResources$.next(
-                this.numberOfProcessingResources$.value + resources.length
-              );
-              return from(resources);
-            })
-          );
-        })
+        concatMap((rules) =>
+          this.requestResources(
+            criteria.resourceType,
+            rules,
+            pageSize,
+            maxPatientCount
+          )
+        )
       );
       // Loading a subgroup of resources by criteria combined by the OR operator
     } else if (criteria.condition === 'or') {
@@ -374,9 +332,6 @@ export class DefineCohortPageComponent
             const restRules = newCriteria.rules.slice(1);
             // Search by the first child criterion
             return this.search(newCriteria.rules[0], pageSize).pipe(
-              // Accumulate a certain amount of resources to check these
-              // resources in parallel for the rest of the criteria.
-              bufferCount(pageSize),
               mergeMap((resources: Resource[]) => {
                 // Exclude processed and duplicate resources
                 const uncheckedResources = (uniqBy(
@@ -402,14 +357,14 @@ export class DefineCohortPageComponent
                     )
                   : of([])
                 ).pipe(
-                  mergeMap((r) => {
+                  map((r: Resource[]) => {
                     const checkedResources = r.filter((resource) => !!resource);
                     // Update the number of resources in processing
                     this.numberOfProcessingResources$.next(
                       this.numberOfProcessingResources$.value -
                         (resources.length - checkedResources.length)
                     );
-                    return from(checkedResources);
+                    return checkedResources;
                   })
                 );
               })
@@ -451,12 +406,16 @@ export class DefineCohortPageComponent
           // If the resource is not a Patient, we extract only the subject
           // element in order to further identify the Patient by it.
           const elements =
-            resourceType !== PATIENT_RESOURCE_TYPE ? '&_elements=subject' : '';
+            (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
+              '&_elements=individual') ||
+            (resourceType !== PATIENT_RESOURCE_TYPE && '&_elements=subject') ||
+            '';
 
           const link =
-            resourceType !== PATIENT_RESOURCE_TYPE
-              ? `_count=1&subject:Patient=${patientId}`
-              : `_id=${patientId}`;
+            (resourceType === PATIENT_RESOURCE_TYPE && `_id=${patientId}`) ||
+            (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
+              `_count=1&&_has:ResearchSubject:study:individual=Patient/${patientId}`) ||
+            `_count=1&subject:Patient=${patientId}`;
           const query =
             `$fhir/${resourceType}?${link}${elements}` +
             rules
@@ -465,7 +424,6 @@ export class DefineCohortPageComponent
                   criteria.resourceType,
                   criterion.field
                 );
-                // TODO: Add support for ResearchStudy
                 return useHas
                   ? urlParamString.replace(
                       /&/g,
@@ -532,8 +490,8 @@ export class DefineCohortPageComponent
 
   /**
    * Returns the criteria tree sorted at each level by the total amount of
-   * resources that match these criteria and populates the total property
-   * for each resource criteria and resource subgroup.
+   * patient-related resources that match these criteria and populates the total
+   * property for each resource criteria and resource subgroup.
    * This helps to find the best way to select Patients and get rid of
    * unnecessary searches.
    */
@@ -541,41 +499,21 @@ export class DefineCohortPageComponent
     if ('total' in criteria) {
       return of(criteria);
     }
+
     return (criteria.rules.length
       ? forkJoin(
           criteria.rules.map((ruleset) => {
             if ('resourceType' in ruleset) {
+              // If the resource criteria are combined by the OR operator, we split them
+              // into separate ones. ANDed criteria will be sent in one request.
               const rulesets =
                 ruleset.condition === 'or'
                   ? ruleset.rules.map((rule) => [rule])
                   : [ruleset.rules];
               return forkJoin(
-                rulesets.map((rules) => {
-                  const useHas = this.canUseHas(ruleset.resourceType, rules);
-
-                  const query =
-                    '$fhir/' +
-                    (useHas ? PATIENT_RESOURCE_TYPE : ruleset.resourceType) +
-                    '?_total=accurate&_summary=count' +
-                    rules
-                      .map((criterion: Criterion) => {
-                        const urlParamString = this.queryParams.getQueryParam(
-                          ruleset.resourceType,
-                          criterion.field
-                        );
-                        // TODO: Add support for ResearchStudy
-                        return useHas
-                          ? urlParamString.replace(
-                              /&/g,
-                              `&_has:${ruleset.resourceType}:subject:`
-                            )
-                          : urlParamString;
-                      })
-                      .join('');
-                  return this.http
-                    .get<Bundle>(query)
-                    .pipe(map((response) => response.total));
-                })
+                rulesets.map((rules) =>
+                  this.requestAmountOfResources(ruleset.resourceType, rules)
+                )
               ).pipe(
                 map((totals) => ({
                   ...ruleset,
@@ -619,6 +557,7 @@ export class DefineCohortPageComponent
     // criterion for the resource type:
     return (
       resourceType !== PATIENT_RESOURCE_TYPE &&
+      resourceType !== RESEARCH_STUDY_RESOURCE_TYPE &&
       criteriaForResourceType.length === 1 &&
       this.queryParams
         .getQueryParam(resourceType, criteriaForResourceType[0].field)
@@ -649,5 +588,220 @@ export class DefineCohortPageComponent
           ))
       );
     }
+  }
+
+  /**
+   * Requests the number of patient-related resources that match the specified
+   * array of criteria. For ResearchStudy, requests the number of ResearchSubjects
+   * for the first 100 ResearchStudies that have ResearchSubjects.
+   * @param resourceType - resource type
+   * @param rules - array of ANDed criteria
+   */
+  requestAmountOfResources(
+    resourceType: string,
+    rules: Criterion[]
+  ): Observable<number> {
+    const hasResearchSubjects = this.getHasResearchSubjectsParam();
+    const useHas = this.canUseHas(resourceType, rules);
+
+    const query =
+      '$fhir/' +
+      (useHas ? PATIENT_RESOURCE_TYPE : resourceType) +
+      (resourceType === RESEARCH_STUDY_RESOURCE_TYPE
+        ? '?_element=id&_count=100' + hasResearchSubjects
+        : '?_total=accurate&_summary=count') +
+      rules
+        .map((criterion: Criterion) => {
+          const urlParamString = this.queryParams.getQueryParam(
+            resourceType,
+            criterion.field
+          );
+          return useHas
+            ? urlParamString.replace(/&/g, `&_has:${resourceType}:subject:`)
+            : urlParamString;
+        })
+        .join('');
+
+    return this.http.get<Bundle>(query).pipe(
+      concatMap((response) => {
+        if (resourceType === RESEARCH_STUDY_RESOURCE_TYPE) {
+          const researchStudyIds = response.entry
+            ?.map(({ resource }) => resource.id)
+            .join(',');
+          return researchStudyIds
+            ? this.requestAmountOfResources(RESEARCH_SUBJECT_RESOURCE_TYPE, [
+                {
+                  field: {
+                    element: 'study',
+                    value: researchStudyIds
+                  }
+                },
+                {
+                  field: {
+                    element: '_total',
+                    value: 'accurate'
+                  }
+                },
+                {
+                  field: {
+                    element: '_summary',
+                    value: 'count'
+                  }
+                }
+              ])
+            : of(0);
+        }
+        return of(response.total);
+      })
+    );
+  }
+
+  /**
+   * Requests resources related to Patient (or Patient resources) by criteria.
+   * @param resourceType - resource type
+   * @param rules - array of ANDed criteria
+   * @param pageSize - page size
+   * @param maxPatientCount - maximum number of Patients to load
+   */
+  requestResources(
+    resourceType: string,
+    rules: Criterion[],
+    pageSize: number,
+    maxPatientCount: number
+  ): Observable<Resource[]> {
+    // Returns an empty Observable if the maximum number of patients has been reached
+    if (this.patientCount >= maxPatientCount) {
+      return EMPTY;
+    }
+
+    // For ResearchStudy criteria, we requests ResearchStudies and then
+    // recursively requests Patients for those ResearchStudies:
+    if (resourceType === RESEARCH_STUDY_RESOURCE_TYPE) {
+      const nextResearchStudyPage$ = new Subject<void>();
+      const hasResearchSubjects = this.getHasResearchSubjectsParam();
+
+      return this.http
+        .get<Bundle>(
+          `$fhir/${resourceType}?_count=${pageSize}&_elements=id${hasResearchSubjects}` +
+            rules.map((criterion: Criterion) =>
+              this.queryParams.getQueryParam(resourceType, criterion.field)
+            )
+        )
+        .pipe(
+          // Modifying the Observable to load the following pages sequentially
+          this.loadPagesSequentially(maxPatientCount, nextResearchStudyPage$),
+          // Expand the BundleEntries array into separate resources
+          concatMap((response) => {
+            return from((response?.entry || []).map((i) => i.resource)).pipe(
+              concatMap((res) => {
+                return this.requestResources(
+                  PATIENT_RESOURCE_TYPE,
+                  [
+                    {
+                      field: {
+                        element: '_has:ResearchSubject:individual:study',
+                        value: `ResearchStudy/${res.id}`
+                      }
+                    }
+                  ],
+                  pageSize,
+                  maxPatientCount
+                );
+              }),
+              finalize(() => {
+                nextResearchStudyPage$.next();
+              })
+            );
+          })
+        );
+    }
+
+    const useHas = this.canUseHas(resourceType, rules);
+    const queryResourceType = useHas ? PATIENT_RESOURCE_TYPE : resourceType;
+    // If the resource is not a Patient, we extract only the subject
+    // element in order to further identify the Patient by it.
+    const elements =
+      queryResourceType !== PATIENT_RESOURCE_TYPE ? '&_elements=subject' : '';
+    const query =
+      `$fhir/${queryResourceType}?_count=${pageSize}${elements}` +
+      rules
+        .map((criterion: Criterion) => {
+          const urlParamString = this.queryParams.getQueryParam(
+            resourceType,
+            criterion.field
+          );
+          return useHas
+            ? urlParamString.replace(/&/g, `&_has:${resourceType}:subject:`)
+            : urlParamString;
+        })
+        .join('');
+
+    return this.http.get<Bundle>(query).pipe(
+      // Modifying the Observable to load the following pages sequentially
+      this.loadPagesSequentially(
+        maxPatientCount,
+        this.numberOfProcessingResources$.pipe(
+          // Waiting for processing of already loaded resources
+          filter(
+            (numberOfProcessingResources) => numberOfProcessingResources === 0
+          )
+        )
+      ),
+      // Expand the BundleEntries array into separate resources
+      map((response: Bundle) => {
+        const resources = (response?.entry || []).map((i) => i.resource);
+        // Update the number of resources in processing
+        this.numberOfProcessingResources$.next(
+          this.numberOfProcessingResources$.value + resources.length
+        );
+        return resources;
+      })
+    );
+  }
+
+  /**
+   * Modifies the Observable to load the following pages sequentially
+   * @param maxPatientCount - maximum number of Patients to load
+   * @param readyForNextPage - the next page request will be executed after this
+   *   Observable emits a value.
+   */
+  loadPagesSequentially(
+    maxPatientCount: number,
+    readyForNextPage: Observable<any>
+  ): OperatorFunction<Bundle, Bundle> {
+    return expand((response: Bundle) => {
+      const nextPageUrl = getNextPageUrl(response);
+      if (!nextPageUrl) {
+        // Emit a complete notification if there is no next page
+        return EMPTY;
+      }
+      // Do not load next page before processing current page
+      return readyForNextPage.pipe(
+        // Load each page once
+        take(1),
+        switchMap(() => {
+          if (this.patientCount < maxPatientCount) {
+            // Load the next page of resources
+            return this.http.get<Bundle>(nextPageUrl);
+          } else {
+            // Emit a complete notification
+            return EMPTY;
+          }
+        })
+      );
+    });
+  }
+
+  /**
+   * Returns URL parameter for ResearchStudy query with all possible ResearchSubject
+   * statuses used to filter ResearchStudies that does not have ResearchSubjects.
+   */
+  getHasResearchSubjectsParam(): string {
+    const statuses = Object.keys(
+      this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
+        'ResearchSubject.status'
+      ]
+    ).join(',');
+    return `&_has:ResearchSubject:study:status=${statuses}`;
   }
 }
