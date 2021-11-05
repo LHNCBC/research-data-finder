@@ -26,6 +26,7 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 import { HttpClient } from '@angular/common/http';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import {
+  catchError,
   concatMap,
   expand,
   filter,
@@ -247,6 +248,8 @@ export class DefineCohortPageComponent
           this.numberOfProcessingResources$.complete();
         }
       }),
+      // Complete observable on error
+      catchError(() => EMPTY),
       // Do not create a new stream for each subscription
       share()
     );
