@@ -234,6 +234,15 @@ export class ObservationCodeLookupComponent
                   code: fieldVal,
                   _count: '1'
                 };
+                // Until authentication is in place for dbGaP, we need to include the
+                // consent groups as values for _security.
+                if (
+                  this.fhirBackend.serviceBaseUrl ===
+                  'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+                ) {
+                  params['_security'] = 'phs002409-1';
+                  paramsCode['_security'] = 'phs002409-1';
+                }
                 // Hash of processed codes, used to exclude repeated codes
                 const processedCodes = {};
                 // Array of result items for autocompleter
