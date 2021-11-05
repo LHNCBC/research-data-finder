@@ -1,4 +1,5 @@
 Condition,,,,,,,
+,"code text","search parameter","condition name",show,,,"The display text associated with the code of the identification of the condition, problem or diagnosis"
 ,abatement-date,"search parameter",abatement-date,show,dateTime,,"Date-related abatements (dateTime and period)"
 ,abatement[x],column,Abatement,show,"dateTime,Age,Period,Range,string",,"When in resolution/remission"
 ,asserter,column,Asserter,hide,Reference,,"Person who asserts this condition"
@@ -73,6 +74,7 @@ Encounter,,,,,,,
 ,type,column,Type,show,CodeableConcept,,"Specific type of encounter"
 ,type,"search parameter",type,show,CodeableConcept,,"Specific type of encounter"
 MedicationDispense,,,,,,,
+,"code text","search parameter","medication name",show,,,"The display text associated with the code of the medication being administered"
 ,authorizingPrescription,column,"Authorizing Prescription",hide,Reference,,"Medication order that authorizes the dispense"
 ,category,column,Category,hide,CodeableConcept,,"Type of medication dispense"
 ,code,"search parameter",code,show,CodeableConcept,,"Returns dispenses of this medicine code"
@@ -86,7 +88,7 @@ MedicationDispense,,,,,,,
 ,identifier,"search parameter",identifier,show,Identifier,,"Returns dispenses with this external identifier"
 ,identifier,column,Identifier,show,Identifier,,"External identifier"
 ,location,column,Location,hide,Reference,,"Where the dispense occurred"
-,medication[x],column,Medication,hide,"CodeableConcept,Reference",,"What medication was supplied"
+,medication[x],column,Medication,show,"CodeableConcept,Reference",,"What medication was supplied"
 ,note,column,Note,hide,Annotation,,"Information about the dispense"
 ,partOf,column,"Part Of",hide,Reference,,"Event that dispense is part of"
 ,performer,column,Performer,hide,BackboneElement,,"Who performed event"
@@ -104,6 +106,7 @@ MedicationDispense,,,,,,,
 ,whenprepared,"search parameter",whenprepared,show,date,,"Returns dispenses prepared on this date"
 ,whenPrepared,column,"When Prepared",show,dateTime,,"When product was packaged and reviewed"
 MedicationRequest,,,,,,,
+,"code text","search parameter","medication name",show,,,"The display text associated with the code of the medication being requested"
 ,authoredOn,column,"Authored On",hide,dateTime,,"When request was initially authored"
 ,basedOn,column,"Based On",hide,Reference,,"What request fulfills"
 ,category,column,Category,hide,CodeableConcept,,"Type of medication usage"
@@ -123,7 +126,7 @@ MedicationRequest,,,,,,,
 ,insurance,column,Insurance,hide,Reference,,"Associated insurance coverage"
 ,intent,column,Intent,show,code,,"proposal | plan | order | original-order | reflex-order | filler-order | instance-order | option"
 ,intent,"search parameter",intent,show,code,,"Returns prescriptions with different intents"
-,medication[x],column,Medication,hide,"CodeableConcept,Reference",,"Medication to be taken"
+,medication[x],column,Medication,show,"CodeableConcept,Reference",,"Medication to be taken"
 ,note,column,Note,hide,Annotation,,"Information about the prescription"
 ,performer,column,Performer,hide,Reference,,"Intended performer of administration"
 ,performerType,column,"Performer Type",hide,CodeableConcept,,"Desired kind of performer of the medication administration"
@@ -141,6 +144,7 @@ MedicationRequest,,,,,,,
 ,substitution,column,Substitution,hide,BackboneElement,,"Any restrictions on medication substitution"
 ,supportingInformation,column,"Supporting Information",hide,Reference,,"Information to support ordering of the medication"
 Procedure,,,,,,,
+,"code text","search parameter","procedure name",show,,,"The display text associated with the code of specific procedure that is performed"
 ,asserter,column,Asserter,hide,Reference,,"Person who asserts this procedure"
 ,basedOn,column,"Based On",hide,Reference,,"A request for this procedure"
 ,bodySite,column,"Body Site",hide,CodeableConcept,,"Target body sites"

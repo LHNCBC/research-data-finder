@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AutoCompleteTestValueComponent } from './autocomplete-test-value.component';
+import { AutocompleteParameterValueComponent } from './autocomplete-parameter-value.component';
 import { Component, ViewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -11,20 +11,20 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 @Component({
   template: ` <mat-form-field class="flex">
     <mat-label>Search parameter value</mat-label>
-    <app-autocomplete-test-value
+    <app-autocomplete-parameter-value
       [formControl]="selectedCodes"
       placeholder="Type and select one or more"
       resourceType="Observation"
       searchParameter="category"
     >
-    </app-autocomplete-test-value>
+    </app-autocomplete-parameter-value>
   </mat-form-field>`
 })
 class TestHostComponent {
-  @ViewChild(AutoCompleteTestValueComponent)
-  component: AutoCompleteTestValueComponent;
+  @ViewChild(AutocompleteParameterValueComponent)
+  component: AutocompleteParameterValueComponent;
   selectedCodes = new FormControl({
-    coding: [{ code: 'PHY' }, { code: 'PHR' }],
+    codes: [{ code: 'PHY' }, { code: 'PHR' }],
     items: ['Physician', 'Pharmacy']
   });
 }
@@ -32,11 +32,11 @@ class TestHostComponent {
 describe('AutoCompleteTestValueComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let hostComponent: TestHostComponent;
-  let component: AutoCompleteTestValueComponent;
+  let component: AutocompleteParameterValueComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TestHostComponent, AutoCompleteTestValueComponent],
+      declarations: [TestHostComponent, AutocompleteParameterValueComponent],
       imports: [
         CommonModule,
         ReactiveFormsModule,
@@ -62,7 +62,7 @@ describe('AutoCompleteTestValueComponent', () => {
   it('should initialize autocomplete search with correct number of selected items', () => {
     expect(component.acInstance).toBeTruthy();
     expect(component.acInstance.getSelectedCodes()).toEqual(
-      hostComponent.selectedCodes.value.coding
+      hostComponent.selectedCodes.value.codes
     );
     expect(component.acInstance.getSelectedItems()).toEqual(
       hostComponent.selectedCodes.value.items

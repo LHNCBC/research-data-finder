@@ -23,6 +23,7 @@ const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
 const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 const doNotUpdateList = [
+  ['*', /^code text$/],
   ['Observation', /^code text$/],
   ['Patient', /^name$/],
   ['Patient', /^family$/],
@@ -147,7 +148,7 @@ for (let i = 0; i < file.SheetNames.length; i++) {
       sheet[`${TYPECOLUMN}${rowNum}`]?.v === SEARCHPARAMETER &&
       !doNotUpdateList.some(
         (x) =>
-          x[0] === resourceType &&
+          (x[0] === '*' || x[0] === resourceType) &&
           x[1].test(sheet[`${FHIRNAMECOLUMN}${rowNum}`]?.v)
       )
     ) {
@@ -319,6 +320,11 @@ function updateColumnRows() {
       const fhirName = sheet[`${FHIRNAMECOLUMN}${rowNum}`].v;
       // Do not update "subject" column show/hide. It refers to a patient.
       if (fhirName === 'subject') {
+        continue;
+      }
+      // Keep medication column shown, since it's the main "code" field of
+      // MedicationDispense and MedicationRequest.
+      if (fhirName === 'medication[x]') {
         continue;
       }
       // Finds which section of resource type current rowNum belongs to.

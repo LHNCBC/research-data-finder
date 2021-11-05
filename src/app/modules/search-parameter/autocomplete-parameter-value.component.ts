@@ -18,7 +18,7 @@ import { EMPTY, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { getNextPageUrl } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
-import { AutocompleteTestValue } from '../../types/autocomplete-test-value';
+import { AutocompleteParameterValue } from '../../types/autocomplete-parameter-value';
 import { HttpClient } from '@angular/common/http';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
@@ -36,35 +36,69 @@ export interface Lookup {
  * Component for search parameter value as autocomplete multi-select
  */
 @Component({
-  selector: 'app-autocomplete-test-value',
-  templateUrl: './autocomplete-test-value.component.html',
-  styleUrls: ['./autocomplete-test-value.component.less'],
+  selector: 'app-autocomplete-parameter-value',
+  templateUrl: './autocomplete-parameter-value.component.html',
+  styleUrls: ['./autocomplete-parameter-value.component.less'],
   providers: [
     {
       provide: MatFormFieldControl,
-      useExisting: AutoCompleteTestValueComponent
+      useExisting: AutocompleteParameterValueComponent
     }
   ]
 })
-export class AutoCompleteTestValueComponent
-  extends BaseControlValueAccessor<AutocompleteTestValue>
+export class AutocompleteParameterValueComponent
+  extends BaseControlValueAccessor<AutocompleteParameterValue>
   implements
     OnChanges,
     AfterViewInit,
-    MatFormFieldControl<AutocompleteTestValue> {
+    MatFormFieldControl<AutocompleteParameterValue> {
+  get value(): AutocompleteParameterValue {
+    return this.currentData;
+  }
+
+  /**
+   * Whether the control is empty (Implemented as part of MatFormFieldControl)
+   */
+  get empty(): boolean {
+    return !this.value.codes?.length;
+  }
+
+  /**
+   * Whether the MatFormField label should try to float.
+   */
+  get shouldLabelFloat(): boolean {
+    return this.focused || !this.empty;
+  }
+
+  /**
+   * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
+   */
+  get errorState(): boolean {
+    const formControl = this.ngControl?.control as FormControl;
+    return (
+      this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
+      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
+    );
+  }
+
   static idPrefix = 'autocomplete-test-value-';
   static idIndex = 0;
+  static codeTextFieldMapping = {
+    MedicationDispense: 'medicationCodeableConcept',
+    MedicationRequest: 'medicationCodeableConcept'
+  };
+
   inputId =
-    AutoCompleteTestValueComponent.idPrefix +
-    ++AutoCompleteTestValueComponent.idIndex;
+    AutocompleteParameterValueComponent.idPrefix +
+    ++AutocompleteParameterValueComponent.idIndex;
   @Input() options: Lookup[];
   @Input() placeholder = '';
   @Input() resourceType: string;
   @Input() searchParameter: string;
   @Input() isRequiredList = false;
 
-  currentData: AutocompleteTestValue = {
-    coding: [],
+  currentData: AutocompleteParameterValue = {
+    codes: [],
     items: []
   };
   ngControl: NgControl = null;
@@ -80,45 +114,16 @@ export class AutoCompleteTestValueComponent
    */
   @HostBinding('class.loading') loading = false;
 
-  get value(): AutocompleteTestValue {
-    return this.currentData;
-  }
-
-  /**
-   * Whether the control is empty (Implemented as part of MatFormFieldControl)
-   */
-  get empty(): boolean {
-    return !this.value.coding?.length;
-  }
-
   /**
    * Whether the control is focused (Implemented as part of MatFormFieldControl)
    */
   focused = false;
 
   /**
-   * Whether the MatFormField label should try to float.
-   */
-  get shouldLabelFloat(): boolean {
-    return this.focused || !this.empty;
-  }
-
-  /**
    * Stream that emits whenever the state of the control changes such that
    * the parent `MatFormField` needs to run change detection.
    */
   readonly stateChanges = new Subject<void>();
-
-  /**
-   * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
-   */
-  get errorState(): boolean {
-    const formControl = this.ngControl?.control as FormControl;
-    return (
-      this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
-      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
-    );
-  }
 
   /**
    * These properties currently unused but required by MatFormFieldControl:
@@ -204,7 +209,7 @@ export class AutoCompleteTestValueComponent
     // Fill autocomplete with data (if currentData was set in writeValue).
     if (this.currentData) {
       this.currentData.items.forEach((item, index) => {
-        this.acInstance.storeSelectedItem(item, this.currentData.coding[index]);
+        this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
         this.acInstance.addToSelectedArea(item);
       });
     }
@@ -213,7 +218,7 @@ export class AutoCompleteTestValueComponent
       const coding = this.acInstance.getSelectedCodes();
       const items = this.acInstance.getSelectedItems();
       this.currentData = {
-        coding,
+        codes: coding,
         items
       };
       this.onChange(this.currentData);
@@ -243,7 +248,7 @@ export class AutoCompleteTestValueComponent
             then: (resolve, reject) => {
               const url = `$fhir/${this.resourceType}`;
               const params = {
-                _elements: this.searchParameter
+                _elements: this.getCodeTextField()
               };
               params[`${this.searchParameter}:text`] =
                 fieldVal ||
@@ -328,7 +333,7 @@ export class AutoCompleteTestValueComponent
       useResultCache: false,
       maxSelect: '*',
       matchListValue: true,
-      showListOnFocusIfEmpty: true
+      showListOnFocusIfEmpty: this.searchParameter !== 'code'
     });
     return acInstance;
   }
@@ -345,14 +350,15 @@ export class AutoCompleteTestValueComponent
     processedCodes: { [key: string]: boolean },
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
+    console.log(bundle.entry);
     return (bundle.entry || []).reduce((acc, entry) => {
-      if (!entry.resource[this.searchParameter]) {
+      if (!entry.resource[this.getCodeTextField()]) {
         return acc;
       }
       acc.push(
         ...(
-          entry.resource[this.searchParameter].coding ||
-          entry.resource[this.searchParameter][0].coding
+          entry.resource[this.getCodeTextField()].coding ||
+          entry.resource[this.getCodeTextField()][0].coding
         ).filter((coding) => {
           const matched =
             !processedCodes[coding.code] &&
@@ -368,7 +374,22 @@ export class AutoCompleteTestValueComponent
   /**
    * Part of the ControlValueAccessor interface
    */
-  writeValue(value: AutocompleteTestValue): void {
+  writeValue(value: AutocompleteParameterValue): void {
     this.currentData = value;
+  }
+
+  /**
+   * Gets the main code field in case of "code text".
+   * Otherwise return the search parameter for normal parameters.
+   */
+  getCodeTextField(): string {
+    if (this.searchParameter === 'code') {
+      return (
+        AutocompleteParameterValueComponent.codeTextFieldMapping[
+          this.resourceType
+        ] || this.searchParameter
+      );
+    }
+    return this.searchParameter;
   }
 }
