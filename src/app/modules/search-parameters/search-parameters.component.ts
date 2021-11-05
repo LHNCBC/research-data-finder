@@ -125,6 +125,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
       );
     });
   }
+
   /**
    * Adds a ruleset for a resource type
    * @param ruleset parent ruleset
