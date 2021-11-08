@@ -94,11 +94,11 @@ export class SearchParameterGroupComponent
     } else {
       this.filteredResourceTypes = this.resourceType.valueChanges.pipe(
         startWith(''),
-        map((value: string) =>
-          this.resourceTypes.filter((r) =>
-            r.toLowerCase().includes(value.toLowerCase())
-          )
-        )
+        map((value: string) => {
+          const reg = `\\b${value}`;
+          const regEx = new RegExp(reg, 'i');
+          return this.resourceTypes.filter((r) => regEx.test(r));
+        })
       );
       this.resourceType.valueChanges.subscribe((value) => {
         const match = this.resourceTypes.find((rt) => rt === value);
