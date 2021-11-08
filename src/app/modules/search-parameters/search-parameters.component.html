@@ -94,7 +94,10 @@
 
   <!-- Search parameter name selector -->
   <ng-container *queryField="let rule; let fields=fields;  let parentRuleSet=parentRuleSet; let onChange=onChange; let getFields = getFields">
-    <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"></app-search-parameter>
+    <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"
+                          (ngModelChange)="updateSelectedElements(parentRuleSet)"
+                          [selectedElements]="selectedElements.get(parentRuleSet)">
+    </app-search-parameter>
   </ng-container>
   <ng-container *queryOperator="let rule; let operators=operators; let onChange=onChange">
   </ng-container>

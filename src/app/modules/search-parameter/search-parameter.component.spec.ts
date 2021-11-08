@@ -64,6 +64,11 @@ describe('SearchParameterComponent', () => {
                   element: 'value-quantity',
                   displayName: 'value quantity',
                   type: 'Quantity'
+                },
+                {
+                  element: 'already-selected',
+                  displayName: 'already selected',
+                  type: 'string'
                 }
               ]
             }
@@ -78,6 +83,7 @@ describe('SearchParameterComponent', () => {
     page = new Page(fixture);
     component = fixture.componentInstance;
     component.resourceType = 'Observation';
+    component.selectedElements = ['already-selected'];
     fixture.detectChanges();
   });
 
@@ -87,7 +93,7 @@ describe('SearchParameterComponent', () => {
 
   it('should have code text parameter', () => {
     expect(component.parameters).not.toBeNull();
-    expect(component.parameters.length).toEqual(2);
+    expect(component.parameters.length).toEqual(3);
     expect(component.parameters).toContain(
       jasmine.objectContaining({ element: 'code text' })
     );
@@ -98,5 +104,15 @@ describe('SearchParameterComponent', () => {
     component.parameterName.setValue('value quantity');
     fixture.detectChanges(false);
     expect(page.compositeTestValue).not.toBeNull();
+  });
+
+  it('should not show already selected search parameters in the dropdown', () => {
+    expect(component.parameterOptions.length).toEqual(2);
+    expect(component.parameterOptions).toContain(
+      jasmine.objectContaining({ name: 'Some name' })
+    );
+    expect(component.parameterOptions).not.toContain(
+      jasmine.objectContaining({ name: 'already selected' })
+    );
   });
 });

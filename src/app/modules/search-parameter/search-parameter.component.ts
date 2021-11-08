@@ -1,4 +1,11 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { SearchParameter } from 'src/app/types/search.parameter';
 import {
@@ -27,8 +34,12 @@ import {
 })
 export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>
-  implements OnInit {
+  implements OnInit, OnChanges {
   @Input() resourceType = '';
+  // A list of already selected elements (that match the search parameters),
+  // including the element selected in this component. This list is used to
+  // exclude dropdown options to avoid duplicate criteria.
+  @Input() selectedElements: string[] = [];
   @Input() isPullData = false;
   readonly OBSERVATIONBYTEST = OBSERVATIONBYTEST;
   readonly OBSERVATIONBYTESTDESC =
@@ -85,11 +96,7 @@ export class SearchParameterComponent
     this.definitions = this.fhirBackend.getCurrentDefinitions();
     this.selectedResourceType = this.definitions.resources[this.resourceType];
     this.parameters = this.selectedResourceType.searchParameters;
-    this.parameterOptions = this.parameters.map((searchParameter) => ({
-      name: searchParameter.displayName,
-      value: searchParameter.displayName,
-      desc: searchParameter.description
-    }));
+    this.updateAvailableSearchParameters();
     this.selectedParameter = null;
 
     this.parameterName.valueChanges.subscribe((value) => {
@@ -120,6 +127,16 @@ export class SearchParameterComponent
           .map((c) => c.code) || [];
       this.handleChange();
     });
+  }
+
+  /**
+   * A lifecycle hook that is called when any data-bound property of a component
+   * changes.
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.selectedElements?.currentValue) {
+      this.updateAvailableSearchParameters();
+    }
   }
 
   /**
@@ -174,5 +191,23 @@ export class SearchParameterComponent
    */
   focusSearchParamNameInput(): void {
     this.searchParamName.focus();
+  }
+
+  /**
+   * Updates the list of available search parameters.
+   */
+  updateAvailableSearchParameters(): void {
+    this.parameterOptions = this.parameters
+      // Skip already selected search parameters
+      .filter(
+        (p) =>
+          p.element === this.value.element ||
+          this.selectedElements.indexOf(p.element) === -1
+      )
+      .map((searchParameter) => ({
+        name: searchParameter.displayName,
+        value: searchParameter.displayName,
+        desc: searchParameter.description
+      }));
   }
 }
