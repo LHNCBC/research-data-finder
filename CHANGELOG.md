@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.25.2] - 2021-11-8
+### Changed
+- Left match word boundaries when filtering resource type or search
+  parameter.
+
 ## [3.25.0] - 2021-11-3
 ### Added
 - a "code text" search parameter for each of the resource types with a
