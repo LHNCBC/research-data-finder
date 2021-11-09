@@ -10,7 +10,8 @@ import {
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import {
   encodeFhirSearchParameter,
-  escapeFhirSearchParameter
+  escapeFhirSearchParameter,
+  escapeStringForRegExp
 } from '../../shared/utils';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 
@@ -121,7 +122,7 @@ export class SearchParameterComponent
    * 'variable name' will test true for 'va' or 'na', but not 'ri' or 'le'.
    */
   private _filter(value: string, options: any[]): string[] {
-    const reg = `\\b${value}`;
+    const reg = `\\b${escapeStringForRegExp(value)}`;
     const regEx = new RegExp(reg, 'i');
     return options.filter((option) => regEx.test(option.displayName));
   }

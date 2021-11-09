@@ -24,6 +24,7 @@ import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { escapeStringForRegExp } from '../../shared/utils';
 
 /**
  * Component for managing search parameters of a resource type
@@ -95,7 +96,7 @@ export class SearchParameterGroupComponent
       this.filteredResourceTypes = this.resourceType.valueChanges.pipe(
         startWith(''),
         map((value: string) => {
-          const reg = `\\b${value}`;
+          const reg = `\\b${escapeStringForRegExp(value)}`;
           const regEx = new RegExp(reg, 'i');
           return this.resourceTypes.filter((r) => regEx.test(r));
         })
