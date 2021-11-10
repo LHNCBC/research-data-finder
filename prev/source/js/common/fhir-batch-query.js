@@ -135,6 +135,16 @@ export class FhirBatchQuery {
         })
       ];
 
+      if (newServiceBaseUrl === 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1') {
+        // Query to extract the consent group that must be included as _security param in particular queries.
+        initializationRequests.push(
+          this.getWithCache('ResearchSubject', {
+            combine: false,
+            retryCount: 2
+          })
+        );
+      }
+
       this._initializationPromise = Promise.allSettled(
         initializationRequests
       ).then(
@@ -144,7 +154,8 @@ export class FhirBatchQuery {
           observationsSortedByAgeAtEvent,
           lastnLookup,
           hasResearchStudy,
-          batch
+          batch,
+          researchSubject
         ]) => {
           if (metadata.status === 'fulfilled') {
             const fhirVersion = metadata.value.data.fhirVersion;
@@ -174,6 +185,15 @@ export class FhirBatchQuery {
               hasResearchStudy.value.data.entry.length > 0,
             batch: batch.status === 'fulfilled'
           };
+          if (
+            researchSubject &&
+            researchSubject.status === 'rejected' &&
+            /Deny access to all but these consent groups: (.*) -- codes from last denial/.test(
+              researchSubject.reason.error
+            )
+          ) {
+            this._features.consentGroup = RegExp.$1;
+          }
         }
       );
     }
