@@ -354,8 +354,6 @@ describe('DefineCohortComponent', () => {
         }, [])
       )
       .subscribe((patients) => {
-        // We have two Observations for the same Patient, that's why one
-        // Observation ignored
         expect(patients.length).toEqual(10);
         done();
       });
@@ -374,7 +372,7 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/ResearchSubject?_total=accurate&_summary=count&study=research-study-1,research-study-2&_total=accurate&_summary=count`
+        `$fhir/Patient?_total=accurate&_summary=count&_has:ResearchSubject:subject:study=research-study-1,research-study-2`
       )
       .flush({ total: 10 });
 

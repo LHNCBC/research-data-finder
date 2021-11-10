@@ -709,18 +709,6 @@ export class DefineCohortPageComponent
                   element: 'study',
                   value: researchStudyIds
                 }
-              },
-              {
-                field: {
-                  element: '_total',
-                  value: 'accurate'
-                }
-              },
-              {
-                field: {
-                  element: '_summary',
-                  value: 'count'
-                }
               }
             ])
           : of(0);
