@@ -7,6 +7,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import tenPatientBundle from './test-fixtures/patients-10.json';
 import tenObservationBundle from './test-fixtures/observations-10.json';
 import examplePatient from './test-fixtures/example-patient.json';
+import twoResearchStudies from './test-fixtures/research-studies-2.json';
+import exampleObservation from './test-fixtures/example-observation.json';
 import { reduce } from 'rxjs/operators';
 
 describe('DefineCohortComponent', () => {
@@ -44,18 +46,13 @@ describe('DefineCohortComponent', () => {
       ])
     ).toEqual({
       condition: 'and',
+      resourceType: 'Patient',
       rules: [
         {
-          condition: 'and',
-          resourceType: 'Patient',
-          rules: [
-            {
-              field: {
-                element: '_has:ResearchSubject:individual:study',
-                value: 'someResearchStudyId'
-              }
-            }
-          ]
+          field: {
+            element: '_has:ResearchSubject:individual:study',
+            value: 'someResearchStudyId'
+          }
         }
       ]
     });
@@ -297,5 +294,120 @@ describe('DefineCohortComponent', () => {
     mockHttp
       .expectOne(`next-observation-bundle-page`)
       .flush(tenObservationBundle);
+  });
+
+  it('should load Patients by Observation and ResearchStudy criteria', (done) => {
+    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    spyOn(component, 'getPageSize').and.returnValue(10);
+    component.patientParams.queryCtrl.setValue({
+      condition: 'and',
+      rules: [
+        {
+          condition: 'and',
+          resourceType: 'ResearchStudy',
+          rules: [
+            {
+              field: {
+                element: 'status',
+                value: ['completed'],
+                selectedObservationCodes: null
+              }
+            }
+          ]
+        },
+        {
+          condition: 'and',
+          resourceType: 'Observation',
+          rules: [
+            {
+              field: {
+                element: 'code text',
+                value: {
+                  testValuePrefix: 'gt',
+                  testValueModifier: '',
+                  testValue: 100,
+                  testValueUnit: ''
+                },
+                selectedObservationCodes: {
+                  coding: [
+                    {
+                      code: '3137-7',
+                      system: 'http://loinc.org'
+                    }
+                  ],
+                  datatype: 'Quantity',
+                  items: ['Height cm']
+                }
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    component.searchForPatients();
+    component.patientStream
+      .pipe(
+        reduce((acc, patient) => {
+          acc.push(patient);
+          return acc;
+        }, [])
+      )
+      .subscribe((patients) => {
+        // We have two Observations for the same Patient, that's why one
+        // Observation ignored
+        expect(patients.length).toEqual(10);
+        done();
+      });
+
+    mockHttp
+      .expectOne(
+        `$fhir/ResearchStudy?_element=id&_count=100&_has:ResearchSubject:study:status=candidate,eligible,follow-up,ineligible,not-registered,off-study,on-study,on-study-intervention,on-study-observation,pending-on-study,potential-candidate,screening,withdrawn&status=completed`
+      )
+      .flush(twoResearchStudies);
+
+    mockHttp
+      .expectOne(
+        `$fhir/Observation?_total=accurate&_summary=count&combo-code=3137-7&combo-value-quantity=gt100`
+      )
+      .flush({ total: 20 });
+
+    mockHttp
+      .expectOne(
+        `$fhir/ResearchSubject?_total=accurate&_summary=count&study=research-study-1,research-study-2&_total=accurate&_summary=count`
+      )
+      .flush({ total: 10 });
+
+    mockHttp
+      .expectOne(
+        `$fhir/ResearchStudy?_count=10&_elements=id&_has:ResearchSubject:study:status=candidate,eligible,follow-up,ineligible,not-registered,off-study,on-study,on-study-intervention,on-study-observation,pending-on-study,potential-candidate,screening,withdrawn&status=completed`
+      )
+      .flush(twoResearchStudies);
+
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_count=10&_has:ResearchSubject:individual:study=research-study-1,research-study-2`
+      )
+      .flush(tenPatientBundle);
+
+    tenPatientBundle.entry.forEach(({ resource }) => {
+      const patientId = resource.id;
+      mockHttp
+        .expectOne(
+          `$fhir/Observation?_count=1&subject:Patient=${patientId}&_elements=subject&combo-code=3137-7&combo-value-quantity=gt100`
+        )
+        .flush({
+          entry: [
+            {
+              resource: {
+                ...exampleObservation,
+                subject: {
+                  reference: 'Patient/' + patientId
+                }
+              }
+            }
+          ]
+        });
+    });
   });
 });

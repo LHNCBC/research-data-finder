@@ -26,6 +26,7 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 import { HttpClient } from '@angular/common/http';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import {
+  bufferCount,
   catchError,
   concatMap,
   expand,
@@ -112,44 +113,110 @@ export class DefineCohortPageComponent
   writeValue(obj: any): void {}
 
   /**
+   * Find criteria for a specified resource type that are ANDed with other criteria
+   * @param resourceType - resource type
+   * @param criteria - all criteria
+   */
+  findAndedWithOtherCriteriaFor(
+    resourceType: string,
+    criteria: Criteria | ResourceTypeCriteria
+  ): ResourceTypeCriteria {
+    let result = null;
+    if ('resourceType' in criteria) {
+      if (criteria.resourceType === resourceType) {
+        result = criteria;
+      }
+    } else if (criteria.condition === 'and') {
+      const length = criteria.rules.length;
+      for (let i = 0; i < length && !result; ++i) {
+        result = this.findAndedWithOtherCriteriaFor(
+          resourceType,
+          criteria.rules[i]
+        );
+      }
+    }
+    return result;
+  }
+
+  /**
    * Returns a prepared criteria tree:
-   *  - removes empty subgroups from criteria tree
-   *  - adds root criteria for selected ResearchStudies if necessary
+   *  - removes empty criteria from the criteria tree
+   *  - inserts the criteria for the selected ResearchStudies into the existing
+   *    (ANDed with other) Patients criteria, otherwise adds the root criteria
+   *    for the selected ResearchStudies
    */
   prepareCriteria(
     criteria: Criteria | ResourceTypeCriteria,
     researchStudyIds: string[] = null
   ): Criteria | ResourceTypeCriteria | null {
-    // When we have selected research studies, we load associated Patients
-    // and check them with criteria:
     if (researchStudyIds?.length) {
+      const preparedCriteria = this.prepareCriteria(criteria) || {
+        condition: 'and',
+        resourceType: PATIENT_RESOURCE_TYPE,
+        rules: []
+      };
+      const ruleForResearchStudyIds = {
+        field: {
+          // The case when an element is not a search parameter is
+          // specially taken into account in the function getQueryParam
+          // of the service QueryParamsService.
+          element: '_has:ResearchSubject:individual:study',
+          value: researchStudyIds.join(',')
+        }
+      };
+      const patientCriteria = this.findAndedWithOtherCriteriaFor(
+        PATIENT_RESOURCE_TYPE,
+        preparedCriteria
+      );
+      // Insert the criteria for the selected ResearchStudies into the existing
+      // (ANDed with other) Patients criteria
+      if (patientCriteria) {
+        if (patientCriteria.condition === 'and') {
+          patientCriteria.rules.push(ruleForResearchStudyIds);
+        } else {
+          // Split patient criteria to separate blocks
+          delete patientCriteria.resourceType;
+          ((patientCriteria as unknown) as Criteria).rules = patientCriteria.rules.map(
+            (rule) => ({
+              resourceType: PATIENT_RESOURCE_TYPE,
+              condition: 'and',
+              rules: [rule, ruleForResearchStudyIds]
+            })
+          );
+        }
+        return preparedCriteria;
+      }
+
+      // Otherwise add the root criteria for the selected ResearchStudies
       return {
         condition: 'and',
         rules: ([
           {
             condition: 'and',
             resourceType: PATIENT_RESOURCE_TYPE,
-            rules: [
-              {
-                field: {
-                  // The case when an element is not a search parameter is
-                  // specially taken into account in the function getQueryParam
-                  // of the service QueryParamsService.
-                  element: '_has:ResearchSubject:individual:study',
-                  value: researchStudyIds.join(',')
-                }
-              }
-            ]
+            rules: [ruleForResearchStudyIds]
           }
         ] as Array<Criteria | ResourceTypeCriteria>).concat(
-          this.prepareCriteria(criteria) || []
+          this.prepareCriteria(preparedCriteria) || []
         )
       } as Criteria;
     }
 
     if ('resourceType' in criteria) {
-      // Return the criteria for the resource type as is
-      return criteria;
+      // Remove empty resource type criteria so we don't have to consider them
+      // in the search algorithm
+      if (!criteria.rules.length) {
+        return null;
+      }
+
+      // We need a copy of the object in order not to visualize our changes
+      return {
+        // if we have only one criterion with the OR operator, replace the
+        // operator with AND
+        condition: criteria.rules.length === 1 ? 'and' : criteria.condition,
+        resourceType: criteria.resourceType,
+        rules: criteria.rules.concat()
+      };
     } else {
       // Remove empty subgroups so we don't have to consider them in the search algorithm
       const rules = criteria.rules.reduce((result, rule) => {
@@ -162,6 +229,7 @@ export class DefineCohortPageComponent
       if (rules.length === 0) {
         return null;
       } else {
+        // We need a copy of the object in order not to visualize our changes
         return {
           ...criteria,
           rules
@@ -594,7 +662,7 @@ export class DefineCohortPageComponent
   }
 
   /**
-   * Requests the number of patient-related resources that match the specified
+   * Requests an count of patient-related resources that match the specified
    * array of criteria. For ResearchStudy, requests the number of ResearchSubjects
    * for the first 100 ResearchStudies that have ResearchSubjects.
    * @param resourceType - resource type
@@ -627,34 +695,35 @@ export class DefineCohortPageComponent
 
     return this.http.get<Bundle>(query).pipe(
       concatMap((response) => {
-        if (resourceType === RESEARCH_STUDY_RESOURCE_TYPE) {
-          const researchStudyIds = response.entry
-            ?.map(({ resource }) => resource.id)
-            .join(',');
-          return researchStudyIds
-            ? this.requestAmountOfResources(RESEARCH_SUBJECT_RESOURCE_TYPE, [
-                {
-                  field: {
-                    element: 'study',
-                    value: researchStudyIds
-                  }
-                },
-                {
-                  field: {
-                    element: '_total',
-                    value: 'accurate'
-                  }
-                },
-                {
-                  field: {
-                    element: '_summary',
-                    value: 'count'
-                  }
-                }
-              ])
-            : of(0);
+        if (resourceType !== RESEARCH_STUDY_RESOURCE_TYPE) {
+          return of(response.total);
         }
-        return of(response.total);
+
+        const researchStudyIds = response.entry
+          ?.map(({ resource }) => resource.id)
+          .join(',');
+        return researchStudyIds
+          ? this.requestAmountOfResources(RESEARCH_SUBJECT_RESOURCE_TYPE, [
+              {
+                field: {
+                  element: 'study',
+                  value: researchStudyIds
+                }
+              },
+              {
+                field: {
+                  element: '_total',
+                  value: 'accurate'
+                }
+              },
+              {
+                field: {
+                  element: '_summary',
+                  value: 'count'
+                }
+              }
+            ])
+          : of(0);
       })
     );
   }
@@ -695,15 +764,16 @@ export class DefineCohortPageComponent
           this.loadPagesSequentially(maxPatientCount, nextResearchStudyPage$),
           // Expand the BundleEntries array into separate resources
           concatMap((response) => {
-            return from((response?.entry || []).map((i) => i.resource)).pipe(
-              concatMap((res) => {
+            return from((response?.entry || []).map((i) => i.resource.id)).pipe(
+              bufferCount(10),
+              concatMap((ids) => {
                 return this.requestResources(
                   PATIENT_RESOURCE_TYPE,
                   [
                     {
                       field: {
                         element: '_has:ResearchSubject:individual:study',
-                        value: `ResearchStudy/${res.id}`
+                        value: ids.join(',')
                       }
                     }
                   ],
