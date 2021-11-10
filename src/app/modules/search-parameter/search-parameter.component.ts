@@ -98,7 +98,7 @@ export class SearchParameterComponent
           this.selectedParameter.type === 'boolean' ? 'true' : ''
         );
         this.liveAnnoncer.announce(
-          `Selected ${value}. A new field has appeared.`
+          `Selected ${value}. One or more new fields have appeared.`
         );
         if (this.selectedParameter.valueSet) {
           this.parameterValues = this.definitions.valueSets[
