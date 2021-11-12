@@ -3,12 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.0.1] - 2021-11-12
+### Changed
+- Rename "resource type" to "record type".
+- Text changes in define cohort page.
+
 ## [4.0.0] - 2021-10-15
 ### Added
 - Query Builder: search criteria in Define Cohort step now can combine using
   Boolean operators.
 ### Fixed
-- Detecting of the possibility of using the "age-at-event" sorting parameter. 
+- Detecting of the possibility of using the "age-at-event" sorting parameter.
 
 ## [3.22.0] - 2021-10-08
 ### Added
