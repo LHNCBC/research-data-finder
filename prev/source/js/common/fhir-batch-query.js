@@ -135,7 +135,9 @@ export class FhirBatchQuery {
         })
       ];
 
-      if (newServiceBaseUrl === 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1') {
+      if (
+        this._serviceBaseUrl === 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+      ) {
         // Query to extract the consent group that must be included as _security param in particular queries.
         initializationRequests.push(
           this.getWithCache('ResearchSubject', {
