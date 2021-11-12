@@ -136,13 +136,13 @@ describe('Research Data Finder', () => {
   it('should add search criterion', async () => {
     const currentStep = (await stepper.getSteps({ selected: true }))[0];
     const addResourceBtn = await currentStep.getHarness(
-      MatButtonHarness.with({ text: 'Add resource type criteria' })
+      MatButtonHarness.with({ text: 'Add record type criteria' })
     );
     await addResourceBtn.click();
     const resourceType = $('app-autocomplete[label="Resource type"]');
     expect(await resourceType.isDisplayed()).toBe(true);
     await resourceType.$('input').sendKeys('Patient');
-    // Blur out of resource type input so its dropdown doesn't block #addSearchCriterion button.
+    // Blur out of record type input so its dropdown doesn't block #addSearchCriterion button.
     await $('app-define-cohort-page').click();
     const addCriterionBtn = await currentStep.getHarness(
       MatButtonHarness.with({

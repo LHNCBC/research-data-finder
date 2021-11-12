@@ -26,7 +26,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
- * Component for managing search parameters of a resource type
+ * Component for managing search parameters of a record type
  */
 @Component({
   selector: 'app-search-parameter-group',
@@ -104,7 +104,7 @@ export class SearchParameterGroupComponent
         const match = this.resourceTypes.find((rt) => rt === value);
         if (match) {
           this.resourceType.disable({ emitEvent: false });
-          this.liveAnnoncer.announce(`Selected resource type ${value}.`);
+          this.liveAnnoncer.announce(`Selected record type ${value}.`);
         }
       });
     }
@@ -144,7 +144,7 @@ export class SearchParameterGroupComponent
   }
 
   /**
-   * Get and group search conditions for a resource type.
+   * Get and group search conditions for a record type.
    */
   getConditions(): SearchCondition {
     const conditions = this.searchParameterComponents
@@ -171,8 +171,8 @@ export class SearchParameterGroupComponent
   }
 
   /**
-   * Focus "Resource Type" control.
-   * This is being called from parent component when the "Add a resource type" button is clicked.
+   * Focus "Record type" control.
+   * This is being called from parent component when the "Add a record type" button is clicked.
    */
   focusResourceTypeInput(): void {
     this.resourceTypeInput.nativeElement.focus();
