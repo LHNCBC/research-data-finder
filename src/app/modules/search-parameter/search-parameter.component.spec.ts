@@ -25,9 +25,6 @@ class Page {
       By.css('app-observation-test-value')
     );
   }
-  get matOptions(): DebugElement[] {
-    return this.fixture.debugElement.queryAll(By.css('mat-option'));
-  }
 }
 
 describe('SearchParameterComponent', () => {
