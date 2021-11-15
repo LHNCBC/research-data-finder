@@ -13,7 +13,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { last } from 'rxjs/operators';
 
 class Page {
   private fixture: ComponentFixture<SearchParameterComponent>;
@@ -24,6 +23,9 @@ class Page {
     return this.fixture.debugElement.query(
       By.css('app-observation-test-value')
     );
+  }
+  get matOptions(): DebugElement[] {
+    return this.fixture.debugElement.queryAll(By.css('mat-option'));
   }
 }
 
@@ -104,27 +106,16 @@ describe('SearchParameterComponent', () => {
     expect(page.compositeTestValue).not.toBeNull();
   });
 
-  it('should match beginning of words in search parameters', () => {
-    component.parameterName.setValue('qu');
-    fixture.detectChanges(false);
-    component.filteredParameters.pipe(last()).subscribe((value) => {
-      expect(value.length).toBe(1);
-    });
-  });
-
-  it('should not match end of words in search parameters', () => {
-    component.parameterName.setValue('ty');
-    fixture.detectChanges(false);
-    component.filteredParameters.pipe(last()).subscribe((value) => {
-      expect(value.length).toBe(0);
-    });
-  });
-
-  it('should not match middle of words in search parameters', () => {
+  it('should left match word boundaries when filtering search parameters', () => {
+    component.searchParamName.nativeElement.focus();
     component.parameterName.setValue('an');
-    fixture.detectChanges(false);
-    component.filteredParameters.pipe(last()).subscribe((value) => {
-      expect(value.length).toBe(0);
-    });
+    fixture.detectChanges();
+    expect(page.matOptions.length).toBe(0);
+    component.parameterName.setValue('qu');
+    fixture.detectChanges();
+    expect(page.matOptions.length).toBe(1);
+    component.parameterName.setValue('ty');
+    fixture.detectChanges();
+    expect(page.matOptions.length).toBe(0);
   });
 });
