@@ -36,8 +36,8 @@ export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>
   implements OnInit, OnChanges {
   @Input() resourceType = '';
-  // A list of already selected elements (that match the search parameters),
-  // including the element selected in this component. This list is used to
+  // A list of already selected search parameter names for HTTP request,
+  // including the parameter selected in this component. This list is used to
   // exclude dropdown options to avoid duplicate criteria.
   @Input() selectedElements: string[] = [];
   @Input() isPullData = false;
