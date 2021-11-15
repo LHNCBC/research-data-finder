@@ -194,7 +194,7 @@ export class FhirBatchQuery {
               researchSubject.reason.error
             )
           ) {
-            this._features.consentGroup = RegExp.$1;
+            this._features.consentGroup = RegExp.$1.replace(', ', ',');
           }
         }
       );
