@@ -53,8 +53,6 @@ import { uniqBy } from 'lodash-es';
 const PATIENT_RESOURCE_TYPE = 'Patient';
 // ResearchStudy resource type name
 const RESEARCH_STUDY_RESOURCE_TYPE = 'ResearchStudy';
-// ResearchSubject resource type name
-const RESEARCH_SUBJECT_RESOURCE_TYPE = 'ResearchSubject';
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -478,14 +476,14 @@ export class DefineCohortPageComponent
           // element in order to further identify the Patient by it.
           const elements =
             (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
-              '&_elements=individual') ||
+              '&_elements=id') ||
             (resourceType !== PATIENT_RESOURCE_TYPE && '&_elements=subject') ||
             '';
 
           const link =
             (resourceType === PATIENT_RESOURCE_TYPE && `_id=${patientId}`) ||
             (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
-              `_count=1&&_has:ResearchSubject:study:individual=Patient/${patientId}`) ||
+              `_count=1&_has:ResearchSubject:study:individual=Patient/${patientId}`) ||
             `_count=1&subject:Patient=${patientId}`;
           const query =
             `$fhir/${resourceType}?${link}${elements}` +
@@ -601,7 +599,12 @@ export class DefineCohortPageComponent
       map((rules) => {
         const sortedRules =
           criteria.condition === 'and'
-            ? rules.sort((x, y) => x.total - y.total)
+            ? rules.sort((x, y) => {
+                if (x.total === Infinity && y.total === Infinity) {
+                  return 0;
+                }
+                return x.total - y.total;
+              })
             : rules;
 
         return {
@@ -663,8 +666,9 @@ export class DefineCohortPageComponent
 
   /**
    * Requests an count of patient-related resources that match the specified
-   * array of criteria. For ResearchStudy, requests the number of ResearchSubjects
-   * for the first 100 ResearchStudies that have ResearchSubjects.
+   * array of criteria. For ResearchStudy, requests an count of ResearchStudies
+   * that have ResearchSubjects and treats a nonzero result as Infinity (each
+   * ResearchStudy can have many ResearchSubjects).
    * @param resourceType - resource type
    * @param rules - array of ANDed criteria
    */
@@ -678,9 +682,10 @@ export class DefineCohortPageComponent
     const query =
       '$fhir/' +
       (useHas ? PATIENT_RESOURCE_TYPE : resourceType) +
+      '?_total=accurate&_summary=count' +
       (resourceType === RESEARCH_STUDY_RESOURCE_TYPE
-        ? '?_element=id&_count=100' + hasResearchSubjects
-        : '?_total=accurate&_summary=count') +
+        ? hasResearchSubjects
+        : '') +
       rules
         .map((criterion: Criterion) => {
           const urlParamString = this.queryParams.getQueryParam(
@@ -694,24 +699,11 @@ export class DefineCohortPageComponent
         .join('');
 
     return this.http.get<Bundle>(query).pipe(
-      concatMap((response) => {
-        if (resourceType !== RESEARCH_STUDY_RESOURCE_TYPE) {
-          return of(response.total);
+      map((response) => {
+        if (resourceType === RESEARCH_STUDY_RESOURCE_TYPE) {
+          return response.total ? Infinity : 0;
         }
-
-        const researchStudyIds = response.entry
-          ?.map(({ resource }) => resource.id)
-          .join(',');
-        return researchStudyIds
-          ? this.requestAmountOfResources(RESEARCH_SUBJECT_RESOURCE_TYPE, [
-              {
-                field: {
-                  element: 'study',
-                  value: researchStudyIds
-                }
-              }
-            ])
-          : of(0);
+        return response.total;
       })
     );
   }

@@ -7,8 +7,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import tenPatientBundle from './test-fixtures/patients-10.json';
 import tenObservationBundle from './test-fixtures/observations-10.json';
 import examplePatient from './test-fixtures/example-patient.json';
-import twoResearchStudies from './test-fixtures/research-studies-2.json';
-import exampleObservation from './test-fixtures/example-observation.json';
+import exampleResearchStudy from './test-fixtures/example-research-study.json';
 import { reduce } from 'rxjs/operators';
 
 describe('DefineCohortComponent', () => {
@@ -354,58 +353,60 @@ describe('DefineCohortComponent', () => {
         }, [])
       )
       .subscribe((patients) => {
-        expect(patients.length).toEqual(10);
+        // We have two Observations for the same Patient, that's why one
+        // Observation ignored
+        expect(patients.length).toEqual(9);
         done();
       });
 
     mockHttp
       .expectOne(
-        `$fhir/ResearchStudy?_element=id&_count=100&_has:ResearchSubject:study:status=candidate,eligible,follow-up,ineligible,not-registered,off-study,on-study,on-study-intervention,on-study-observation,pending-on-study,potential-candidate,screening,withdrawn&status=completed`
+        `$fhir/ResearchStudy?_total=accurate&_summary=count&_has:ResearchSubject:study:status=candidate,eligible,follow-up,ineligible,not-registered,off-study,on-study,on-study-intervention,on-study-observation,pending-on-study,potential-candidate,screening,withdrawn&status=completed`
       )
-      .flush(twoResearchStudies);
+      .flush({ total: 2 });
 
     mockHttp
       .expectOne(
         `$fhir/Observation?_total=accurate&_summary=count&combo-code=3137-7&combo-value-quantity=gt100`
       )
-      .flush({ total: 20 });
-
-    mockHttp
-      .expectOne(
-        `$fhir/Patient?_total=accurate&_summary=count&_has:ResearchSubject:subject:study=research-study-1,research-study-2`
-      )
       .flush({ total: 10 });
 
     mockHttp
       .expectOne(
-        `$fhir/ResearchStudy?_count=10&_elements=id&_has:ResearchSubject:study:status=candidate,eligible,follow-up,ineligible,not-registered,off-study,on-study,on-study-intervention,on-study-observation,pending-on-study,potential-candidate,screening,withdrawn&status=completed`
+        `$fhir/Observation?_count=10&_elements=subject&combo-code=3137-7&combo-value-quantity=gt100`
       )
-      .flush(twoResearchStudies);
+      .flush(tenObservationBundle);
 
-    mockHttp
-      .expectOne(
-        `$fhir/Patient?_count=10&_has:ResearchSubject:individual:study=research-study-1,research-study-2`
+    const patientIds = [
+      // Search ignores duplicate Patients
+      ...new Set(
+        tenObservationBundle.entry.map(({ resource }) =>
+          resource.subject.reference.replace(/^Patient\//, '')
+        )
       )
-      .flush(tenPatientBundle);
+    ];
 
-    tenPatientBundle.entry.forEach(({ resource }) => {
-      const patientId = resource.id;
+    patientIds.forEach((patientId, index) => {
       mockHttp
         .expectOne(
-          `$fhir/Observation?_count=1&subject:Patient=${patientId}&_elements=subject&combo-code=3137-7&combo-value-quantity=gt100`
+          `$fhir/ResearchStudy?_count=1&_has:ResearchSubject:study:individual=Patient/${patientId}&_elements=id&status=completed`
         )
         .flush({
           entry: [
             {
               resource: {
-                ...exampleObservation,
-                subject: {
-                  reference: 'Patient/' + patientId
-                }
+                ...exampleResearchStudy,
+                id: `research-study-${index}`
               }
             }
           ]
         });
+    });
+
+    patientIds.forEach((patientId) => {
+      mockHttp
+        .expectOne(`$fhir/Patient?_id=${patientId}`)
+        .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
     });
   });
 });
