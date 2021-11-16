@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.25.1] - 2021-11-16
+### Changed
+- Removed Observation.identifier from search parameters.
+
 ## [3.25.0] - 2021-11-3
 ### Added
 - a "code text" search parameter for each of the resource types with a
