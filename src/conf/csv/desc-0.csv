@@ -194,7 +194,6 @@ Observation,,,,,,,
 ,focus,column,Focus,hide,Reference,,"What the observation is about, when it is not about the subject of record"
 ,hasMember,column,"Has Member",hide,Reference,,"Related resource that belongs to the Observation group"
 ,id,column,Id,show,string,,
-,identifier,"search parameter",identifier,show,Identifier,,"The unique id for a particular observation"
 ,identifier,column,Identifier,show,Identifier,,"Business Identifier for observation"
 ,interpretation,column,Interpretation,show,CodeableConcept,,"High, low, normal, etc."
 ,issued,column,Issued,hide,instant,,"Date/Time this version was made available"
