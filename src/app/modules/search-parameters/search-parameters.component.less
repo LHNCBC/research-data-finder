@@ -30,39 +30,95 @@ query-builder {
   font-weight: bold;
 }
 
-:host query-builder ::ng-deep .q-tree-container .q-tree {
-  margin: 0;
-
-  .q-row .q-button-group.q-right-align {
-    float: left;
+:host query-builder ::ng-deep {
+  .q-tree-container query-builder.q-one-rule > .q-tree-container {
+    margin-top: -9px;
+    & > .q-tree {
+      padding-left: 30px;
+    }
   }
 
-  .autocomplete-disabled {
-    font-weight: bold;
-  }
+  .q-tree-container .q-tree {
+    margin: 0;
+    padding-left: 34px;
 
-  .q-rule.q-row {
-    border: 0;
-    padding: 0;
-
-    &.q-connector::before {
-      height: 33px;
+    .q-row {
+      border-radius: 4px;
     }
 
-  }
+    .q-row .q-button-group.q-right-align {
+      float: left;
+    }
 
-  .mat-form-field-subscript-wrapper {
-    display: none;
-  }
+    .autocomplete-disabled {
+      font-weight: bold;
+    }
 
-  .q-connector::before {
-    top: -7px;
-    height: 38px;
-    width: 10px;
-  }
+    .q-rule.q-row {
+      border-color: #fff;
+      padding: 0;
 
-  .q-connector::after {
-    top: 28px;
-    height: calc(100% - 27px);
+      &.q-connector::before {
+        height: 33px;
+      }
+
+    }
+
+    .mat-form-field-subscript-wrapper {
+      display: none;
+    }
+
+    .q-connector::before {
+      top: -7px;
+      height: 39px;
+      width: 10px;
+    }
+
+    .q-connector::after {
+      top: 28px;
+      height: calc(100% - 27px);
+    }
   }
 }
+
+:host query-builder.q-one-rule ::ng-deep {
+  & > .q-tree-container > .q-tree {
+    padding-left: 0;
+  }
+}
+
+.q-switch-label {
+  float: left;
+  margin-bottom: 0;
+  font-size: 14px;
+  line-height: 30px;
+  font-weight: normal;
+  text-align: center;
+  text-shadow: none;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+
+  &:hover {
+    cursor: pointer;
+    background-color: #F0F0F0;
+  }
+
+  background-color: #e4e4e4;
+  padding: 0 8px;
+}
+
+.q-switch-radio {
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  width: 1px;
+  border: 0;
+  overflow: hidden;
+
+  &:checked + .q-switch-label {
+    border: 1px solid rgb(97, 158, 215);
+    background: white;
+    color: rgb(49, 118, 179);
+  }
+}
+

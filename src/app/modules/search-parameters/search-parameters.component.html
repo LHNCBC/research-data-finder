@@ -42,6 +42,21 @@
     </div>
   </ng-container>
 
+  <!-- Switch group box (AND/OR toggle) -->
+  <ng-container *querySwitchGroup="let ruleset; let changeCondition=onChange">
+    <div class="q-switch-group q-transition" *ngIf="ruleset?.rules?.length > 1">
+      <div>
+        <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition" value="and" #andOption />
+        <label (click)="changeCondition(andOption.value)" class="q-switch-label">AND</label>
+      </div>
+      <div>
+        <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition"
+               value="or" #orOption />
+        <label (click)="changeCondition(orOption.value)" class="q-switch-label">OR</label>
+      </div>
+    </div>
+  </ng-container>
+
   <!-- Suffix for the tree container -->
   <ng-container *queryTreeContainerSuffix="
      let ruleset; let addRule=addRule; let addRuleSet=addRuleSet;

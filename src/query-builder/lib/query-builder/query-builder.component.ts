@@ -53,7 +53,8 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
-  ElementRef
+  ElementRef,
+  HostBinding
 } from '@angular/core';
 
 export const CONTROL_VALUE_ACCESSOR: any = {
@@ -175,6 +176,11 @@ export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, V
   private entityContextCache = new Map<Rule, EntityContext>();
   private removeButtonContextCache = new Map<Rule, RemoveButtonContext>();
   private buttonGroupContext: ButtonGroupContext;
+
+  // Sets the CSS class "q-one-rule" when the component has only one rule
+  @HostBinding('class.q-one-rule') get isOneRule(): boolean {
+    return this.data?.rules?.length === 1;
+  }
 
   constructor(private changeDetectorRef: ChangeDetectorRef) { }
 
