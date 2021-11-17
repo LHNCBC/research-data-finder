@@ -735,6 +735,7 @@ export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, V
         this.handleDataChange();
       },
       removeRuleSet: this.allowRuleset && this.parentValue && this.removeRuleSet.bind(this),
+      parentRuleSet: this.parentValue,
       $implicit: this.data
     };
   }

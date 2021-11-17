@@ -35,12 +35,16 @@ query-builder {
     margin-top: -9px;
     & > .q-tree {
       padding-left: 30px;
+      & >  .q-connector::before {
+        left: -12px;
+        width: 9px;
+      }
     }
   }
 
   .q-tree-container .q-tree {
     margin: 0;
-    padding-left: 34px;
+    padding-left: 45px;
 
     .q-row {
       border-radius: 4px;
@@ -62,6 +66,15 @@ query-builder {
         height: 33px;
       }
 
+      &.q-connector::after {
+        top: 34px;
+        height: calc(100% - 33px);
+      }
+
+      .condition-label {
+        top: 19px;
+      }
+
     }
 
     .mat-form-field-subscript-wrapper {
@@ -70,13 +83,15 @@ query-builder {
 
     .q-connector::before {
       top: -7px;
+      left: -24px;
       height: 39px;
-      width: 10px;
+      width: 21px;
     }
 
     .q-connector::after {
-      top: 28px;
-      height: calc(100% - 27px);
+      top: 40px;
+      left: -24px;
+      height: calc(100% - 39px);
     }
   }
 }
@@ -120,5 +135,18 @@ query-builder {
     background: white;
     color: rgb(49, 118, 179);
   }
+}
+
+.condition-label {
+  position: absolute;
+  left: -37px;
+  top: 25px;
+  width: 26px;
+  font-size: 0.6em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: rgba(255,255,255,1);
+  text-align: center;
+  text-transform: uppercase;
 }
 

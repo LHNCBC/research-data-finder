@@ -6,7 +6,8 @@
   <!-- Prefix for switch group box -->
   <ng-container *querySwitchGroupPrefix="
      let ruleset; let addRule=addRule; let addRuleSet=addRuleSet;
-     let handleDataChange=handleDataChange; let removeRuleSet=removeRuleSet">
+     let parentRuleSet=parentRuleSet; let handleDataChange=handleDataChange; let removeRuleSet=removeRuleSet">
+    <div class="condition-label" *ngIf="parentRuleSet?.rules?.length > 1">{{parentRuleSet.condition}}</div>
     <!-- Prefix for the resource criteria -->
     <div class="v-box" *ngIf="ruleset.hasOwnProperty('resourceType')">
       <div class="h-box" >
@@ -109,6 +110,7 @@
 
   <!-- Search parameter name selector -->
   <ng-container *queryField="let rule; let fields=fields;  let parentRuleSet=parentRuleSet; let onChange=onChange; let getFields = getFields">
+    <div class="condition-label" *ngIf="parentRuleSet?.rules?.length > 1">{{parentRuleSet.condition}}</div>
     <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"
                           (ngModelChange)="updateSelectedElements(parentRuleSet)"
                           [selectedElements]="selectedElements.get(parentRuleSet)">
