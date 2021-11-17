@@ -700,6 +700,10 @@ export class DefineCohortPageComponent
 
     return this.http.get<Bundle>(query).pipe(
       map((response) => {
+        if (!response.hasOwnProperty('total')) {
+          return Infinity;
+        }
+
         if (resourceType === RESEARCH_STUDY_RESOURCE_TYPE) {
           return response.total ? Infinity : 0;
         }

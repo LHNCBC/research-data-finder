@@ -32,6 +32,9 @@ describe('AutocompleteComponent', () => {
     component.options = ['Some name', 'value quantity'];
     component.focus();
 
+    component.control.setValue('so');
+    expect(currentOptions.length).toBe(1);
+
     component.control.setValue('an');
     expect(currentOptions.length).toBe(0);
 
