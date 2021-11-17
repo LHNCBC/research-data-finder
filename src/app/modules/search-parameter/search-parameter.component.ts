@@ -202,6 +202,7 @@ export class SearchParameterComponent
       .filter(
         (p) =>
           p.element === this.value.element ||
+          !this.selectedElements ||
           this.selectedElements.indexOf(p.element) === -1
       )
       .map((searchParameter) => ({
