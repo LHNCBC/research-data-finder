@@ -26,7 +26,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
- * Component for managing search parameters of a record type
+ * Component for managing search parameters of a resource type
  */
 @Component({
   selector: 'app-search-parameter-group',
@@ -144,7 +144,7 @@ export class SearchParameterGroupComponent
   }
 
   /**
-   * Get and group search conditions for a record type.
+   * Get and group search conditions for a resource type.
    */
   getConditions(): SearchCondition {
     const conditions = this.searchParameterComponents

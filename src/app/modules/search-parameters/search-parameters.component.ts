@@ -72,7 +72,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         allowEmptyRulesets: true,
         fields: {},
         /**
-         * Adds a rule (criterion) for a record type
+         * Adds a rule (criterion) for a resource type
          */
         addRule: (parent: RuleSet): void => {
           parent.rules = parent.rules.concat([
@@ -127,21 +127,23 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   }
 
   /**
-   * Adds a ruleset for a record type
+   * Adds a ruleset for a resource type
    * @param ruleset parent ruleset
    */
   addResourceType(ruleset: RuleSet): void {
     ruleset.rules = ruleset.rules.concat({
       condition: 'and',
       rules: [],
-      // RuleSet is treated as a ruleset for a record type
+      // RuleSet is treated as a ruleset for a resource type
       // if it has a "resourceType" property
       resourceType: ''
     } as RuleSet);
 
-    this.liveAnnoncer.announce('A new line of record type is added.');
+    this.liveAnnoncer.announce(
+      'A new field for selecting a record type has been added.'
+    );
 
-    // Focus the input control of the newly added record type line.
+    // Focus the input control of the newly added resource type line.
     this.resourceTypeComponents.changes
       .pipe(take(1))
       .subscribe((components) => {

@@ -16,8 +16,8 @@ export class SearchParameters extends BaseComponent {
    * @param {Object<Function>} callbacks - callback functions that the component uses for input/output
    * @param {Object[]} searchParamGroups - array of objects describing the search parameters
    *                   (see patient-search-parameters.js for an example object)
-   *                   or strings with record types.
-   * @param {boolean} autoSelect - automatically select an available record type when adding a new search parameter
+   *                   or strings with resource types.
+   * @param {boolean} autoSelect - automatically select an available resource type when adding a new search parameter
    */
   constructor({ callbacks, searchParamGroups, autoSelect = false }) {
     super({
@@ -203,7 +203,7 @@ export class SearchParameters extends BaseComponent {
   }
 
   /**
-   * Generates an identifier for an autocomleter is used for select record type
+   * Generates an identifier for an autocomleter is used for select resource type
    * from a generic identifier for a search parameter
    * @param {string} searchItemId
    * @return {string}
@@ -214,8 +214,8 @@ export class SearchParameters extends BaseComponent {
 
   /**
    * Gets an identifier for a search parameter from an identifier for an autocompleter
-   * is used for select record type. If the passed identifier does not match
-   * the autocompleter for selecting the record type, then null is returned.
+   * is used for select resource type. If the passed identifier does not match
+   * the autocompleter for selecting the resource type, then null is returned.
    * @param {string} id - autocompleter identifier
    * @return {string|null}
    */
@@ -262,7 +262,7 @@ export class SearchParameters extends BaseComponent {
 
   /**
    * Returns search parameter "controller" by generic search parameter identifier
-   * or null if record type or parameter name is not defined.
+   * or null if resource type or parameter name is not defined.
    * @param {string} searchItemId a generic identifier for a search parameter
    * @returns {{
    *   getControlsHtml: function,
@@ -341,9 +341,9 @@ export class SearchParameters extends BaseComponent {
 
   /**
    * Replace unavailableItem with availableItem in array of available search parameters
-   * @param {string} unavailableResourceType record type for no longer available param
+   * @param {string} unavailableResourceType resource type for no longer available param
    * @param {string} unavailableParamName no longer available param
-   * @param {string} availableResourceType record type for new available item
+   * @param {string} availableResourceType resource type for new available item
    * @param {string} availableParamName new available item
    */
   swapAvailableItem(
@@ -399,7 +399,7 @@ export class SearchParameters extends BaseComponent {
   }
 
   /**
-   * Returns current available record types to select a search parameter
+   * Returns current available resource types to select a search parameter
    * @param {String} [firstResourceType] - this string will be first in result array if specified
    * @return {String[]}
    */
@@ -435,11 +435,11 @@ export class SearchParameters extends BaseComponent {
       prevResourceTypeSelector &&
       availableResourceTypes.indexOf(prevResourceTypeSelector.value) !== -1
     ) {
-      // If the user added a search parameter and selected a record type, then
-      // automatically select the same record type value when adding the next parameter
+      // If the user added a search parameter and selected a resource type, then
+      // automatically select the same resource type value when adding the next parameter
       paramResourceType = prevResourceTypeSelector.value;
     } else if (this.autoSelect) {
-      // Automatically select an available record type when adding a new search parameter
+      // Automatically select an available resource type when adding a new search parameter
       paramResourceType = this.getAvailableResourceTypes()[0];
     }
     const paramName = paramResourceType
@@ -466,7 +466,7 @@ export class SearchParameters extends BaseComponent {
 
   /**
    * Adds a new row with search parameter to the table of search parameters
-   * @param {string} paramResourceType - parameter record type
+   * @param {string} paramResourceType - parameter resource type
    * @param {string} paramName - parameter name
    * @return {Promise} promise which resolves with unique generic identifier for a search parameter row
    * @private
@@ -588,7 +588,7 @@ export class SearchParameters extends BaseComponent {
   }
 
   /**
-   * Returns an array of objects, each of which contains a record type
+   * Returns an array of objects, each of which contains a resource type
    * and a string of URL parameters with search criteria for this resource
    * @return {Array}
    */
@@ -694,7 +694,7 @@ export class SearchParameters extends BaseComponent {
 
   /**
    * Returns an array of columns matching the selected conditions for request
-   * @param {string} [resourceType] - record type whose search parameters correspond to the columns
+   * @param {string} [resourceType] - resource type whose search parameters correspond to the columns
    * @param {Array} [persistentColumns] - additional columns for result array
    * @return {Array}
    */

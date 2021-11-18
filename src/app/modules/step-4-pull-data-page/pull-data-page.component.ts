@@ -44,11 +44,11 @@ export class PullDataPageComponent implements AfterViewInit {
   // Resource table data ready to download
   canDownload$: Observable<boolean>;
 
-  // Array of visible record type names
+  // Array of visible resource type names
   visibleResourceTypes: string[];
-  // Array of not visible record type names
+  // Array of not visible resource type names
   unselectedResourceTypes: string[];
-  // Array of record type names that has "code text" search parameter
+  // Array of resource type names that has "code text" search parameter
   codeTextResourceTypes: string[] = [];
 
   // Array of loaded Patients
@@ -163,7 +163,7 @@ export class PullDataPageComponent implements AfterViewInit {
   }
 
   /**
-   * Returns plural form of record type name.
+   * Returns plural form of resource type name.
    */
   getPluralFormOfResourceType(resourceType: string): string {
     return resourceType.replace(/(.*)(.)/, (_, $1, $2) => {
@@ -182,7 +182,7 @@ export class PullDataPageComponent implements AfterViewInit {
   }
 
   /**
-   * Adds tab for specified record type.
+   * Adds tab for specified resource type.
    */
   addTab(resourceType: string): void {
     this.unselectedResourceTypes.splice(
@@ -201,7 +201,7 @@ export class PullDataPageComponent implements AfterViewInit {
   }
 
   /**
-   * Removes tab for specified record type.
+   * Removes tab for specified resource type.
    */
   removeTab(resourceType: string): void {
     this.unselectedResourceTypes.push(resourceType);
@@ -232,8 +232,8 @@ export class PullDataPageComponent implements AfterViewInit {
 
   /**
    * Loads resources of the specified type for a cohort of Patients.
-   * @param resourceType - record type
-   * @param parameterGroup - component for managing search parameters of the record type
+   * @param resourceType - resource type
+   * @param parameterGroup - component for managing search parameters of the resource type
    */
   loadResources(
     resourceType: string,
@@ -271,7 +271,7 @@ export class PullDataPageComponent implements AfterViewInit {
     }
 
     // To optimize Patient loading, we load them for 10 Patients
-    // in one query. We don't use this optimization for other record types
+    // in one query. We don't use this optimization for other resource types
     // because we need to limit the number of resources per Patient.
     const numberOfPatientsInRequest = resourceType === 'Patient' ? 10 : 1;
     from(
