@@ -102,6 +102,17 @@ query-builder {
   }
 }
 
+.q-switch-group {
+  :first-child .q-switch-label {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+  }
+  :last-child .q-switch-label {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+}
+
 .q-switch-label {
   float: left;
   margin-bottom: 0;
@@ -113,9 +124,11 @@ query-builder {
   border: 1px solid rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
 
-  &:hover {
-    cursor: pointer;
-    background-color: #F0F0F0;
+  .q-switch-radio:checked + &,
+  &:first-child {
+    border: 1px solid rgb(97, 158, 215);
+    background: white;
+    color: rgb(49, 118, 179);
   }
 
   background-color: #e4e4e4;
@@ -130,10 +143,9 @@ query-builder {
   border: 0;
   overflow: hidden;
 
-  &:checked + .q-switch-label {
-    border: 1px solid rgb(97, 158, 215);
-    background: white;
-    color: rgb(49, 118, 179);
+  &:not(:checked) + .q-switch-label:hover {
+    cursor: pointer;
+    background-color: #F0F0F0;
   }
 }
 
