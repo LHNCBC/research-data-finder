@@ -39,7 +39,7 @@ export class SearchParameterComponent
   // A list of already selected FHIR search parameter names, including the
   // parameter selected in this component. This list is used to exclude dropdown
   // options to avoid duplicate criteria.
-  @Input() selectedElements: string[] = [];
+  @Input() selectedSearchParameterNames: string[] = [];
   @Input() isPullData = false;
   readonly OBSERVATIONBYTEST = OBSERVATIONBYTEST;
   readonly OBSERVATIONBYTESTDESC =
@@ -202,8 +202,8 @@ export class SearchParameterComponent
       .filter(
         (p) =>
           p.element === this.value.element ||
-          !this.selectedElements ||
-          this.selectedElements.indexOf(p.element) === -1
+          !this.selectedSearchParameterNames ||
+          this.selectedSearchParameterNames.indexOf(p.element) === -1
       )
       .map((searchParameter) => ({
         name: searchParameter.displayName,
