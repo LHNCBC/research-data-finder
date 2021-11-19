@@ -14,6 +14,7 @@ import {
   escapeStringForRegExp
 } from '../../shared/utils';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * Component for editing one resource search parameter
@@ -71,7 +72,10 @@ export class SearchParameterComponent
     return this.CODETYPES.includes(this.selectedParameter.type);
   }
 
-  constructor(private fhirBackend: FhirBackendService) {
+  constructor(
+    private fhirBackend: FhirBackendService,
+    private liveAnnoncer: LiveAnnouncer
+  ) {
     super();
   }
 
@@ -93,6 +97,9 @@ export class SearchParameterComponent
       if (this.selectedParameter) {
         this.parameterValue.setValue(
           this.selectedParameter.type === 'boolean' ? 'true' : ''
+        );
+        this.liveAnnoncer.announce(
+          `Selected ${value}. One or more new fields have appeared.`
         );
         if (this.selectedParameter.valueSet) {
           this.parameterValues = this.definitions.valueSets[
