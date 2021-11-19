@@ -10,7 +10,8 @@ import {
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import {
   encodeFhirSearchParameter,
-  escapeFhirSearchParameter
+  escapeFhirSearchParameter,
+  escapeStringForRegExp
 } from '../../shared/utils';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
@@ -122,12 +123,15 @@ export class SearchParameterComponent
     });
   }
 
+  /**
+   * Filters options list by matching value.
+   * It does a left match at word boundaries, example:
+   * 'variable name' will test true for 'va' or 'na', but not 'ri' or 'le'.
+   */
   private _filter(value: string, options: any[]): string[] {
-    const filterValue = value.toLowerCase();
-
-    return options.filter((option) =>
-      option.displayName.toLowerCase().includes(filterValue)
-    );
+    const reg = `\\b${escapeStringForRegExp(value)}`;
+    const regEx = new RegExp(reg, 'i');
+    return options.filter((option) => regEx.test(option.displayName));
   }
 
   /**
