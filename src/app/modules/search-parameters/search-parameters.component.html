@@ -17,7 +17,7 @@
         </button>
         <app-autocomplete
             class="resource-type"
-            label="Resource type"
+            label="Record type"
             required
             [options]="resourceTypes$ | async"
             [(ngModel)]="ruleset.resourceType"
@@ -25,7 +25,7 @@
             *ngIf="!ruleset.resourceType"></app-autocomplete>
         <p *ngIf="ruleset.resourceType && ruleset.resourceType !== 'Patient'">Select Patients which have
           {{getIndefiniteArticle(ruleset.resourceType)}}
-          <b>{{ruleset.resourceType}}</b> resource that meets the criteria below</p>
+          <b>{{ruleset.resourceType}}</b> record that meets the criteria below</p>
         <p *ngIf="ruleset.resourceType === 'Patient'">Select <b>Patients</b> which meet the criteria below</p>
       </div>
     </div>
@@ -37,7 +37,7 @@
                 (click)="removeRuleSet()">
           <mat-icon svgIcon="clear"></mat-icon>
         </button>
-        <p class="group-header">Subgroup of criteria for resource types</p>
+        <p class="group-header">Subgroup of criteria for record types</p>
       </div>
     </div>
   </ng-container>
@@ -52,12 +52,12 @@
       <div class="h-box">
         <button type="button"
                 (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button color="secondary">
-          <mat-icon svgIcon="add"></mat-icon>Add resource type criteria
+          <mat-icon svgIcon="add"></mat-icon>Add criteria for a record type
         </button>
         <div class="spacer"></div>
         <button type="button"
                 (click)="addRuleSet()" mat-stroked-button color="secondary">
-          <mat-icon svgIcon="add"></mat-icon>Add a subgroup of criteria for resource types
+          <mat-icon svgIcon="add"></mat-icon>Add a subgroup of record types and criteria
         </button>
       </div>
     </div>
@@ -68,7 +68,7 @@
         <button type="button" *ngIf="ruleset.resourceType"
                 #addCriterionBtn
                 (click)="addRule()" mat-stroked-button color="secondary">
-          <mat-icon svgIcon="add"></mat-icon>Add a criterion for the {{ruleset.resourceType}} resource
+          <mat-icon svgIcon="add"></mat-icon>Add a criterion for the {{ruleset.resourceType}} record
         </button>
       </div>
     </div>
@@ -78,7 +78,7 @@
       <div class="h-box">
         <button type="button"
                 (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button color="secondary">
-          <mat-icon svgIcon="add"></mat-icon>Add resource type criteria
+          <mat-icon svgIcon="add"></mat-icon>Add criteria for a record type
         </button>
       </div>
     </div>

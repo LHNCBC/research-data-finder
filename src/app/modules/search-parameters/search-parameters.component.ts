@@ -139,7 +139,9 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
       resourceType: ''
     } as RuleSet);
 
-    this.liveAnnoncer.announce('A new line of resource type is added.');
+    this.liveAnnoncer.announce(
+      'A new field for selecting a record type has been added.'
+    );
 
     // Focus the input control of the newly added resource type line.
     this.resourceTypeComponents.changes

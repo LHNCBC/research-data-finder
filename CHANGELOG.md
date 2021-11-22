@@ -8,7 +8,10 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Query Builder: search criteria in Define Cohort step now can combine using
   Boolean operators.
 ### Fixed
-- Detecting of the possibility of using the "age-at-event" sorting parameter. 
+- Detecting of the possibility of using the "age-at-event" sorting parameter.
+### Changed
+- Rename "resource type" to "record type".
+- Text changes in define cohort page.
 
 ## [3.22.0] - 2021-10-08
 ### Added
