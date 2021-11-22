@@ -3,10 +3,24 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.25.1] - 2021-11-5
+## [3.25.4] - 2021-11-22
 ### Changed
 - Until authentication is in place for dbGaP, we include the consent
   groups as values for _security.
+
+## [3.25.3] - 2021-11-19
+### Changed
+- Removed Observation.identifier from search parameters.
+
+## [3.25.2] - 2021-11-19
+### Changed
+- Left match word boundaries when filtering resource type or search
+  parameter.
+
+## [3.25.1] - 2021-11-9
+### Fixed
+- Announce to the user that a new field has appeared after selecting a
+  search parameter.
 
 ## [3.25.0] - 2021-11-3
 ### Added

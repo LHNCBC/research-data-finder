@@ -24,6 +24,9 @@ class Page {
       By.css('app-observation-test-value')
     );
   }
+  get matOptions(): DebugElement[] {
+    return this.fixture.debugElement.queryAll(By.css('mat-option'));
+  }
 }
 
 describe('SearchParameterComponent', () => {
@@ -101,5 +104,18 @@ describe('SearchParameterComponent', () => {
     component.parameterName.setValue('value quantity');
     fixture.detectChanges(false);
     expect(page.compositeTestValue).not.toBeNull();
+  });
+
+  it('should left match word boundaries when filtering search parameters', () => {
+    component.searchParamName.nativeElement.focus();
+    component.parameterName.setValue('an');
+    fixture.detectChanges();
+    expect(page.matOptions.length).toBe(0);
+    component.parameterName.setValue('qu');
+    fixture.detectChanges();
+    expect(page.matOptions.length).toBe(1);
+    component.parameterName.setValue('ty');
+    fixture.detectChanges();
+    expect(page.matOptions.length).toBe(0);
   });
 });
