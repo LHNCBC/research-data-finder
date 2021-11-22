@@ -234,14 +234,6 @@ export class ObservationCodeLookupComponent
                   code: fieldVal,
                   _count: '1'
                 };
-                // Until authentication is in place for dbGaP, we need to include the
-                // consent groups as values for _security.
-                if (this.fhirBackend.features.consentGroup) {
-                  params['_security'] = this.fhirBackend.features.consentGroup;
-                  paramsCode[
-                    '_security'
-                  ] = this.fhirBackend.features.consentGroup;
-                }
                 // Hash of processed codes, used to exclude repeated codes
                 const processedCodes = {};
                 // Array of result items for autocompleter

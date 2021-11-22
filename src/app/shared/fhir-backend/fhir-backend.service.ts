@@ -203,7 +203,18 @@ export class FhirBackendService implements HttpBackend {
       return this.defaultBackend.handle(newRequest);
     }
 
-    const fullUrl = newRequest.urlWithParams;
+    // Until authentication is in place for dbGaP, we need to include the
+    // consent groups as values for _security.
+    const fullUrl =
+      newRequest.url.startsWith(
+        'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/Observation'
+      ) && this.features.consentGroup
+        ? this.fhirClient.addParamToUrl(
+            newRequest.urlWithParams,
+            '_security',
+            this.features.consentGroup
+          )
+        : newRequest.urlWithParams;
 
     // Otherwise, use the FhirBatchQuery from the old version of
     // Research Data Finder to handle the HTTP request.
