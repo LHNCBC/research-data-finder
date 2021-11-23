@@ -16,7 +16,8 @@
     "postinstall": "webdriver-manager update --versions.chrome $(google-chrome --version |awk '{print $NF}')",
     "e2e": "ng e2e --webdriverUpdate=false",
     "prettier-fix": "prettier --write '**/*.ts'",
-    "update-excel-config": "node bin/update-excel-configurations.js && npm run build"
+    "update-excel-config": "node bin/update-excel-configurations.js && npm run build",
+    "update-binding-list": "node bin/update-non-required-binding-lists.js"
   },
   "private": true,
   "dependencies": {
