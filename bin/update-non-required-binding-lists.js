@@ -1,16 +1,35 @@
+/**
+ * This program updates non-required-binding-lists.json for stored values of non-required
+ * binding lists.
+ * Those lists would have very bad performance if we query server at run-time.
+ * Instead of querying server, the application will use values from above file.
+ */
 const fs = require('fs');
 const https = require('https');
 
+// Currently only Observation.category. Add other search parameters in future when seen fit.
 const updateList = [
   ['https://lforms-fhir.nlm.nih.gov/baseR4', 'Observation', 'category']
 ];
 const data = {};
 const httpPromises = [];
 
+/**
+ * Checks whether a query response contains a next link (meaning more results from server).
+ */
 function hasNextUrlLink(response) {
   return response.link.some((l) => l.relation === 'next');
 }
 
+/**
+ * Makes a https request to server. Recursively make a new request excluding codes that are
+ * already stored, if there is a next link in the response.
+ * @param resolve method to resolve the promise
+ * @param url initial url, e.g. 'https://lforms-fhir.nlm.nih.gov/baseR4/Observation?_elements=category'
+ * @param searchParam search parameter
+ * @param processedCodes hash of already processed codes
+ * @param codings array of codings recorded from server
+ */
 function callServer(resolve, url, searchParam, processedCodes, codings) {
   const newUrl = `${url}&${searchParam}:not=${Object.keys(processedCodes).join(
     ','
@@ -49,6 +68,13 @@ function callServer(resolve, url, searchParam, processedCodes, codings) {
   });
 }
 
+/**
+ * Creates a promise that will resolve after querying server for a list of codings.
+ * Updates sheet object for show/hide column.
+ * @param server e.g. 'https://lforms-fhir.nlm.nih.gov/baseR4'
+ * @param resourceType resource type, e.g. 'Observation'
+ * @param searchParam search parameter, e.g. 'category'
+ */
 function createHttpsPromise(server, resourceType, searchParam) {
   // Hash of processed codes, used to exclude repeated codes
   const processedCodes = {};
