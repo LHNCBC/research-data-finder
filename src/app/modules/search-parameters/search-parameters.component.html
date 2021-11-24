@@ -10,9 +10,10 @@
     <!-- Prefix for the resource criteria -->
     <div class="v-box" *ngIf="ruleset.hasOwnProperty('resourceType')">
       <div class="h-box" >
-        <button type="button" mat-icon-button aria-label="Remove search parameter group"
+        <button type="button" mat-icon-button [attr.aria-label]="'Remove criteria for the ' + (ruleset.resourceType || 'undefined') + ' resource'"
                 class="remove-btn"
-                (click)="removeRuleSet()">
+                #removeResTypeBtn
+                (click)="focusOnPreviousElement(removeResTypeBtn._elementRef.nativeElement);removeRuleSet()">
           <mat-icon svgIcon="clear"></mat-icon>
         </button>
         <app-autocomplete
@@ -32,9 +33,10 @@
     <!-- Prefix for the subgroup -->
     <div class="v-box" *ngIf="removeRuleSet && !ruleset.hasOwnProperty('resourceType')">
       <div class="h-box">
-        <button type="button" mat-icon-button aria-label="Remove search parameter group"
+        <button type="button" mat-icon-button aria-label="Remove subgroup of criteria for resource types"
+                #removeSubgroupBtn
                 class="remove-btn"
-                (click)="removeRuleSet()">
+                (click)="focusOnPreviousElement(removeSubgroupBtn._elementRef.nativeElement);removeRuleSet()">
           <mat-icon svgIcon="clear"></mat-icon>
         </button>
         <p class="group-header">Subgroup of criteria for resource types</p>
@@ -44,15 +46,19 @@
 
   <!-- Switch group box (AND/OR toggle) -->
   <ng-container *querySwitchGroup="let ruleset; let changeCondition=onChange">
-    <div class="q-switch-group q-transition" *ngIf="ruleset?.rules?.length > 1">
+    <div class="q-switch-group q-transition" *ngIf="ruleset?.rules?.length > 1" role="radiogroup"
+         aria-label="Select an operator to combine criteria">
       <div>
-        <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition" value="and" #andOption />
-        <label (click)="changeCondition(andOption.value)" class="q-switch-label">AND</label>
+        <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition" value="and" #andOption
+               name="{{getSwitchRadioGroupId(ruleset)}}"
+               aria-label="AND"/>
+        <label (click)="changeCondition(andOption.value)" class="q-switch-label" aria-hidden="true">AND</label>
       </div>
       <div>
-        <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition"
-               value="or" #orOption />
-        <label (click)="changeCondition(orOption.value)" class="q-switch-label">OR</label>
+        <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition" value="or" #orOption
+               name="{{getSwitchRadioGroupId(ruleset)}}"
+               aria-label="OR"/>
+        <label (click)="changeCondition(orOption.value)" class="q-switch-label" aria-hidden="true">OR</label>
       </div>
     </div>
   </ng-container>
@@ -92,6 +98,7 @@
       <div class="spacer" *ngIf="ruleset.rules.length"></div>
       <div class="h-box">
         <button type="button"
+                #addResourceTypeBtn
                 (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button color="secondary">
           <mat-icon svgIcon="add"></mat-icon>Add resource type criteria
         </button>
@@ -102,7 +109,8 @@
   <ng-container *queryRemoveButton="let rule; let removeRule=removeRule">
     <button type="button" mat-icon-button aria-label="Remove search parameter"
             class="remove-btn"
-            (click)="removeRule(rule)">
+            #removeParamBtn
+            (click)="focusOnPreviousElement(removeParamBtn._elementRef.nativeElement);removeRule(rule)">
       <mat-icon svgIcon="clear"></mat-icon>
     </button>
   </ng-container>
