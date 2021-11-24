@@ -28,7 +28,7 @@
         <app-autocomplete-parameter-value
           [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more"
           [resourceType]="resourceType" [searchParameter]="selectedParameter.element"
-          [isRequiredList]="selectedParameter.required">
+          [isRequiredList]="selectedParameter.required || nonRequiredBindingList">
         </app-autocomplete-parameter-value>
       </mat-form-field>
 
