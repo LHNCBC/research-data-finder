@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [3.25.4] - 2021-11-26
+### Added
+- Program to store lists with non-required binding.
+### Changed
+- Observation.category search parameter in default server now uses a
+  autocomplete-lhc Prefetch control with values updated by above program.
+
 ## [3.25.3] - 2021-11-19
 ### Changed
 - Removed Observation.identifier from search parameters.
