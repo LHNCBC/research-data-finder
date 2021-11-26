@@ -95,7 +95,7 @@ export class AutocompleteParameterValueComponent
   @Input() placeholder = '';
   @Input() resourceType: string;
   @Input() searchParameter: string;
-  @Input() isRequiredList = false;
+  @Input() usePrefetch = false;
 
   currentData: AutocompleteParameterValue = {
     codes: [],
@@ -197,12 +197,12 @@ export class AutocompleteParameterValueComponent
 
   /**
    * Set up Autocompleter.
-   * It could be a Prefetch or a Search instance depending on this.isRequiredList.
+   * It could be a Prefetch or a Search instance depending on this.usePrefetch.
    * Also call this.onChange() of ControlValueAccessor interface on selection event,
    * so that form control value is updated and can be read from parent form.
    */
   setupAutocomplete(): void {
-    this.acInstance = this.isRequiredList
+    this.acInstance = this.usePrefetch
       ? this.setupAutocompletePrefetch()
       : this.setupAutocompleteSearch();
 
