@@ -205,10 +205,12 @@ export class FhirBackendService implements HttpBackend {
 
     // Until authentication is in place for dbGaP, we need to include the
     // consent groups as values for _security.
+    // Observation and EvidenceVariable queries will be sent with _security params.
     const fullUrl =
-      newRequest.url.startsWith(
-        'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/Observation'
-      ) && this.features.consentGroup
+      this.features.consentGroup &&
+      /^https:\/\/dbgap-api.ncbi.nlm.nih.gov\/fhir\/x1\/(Observation|EvidenceVariable)/.test(
+        newRequest.url
+      )
         ? this.fhirClient.addParamToUrl(
             newRequest.urlWithParams,
             '_security',
