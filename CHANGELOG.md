@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.0.0] - 2021-10-15
+## [4.0.0] - 2021-11-30
 ### Added
 - Query Builder: search criteria in Define Cohort step now can combine using
   Boolean operators.
@@ -12,6 +12,45 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Changed
 - Rename "resource type" to "record type".
 - Text changes in define cohort page.
+
+## [3.25.3] - 2021-11-19
+### Changed
+- Removed Observation.identifier from search parameters.
+
+## [3.25.2] - 2021-11-19
+### Changed
+- Left match word boundaries when filtering resource type or search
+  parameter.
+
+## [3.25.1] - 2021-11-9
+### Fixed
+- Announce to the user that a new field has appeared after selecting a
+  search parameter.
+
+## [3.25.0] - 2021-11-3
+### Added
+- a "code text" search parameter for each of the resource types with a
+  main "code" field.
+
+## [3.24.0] - 2021-11-1
+### Changed
+- Turned search parameter value autocomplete prefetch into search, for
+  lists whose binding is not required, e.g. Observation.category.
+- Show example items when the empty control is focused.
+
+## [3.23.0] - 2021-10-27
+### Added
+- Program to update the .xlsx configuration file for the 'show/hide' value
+  (and row colors) of columns, based on the 'show/hide' values of matching
+  search parameters.
+
+## [3.22.2] - 2021-10-19
+### Added
+- Script for start-public task.
+
+## [3.22.1] - 2021-10-19
+### Fixed
+- The wrong tab highlighted when the dbGaP server was selected.
 
 ## [3.22.0] - 2021-10-08
 ### Added

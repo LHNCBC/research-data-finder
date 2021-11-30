@@ -9,7 +9,7 @@ import { ObservationCodeLookupModule } from '../observation-code-lookup/observat
 import { DatesFromToComponent } from './dates-from-to.component';
 import { ObservationTestValueComponent } from './observation-test-value.component';
 import { MatSelectModule } from '@angular/material/select';
-import { AutoCompleteTestValueComponent } from './autocomplete-test-value.component';
+import { AutocompleteParameterValueComponent } from './autocomplete-parameter-value.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ObservationTestValueUnitComponent } from './observation-test-value-unit/observation-test-value-unit.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -22,7 +22,7 @@ import { AutocompleteModule } from '../autocomplete/autocomplete.module';
   declarations: [
     SearchParameterComponent,
     DatesFromToComponent,
-    AutoCompleteTestValueComponent,
+    AutocompleteParameterValueComponent,
     ObservationTestValueComponent,
     ObservationTestValueUnitComponent
   ],

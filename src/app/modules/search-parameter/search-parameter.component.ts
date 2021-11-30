@@ -22,6 +22,7 @@ import {
   AutocompleteComponent,
   AutocompleteOption
 } from '../autocomplete/autocomplete.component';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * Component for editing one resource search parameter
@@ -87,7 +88,8 @@ export class SearchParameterComponent
 
   constructor(
     private fhirBackend: FhirBackendService,
-    private queryParams: QueryParamsService
+    private queryParams: QueryParamsService,
+    private liveAnnoncer: LiveAnnouncer
   ) {
     super();
   }
@@ -106,6 +108,9 @@ export class SearchParameterComponent
       if (this.selectedParameter) {
         this.parameterValue.setValue(
           this.selectedParameter.type === 'boolean' ? 'true' : ''
+        );
+        this.liveAnnoncer.announce(
+          `Selected ${value}. One or more new fields have appeared.`
         );
         if (this.selectedParameter.valueSet) {
           this.parameterValues = this.definitions.valueSets[
