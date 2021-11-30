@@ -35,4 +35,55 @@ describe('SearchParametersComponent', () => {
     fhirBackend.initialized.next(ConnectionStatus.Ready);
     expect(component.queryCtrl.value.rules.length).toBe(0);
   });
+
+  describe('already selected search parameters', () => {
+    let criteria;
+    let resourceTypeCriteria;
+
+    beforeEach(() => {
+      criteria = component.queryCtrl.value;
+      expect(component.selectedSearchParameterNamesMap.size).toBe(0);
+      component.addResourceType(criteria);
+      resourceTypeCriteria = criteria.rules[0];
+    });
+
+    it('should be initialized', () => {
+      expect(component.selectedSearchParameterNamesMap.size).toBe(1);
+    });
+
+    it('should be updated', () => {
+      component.queryBuilderConfig.addRule(resourceTypeCriteria);
+      resourceTypeCriteria.rules[0].field = {
+        element: 'some-element'
+      };
+      component.updateSelectedSearchParameterNames(resourceTypeCriteria);
+      expect(
+        component.selectedSearchParameterNamesMap.get(resourceTypeCriteria)
+      ).toEqual(['some-element']);
+    });
+
+    it('should be cleared', () => {
+      component.queryBuilderConfig.addRule(resourceTypeCriteria);
+      resourceTypeCriteria.rules[0].field = {
+        element: 'some-element'
+      };
+      component.updateSelectedSearchParameterNames(resourceTypeCriteria);
+      expect(
+        component.selectedSearchParameterNamesMap.get(resourceTypeCriteria)
+      ).toEqual(['some-element']);
+
+      component.queryBuilderConfig.removeRule(
+        resourceTypeCriteria.rules[0],
+        resourceTypeCriteria
+      );
+      expect(
+        component.selectedSearchParameterNamesMap.get(resourceTypeCriteria)
+      ).toEqual([]);
+    });
+
+    it('should be removed', () => {
+      component.queryBuilderConfig.removeRule(criteria.rules[0], criteria);
+      expect(component.selectedSearchParameterNamesMap.size).toBe(0);
+    });
+  });
 });

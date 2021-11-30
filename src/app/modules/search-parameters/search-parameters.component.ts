@@ -25,6 +25,7 @@ import {
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 import { MatButton } from '@angular/material/button';
+import { ResourceTypeCriteria } from '../../types/search-parameters';
 
 /**
  * Component for managing resources search parameters
@@ -55,6 +56,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   public queryCtrl: FormControl = new FormControl({});
   public queryBuilderConfig: QueryBuilderConfig = { fields: {} };
   resourceTypes$: Observable<AutocompleteOption[]>;
+  selectedSearchParameterNamesMap = new Map<ResourceTypeCriteria, string[]>();
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -90,7 +92,23 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
               setTimeout(() => components.last.focusSearchParamNameInput());
             });
         },
-
+        /**
+         * Removes a rule (criterion) from a resource type criteria
+         * @param rule - criterion
+         * @param parent - resource type criteria
+         */
+        removeRule: (rule: Rule, parent: RuleSet) => {
+          parent.rules = parent.rules.filter((r) => r !== rule);
+          if ('resourceType' in parent) {
+            this.updateSelectedSearchParameterNames(
+              (parent as unknown) as ResourceTypeCriteria
+            );
+          } else if ('resourceType' in rule) {
+            this.selectedSearchParameterNamesMap.delete(
+              (rule as unknown) as ResourceTypeCriteria
+            );
+          }
+        },
         getInputType: (fieldName: string, operator: string): string => {
           return 'search-parameter';
         },
@@ -131,13 +149,15 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
    * @param ruleset parent ruleset
    */
   addResourceType(ruleset: RuleSet): void {
-    ruleset.rules = ruleset.rules.concat({
+    const newResourceTypeCriteria = {
       condition: 'and',
       rules: [],
       // RuleSet is treated as a ruleset for a resource type
       // if it has a "resourceType" property
       resourceType: ''
-    } as RuleSet);
+    };
+
+    ruleset.rules = ruleset.rules.concat(newResourceTypeCriteria as RuleSet);
 
     this.liveAnnoncer.announce(
       'A new field for selecting a record type has been added.'
@@ -149,6 +169,11 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
       .subscribe((components) => {
         setTimeout(() => components.last.focus());
       });
+
+    this.selectedSearchParameterNamesMap.set(
+      newResourceTypeCriteria as ResourceTypeCriteria,
+      []
+    );
   }
 
   writeValue(value: SearchParameter[]): void {
@@ -160,5 +185,20 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
    */
   getIndefiniteArticle(word: string): string {
     return /^[euioa]/i.test(word) ? 'an' : 'a';
+  }
+
+  /**
+   * Updates the list of already selected FHIR search parameter names for the
+   * specified resource type criteria. This list is used to exclude dropdown
+   * options to avoid duplicate criteria.
+   * @param parentRuleSet - resource type criteria
+   */
+  updateSelectedSearchParameterNames(
+    parentRuleSet: ResourceTypeCriteria
+  ): void {
+    this.selectedSearchParameterNamesMap.set(
+      parentRuleSet,
+      parentRuleSet.rules.map((c) => c.field.element)
+    );
   }
 }
