@@ -10,6 +10,9 @@ import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { ContentContainerComponentHarness } from '@angular/cdk/testing/component-harness';
 
 // Page objects & harnesses
 // See https://material.angular.io/cdk/test-harnesses/overview for details
@@ -28,6 +31,9 @@ beforeAll(async () => {
   // Initialize common page objects & harnesses
   page = new AppPage();
   await page.navigateTo('?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1');
+  // TODO: ProtractorHarnessEnvironment should be replaced when migrating to Cypress.
+  //       See the "FAQs" section here:
+  //       https://github.com/angular/protractor/issues/5502
   const harnessLoader = ProtractorHarnessEnvironment.loader();
   stepper = await harnessLoader.getHarness(MatStepperHarness);
   stepsArray = await stepper.getSteps();
@@ -128,16 +134,25 @@ describe('Research Data Finder', () => {
   });
 
   it('should add search criterion', async () => {
-    await $('#addResourceType').click();
-    expect(await $('.resource-type').isDisplayed()).toBe(true);
-    await $('.resource-type input').sendKeys('Patient');
-    // Blur out of resource type input so its dropdown doesn't block #addSearchCriterion button.
+    const currentStep = (await stepper.getSteps({ selected: true }))[0];
+    const addResourceBtn = await currentStep.getHarness(
+      MatButtonHarness.with({ text: 'Add record type criteria' })
+    );
+    await addResourceBtn.click();
+    const resourceType = $('app-autocomplete[label="Resource type"]');
+    expect(await resourceType.isDisplayed()).toBe(true);
+    await resourceType.$('input').sendKeys('Patient');
+    // Blur out of record type input so its dropdown doesn't block #addSearchCriterion button.
     await $('app-define-cohort-page').click();
-    await $('app-define-cohort-page #addSearchCriterion').click();
-    expect(await $('.parameter-name').isDisplayed()).toBe(true);
-    await $('.parameter-name input').sendKeys('name');
-    expect(await $('.parameter-value').isDisplayed()).toBe(true);
-    await $('.parameter-value input').sendKeys('a');
+    const addCriterionBtn = await currentStep.getHarness(
+      MatButtonHarness.with({
+        text: 'Add a criterion for the Patient resource'
+      })
+    );
+    await addCriterionBtn.click();
+
+    await fillMatFormFieldInput(currentStep, 'Search parameter name', 'name');
+    await fillMatFormFieldInput(currentStep, 'Search parameter value', 'a');
   });
 
   it('should not allow skipping the View cohort (search for patients) step', async () => {
@@ -198,3 +213,24 @@ describe('Research Data Finder', () => {
     );
   });
 });
+
+/**
+ * Puts text in an input field inside a MatFormField component with the
+ * specified text of the form field's floating label.
+ * @param parent - parent component where to start searching for the input field
+ * @param floatingLabelText - filter based on the text of the form field's
+ *   floating label.
+ * @param text - text to fill the input field
+ */
+async function fillMatFormFieldInput(
+  parent: ContentContainerComponentHarness,
+  floatingLabelText: string | RegExp,
+  text: string
+): Promise<void> {
+  const matFormField = await parent.getHarness(
+    MatFormFieldHarness.with({
+      floatingLabelText
+    })
+  );
+  await (await (await matFormField.getControl()).host()).sendKeys(text);
+}

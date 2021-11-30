@@ -1,35 +1,26 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DefineCohortPageComponent } from './define-cohort-page.component';
 import { DefineCohortPageModule } from './define-cohort-page.module';
-import {
-  ConnectionStatus,
-  FhirBackendService
-} from '../../shared/fhir-backend/fhir-backend.service';
-import { BehaviorSubject, of, Subject } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { configureTestingModule } from 'src/test/helpers';
+import { HttpTestingController } from '@angular/common/http/testing';
+import tenPatientBundle from './test-fixtures/patients-10.json';
+import tenObservationBundle from './test-fixtures/observations-10.json';
+import examplePatient from './test-fixtures/example-patient.json';
+import exampleResearchStudy from './test-fixtures/example-research-study.json';
+import { reduce } from 'rxjs/operators';
 
 describe('DefineCohortComponent', () => {
   let component: DefineCohortPageComponent;
   let fixture: ComponentFixture<DefineCohortPageComponent>;
-  const spies = [];
-  spies.push(jasmine.createSpyObj('HttpClient', ['get']));
-  spies[0].get.and.returnValue(of({}));
+  let mockHttp: HttpTestingController;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
+    await configureTestingModule({
       declarations: [DefineCohortPageComponent],
-      imports: [DefineCohortPageModule, MatIconTestingModule],
-      providers: [
-        {
-          provide: FhirBackendService,
-          useValue: {
-            initialized: new BehaviorSubject(ConnectionStatus.Ready)
-          }
-        },
-        { provide: HttpClient, useValue: spies[0] }
-      ]
-    }).compileComponents();
+      imports: [DefineCohortPageModule, MatIconTestingModule]
+    });
+    mockHttp = TestBed.inject(HttpTestingController);
   });
 
   beforeEach(() => {
@@ -38,32 +29,384 @@ describe('DefineCohortComponent', () => {
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    // Verify that no unmatched requests are outstanding
+    mockHttp.verify();
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
   it('should add ResearchStudy ids to search parameters', () => {
-    expect(component.getConditions(['someResearchStudyId'])).toEqual([
-      {
-        resourceType: 'Patient',
-        criteria: '&_has:ResearchSubject:individual:study=someResearchStudyId'
-      }
-    ]);
+    expect(
+      component.prepareCriteria({ condition: 'and', rules: [] }, [
+        'someResearchStudyId'
+      ])
+    ).toEqual({
+      condition: 'and',
+      resourceType: 'Patient',
+      rules: [
+        {
+          field: {
+            element: '_has:ResearchSubject:individual:study',
+            value: 'someResearchStudyId'
+          }
+        }
+      ]
+    });
   });
 
-  it('should emit no more than max number of patients', async (done) => {
-    component.patientStream = new Subject<fhir.Resource>();
-    const nextSpy = spyOn(component.patientStream, 'next');
-    Promise.all([
-      component.checkPatient([], '', 3, 1),
-      component.checkPatient([], '', 3, 2),
-      component.checkPatient([], '', 3, 3),
-      component.checkPatient([], '', 3, 4),
-      component.checkPatient([], '', 3, 5)
-    ]).then(() => {
-      expect(component.patientCount).toEqual(3);
-      expect(nextSpy).toHaveBeenCalledTimes(3);
-      done();
+  it('should load Patients by empty criteria', (done) => {
+    component.defineCohortForm.get('maxPatientsNumber').setValue(10);
+    component.searchForPatients();
+    component.patientStream
+      .pipe(
+        reduce((acc, patient) => {
+          acc.push(patient);
+          return acc;
+        }, [])
+      )
+      .subscribe((patients) => {
+        expect(patients.length).toEqual(10);
+        done();
+      });
+
+    mockHttp.expectOne(`$fhir/Patient?_count=10`).flush(tenPatientBundle);
+  });
+
+  it('should load Patients by Observation criteria using _has', (done) => {
+    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    component.patientParams.queryCtrl.setValue({
+      condition: 'and',
+      rules: [
+        {
+          condition: 'and',
+          resourceType: 'Observation',
+          rules: [
+            {
+              field: {
+                element: 'code text',
+                value: '',
+                selectedObservationCodes: {
+                  coding: [
+                    {
+                      code: '3137-7',
+                      system: 'http://loinc.org'
+                    }
+                  ],
+                  datatype: 'Quantity',
+                  items: ['Height cm']
+                }
+              }
+            }
+          ]
+        }
+      ]
+    });
+    component.searchForPatients();
+    component.patientStream
+      .pipe(
+        reduce((acc, patient) => {
+          acc.push(patient);
+          return acc;
+        }, [])
+      )
+      .subscribe((patients) => {
+        expect(patients.length).toEqual(10);
+        done();
+      });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_count=20&_has:Observation:subject:combo-code=3137-7`
+      )
+      .flush(tenPatientBundle);
+  });
+
+  it('should load Patients by Observation criteria', (done) => {
+    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    component.patientParams.queryCtrl.setValue({
+      condition: 'and',
+      rules: [
+        {
+          condition: 'and',
+          resourceType: 'Observation',
+          rules: [
+            {
+              field: {
+                element: 'code text',
+                value: {
+                  testValuePrefix: 'gt',
+                  testValueModifier: '',
+                  testValue: 100,
+                  testValueUnit: ''
+                },
+                selectedObservationCodes: {
+                  coding: [
+                    {
+                      code: '3137-7',
+                      system: 'http://loinc.org'
+                    }
+                  ],
+                  datatype: 'Quantity',
+                  items: ['Height cm']
+                }
+              }
+            }
+          ]
+        }
+      ]
+    });
+    component.searchForPatients();
+    component.patientStream
+      .pipe(
+        reduce((acc, patient) => {
+          acc.push(patient);
+          return acc;
+        }, [])
+      )
+      .subscribe((patients) => {
+        // We have two Observations for the same Patient, that's why one
+        // Observation ignored
+        expect(patients.length).toEqual(9);
+        done();
+      });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Observation?_count=120&_elements=subject&combo-code=3137-7&combo-value-quantity=gt100`
+      )
+      .flush(tenObservationBundle);
+
+    [
+      // Search ignores duplicate Patients
+      ...new Set(
+        tenObservationBundle.entry.map(({ resource }) =>
+          resource.subject.reference.replace(/^Patient\//, '')
+        )
+      )
+    ].forEach((patientId) => {
+      mockHttp
+        .expectOne(`$fhir/Patient?_id=${patientId}`)
+        .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
+    });
+  });
+
+  it('should load Patients by Observation and Patient criteria', (done) => {
+    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    spyOn(component, 'getPageSize').and.returnValue(10);
+    component.patientParams.queryCtrl.setValue({
+      condition: 'and',
+      rules: [
+        {
+          condition: 'and',
+          resourceType: 'Patient',
+          rules: [
+            {
+              field: {
+                element: 'gender',
+                value: ['female'],
+                selectedObservationCodes: null
+              }
+            }
+          ]
+        },
+        {
+          condition: 'and',
+          resourceType: 'Observation',
+          rules: [
+            {
+              field: {
+                element: 'code text',
+                value: {
+                  testValuePrefix: 'gt',
+                  testValueModifier: '',
+                  testValue: 100,
+                  testValueUnit: ''
+                },
+                selectedObservationCodes: {
+                  coding: [
+                    {
+                      code: '3137-7',
+                      system: 'http://loinc.org'
+                    }
+                  ],
+                  datatype: 'Quantity',
+                  items: ['Height cm']
+                }
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    component.searchForPatients();
+    component.patientStream
+      .pipe(
+        reduce((acc, patient) => {
+          acc.push(patient);
+          return acc;
+        }, [])
+      )
+      .subscribe((patients) => {
+        // We have two Observations for the same Patient, that's why one
+        // Observation ignored
+        expect(patients.length).toEqual(9);
+        done();
+      });
+
+    mockHttp
+      .expectOne(`$fhir/Patient?_total=accurate&_summary=count&gender=female`)
+      .flush({ total: 30 });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Observation?_total=accurate&_summary=count&combo-code=3137-7&combo-value-quantity=gt100`
+      )
+      .flush({ total: 20 });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Observation?_count=10&_elements=subject&combo-code=3137-7&combo-value-quantity=gt100`
+      )
+      .flush({
+        ...tenObservationBundle,
+        link: [{ relation: 'next', url: 'next-observation-bundle-page' }]
+      });
+
+    [
+      // Search ignores duplicate Patients
+      ...new Set(
+        tenObservationBundle.entry.map(({ resource }) =>
+          resource.subject.reference.replace(/^Patient\//, '')
+        )
+      )
+    ].forEach((patientId) => {
+      mockHttp
+        .expectOne(`$fhir/Patient?_id=${patientId}&gender=female`)
+        .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
+    });
+
+    // If the next page contains the same resources, there are no additional requests
+    mockHttp
+      .expectOne(`next-observation-bundle-page`)
+      .flush(tenObservationBundle);
+  });
+
+  it('should load Patients by Observation and ResearchStudy criteria', (done) => {
+    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    spyOn(component, 'getPageSize').and.returnValue(10);
+    component.patientParams.queryCtrl.setValue({
+      condition: 'and',
+      rules: [
+        {
+          condition: 'and',
+          resourceType: 'ResearchStudy',
+          rules: [
+            {
+              field: {
+                element: 'status',
+                value: ['completed'],
+                selectedObservationCodes: null
+              }
+            }
+          ]
+        },
+        {
+          condition: 'and',
+          resourceType: 'Observation',
+          rules: [
+            {
+              field: {
+                element: 'code text',
+                value: {
+                  testValuePrefix: 'gt',
+                  testValueModifier: '',
+                  testValue: 100,
+                  testValueUnit: ''
+                },
+                selectedObservationCodes: {
+                  coding: [
+                    {
+                      code: '3137-7',
+                      system: 'http://loinc.org'
+                    }
+                  ],
+                  datatype: 'Quantity',
+                  items: ['Height cm']
+                }
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    component.searchForPatients();
+    component.patientStream
+      .pipe(
+        reduce((acc, patient) => {
+          acc.push(patient);
+          return acc;
+        }, [])
+      )
+      .subscribe((patients) => {
+        // We have two Observations for the same Patient, that's why one
+        // Observation ignored
+        expect(patients.length).toEqual(9);
+        done();
+      });
+
+    mockHttp
+      .expectOne(
+        `$fhir/ResearchStudy?_total=accurate&_summary=count&_has:ResearchSubject:study:status=candidate,eligible,follow-up,ineligible,not-registered,off-study,on-study,on-study-intervention,on-study-observation,pending-on-study,potential-candidate,screening,withdrawn&status=completed`
+      )
+      .flush({ total: 2 });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Observation?_total=accurate&_summary=count&combo-code=3137-7&combo-value-quantity=gt100`
+      )
+      .flush({ total: 10 });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Observation?_count=10&_elements=subject&combo-code=3137-7&combo-value-quantity=gt100`
+      )
+      .flush(tenObservationBundle);
+
+    const patientIds = [
+      // Search ignores duplicate Patients
+      ...new Set(
+        tenObservationBundle.entry.map(({ resource }) =>
+          resource.subject.reference.replace(/^Patient\//, '')
+        )
+      )
+    ];
+
+    patientIds.forEach((patientId, index) => {
+      mockHttp
+        .expectOne(
+          `$fhir/ResearchStudy?_count=1&_has:ResearchSubject:study:individual=Patient/${patientId}&_elements=id&status=completed`
+        )
+        .flush({
+          entry: [
+            {
+              resource: {
+                ...exampleResearchStudy,
+                id: `research-study-${index}`
+              }
+            }
+          ]
+        });
+    });
+
+    patientIds.forEach((patientId) => {
+      mockHttp
+        .expectOne(`$fhir/Patient?_id=${patientId}`)
+        .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
     });
   });
 });

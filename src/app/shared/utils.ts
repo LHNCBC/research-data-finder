@@ -18,7 +18,7 @@ export function capitalize(str: string): string {
 export function getNextPageUrl(response: Bundle): string | undefined {
   let result;
   return (
-    response.link.some(
+    response.link?.some(
       (link) => link.relation === 'next' && (result = link.url)
     ) && result
   );

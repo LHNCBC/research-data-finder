@@ -1,18 +1,27 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
 import { SearchParameter } from 'src/app/types/search.parameter';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { isEqual } from 'lodash-es';
 import {
-  encodeFhirSearchParameter,
-  escapeFhirSearchParameter
-} from '../../shared/utils';
-import { SelectedObservationCodes } from '../../types/selected-observation-codes';
+  QueryParamsService,
+  OBSERVATIONBYTEST
+} from '../../shared/query-params/query-params.service';
+import {
+  AutocompleteComponent,
+  AutocompleteOption
+} from '../autocomplete/autocomplete.component';
 
 /**
  * Component for editing one resource search parameter
@@ -25,21 +34,25 @@ import { SelectedObservationCodes } from '../../types/selected-observation-codes
 })
 export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>
-  implements OnInit {
+  implements OnInit, OnChanges {
   @Input() resourceType = '';
+  // A list of already selected FHIR search parameter names, including the
+  // parameter selected in this component. This list is used to exclude dropdown
+  // options to avoid duplicate criteria.
+  @Input() selectedSearchParameterNames: string[] = [];
   @Input() isPullData = false;
-  readonly OBSERVATIONBYTEST = 'code text';
+  readonly OBSERVATIONBYTEST = OBSERVATIONBYTEST;
   readonly OBSERVATIONBYTESTDESC =
     'The display text associated with the code of the observation type';
-  readonly CODETYPES = ['code', 'CodeableConcept', 'Coding'];
   definitions: any;
 
   selectedResourceType: any;
 
-  parameterName: FormControl = new FormControl('', Validators.required);
+  parameterName: FormControl = new FormControl('');
   parameters: any[] = [];
-  filteredParameters: Observable<any[]>;
+  parameterOptions: AutocompleteOption[] = [];
   selectedParameter: any;
+  currentValue = null;
 
   parameterValue: FormControl = new FormControl('', (control) =>
     this.isPullData || this.selectedObservationCodes?.value?.datatype
@@ -55,7 +68,7 @@ export class SearchParameterComponent
   );
   loincCodes: string[] = [];
 
-  @ViewChild('searchParamName') searchParamName: ElementRef;
+  @ViewChild('searchParamName') searchParamName: AutocompleteComponent;
 
   get value(): SearchParameter {
     return {
@@ -69,14 +82,13 @@ export class SearchParameterComponent
    * Whether to use lookup control for search parameter value.
    */
   get useLookupParamValue(): boolean {
-    return (
-      this.CODETYPES.includes(this.selectedParameter.type) &&
-      Array.isArray(this.parameterValues) &&
-      this.parameterValues.length > 0
-    );
+    return this.queryParams.getUseLookupParamValue(this.selectedParameter);
   }
 
-  constructor(private fhirBackend: FhirBackendService) {
+  constructor(
+    private fhirBackend: FhirBackendService,
+    private queryParams: QueryParamsService
+  ) {
     super();
   }
 
@@ -84,12 +96,8 @@ export class SearchParameterComponent
     this.definitions = this.fhirBackend.getCurrentDefinitions();
     this.selectedResourceType = this.definitions.resources[this.resourceType];
     this.parameters = this.selectedResourceType.searchParameters;
+    this.updateAvailableSearchParameters();
     this.selectedParameter = null;
-
-    this.filteredParameters = this.parameterName.valueChanges.pipe(
-      startWith(''),
-      map((value) => this._filter(value, this.parameters))
-    );
 
     this.parameterName.valueChanges.subscribe((value) => {
       this.selectedParameter = this.selectedResourceType.searchParameters.find(
@@ -105,11 +113,11 @@ export class SearchParameterComponent
           ];
         }
       }
-      this.onChange(this.value);
+      this.handleChange();
     });
 
     this.parameterValue.valueChanges.subscribe(() => {
-      this.onChange(this.value);
+      this.handleChange();
     });
     this.selectedObservationCodes.valueChanges.subscribe((value) => {
       // Prepare a list of LOINC codes for ObservationTestValueUnitComponent
@@ -117,16 +125,31 @@ export class SearchParameterComponent
         value?.coding
           .filter((c) => c.system === 'http://loinc.org')
           .map((c) => c.code) || [];
-      this.onChange(this.value);
+      this.handleChange();
     });
   }
 
-  private _filter(value: string, options: any[]): string[] {
-    const filterValue = value.toLowerCase();
+  /**
+   * A lifecycle hook that is called when any data-bound property of a component
+   * changes.
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.selectedElements?.currentValue) {
+      this.updateAvailableSearchParameters();
+    }
+  }
 
-    return options.filter((option) =>
-      option.displayName.toLowerCase().includes(filterValue)
-    );
+  /**
+   * Notify ngModel or FormControl linked with component when a control's value
+   * changes only if the value is really changed.
+   */
+  handleChange(): void {
+    const newValue = this.value;
+
+    if (!isEqual(this.currentValue, newValue)) {
+      this.onChange(newValue);
+      this.currentValue = newValue;
+    }
   }
 
   /**
@@ -136,14 +159,14 @@ export class SearchParameterComponent
    * @param value New value to be written to the model.
    */
   writeValue(value: SearchParameter): void {
-    const param = this.parameters.find((p) => p.element === value.element);
+    const param = this.parameters.find((p) => p.element === value?.element);
     this.parameterName.setValue(param?.displayName || '');
     if (this.isPullData) {
       this.parameterName.disable({ emitEvent: false });
     }
-    this.parameterValue.setValue(value.value || '');
+    this.parameterValue.setValue(value?.value || '');
     this.selectedObservationCodes.setValue(
-      value.selectedObservationCodes || null
+      value?.selectedObservationCodes || null
     );
   }
 
@@ -151,93 +174,7 @@ export class SearchParameterComponent
    * get string of url segment describing the search criteria that will be used to search in server.
    */
   getCriteria(): string {
-    // Return empty if parameter name is not selected.
-    if (!this.selectedParameter) {
-      return '';
-    }
-    if (this.selectedParameter.element === this.OBSERVATIONBYTEST) {
-      return this.getObservationCodeTextCriteria();
-    }
-    if (this.selectedParameter.type === 'date') {
-      return (
-        (this.parameterValue.value.from
-          ? `&${this.selectedParameter.element}=ge${this.parameterValue.value.from}`
-          : '') +
-        (this.parameterValue.value.to
-          ? `&${this.selectedParameter.element}=le${this.parameterValue.value.to}`
-          : '')
-      );
-    }
-    if (
-      this.resourceType === 'Patient' &&
-      this.selectedParameter.element === 'active' &&
-      this.parameterValue.value === 'true'
-    ) {
-      // Include patients with active field not defined when searching active patients
-      return '&active:not=false';
-    }
-    if (this.useLookupParamValue) {
-      return `&${
-        this.selectedParameter.element
-      }=${this.parameterValue.value.join(',')}`;
-    }
-    if (this.selectedParameter.type === 'Quantity') {
-      const testValueCriteria = this.getCompositeTestValueCriteria();
-      return testValueCriteria
-        ? `&${this.selectedParameter.element}${testValueCriteria}`
-        : '';
-    }
-    return `&${this.selectedParameter.element}=${this.parameterValue.value}`;
-  }
-
-  /**
-   * Get criteria string for Observation "code text" parameter
-   */
-  private getObservationCodeTextCriteria(): string {
-    const selectedCodes = this.selectedObservationCodes
-      .value as SelectedObservationCodes;
-    // Ignore criteria if no code selected.
-    if (!selectedCodes) {
-      return '';
-    }
-    const coding = selectedCodes.coding.filter((c) => c);
-    const codeParam = coding.length
-      ? '&combo-code=' +
-        coding.map((code) => encodeFhirSearchParameter(code.code)).join(',')
-      : '';
-    const valueParamName = {
-      CodeableConcept: 'combo-value-concept',
-      Quantity: 'combo-value-quantity',
-      string: 'value-string'
-    }[this.selectedObservationCodes.value.datatype];
-    const testValueCriteria = this.getCompositeTestValueCriteria();
-    const valueParam = testValueCriteria
-      ? `&${valueParamName}${testValueCriteria}`
-      : '';
-    return `${codeParam}${valueParam}`;
-  }
-
-  /**
-   * Get criteria string for composite test value controls
-   * e.g. prefix + value + unit
-   */
-  private getCompositeTestValueCriteria(): string {
-    if (this.isPullData) {
-      return '';
-    }
-    const modifier = this.parameterValue.value.testValueModifier;
-    const prefix = this.parameterValue.value.testValuePrefix;
-    const testValue = this.parameterValue.value.testValue
-      ? escapeFhirSearchParameter(
-          this.parameterValue.value.testValue.toString()
-        )
-      : '';
-    const unit = this.parameterValue.value.testValueUnit;
-    return testValue.trim()
-      ? `${modifier}=${prefix}${encodeURIComponent(
-          testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
-        )}`
-      : '';
+    return this.queryParams.getQueryParam(this.resourceType, this.value);
   }
 
   /**
@@ -245,6 +182,25 @@ export class SearchParameterComponent
    * This is being called from parent component when the "Add {resource type} criterion" button is clicked.
    */
   focusSearchParamNameInput(): void {
-    this.searchParamName.nativeElement.focus();
+    this.searchParamName.focus();
+  }
+
+  /**
+   * Updates the list of available search parameters.
+   */
+  updateAvailableSearchParameters(): void {
+    this.parameterOptions = this.parameters
+      // Skip already selected search parameters
+      .filter(
+        (p) =>
+          p.element === this.value.element ||
+          !this.selectedSearchParameterNames ||
+          this.selectedSearchParameterNames.indexOf(p.element) === -1
+      )
+      .map((searchParameter) => ({
+        name: searchParameter.displayName,
+        value: searchParameter.displayName,
+        desc: searchParameter.description
+      }));
   }
 }
