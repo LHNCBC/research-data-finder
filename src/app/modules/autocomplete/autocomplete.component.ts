@@ -16,6 +16,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { FormControl, ValidationErrors } from '@angular/forms';
 import { combineLatest, Observable, ReplaySubject } from 'rxjs';
 import { map, startWith, take } from 'rxjs/operators';
+import { escapeStringForRegExp } from '../../shared/utils';
 
 /**
  * Autocomplete option can have display name, value and description.
@@ -99,8 +100,13 @@ export class AutocompleteComponent
       this.options$
     ]).pipe(
       map(([value, options]) => {
+        // Filters options list by matching value.
+        // It does a left match at word boundaries, example:
+        // 'variable name' will test true for 'va' or 'na', but not 'ri' or 'le'.
+        const reg = `\\b${escapeStringForRegExp(value)}`;
+        const regEx = new RegExp(reg, 'i');
         const filteredOptions = options.filter((option) =>
-          this.getOptionText(option).toLowerCase().includes(value.toLowerCase())
+          regEx.test(this.getOptionText(option))
         );
         const selectedOption =
           filteredOptions.find(

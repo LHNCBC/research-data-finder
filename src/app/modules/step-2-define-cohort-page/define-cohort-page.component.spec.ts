@@ -7,6 +7,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import tenPatientBundle from './test-fixtures/patients-10.json';
 import tenObservationBundle from './test-fixtures/observations-10.json';
 import examplePatient from './test-fixtures/example-patient.json';
+import exampleResearchStudy from './test-fixtures/example-research-study.json';
 import { reduce } from 'rxjs/operators';
 
 describe('DefineCohortComponent', () => {
@@ -44,18 +45,13 @@ describe('DefineCohortComponent', () => {
       ])
     ).toEqual({
       condition: 'and',
+      resourceType: 'Patient',
       rules: [
         {
-          condition: 'and',
-          resourceType: 'Patient',
-          rules: [
-            {
-              field: {
-                element: '_has:ResearchSubject:individual:study',
-                value: 'someResearchStudyId'
-              }
-            }
-          ]
+          field: {
+            element: '_has:ResearchSubject:individual:study',
+            value: 'someResearchStudyId'
+          }
         }
       ]
     });
@@ -297,5 +293,120 @@ describe('DefineCohortComponent', () => {
     mockHttp
       .expectOne(`next-observation-bundle-page`)
       .flush(tenObservationBundle);
+  });
+
+  it('should load Patients by Observation and ResearchStudy criteria', (done) => {
+    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    spyOn(component, 'getPageSize').and.returnValue(10);
+    component.patientParams.queryCtrl.setValue({
+      condition: 'and',
+      rules: [
+        {
+          condition: 'and',
+          resourceType: 'ResearchStudy',
+          rules: [
+            {
+              field: {
+                element: 'status',
+                value: ['completed'],
+                selectedObservationCodes: null
+              }
+            }
+          ]
+        },
+        {
+          condition: 'and',
+          resourceType: 'Observation',
+          rules: [
+            {
+              field: {
+                element: 'code text',
+                value: {
+                  testValuePrefix: 'gt',
+                  testValueModifier: '',
+                  testValue: 100,
+                  testValueUnit: ''
+                },
+                selectedObservationCodes: {
+                  coding: [
+                    {
+                      code: '3137-7',
+                      system: 'http://loinc.org'
+                    }
+                  ],
+                  datatype: 'Quantity',
+                  items: ['Height cm']
+                }
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    component.searchForPatients();
+    component.patientStream
+      .pipe(
+        reduce((acc, patient) => {
+          acc.push(patient);
+          return acc;
+        }, [])
+      )
+      .subscribe((patients) => {
+        // We have two Observations for the same Patient, that's why one
+        // Observation ignored
+        expect(patients.length).toEqual(9);
+        done();
+      });
+
+    mockHttp
+      .expectOne(
+        `$fhir/ResearchStudy?_total=accurate&_summary=count&_has:ResearchSubject:study:status=candidate,eligible,follow-up,ineligible,not-registered,off-study,on-study,on-study-intervention,on-study-observation,pending-on-study,potential-candidate,screening,withdrawn&status=completed`
+      )
+      .flush({ total: 2 });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Observation?_total=accurate&_summary=count&combo-code=3137-7&combo-value-quantity=gt100`
+      )
+      .flush({ total: 10 });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Observation?_count=10&_elements=subject&combo-code=3137-7&combo-value-quantity=gt100`
+      )
+      .flush(tenObservationBundle);
+
+    const patientIds = [
+      // Search ignores duplicate Patients
+      ...new Set(
+        tenObservationBundle.entry.map(({ resource }) =>
+          resource.subject.reference.replace(/^Patient\//, '')
+        )
+      )
+    ];
+
+    patientIds.forEach((patientId, index) => {
+      mockHttp
+        .expectOne(
+          `$fhir/ResearchStudy?_count=1&_has:ResearchSubject:study:individual=Patient/${patientId}&_elements=id&status=completed`
+        )
+        .flush({
+          entry: [
+            {
+              resource: {
+                ...exampleResearchStudy,
+                id: `research-study-${index}`
+              }
+            }
+          ]
+        });
+    });
+
+    patientIds.forEach((patientId) => {
+      mockHttp
+        .expectOne(`$fhir/Patient?_id=${patientId}`)
+        .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
+    });
   });
 });

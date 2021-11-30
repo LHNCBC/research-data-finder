@@ -152,14 +152,6 @@ export class SearchParameterComponent
     }
   }
 
-  private _filter(value: string, options: any[]): string[] {
-    const filterValue = value.toLowerCase();
-
-    return options.filter((option) =>
-      option.displayName.toLowerCase().includes(filterValue)
-    );
-  }
-
   /**
    * Part of the ControlValueAccessor interface
    * required to integrate with Angular's core forms API.
