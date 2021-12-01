@@ -322,20 +322,22 @@ export class FhirBackendService implements HttpBackend {
       const currentParameters = this.currentDefinitions.resources[resourceType]
         .searchParameters;
       const specParameters =
-        definitions.resources[resourceType].searchParameters;
-      currentParameters.forEach((parameter) => {
-        const specParameter = find(specParameters, {
-          element: parameter.element
-        });
-        if (specParameter) {
-          Object.assign(parameter, {
-            // expression: specParameter.expression,
-            // path: specParameter.path,
-            valueSet: specParameter.valueSet,
-            required: specParameter.required
+        definitions.resources[resourceType]?.searchParameters;
+      if (specParameters) {
+        currentParameters.forEach((parameter) => {
+          const specParameter = find(specParameters, {
+            element: parameter.element
           });
-        }
-      });
+          if (specParameter) {
+            Object.assign(parameter, {
+              // expression: specParameter.expression,
+              // path: specParameter.path,
+              valueSet: specParameter.valueSet,
+              required: specParameter.required
+            });
+          }
+        });
+      }
     });
 
     this.currentDefinitions.initialized = true;
