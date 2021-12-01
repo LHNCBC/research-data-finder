@@ -206,7 +206,7 @@ describe('DefineCohortComponent', () => {
             {
               field: {
                 element: 'gender',
-                value: ['female'],
+                value: { codes: ['female'] },
                 selectedObservationCodes: null
               }
             }
@@ -308,7 +308,7 @@ describe('DefineCohortComponent', () => {
             {
               field: {
                 element: 'status',
-                value: ['completed'],
+                value: { codes: ['completed'] },
                 selectedObservationCodes: null
               }
             }

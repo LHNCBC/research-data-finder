@@ -16,7 +16,7 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 import { isEqual } from 'lodash-es';
 import {
   QueryParamsService,
-  OBSERVATIONBYTEST
+  CODETEXT
 } from '../../shared/query-params/query-params.service';
 import {
   AutocompleteComponent,
@@ -42,9 +42,7 @@ export class SearchParameterComponent
   // options to avoid duplicate criteria.
   @Input() selectedSearchParameterNames: string[] = [];
   @Input() isPullData = false;
-  readonly OBSERVATIONBYTEST = OBSERVATIONBYTEST;
-  readonly OBSERVATIONBYTESTDESC =
-    'The display text associated with the code of the observation type';
+  readonly CODETEXT = CODETEXT;
   definitions: any;
 
   selectedResourceType: any;

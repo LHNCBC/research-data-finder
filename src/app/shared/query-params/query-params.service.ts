@@ -3,7 +3,7 @@ import { SearchParameter } from '../../types/search.parameter';
 import { encodeFhirSearchParameter, escapeFhirSearchParameter } from '../utils';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 
-export const OBSERVATIONBYTEST = 'code text';
+export const CODETEXT = 'code text';
 export const CODETYPES = ['code', 'CodeableConcept', 'Coding'];
 
 @Injectable({
@@ -31,8 +31,12 @@ export class QueryParamsService {
     if (!selectedParameter) {
       return `&${value.element}=${value.value}`;
     }
-    if (selectedParameter.element === OBSERVATIONBYTEST) {
-      return this.getObservationCodeTextCriteria(value);
+    if (selectedParameter.element === CODETEXT) {
+      if (resourceType === 'Observation') {
+        return this.getObservationCodeTextCriteria(value);
+      } else {
+        return `&code=${value.value.codes.join(',')}`;
+      }
     }
     if (selectedParameter.type === 'date') {
       return (
@@ -53,7 +57,7 @@ export class QueryParamsService {
       return '&active:not=false';
     }
     if (this.getUseLookupParamValue(selectedParameter)) {
-      return `&${selectedParameter.element}=${value.value.join(',')}`;
+      return `&${selectedParameter.element}=${value.value.codes.join(',')}`;
     }
     if (selectedParameter.type === 'Quantity') {
       const testValueCriteria = this.getCompositeTestValueCriteria(value.value);
