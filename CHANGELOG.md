@@ -3,6 +3,16 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.0.0] - 2021-11-30
+### Added
+- Query Builder: search criteria in Define Cohort step now can combine using
+  Boolean operators.
+### Fixed
+- Detecting of the possibility of using the "age-at-event" sorting parameter.
+### Changed
+- Rename "resource type" to "record type".
+- Text changes in define cohort page.
+
 ## [3.25.3] - 2021-11-19
 ### Changed
 - Removed Observation.identifier from search parameters.

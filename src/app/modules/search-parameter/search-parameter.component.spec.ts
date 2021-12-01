@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SearchParameterComponent } from './search-parameter.component';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { configureTestingModule } from 'src/test/helpers';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { MockComponent } from 'ng-mocks';
@@ -13,6 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { AutocompleteComponent } from '../autocomplete/autocomplete.component';
 
 class Page {
   private fixture: ComponentFixture<SearchParameterComponent>;
@@ -24,9 +25,6 @@ class Page {
       By.css('app-observation-test-value')
     );
   }
-  get matOptions(): DebugElement[] {
-    return this.fixture.debugElement.queryAll(By.css('mat-option'));
-  }
 }
 
 describe('SearchParameterComponent', () => {
@@ -35,48 +33,49 @@ describe('SearchParameterComponent', () => {
   let page: Page;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [
-        SearchParameterComponent,
-        MockComponent(ObservationTestValueComponent)
-      ],
-      imports: [
-        CommonModule,
-        MatIconModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatAutocompleteModule,
-        MatInputModule,
-        NoopAnimationsModule
-      ],
-      providers: [
-        {
-          provide: FhirBackendService,
-          useValue: {
-            getCurrentDefinitions: () => {
-              return {
-                resources: {
-                  Observation: {
-                    searchParameters: [
-                      {
-                        element: 'code text',
-                        displayName: 'Some name'
-                      },
-                      {
-                        element: 'value-quantity',
-                        displayName: 'value quantity',
-                        type: 'Quantity'
-                      }
-                    ]
-                  }
+    await configureTestingModule(
+      {
+        declarations: [
+          SearchParameterComponent,
+          MockComponent(AutocompleteComponent),
+          MockComponent(ObservationTestValueComponent)
+        ],
+        imports: [
+          CommonModule,
+          MatIconModule,
+          ReactiveFormsModule,
+          MatButtonModule,
+          MatFormFieldModule,
+          MatAutocompleteModule,
+          MatInputModule,
+          NoopAnimationsModule
+        ]
+      },
+      {
+        definitions: {
+          resources: {
+            Observation: {
+              searchParameters: [
+                {
+                  element: 'code text',
+                  displayName: 'Some name'
+                },
+                {
+                  element: 'value-quantity',
+                  displayName: 'value quantity',
+                  type: 'Quantity'
+                },
+                {
+                  element: 'already-selected',
+                  displayName: 'already selected',
+                  type: 'string'
                 }
-              };
+              ]
             }
           }
         }
-      ]
-    }).compileComponents();
+      }
+    );
   });
 
   beforeEach(() => {
@@ -84,6 +83,7 @@ describe('SearchParameterComponent', () => {
     page = new Page(fixture);
     component = fixture.componentInstance;
     component.resourceType = 'Observation';
+    component.selectedSearchParameterNames = ['already-selected'];
     fixture.detectChanges();
   });
 
@@ -93,7 +93,7 @@ describe('SearchParameterComponent', () => {
 
   it('should have code text parameter', () => {
     expect(component.parameters).not.toBeNull();
-    expect(component.parameters.length).toEqual(2);
+    expect(component.parameters.length).toEqual(3);
     expect(component.parameters).toContain(
       jasmine.objectContaining({ element: 'code text' })
     );
@@ -106,16 +106,13 @@ describe('SearchParameterComponent', () => {
     expect(page.compositeTestValue).not.toBeNull();
   });
 
-  it('should left match word boundaries when filtering search parameters', () => {
-    component.searchParamName.nativeElement.focus();
-    component.parameterName.setValue('an');
-    fixture.detectChanges();
-    expect(page.matOptions.length).toBe(0);
-    component.parameterName.setValue('qu');
-    fixture.detectChanges();
-    expect(page.matOptions.length).toBe(1);
-    component.parameterName.setValue('ty');
-    fixture.detectChanges();
-    expect(page.matOptions.length).toBe(0);
+  it('should not show already selected search parameters in the dropdown', () => {
+    expect(component.parameterOptions.length).toEqual(2);
+    expect(component.parameterOptions).toContain(
+      jasmine.objectContaining({ name: 'Some name' })
+    );
+    expect(component.parameterOptions).not.toContain(
+      jasmine.objectContaining({ name: 'already selected' })
+    );
   });
 });

@@ -256,7 +256,6 @@ describe('ResourceTableComponent', () => {
       direction: 'asc',
       active: 'customElement'
     });
-    console.log(component.dataSource.data);
     const index50 = component.dataSource.data.findIndex((x) => x.id === '50');
     const index12 = component.dataSource.data.findIndex((x) => x.id === '12');
     const index9 = component.dataSource.data.findIndex((x) => x.id === '9');

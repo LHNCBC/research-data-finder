@@ -492,7 +492,7 @@ export class SearchParameters extends BaseComponent {
         'beforeend',
         `\
 <div id="${rowId}" class="${this.getSearchParameterClass(searchItemId)}">
-  <input type="text" id="${paramResourceTypeSelectorId}" value="${paramResourceType}" placeholder="Resource type" aria-label="Resource type">
+  <input type="text" id="${paramResourceTypeSelectorId}" value="${paramResourceType}" placeholder="Record type" aria-label="Record type">
   <div class="search-parameter__name">
     <input type="text" id="${searchItemId}" value="${paramName}" placeholder="Search parameter name" aria-label="Search parameter name">
   </div>

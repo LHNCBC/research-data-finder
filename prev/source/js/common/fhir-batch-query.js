@@ -166,7 +166,9 @@ export class FhirBatchQuery {
               observationsSortedByDate.value.data.entry &&
               observationsSortedByDate.value.data.entry.length > 0,
             sortObservationsByAgeAtEvent:
-              observationsSortedByAgeAtEvent.status === 'fulfilled',
+              observationsSortedByAgeAtEvent.status === 'fulfilled' &&
+              observationsSortedByDate.value.data.entry &&
+              observationsSortedByDate.value.data.entry.length > 0,
             lastnLookup: lastnLookup.status === 'fulfilled',
             hasResearchStudy:
               hasResearchStudy.status === 'fulfilled' &&
