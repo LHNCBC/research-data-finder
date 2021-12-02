@@ -3,12 +3,22 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [3.25.4] - 2021-11-26
+## [4.0.2] - 2021-12-2
 ### Added
 - Program to store lists with non-required binding.
 ### Changed
 - Observation.category search parameter in default server now uses a
   autocomplete-lhc Prefetch control with values updated by above program.
+
+## [4.0.0] - 2021-11-30
+### Added
+- Query Builder: search criteria in Define Cohort step now can combine using
+  Boolean operators.
+### Fixed
+- Detecting of the possibility of using the "age-at-event" sorting parameter.
+### Changed
+- Rename "resource type" to "record type".
+- Text changes in define cohort page.
 
 ## [3.25.3] - 2021-11-19
 ### Changed

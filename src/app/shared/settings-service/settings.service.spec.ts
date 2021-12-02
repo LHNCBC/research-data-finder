@@ -23,5 +23,6 @@ describe('SettingsService', () => {
       'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
     );
     await service.loadJsonConfig().toPromise();
+    expect(typeof service.get('definitionsFile')).toBe('string');
   });
 });

@@ -105,7 +105,7 @@ export class SearchParameterGroupComponent
         const match = this.resourceTypes.find((rt) => rt === value);
         if (match) {
           this.resourceType.disable({ emitEvent: false });
-          this.liveAnnoncer.announce(`Selected resource type ${value}.`);
+          this.liveAnnoncer.announce(`Selected record type ${value}.`);
         }
       });
     }
@@ -172,8 +172,8 @@ export class SearchParameterGroupComponent
   }
 
   /**
-   * Focus "Resource Type" control.
-   * This is being called from parent component when the "Add a resource type" button is clicked.
+   * Focus "Record type" control.
+   * This is being called from parent component when the "Add a record type" button is clicked.
    */
   focusResourceTypeInput(): void {
     this.resourceTypeInput.nativeElement.focus();
