@@ -2,5 +2,6 @@
 /tmp
 /out-tsc
 /node_modules
+/src/query-builder
 package.json
 package-lock.json

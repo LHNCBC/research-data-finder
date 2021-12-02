@@ -1,0 +1,74 @@
+{
+  "resourceType": "Bundle",
+  "entry": [ {
+    "resource": {
+      "resourceType": "Patient",
+      "id": "pat-1",
+      "active": false,
+      "gender": "male"
+    }
+  }, {
+    "resource": {
+      "resourceType": "Patient",
+      "id": "pat-2",
+      "active": false,
+      "gender": "female"
+    }
+  }, {
+    "resource": {
+      "resourceType": "Patient",
+      "id": "pat-3",
+      "active": false,
+      "gender": "male"
+    }
+  }, {
+    "resource": {
+      "resourceType": "Patient",
+      "id": "pat-4",
+      "active": false,
+      "gender": "male"
+    }
+  }, {
+    "resource": {
+      "resourceType": "Patient",
+      "id": "pat-5",
+      "active": false,
+      "gender": "female"
+    }
+  }, {
+    "resource": {
+      "resourceType": "Patient",
+      "id": "pat-6",
+      "active": false,
+      "gender": "female"
+    }
+  }, {
+    "resource": {
+      "resourceType": "Patient",
+      "id": "pat-7",
+      "active": false,
+      "gender": "female"
+    }
+  }, {
+    "resource": {
+      "resourceType": "Patient",
+      "id": "pat-8",
+      "active": false,
+      "gender": "male"
+    }
+  }, {
+    "resource": {
+      "resourceType": "Patient",
+      "id": "pat-9",
+      "active": false,
+      "gender": "female"
+    }
+  }, {
+    "resource": {
+      "resourceType": "Patient",
+      "id": "pat-10",
+      "active": false,
+      "gender": "female"
+    }
+  } ]
+}

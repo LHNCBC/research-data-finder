@@ -1,0 +1,87 @@
+{
+  "resourceType": "Bundle",
+  "entry": [ {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "obs-1",
+      "subject": {
+        "reference": "Patient/pat-1"
+      }
+    }
+  }, {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "obs-2",
+      "subject": {
+        "reference": "Patient/pat-2"
+      }
+    }
+  }, {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "obs-3",
+      "subject": {
+        "reference": "Patient/pat-3"
+      }
+    }
+  }, {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "obs-4",
+      "subject": {
+        "reference": "Patient/pat-4"
+      }
+    }
+  }, {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "obs-5",
+      "subject": {
+        "reference": "Patient/pat-5"
+      }
+    }
+  }, {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "obs-6",
+      "subject": {
+        "reference": "Patient/pat-6"
+      }
+    }
+  }, {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "obs-7",
+      "subject": {
+        "reference": "Patient/pat-7"
+      }
+    },
+    "search": {
+      "mode": "match"
+    }
+  }, {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "obs-8",
+      "subject": {
+        "reference": "Patient/pat-8"
+      }
+    }
+  }, {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "obs-9",
+      "subject": {
+        "reference": "Patient/pat-9"
+      }
+    }
+  }, {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "obs-10",
+      "subject": {
+        "reference": "Patient/pat-9"
+      }
+    }
+  } ]
+}

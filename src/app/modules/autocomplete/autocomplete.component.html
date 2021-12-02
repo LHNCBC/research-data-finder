@@ -1,0 +1,17 @@
+<mat-form-field class="autocomplete-form-field" *ngIf="!control.disabled">
+  <mat-label>{{label}}</mat-label>
+  <input type="text"
+         #inputField
+         [attr.aria-label]="label"
+         [placeholder]="placeholder"
+         matInput
+         tabToSelect
+         [formControl]="control"
+         [matAutocomplete]="autocomplete">
+  <mat-autocomplete #autocomplete="matAutocomplete">
+    <mat-option *ngFor="let option of filteredOptions$ | async" [value]="getOptionText(option)">
+      {{this.getOptionText(option)}} <span *ngIf="option.desc" class="option-desc" [matTooltip]="option?.desc">({{option?.desc}})</span>
+    </mat-option>
+  </mat-autocomplete>
+</mat-form-field>
+<p *ngIf="control.disabled" class="autocomplete-disabled">{{control.value}}</p>
