@@ -1,26 +1,20 @@
 <div class="search-parameter">
-  <mat-form-field class="parameter-name" *ngIf='!isPullData'>
-    <mat-label>Search parameter name</mat-label>
-    <input type="text" #searchParamName
-           aria-label="Search parameter name"
-           matInput
-           [formControl]="parameterName"
-           tabToSelect
-           [matAutocomplete]="auto1">
-    <mat-autocomplete #auto1="matAutocomplete">
-      <mat-option *ngFor="let option of filteredParameters | async" [value]="option.displayName">
-        {{option.displayName}} <span class="option-desc" [matTooltip]="option.description">({{option.description}})</span>
-      </mat-option>
-    </mat-autocomplete>
-  </mat-form-field>
+  <app-autocomplete
+      *ngIf="!isPullData"
+      #searchParamName
+      class="parameter-name"
+      label="Search parameter name"
+      required
+      [options]="parameterOptions"
+      [formControl]="parameterName"></app-autocomplete>
 
   <ng-container *ngIf="selectedParameter && selectedParameter.element !== CODETEXT">
     <ng-container [ngSwitch]="selectedParameter.type">
 
-      <div *ngSwitchCase="'boolean'" class="parameter-value">
-        <mat-label><input type="radio" [formControl]="parameterValue" value="true">true</mat-label>
-        <mat-label><input type="radio" [formControl]="parameterValue" value="false">false</mat-label>
-      </div>
+      <mat-radio-group *ngSwitchCase="'boolean'" class="parameter-value" aria-label="Select a boolean value" [formControl]="parameterValue">
+        <mat-radio-button value="true" aria-label="true">true</mat-radio-button>
+        <mat-radio-button value="false" aria-label="false">false</mat-radio-button>
+      </mat-radio-group>
 
       <mat-form-field class="parameter-value"
         *ngSwitchCase="useLookupParamValue ? selectedParameter.type : ''">

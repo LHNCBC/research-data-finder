@@ -10,7 +10,6 @@ import { filter } from 'rxjs/operators';
 import { Subject, Subscription } from 'rxjs';
 import { saveAs } from 'file-saver';
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
-import { SearchParameter } from '../../types/search.parameter';
 import Resource = fhir.Resource;
 import { SelectAnAreaOfInterestComponent } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
 
@@ -91,7 +90,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
       maxPatientCount: this.defineCohortComponent.defineCohortForm.value
         .maxPatientsNumber,
-      rawCriteria: this.defineCohortComponent.patientParams.parameterGroupList.getRawValue(),
+      rawCriteria: this.defineCohortComponent.patientParams.queryCtrl.value,
       data:
         this.viewCohortComponent?.resourceTableComponent?.dataSource?.data ??
         [],
@@ -133,12 +132,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
             .get('maxPatientsNumber')
             .setValue(maxPatientCount);
           // Set search parameter form values.
-          this.defineCohortComponent.patientParams.parameterGroupList.clear();
-          (rawCriteria as SearchParameter[]).forEach((searchParam) => {
-            this.defineCohortComponent.patientParams.parameterGroupList.push(
-              new FormControl(searchParam)
-            );
-          });
+          this.defineCohortComponent.patientParams.queryCtrl.setValue(
+            rawCriteria
+          );
           // Set selected research studies.
           this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
             researchStudies
