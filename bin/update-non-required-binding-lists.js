@@ -103,7 +103,10 @@ try {
     console.log(
       data['https://lforms-fhir.nlm.nih.gov/baseR4']['Observation']['category']
     );
-    fs.writeFileSync('non-required-binding-lists.json', JSON.stringify(data));
+    fs.writeFileSync(
+      'non-required-binding-lists.json',
+      JSON.stringify(data, null, 2)
+    );
     console.log('done.');
   });
 } catch (err) {
