@@ -199,7 +199,7 @@ describe('Research Data Finder', () => {
         // * sorting parameter "age-at-event" is not supported
         // * $lastn on Observation is not supported
         // * favicon.ico is missing
-        // * ResearchSubject query fails with consent group
+        // * ResearchSubject query fails without a consent group
         return entries.filter(
           (entry) =>
             !/Observation\?_sort=age-at-event|code:text=zzzzz|\/favicon\.ico|ResearchSubject/.test(
