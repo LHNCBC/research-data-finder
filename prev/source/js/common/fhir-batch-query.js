@@ -93,102 +93,20 @@ export class FhirBatchQuery {
       this._msBetweenRequests = 0;
     }
 
-    if (!this._initializationPromise) {
-      // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
-      const initializationRequests = [
-        // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-        this.getWithCache('metadata', { combine: false, retryCount: 2 }),
-        // Check if sorting Observations by date is supported
-        this.getWithCache(
-          'Observation?date=gt1000-01-01&_elements=id&_count=1',
-          {
-            combine: false,
-            retryCount: 2
-          }
-        ),
-        // Check if sorting Observations by age-at-event is supported
-        this.getWithCache(
-          'Observation?_sort=age-at-event&_elements=id&_count=1',
-          { combine: false, retryCount: 2 }
-        ),
-        // Check if operation $lastn on Observation is supported
-        this.getWithCache(
-          'Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1',
-          { combine: false, retryCount: 2 }
-        ),
-        // Check if server has Research Study data
-        this.getWithCache('ResearchStudy?_elements=id&_count=1', {
-          combine: false,
-          retryCount: 2
-        }),
-        // Check if batch request is supported
-        this._request({
-          method: 'POST',
-          url: this._serviceBaseUrl,
-          body: JSON.stringify({
-            resourceType: 'Bundle',
-            type: 'batch'
-          }),
-          logPrefix: 'Batch',
-          combine: false,
-          retryCount: 2
-        })
-      ];
-
-      if (
-        this._serviceBaseUrl === 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
-      ) {
-        // Query to extract the consent group that must be included as _security param in particular queries.
-        initializationRequests.push(
+    if (this._initializationPromise) {
+      return this._initializationPromise;
+    }
+    this._features = {};
+    if (this._serviceBaseUrl === 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1') {
+      this._initializationPromise = new Promise((resolve, _) => {
+        Promise.allSettled([
+          // Query to extract the consent group that must be included as _security param in particular queries.
           this.getWithCache('ResearchSubject', {
             combine: false,
             retryCount: 2
           })
-        );
-      }
-
-      this._initializationPromise = Promise.allSettled(
-        initializationRequests
-      ).then(
-        ([
-          metadata,
-          observationsSortedByDate,
-          observationsSortedByAgeAtEvent,
-          lastnLookup,
-          hasResearchStudy,
-          batch,
-          researchSubject
-        ]) => {
-          if (metadata.status === 'fulfilled') {
-            const fhirVersion = metadata.value.data.fhirVersion;
-            this._versionName = getVersionNameByNumber(fhirVersion);
-            if (!this._versionName) {
-              return Promise.reject({
-                error: 'Unsupported FHIR version: ' + fhirVersion
-              });
-            }
-          } else {
-            return Promise.reject({
-              error:
-                "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
-            });
-          }
-          this._features = {
-            sortObservationsByDate:
-              observationsSortedByDate.status === 'fulfilled' &&
-              observationsSortedByDate.value.data.entry &&
-              observationsSortedByDate.value.data.entry.length > 0,
-            sortObservationsByAgeAtEvent:
-              observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-              observationsSortedByDate.value.data.entry &&
-              observationsSortedByDate.value.data.entry.length > 0,
-            lastnLookup: lastnLookup.status === 'fulfilled',
-            hasResearchStudy:
-              hasResearchStudy.status === 'fulfilled' &&
-              hasResearchStudy.value.data.entry &&
-              hasResearchStudy.value.data.entry.length > 0,
-            batch: batch.status === 'fulfilled'
-          };
+        ]).then(([researchSubject]) => {
+          console.log(researchSubject);
           if (
             researchSubject &&
             researchSubject.status === 'rejected' &&
@@ -197,12 +115,110 @@ export class FhirBatchQuery {
             )
           ) {
             this._features.consentGroup = RegExp.$1.replace(', ', ',');
+            this.makeInitializationCalls(resolve, true);
+          } else {
+            this.makeInitializationCalls(resolve);
           }
-        }
-      );
+        });
+      });
+    } else {
+      this._initializationPromise = this.makeInitializationCalls();
     }
-
     return this._initializationPromise;
+  }
+
+  /**
+   * Makes multiple queries to server and determine values in _feature property.
+   * @param resolve function to resolve initialization promise when all queries have returned
+   * @param withSecurityTag whether to add _security search parameter in applicable queries
+   */
+  makeInitializationCalls(resolve = () => {}, withSecurityTag = false) {
+    const securityParam = withSecurityTag
+      ? `&_security=${this._features.consentGroup}`
+      : '';
+    // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
+    const initializationRequests = [
+      // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
+      this.getWithCache('metadata', { combine: false, retryCount: 2 }),
+      // Check if sorting Observations by date is supported
+      this.getWithCache(
+        `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
+        {
+          combine: false,
+          retryCount: 2
+        }
+      ),
+      // Check if sorting Observations by age-at-event is supported
+      this.getWithCache(
+        `Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`,
+        { combine: false, retryCount: 2 }
+      ),
+      // Check if operation $lastn on Observation is supported
+      this.getWithCache(
+        `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
+        { combine: false, retryCount: 2 }
+      ),
+      // Check if server has Research Study data
+      this.getWithCache('ResearchStudy?_elements=id&_count=1', {
+        combine: false,
+        retryCount: 2
+      }),
+      // Check if batch request is supported
+      this._request({
+        method: 'POST',
+        url: this._serviceBaseUrl,
+        body: JSON.stringify({
+          resourceType: 'Bundle',
+          type: 'batch'
+        }),
+        logPrefix: 'Batch',
+        combine: false,
+        retryCount: 2
+      })
+    ];
+
+    return Promise.allSettled(initializationRequests).then(
+      ([
+        metadata,
+        observationsSortedByDate,
+        observationsSortedByAgeAtEvent,
+        lastnLookup,
+        hasResearchStudy,
+        batch
+      ]) => {
+        if (metadata.status === 'fulfilled') {
+          const fhirVersion = metadata.value.data.fhirVersion;
+          this._versionName = getVersionNameByNumber(fhirVersion);
+          if (!this._versionName) {
+            return Promise.reject({
+              error: 'Unsupported FHIR version: ' + fhirVersion
+            });
+          }
+        } else {
+          return Promise.reject({
+            error:
+              "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
+          });
+        }
+        Object.assign(this._features, {
+          sortObservationsByDate:
+            observationsSortedByDate.status === 'fulfilled' &&
+            observationsSortedByDate.value.data.entry &&
+            observationsSortedByDate.value.data.entry.length > 0,
+          sortObservationsByAgeAtEvent:
+            observationsSortedByAgeAtEvent.status === 'fulfilled' &&
+            observationsSortedByDate.value.data.entry &&
+            observationsSortedByDate.value.data.entry.length > 0,
+          lastnLookup: lastnLookup.status === 'fulfilled',
+          hasResearchStudy:
+            hasResearchStudy.status === 'fulfilled' &&
+            hasResearchStudy.value.data.entry &&
+            hasResearchStudy.value.data.entry.length > 0,
+          batch: batch.status === 'fulfilled'
+        });
+        resolve();
+      }
+    );
   }
 
   /**
