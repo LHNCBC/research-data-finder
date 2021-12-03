@@ -28,6 +28,9 @@ import { MatButton } from '@angular/material/button';
 import { ResourceTypeCriteria } from '../../types/search-parameters';
 import { getFocusableChildren } from '../../shared/utils';
 
+const OPERATOR_ADDING_MESSAGE =
+  ' A radio group for selecting an AND/OR operator to combine criteria has appeared above the criteria.';
+
 /**
  * Component for managing resources search parameters
  */
@@ -91,8 +94,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 
           let message = 'A new line of search criterion is added.';
           if (parent.rules.length === 2) {
-            message +=
-              ' A radio group for selecting an operator to combine criteria has appeared above the criteria.';
+            message += OPERATOR_ADDING_MESSAGE;
           }
           this.liveAnnoncer.announce(message);
 
@@ -113,8 +115,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
           let message =
             'A new subgroup of criteria for resource types is added.';
           if (parent.rules.length === 2) {
-            message +=
-              ' A radio group for selecting an operator to combine criteria has appeared above the criteria.';
+            message += OPERATOR_ADDING_MESSAGE;
           }
           this.liveAnnoncer.announce(message);
 
@@ -239,8 +240,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 
     let message = 'A new line of resource type is added.';
     if (ruleset.rules.length === 2) {
-      message +=
-        ' A radio group for selecting an operator to combine criteria has appeared above the criteria.';
+      message += OPERATOR_ADDING_MESSAGE;
     }
     this.liveAnnoncer.announce(message);
 
