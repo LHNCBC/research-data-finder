@@ -83,7 +83,7 @@ describe('SearchParameterComponent', () => {
     page = new Page(fixture);
     component = fixture.componentInstance;
     component.resourceType = 'Observation';
-    component.selectedElements = ['already-selected'];
+    component.selectedSearchParameterNames = ['already-selected'];
     fixture.detectChanges();
   });
 

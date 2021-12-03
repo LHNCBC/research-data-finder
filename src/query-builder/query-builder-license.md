@@ -1,5 +1,5 @@
-The below license applies to the files in this directory and its subdirectories
-at the time the files were copied from
+The license below applies to the files in this directory and its subdirectories
+which were originally copied from
 https://github.com/zebzhao/Angular-QueryBuilder:
 
 MIT License

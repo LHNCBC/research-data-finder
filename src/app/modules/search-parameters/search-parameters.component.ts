@@ -64,7 +64,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   public queryCtrl: FormControl = new FormControl({});
   public queryBuilderConfig: QueryBuilderConfig = { fields: {} };
   resourceTypes$: Observable<AutocompleteOption[]>;
-  selectedElements = new Map<ResourceTypeCriteria, string[]>();
+  selectedSearchParameterNamesMap = new Map<ResourceTypeCriteria, string[]>();
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -135,11 +135,11 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         removeRule: (rule: Rule, parent: RuleSet) => {
           parent.rules = parent.rules.filter((r) => r !== rule);
           if ('resourceType' in parent) {
-            this.updateSelectedElements(
+            this.updateSelectedSearchParameterNames(
               (parent as unknown) as ResourceTypeCriteria
             );
           } else if ('resourceType' in rule) {
-            this.selectedElements.delete(
+            this.selectedSearchParameterNamesMap.delete(
               (rule as unknown) as ResourceTypeCriteria
             );
           }
@@ -238,7 +238,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 
     ruleset.rules = ruleset.rules.concat(newResourceTypeCriteria as RuleSet);
 
-    let message = 'A new line of resource type is added.';
+    let message = 'A new field for selecting a record type has been added.';
     if (ruleset.rules.length === 2) {
       message += OPERATOR_ADDING_MESSAGE;
     }
@@ -251,7 +251,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         setTimeout(() => components.last.focus());
       });
 
-    this.selectedElements.set(
+    this.selectedSearchParameterNamesMap.set(
       newResourceTypeCriteria as ResourceTypeCriteria,
       []
     );
@@ -269,13 +269,15 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   }
 
   /**
-   * Updates the list of already selected elements (that match the search
-   * parameters) for the specified resource type criteria. This list is used to
-   * exclude dropdown options to avoid duplicate criteria.
+   * Updates the list of already selected FHIR search parameter names for the
+   * specified resource type criteria. This list is used to exclude dropdown
+   * options to avoid duplicate criteria.
    * @param parentRuleSet - resource type criteria
    */
-  updateSelectedElements(parentRuleSet: ResourceTypeCriteria): void {
-    this.selectedElements.set(
+  updateSelectedSearchParameterNames(
+    parentRuleSet: ResourceTypeCriteria
+  ): void {
+    this.selectedSearchParameterNamesMap.set(
       parentRuleSet,
       parentRuleSet.rules.map((c) => c.field.element)
     );
