@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.0.1] - 2021-12-03
+### Changed
+- Query Builder: Hide AND/OR toggle when there is only one condition.
+
 ## [4.0.0] - 2021-11-30
 ### Added
 - Query Builder: search criteria in Define Cohort step now can combine using
