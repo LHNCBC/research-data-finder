@@ -106,7 +106,6 @@ export class FhirBatchQuery {
             retryCount: 2
           })
         ]).then(([researchSubject]) => {
-          console.log(researchSubject);
           if (
             researchSubject &&
             researchSubject.status === 'rejected' &&
@@ -207,8 +206,8 @@ export class FhirBatchQuery {
             observationsSortedByDate.value.data.entry.length > 0,
           sortObservationsByAgeAtEvent:
             observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-            observationsSortedByDate.value.data.entry &&
-            observationsSortedByDate.value.data.entry.length > 0,
+            observationsSortedByAgeAtEvent.value.data.entry &&
+            observationsSortedByAgeAtEvent.value.data.entry.length > 0,
           lastnLookup: lastnLookup.status === 'fulfilled',
           hasResearchStudy:
             hasResearchStudy.status === 'fulfilled' &&
@@ -216,6 +215,7 @@ export class FhirBatchQuery {
             hasResearchStudy.value.data.entry.length > 0,
           batch: batch.status === 'fulfilled'
         });
+        console.log(this._features);
         resolve();
       }
     );
