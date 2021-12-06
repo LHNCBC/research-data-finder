@@ -23,6 +23,7 @@ import {
   AutocompleteOption
 } from '../autocomplete/autocomplete.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import NON_REQUIRED_BINDING_LISTS from '../../../../non-required-binding-lists.json';
 
 /**
  * Component for editing one resource search parameter
@@ -84,6 +85,15 @@ export class SearchParameterComponent
     return this.queryParams.getUseLookupParamValue(this.selectedParameter);
   }
 
+  /**
+   * Gets non required binding list values from stored json file, if any.
+   */
+  get nonRequiredBindingList(): any[] {
+    return NON_REQUIRED_BINDING_LISTS[this.fhirBackend.serviceBaseUrl]?.[
+      this.resourceType
+    ]?.[this.selectedParameter.element];
+  }
+
   constructor(
     private fhirBackend: FhirBackendService,
     private queryParams: QueryParamsService,
@@ -110,7 +120,9 @@ export class SearchParameterComponent
         this.liveAnnoncer.announce(
           `Selected ${value}. One or more new fields have appeared.`
         );
-        if (this.selectedParameter.valueSet) {
+        if (this.nonRequiredBindingList) {
+          this.parameterValues = this.nonRequiredBindingList;
+        } else if (this.selectedParameter.valueSet) {
           this.parameterValues = this.definitions.valueSets[
             this.selectedParameter.valueSet
           ];

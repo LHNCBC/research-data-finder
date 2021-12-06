@@ -31,6 +31,9 @@ export enum ConnectionStatus {
   Disconnect
 }
 
+// A list of resources in dbGap that must have _security params passed along when querying.
+const RESOURCES_REQUIRING_AUTHORIZATION = 'Observation|ResearchSubject';
+
 /**
  * This is a final HttpHandler which will dispatch the request via browser HTTP APIs
  * to a backend. Interceptors sit between the HttpClient interface and the
@@ -42,10 +45,6 @@ export enum ConnectionStatus {
   providedIn: 'root'
 })
 export class FhirBackendService implements HttpBackend {
-  // Whether the connection to server is initialized.
-  initialized = new BehaviorSubject(ConnectionStatus.Pending);
-  currentDefinitions$: Observable<any>;
-
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
     if (this.serviceBaseUrl !== url) {
@@ -80,9 +79,6 @@ export class FhirBackendService implements HttpBackend {
     this.fhirClient.setApiKey(val);
   }
 
-  // Whether to cache requests to the FHIR server
-  private isCacheEnabled = true;
-
   set cacheEnabled(value: boolean) {
     this.isCacheEnabled = value;
     if (!value) {
@@ -102,16 +98,6 @@ export class FhirBackendService implements HttpBackend {
   get currentVersion(): string {
     return this.fhirClient.getVersionName();
   }
-
-  // Javascript client from the old version of Research Data Finder
-  // for FHIR with the ability to automatically combine requests in a batch .
-  fhirClient: FhirBatchQuery;
-
-  // Can't be injected in constructor because of circular dependency
-  settings: SettingsService;
-
-  // Definitions of columns, search params, value sets for current FHIR version
-  private currentDefinitions: any;
 
   /**
    * Creates and initializes an instance of FhirBackendService
@@ -143,6 +129,30 @@ export class FhirBackendService implements HttpBackend {
       filter((status) => status === ConnectionStatus.Ready),
       map(() => this.getCurrentDefinitions())
     );
+  }
+  // Whether the connection to server is initialized.
+  initialized = new BehaviorSubject(ConnectionStatus.Pending);
+  currentDefinitions$: Observable<any>;
+
+  // Whether to cache requests to the FHIR server
+  private isCacheEnabled = true;
+
+  // Javascript client from the old version of Research Data Finder
+  // for FHIR with the ability to automatically combine requests in a batch .
+  fhirClient: FhirBatchQuery;
+
+  // Can't be injected in constructor because of circular dependency
+  settings: SettingsService;
+
+  // Definitions of columns, search params, value sets for current FHIR version
+  private currentDefinitions: any;
+
+  // Whether an authorization tag should be added to the url.
+  private static isAuthorizationRequiredForUrl(url: string): boolean {
+    const regEx = new RegExp(
+      `https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/(${RESOURCES_REQUIRING_AUTHORIZATION})`
+    );
+    return regEx.test(url);
   }
 
   /**
@@ -209,7 +219,18 @@ export class FhirBackendService implements HttpBackend {
       return this.defaultBackend.handle(newRequest);
     }
 
-    const fullUrl = newRequest.urlWithParams;
+    // Until authentication is in place for dbGaP, we need to include the
+    // consent groups as values for _security.
+    // Observation and ResearchSubject queries will be sent with _security params.
+    const fullUrl =
+      this.features.consentGroup &&
+      FhirBackendService.isAuthorizationRequiredForUrl(newRequest.url)
+        ? this.fhirClient.addParamToUrl(
+            newRequest.urlWithParams,
+            '_security',
+            this.features.consentGroup
+          )
+        : newRequest.urlWithParams;
 
     // Otherwise, use the FhirBatchQuery from the old version of
     // Research Data Finder to handle the HTTP request.

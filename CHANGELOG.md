@@ -3,9 +3,21 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.0.1] - 2021-12-03
+## [4.0.3] - 2021-12-06
 ### Changed
 - Query Builder: Hide AND/OR toggle when there is only one condition.
+
+## [4.0.2] - 2021-12-6
+### Added
+- Program to store lists with non-required binding.
+### Changed
+- Observation.category search parameter in default server now uses a
+  autocomplete-lhc Prefetch control with values updated by above program.
+
+## [4.0.1] - 2021-12-2
+### Changed
+- Until authentication is in place for dbGaP, we include the consent
+  groups as values for _security.
 
 ## [4.0.0] - 2021-11-30
 ### Added
