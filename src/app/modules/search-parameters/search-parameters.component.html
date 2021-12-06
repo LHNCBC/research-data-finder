@@ -60,14 +60,14 @@
           <div>
             <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition" value="and" #andOption
                    name="{{getSwitchRadioGroupId(ruleset)}}"
-                   aria-label="AND"/>
+                   aria-label="AND">
             <label (click)="changeCondition(andOption.value)" class="q-switch-label">AND</label>
           </div>
           <div>
             <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition"
                    value="or" #orOption
                    name="{{getSwitchRadioGroupId(ruleset)}}"
-                   aria-label="OR"/>
+                   aria-label="OR">
             <label (click)="changeCondition(orOption.value)" class="q-switch-label">OR</label>
           </div>
         </div>
