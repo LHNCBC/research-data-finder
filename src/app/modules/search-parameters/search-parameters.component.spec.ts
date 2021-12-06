@@ -42,13 +42,13 @@ describe('SearchParametersComponent', () => {
 
     beforeEach(() => {
       criteria = component.queryCtrl.value;
-      expect(component.selectedElements.size).toBe(0);
+      expect(component.selectedSearchParameterNamesMap.size).toBe(0);
       component.addResourceType(criteria);
       resourceTypeCriteria = criteria.rules[0];
     });
 
     it('should be initialized', () => {
-      expect(component.selectedElements.size).toBe(1);
+      expect(component.selectedSearchParameterNamesMap.size).toBe(1);
     });
 
     it('should be updated', () => {
@@ -56,10 +56,10 @@ describe('SearchParametersComponent', () => {
       resourceTypeCriteria.rules[0].field = {
         element: 'some-element'
       };
-      component.updateSelectedElements(resourceTypeCriteria);
-      expect(component.selectedElements.get(resourceTypeCriteria)).toEqual([
-        'some-element'
-      ]);
+      component.updateSelectedSearchParameterNames(resourceTypeCriteria);
+      expect(
+        component.selectedSearchParameterNamesMap.get(resourceTypeCriteria)
+      ).toEqual(['some-element']);
     });
 
     it('should be cleared', () => {
@@ -67,21 +67,23 @@ describe('SearchParametersComponent', () => {
       resourceTypeCriteria.rules[0].field = {
         element: 'some-element'
       };
-      component.updateSelectedElements(resourceTypeCriteria);
-      expect(component.selectedElements.get(resourceTypeCriteria)).toEqual([
-        'some-element'
-      ]);
+      component.updateSelectedSearchParameterNames(resourceTypeCriteria);
+      expect(
+        component.selectedSearchParameterNamesMap.get(resourceTypeCriteria)
+      ).toEqual(['some-element']);
 
       component.queryBuilderConfig.removeRule(
         resourceTypeCriteria.rules[0],
         resourceTypeCriteria
       );
-      expect(component.selectedElements.get(resourceTypeCriteria)).toEqual([]);
+      expect(
+        component.selectedSearchParameterNamesMap.get(resourceTypeCriteria)
+      ).toEqual([]);
     });
 
     it('should be removed', () => {
       component.queryBuilderConfig.removeRule(criteria.rules[0], criteria);
-      expect(component.selectedElements.size).toBe(0);
+      expect(component.selectedSearchParameterNamesMap.size).toBe(0);
     });
   });
 });

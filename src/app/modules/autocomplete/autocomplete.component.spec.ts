@@ -23,4 +23,25 @@ describe('AutocompleteComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should left match word boundaries when filtering search parameters', async () => {
+    let currentOptions;
+    component.filteredOptions$.subscribe(
+      (options) => (currentOptions = options)
+    );
+    component.options = ['Some name', 'value quantity'];
+    component.focus();
+
+    component.control.setValue('so');
+    expect(currentOptions.length).toBe(1);
+
+    component.control.setValue('an');
+    expect(currentOptions.length).toBe(0);
+
+    component.control.setValue('qu');
+    expect(currentOptions.length).toBe(1);
+
+    component.control.setValue('ty');
+    expect(currentOptions.length).toBe(0);
+  });
 });

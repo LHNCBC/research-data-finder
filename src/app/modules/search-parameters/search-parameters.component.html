@@ -11,14 +11,15 @@
     <!-- Prefix for the resource criteria -->
     <div class="v-box" *ngIf="ruleset.hasOwnProperty('resourceType')">
       <div class="h-box" >
-        <button type="button" mat-icon-button aria-label="Remove search parameter group"
+        <button type="button" mat-icon-button [attr.aria-label]="'Remove criteria for the ' + (ruleset.resourceType || 'undefined') + ' resource'"
                 class="remove-btn"
-                (click)="removeRuleSet()">
+                #removeResTypeBtn
+                (click)="focusOnPreviousElement(removeResTypeBtn._elementRef.nativeElement);removeRuleSet()">
           <mat-icon svgIcon="clear"></mat-icon>
         </button>
         <app-autocomplete
             class="resource-type"
-            label="Resource type"
+            label="Record type"
             required
             [options]="resourceTypes$ | async"
             [(ngModel)]="ruleset.resourceType"
@@ -26,19 +27,20 @@
             *ngIf="!ruleset.resourceType"></app-autocomplete>
         <p *ngIf="ruleset.resourceType && ruleset.resourceType !== 'Patient'">Select Patients which have
           {{getIndefiniteArticle(ruleset.resourceType)}}
-          <b>{{ruleset.resourceType}}</b> resource that meets the criteria below</p>
+          <b>{{ruleset.resourceType}}</b> record that meets the criteria below</p>
         <p *ngIf="ruleset.resourceType === 'Patient'">Select <b>Patients</b> which meet the criteria below</p>
       </div>
     </div>
     <!-- Prefix for the subgroup -->
     <div class="v-box" *ngIf="removeRuleSet && !ruleset.hasOwnProperty('resourceType')">
       <div class="h-box">
-        <button type="button" mat-icon-button aria-label="Remove search parameter group"
+        <button type="button" mat-icon-button aria-label="Remove subgroup of criteria for resource types"
+                #removeSubgroupBtn
                 class="remove-btn"
-                (click)="removeRuleSet()">
+                (click)="focusOnPreviousElement(removeSubgroupBtn._elementRef.nativeElement);removeRuleSet()">
           <mat-icon svgIcon="clear"></mat-icon>
         </button>
-        <p class="group-header">Subgroup of criteria for resource types</p>
+        <p class="group-header">Subgroup of criteria for record types</p>
       </div>
     </div>
   </ng-container>
@@ -52,14 +54,20 @@
             <label class="q-switch-label">AND</label>
           </div>
         </div>
-        <div class="q-switch-group q-transition" *ngSwitchDefault>
+        <div class="q-switch-group q-transition" *ngSwitchDefault
+             role="radiogroup"
+             aria-label="Select an operator to combine criteria">
           <div>
-            <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition" value="and" #andOption />
+            <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition" value="and" #andOption
+                   name="{{getSwitchRadioGroupId(ruleset)}}"
+                   aria-label="AND"/>
             <label (click)="changeCondition(andOption.value)" class="q-switch-label">AND</label>
           </div>
           <div>
             <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition"
-                   value="or" #orOption />
+                   value="or" #orOption
+                   name="{{getSwitchRadioGroupId(ruleset)}}"
+                   aria-label="OR"/>
             <label (click)="changeCondition(orOption.value)" class="q-switch-label">OR</label>
           </div>
         </div>
@@ -77,12 +85,12 @@
       <div class="h-box">
         <button type="button"
                 (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button color="secondary">
-          <mat-icon svgIcon="add"></mat-icon>Add resource type criteria
+          <mat-icon svgIcon="add"></mat-icon>Add criteria for a record type
         </button>
         <div class="spacer"></div>
         <button type="button"
                 (click)="addRuleSet()" mat-stroked-button color="secondary">
-          <mat-icon svgIcon="add"></mat-icon>Add a subgroup of criteria for resource types
+          <mat-icon svgIcon="add"></mat-icon>Add a subgroup of record types and criteria
         </button>
       </div>
     </div>
@@ -93,7 +101,7 @@
         <button type="button" *ngIf="ruleset.resourceType"
                 #addCriterionBtn
                 (click)="addRule()" mat-stroked-button color="secondary">
-          <mat-icon svgIcon="add"></mat-icon>Add a criterion for the {{ruleset.resourceType}} resource
+          <mat-icon svgIcon="add"></mat-icon>Add a criterion for the {{ruleset.resourceType}} record
         </button>
       </div>
     </div>
@@ -102,8 +110,9 @@
       <div class="spacer" *ngIf="ruleset.rules.length"></div>
       <div class="h-box">
         <button type="button"
+                #addResourceTypeBtn
                 (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button color="secondary">
-          <mat-icon svgIcon="add"></mat-icon>Add resource type criteria
+          <mat-icon svgIcon="add"></mat-icon>Add criteria for a record type
         </button>
       </div>
     </div>
@@ -112,7 +121,8 @@
   <ng-container *queryRemoveButton="let rule; let removeRule=removeRule">
     <button type="button" mat-icon-button aria-label="Remove search parameter"
             class="remove-btn"
-            (click)="removeRule(rule)">
+            #removeParamBtn
+            (click)="focusOnPreviousElement(removeParamBtn._elementRef.nativeElement);removeRule(rule)">
       <mat-icon svgIcon="clear"></mat-icon>
     </button>
   </ng-container>
@@ -121,8 +131,8 @@
   <ng-container *queryField="let rule; let fields=fields;  let parentRuleSet=parentRuleSet; let onChange=onChange; let getFields = getFields">
     <div class="condition-label" *ngIf="parentRuleSet?.rules?.length > 1">{{parentRuleSet.condition}}</div>
     <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"
-                          (ngModelChange)="updateSelectedElements(parentRuleSet)"
-                          [selectedElements]="selectedElements.get(parentRuleSet)">
+                          (ngModelChange)="updateSelectedSearchParameterNames(parentRuleSet)"
+                          [selectedSearchParameterNames]="selectedSearchParameterNamesMap.get(parentRuleSet)">
     </app-search-parameter>
   </ng-container>
   <ng-container *queryOperator="let rule; let operators=operators; let onChange=onChange">
