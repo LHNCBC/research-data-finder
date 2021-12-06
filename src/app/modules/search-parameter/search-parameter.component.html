@@ -8,7 +8,7 @@
       [options]="parameterOptions"
       [formControl]="parameterName"></app-autocomplete>
 
-  <ng-container *ngIf="selectedParameter && selectedParameter.element !== OBSERVATIONBYTEST">
+  <ng-container *ngIf="selectedParameter && selectedParameter.element !== CODETEXT">
     <ng-container [ngSwitch]="selectedParameter.type">
 
       <mat-radio-group *ngSwitchCase="'boolean'" class="parameter-value" aria-label="Select a boolean value" [formControl]="parameterValue">
@@ -19,9 +19,11 @@
       <mat-form-field class="parameter-value"
         *ngSwitchCase="useLookupParamValue ? selectedParameter.type : ''">
         <mat-label>Search parameter value</mat-label>
-        <app-autocomplete-test-value
-          [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more">
-        </app-autocomplete-test-value>
+        <app-autocomplete-parameter-value
+          [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more"
+          [resourceType]="resourceType" [searchParameter]="selectedParameter.element"
+          [usePrefetch]="selectedParameter.required || nonRequiredBindingList !== undefined">
+        </app-autocomplete-parameter-value>
       </mat-form-field>
 
       <app-dates-from-to *ngSwitchCase="'date'" [formControl]="parameterValue" class="parameter-value"></app-dates-from-to>
@@ -38,9 +40,13 @@
     </ng-container>
   </ng-container>
 
-  <mat-form-field class="flex" *ngIf="selectedParameter?.element === OBSERVATIONBYTEST">
-    <mat-label>Observation codes from FHIR server</mat-label>
-    <app-observation-code-lookup
+  <mat-form-field class="flex" *ngIf="selectedParameter?.element === CODETEXT">
+    <mat-label>{{resourceType}} codes from FHIR server</mat-label>
+    <app-autocomplete-parameter-value *ngIf="resourceType !== 'Observation'"
+                                      [formControl]="parameterValue" placeholder="Select one or more"
+                                      [resourceType]="resourceType" searchParameter="code">
+    </app-autocomplete-parameter-value>
+    <app-observation-code-lookup *ngIf="resourceType === 'Observation'"
       [formControl]="selectedObservationCodes"
       placeholder="Type and select one or more">
     </app-observation-code-lookup>
@@ -48,7 +54,7 @@
 
   <app-observation-test-value class="parameter-value" [formControl]="parameterValue" [datatype]="selectedObservationCodes.value?.datatype"
                   [loincCodes]="loincCodes"
-                  *ngIf="!isPullData && selectedParameter?.element === OBSERVATIONBYTEST && selectedObservationCodes.value?.datatype">
+                  *ngIf="!isPullData && selectedParameter?.element === CODETEXT && resourceType === 'Observation' && selectedObservationCodes.value?.datatype">
   </app-observation-test-value>
 
 </div>

@@ -178,7 +178,10 @@ export class PullDataPageComponent implements AfterViewInit {
    * Whether to show code selection after Load button.
    */
   showCodeSelection(resourceType: string): boolean {
-    return this.codeTextResourceTypes.includes(resourceType);
+    // TODO: waiting feedback from Clem whether we will show code selection for all
+    // resource types with a "code text" search parameter.
+    return resourceType === 'Observation';
+    // return this.codeTextResourceTypes.includes(resourceType);
   }
 
   /**

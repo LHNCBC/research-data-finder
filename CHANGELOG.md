@@ -3,12 +3,78 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.0.0] - 2021-10-15
+## [4.0.5] - 2021-12-06
+### Changed
+- Query builder widget: Remove "OR" option for single-resource criteria.
+
+## [4.0.4] - 2021-12-06
+### Changed
+- Query builder widget: Added AND/OR above connecting lines.
+
+## [4.0.3] - 2021-12-06
+### Changed
+- Query Builder: Hide AND/OR toggle when there is only one condition.
+
+## [4.0.2] - 2021-12-6
+### Added
+- Program to store lists with non-required binding.
+### Changed
+- Observation.category search parameter in default server now uses a
+  autocomplete-lhc Prefetch control with values updated by above program.
+
+## [4.0.1] - 2021-12-2
+### Changed
+- Until authentication is in place for dbGaP, we include the consent
+  groups as values for _security.
+
+## [4.0.0] - 2021-11-30
 ### Added
 - Query Builder: search criteria in Define Cohort step now can combine using
   Boolean operators.
 ### Fixed
-- Detecting of the possibility of using the "age-at-event" sorting parameter. 
+- Detecting of the possibility of using the "age-at-event" sorting parameter.
+### Changed
+- Rename "resource type" to "record type".
+- Text changes in define cohort page.
+
+## [3.25.3] - 2021-11-19
+### Changed
+- Removed Observation.identifier from search parameters.
+
+## [3.25.2] - 2021-11-19
+### Changed
+- Left match word boundaries when filtering resource type or search
+  parameter.
+
+## [3.25.1] - 2021-11-9
+### Fixed
+- Announce to the user that a new field has appeared after selecting a
+  search parameter.
+
+## [3.25.0] - 2021-11-3
+### Added
+- a "code text" search parameter for each of the resource types with a
+  main "code" field.
+
+## [3.24.0] - 2021-11-1
+### Changed
+- Turned search parameter value autocomplete prefetch into search, for
+  lists whose binding is not required, e.g. Observation.category.
+- Show example items when the empty control is focused.
+
+## [3.23.0] - 2021-10-27
+### Added
+- Program to update the .xlsx configuration file for the 'show/hide' value
+  (and row colors) of columns, based on the 'show/hide' values of matching
+  search parameters.
+
+## [3.22.2] - 2021-10-19
+### Added
+- Script for start-public task.
+
+## [3.22.1] - 2021-10-19
+### Fixed
+- The wrong tab highlighted when the dbGaP server was selected.
 
 ## [3.22.0] - 2021-10-08
 ### Added

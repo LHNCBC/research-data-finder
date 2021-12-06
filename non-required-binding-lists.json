@@ -1,0 +1,152 @@
+{
+  "https://lforms-fhir.nlm.nih.gov/baseR4": {
+    "Observation": {
+      "category": [
+        {
+          "code": "PHY",
+          "display": "Physician"
+        },
+        {
+          "code": "vital-signs",
+          "display": "Vital Signs"
+        },
+        {
+          "code": "CO",
+          "display": "Coagulation"
+        },
+        {
+          "code": "TX",
+          "display": "Toxicology"
+        },
+        {
+          "code": "HM",
+          "display": "Hematology"
+        },
+        {
+          "code": "CH",
+          "display": "Chemistry"
+        },
+        {
+          "code": "MB",
+          "display": "Microbiology"
+        },
+        {
+          "code": "PHR",
+          "display": "Pharmacy"
+        },
+        {
+          "code": "SUP",
+          "display": "Supplies"
+        },
+        {
+          "code": "VAC",
+          "display": "Immunizations/vaccines"
+        },
+        {
+          "code": "UA",
+          "display": "Urinalysis"
+        },
+        {
+          "code": "EC",
+          "display": "Electrocardiac"
+        },
+        {
+          "code": "survey",
+          "display": "Survey"
+        },
+        {
+          "code": "social-history",
+          "display": "Social History"
+        },
+        {
+          "code": "CUS",
+          "display": "Cardiac Ultrasound"
+        },
+        {
+          "code": "BG",
+          "display": "Blood Gases"
+        },
+        {
+          "code": "CP",
+          "display": "Cytopathology"
+        },
+        {
+          "code": "SKT",
+          "display": "Skin Tests"
+        },
+        {
+          "code": "SP",
+          "display": "Surgical Pathology"
+        },
+        {
+          "code": "OBG",
+          "display": "Obstetrics Gynecology"
+        },
+        {
+          "code": "PF",
+          "display": "Pulmonary Function"
+        },
+        {
+          "code": "MYC",
+          "display": "Mycology"
+        },
+        {
+          "code": "GI",
+          "display": "Gastroenterology"
+        },
+        {
+          "code": "RX",
+          "display": "Radiograph"
+        },
+        {
+          "code": "SR",
+          "display": "Serology"
+        },
+        {
+          "code": "VR",
+          "display": "Virology"
+        },
+        {
+          "code": "OUS",
+          "display": "OB Ultrasound"
+        },
+        {
+          "code": "CTH",
+          "display": "Cardiac Catheterization"
+        },
+        {
+          "code": "OPT",
+          "display": "Opthamology"
+        },
+        {
+          "code": "NMS",
+          "display": "Nuclear Medicine"
+        },
+        {
+          "code": "MYP",
+          "display": "Mycology.Parasitology"
+        },
+        {
+          "code": "BLB",
+          "display": "Blood Bank"
+        },
+        {
+          "code": "IMM",
+          "display": "Immunology"
+        },
+        {
+          "code": "ALRG",
+          "display": "Allergy"
+        },
+        {
+          "code": "exam",
+          "display": "Exam"
+        },
+        {
+          "code": "laboratory",
+          "display": "Laboratory"
+        }
+      ]
+    }
+  }
+}

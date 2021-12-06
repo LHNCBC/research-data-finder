@@ -1,11 +1,11 @@
 <form [formGroup]="defineCohortForm">
   <p class="info">
     <span class="info-icon" aria-hidden="true"></span>
-    In this step, you can define criteria to build a cohort of Patient
-    resources for which you want to pull related resource data,
-    or load previously saved cohort of Patients and the criteria which selected them.
-    Criteria can be defined not only for the Patient resource but also for related resources.
-    Patients will be added to the cohort if the related resources meet the criteria.</p>
+    In this step, you can define criteria to build a cohort of patients for which you want
+    to pull data, or load a previously saved cohort of patients and the criteria which selected them.
+    Criteria can be defined for several types of data records (e.g. "Condition", "Patient", or "Observation")
+    and patients will be added to the cohort if the related resources meet the criteria.  Each criteria consists
+    of a data record type, a search parameter, and one or more values.</p>
   <mat-form-field class="number-field">
     <mat-label>Maximum number of patients</mat-label>
     <input matInput formControlName="maxPatientsNumber" type="number" min="1">

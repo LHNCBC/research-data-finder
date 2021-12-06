@@ -60,6 +60,14 @@ describe('ObservationCodeLookupComponent', () => {
             return Promise.resolve({ status: HTTP_OK, data: metadata });
           } else if (/ResearchStudy/.test(url)) {
             return Promise.reject({ status: HTTP_ERROR, error: 'error' });
+          } else if (/ResearchSubject/.test(url)) {
+            return Promise.reject({
+              status: HTTP_ERROR,
+              reason: {
+                error:
+                  'Access denied by rule: Deny access to all but these consent groups: phs002409-1, phs002409-2 -- codes from last denial: [{"code":"phs002410-1","system":"https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/CodeSystem/DbGaPConcept-SecurityStudyConsent"}]'
+              }
+            });
           }
         });
       }
@@ -78,6 +86,14 @@ describe('ObservationCodeLookupComponent', () => {
             return Promise.resolve({ status: HTTP_OK, data: metadata });
           } else if (/ResearchStudy/.test(url)) {
             return Promise.reject({ status: HTTP_ERROR, error: 'error' });
+          } else if (/ResearchSubject/.test(url)) {
+            return Promise.reject({
+              status: HTTP_ERROR,
+              reason: {
+                error:
+                  'Access denied by rule: Deny access to all but these consent groups: phs002409-1, phs002409-2 -- codes from last denial: [{"code":"phs002410-1","system":"https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/CodeSystem/DbGaPConcept-SecurityStudyConsent"}]'
+              }
+            });
           }
         });
       }
@@ -133,6 +149,12 @@ describe('ObservationCodeLookupComponent', () => {
         await keyDownInAutocompleteInput(input, ARROW_DOWN);
         await keyDownInAutocompleteInput(input, ENTER);
 
+        // should include consent groups
+        expect(
+          FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
+            x.args[0].match(/_security=phs002409-1,phs002409-2/)
+          )
+        ).toBeTruthy();
         // search by text
         expect(
           FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
