@@ -6,6 +6,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [4.0.6] - 2021-12-06
 ### Changed
 - Query builder widget: add color to the AND/OR lines.
+- Query builder widget: radio buttons to switch between AND/OR operators.
 
 ## [4.0.5] - 2021-12-06
 ### Changed

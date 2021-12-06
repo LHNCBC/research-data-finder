@@ -54,23 +54,12 @@
             <label class="q-switch-label">AND</label>
           </div>
         </div>
-        <div class="q-switch-group q-transition" *ngSwitchDefault
-             role="radiogroup"
-             aria-label="Select an operator to combine criteria">
-          <div>
-            <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition" value="and" #andOption
-                   name="{{getSwitchRadioGroupId(ruleset)}}"
-                   aria-label="AND">
-            <label (click)="changeCondition(andOption.value)" class="q-switch-label" aria-hidden="true">AND</label>
-          </div>
-          <div>
-            <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition"
-                   value="or" #orOption
-                   name="{{getSwitchRadioGroupId(ruleset)}}"
-                   aria-label="OR">
-            <label (click)="changeCondition(orOption.value)" class="q-switch-label" aria-hidden="true">OR</label>
-          </div>
-        </div>
+        <mat-radio-group *ngSwitchDefault [(ngModel)]="ruleset.condition" (ngModelChange)="changeCondition($event)"
+                         aria-label="Select an operator to combine criteria"
+                         class="q-switch-group">
+          <mat-radio-button value="and">AND</mat-radio-button>
+          <mat-radio-button value="or">OR</mat-radio-button>
+        </mat-radio-group>
       </ng-container>
     </ng-container>
   </ng-container>
