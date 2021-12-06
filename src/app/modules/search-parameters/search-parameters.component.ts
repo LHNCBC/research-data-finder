@@ -26,6 +26,10 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 import { MatButton } from '@angular/material/button';
 import { ResourceTypeCriteria } from '../../types/search-parameters';
+import { getFocusableChildren } from '../../shared/utils';
+
+const OPERATOR_ADDING_MESSAGE =
+  ' A radio group for selecting an AND/OR operator to combine criteria has appeared above the criteria.';
 
 /**
  * Component for managing resources search parameters
@@ -51,12 +55,16 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   searchParameterComponents: QueryList<SearchParameterComponent>;
   @ViewChildren('addCriterionBtn')
   buttons: QueryList<MatButton>;
+  @ViewChildren('addResourceTypeBtn')
+  addResourceTypeBtns: QueryList<MatButton>;
+  switchRadioGroupMap = new Map<RuleSet, string>();
+  switchRadioGroupIndex = 1;
   @ViewChild(QueryBuilderComponent)
   queryBuilderComponent: QueryBuilderComponent;
   public queryCtrl: FormControl = new FormControl({});
   public queryBuilderConfig: QueryBuilderConfig = { fields: {} };
   resourceTypes$: Observable<AutocompleteOption[]>;
-  selectedElements = new Map<ResourceTypeCriteria, string[]>();
+  selectedSearchParameterNamesMap = new Map<ResourceTypeCriteria, string[]>();
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -73,6 +81,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
       const config = {
         allowEmptyRulesets: true,
         fields: {},
+
         /**
          * Adds a rule (criterion) for a resource type
          */
@@ -82,9 +91,13 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
               field: {}
             } as Rule
           ]);
-          this.liveAnnoncer.announce(
-            'A new line of search criterion is added.'
-          );
+
+          let message = 'A new line of search criterion is added.';
+          if (parent.rules.length === 2) {
+            message += OPERATOR_ADDING_MESSAGE;
+          }
+          this.liveAnnoncer.announce(message);
+
           // Focus the input control of the newly added search parameter line.
           this.searchParameterComponents.changes
             .pipe(take(1))
@@ -92,6 +105,28 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
               setTimeout(() => components.last.focusSearchParamNameInput());
             });
         },
+
+        /**
+         * Adds a subgroup of criteria for resource types.
+         * @param parent - parent group of criteria.
+         */
+        addRuleSet: (parent: RuleSet): void => {
+          parent.rules = parent.rules.concat([{ condition: 'and', rules: [] }]);
+          let message =
+            'A new subgroup of criteria for resource types is added.';
+          if (parent.rules.length === 2) {
+            message += OPERATOR_ADDING_MESSAGE;
+          }
+          this.liveAnnoncer.announce(message);
+
+          // Focus the newly added add resource type button.
+          this.addResourceTypeBtns.changes
+            .pipe(take(1))
+            .subscribe((components) => {
+              setTimeout(() => components.last.focus());
+            });
+        },
+
         /**
          * Removes a rule (criterion) from a resource type criteria
          * @param rule - criterion
@@ -100,21 +135,34 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         removeRule: (rule: Rule, parent: RuleSet) => {
           parent.rules = parent.rules.filter((r) => r !== rule);
           if ('resourceType' in parent) {
-            this.updateSelectedElements(
+            this.updateSelectedSearchParameterNames(
               (parent as unknown) as ResourceTypeCriteria
             );
           } else if ('resourceType' in rule) {
-            this.selectedElements.delete(
+            this.selectedSearchParameterNamesMap.delete(
               (rule as unknown) as ResourceTypeCriteria
             );
           }
         },
+
+        /**
+         * Removes a ruleset from a parent ruleset.
+         * @param ruleset - set of rules (ResourceTypeCriteria or Criteria).
+         * @param parent - set of rules (Criteria).
+         */
+        removeRuleSet: (ruleset: RuleSet, parent: RuleSet) => {
+          parent.rules = parent.rules.filter((r) => r !== ruleset);
+          this.switchRadioGroupMap.delete(ruleset);
+        },
+
         getInputType: (fieldName: string, operator: string): string => {
           return 'search-parameter';
         },
+
         getOperators: (fieldName: string, field: Field): string[] => {
           return [];
         },
+
         // Override to an empty method only to remove the exception
         getOptions: (fieldName: string): Option[] => null
       };
@@ -133,7 +181,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   }
 
   /**
-   * Focus the input control of the newly added add criterion button.
+   * Focuses the newly added add criterion button.
    */
   focusOnAddCriterionBtn(): void {
     const prevButtons = this.buttons.toArray();
@@ -142,6 +190,37 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         components.find((btn) => prevButtons.indexOf(btn) === -1).focus()
       );
     });
+  }
+
+  /**
+   * Returns the unique identifier of the radio button group for a set of rules.
+   * @param ruleset - set of rules.
+   */
+  getSwitchRadioGroupId(ruleset: RuleSet): string {
+    if (!this.switchRadioGroupMap.has(ruleset)) {
+      this.switchRadioGroupMap.set(
+        ruleset,
+        'q-switch-group-' + ++this.switchRadioGroupIndex
+      );
+    }
+    return this.switchRadioGroupMap.get(ruleset);
+  }
+
+  /**
+   * Focuses on previous search parameter name field or focusable HTMLElement.
+   * @param element - current element.
+   */
+  focusOnPreviousElement(element: HTMLElement): void {
+    const focusableElements = getFocusableChildren(document.body);
+    const prevElement =
+      focusableElements[focusableElements.indexOf(element) - 1];
+    const prevSearchParameter =
+      prevElement && prevElement.closest('.search-parameter');
+    if (prevSearchParameter) {
+      prevSearchParameter.querySelector('input').focus();
+    } else {
+      prevElement.focus();
+    }
   }
 
   /**
@@ -159,7 +238,11 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 
     ruleset.rules = ruleset.rules.concat(newResourceTypeCriteria as RuleSet);
 
-    this.liveAnnoncer.announce('A new line of resource type is added.');
+    let message = 'A new field for selecting a record type has been added.';
+    if (ruleset.rules.length === 2) {
+      message += OPERATOR_ADDING_MESSAGE;
+    }
+    this.liveAnnoncer.announce(message);
 
     // Focus the input control of the newly added resource type line.
     this.resourceTypeComponents.changes
@@ -168,7 +251,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         setTimeout(() => components.last.focus());
       });
 
-    this.selectedElements.set(
+    this.selectedSearchParameterNamesMap.set(
       newResourceTypeCriteria as ResourceTypeCriteria,
       []
     );
@@ -186,13 +269,15 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   }
 
   /**
-   * Updates the list of already selected elements (that match the search
-   * parameters) for the specified resource type criteria. This list is used to
-   * exclude dropdown options to avoid duplicate criteria.
+   * Updates the list of already selected FHIR search parameter names for the
+   * specified resource type criteria. This list is used to exclude dropdown
+   * options to avoid duplicate criteria.
    * @param parentRuleSet - resource type criteria
    */
-  updateSelectedElements(parentRuleSet: ResourceTypeCriteria): void {
-    this.selectedElements.set(
+  updateSelectedSearchParameterNames(
+    parentRuleSet: ResourceTypeCriteria
+  ): void {
+    this.selectedSearchParameterNamesMap.set(
       parentRuleSet,
       parentRuleSet.rules.map((c) => c.field.element)
     );

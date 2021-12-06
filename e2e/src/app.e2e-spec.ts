@@ -136,17 +136,17 @@ describe('Research Data Finder', () => {
   it('should add search criterion', async () => {
     const currentStep = (await stepper.getSteps({ selected: true }))[0];
     const addResourceBtn = await currentStep.getHarness(
-      MatButtonHarness.with({ text: 'Add resource type criteria' })
+      MatButtonHarness.with({ text: 'Add criteria for a record type' })
     );
     await addResourceBtn.click();
-    const resourceType = $('app-autocomplete[label="Resource type"]');
+    const resourceType = $('app-autocomplete[label="Record type"]');
     expect(await resourceType.isDisplayed()).toBe(true);
     await resourceType.$('input').sendKeys('Patient');
-    // Blur out of resource type input so its dropdown doesn't block #addSearchCriterion button.
+    // Blur out of record type input so its dropdown doesn't block #addSearchCriterion button.
     await $('app-define-cohort-page').click();
     const addCriterionBtn = await currentStep.getHarness(
       MatButtonHarness.with({
-        text: 'Add a criterion for the Patient resource'
+        text: 'Add a criterion for the Patient record'
       })
     );
     await addCriterionBtn.click();
@@ -199,9 +199,10 @@ describe('Research Data Finder', () => {
         // * sorting parameter "age-at-event" is not supported
         // * $lastn on Observation is not supported
         // * favicon.ico is missing
+        // * ResearchSubject query fails without a consent group
         return entries.filter(
           (entry) =>
-            !/Observation\?_sort=age-at-event|code:text=zzzzz|\/favicon\.ico/.test(
+            !/Observation\?_sort=age-at-event|code:text=zzzzz|\/favicon\.ico|ResearchSubject/.test(
               entry.message
             )
         );

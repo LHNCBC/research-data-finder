@@ -24,6 +24,7 @@ import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { escapeStringForRegExp } from '../../shared/utils';
 
 /**
  * Component for managing search parameters of a resource type
@@ -94,17 +95,17 @@ export class SearchParameterGroupComponent
     } else {
       this.filteredResourceTypes = this.resourceType.valueChanges.pipe(
         startWith(''),
-        map((value: string) =>
-          this.resourceTypes.filter((r) =>
-            r.toLowerCase().includes(value.toLowerCase())
-          )
-        )
+        map((value: string) => {
+          const reg = `\\b${escapeStringForRegExp(value)}`;
+          const regEx = new RegExp(reg, 'i');
+          return this.resourceTypes.filter((r) => regEx.test(r));
+        })
       );
       this.resourceType.valueChanges.subscribe((value) => {
         const match = this.resourceTypes.find((rt) => rt === value);
         if (match) {
           this.resourceType.disable({ emitEvent: false });
-          this.liveAnnoncer.announce(`Selected resource type ${value}.`);
+          this.liveAnnoncer.announce(`Selected record type ${value}.`);
         }
       });
     }
@@ -171,8 +172,8 @@ export class SearchParameterGroupComponent
   }
 
   /**
-   * Focus "Resource Type" control.
-   * This is being called from parent component when the "Add a resource type" button is clicked.
+   * Focus "Record type" control.
+   * This is being called from parent component when the "Add a record type" button is clicked.
    */
   focusResourceTypeInput(): void {
     this.resourceTypeInput.nativeElement.focus();

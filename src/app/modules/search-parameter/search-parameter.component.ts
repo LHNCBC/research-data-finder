@@ -16,12 +16,14 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 import { isEqual } from 'lodash-es';
 import {
   QueryParamsService,
-  OBSERVATIONBYTEST
+  CODETEXT
 } from '../../shared/query-params/query-params.service';
 import {
   AutocompleteComponent,
   AutocompleteOption
 } from '../autocomplete/autocomplete.component';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
+import NON_REQUIRED_BINDING_LISTS from '../../../../non-required-binding-lists.json';
 
 /**
  * Component for editing one resource search parameter
@@ -39,11 +41,9 @@ export class SearchParameterComponent
   // A list of already selected FHIR search parameter names, including the
   // parameter selected in this component. This list is used to exclude dropdown
   // options to avoid duplicate criteria.
-  @Input() selectedElements: string[] = [];
+  @Input() selectedSearchParameterNames: string[] = [];
   @Input() isPullData = false;
-  readonly OBSERVATIONBYTEST = OBSERVATIONBYTEST;
-  readonly OBSERVATIONBYTESTDESC =
-    'The display text associated with the code of the observation type';
+  readonly CODETEXT = CODETEXT;
   definitions: any;
 
   selectedResourceType: any;
@@ -85,9 +85,19 @@ export class SearchParameterComponent
     return this.queryParams.getUseLookupParamValue(this.selectedParameter);
   }
 
+  /**
+   * Gets non required binding list values from stored json file, if any.
+   */
+  get nonRequiredBindingList(): any[] {
+    return NON_REQUIRED_BINDING_LISTS[this.fhirBackend.serviceBaseUrl]?.[
+      this.resourceType
+    ]?.[this.selectedParameter.element];
+  }
+
   constructor(
     private fhirBackend: FhirBackendService,
-    private queryParams: QueryParamsService
+    private queryParams: QueryParamsService,
+    private liveAnnoncer: LiveAnnouncer
   ) {
     super();
   }
@@ -107,7 +117,12 @@ export class SearchParameterComponent
         this.parameterValue.setValue(
           this.selectedParameter.type === 'boolean' ? 'true' : ''
         );
-        if (this.selectedParameter.valueSet) {
+        this.liveAnnoncer.announce(
+          `Selected ${value}. One or more new fields have appeared.`
+        );
+        if (this.nonRequiredBindingList) {
+          this.parameterValues = this.nonRequiredBindingList;
+        } else if (this.selectedParameter.valueSet) {
           this.parameterValues = this.definitions.valueSets[
             this.selectedParameter.valueSet
           ];
@@ -152,14 +167,6 @@ export class SearchParameterComponent
     }
   }
 
-  private _filter(value: string, options: any[]): string[] {
-    const filterValue = value.toLowerCase();
-
-    return options.filter((option) =>
-      option.displayName.toLowerCase().includes(filterValue)
-    );
-  }
-
   /**
    * Part of the ControlValueAccessor interface
    * required to integrate with Angular's core forms API.
@@ -202,7 +209,8 @@ export class SearchParameterComponent
       .filter(
         (p) =>
           p.element === this.value.element ||
-          this.selectedElements.indexOf(p.element) === -1
+          !this.selectedSearchParameterNames ||
+          this.selectedSearchParameterNames.indexOf(p.element) === -1
       )
       .map((searchParameter) => ({
         name: searchParameter.displayName,
