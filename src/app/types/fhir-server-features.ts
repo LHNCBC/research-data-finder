@@ -11,4 +11,6 @@ export interface FhirServerFeatures {
   hasResearchStudy: boolean;
   // Whether batching request is supported
   batch: boolean;
+  // Item group that must be included as _security param in dbGap queries
+  consentGroup: string;
 }

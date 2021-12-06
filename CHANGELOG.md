@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.0.1] - 2021-12-2
+### Changed
+- Until authentication is in place for dbGaP, we include the consent
+  groups as values for _security.
+
 ## [4.0.0] - 2021-11-30
 ### Added
 - Query Builder: search criteria in Define Cohort step now can combine using
