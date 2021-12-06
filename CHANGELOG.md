@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.0.6] - 2021-12-06
+### Changed
+- Query builder widget: add color to the AND/OR lines.
+
 ## [4.0.5] - 2021-12-06
 ### Changed
 - Query builder widget: Remove "OR" option for single-resource criteria.
