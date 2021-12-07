@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
@@ -33,7 +33,7 @@ export class ObservationTestValueComponent
   form = new FormGroup({
     testValuePrefix: new FormControl(''),
     testValueModifier: new FormControl(''),
-    testValue: new FormControl(''),
+    testValue: new FormControl('', Validators.required),
     testValueUnit: new FormControl('')
   });
   // Mapping for supported value[x] properties of Observation

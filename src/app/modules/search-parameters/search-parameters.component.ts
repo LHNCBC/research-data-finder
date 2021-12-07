@@ -25,7 +25,9 @@ import {
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 import { MatButton } from '@angular/material/button';
-import { ResourceTypeCriteria } from '../../types/search-parameters';
+import { Criterion, ResourceTypeCriteria } from '../../types/search-parameters';
+import { CODETEXT } from '../../shared/query-params/query-params.service';
+import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { getFocusableChildren } from '../../shared/utils';
 
 const OPERATOR_ADDING_MESSAGE =
@@ -65,6 +67,8 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   public queryBuilderConfig: QueryBuilderConfig = { fields: {} };
   resourceTypes$: Observable<AutocompleteOption[]>;
   selectedSearchParameterNamesMap = new Map<ResourceTypeCriteria, string[]>();
+  observationDataType: string;
+  observationLoincCodes: string[] = [];
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -136,6 +140,9 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         removeRule: (rule: Rule, parent: RuleSet) => {
           parent.rules = parent.rules.filter((r) => r !== rule);
           if ('resourceType' in parent) {
+            if (((rule as unknown) as Criterion).field.element === CODETEXT) {
+              this.updateSelectedObservationCodes(null);
+            }
             this.updateSelectedSearchParameterNames(
               (parent as unknown) as ResourceTypeCriteria
             );
@@ -253,6 +260,35 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
    */
   getIndefiniteArticle(word: string): string {
     return /^[euioa]/i.test(word) ? 'an' : 'a';
+  }
+
+  /**
+   * Handles changing the name or value of a search parameter.
+   * @param newValue - new value of search parameter.
+   * @param parentRuleSet - parent ruleset.
+   */
+  onChangeSearchParameter(
+    newValue: SearchParameter,
+    parentRuleSet: ResourceTypeCriteria
+  ): void {
+    if (newValue.element === CODETEXT) {
+      this.updateSelectedObservationCodes(newValue.selectedObservationCodes);
+    }
+    this.updateSelectedSearchParameterNames(parentRuleSet);
+  }
+
+  /**
+   * Updates selected observation codes and data type of the observation value.
+   * @param selectedObservationCodes - selected observation codes.
+   */
+  updateSelectedObservationCodes(
+    selectedObservationCodes: SelectedObservationCodes
+  ): void {
+    this.observationDataType = selectedObservationCodes?.datatype;
+    this.observationLoincCodes =
+      selectedObservationCodes?.coding
+        .filter((c) => c.system === 'http://loinc.org')
+        .map((c) => c.code) || [];
   }
 
   /**

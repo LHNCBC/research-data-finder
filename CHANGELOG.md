@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.1.0] - 2021-12-06
+### Changed
+- Moved comparator, value, and unit to a separate search parameter.
+
 ## [4.0.6] - 2021-12-06
 ### Changed
 - Query builder widget: add color to the AND/OR lines.

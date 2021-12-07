@@ -16,7 +16,8 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 import { isEqual } from 'lodash-es';
 import {
   QueryParamsService,
-  CODETEXT
+  CODETEXT,
+  OBSERVATION_VALUE
 } from '../../shared/query-params/query-params.service';
 import {
   AutocompleteComponent,
@@ -42,8 +43,11 @@ export class SearchParameterComponent
   // parameter selected in this component. This list is used to exclude dropdown
   // options to avoid duplicate criteria.
   @Input() selectedSearchParameterNames: string[] = [];
+  @Input() observationDataType: string;
+  @Input() observationLoincCodes: string[];
   @Input() isPullData = false;
   readonly CODETEXT = CODETEXT;
+  readonly OBSERVATION_VALUE = OBSERVATION_VALUE;
   definitions: any;
 
   selectedResourceType: any;
@@ -74,7 +78,12 @@ export class SearchParameterComponent
     return {
       element: this.selectedParameter?.element || '',
       value: this.parameterValue.value,
-      selectedObservationCodes: this.selectedObservationCodes.value
+      ...(this.selectedParameter?.element === CODETEXT
+        ? { selectedObservationCodes: this.selectedObservationCodes.value }
+        : {}),
+      ...(this.selectedParameter?.element === OBSERVATION_VALUE
+        ? { observationDataType: this.observationDataType }
+        : {})
     };
   }
 

@@ -838,6 +838,7 @@ MedicationStatement,,,,,,,
 ,subject,"search parameter",subject,show,reference,,"The identity of a patient, animal or group to list statements for"
 Observation,,,,,,,
 ,"code text","search parameter","variable name",show,,,"The display text associated with the code of the observation type"
+,"observation value","search parameter","variable value",show,,,"The value of the observation"
 ,based-on,"search parameter",based-on,show,reference,,"Reference to the service request."
 ,basedOn,column,"Based On",show,Reference,,"Fulfills plan, proposal or order"
 ,bodySite,column,"Body Site",show,CodeableConcept,,"Observed body part"

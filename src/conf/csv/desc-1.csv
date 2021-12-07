@@ -39,6 +39,7 @@ ResearchStudy,,,,,,,
 ,status,"search parameter",status,show,code,,"active | administratively-completed | approved | closed-to-accrual | closed-to-accrual-and-intervention | completed | disapproved | in-review | temporarily-closed-to-accrual | temporarily-closed-to-accrual-and-intervention | withdrawn"
 Observation,,,,,,,
 ,"code text","search parameter","variable name",show,,,"The display text associated with the code of the observation type"
+,"observation value","search parameter","variable value",show,,,"The value of the observation"
 ,basedOn,column,"Based On",hide,Reference,,"Fulfills plan, proposal or order"
 ,bodySite,column,"Body Site",hide,CodeableConcept,,"Observed body part"
 ,category,column,Category,hide,CodeableConcept,,"Classification of  type of observation"
