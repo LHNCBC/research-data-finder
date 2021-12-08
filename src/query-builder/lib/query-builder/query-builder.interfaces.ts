@@ -116,6 +116,7 @@ export interface GeneralContext {
   addRuleSet: () => void;
   removeRuleSet: () => void;
   handleDataChange: () => void;
+  parentRuleSet: RuleSet;
   $implicit: RuleSet;
 }
 

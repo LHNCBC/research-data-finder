@@ -31,16 +31,32 @@ query-builder {
 }
 
 :host query-builder ::ng-deep {
+  .q-connector {
+    &::before, &::after {
+      border-color: rgb(97, 158, 215);
+    }
+    &::before {
+      border-width: 0 0 1px 1px;
+    }
+    &::after {
+      border-width: 0 0 0 1px;
+    }
+  }
+
   .q-tree-container query-builder.q-one-rule > .q-tree-container {
     margin-top: -9px;
     & > .q-tree {
       padding-left: 30px;
+      & >  .q-connector::before {
+        left: -12px;
+        width: 10px;
+      }
     }
   }
 
   .q-tree-container .q-tree {
     margin: 0;
-    padding-left: 34px;
+    padding-left: 45px;
 
     .q-row {
       border-radius: 4px;
@@ -62,6 +78,15 @@ query-builder {
         height: 33px;
       }
 
+      &.q-connector::after {
+        top: 34px;
+        height: calc(100% - 33px);
+      }
+
+      .condition-label {
+        top: 19px;
+      }
+
     }
 
     .mat-form-field-subscript-wrapper {
@@ -70,13 +95,15 @@ query-builder {
 
     .q-connector::before {
       top: -7px;
+      left: -24px;
       height: 39px;
-      width: 10px;
+      width: 22px;
     }
 
     .q-connector::after {
-      top: 28px;
-      height: calc(100% - 27px);
+      top: 40px;
+      left: -24px;
+      height: calc(100% - 39px);
     }
   }
 }
@@ -87,20 +114,65 @@ query-builder {
   }
 }
 
+mat-radio-group.q-switch-group {
+  mat-radio-button {
+    ::ng-deep .mat-radio-container,
+    ::ng-deep .mat-radio-label-content {
+      font-size: 14px;
+      line-height: 28px;
+      font-weight: normal;
+    }
+    text-align: center;
+    text-shadow: none;
+    box-sizing: border-box;
+    border-width: 1px 0;
+    border-style: solid;
+    border-color: rgb(97, 158, 215);
+    background: white;
+    color: rgb(49, 118, 179);
+    padding: 0 8px;
+  }
+
+  mat-radio-button:first-child {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+  }
+  mat-radio-button:last-child {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-right-width: 1px;
+  }
+}
+
+.q-switch-group {
+  :first-child .q-switch-label {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+  }
+  :last-child .q-switch-label {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+}
+
 .q-switch-label {
   float: left;
   margin-bottom: 0;
   font-size: 14px;
-  line-height: 30px;
+  line-height: 28px;
   font-weight: normal;
   text-align: center;
   text-shadow: none;
   border: 1px solid rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
 
-  &:hover {
-    cursor: pointer;
-    background-color: #F0F0F0;
+  .q-switch-radio:checked + &,
+  &:first-child {
+    border: 1px solid rgb(97, 158, 215);
+    background: white;
+    color: rgb(49, 118, 179);
   }
 
   background-color: #e4e4e4;
@@ -115,10 +187,9 @@ query-builder {
   border: 0;
   overflow: hidden;
 
-  &:checked + .q-switch-label {
-    border: 1px solid rgb(97, 158, 215);
-    background: white;
-    color: rgb(49, 118, 179);
+  &:not(:checked) + .q-switch-label:hover {
+    cursor: pointer;
+    background-color: #F0F0F0;
   }
 
   &:focus + .q-switch-label {
@@ -126,5 +197,18 @@ query-builder {
     text-decoration-color: #619ed7;
     text-decoration-thickness: 2px;
   }
+}
+
+.condition-label {
+  position: absolute;
+  left: -37px;
+  top: 25px;
+  width: 26px;
+  font-size: 0.6em;
+  border: 1px solid rgb(97, 158, 215);
+  border-radius: 5px;
+  background-color: rgba(255,255,255,1);
+  text-align: center;
+  text-transform: uppercase;
 }
 

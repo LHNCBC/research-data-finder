@@ -6,7 +6,8 @@
   <!-- Prefix for switch group box -->
   <ng-container *querySwitchGroupPrefix="
      let ruleset; let addRule=addRule; let addRuleSet=addRuleSet;
-     let handleDataChange=handleDataChange; let removeRuleSet=removeRuleSet">
+     let parentRuleSet=parentRuleSet; let handleDataChange=handleDataChange; let removeRuleSet=removeRuleSet">
+    <div class="condition-label" *ngIf="parentRuleSet?.rules?.length > 1">{{parentRuleSet.condition}}</div>
     <!-- Prefix for the resource criteria -->
     <div class="v-box" *ngIf="ruleset.hasOwnProperty('resourceType')">
       <div class="h-box" >
@@ -46,21 +47,21 @@
 
   <!-- Switch group box (AND/OR toggle) -->
   <ng-container *querySwitchGroup="let ruleset; let changeCondition=onChange">
-    <div class="q-switch-group q-transition" *ngIf="ruleset?.rules?.length > 1" role="radiogroup"
-         aria-label="Select an operator to combine criteria">
-      <div>
-        <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition" value="and" #andOption
-               name="{{getSwitchRadioGroupId(ruleset)}}"
-               aria-label="AND"/>
-        <label (click)="changeCondition(andOption.value)" class="q-switch-label" aria-hidden="true">AND</label>
-      </div>
-      <div>
-        <input type="radio" class="q-switch-radio" [(ngModel)]="ruleset.condition" value="or" #orOption
-               name="{{getSwitchRadioGroupId(ruleset)}}"
-               aria-label="OR"/>
-        <label (click)="changeCondition(orOption.value)" class="q-switch-label" aria-hidden="true">OR</label>
-      </div>
-    </div>
+    <ng-container *ngIf="ruleset?.rules?.length > 1">
+      <ng-container [ngSwitch]="ruleset.hasOwnProperty('resourceType')">
+        <div class="q-switch-group q-transition" *ngSwitchCase="true">
+          <div>
+            <label class="q-switch-label">AND</label>
+          </div>
+        </div>
+        <mat-radio-group *ngSwitchDefault [(ngModel)]="ruleset.condition" (ngModelChange)="changeCondition($event)"
+                         aria-label="Select an operator to combine criteria"
+                         class="q-switch-group">
+          <mat-radio-button value="and">AND</mat-radio-button>
+          <mat-radio-button value="or">OR</mat-radio-button>
+        </mat-radio-group>
+      </ng-container>
+    </ng-container>
   </ng-container>
 
   <!-- Suffix for the tree container -->
@@ -117,6 +118,7 @@
 
   <!-- Search parameter name selector -->
   <ng-container *queryField="let rule; let fields=fields;  let parentRuleSet=parentRuleSet; let onChange=onChange; let getFields = getFields">
+    <div class="condition-label" *ngIf="parentRuleSet?.rules?.length > 1">{{parentRuleSet.condition}}</div>
     <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"
                           (ngModelChange)="updateSelectedSearchParameterNames(parentRuleSet)"
                           [selectedSearchParameterNames]="selectedSearchParameterNamesMap.get(parentRuleSet)">
