@@ -3,26 +3,18 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.1.0] - 2021-12-06
+## [4.1.0] - 2021-12-08
 ### Changed
 - Moved comparator, value, and unit to a separate search parameter.
 
-## [4.0.6] - 2021-12-06
+## [4.0.3] - 2021-12-08
 ### Changed
-- Query builder widget: add color to the AND/OR lines.
-- Query builder widget: radio buttons to switch between AND/OR operators.
-
-## [4.0.5] - 2021-12-06
-### Changed
-- Query builder widget: Remove "OR" option for single-resource criteria.
-
-## [4.0.4] - 2021-12-06
-### Changed
-- Query builder widget: Added AND/OR above connecting lines.
-
-## [4.0.3] - 2021-12-06
-### Changed
-- Query Builder: Hide AND/OR toggle when there is only one condition.
+- Query Builder widget:
+  - Add color to the AND/OR lines.
+  - Radio buttons to switch between AND/OR operators.
+  - Remove "OR" option for single-resource criteria. 
+  - Added AND/OR above connecting lines.
+  - Hide AND/OR toggle when there is only one condition.
 
 ## [4.0.2] - 2021-12-6
 ### Added
