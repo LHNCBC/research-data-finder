@@ -109,3 +109,32 @@ export function generateSynonymLookup(synonyms: string[][]): object {
   });
   return lookup;
 }
+
+const focusableSelector = [
+  '*[tabIndex]:not([tabIndex="-1"])',
+  'a[href]:not([disabled])',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input[type="date"]:not([disabled])',
+  'input[type="text"]:not([disabled])',
+  'input:not([type]):not([disabled])',
+  'input[type="radio"]:not([disabled])',
+  'input[type="checkbox"]:not([disabled])',
+  'select:not([disabled])'
+].join(',');
+
+/**
+ * Returns true if HTML element is visible.
+ */
+function isVisible(element: HTMLElement): boolean {
+  return window.getComputedStyle(element).display !== 'none';
+}
+
+/**
+ * Returns focusable children of HTML element.
+ */
+export function getFocusableChildren(element: HTMLElement): HTMLElement[] {
+  return [].slice
+    .call(element.querySelectorAll(focusableSelector))
+    .filter((child) => isVisible(child));
+}
