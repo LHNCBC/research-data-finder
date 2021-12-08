@@ -6,6 +6,9 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [4.0.3] - 2021-12-08
 ### Changed
 - Query Builder widget:
+  - Add color to the AND/OR lines.
+  - Radio buttons to switch between AND/OR operators.
+  - Remove "OR" option for single-resource criteria. 
   - Added AND/OR above connecting lines.
   - Hide AND/OR toggle when there is only one condition.
 
