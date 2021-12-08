@@ -94,7 +94,8 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 
           let message = 'A new line of search criterion is added.';
           if (parent.rules.length === 2) {
-            message += OPERATOR_ADDING_MESSAGE;
+            message +=
+              ' The AND operator is used to combine criteria for the resource type.';
           }
           this.liveAnnoncer.announce(message);
 
@@ -190,20 +191,6 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         components.find((btn) => prevButtons.indexOf(btn) === -1).focus()
       );
     });
-  }
-
-  /**
-   * Returns the unique identifier of the radio button group for a set of rules.
-   * @param ruleset - set of rules.
-   */
-  getSwitchRadioGroupId(ruleset: RuleSet): string {
-    if (!this.switchRadioGroupMap.has(ruleset)) {
-      this.switchRadioGroupMap.set(
-        ruleset,
-        'q-switch-group-' + ++this.switchRadioGroupIndex
-      );
-    }
-    return this.switchRadioGroupMap.get(ruleset);
   }
 
   /**
