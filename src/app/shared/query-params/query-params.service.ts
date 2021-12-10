@@ -64,12 +64,13 @@ export class QueryParamsService {
       return `&${selectedParameter.element}=${value.value.codes.join(',')}`;
     }
     if (selectedParameter.type === 'Quantity') {
+      const modifier = value.value.testValueModifier;
       const testValueCriteria = this.getCompositeTestValueCriteria(
         selectedParameter.type,
         value.value
       );
       return testValueCriteria
-        ? `&${selectedParameter.element}${testValueCriteria}`
+        ? `&${selectedParameter.element}${modifier}=${testValueCriteria}`
         : '';
     }
     return `&${selectedParameter.element}=${value.value}`;
@@ -85,6 +86,31 @@ export class QueryParamsService {
       return '';
     }
     const coding = selectedCodes.coding.filter((c) => c);
+
+    // Add value criteria if exists
+    if (value.value) {
+      const modifier = value.value.testValueModifier;
+      const datatype = value.selectedObservationCodes.datatype;
+      const valueParamName = {
+        CodeableConcept: 'combo-code-value-concept',
+        Quantity: 'combo-code-value-quantity',
+        string: 'code-value-string'
+      }[datatype];
+      const testValueCriteria = this.getCompositeTestValueCriteria(
+        datatype,
+        value.value
+      );
+      return coding.length
+        ? `&${valueParamName}${modifier}=` +
+            coding
+              .map((code) => encodeFhirSearchParameter(code.code))
+              .join(',') +
+            encodeURIComponent('$') +
+            encodeFhirSearchParameter(testValueCriteria)
+        : '';
+    }
+
+    // Otherwise, use only the code criteria
     return coding.length
       ? '&combo-code=' +
           coding.map((code) => encodeFhirSearchParameter(code.code)).join(',')
@@ -101,11 +127,14 @@ export class QueryParamsService {
         Quantity: 'combo-value-quantity',
         string: 'value-string'
       }[value.observationDataType] || 'combo-value-quantity';
+    const modifier = value.value.testValueModifier;
     const testValueCriteria = this.getCompositeTestValueCriteria(
       value.observationDataType,
       value.value
     );
-    return testValueCriteria ? `&${valueParamName}${testValueCriteria}` : '';
+    return testValueCriteria
+      ? `&${valueParamName}${modifier}=${testValueCriteria}`
+      : '';
   }
 
   /**
@@ -114,21 +143,17 @@ export class QueryParamsService {
    */
   private getCompositeTestValueCriteria(datatype: string, value: any): string {
     if (datatype === 'CodeableConcept') {
-      return (
-        '=' +
-        (value.testValue?.codes || [])
-          .map((code) => escapeFhirSearchParameter(code))
-          .join(',')
-      );
+      return (value.testValue?.codes || [])
+        .map((code) => escapeFhirSearchParameter(code))
+        .join(',');
     }
-    const modifier = value.testValueModifier;
     const prefix = value.testValuePrefix;
     const testValue = value.testValue
       ? escapeFhirSearchParameter(value.testValue.toString())
       : '';
     const unit = value.testValueUnit;
     return testValue.trim()
-      ? `${modifier}=${prefix}${encodeURIComponent(
+      ? `${prefix}${encodeURIComponent(
           testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
         )}`
       : '';
