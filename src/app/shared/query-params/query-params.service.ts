@@ -5,6 +5,7 @@ import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 
 export const CODETEXT = 'code text';
 export const CODETYPES = ['code', 'CodeableConcept', 'Coding'];
+const EVIDENCE_VARIABLE_RESOURCE_TYPE = 'EvidenceVariable';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +23,10 @@ export class QueryParamsService {
    * @param value - search parameter value
    */
   getQueryParam(resourceType: string, value: SearchParameter): string {
+    // For EvidenceVariable query, return 'evidencevariable' queryParam with full url values.
+    if (resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE) {
+      return `&evidencevariable=${this.getMatchingEvidenceVariables(value)}`;
+    }
     const selectedParameter = this.definitions.resources[
       resourceType
     ]?.searchParameters.find((p) => p.element === value?.element);
@@ -66,6 +71,20 @@ export class QueryParamsService {
         : '';
     }
     return `&${selectedParameter.element}=${value.value}`;
+  }
+
+  /**
+   * Get evidence variables matching the search parameter, returns comma separated urls.
+   * @param value search parameter with element and value
+   */
+  private getMatchingEvidenceVariables(value: SearchParameter): string {
+    return this.fhirBackend.features.evidenceVariables
+      .filter((ev) => {
+        const regEx = new RegExp(value.value, 'i');
+        return regEx.test(ev.resource[value.element]);
+      })
+      .map((ev) => ev.fullUrl)
+      .join(',');
   }
 
   /**
