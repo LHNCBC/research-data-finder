@@ -6,6 +6,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [4.1.0] - 2021-12-08
 ### Changed
 - Moved comparator, value, and unit to a separate search parameter.
+- Provided lists for valueCodeableConcept Observations.
 
 ## [4.0.3] - 2021-12-08
 ### Changed
