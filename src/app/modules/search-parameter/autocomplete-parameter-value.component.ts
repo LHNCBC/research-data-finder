@@ -23,6 +23,9 @@ import { HttpClient } from '@angular/common/http';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { get as getPropertyByPath } from 'lodash-es';
+import Resource = fhir.Resource;
+import CodeableConcept = fhir.CodeableConcept;
 
 /**
  * data type used for this control
@@ -94,6 +97,7 @@ export class AutocompleteParameterValueComponent
   @Input() options: Lookup[];
   @Input() placeholder = '';
   @Input() resourceType: string;
+  @Input() observationCodes: string[];
   @Input() searchParameter: string;
   @Input() usePrefetch = false;
 
@@ -207,12 +211,10 @@ export class AutocompleteParameterValueComponent
       : this.setupAutocompleteSearch();
 
     // Fill autocomplete with data (if currentData was set in writeValue).
-    if (this.currentData) {
-      this.currentData.items.forEach((item, index) => {
-        this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
-        this.acInstance.addToSelectedArea(item);
-      });
-    }
+    this.currentData.items.forEach((item, index) => {
+      this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
+      this.acInstance.addToSelectedArea(item);
+    });
 
     Def.Autocompleter.Event.observeListSelections(this.inputId, () => {
       const coding = this.acInstance.getSelectedCodes();
@@ -221,7 +223,7 @@ export class AutocompleteParameterValueComponent
         codes: coding,
         items
       };
-      this.onChange(this.currentData);
+      this.onChange(this.currentData?.codes.length ? this.currentData : null);
     });
   }
 
@@ -248,7 +250,10 @@ export class AutocompleteParameterValueComponent
             then: (resolve, reject) => {
               const url = `$fhir/${this.resourceType}`;
               const params = {
-                _elements: this.getCodeTextField()
+                ...(this.observationCodes
+                  ? { 'combo-code': this.observationCodes.join(',') }
+                  : {}),
+                _elements: this.getFhirNames()
               };
               params[`${this.searchParameter}:text`] =
                 fieldVal ||
@@ -350,16 +355,14 @@ export class AutocompleteParameterValueComponent
     processedCodes: { [key: string]: boolean },
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
-    console.log(bundle.entry);
+    const getter = this.getCodeableConceptsGetter();
     return (bundle.entry || []).reduce((acc, entry) => {
-      if (!entry.resource[this.getCodeTextField()]) {
+      const codeableConcepts = getter(entry.resource);
+      if (!codeableConcepts.length) {
         return acc;
       }
       acc.push(
-        ...(
-          entry.resource[this.getCodeTextField()].coding ||
-          entry.resource[this.getCodeTextField()][0].coding
-        ).filter((coding) => {
+        ...codeableConcepts[0].coding.filter((coding) => {
           const matched =
             !processedCodes[coding.code] &&
             selectedCodes.indexOf(coding.code) === -1;
@@ -375,21 +378,52 @@ export class AutocompleteParameterValueComponent
    * Part of the ControlValueAccessor interface
    */
   writeValue(value: AutocompleteParameterValue): void {
-    this.currentData = value;
+    this.currentData = value || {
+      codes: [],
+      items: []
+    };
   }
 
   /**
-   * Gets the main code field in case of "code text".
-   * Otherwise return the search parameter for normal parameters.
+   * Returns a FHIR names for the resource fields that matches the search parameter.
    */
-  getCodeTextField(): string {
+  getFhirNames(): string {
     if (this.searchParameter === 'code') {
       return (
         AutocompleteParameterValueComponent.codeTextFieldMapping[
           this.resourceType
         ] || this.searchParameter
       );
+    } else if (this.searchParameter === 'value-concept') {
+      return 'value';
     }
     return this.searchParameter;
+  }
+
+  /**
+   * Returns a function which extracts the CodeableConcepts that matches the
+   * search parameter from the resource object.
+   */
+  getCodeableConceptsGetter(): (resource: Resource) => CodeableConcept[] {
+    let propertyName;
+    if (this.searchParameter === 'code') {
+      propertyName =
+        AutocompleteParameterValueComponent.codeTextFieldMapping[
+          this.resourceType
+        ] || this.searchParameter;
+    } else if (this.searchParameter === 'value-concept') {
+      propertyName = 'valueCodeableConcept';
+    } else {
+      propertyName = this.searchParameter;
+    }
+
+    return (resource) => {
+      const value = getPropertyByPath(resource, propertyName);
+      if (value) {
+        return value instanceof Array ? value : [value];
+      } else {
+        return [];
+      }
+    };
   }
 }

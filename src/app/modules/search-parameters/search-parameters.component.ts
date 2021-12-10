@@ -68,6 +68,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   resourceTypes$: Observable<AutocompleteOption[]>;
   selectedSearchParameterNamesMap = new Map<ResourceTypeCriteria, string[]>();
   observationDataType: string;
+  observationCodes: string[] = [];
   observationLoincCodes: string[] = [];
 
   constructor(
@@ -285,6 +286,8 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
     selectedObservationCodes: SelectedObservationCodes
   ): void {
     this.observationDataType = selectedObservationCodes?.datatype;
+    this.observationCodes =
+      selectedObservationCodes?.coding.map((c) => c.code) || [];
     this.observationLoincCodes =
       selectedObservationCodes?.coding
         .filter((c) => c.system === 'http://loinc.org')

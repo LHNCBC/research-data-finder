@@ -44,6 +44,7 @@ export class SearchParameterComponent
   // options to avoid duplicate criteria.
   @Input() selectedSearchParameterNames: string[] = [];
   @Input() observationDataType: string;
+  @Input() observationCodes: string[];
   @Input() observationLoincCodes: string[];
   @Input() isPullData = false;
   readonly CODETEXT = CODETEXT;
