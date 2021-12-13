@@ -3,12 +3,16 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.0.4] - 2021-12-13
+### Changed
+- Show "Value" column in Observation table by default.
+
 ## [4.0.3] - 2021-12-08
 ### Changed
 - Query Builder widget:
   - Add color to the AND/OR lines.
   - Radio buttons to switch between AND/OR operators.
-  - Remove "OR" option for single-resource criteria. 
+  - Remove "OR" option for single-resource criteria.
   - Added AND/OR above connecting lines.
   - Hide AND/OR toggle when there is only one condition.
 
