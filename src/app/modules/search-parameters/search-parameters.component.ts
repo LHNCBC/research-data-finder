@@ -26,6 +26,10 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
 import { MatButton } from '@angular/material/button';
 import { ResourceTypeCriteria } from '../../types/search-parameters';
+import { getFocusableChildren } from '../../shared/utils';
+
+const OPERATOR_ADDING_MESSAGE =
+  ' A radio group for selecting an AND/OR operator to combine criteria has appeared above the criteria.';
 
 /**
  * Component for managing resources search parameters
@@ -51,6 +55,10 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   searchParameterComponents: QueryList<SearchParameterComponent>;
   @ViewChildren('addCriterionBtn')
   buttons: QueryList<MatButton>;
+  @ViewChildren('addResourceTypeBtn')
+  addResourceTypeBtns: QueryList<MatButton>;
+  switchRadioGroupMap = new Map<RuleSet, string>();
+  switchRadioGroupIndex = 1;
   @ViewChild(QueryBuilderComponent)
   queryBuilderComponent: QueryBuilderComponent;
   public queryCtrl: FormControl = new FormControl({});
@@ -73,6 +81,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
       const config = {
         allowEmptyRulesets: true,
         fields: {},
+
         /**
          * Adds a rule (criterion) for a resource type
          */
@@ -82,9 +91,14 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
               field: {}
             } as Rule
           ]);
-          this.liveAnnoncer.announce(
-            'A new line of search criterion is added.'
-          );
+
+          let message = 'A new line of search criterion is added.';
+          if (parent.rules.length === 2) {
+            message +=
+              ' The AND operator is used to combine criteria for the resource type.';
+          }
+          this.liveAnnoncer.announce(message);
+
           // Focus the input control of the newly added search parameter line.
           this.searchParameterComponents.changes
             .pipe(take(1))
@@ -92,6 +106,28 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
               setTimeout(() => components.last.focusSearchParamNameInput());
             });
         },
+
+        /**
+         * Adds a subgroup of criteria for resource types.
+         * @param parent - parent group of criteria.
+         */
+        addRuleSet: (parent: RuleSet): void => {
+          parent.rules = parent.rules.concat([{ condition: 'and', rules: [] }]);
+          let message =
+            'A new subgroup of criteria for resource types is added.';
+          if (parent.rules.length === 2) {
+            message += OPERATOR_ADDING_MESSAGE;
+          }
+          this.liveAnnoncer.announce(message);
+
+          // Focus the newly added add resource type button.
+          this.addResourceTypeBtns.changes
+            .pipe(take(1))
+            .subscribe((components) => {
+              setTimeout(() => components.last.focus());
+            });
+        },
+
         /**
          * Removes a rule (criterion) from a resource type criteria
          * @param rule - criterion
@@ -109,12 +145,25 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
             );
           }
         },
+
+        /**
+         * Removes a ruleset from a parent ruleset.
+         * @param ruleset - set of rules (ResourceTypeCriteria or Criteria).
+         * @param parent - set of rules (Criteria).
+         */
+        removeRuleSet: (ruleset: RuleSet, parent: RuleSet) => {
+          parent.rules = parent.rules.filter((r) => r !== ruleset);
+          this.switchRadioGroupMap.delete(ruleset);
+        },
+
         getInputType: (fieldName: string, operator: string): string => {
           return 'search-parameter';
         },
+
         getOperators: (fieldName: string, field: Field): string[] => {
           return [];
         },
+
         // Override to an empty method only to remove the exception
         getOptions: (fieldName: string): Option[] => null
       };
@@ -133,7 +182,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   }
 
   /**
-   * Focus the input control of the newly added add criterion button.
+   * Focuses the newly added add criterion button.
    */
   focusOnAddCriterionBtn(): void {
     const prevButtons = this.buttons.toArray();
@@ -142,6 +191,23 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
         components.find((btn) => prevButtons.indexOf(btn) === -1).focus()
       );
     });
+  }
+
+  /**
+   * Focuses on previous search parameter name field or focusable HTMLElement.
+   * @param element - current element.
+   */
+  focusOnPreviousElement(element: HTMLElement): void {
+    const focusableElements = getFocusableChildren(document.body);
+    const prevElement =
+      focusableElements[focusableElements.indexOf(element) - 1];
+    const prevSearchParameter =
+      prevElement && prevElement.closest('.search-parameter');
+    if (prevSearchParameter) {
+      prevSearchParameter.querySelector('input').focus();
+    } else {
+      prevElement.focus();
+    }
   }
 
   /**
@@ -159,9 +225,11 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 
     ruleset.rules = ruleset.rules.concat(newResourceTypeCriteria as RuleSet);
 
-    this.liveAnnoncer.announce(
-      'A new field for selecting a record type has been added.'
-    );
+    let message = 'A new field for selecting a record type has been added.';
+    if (ruleset.rules.length === 2) {
+      message += OPERATOR_ADDING_MESSAGE;
+    }
+    this.liveAnnoncer.announce(message);
 
     // Focus the input control of the newly added resource type line.
     this.resourceTypeComponents.changes
