@@ -20,10 +20,9 @@
         <app-autocomplete-parameter-value
             *ngSwitchCase="'CodeableConcept'"
             formControlName="testValue" placeholder="Select one or more"
-            [resourceType]="'Observation'"
+            resourceType="Observation"
             [observationCodes]="observationCodes"
-            [searchParameter]="'value-concept'"
-            [usePrefetch]="false">
+            searchParameter="value-concept">
         </app-autocomplete-parameter-value>
         <input *ngSwitchCase="'Quantity'" type="number" step="any" matInput formControlName="testValue"
                placeholder="enter number value">

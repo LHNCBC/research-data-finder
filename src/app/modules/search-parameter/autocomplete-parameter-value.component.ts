@@ -253,7 +253,7 @@ export class AutocompleteParameterValueComponent
                 ...(this.observationCodes
                   ? { 'combo-code': this.observationCodes.join(',') }
                   : {}),
-                _elements: this.getFhirNames()
+                _elements: this.getFhirName()
               };
               params[`${this.searchParameter}:text`] =
                 fieldVal ||
@@ -385,9 +385,9 @@ export class AutocompleteParameterValueComponent
   }
 
   /**
-   * Returns a FHIR names for the resource fields that matches the search parameter.
+   * Returns the FHIR name for the resource field that matches the search parameter.
    */
-  getFhirNames(): string {
+  getFhirName(): string {
     if (this.searchParameter === 'code') {
       return (
         AutocompleteParameterValueComponent.codeTextFieldMapping[
