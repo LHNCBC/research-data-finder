@@ -257,7 +257,9 @@ export class AutocompleteParameterValueComponent
               };
               params[`${this.searchParameter}:text`] =
                 fieldVal ||
-                'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z';
+                (this.searchParameter === 'value-concept'
+                  ? ''
+                  : 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z');
               // Hash of processed codes, used to exclude repeated codes
               const processedCodes = {};
               // Array of result items for autocompleter
