@@ -106,7 +106,7 @@ export class QueryParamsService {
               .map((code) => encodeFhirSearchParameter(code.code))
               .join(',') +
             encodeURIComponent('$') +
-            encodeFhirSearchParameter(testValueCriteria)
+            testValueCriteria
         : '';
     }
 
