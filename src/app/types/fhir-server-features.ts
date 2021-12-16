@@ -1,6 +1,4 @@
 // An object describing the server features
-import BundleEntry = fhir.BundleEntry;
-
 export interface FhirServerFeatures {
   // Whether "lastn" operation is available
   // (https://www.hl7.org/fhir/operation-observation-lastn.html)
@@ -15,6 +13,4 @@ export interface FhirServerFeatures {
   batch: boolean;
   // Item group that must be included as _security param in dbGap queries
   consentGroup: string;
-  // Stored list of EvidenceVariable resources lookup
-  evidenceVariables: BundleEntry[];
 }

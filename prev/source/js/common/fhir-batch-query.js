@@ -173,11 +173,6 @@ export class FhirBatchQuery {
         logPrefix: 'Batch',
         combine: false,
         retryCount: 2
-      }),
-      // query to get a lookup list of EvidenceVariable resources
-      this.getWithCache('EvidenceVariable?_elements=version,name,description', {
-        combine: false,
-        retryCount: 2
       })
     ];
 
@@ -188,8 +183,7 @@ export class FhirBatchQuery {
         observationsSortedByAgeAtEvent,
         lastnLookup,
         hasResearchStudy,
-        batch,
-        evidenceVariables
+        batch
       ]) => {
         if (metadata.status === 'fulfilled') {
           const fhirVersion = metadata.value.data.fhirVersion;
@@ -219,11 +213,7 @@ export class FhirBatchQuery {
             hasResearchStudy.status === 'fulfilled' &&
             hasResearchStudy.value.data.entry &&
             hasResearchStudy.value.data.entry.length > 0,
-          batch: batch.status === 'fulfilled',
-          evidenceVariables:
-            (evidenceVariables.status === 'fulfilled' &&
-              evidenceVariables.value.data.entry) ||
-            []
+          batch: batch.status === 'fulfilled'
         });
         console.log(this._features);
         resolve();

@@ -86,6 +86,15 @@ export class DefineCohortPageComponent
   numberOfProcessingResources$: BehaviorSubject<number>;
   // A matrix of loading info that will be displayed with View Cohort resource table.
   loadingStatistics: (string | number)[][] = [];
+  // A list of promises to query EvidenceVariables that has to be resolved before searching for Patients
+  evidenceVariablePromises: Promise<void>[] = [];
+  // Lookup from user-input EV criterion to matching EV fullUrl(s)
+  evidenceVariableLookup = {};
+  readonly emptyPatientCriteria: ResourceTypeCriteria = {
+    condition: 'and',
+    resourceType: PATIENT_RESOURCE_TYPE,
+    rules: []
+  };
 
   @ViewChild('patientParams') patientParams: SearchParametersComponent;
 
@@ -138,6 +147,25 @@ export class DefineCohortPageComponent
       }
     }
     return result;
+  }
+
+  /**
+   * Creates a promise that will resolve after EV data is returned that match the EV criterion.
+   * @param rule EvidenceVariable criterion from UI
+   */
+  private createEvidenceVariablePromise(rule: Criterion): Promise<void> {
+    return new Promise((resolve, _) => {
+      this.http
+        .get<Bundle>(
+          `$fhir/EvidenceVariable?_elements=version,name,description&${rule.field.element}:contains=${rule.field.value}`
+        )
+        .subscribe((data) => {
+          this.evidenceVariableLookup[
+            `${rule.field.element}-${rule.field.value}`
+          ] = data.entry?.map((e) => e.fullUrl).join(',') || '';
+          resolve();
+        });
+    });
   }
 
   /**
@@ -211,6 +239,16 @@ export class DefineCohortPageComponent
         return null;
       }
 
+      // For EV criteria, we have to get the fullUrl of the matching EVs from server,
+      // before being able to query Observation with 'obs-evidence-variable' search paramter.
+      if (criteria.resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE) {
+        criteria.rules.forEach((rule) => {
+          this.evidenceVariablePromises.push(
+            this.createEvidenceVariablePromise(rule)
+          );
+        });
+      }
+
       // We need a copy of the object in order not to visualize our changes
       return {
         // if we have only one criterion with the OR operator, replace the
@@ -241,27 +279,68 @@ export class DefineCohortPageComponent
   }
 
   /**
+   * Updates EV criteria to be ready for searching, based on this.evidenceVariableLookup.
+   * @param criteria input criteria from UI
+   * @private
+   */
+  private updateEvidenceVariableCriteria(
+    criteria: Criteria | ResourceTypeCriteria
+  ): void {
+    if ('resourceType' in criteria) {
+      if (criteria.resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE) {
+        criteria.rules.forEach((rule) => {
+          rule.field.value = this.evidenceVariableLookup[
+            `${rule.field.element}-${rule.field.value}`
+          ];
+          rule.field.element = 'evidencevariable';
+        });
+        // criteria.resourceType = OBSERVATION_RESOURCE_TYPE;
+      }
+    } else {
+      criteria.rules.forEach((rule) =>
+        this.updateEvidenceVariableCriteria(rule)
+      );
+    }
+  }
+
+  /**
    * Search for a list of Patient resources using the criteria tree.
-   * This method searches from the server and checks Patient resources
-   * against all criteria, and emits Patient resources that match criteria
-   * through {patientStream}
    */
   searchForPatients(researchStudyIds: string[] = null): void {
-    // Maximum number of Patients to load
-    const maxPatientCount = this.defineCohortForm.value.maxPatientsNumber;
-    const emptyPatientCriteria: ResourceTypeCriteria = {
-      condition: 'and',
-      resourceType: PATIENT_RESOURCE_TYPE,
-      rules: []
-    };
+    // Reset EvidenceVariable lookup.
+    this.evidenceVariableLookup = {};
+    this.evidenceVariablePromises.length = 0;
 
     // Preprocess a criteria tree built using the Query Builder component.
     // If there are no criteria - use default empty Patient criteria.
     const criteria = (this.prepareCriteria(
       this.patientParams.queryBuilderComponent.data as Criteria,
       researchStudyIds
-    ) || emptyPatientCriteria) as Criteria;
+    ) || this.emptyPatientCriteria) as Criteria;
 
+    if (this.evidenceVariablePromises.length) {
+      // If there are EV criteria involved, we have to update them from
+      // name/description/version to 'evidencevariable=(fullUrl)' format.
+      Promise.all(this.evidenceVariablePromises).then(() => {
+        this.updateEvidenceVariableCriteria(criteria);
+        console.log(criteria);
+        this.runSearchForPatients(criteria);
+      });
+    } else {
+      this.runSearchForPatients(criteria);
+    }
+  }
+
+  /**
+   * This method searches from the server and checks Patient resources
+   * against all criteria, and emits Patient resources that match criteria
+   * through {patientStream}
+   * @param criteria
+   * @private
+   */
+  private runSearchForPatients(criteria: Criteria): void {
+    // Maximum number of Patients to load
+    const maxPatientCount = this.defineCohortForm.value.maxPatientsNumber;
     // Reset the number of matched Patients
     this.patientCount = 0;
     this.processedPatientIds = {};
@@ -301,7 +380,7 @@ export class DefineCohortPageComponent
 
         // The check function replaces the resource with the Patient resource
         // if there are criteria for the patient
-        return this.check(resource, emptyPatientCriteria);
+        return this.check(resource, this.emptyPatientCriteria);
       }),
       tap(() => {
         // Increment the number of matched Patients
