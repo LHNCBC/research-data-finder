@@ -369,7 +369,7 @@ describe('DefineCohortComponent', () => {
                   testValuePrefix: 'gt',
                   testValueModifier: '',
                   testValue: 100,
-                  testValueUnit: ''
+                  testValueUnit: 'cm'
                 },
                 observationDataType: 'Quantity'
               }
@@ -411,13 +411,13 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_total=accurate&_summary=count&status=final&combo-code-value-quantity=3137-7%24gt100`
+        `$fhir/Observation?_total=accurate&_summary=count&status=final&combo-code-value-quantity=3137-7%24gt100%7C%7Ccm`
       )
       .flush({ total: 10 });
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=10&_elements=subject&status=final&combo-code-value-quantity=3137-7%24gt100`
+        `$fhir/Observation?_count=10&_elements=subject&status=final&combo-code-value-quantity=3137-7%24gt100%7C%7Ccm`
       )
       .flush(tenObservationBundle);
 
