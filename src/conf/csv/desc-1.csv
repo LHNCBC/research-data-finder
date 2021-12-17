@@ -63,7 +63,7 @@ Observation,,,,,,,
 ,specimen,column,Specimen,hide,Reference,,"Specimen used for this observation"
 ,status,column,Status,hide,code,,"registered | preliminary | final | amended +"
 ,subject,column,Subject,show,Reference,,"Who and/or what the observation is about"
-,value[x],column,Value,hide,"Quantity,CodeableConcept,string,boolean,integer,Range,Ratio,SampledData,time,dateTime,Period",,"Actual result"
+,value[x],column,Value,show,"Quantity,CodeableConcept,string,boolean,integer,Range,Ratio,SampledData,time,dateTime,Period",,"Actual result"
 Patient,,,,,,,
 ,active,column,Active,hide,boolean,,"Whether this patient's record is in active use"
 ,address,"search parameter",address,show,string,,"A server defined search that may match any of the string fields in the Address, including line, city, district, state, country, postalCode, and/or text"
