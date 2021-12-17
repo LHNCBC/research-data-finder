@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.1.0] - 2021-12-17
+### Added
+- Evidence Variable search parameters in define cohort.
+
 ## [4.0.4] - 2021-12-13
 ### Changed
 - Show "Value" column in Observation table by default.
