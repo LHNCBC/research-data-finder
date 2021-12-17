@@ -3,8 +3,6 @@ EvidenceVariable,,,,,,,
 ,name,"search parameter",name,show,string,,"Computationally friendly name of the evidence variable"
 ,description,column,Description,show,string,,"The description of the evidence variable"
 ,description,"search parameter",description,show,string,,"The description of the evidence variable"
-,version,column,Version,show,string,,"The business version of the evidence variable"
-,version,"search parameter",version,show,string,,"The business version of the evidence variable"
 ResearchStudy,,,,,,,
 ,id,column,Id,show,string,,
 ,title,column,Title,hide,string,,"Name for this study"
