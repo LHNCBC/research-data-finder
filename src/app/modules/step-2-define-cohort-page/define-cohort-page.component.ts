@@ -552,11 +552,12 @@ export class DefineCohortPageComponent
         // Sequentially execute queries and put the result into the stream
         concatMap((rules) => {
           const useHas = this.canUseHas(criteria.resourceType, rules);
-          const resourceType = EVIDENCE_VARIABLE_RESOURCE_TYPE
-            ? OBSERVATION_RESOURCE_TYPE
-            : useHas
-            ? PATIENT_RESOURCE_TYPE
-            : criteria.resourceType;
+          const resourceType =
+            criteria.resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+              ? OBSERVATION_RESOURCE_TYPE
+              : useHas
+              ? PATIENT_RESOURCE_TYPE
+              : criteria.resourceType;
           // If the resource is not a Patient, we extract only the subject
           // element in order to further identify the Patient by it.
           const elements =
