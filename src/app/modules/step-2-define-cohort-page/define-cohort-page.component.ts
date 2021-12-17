@@ -636,6 +636,7 @@ export class DefineCohortPageComponent
     return (
       resourceType !== PATIENT_RESOURCE_TYPE &&
       resourceType !== RESEARCH_STUDY_RESOURCE_TYPE &&
+      resourceType !== EVIDENCE_VARIABLE_RESOURCE_TYPE &&
       criteriaForResourceType.length === 1 &&
       // Currently don't use _has for EV since it doesn't work with search parameter 'obs-evidence-variable'
       criteriaForResourceType[0].field.element !== 'evidencevariable' &&

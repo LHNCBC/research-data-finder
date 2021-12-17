@@ -409,4 +409,83 @@ describe('DefineCohortComponent', () => {
         .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
     });
   });
+
+  it('should load Patients by EvidenceVariable criteria', (done) => {
+    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    spyOn(component, 'getPageSize').and.returnValue(10);
+    component.patientParams.queryCtrl.setValue({
+      condition: 'and',
+      rules: [
+        {
+          condition: 'and',
+          resourceType: 'EvidenceVariable',
+          rules: [
+            {
+              field: {
+                element: 'name',
+                value: 'env_smoke',
+                selectedObservationCodes: null
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    component.searchForPatients();
+    component.patientStream
+      .pipe(
+        reduce((acc, patient) => {
+          acc.push(patient);
+          return acc;
+        }, [])
+      )
+      .subscribe((patients) => {
+        // We have two Observations for the same Patient, that's why one
+        // Observation ignored
+        expect(patients.length).toEqual(1);
+        done();
+      });
+
+    mockHttp
+      .expectOne(`$fhir/EvidenceVariable?_count=10&_elements=id&name=env_smoke`)
+      .flush({
+        entry: [
+          {
+            fullUrl:
+              'https://lforms-fhir.nlm.nih.gov/baseR4/EvidenceVariable/phv00492039',
+            resource: {
+              id: 'phv00492039'
+            }
+          }
+        ]
+      });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Observation?_count=10&_elements=subject&evidencevariable=https://lforms-fhir.nlm.nih.gov/baseR4/EvidenceVariable/phv00492039`
+      )
+      .flush({
+        entry: [
+          {
+            fullUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4/Observation/ev999',
+            resource: {
+              id: 'ev999',
+              subject: { reference: 'Patient/p-999', display: 'HAO XIE' }
+            }
+          }
+        ]
+      });
+
+    mockHttp.expectOne(`$fhir/Patient?_id=p-999`).flush({
+      entry: [
+        {
+          fullUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4/Patient/p-999',
+          resource: {
+            id: 'p-999'
+          }
+        }
+      ]
+    });
+  });
 });
