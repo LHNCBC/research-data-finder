@@ -715,6 +715,9 @@ export class DefineCohortPageComponent
         if (resourceType === RESEARCH_STUDY_RESOURCE_TYPE) {
           return response.total ? Infinity : 0;
         }
+        if (resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE) {
+          return response.total ? Number.NEGATIVE_INFINITY : 0;
+        }
         return response.total;
       })
     );
