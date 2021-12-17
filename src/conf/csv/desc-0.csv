@@ -73,6 +73,13 @@ Encounter,,,,,,,
 ,subject,column,Subject,show,Reference,,"The patient or group present at the encounter"
 ,type,column,Type,show,CodeableConcept,,"Specific type of encounter"
 ,type,"search parameter",type,show,CodeableConcept,,"Specific type of encounter"
+EvidenceVariable,,,,,,,
+,name,column,Name,show,string,,"Computationally friendly name of the evidence variable"
+,name,"search parameter",name,show,string,,"Computationally friendly name of the evidence variable"
+,description,column,Description,show,string,,"The description of the evidence variable"
+,description,"search parameter",description,show,string,,"The description of the evidence variable"
+,version,column,Version,show,string,,"The business version of the evidence variable"
+,version,"search parameter",version,show,string,,"The business version of the evidence variable"
 MedicationDispense,,,,,,,
 ,"code text","search parameter","medication name",show,,,"The display text associated with the code of the medication being administered"
 ,authorizingPrescription,column,"Authorizing Prescription",hide,Reference,,"Medication order that authorizes the dispense"
@@ -243,10 +250,3 @@ Patient,,,,,,,
 ,photo,column,Photo,hide,Attachment,,"Image of the patient"
 ,telecom,column,Telecom,show,ContactPoint,,"A contact detail for the individual"
 ,telecom,"search parameter",telecom,show,ContactPoint,,"The value in any kind of telecom details of the patient"
-EvidenceVariable,,,,,,,
-,name,column,Name,show,string,,"Computationally friendly name of the evidence variable"
-,name,"search parameter",name,show,string,,"Computationally friendly name of the evidence variable"
-,description,column,Description,show,string,,"The description of the evidence variable"
-,description,"search parameter",description,show,string,,"The description of the evidence variable"
-,version,column,Version,show,string,,"The business version of the evidence variable"
-,version,"search parameter",version,show,string,,"The business version of the evidence variable"
