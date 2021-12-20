@@ -208,7 +208,7 @@ Observation,,,,,,,
 ,status,column,Status,show,code,,"registered | preliminary | final | amended +"
 ,status,"search parameter",status,show,code,,"The status of the observation"
 ,subject,column,Subject,show,Reference,,"Who and/or what the observation is about"
-,value[x],column,Value,hide,"Quantity,CodeableConcept,string,boolean,integer,Range,Ratio,SampledData,time,dateTime,Period",,"Actual result"
+,value[x],column,Value,show,"Quantity,CodeableConcept,string,boolean,integer,Range,Ratio,SampledData,time,dateTime,Period",,"Actual result"
 Patient,,,,,,,
 ,active,"search parameter",active,show,boolean,,"Whether the patient record is active"
 ,active,column,Active,show,boolean,,"Whether this patient's record is in active use"

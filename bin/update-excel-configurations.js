@@ -328,6 +328,10 @@ function updateColumnRows() {
       if (fhirName === 'medication[x]') {
         continue;
       }
+      // Keep value column shown, since it's the main field of Observation.
+      if (fhirName === 'value[x]') {
+        continue;
+      }
       // Finds which section of resource type current rowNum belongs to.
       const resourceTypeSectionIndex = resourceTypeRows.findIndex(
         (element, index, array) => rowNum > element && rowNum < array[index + 1]
