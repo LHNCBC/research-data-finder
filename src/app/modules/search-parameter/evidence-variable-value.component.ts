@@ -23,6 +23,7 @@ import { HttpClient } from '@angular/common/http';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 
 const EVIDENCEVARIABLE = 'EvidenceVariable';
 
@@ -166,7 +167,8 @@ export class EvidenceVariableValueComponent
     private elementRef: ElementRef,
     private errorStateMatcher: ErrorStateMatcher,
     private httpClient: HttpClient,
-    private liveAnnoncer: LiveAnnouncer
+    private liveAnnoncer: LiveAnnouncer,
+    private fhirBackend: FhirBackendService
   ) {
     super();
     if (ngControl != null) {
@@ -193,7 +195,11 @@ export class EvidenceVariableValueComponent
    * so that form control value is updated and can be read from parent form.
    */
   setupAutocomplete(): void {
-    this.acInstance = this.setupAutocompleteSearch();
+    this.acInstance =
+      this.fhirBackend.serviceBaseUrl ===
+      'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+        ? this.setupAutocompleteDbgapVariableApi()
+        : this.setupAutocompleteSearch();
 
     // Fill autocomplete with data (if currentData was set in writeValue).
     if (this.currentData) {
@@ -212,6 +218,70 @@ export class EvidenceVariableValueComponent
       };
       this.onChange(this.currentData);
     });
+  }
+
+  /**
+   * Set up Autocompleter search options for DbGap variable API search.
+   */
+  setupAutocompleteDbgapVariableApi(): any {
+    const acInstance = new Def.Autocompleter.Search(this.inputId, null, {
+      suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
+      fhir: {
+        search: (fieldVal, count) => {
+          return {
+            then: (resolve, reject) => {
+              const url = 'http://lhc-lx-luanx2:5000/api/dbg_vars/v3/search';
+              const params = {
+                sf: `dbgv.${this.searchParameter}`,
+                terms: fieldVal,
+                maxList: count
+              };
+              // Array of result items for autocompleter
+              const contains: ValueSetExpansionContains[] = [];
+              // Already selected codes
+              const selectedCodes = acInstance.getSelectedCodes();
+
+              this.loading = true;
+              this.subscription?.unsubscribe();
+
+              this.subscription = this.httpClient
+                .get(url, {
+                  params
+                })
+                .pipe(
+                  catchError((error) => {
+                    this.loading = false;
+                    reject(error);
+                    throw error;
+                  })
+                )
+                .subscribe((response) => {
+                  contains.push(
+                    ...this.getAutocompleteItems_dbgapVariableApi(
+                      response,
+                      selectedCodes
+                    )
+                  );
+                  this.loading = false;
+                  this.liveAnnoncer.announce('Finished loading list.');
+                  resolve({
+                    resourceType: 'ValueSet',
+                    expansion: {
+                      total: response[0],
+                      contains
+                    }
+                  });
+                });
+            }
+          };
+        }
+      },
+      useResultCache: false,
+      maxSelect: '*',
+      matchListValue: true,
+      showListOnFocusIfEmpty: true
+    });
+    return acInstance;
   }
 
   /**
@@ -340,6 +410,39 @@ export class EvidenceVariableValueComponent
         result.display = e.resource.id;
         return result;
       });
+  }
+
+  /**
+   * Extracts autocomplete items from DbGap variable API response
+   * @param response - response from DbGap variable API
+   * @param selectedCodes - already selected codes
+   */
+  getAutocompleteItems_dbgapVariableApi(
+    response: any,
+    selectedCodes: Array<string>
+  ): ValueSetExpansionContains[] {
+    return (response[1] || [])
+      .filter((e) => {
+        const id = this.getEvIdFromDbgapVariableApi(e);
+        const matched = id && selectedCodes.indexOf(id) === -1;
+        return matched;
+      })
+      .map((e) => {
+        const id = this.getEvIdFromDbgapVariableApi(e);
+        const result: ValueSetExpansionContains = {};
+        result.code = id;
+        result.display = id;
+        return result;
+      });
+  }
+
+  /**
+   * Returns EV id from a DbGap variable API response
+   * e.g. phv00054122.v1.p1 => phv00054122
+   * @private
+   */
+  private getEvIdFromDbgapVariableApi(value: string): string {
+    return /^(.+)\.v\d+\.p\d+$/.test(value) ? RegExp.$1 : null;
   }
 
   /**
