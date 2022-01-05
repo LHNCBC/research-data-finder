@@ -159,7 +159,7 @@ function callServer(
  * {
  *   <serviceBaseUrl>: {
  *     <resourceType>: {
- *       <fhirName>>: boolean
+ *       <fhirName>: boolean
  *     }
  *   }
  * }
@@ -311,6 +311,7 @@ function updateColumnRows() {
   for (let i = 0; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
     let serviceBaseUrl = '';
+    let resourceType = '';
     // Do not update sheets without cell colors (the default sheet).
     if (sheet['A1']?.v !== 'Legend') {
       continue;
@@ -327,29 +328,15 @@ function updateColumnRows() {
     const columnCount =
       xlsxColumnHeaders.findIndex((x) => x === maxColumnLetter) + 1;
 
-    // Row numbers of resource type rows.
-    // Used to divide rows into resource type groups for matching.
-    const resourceTypeRows = [];
-    for (
-      let rowNum = 1, startLogging = false;
-      rowNum <= maxRowNumber;
-      rowNum++
-    ) {
+    for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
       if (sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v === SERVICEBASEURL) {
         serviceBaseUrl = sheet[`${FHIRNAMECOLUMN}${rowNum}`]?.v;
       }
-      if (sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v === 'Resource type') {
-        startLogging = true;
-        continue;
-      }
-      if (startLogging && sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v) {
-        resourceTypeRows.push(rowNum);
-      }
-    }
-    resourceTypeRows.push(maxRowNumber + 1);
-    console.log(resourceTypeRows);
 
-    for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
+      // The resourceType variable will contain the resource type at the
+      // moment when we process the row with the column description
+      resourceType = sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v || resourceType;
+
       if (sheet[`${TYPECOLUMN}${rowNum}`]?.v !== COLUMN) {
         continue;
       }
@@ -363,15 +350,7 @@ function updateColumnRows() {
       if (fhirName === 'medication[x]') {
         continue;
       }
-      // Finds which section of resource type current rowNum belongs to.
-      const resourceTypeSectionIndex = resourceTypeRows.findIndex(
-        (element, index, array) => rowNum > element && rowNum < array[index + 1]
-      );
 
-      const resourceType =
-        sheet[
-          `${RESOURCETYPECOLUMN}${resourceTypeRows[resourceTypeSectionIndex]}`
-        ]?.v;
       const updateShowHideValue = getShowHideValue(
         serviceBaseUrl,
         resourceType,
