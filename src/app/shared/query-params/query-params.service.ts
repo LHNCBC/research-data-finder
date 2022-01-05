@@ -22,6 +22,9 @@ export class QueryParamsService {
    * @param value - search parameter value
    */
   getQueryParam(resourceType: string, value: SearchParameter): string {
+    if (resourceType === 'EvidenceVariable') {
+      return `&evidencevariable=${this.getEvidenceVariableIds(value)}`;
+    }
     const selectedParameter = this.definitions.resources[
       resourceType
     ]?.searchParameters.find((p) => p.element === value?.element);
@@ -66,6 +69,18 @@ export class QueryParamsService {
         : '';
     }
     return `&${selectedParameter.element}=${value.value}`;
+  }
+
+  /**
+   * Returns comma separated list of EV full URLs, to be used as query param
+   * for the EV search parameter.
+   * @param value search parameter value
+   * @private
+   */
+  private getEvidenceVariableIds(value: SearchParameter): string {
+    return value.value.codes
+      .map((c) => `${this.fhirBackend.serviceBaseUrl}/EvidenceVariable/${c}`)
+      .join(',');
   }
 
   /**

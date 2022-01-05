@@ -8,7 +8,15 @@
       [options]="parameterOptions"
       [formControl]="parameterName"></app-autocomplete>
 
-  <ng-container *ngIf="selectedParameter && selectedParameter.element !== CODETEXT">
+  <mat-form-field class="parameter-value" *ngIf="resourceType === EVIDENCEVARIABLE && selectedParameter">
+    <mat-label>Search parameter value</mat-label>
+    <app-evidence-variable-value
+      [formControl]="parameterValue" placeholder="Select one or more"
+      [searchParameter]="parameterName.value">
+    </app-evidence-variable-value>
+  </mat-form-field>
+
+  <ng-container *ngIf="resourceType !== EVIDENCEVARIABLE && selectedParameter && selectedParameter.element !== CODETEXT">
     <ng-container [ngSwitch]="selectedParameter.type">
 
       <mat-radio-group *ngSwitchCase="'boolean'" class="parameter-value" aria-label="Select a boolean value" [formControl]="parameterValue">

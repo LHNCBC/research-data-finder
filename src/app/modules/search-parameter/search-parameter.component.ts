@@ -44,6 +44,7 @@ export class SearchParameterComponent
   @Input() selectedSearchParameterNames: string[] = [];
   @Input() isPullData = false;
   readonly CODETEXT = CODETEXT;
+  readonly EVIDENCEVARIABLE = 'EvidenceVariable';
   definitions: any;
 
   selectedResourceType: any;

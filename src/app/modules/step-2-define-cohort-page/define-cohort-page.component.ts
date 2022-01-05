@@ -473,9 +473,12 @@ export class DefineCohortPageComponent
         // Sequentially execute queries and put the result into the stream
         concatMap((rules) => {
           const useHas = this.canUseHas(criteria.resourceType, rules);
-          const resourceType = useHas
-            ? PATIENT_RESOURCE_TYPE
-            : criteria.resourceType;
+          const resourceType =
+            criteria.resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+              ? OBSERVATION_RESOURCE_TYPE
+              : useHas
+              ? PATIENT_RESOURCE_TYPE
+              : criteria.resourceType;
           // If the resource is not a Patient, we extract only the subject
           // element in order to further identify the Patient by it.
           const elements =
@@ -685,7 +688,11 @@ export class DefineCohortPageComponent
   ): Observable<number> {
     const hasResearchSubjects = this.getHasResearchSubjectsParam();
     const useHas = this.canUseHas(resourceType, rules);
-    const queryResourceType = useHas ? PATIENT_RESOURCE_TYPE : resourceType;
+    const queryResourceType = EVIDENCE_VARIABLE_RESOURCE_TYPE
+      ? OBSERVATION_RESOURCE_TYPE
+      : useHas
+      ? PATIENT_RESOURCE_TYPE
+      : resourceType;
 
     const query =
       '$fhir/' +
@@ -714,9 +721,6 @@ export class DefineCohortPageComponent
 
         if (resourceType === RESEARCH_STUDY_RESOURCE_TYPE) {
           return response.total ? Infinity : 0;
-        }
-        if (resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE) {
-          return response.total ? Number.NEGATIVE_INFINITY : 0;
         }
         return response.total;
       })
@@ -784,51 +788,12 @@ export class DefineCohortPageComponent
         );
     }
 
-    if (resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE) {
-      const nextEvidenceVariablePage$ = new Subject<void>();
-
-      return this.http
-        .get<Bundle>(
-          `$fhir/${resourceType}?_count=${pageSize}&_elements=id` +
-            rules.map((criterion: Criterion) =>
-              this.queryParams.getQueryParam(resourceType, criterion.field)
-            )
-        )
-        .pipe(
-          // Modifying the Observable to load the following pages sequentially
-          this.loadPagesSequentially(
-            maxPatientCount,
-            nextEvidenceVariablePage$
-          ),
-          // Expand the BundleEntries array into separate resources
-          concatMap((response) => {
-            return from((response?.entry || []).map((i) => i.fullUrl)).pipe(
-              bufferCount(10),
-              concatMap((ids) => {
-                return this.requestResources(
-                  OBSERVATION_RESOURCE_TYPE,
-                  [
-                    {
-                      field: {
-                        element: 'evidencevariable',
-                        value: ids.join(',')
-                      }
-                    }
-                  ],
-                  pageSize,
-                  maxPatientCount
-                );
-              }),
-              finalize(() => {
-                nextEvidenceVariablePage$.next();
-              })
-            );
-          })
-        );
-    }
-
     const useHas = this.canUseHas(resourceType, rules);
-    const queryResourceType = useHas ? PATIENT_RESOURCE_TYPE : resourceType;
+    const queryResourceType = EVIDENCE_VARIABLE_RESOURCE_TYPE
+      ? OBSERVATION_RESOURCE_TYPE
+      : useHas
+      ? PATIENT_RESOURCE_TYPE
+      : resourceType;
     // If the resource is not a Patient, we extract only the subject
     // element in order to further identify the Patient by it.
     const elements =
