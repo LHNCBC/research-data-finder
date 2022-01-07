@@ -162,6 +162,11 @@ export class FhirBatchQuery {
         combine: false,
         retryCount: 2
       }),
+      // Check if interpretation search parameter is supported
+      this.getWithCache(
+        `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
+        { combine: false, retryCount: 2 }
+      ),
       // Check if batch request is supported
       this._request({
         method: 'POST',
@@ -183,6 +188,7 @@ export class FhirBatchQuery {
         observationsSortedByAgeAtEvent,
         lastnLookup,
         hasResearchStudy,
+        interpretation,
         batch
       ]) => {
         if (metadata.status === 'fulfilled') {
@@ -213,6 +219,10 @@ export class FhirBatchQuery {
             hasResearchStudy.status === 'fulfilled' &&
             hasResearchStudy.value.data.entry &&
             hasResearchStudy.value.data.entry.length > 0,
+          interpretation:
+            interpretation.status === 'fulfilled' &&
+            interpretation.value.data.entry &&
+            interpretation.value.data.entry.length > 0,
           batch: batch.status === 'fulfilled'
         });
         console.log(this._features);
