@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.0.5] - 2022-1-7
+### Added
+- Support for interpretation search parameter when applicable.
+
 ## [4.0.4] - 2021-12-13
 ### Changed
 - Show "Value" column in Observation table by default.
