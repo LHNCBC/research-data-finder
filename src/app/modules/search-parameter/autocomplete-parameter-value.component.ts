@@ -23,6 +23,7 @@ import { HttpClient } from '@angular/common/http';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 
 /**
  * data type used for this control
@@ -31,6 +32,8 @@ export interface Lookup {
   code: string;
   display: string;
 }
+
+const EVIDENCEVARIABLE = 'EvidenceVariable';
 
 /**
  * Component for search parameter value as autocomplete multi-select
@@ -81,6 +84,23 @@ export class AutocompleteParameterValueComponent
     );
   }
 
+  constructor(
+    @Optional() @Self() ngControl: NgControl,
+    private elementRef: ElementRef,
+    private errorStateMatcher: ErrorStateMatcher,
+    private httpClient: HttpClient,
+    private liveAnnoncer: LiveAnnouncer,
+    private fhirBackend: FhirBackendService
+  ) {
+    super();
+    if (ngControl != null) {
+      this.ngControl = ngControl;
+      // Setting the value accessor directly (instead of using
+      // the providers) to avoid running into a circular import.
+      ngControl.valueAccessor = this;
+    }
+  }
+
   static idPrefix = 'autocomplete-test-value-';
   static idIndex = 0;
   static codeTextFieldMapping = {
@@ -91,7 +111,7 @@ export class AutocompleteParameterValueComponent
   inputId =
     AutocompleteParameterValueComponent.idPrefix +
     ++AutocompleteParameterValueComponent.idIndex;
-  @Input() options: Lookup[];
+  @Input() options: Lookup[] = [];
   @Input() placeholder = '';
   @Input() resourceType: string;
   @Input() searchParameter: string;
@@ -131,6 +151,15 @@ export class AutocompleteParameterValueComponent
   readonly disabled: boolean = false;
   readonly id: string;
   readonly required = false;
+
+  /**
+   * Returns EV id from a DbGap variable API response
+   * e.g. phv00054122.v1.p1 => phv00054122
+   * @private
+   */
+  private static getEvIdFromDbgapVariableApi(value: string): string {
+    return /^(.+)\.v\d+\.p\d+$/.test(value) ? RegExp.$1 : null;
+  }
   setDescribedByIds(): void {}
 
   /**
@@ -169,22 +198,6 @@ export class AutocompleteParameterValueComponent
     }
   }
 
-  constructor(
-    @Optional() @Self() ngControl: NgControl,
-    private elementRef: ElementRef,
-    private errorStateMatcher: ErrorStateMatcher,
-    private httpClient: HttpClient,
-    private liveAnnoncer: LiveAnnouncer
-  ) {
-    super();
-    if (ngControl != null) {
-      this.ngControl = ngControl;
-      // Setting the value accessor directly (instead of using
-      // the providers) to avoid running into a circular import.
-      ngControl.valueAccessor = this;
-    }
-  }
-
   ngOnChanges(): void {
     if (this.acInstance) {
       this.setupAutocomplete();
@@ -197,14 +210,14 @@ export class AutocompleteParameterValueComponent
 
   /**
    * Set up Autocompleter.
-   * It could be a Prefetch or a Search instance depending on this.usePrefetch.
    * Also call this.onChange() of ControlValueAccessor interface on selection event,
    * so that form control value is updated and can be read from parent form.
    */
   setupAutocomplete(): void {
-    this.acInstance = this.usePrefetch
-      ? this.setupAutocompletePrefetch()
-      : this.setupAutocompleteSearch();
+    this.acInstance =
+      this.resourceType === EVIDENCEVARIABLE
+        ? this.getAutocomplete_EV()
+        : this.getAutocomplete();
 
     // Fill autocomplete with data (if currentData was set in writeValue).
     if (this.currentData) {
@@ -226,9 +239,30 @@ export class AutocompleteParameterValueComponent
   }
 
   /**
+   * Get autocompleter instance.
+   * It could be a Prefetch or a Search instance depending on this.usePrefetch.
+   */
+  getAutocomplete(): any {
+    return this.usePrefetch
+      ? this.setupAutocompletePrefetch()
+      : this.setupAutocompleteSearch();
+  }
+
+  /**
+   * Get autocompleter instance for Evidence Variable.
+   * The instance uses DbGap variable API if server is DbGap, otherwise it uses fhir queries.
+   */
+  getAutocomplete_EV(): any {
+    return this.fhirBackend.serviceBaseUrl ===
+      'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+      ? this.setupAutocomplete_EV_DbgapVariableApi()
+      : this.setupAutocompleteSearch_EV();
+  }
+
+  /**
    * Set up Autocompleter prefetch options.
    */
-  setupAutocompletePrefetch(): void {
+  setupAutocompletePrefetch(): any {
     return new Def.Autocompleter.Prefetch(
       this.inputId,
       this.options.map((o) => o.display),
@@ -239,7 +273,7 @@ export class AutocompleteParameterValueComponent
   /**
    * Set up Autocompleter search options.
    */
-  setupAutocompleteSearch(): void {
+  setupAutocompleteSearch(): any {
     const acInstance = new Def.Autocompleter.Search(this.inputId, null, {
       suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
       fhir: {
@@ -339,6 +373,226 @@ export class AutocompleteParameterValueComponent
   }
 
   /**
+   * Set up Autocompleter search options for DbGap variable API search.
+   */
+  setupAutocomplete_EV_DbgapVariableApi(): any {
+    const acInstance = new Def.Autocompleter.Search(this.inputId, null, {
+      suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
+      fhir: {
+        search: (fieldVal, count) => {
+          return {
+            then: (resolve, reject) => {
+              const url = 'http://lhc-lx-luanx2:5000/api/dbg_vars/v3/search';
+              const params = {
+                sf: `dbgv.${this.searchParameter}`,
+                terms: fieldVal,
+                maxList: count
+              };
+              // Array of result items for autocompleter
+              const contains: ValueSetExpansionContains[] = [];
+              // Already selected codes
+              const selectedCodes = acInstance.getSelectedCodes();
+
+              this.loading = true;
+              this.subscription?.unsubscribe();
+
+              this.subscription = this.httpClient
+                .get(url, {
+                  params
+                })
+                .pipe(
+                  catchError((error) => {
+                    this.loading = false;
+                    reject(error);
+                    throw error;
+                  })
+                )
+                .subscribe((response) => {
+                  contains.push(
+                    ...this.getAutocompleteItems_EV_dbgapVariableApi(
+                      response,
+                      selectedCodes
+                    )
+                  );
+                  this.loading = false;
+                  this.liveAnnoncer.announce('Finished loading list.');
+                  resolve({
+                    resourceType: 'ValueSet',
+                    expansion: {
+                      total: response[0],
+                      contains
+                    }
+                  });
+                });
+            }
+          };
+        }
+      },
+      useResultCache: false,
+      maxSelect: '*',
+      matchListValue: true,
+      showListOnFocusIfEmpty: true
+    });
+    return acInstance;
+  }
+
+  /**
+   * Set up Autocompleter search options.
+   */
+  setupAutocompleteSearch_EV(): any {
+    const acInstance = new Def.Autocompleter.Search(this.inputId, null, {
+      suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
+      fhir: {
+        search: (fieldVal, count) => {
+          return {
+            then: (resolve, reject) => {
+              const url = `$fhir/${EVIDENCEVARIABLE}`;
+              const params = {
+                _elements: this.searchParameter
+              };
+              params[this.searchParameter] = fieldVal;
+              // Hash of processed codes, used to exclude repeated codes
+              const processedCodes = {};
+              // Array of result items for autocompleter
+              const contains: ValueSetExpansionContains[] = [];
+              // Total amount of items
+              let total = null;
+              // Already selected codes
+              const selectedCodes = acInstance.getSelectedCodes();
+
+              this.loading = true;
+              this.subscription?.unsubscribe();
+
+              const obs = this.httpClient
+                .get(url, {
+                  params
+                })
+                .pipe(
+                  expand((response: Bundle) => {
+                    contains.push(
+                      ...this.getAutocompleteItems_EV(
+                        response,
+                        processedCodes,
+                        selectedCodes
+                      )
+                    );
+                    const nextPageUrl = getNextPageUrl(response);
+                    if (nextPageUrl && contains.length < count) {
+                      this.liveAnnoncer.announce('New items added to list.');
+                      // Update list before calling server for next query.
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(total) ? total : null,
+                          contains
+                        }
+                      });
+                      const newParams = { ...params };
+                      newParams['_id:not'] = Object.keys(processedCodes).join(
+                        ','
+                      );
+                      return this.httpClient.get(url, {
+                        params: newParams
+                      });
+                    } else {
+                      if (!nextPageUrl) {
+                        total = contains.length;
+                      } else if (response.total) {
+                        total = response.total;
+                      }
+                      if (contains.length > count) {
+                        contains.length = count;
+                      }
+                      this.loading = false;
+                      this.liveAnnoncer.announce('Finished loading list.');
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(total) ? total : null,
+                          contains
+                        }
+                      });
+                      // Emit a complete notification
+                      return EMPTY;
+                    }
+                  }),
+                  catchError((error) => {
+                    this.loading = false;
+                    reject(error);
+                    throw error;
+                  })
+                );
+
+              this.subscription = obs.subscribe();
+            }
+          };
+        }
+      },
+      useResultCache: false,
+      maxSelect: '*',
+      matchListValue: true,
+      showListOnFocusIfEmpty: true
+    });
+    return acInstance;
+  }
+
+  /**
+   * Extracts autocomplete items from resource bundle
+   * @param bundle - resource bundle
+   * @param processedCodes - hash of processed IDs,
+   *   used to exclude repeated items
+   * @param selectedCodes - already selected codes
+   */
+  getAutocompleteItems_EV(
+    bundle: Bundle,
+    processedCodes: { [key: string]: boolean },
+    selectedCodes: Array<string>
+  ): ValueSetExpansionContains[] {
+    return (bundle.entry || [])
+      .filter((e) => {
+        const matched =
+          !processedCodes[e.resource.id] &&
+          selectedCodes.indexOf(e.resource.id) === -1;
+        processedCodes[e.resource.id] = true;
+        return matched;
+      })
+      .map((e) => {
+        const result: ValueSetExpansionContains = {};
+        result.code = e.resource.id;
+        result.display = e.resource.id;
+        return result;
+      });
+  }
+
+  /**
+   * Extracts autocomplete items from DbGap variable API response
+   * @param response - response from DbGap variable API
+   * @param selectedCodes - already selected codes
+   */
+  getAutocompleteItems_EV_dbgapVariableApi(
+    response: any,
+    selectedCodes: Array<string>
+  ): ValueSetExpansionContains[] {
+    return (response[1] || [])
+      .filter((e) => {
+        const id = AutocompleteParameterValueComponent.getEvIdFromDbgapVariableApi(
+          e
+        );
+        const matched = id && selectedCodes.indexOf(id) === -1;
+        return matched;
+      })
+      .map((e) => {
+        const id = AutocompleteParameterValueComponent.getEvIdFromDbgapVariableApi(
+          e
+        );
+        const result: ValueSetExpansionContains = {};
+        result.code = id;
+        result.display = id;
+        return result;
+      });
+  }
+
+  /**
    * Extracts autocomplete items from resource bundle
    * @param bundle - resource bundle
    * @param processedCodes - hash of processed codes,
@@ -391,5 +645,13 @@ export class AutocompleteParameterValueComponent
       );
     }
     return this.searchParameter;
+  }
+
+  getAriaLabel(): string {
+    return this.resourceType === EVIDENCEVARIABLE
+      ? `select Evidence Variables by ${this.searchParameter}`
+      : this.searchParameter === 'code'
+      ? `${this.resourceType} codes from FHIR server`
+      : 'Search parameter value';
   }
 }

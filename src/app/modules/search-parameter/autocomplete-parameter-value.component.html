@@ -3,5 +3,5 @@
   id="{{inputId}}"
   #input
   [placeholder]="shouldLabelFloat ? placeholder : ''"
-  [attr.aria-label]="searchParameter === 'code' ? resourceType + ' codes from FHIR server' : 'Search parameter value'">
+  [attr.aria-label]="getAriaLabel()">
 <mat-spinner [diameter]="30"></mat-spinner>

@@ -10,10 +10,11 @@
 
   <mat-form-field class="parameter-value" *ngIf="resourceType === EVIDENCEVARIABLE && selectedParameter">
     <mat-label>Search parameter value</mat-label>
-    <app-evidence-variable-value
+    <app-autocomplete-parameter-value
+      [resourceType]="EVIDENCEVARIABLE"
       [formControl]="parameterValue" placeholder="Select one or more"
       [searchParameter]="parameterName.value">
-    </app-evidence-variable-value>
+    </app-autocomplete-parameter-value>
   </mat-form-field>
 
   <ng-container *ngIf="resourceType !== EVIDENCEVARIABLE && selectedParameter && selectedParameter.element !== CODETEXT">

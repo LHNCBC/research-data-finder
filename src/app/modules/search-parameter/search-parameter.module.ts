@@ -17,7 +17,6 @@ import { FormControlCollectorModule } from '../../shared/error-manager/form-cont
 import { TabToSelectModule } from '../../shared/tab-to-select/tab-to-select.module';
 import { MatRadioModule } from '@angular/material/radio';
 import { AutocompleteModule } from '../autocomplete/autocomplete.module';
-import { EvidenceVariableValueComponent } from './evidence-variable-value.component';
 
 @NgModule({
   declarations: [
@@ -25,8 +24,7 @@ import { EvidenceVariableValueComponent } from './evidence-variable-value.compon
     DatesFromToComponent,
     AutocompleteParameterValueComponent,
     ObservationTestValueComponent,
-    ObservationTestValueUnitComponent,
-    EvidenceVariableValueComponent
+    ObservationTestValueUnitComponent
   ],
   exports: [SearchParameterComponent],
   imports: [
