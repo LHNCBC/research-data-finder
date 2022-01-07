@@ -97,7 +97,9 @@ export class PullDataPageComponent implements AfterViewInit {
           const resources = fhirBackend.getCurrentDefinitions().resources;
           this.unselectedResourceTypes = Object.keys(resources).filter(
             (resourceType) =>
-              this.visibleResourceTypes.indexOf(resourceType) === -1
+              this.visibleResourceTypes.indexOf(resourceType) === -1 &&
+              // temporarily hide EV in pull data
+              resourceType !== 'EvidenceVariable'
           );
           this.codeTextResourceTypes = Object.entries(resources)
             .filter((r: [string, any]) =>
