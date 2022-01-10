@@ -688,11 +688,12 @@ export class DefineCohortPageComponent
   ): Observable<number> {
     const hasResearchSubjects = this.getHasResearchSubjectsParam();
     const useHas = this.canUseHas(resourceType, rules);
-    const queryResourceType = EVIDENCE_VARIABLE_RESOURCE_TYPE
-      ? OBSERVATION_RESOURCE_TYPE
-      : useHas
-      ? PATIENT_RESOURCE_TYPE
-      : resourceType;
+    const queryResourceType =
+      resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+        ? OBSERVATION_RESOURCE_TYPE
+        : useHas
+        ? PATIENT_RESOURCE_TYPE
+        : resourceType;
 
     const query =
       '$fhir/' +
@@ -789,11 +790,12 @@ export class DefineCohortPageComponent
     }
 
     const useHas = this.canUseHas(resourceType, rules);
-    const queryResourceType = EVIDENCE_VARIABLE_RESOURCE_TYPE
-      ? OBSERVATION_RESOURCE_TYPE
-      : useHas
-      ? PATIENT_RESOURCE_TYPE
-      : resourceType;
+    const queryResourceType =
+      resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+        ? OBSERVATION_RESOURCE_TYPE
+        : useHas
+        ? PATIENT_RESOURCE_TYPE
+        : resourceType;
     // If the resource is not a Patient, we extract only the subject
     // element in order to further identify the Patient by it.
     const elements =

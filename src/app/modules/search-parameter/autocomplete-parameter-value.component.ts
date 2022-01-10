@@ -448,7 +448,7 @@ export class AutocompleteParameterValueComponent
             then: (resolve, reject) => {
               const url = `$fhir/${EVIDENCEVARIABLE}`;
               const params = {
-                _elements: this.searchParameter
+                _elements: 'description'
               };
               params[this.searchParameter] = fieldVal;
               // Hash of processed codes, used to exclude repeated codes

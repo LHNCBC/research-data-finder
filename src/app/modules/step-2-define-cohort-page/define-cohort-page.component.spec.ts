@@ -423,7 +423,9 @@ describe('DefineCohortComponent', () => {
             {
               field: {
                 element: 'name',
-                value: 'env_smoke',
+                value: {
+                  codes: ['phv00492039']
+                },
                 selectedObservationCodes: null
               }
             }
@@ -448,22 +450,8 @@ describe('DefineCohortComponent', () => {
       });
 
     mockHttp
-      .expectOne(`$fhir/EvidenceVariable?_count=10&_elements=id&name=env_smoke`)
-      .flush({
-        entry: [
-          {
-            fullUrl:
-              'https://lforms-fhir.nlm.nih.gov/baseR4/EvidenceVariable/phv00492039',
-            resource: {
-              id: 'phv00492039'
-            }
-          }
-        ]
-      });
-
-    mockHttp
       .expectOne(
-        `$fhir/Observation?_count=10&_elements=subject&evidencevariable=https://lforms-fhir.nlm.nih.gov/baseR4/EvidenceVariable/phv00492039`
+        `$fhir/Observation?_count=10&_elements=subject&evidencevariable=someDefaultURL/EvidenceVariable/phv00492039`
       )
       .flush({
         entry: [
