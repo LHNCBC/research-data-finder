@@ -20,10 +20,10 @@ import { getNextPageUrl } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
 import { AutocompleteParameterValue } from '../../types/autocomplete-parameter-value';
 import { HttpClient } from '@angular/common/http';
-import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
-import Bundle = fhir.Bundle;
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
+import Bundle = fhir.Bundle;
 
 /**
  * data type used for this control
@@ -559,7 +559,7 @@ export class AutocompleteParameterValueComponent
       .map((e) => {
         const result: ValueSetExpansionContains = {};
         result.code = e.resource.id;
-        result.display = e.resource.id;
+        result.display = `${e.resource.id} - ${e.resource['description']}`;
         return result;
       });
   }
@@ -573,21 +573,20 @@ export class AutocompleteParameterValueComponent
     response: any,
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
-    return (response[1] || [])
+    return (response[3] || [])
       .filter((e) => {
         const id = AutocompleteParameterValueComponent.getEvIdFromDbgapVariableApi(
-          e
+          e[0]
         );
-        const matched = id && selectedCodes.indexOf(id) === -1;
-        return matched;
+        return id && selectedCodes.indexOf(id) === -1;
       })
       .map((e) => {
         const id = AutocompleteParameterValueComponent.getEvIdFromDbgapVariableApi(
-          e
+          e[0]
         );
         const result: ValueSetExpansionContains = {};
         result.code = id;
-        result.display = id;
+        result.display = `${id} - ${e[1]}`;
         return result;
       });
   }
