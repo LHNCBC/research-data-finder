@@ -3,10 +3,15 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.2.0] - 2021-01-11
+### Changed
+- Provided lists for valueCodeableConcept Observations.
+### Fixed
+- Enabled source map generation.
+
 ## [4.1.0] - 2021-12-20
 ### Changed
 - Moved comparator, value, and unit to a separate search parameter.
-- Provided lists for valueCodeableConcept Observations.
 
 ## [4.0.4] - 2021-12-13
 ### Changed
