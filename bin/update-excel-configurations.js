@@ -24,7 +24,7 @@ const file = reader.readFile(filePath, { cellStyles: true });
 const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 const doNotUpdateList = [
   ['*', /^code text$/],
-  ['Observation', /^code text$/],
+  ['Observation', /^observation value$/],
   ['Patient', /^name$/],
   ['Patient', /^family$/],
   ['Patient', /^given$/],
@@ -326,6 +326,10 @@ function updateColumnRows() {
       // Keep medication column shown, since it's the main "code" field of
       // MedicationDispense and MedicationRequest.
       if (fhirName === 'medication[x]') {
+        continue;
+      }
+      // Keep value column shown, since it's the main field of Observation.
+      if (fhirName === 'value[x]') {
         continue;
       }
       // Finds which section of resource type current rowNum belongs to.

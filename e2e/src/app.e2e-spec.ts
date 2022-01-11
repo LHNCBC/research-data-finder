@@ -1,5 +1,5 @@
 import { AppPage } from './app.po';
-import { $, browser, logging, Key, $$ } from 'protractor';
+import { $, browser, logging, Key, $$, by, protractor } from 'protractor';
 import { ProtractorHarnessEnvironment } from '@angular/cdk/testing/protractor';
 import {
   MatStepHarness,
@@ -51,9 +51,13 @@ describe('Research Data Finder', () => {
   let nextPageBtn: MatStepperNextHarness;
 
   beforeEach(async () => {
-    // Initialize current step next button harness
-    const currentStep = (await stepper.getSteps({ selected: true }))[0];
-    nextPageBtn = await currentStep.getHarness(MatStepperNextHarness);
+    try {
+      // Initialize current step next button harness
+      const currentStep = (await stepper.getSteps({ selected: true }))[0];
+      nextPageBtn = await currentStep.getHarness(MatStepperNextHarness);
+    } catch (err) {
+      console.log('No next step.');
+    }
   });
 
   it('should display welcome message', async () => {
@@ -186,6 +190,29 @@ describe('Research Data Finder', () => {
   it('should be able to proceed to the Pull data for cohort step', async () => {
     await nextPageBtn.click();
     expect(await pullDataStep.isSelected()).toBe(true);
+  });
+
+  it('should load Observations table', async () => {
+    const currentStep = (await stepper.getSteps({ selected: true }))[0];
+    const loadObservationBtn = await currentStep.getHarness(
+      MatButtonHarness.with({ text: 'Load Observations' })
+    );
+    await loadObservationBtn.click();
+    const resourceTable = $('app-resource-table[context="pull-data"]');
+    expect(await resourceTable.isDisplayed()).toBe(true);
+  });
+
+  it('should show value column in Observations table', async () => {
+    const resourceTable = $('app-resource-table[context="pull-data"]');
+    const valueHeader = resourceTable.element(
+      by.xpath('//span[contains(text(), "Value")]')
+    );
+    await browser.wait(
+      protractor.ExpectedConditions.presenceOf(valueHeader),
+      5000,
+      'Value header not found in time.'
+    );
+    expect(await valueHeader.isDisplayed()).toBe(true);
   });
 
   afterEach(async () => {
