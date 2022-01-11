@@ -255,11 +255,14 @@ export class AutocompleteParameterValueComponent
                   : {}),
                 _elements: this.getFhirName()
               };
-              params[`${this.searchParameter}:text`] =
-                fieldVal ||
-                (this.searchParameter === 'value-concept'
-                  ? ''
-                  : 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z');
+
+              const filterText = fieldVal;
+              if (filterText) {
+                params[`${this.searchParameter}:text`] = filterText;
+              } else {
+                params[`${this.searchParameter}:not`] = 'zzz';
+              }
+
               // Hash of processed codes, used to exclude repeated codes
               const processedCodes = {};
               // Array of result items for autocompleter
