@@ -378,7 +378,7 @@ export class FhirBackendService implements HttpBackend {
           displayName: 'interpretation',
           description:
             'A categorical assessment, providing a rough qualitative interpretation of the observation value',
-          type: 'string',
+          type: 'CodeableConcept',
           isArray: false
         });
         observationSearchParams.sort((a, b) =>
