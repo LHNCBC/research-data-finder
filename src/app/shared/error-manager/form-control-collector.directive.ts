@@ -1,5 +1,5 @@
-import { Directive, OnDestroy, OnInit, Self } from '@angular/core';
-import { FormControlDirective } from '@angular/forms';
+import { Directive, OnDestroy, OnInit, Optional, Self } from '@angular/core';
+import { FormControlDirective, FormControlName } from '@angular/forms';
 import { ErrorManager } from './error-manager.service';
 
 /**
@@ -8,19 +8,24 @@ import { ErrorManager } from './error-manager.service';
  */
 @Directive({
   // tslint:disable-next-line:directive-selector
-  selector: '[formControl]'
+  selector: '[formControl],[formControlName]'
 })
 export class FormControlCollectorDirective implements OnInit, OnDestroy {
   constructor(
-    @Self() private formControlDirective: FormControlDirective,
+    @Self() @Optional() private formControlDirective: FormControlDirective,
+    @Self() @Optional() private formControlName: FormControlName,
     private errorManager: ErrorManager
   ) {}
 
   ngOnInit(): void {
-    this.errorManager.addControl(this.formControlDirective.control);
+    this.errorManager.addControl(
+      this.formControlDirective?.control || this.formControlName?.control
+    );
   }
 
   ngOnDestroy(): void {
-    this.errorManager.removeControl(this.formControlDirective.control);
+    this.errorManager.removeControl(
+      this.formControlDirective?.control || this.formControlName?.control
+    );
   }
 }
