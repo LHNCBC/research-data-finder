@@ -385,6 +385,7 @@ export class AutocompleteParameterValueComponent
               const url = 'http://lhc-lx-luanx2:5000/api/dbg_vars/v3/search';
               const params = {
                 sf: `dbgv.${this.searchParameter}`,
+                df: `dbgv.${this.searchParameter}`,
                 terms: fieldVal,
                 maxList: count
               };
@@ -448,7 +449,7 @@ export class AutocompleteParameterValueComponent
             then: (resolve, reject) => {
               const url = `$fhir/${EVIDENCEVARIABLE}`;
               const params = {
-                _elements: 'name'
+                _elements: this.searchParameter
               };
               params[this.searchParameter] = fieldVal;
               // Hash of processed codes, used to exclude repeated codes
@@ -539,9 +540,10 @@ export class AutocompleteParameterValueComponent
   /**
    * Extracts autocomplete items from resource bundle
    * @param bundle - resource bundle
-   * @param processedCodes - hash of processed IDs,
-   *   used to exclude repeated items
-   * @param selectedCodes - already selected codes
+   * @param processedCodes - hash of processed items.
+   * Key is the EV name/description value; value is an array of EV IDs.
+   * Multiple EVs with the same name/description will be grouped.
+   * @param selectedCodes - already selected items
    */
   getAutocompleteItems_EV(
     bundle: Bundle,
@@ -549,7 +551,7 @@ export class AutocompleteParameterValueComponent
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
     return (bundle.entry || []).reduce((acc, e) => {
-      const displayItem = e.resource['name'];
+      const displayItem = e.resource[this.searchParameter];
       if (processedCodes[displayItem]) {
         processedCodes[displayItem].push(e.resource.id);
       } else {
@@ -568,28 +570,36 @@ export class AutocompleteParameterValueComponent
   /**
    * Extracts autocomplete items from DbGap variable API response
    * @param response - response from DbGap variable API
-   * @param selectedCodes - already selected codes
+   * The response takes the form of an array: first item is the total match on server;
+   * second item is an array of IDs, fourth item is an array of requested property (name/description).
+   * @param selectedCodes - already selected items
    */
   getAutocompleteItems_EV_dbgapVariableApi(
     response: any,
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
-    return (response[3] || [])
-      .filter((e) => {
-        const id = AutocompleteParameterValueComponent.getEvIdFromDbgapVariableApi(
-          e[0]
-        );
-        return id && selectedCodes.indexOf(id) === -1;
-      })
-      .map((e) => {
-        const id = AutocompleteParameterValueComponent.getEvIdFromDbgapVariableApi(
-          e[0]
-        );
-        const result: ValueSetExpansionContains = {};
-        result.code = id;
-        result.display = `${id} - ${e[1]}`;
-        return result;
-      });
+    if (!response[1]?.length) {
+      return [];
+    }
+    const result = [];
+    for (let i = 0; i < response[1].length; i++) {
+      const displayItem = response[3][i][0];
+      const id = AutocompleteParameterValueComponent.getEvIdFromDbgapVariableApi(
+        response[1][i]
+      );
+      const duplicateDisplayItem = result.find(
+        (x) => x.display === displayItem
+      );
+      if (duplicateDisplayItem) {
+        duplicateDisplayItem.code.push(id);
+      } else if (selectedCodes.indexOf(displayItem) === -1) {
+        result.push({
+          display: displayItem,
+          code: [id]
+        });
+      }
+    }
+    return result;
   }
 
   /**
