@@ -83,7 +83,13 @@ export class QueryParamsService {
    */
   private getEvidenceVariableIds(value: SearchParameter): string {
     return value.value.codes
-      .map((c) => `${this.fhirBackend.serviceBaseUrl}/EvidenceVariable/${c}`)
+      .map((codes: string[]) =>
+        codes
+          .map(
+            (c) => `${this.fhirBackend.serviceBaseUrl}/EvidenceVariable/${c}`
+          )
+          .join(',')
+      )
       .join(',');
   }
 

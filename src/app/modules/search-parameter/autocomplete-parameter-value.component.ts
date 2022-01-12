@@ -448,7 +448,7 @@ export class AutocompleteParameterValueComponent
             then: (resolve, reject) => {
               const url = `$fhir/${EVIDENCEVARIABLE}`;
               const params = {
-                _elements: 'description'
+                _elements: 'name'
               };
               params[this.searchParameter] = fieldVal;
               // Hash of processed codes, used to exclude repeated codes
@@ -545,23 +545,24 @@ export class AutocompleteParameterValueComponent
    */
   getAutocompleteItems_EV(
     bundle: Bundle,
-    processedCodes: { [key: string]: boolean },
+    processedCodes: { [key: string]: string[] },
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
-    return (bundle.entry || [])
-      .filter((e) => {
-        const matched =
-          !processedCodes[e.resource.id] &&
-          selectedCodes.indexOf(e.resource.id) === -1;
-        processedCodes[e.resource.id] = true;
-        return matched;
-      })
-      .map((e) => {
-        const result: ValueSetExpansionContains = {};
-        result.code = e.resource.id;
-        result.display = `${e.resource.id} - ${e.resource['description']}`;
-        return result;
-      });
+    return (bundle.entry || []).reduce((acc, e) => {
+      const displayItem = e.resource['name'];
+      if (processedCodes[displayItem]) {
+        processedCodes[displayItem].push(e.resource.id);
+      } else {
+        processedCodes[displayItem] = [e.resource.id];
+      }
+      if (selectedCodes.indexOf(displayItem) === -1) {
+        acc.push({
+          display: displayItem,
+          code: processedCodes[displayItem]
+        });
+      }
+      return acc;
+    }, []);
   }
 
   /**

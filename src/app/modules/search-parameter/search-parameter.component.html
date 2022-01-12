@@ -17,7 +17,7 @@
     </app-autocomplete-parameter-value>
   </mat-form-field>
 
-  <ng-container *ngIf="selectedParameter && selectedParameter.element !== CODETEXT && selectedParameter.element !== OBSERVATION_VALUE">
+  <ng-container *ngIf="resourceType !== EVIDENCEVARIABLE && selectedParameter && selectedParameter.element !== CODETEXT && selectedParameter.element !== OBSERVATION_VALUE">
     <ng-container [ngSwitch]="selectedParameter.type">
 
       <mat-radio-group *ngSwitchCase="'boolean'" class="parameter-value" aria-label="Select a boolean value" [formControl]="parameterValue">
