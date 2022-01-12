@@ -391,8 +391,8 @@ export class AutocompleteParameterValueComponent
               };
               // Array of result items for autocompleter
               const contains: ValueSetExpansionContains[] = [];
-              // Already selected codes
-              const selectedCodes = acInstance.getSelectedCodes();
+              // Already selected items
+              const selectedCodes = acInstance.getSelectedItems();
 
               this.loading = true;
               this.subscription?.unsubscribe();
@@ -458,8 +458,8 @@ export class AutocompleteParameterValueComponent
               const contains: ValueSetExpansionContains[] = [];
               // Total amount of items
               let total = null;
-              // Already selected codes
-              const selectedCodes = acInstance.getSelectedCodes();
+              // Already selected items
+              const selectedCodes = acInstance.getSelectedItems();
 
               this.loading = true;
               this.subscription?.unsubscribe();
