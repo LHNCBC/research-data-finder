@@ -233,6 +233,7 @@ export class ObservationTestValueUnitComponent
         'LIST_SEL',
         this.listSelectionsObserver
       );
+      this.acInstance = null;
     }
   }
 

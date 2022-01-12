@@ -4,6 +4,7 @@ import { encodeFhirSearchParameter, escapeFhirSearchParameter } from '../utils';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 
 export const CODETEXT = 'code text';
+export const OBSERVATION_VALUE = 'observation value';
 export const CODETYPES = ['code', 'CodeableConcept', 'Coding'];
 
 @Injectable({
@@ -40,6 +41,9 @@ export class QueryParamsService {
       } else {
         return `&code=${value.value.codes.join(',')}`;
       }
+    }
+    if (selectedParameter.element === OBSERVATION_VALUE) {
+      return this.getObservationValueCriteria(value);
     }
     if (selectedParameter.type === 'date') {
       return (
@@ -93,20 +97,24 @@ export class QueryParamsService {
       return '';
     }
     const coding = selectedCodes.coding.filter((c) => c);
-    const codeParam = coding.length
+    return coding.length
       ? '&combo-code=' +
-        coding.map((code) => encodeFhirSearchParameter(code.code)).join(',')
+          coding.map((code) => encodeFhirSearchParameter(code.code)).join(',')
       : '';
-    const valueParamName = {
-      CodeableConcept: 'combo-value-concept',
-      Quantity: 'combo-value-quantity',
-      string: 'value-string'
-    }[selectedCodes.datatype];
+  }
+
+  /**
+   * Get criteria string for "observation value" parameter
+   */
+  private getObservationValueCriteria(value: SearchParameter): string {
+    const valueParamName =
+      {
+        CodeableConcept: 'combo-value-concept',
+        Quantity: 'combo-value-quantity',
+        string: 'value-string'
+      }[value.observationDataType] || 'combo-value-quantity';
     const testValueCriteria = this.getCompositeTestValueCriteria(value.value);
-    const valueParam = testValueCriteria
-      ? `&${valueParamName}${testValueCriteria}`
-      : '';
-    return `${codeParam}${valueParam}`;
+    return testValueCriteria ? `&${valueParamName}${testValueCriteria}` : '';
   }
 
   /**

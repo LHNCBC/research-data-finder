@@ -17,7 +17,7 @@
     </app-autocomplete-parameter-value>
   </mat-form-field>
 
-  <ng-container *ngIf="resourceType !== EVIDENCEVARIABLE && selectedParameter && selectedParameter.element !== CODETEXT">
+  <ng-container *ngIf="selectedParameter && selectedParameter.element !== CODETEXT && selectedParameter.element !== OBSERVATION_VALUE">
     <ng-container [ngSwitch]="selectedParameter.type">
 
       <mat-radio-group *ngSwitchCase="'boolean'" class="parameter-value" aria-label="Select a boolean value" [formControl]="parameterValue">
@@ -61,9 +61,10 @@
     </app-observation-code-lookup>
   </mat-form-field>
 
-  <app-observation-test-value class="parameter-value" [formControl]="parameterValue" [datatype]="selectedObservationCodes.value?.datatype"
-                  [loincCodes]="loincCodes"
-                  *ngIf="!isPullData && selectedParameter?.element === CODETEXT && resourceType === 'Observation' && selectedObservationCodes.value?.datatype">
+  <app-observation-test-value *ngIf="selectedParameter?.element === OBSERVATION_VALUE"
+                              class="parameter-value" [formControl]="parameterValue"
+                              [datatype]="observationDataType || 'Quantity'"
+                              [loincCodes]="observationLoincCodes">
   </app-observation-test-value>
 
 </div>

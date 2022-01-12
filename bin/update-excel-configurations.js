@@ -24,7 +24,7 @@ const file = reader.readFile(filePath, { cellStyles: true });
 const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 const doNotUpdateList = [
   ['*', /^code text$/],
-  ['Observation', /^code text$/],
+  ['Observation', /^observation value$/],
   ['Patient', /^name$/],
   ['Patient', /^family$/],
   ['Patient', /^given$/],

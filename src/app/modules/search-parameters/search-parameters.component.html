@@ -120,7 +120,9 @@
   <ng-container *queryField="let rule; let fields=fields;  let parentRuleSet=parentRuleSet; let onChange=onChange; let getFields = getFields">
     <div class="condition-label" *ngIf="parentRuleSet?.rules?.length > 1">{{parentRuleSet.condition}}</div>
     <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"
-                          (ngModelChange)="updateSelectedSearchParameterNames(parentRuleSet)"
+                          (ngModelChange)="onChangeSearchParameter($event, parentRuleSet)"
+                          [observationDataType]="observationDataType"
+                          [observationLoincCodes]="observationLoincCodes"
                           [selectedSearchParameterNames]="selectedSearchParameterNamesMap.get(parentRuleSet)">
     </app-search-parameter>
   </ng-container>

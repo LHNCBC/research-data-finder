@@ -87,7 +87,6 @@ describe('DefineCohortComponent', () => {
             {
               field: {
                 element: 'code text',
-                value: '',
                 selectedObservationCodes: {
                   coding: [
                     {
@@ -136,12 +135,6 @@ describe('DefineCohortComponent', () => {
             {
               field: {
                 element: 'code text',
-                value: {
-                  testValuePrefix: 'gt',
-                  testValueModifier: '',
-                  testValue: 100,
-                  testValueUnit: ''
-                },
                 selectedObservationCodes: {
                   coding: [
                     {
@@ -152,6 +145,18 @@ describe('DefineCohortComponent', () => {
                   datatype: 'Quantity',
                   items: ['Height cm']
                 }
+              }
+            },
+            {
+              field: {
+                element: 'observation value',
+                value: {
+                  testValuePrefix: 'gt',
+                  testValueModifier: '',
+                  testValue: 100,
+                  testValueUnit: ''
+                },
+                observationDataType: 'Quantity'
               }
             }
           ]
@@ -219,12 +224,6 @@ describe('DefineCohortComponent', () => {
             {
               field: {
                 element: 'code text',
-                value: {
-                  testValuePrefix: 'gt',
-                  testValueModifier: '',
-                  testValue: 100,
-                  testValueUnit: ''
-                },
                 selectedObservationCodes: {
                   coding: [
                     {
@@ -235,6 +234,18 @@ describe('DefineCohortComponent', () => {
                   datatype: 'Quantity',
                   items: ['Height cm']
                 }
+              }
+            },
+            {
+              field: {
+                element: 'observation value',
+                value: {
+                  testValuePrefix: 'gt',
+                  testValueModifier: '',
+                  testValue: 100,
+                  testValueUnit: ''
+                },
+                observationDataType: 'Quantity'
               }
             }
           ]
@@ -321,12 +332,6 @@ describe('DefineCohortComponent', () => {
             {
               field: {
                 element: 'code text',
-                value: {
-                  testValuePrefix: 'gt',
-                  testValueModifier: '',
-                  testValue: 100,
-                  testValueUnit: ''
-                },
                 selectedObservationCodes: {
                   coding: [
                     {
@@ -337,6 +342,18 @@ describe('DefineCohortComponent', () => {
                   datatype: 'Quantity',
                   items: ['Height cm']
                 }
+              }
+            },
+            {
+              field: {
+                element: 'observation value',
+                value: {
+                  testValuePrefix: 'gt',
+                  testValueModifier: '',
+                  testValue: 100,
+                  testValueUnit: ''
+                },
+                observationDataType: 'Quantity'
               }
             }
           ]
