@@ -1,4 +1,30 @@
 {
+  "https://lforms-fhir.nlm.nih.gov/testR4": {
+    "Observation": {
+      "interpretation": [
+        {
+          "code": "HH",
+          "display": "Critically High"
+        },
+        {
+          "code": "H",
+          "display": "High"
+        },
+        {
+          "code": "N",
+          "display": "Normal"
+        },
+        {
+          "code": "L",
+          "display": "Low"
+        },
+        {
+          "code": "LL",
+          "display": "Critically low"
+        }
+      ]
+    }
+  },
   "https://lforms-fhir.nlm.nih.gov/baseR4": {
     "Observation": {
       "category": [

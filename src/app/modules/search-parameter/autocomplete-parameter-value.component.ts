@@ -250,16 +250,9 @@ export class AutocompleteParameterValueComponent
               const params = {
                 _elements: this.getCodeTextField()
               };
-              if (
-                this.resourceType === 'Observation' &&
-                this.searchParameter === 'interpretation'
-              ) {
-                params['interpretation:text'] = fieldVal ? `${fieldVal}*` : '';
-              } else {
-                params[`${this.searchParameter}:text`] =
-                  fieldVal ||
-                  'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z';
-              }
+              params[`${this.searchParameter}:text`] =
+                fieldVal ||
+                'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z';
               // Hash of processed codes, used to exclude repeated codes
               const processedCodes = {};
               // Array of result items for autocompleter
