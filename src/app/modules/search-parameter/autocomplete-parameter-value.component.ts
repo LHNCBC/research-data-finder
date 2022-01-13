@@ -84,6 +84,16 @@ export class AutocompleteParameterValueComponent
     );
   }
 
+  /**
+   * Whether DbGap server is selected
+   */
+  get isDbgap(): boolean {
+    return (
+      this.fhirBackend.serviceBaseUrl ===
+      'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+    );
+  }
+
   constructor(
     @Optional() @Self() ngControl: NgControl,
     private elementRef: ElementRef,
@@ -117,6 +127,7 @@ export class AutocompleteParameterValueComponent
   @Input() searchParameter: string;
   @Input() usePrefetch = false;
 
+  dbgapLoincOnly = false;
   currentData: AutocompleteParameterValue = {
     codes: [],
     items: []
@@ -253,8 +264,7 @@ export class AutocompleteParameterValueComponent
    * The instance uses DbGap variable API if server is DbGap, otherwise it uses fhir queries.
    */
   getAutocomplete_EV(): any {
-    return this.fhirBackend.serviceBaseUrl ===
-      'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+    return this.isDbgap
       ? this.setupAutocomplete_EV_DbgapVariableApi()
       : this.setupAutocompleteSearch_EV();
   }
@@ -384,11 +394,15 @@ export class AutocompleteParameterValueComponent
             then: (resolve, reject) => {
               const url = 'http://lhc-lx-luanx2:5000/api/dbg_vars/v3/search';
               const params = {
-                sf: `dbgv.${this.searchParameter}`,
-                df: `dbgv.${this.searchParameter}`,
                 terms: fieldVal,
                 maxList: count
               };
+              if (this.dbgapLoincOnly) {
+                params['rec_type'] = 'loinc';
+              } else {
+                params['sf'] = `dbgv.${this.searchParameter}`;
+                params['df'] = `dbgv.${this.searchParameter}`;
+              }
               // Array of result items for autocompleter
               const contains: ValueSetExpansionContains[] = [];
               // Already selected items
@@ -584,7 +598,9 @@ export class AutocompleteParameterValueComponent
     }
     const result = [];
     for (let i = 0; i < response[1].length; i++) {
-      const displayItem = response[3][i][0];
+      const displayItem = this.dbgapLoincOnly
+        ? response[3][i][1]
+        : response[3][i][0];
       const id = AutocompleteParameterValueComponent.getEvIdFromDbgapVariableApi(
         response[1][i]
       );
