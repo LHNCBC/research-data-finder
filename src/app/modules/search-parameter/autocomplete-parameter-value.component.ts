@@ -550,21 +550,22 @@ export class AutocompleteParameterValueComponent
     processedCodes: { [key: string]: string[] },
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
-    return (bundle.entry || []).reduce((acc, e) => {
+    const result = [];
+    (bundle.entry || []).forEach((e) => {
       const displayItem = e.resource[this.searchParameter];
       if (processedCodes[displayItem]) {
         processedCodes[displayItem].push(e.resource.id);
       } else {
         processedCodes[displayItem] = [e.resource.id];
+        if (selectedCodes.indexOf(displayItem) === -1) {
+          result.push({
+            display: displayItem,
+            code: processedCodes[displayItem]
+          });
+        }
       }
-      if (selectedCodes.indexOf(displayItem) === -1) {
-        acc.push({
-          display: displayItem,
-          code: processedCodes[displayItem]
-        });
-      }
-      return acc;
-    }, []);
+    });
+    return result;
   }
 
   /**

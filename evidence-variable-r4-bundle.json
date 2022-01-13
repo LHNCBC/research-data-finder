@@ -26,6 +26,35 @@
       }
     },
     {
+      "fullUrl": "/EvidenceVariable/phv00492038",
+      "request": {
+        "method": "PUT",
+        "url": "EvidenceVariable/phv00492038"
+      },
+      "resource": {
+        "resourceType": "EvidenceVariable",
+        "id": "phv00492038",
+        "meta": {
+          "versionId": "1",
+          "lastUpdated": "2021-12-06T02:58:29.488-05:00",
+          "source": "#NpB8P9JPykOUl2Cq"
+        },
+        "version": "v1.p1",
+        "name": "ENV_SMOKE_pretrial",
+        "status": "active",
+        "publisher": "NLM LForms Project",
+        "description": "Home exposure to smoke prior to trial enrollment",
+        "characteristic": [
+          {
+            "description": "Observations of this variable for individual subjects can be codes.",
+            "definitionDataRequirement": {
+              "type": "Coding"
+            }
+          }
+        ]
+      }
+    },
+    {
       "fullUrl": "/EvidenceVariable/phv00492039",
       "request": {
         "method": "PUT",
@@ -84,6 +113,36 @@
       }
     },
     {
+      "fullUrl": "/Patient/p-998",
+      "request": {
+        "method": "PUT",
+        "url": "Patient/p-998"
+      },
+      "resource": {
+        "resourceType": "Patient",
+        "id": "p-998",
+        "active": false,
+        "name": [ {
+          "use": "official",
+          "family": "LYNCH",
+          "given": [ "PAUL" ]
+        } ],
+        "gender": "male",
+        "birthDate": "2073",
+        "deceasedDateTime": "2128",
+        "address": [ {
+          "use": "home",
+          "type": "both",
+          "text": "83637 Fake AIRPORT BLVD, CUMBERLAND, MD 21502",
+          "line": [ "83637 Fake AIRPORT BLVD" ],
+          "city": "CUMBERLAND",
+          "state": "MD",
+          "postalCode": "21502",
+          "country": "US"
+        } ]
+      }
+    },
+    {
       "fullUrl": "/Patient/p-999",
       "request": {
         "method": "PUT",
@@ -111,6 +170,59 @@
           "postalCode": "21502",
           "country": "US"
         } ]
+      }
+    },
+    {
+      "fullUrl": "/Observation/ev998",
+      "request": {
+        "method": "PUT",
+        "url": "Observation/ev998"
+      },
+      "resource": {
+        "resourceType": "Observation",
+        "id": "ev998",
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/workflow-instantiatesUri",
+            "valueUri": "https://lforms-fhir.nlm.nih.gov/baseR4/EvidenceVariable/phv00492038"
+          }
+        ],
+        "identifier": [
+          {
+            "system": "1",
+            "value": "9875"
+          }
+        ],
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "code": "PHY",
+                "display": "Physician"
+              }
+            ],
+            "text": "Physician"
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "1",
+              "code": "9875",
+              "display": "Total Clinic Charge"
+            }
+          ],
+          "text": "Total Clinic Charge"
+        },
+        "subject": {
+          "reference": "Patient/p-998",
+          "display": "HAO XIE"
+        },
+        "effectiveDateTime": "2141-06-18T21:00:00.000Z",
+        "valueQuantity": {
+          "value": 28
+        }
       }
     },
     {
