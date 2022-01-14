@@ -16,16 +16,17 @@ import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { EMPTY, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { getNextPageUrl } from '../../shared/utils';
+import { escapeStringForRegExp, getNextPageUrl } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
 import { AutocompleteParameterValue } from '../../types/autocomplete-parameter-value';
 import { HttpClient } from '@angular/common/http';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { get as getPropertyByPath } from 'lodash-es';
 import Resource = fhir.Resource;
-import CodeableConcept = fhir.CodeableConcept;
+import * as fhirpath from 'fhirpath';
+import * as fhirPathModelR4 from 'fhirpath/fhir-context/r4';
+import Coding = fhir.Coding;
 
 /**
  * data type used for this control
@@ -99,6 +100,10 @@ export class AutocompleteParameterValueComponent
   @Input() resourceType: string;
   @Input() observationCodes: string[];
   @Input() searchParameter: string;
+  // Column name, defaults to searchParameter
+  @Input() columnName: string;
+  // FHIRPath expression to extract autocomplete option, defaults to searchParameter
+  @Input() expression: string;
   @Input() usePrefetch = false;
 
   currentData: AutocompleteParameterValue = {
@@ -281,15 +286,24 @@ export class AutocompleteParameterValueComponent
                 })
                 .pipe(
                   expand((response: Bundle) => {
-                    contains.push(
-                      ...this.getAutocompleteItems(
-                        response,
-                        processedCodes,
-                        selectedCodes
-                      )
+                    const newItems = this.getAutocompleteItems(
+                      response,
+                      filterText,
+                      processedCodes,
+                      selectedCodes
                     );
+                    contains.push(...newItems);
                     const nextPageUrl = getNextPageUrl(response);
                     if (nextPageUrl && contains.length < count) {
+                      if (!newItems.length) {
+                        // If the request did not return new items, then we need
+                        // to go to the next page.
+                        // Otherwise, it will be an infinite recursion.
+                        // You can reproduce this problem on https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1
+                        // if you comment next line and enter 'c' in the ResearchStudy.keyword
+                        // field and click the 'See more items' link.
+                        return this.httpClient.get(nextPageUrl);
+                      }
                       this.liveAnnoncer.announce('New items added to list.');
                       // Update list before calling server for next query.
                       resolve({
@@ -351,27 +365,43 @@ export class AutocompleteParameterValueComponent
   /**
    * Extracts autocomplete items from resource bundle
    * @param bundle - resource bundle
+   * @param filterText - text in autocomplete field
    * @param processedCodes - hash of processed codes,
    *   used to exclude repeated codes
    * @param selectedCodes - already selected codes
    */
   getAutocompleteItems(
     bundle: Bundle,
+    filterText: string,
     processedCodes: { [key: string]: boolean },
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
-    const getter = this.getCodeableConceptsGetter();
+    // Additional filter for options list.
+    // Because `coding` can have values that don't match the text in the autocomplete field.
+    // For example, ResearchStudy.keyword (https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1)
+    const reDisplayValue = filterText
+      ? new RegExp(`\\b${escapeStringForRegExp(filterText)}`, 'i')
+      : /.*/;
+    const codingsGetter = this.getCodingsGetter();
     return (bundle.entry || []).reduce((acc, entry) => {
-      const codeableConcepts = getter(entry.resource);
-      if (!codeableConcepts.length) {
+      const codings = codingsGetter(entry.resource);
+      if (!codings.length) {
         return acc;
       }
       acc.push(
-        ...codeableConcepts[0].coding.filter((coding) => {
+        ...codings.filter((coding) => {
           const matched =
+            // Encounter.class (https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1) have
+            // a strange `coding` value {code: 'ambulatory'} and normal `coding`
+            // value {code: 'AMB', display: 'ambulatory'}.
+            coding.display &&
+            // Additional filter for options list.
+            reDisplayValue.test(coding.display) &&
             !processedCodes[coding.code] &&
             selectedCodes.indexOf(coding.code) === -1;
+
           processedCodes[coding.code] = true;
+
           return matched;
         })
       );
@@ -399,36 +429,39 @@ export class AutocompleteParameterValueComponent
           this.resourceType
         ] || this.searchParameter
       );
-    } else if (this.searchParameter === 'value-concept') {
-      return 'value';
     }
-    return this.searchParameter;
+    return this.columnName || this.searchParameter;
   }
 
   /**
-   * Returns a function which extracts the CodeableConcepts that matches the
+   * Returns a function which extracts the Codings that matches the
    * search parameter from the resource object.
    */
-  getCodeableConceptsGetter(): (resource: Resource) => CodeableConcept[] {
+  getCodingsGetter(): (resource: Resource) => Coding[] {
     let propertyName;
     if (this.searchParameter === 'code') {
       propertyName =
         AutocompleteParameterValueComponent.codeTextFieldMapping[
           this.resourceType
         ] || this.searchParameter;
-    } else if (this.searchParameter === 'value-concept') {
-      propertyName = 'valueCodeableConcept';
     } else {
-      propertyName = this.searchParameter;
+      propertyName = this.expression || this.searchParameter;
     }
+    const compiledExpression = fhirpath.compile(propertyName, fhirPathModelR4);
 
-    return (resource) => {
-      const value = getPropertyByPath(resource, propertyName);
-      if (value) {
-        return value instanceof Array ? value : [value];
-      } else {
-        return [];
-      }
-    };
+    return (resource) =>
+      [].concat(
+        ...compiledExpression(resource).map((value) => {
+          if (Array.isArray(value)) {
+            return [].concat(
+              ...value.map((v) => (v.code ? [v] : v.coding || []))
+            );
+          } else if (typeof value === 'string') {
+            // if we only have code, add a display value with the same value
+            return [{ code: value, display: value }];
+          }
+          return value.code ? [value] : value.coding || [];
+        })
+      );
   }
 }

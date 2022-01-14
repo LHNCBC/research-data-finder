@@ -22,6 +22,8 @@
             formControlName="testValue" placeholder="Select one or more"
             resourceType="Observation"
             [observationCodes]="observationCodes"
+            columnName="value"
+            expression="value"
             searchParameter="value-concept">
         </app-autocomplete-parameter-value>
         <input *ngSwitchCase="'Quantity'" type="number" step="any" matInput formControlName="testValue"
