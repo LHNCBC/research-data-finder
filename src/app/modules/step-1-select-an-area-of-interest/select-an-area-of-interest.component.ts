@@ -16,6 +16,7 @@ import { combineLatest, Subject, Subscription } from 'rxjs';
 import { filter, startWith, tap } from 'rxjs/operators';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
+import { ResearchStudyService } from '../../shared/research-study/research-study.service';
 
 export enum SelectOptions {
   showOnlyStudiesWithSubjects = 0,
@@ -37,7 +38,6 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
   showTable = false;
   // A list of items that system will select once table loading is complete.
   idsToSelect: string[] = [];
-  myStudyIds: string[] = [];
   @ViewChild('resourceTableComponent') public resourceTableComponent;
 
   /**
@@ -47,7 +47,8 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
     private fhirBackend: FhirBackendService,
     private http: HttpClient,
     public columnDescriptions: ColumnDescriptionsService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private researchStudy: ResearchStudyService
   ) {}
 
   ngOnInit(): void {
@@ -119,7 +120,7 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
         } else {
           this.researchStudyStream.complete();
           if (myStudiesOnly) {
-            this.myStudyIds = myStudyIds;
+            this.researchStudy.myStudyIds = myStudyIds;
             this.option.enable({ emitEvent: false });
           }
           if (this.idsToSelect.length) {
@@ -139,7 +140,7 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
     }
     if (
       this.resourceTableComponent.selectedResources.selected.length ===
-      this.myStudyIds.length
+      this.researchStudy.myStudyIds.length
     ) {
       // If all applicable rows are selected, use empty array (same as no rows selected).
       return [];
