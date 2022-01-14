@@ -10,7 +10,7 @@
       "resource": {
         "resourceType": "SearchParameter",
         "id": "obs-evidence-variable",
-        "url": "http://hl7.org/fhir/SearchParameter/obs-evidence-variable",
+        "url": "https://lforms-fhir.nlm.nih.gov/baseR4/SearchParameter/obs-evidence-variable",
         "version": "1.0.0",
         "name": "ObsEvidenceVariable",
         "status": "active",
