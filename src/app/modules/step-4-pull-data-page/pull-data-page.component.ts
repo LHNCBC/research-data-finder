@@ -261,11 +261,13 @@ export class PullDataPageComponent implements AfterViewInit {
     // before the ResourceTableComponent subscribes to the resource stream.
     this.cdr.detectChanges();
 
+    const resourceTypeParam =
+      resourceType === 'EvidenceVariable' ? 'Observation' : resourceType;
     const observationCodes = [];
     const patientToCodeToCount = {};
     let sortParam = '';
 
-    if (resourceType === 'Observation') {
+    if (resourceTypeParam === 'Observation') {
       criteria = criteria.replace(/&combo-code=([^&]*)/g, (_, $1) => {
         observationCodes.push(...$1.split(','));
         return '';
@@ -302,9 +304,6 @@ export class PullDataPageComponent implements AfterViewInit {
               .map((patient) => 'Patient/' + patient.id)
               .join(',')}`;
           }
-
-          const resourceTypeParam =
-            resourceType === 'EvidenceVariable' ? 'Observation' : resourceType;
 
           if (observationCodes.length) {
             // Create separate requests for each Observation code
@@ -395,7 +394,7 @@ export class PullDataPageComponent implements AfterViewInit {
                       };
                     });
                 })
-                ?.filter((p) => p !== null) || null
+                ?.filter((p) => p) || null
             );
           }),
           filter((p) => p !== null),
