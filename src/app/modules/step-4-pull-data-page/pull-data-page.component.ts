@@ -7,7 +7,14 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { concatMap, map, reduce, startWith, switchMap } from 'rxjs/operators';
+import {
+  concatMap,
+  filter,
+  map,
+  reduce,
+  startWith,
+  switchMap
+} from 'rxjs/operators';
 import { chunk } from 'lodash-es';
 import {
   ConnectionStatus,
@@ -97,9 +104,7 @@ export class PullDataPageComponent implements AfterViewInit {
           const resources = fhirBackend.getCurrentDefinitions().resources;
           this.unselectedResourceTypes = Object.keys(resources).filter(
             (resourceType) =>
-              this.visibleResourceTypes.indexOf(resourceType) === -1 &&
-              // temporarily hide EV in pull data
-              resourceType !== 'EvidenceVariable'
+              this.visibleResourceTypes.indexOf(resourceType) === -1
           );
           this.codeTextResourceTypes = Object.entries(resources)
             .filter((r: [string, any]) =>
@@ -279,7 +284,7 @@ export class PullDataPageComponent implements AfterViewInit {
     // in one query. We don't use this optimization for other resource types
     // because we need to limit the number of resources per Patient.
     const numberOfPatientsInRequest = resourceType === 'Patient' ? 10 : 1;
-    from(
+    const observable = from(
       [].concat(
         ...chunk(this.patients, numberOfPatientsInRequest).map((patients) => {
           let linkToPatient;
@@ -298,13 +303,16 @@ export class PullDataPageComponent implements AfterViewInit {
               .join(',')}`;
           }
 
+          const resourceTypeParam =
+            resourceType === 'EvidenceVariable' ? 'Observation' : resourceType;
+
           if (observationCodes.length) {
             // Create separate requests for each Observation code
             return observationCodes.map((code) => {
               return (
                 this.http
                   .get(
-                    `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}&_count=${this.perPatientFormControls.Observation.value}&combo-code=${code}`
+                    `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${this.perPatientFormControls.Observation.value}&combo-code=${code}`
                   )
                   // toPromise needed to immediately execute query, this allows batch requests
                   .toPromise()
@@ -324,7 +332,7 @@ export class PullDataPageComponent implements AfterViewInit {
           return (
             this.http
               .get(
-                `$fhir/${resourceType}?${linkToPatient}${criteria}${sortParam}${countParam}`
+                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}${countParam}`
               )
               // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
               .toPromise()
@@ -335,19 +343,16 @@ export class PullDataPageComponent implements AfterViewInit {
           );
         })
       )
-    )
-      .pipe(
-        concatMap(
-          (
-            bundlePromise: Promise<{ bundle: Bundle; patientData: Patient }>
-          ) => {
-            return from(bundlePromise);
-            // TODO: Currently we load only 1000 resources per Patient.
-            //       (In the previous version of Research Data Finder,
-            //       we only loaded the first page with the default size)
-            //       Uncommenting the below code will allow loading all resources,
-            //       but this could take time.
-            /*.pipe(
+    ).pipe(
+      concatMap(
+        (bundlePromise: Promise<{ bundle: Bundle; patientData: Patient }>) => {
+          return from(bundlePromise);
+          // TODO: Currently we load only 1000 resources per Patient.
+          //       (In the previous version of Research Data Finder,
+          //       we only loaded the first page with the default size)
+          //       Uncommenting the below code will allow loading all resources,
+          //       but this could take time.
+          /*.pipe(
             // Modifying the Observable to load the following pages sequentially
             expand((response: Bundle) => {
               const nextPageUrl = getNextPageUrl(response);
@@ -359,49 +364,103 @@ export class PullDataPageComponent implements AfterViewInit {
               }
             })
           )*/
-          }
-        ),
-
-        // Generate a sequence of resources
-        concatMap(({ bundle, patientData }) => {
-          const res: (Resource & PatientMixin)[] =
-            bundle?.entry?.map((entry) => ({
-              ...entry.resource,
-              patientData
-            })) || [];
-
-          if (resourceType === 'Observation' && !observationCodes.length) {
-            // When no code is specified in criteria and we loaded last 1000 Observations.
-            // Per Clem, we will only show perPatientPerTest results per patient per test.
-            const perPatientPerTest = this.perPatientFormControls.Observation
-              .value;
-            return res.filter((obs: Observation & PatientMixin) => {
-              const patientRef = obs.subject.reference;
-              const codeStr = this.columnValues.getCodeableConceptAsText(
-                obs.code
-              );
-              const codeToCount =
-                patientToCodeToCount[patientRef] ||
-                (patientToCodeToCount[patientRef] = {});
-
-              // For now skip Observations without a code in the first coding.
-              if (codeStr) {
-                const codeCount =
-                  codeToCount[codeStr] || (codeToCount[codeStr] = 0);
-                if (codeCount < perPatientPerTest) {
-                  ++codeToCount[codeStr];
-                  return true;
-                }
-              }
-              return false;
-            });
-          }
-
-          return res;
-        })
+        }
       )
-      // Sequentially send the loaded resources to the resource table
-      .subscribe(this.resourceStream[resourceType]);
+    );
+
+    // For pulling EV, we first pull Observations and then retrieve EVs asynchronously by looking at
+    // Observation extensions.
+    if (resourceType === 'EvidenceVariable') {
+      observable
+        .pipe(
+          concatMap(({ bundle, patientData }) => {
+            return (
+              bundle?.entry
+                ?.map((entry) => {
+                  const evUrl = entry.resource['extension']?.find(
+                    (x) =>
+                      x.url ===
+                      'http://hl7.org/fhir/StructureDefinition/workflow-instantiatesUri'
+                  )?.valueUri;
+                  if (!evUrl) {
+                    return null;
+                  }
+                  return this.http
+                    .get(evUrl)
+                    .toPromise()
+                    .then((evBundle: Resource) => {
+                      return {
+                        resource: evBundle,
+                        patientData
+                      };
+                    });
+                })
+                ?.filter((p) => p !== null) || null
+            );
+          }),
+          filter((p) => p !== null),
+          concatMap(
+            (
+              bundlePromise: Promise<{
+                resource: Resource;
+                patientData: Patient;
+              }>
+            ) => {
+              return from(bundlePromise);
+            }
+          ),
+          map(({ resource, patientData }) => {
+            return {
+              ...resource,
+              patientData
+            };
+          })
+        )
+        .subscribe(this.resourceStream[resourceType]);
+    } else {
+      observable
+        .pipe(
+          // Generate a sequence of resources
+          concatMap(({ bundle, patientData }) => {
+            const res: (Resource & PatientMixin)[] =
+              bundle?.entry?.map((entry) => ({
+                ...entry.resource,
+                patientData
+              })) || [];
+
+            if (resourceType === 'Observation' && !observationCodes.length) {
+              // When no code is specified in criteria and we loaded last 1000 Observations.
+              // Per Clem, we will only show perPatientPerTest results per patient per test.
+              const perPatientPerTest = this.perPatientFormControls.Observation
+                .value;
+              return res.filter((obs: Observation & PatientMixin) => {
+                const patientRef = obs.subject.reference;
+                const codeStr = this.columnValues.getCodeableConceptAsText(
+                  obs.code
+                );
+                const codeToCount =
+                  patientToCodeToCount[patientRef] ||
+                  (patientToCodeToCount[patientRef] = {});
+
+                // For now skip Observations without a code in the first coding.
+                if (codeStr) {
+                  const codeCount =
+                    codeToCount[codeStr] || (codeToCount[codeStr] = 0);
+                  if (codeCount < perPatientPerTest) {
+                    ++codeToCount[codeStr];
+                    return true;
+                  }
+                }
+                return false;
+              });
+            }
+
+            return res;
+          })
+          // Sequentially send the loaded resources to the resource table
+        )
+        .subscribe(this.resourceStream[resourceType]);
+    }
   }
 
   /**
