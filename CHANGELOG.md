@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.1.1] - 2022-01-19
+### Fixed
+- Missing spaces between words in autocomplete dropdown list.
+
 ## [4.1.0] - 2021-12-20
 ### Changed
 - Moved comparator, value, and unit to a separate search parameter.
