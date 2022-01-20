@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.1.1] - 2022-01-20
+### Fixed
+- Sorted the dropdown list items for the filter fields in the resource table
+  alphabetically.
+
 ## [4.1.0] - 2021-12-20
 ### Changed
 - Moved comparator, value, and unit to a separate search parameter.
