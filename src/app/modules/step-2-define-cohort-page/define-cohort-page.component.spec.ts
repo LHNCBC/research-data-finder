@@ -441,7 +441,7 @@ describe('DefineCohortComponent', () => {
               field: {
                 element: 'name',
                 value: {
-                  codes: ['phv00492039']
+                  codes: [['phv00492039']]
                 },
                 selectedObservationCodes: null
               }
