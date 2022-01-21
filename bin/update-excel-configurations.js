@@ -88,11 +88,17 @@ function callServer(
 ) {
   const paramName = sheet[`${FHIRNAMECOLUMN}${rowNum}`].v;
   const paramType = sheet[`${DATATYPECOLUMN}${rowNum}`].v;
+  if (!paramType || paramType === 'composite') {
+    // Skip custom and composite parameters
+    resolve();
+    return;
+  }
   const url =
     paramType === 'date' || paramType === 'dateTime'
       ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}=gt1000-01-01`
-      : // : `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}:not=zzz`;
-        `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&_filter=${paramName}%20ne%20zzz`;
+      : paramType === 'Quantity' || paramType === 'quantity'
+      ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&_filter=${paramName}%20ne%20000`
+      : `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&_filter=${paramName}%20ne%20zzz`;
   console.log(url);
 
   https.get(url, (res) => {
@@ -159,7 +165,7 @@ function callServer(
  * {
  *   <serviceBaseUrl>: {
  *     <resourceType>: {
- *       <fhirName>: boolean
+ *       <parameterName>: boolean
  *     }
  *   }
  * }
@@ -239,7 +245,7 @@ function getShowHideValue(serviceBaseUrl, resourceType, fhirName) {
 }
 
 fs.unlinkSync(filePath);
-const httpPromises = [];
+let requestQueuePromise = Promise.resolve();
 // Update sheets to hide search parameters that don't have data on the corresponding server.
 for (let i = 0; i < file.SheetNames.length; i++) {
   const sheet = file.Sheets[file.SheetNames[i]];
@@ -259,13 +265,11 @@ for (let i = 0; i < file.SheetNames.length; i++) {
       }
     }
     if (sheet[`${TYPECOLUMN}${rowNum}`]?.v === SEARCHPARAMETER) {
-      const promise = createHttpsPromise(
-        serviceBaseUrl,
-        resourceType,
-        rowNum,
-        sheet
-      );
-      httpPromises.push(promise);
+      (function (...args) {
+        requestQueuePromise = requestQueuePromise.then(() =>
+          createHttpsPromise(...args)
+        );
+      })(serviceBaseUrl, resourceType, rowNum, sheet);
     }
   }
 }
@@ -370,7 +374,7 @@ function updateColumnRows() {
   }
 }
 
-Promise.all(httpPromises).then(() => {
+requestQueuePromise.then(() => {
   updateColumnRows();
   const sheetsData = [];
   for (let i = 0; i < file.SheetNames.length; i++) {
