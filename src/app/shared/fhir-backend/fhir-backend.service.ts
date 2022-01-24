@@ -367,6 +367,28 @@ export class FhirBackendService implements HttpBackend {
       }
     });
 
+    // Add interpretation search parameter if applicable.
+    if (this.features.interpretation) {
+      const observationSearchParams = this.currentDefinitions.resources
+        .Observation?.searchParameters;
+      if (
+        observationSearchParams &&
+        !observationSearchParams.some((sp) => sp.element === 'interpretation')
+      ) {
+        observationSearchParams.push({
+          element: 'interpretation',
+          displayName: 'interpretation',
+          description:
+            'A categorical assessment, providing a rough qualitative interpretation of the observation value',
+          type: 'CodeableConcept',
+          isArray: false
+        });
+        observationSearchParams.sort((a, b) =>
+          a.element.localeCompare(b.element)
+        );
+      }
+    }
+
     this.currentDefinitions.initialized = true;
     return this.currentDefinitions;
   }

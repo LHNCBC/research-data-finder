@@ -227,9 +227,10 @@ describe('Research Data Finder', () => {
         // * $lastn on Observation is not supported
         // * favicon.ico is missing
         // * ResearchSubject query fails without a consent group
+        // * interpretation search parameter is not supported
         return entries.filter(
           (entry) =>
-            !/Observation\?_sort=age-at-event|code:text=zzzzz|\/favicon\.ico|ResearchSubject/.test(
+            !/Observation\?_sort=age-at-event|code:text=zzzzz|\/favicon\.ico|ResearchSubject|interpretation/.test(
               entry.message
             )
         );
