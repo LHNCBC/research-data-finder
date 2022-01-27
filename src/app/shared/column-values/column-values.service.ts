@@ -207,6 +207,22 @@ export class ColumnValuesService {
    * @param v - value of type "Reference"
    */
   getReferenceAsText(v: Reference): string {
+    // Organization reference may have an acronym in the "reference" property,
+    // for example:
+    // {reference: "Organization/NLM", type: "Organization", display: "National Library of Medicine"}
+    if (v.reference && /Organization\/(.*)/.test(v.reference)) {
+      const acronym = RegExp.$1;
+      if (v.display) {
+        // A simple check to see if it's an acronym of the "display" value:
+        const upperCaseChars = acronym.match(/([A-Z])/g) || [];
+        if (
+          upperCaseChars.length &&
+          !upperCaseChars.find((ch) => v.display.indexOf(ch) === -1)
+        ) {
+          return acronym;
+        }
+      }
+    }
     if (v.display) {
       return v.display;
     } else if (v.reference) {

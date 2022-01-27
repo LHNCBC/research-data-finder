@@ -26,6 +26,7 @@
             displayName: "Patient Id",
             element: "contextPatientId",
             expression: "patientData.id",
+            displayByDefault: true,
             types: [
               "string"
             ]

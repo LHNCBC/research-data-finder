@@ -88,8 +88,8 @@ function callServer(
 ) {
   const paramName = sheet[`${FHIRNAMECOLUMN}${rowNum}`].v;
   const paramType = sheet[`${DATATYPECOLUMN}${rowNum}`].v;
-  if (!paramType || paramType === 'composite') {
-    // Skip custom and composite parameters
+  if (!paramType || paramType === 'composite' || paramType === 'reference') {
+    // Skip custom, reference and composite parameters
     resolve();
     return;
   }
@@ -106,7 +106,7 @@ function callServer(
     const paramName = sheet[`${FHIRNAMECOLUMN}${rowNum}`].v;
     if (statusCode === 429 || statusCode === 502) {
       console.log(
-        `Hide! ${resourceType} ${paramName} - HTTPS returned code ${statusCode}, retrying... ${++retryCount}`
+        `${resourceType} ${paramName} - HTTPS returned code ${statusCode}, retrying... ${++retryCount}`
       );
       setTimeout(() => {
         callServer(
@@ -204,14 +204,14 @@ function updateSearchParamInfo(
 
 /**
  *  Looks for a matching search parameter with the specified FHIR name and
- *  returns show/hide value depending on data availability for that search
+ *  returns true/false value depending on data availability for that search
  *  parameter. If none of the search parameters match, returns undefined.
  * @param serviceBaseUrl server base URL
  * @param resourceType resource type
  * @param fhirName FHIR name
- * @return {'show'|'hide'|undefined}
+ * @return {true|false|undefined}
  */
-function getShowHideValue(serviceBaseUrl, resourceType, fhirName) {
+function hasData(serviceBaseUrl, resourceType, fhirName) {
   let paramNames;
   if (!availabilityOfData[serviceBaseUrl][resourceType]) {
     return undefined;
@@ -234,11 +234,9 @@ function getShowHideValue(serviceBaseUrl, resourceType, fhirName) {
     );
   }
   if (paramNames.length) {
-    return paramNames.find(
+    return !!paramNames.find(
       (paramName) => availabilityOfData[serviceBaseUrl][resourceType][paramName]
-    )
-      ? 'show'
-      : 'hide';
+    );
   } else {
     return undefined;
   }
@@ -324,8 +322,8 @@ function updateColumnRows() {
     const colorWithoutData = sheet['A4'].s.fgColor.rgb;
     const doNotUpdateColor = sheet['A5'].s.fgColor.rgb;
     const colorLegend = {
-      show: colorWithData,
-      hide: colorWithoutData
+      withData: colorWithData,
+      withoutData: colorWithoutData
     };
     const maxRowNumber = +sheet['!ref'].slice(4);
     const maxColumnLetter = sheet['!ref'].charAt(3);
@@ -355,18 +353,20 @@ function updateColumnRows() {
         continue;
       }
 
-      const updateShowHideValue = getShowHideValue(
-        serviceBaseUrl,
-        resourceType,
-        fhirName
-      );
-      if (updateShowHideValue !== undefined) {
-        sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = updateShowHideValue;
+      const dataAvailability = hasData(serviceBaseUrl, resourceType, fhirName);
+      if (dataAvailability !== undefined) {
+        if (dataAvailability) {
+          if (sheet[`${SHOWHIDECOLUMN}${rowNum}`].v === 'disable') {
+            sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = 'show';
+          }
+        } else {
+          sheet[`${SHOWHIDECOLUMN}${rowNum}`].v = 'disable';
+        }
         paintRow(
           sheet,
           rowNum,
           columnCount,
-          colorLegend[updateShowHideValue],
+          colorLegend[dataAvailability ? 'withData' : 'withoutData'],
           doNotUpdateColor
         );
       }

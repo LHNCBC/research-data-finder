@@ -24,14 +24,49 @@ td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
   padding-right: 10px;
 }
 
-td.mat-cell {
-  padding-top: 5px;
-  padding-bottom: 5px;
-  vertical-align: top;
+.cell-text-wrap {
+  td.mat-cell {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    vertical-align: top;
+  }
+
+  th.mat-header-cell:not(.cell-with-icon) {
+    min-width: 90px;
+  }
 }
 
-th.mat-header-cell:not(.cell-with-icon) {
-  min-width: 90px;
+.cell-text-no-wrap {
+  td.mat-cell {
+    padding-top: 0;
+    padding-bottom: 0;
+    vertical-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+  }
+
+  td.mat-cell.mat-column-title {
+    max-width: 400px;
+  }
+
+  td.mat-cell.mat-column-NumAnalyses,
+  td.mat-cell.mat-column-NumDocuments,
+  td.mat-cell.mat-column-NumMolecularDatasets,
+  td.mat-cell.mat-column-NumPhenotypeDatasets,
+  td.mat-cell.mat-column-NumSamples,
+  td.mat-cell.mat-column-NumSubjects,
+  td.mat-cell.mat-column-NumSubStudies,
+  td.mat-cell.mat-column-NumVariables {
+    padding-left: 30px;
+  }
+
+  th.mat-header-cell:not(.cell-with-icon) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .mat-header-cell {
