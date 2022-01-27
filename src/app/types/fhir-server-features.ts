@@ -9,6 +9,8 @@ export interface FhirServerFeatures {
   sortObservationsByAgeAtEvent: boolean;
   // Whether server has Research Study data
   hasResearchStudy: boolean;
+  // Whether server supports interpretation search parameter
+  interpretation: boolean;
   // Whether batching request is supported
   batch: boolean;
   // Item group that must be included as _security param in dbGap queries
