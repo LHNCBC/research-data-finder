@@ -24,6 +24,7 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
+import { ResearchStudyService } from '../../shared/research-study/research-study.service';
 
 /**
  * data type used for this control
@@ -100,7 +101,8 @@ export class AutocompleteParameterValueComponent
     private errorStateMatcher: ErrorStateMatcher,
     private httpClient: HttpClient,
     private liveAnnoncer: LiveAnnouncer,
-    private fhirBackend: FhirBackendService
+    private fhirBackend: FhirBackendService,
+    private researchStudy: ResearchStudyService
   ) {
     super();
     if (ngControl != null) {
@@ -395,7 +397,8 @@ export class AutocompleteParameterValueComponent
               const url = 'http://lhc-lx-luanx2:5000/api/dbg_vars/v3/search';
               const params = {
                 terms: fieldVal,
-                maxList: count
+                maxList: count,
+                q: this.getDbgapEvResearchStudyParam()
               };
               if (this.dbgapLoincOnly) {
                 params['rec_type'] = 'loinc';
@@ -650,6 +653,23 @@ export class AutocompleteParameterValueComponent
       );
       return acc;
     }, []);
+  }
+
+  /**
+   * Get 'q' params value for DbGap varaible API query.
+   * e.g. study_id:phs002410*, study_id:(phs002410*%20OR%20phs002409*)
+   * @private
+   */
+  private getDbgapEvResearchStudyParam(): string {
+    if (!this.researchStudy.myStudyIds.length) {
+      return '';
+    }
+    if (this.researchStudy.myStudyIds.length === 1) {
+      return `study_id:${this.researchStudy.myStudyIds[0]}*`;
+    }
+    return `study_id:(${this.researchStudy.myStudyIds
+      .map((id) => id + '*')
+      .join(' OR ')})`;
   }
 
   /**

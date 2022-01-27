@@ -76,7 +76,7 @@
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
             "browserTarget": "fhir-obs-viewer:build",
-            "port": 4201
+            "port": 4204
           },
           "configurations": {
             "production": {

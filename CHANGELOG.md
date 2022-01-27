@@ -3,9 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.2.0] - 2022-1-11
+## [4.2.0] - 2022-1-24
 ### Added
 - Evidence Variable search parameters in define cohort.
+
+## [4.1.1] - 2022-1-12
+### Added
+- Support for interpretation search parameter when applicable.
 
 ## [4.1.0] - 2021-12-20
 ### Changed

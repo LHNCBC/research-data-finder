@@ -5,17 +5,18 @@
     {
       "request": {
         "method": "PUT",
-        "url": "SearchParameter/obs-evidence-variable"
+        "url": "SearchParameter/observation-evidencevariable"
       },
       "resource": {
         "resourceType": "SearchParameter",
-        "id": "obs-evidence-variable",
-        "url": "http://hl7.org/fhir/SearchParameter/obs-evidence-variable",
+        "id": "observation-evidencevariable",
+        "url": "https://lforms-fhir.nlm.nih.gov/baseR4/SearchParameter/observation-evidencevariable",
         "version": "1.0.0",
-        "name": "ObsEvidenceVariable",
+        "name": "Observation_evidencevariable",
         "status": "active",
+        "experimental": false,
         "date": "2021-12-06",
-        "publisher": "NLM LForms Project",
+        "publisher": "The National Library of Medicine",
         "description": "Returns observations with a specified Evidence Variable extension.",
         "code": "evidencevariable",
         "base": [
