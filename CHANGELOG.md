@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.1.3] - 2022-01-28
+### Changed
+- Program to update the .xlsx configuration file and updated the .xlsx
+  configuration file.
+
 ## [4.1.2] - 2022-01-19
 ### Fixed
 - Missing spaces between words in autocomplete dropdown list.
