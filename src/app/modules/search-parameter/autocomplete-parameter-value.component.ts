@@ -604,6 +604,9 @@ export class AutocompleteParameterValueComponent
       const displayItem = this.dbgapLoincOnly
         ? response[3][i][1]
         : response[3][i][0];
+      if (!displayItem) {
+        continue;
+      }
       const id = AutocompleteParameterValueComponent.getEvIdFromDbgapVariableApi(
         response[1][i]
       );
