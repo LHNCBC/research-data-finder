@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.1.2] - 2022-01-26
+## [4.1.4] - 2022-02-03
 ### Changed
 - "Keywords" and "Id" for the ResearchStudy table is hidden by default.
 - Additional columns with numbers for ResearchStudy table are shown by default
@@ -14,10 +14,18 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Forced "Title" column wider than others for the ResearchStudy table.
 - Columns are hidden when we know there is no data for them.
 
-## [4.1.1] - 2022-01-03
+## [4.1.3] - 2022-01-28
 ### Changed
 - Program to update the .xlsx configuration file and updated the .xlsx
   configuration file.
+
+## [4.1.2] - 2022-01-19
+### Fixed
+- Missing spaces between words in autocomplete dropdown list.
+
+## [4.1.1] - 2022-1-12
+### Added
+- Support for interpretation search parameter when applicable.
 
 ## [4.1.0] - 2021-12-20
 ### Changed
