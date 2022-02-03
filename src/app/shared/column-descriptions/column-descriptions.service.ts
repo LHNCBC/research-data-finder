@@ -137,7 +137,7 @@ export class ColumnDescriptionsService {
           '-' +
           context +
           '-wrap-cell-text'
-      ) === 'true' || false
+      ) === 'true'
     );
   }
 
