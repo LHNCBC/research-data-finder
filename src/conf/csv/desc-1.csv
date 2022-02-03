@@ -27,7 +27,6 @@ ResearchStudy,,,,,,,
 ,NumVariables,column,"# Variables",show,Count,extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumVariables').value,"A variable is demographic, clinical or exposure measurement of a study subject or sample from a subject (e.g., height, weight, blood pressure, etc)."
 ,objective,column,Objective,hide,BackboneElement,,"A goal for the study"
 ,partOf,column,"Part Of",hide,Reference,,"Part of larger study"
-,period,column,Period,hide,Period,,"When the study began and ended"
 ,phase,column,Phase,hide,CodeableConcept,,"n-a | early-phase-1 | phase-1 | phase-1-phase-2 | phase-2 | phase-2-phase-3 | phase-3 | phase-4"
 ,primaryPurposeType,column,"Primary Purpose Type",hide,CodeableConcept,,"treatment | prevention | diagnostic | supportive-care | screening | health-services-research | basic-science | device-feasibility"
 ,principalInvestigator,column,"Principal Investigator",hide,Reference,,"Researcher who oversees multiple aspects of the study"
