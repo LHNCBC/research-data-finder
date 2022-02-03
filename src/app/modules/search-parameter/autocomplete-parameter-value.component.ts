@@ -396,15 +396,15 @@ export class AutocompleteParameterValueComponent
             then: (resolve, reject) => {
               const url = 'http://lhc-lx-luanx2:5000/api/dbg_vars/v3/search';
               const params = {
+                rec_type: 'dbgv',
                 terms: fieldVal,
                 maxList: count,
+                sf: `dbgv.${this.searchParameter}`,
+                df: `dbgv.${this.searchParameter}`,
                 q: this.getDbgapEvResearchStudyParam()
               };
               if (this.dbgapLoincOnly) {
-                params['rec_type'] = 'loinc';
-              } else {
-                params['sf'] = `dbgv.${this.searchParameter}`;
-                params['df'] = `dbgv.${this.searchParameter}`;
+                params['q'] += ' has_loinc:true';
               }
               // Array of result items for autocompleter
               const contains: ValueSetExpansionContains[] = [];
@@ -601,12 +601,7 @@ export class AutocompleteParameterValueComponent
     }
     const result = [];
     for (let i = 0; i < response[1].length; i++) {
-      const displayItem = this.dbgapLoincOnly
-        ? response[3][i][1]
-        : response[3][i][0];
-      if (!displayItem) {
-        continue;
-      }
+      const displayItem = response[3][i][0];
       const id = AutocompleteParameterValueComponent.getEvIdFromDbgapVariableApi(
         response[1][i]
       );
