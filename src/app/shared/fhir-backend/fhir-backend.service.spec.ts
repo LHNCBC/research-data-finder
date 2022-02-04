@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-
 import { FhirBackendService } from './fhir-backend.service';
 import { FhirBackendModule } from './fhir-backend.module';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
@@ -28,6 +27,12 @@ describe('FhirBackendService', () => {
     status: 200,
     data: 'response from FhirBatchQuery cache'
   };
+  const csvDefinitions = {
+    Observation: {
+      columnDescriptions: [],
+      searchParameters: []
+    }
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -40,14 +45,18 @@ describe('FhirBackendService', () => {
     spyOn(FhirBatchQuery.prototype, 'getWithCache').and.resolveTo(
       responseFromFhirBatchQueryCache
     );
+    spyOn(FhirBatchQuery.prototype, 'getVersionName').and.returnValue('R4');
     service = TestBed.inject(FhirBackendService);
     httpClient = TestBed.inject(HttpClient);
     defaultHttpXhrBackend = TestBed.inject(HttpXhrBackend);
     spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
       of(responseFromDefaultBackend)
     );
-    service.fhirClient._features = { batch: true };
+    service.fhirClient._features = { batch: true, interpretation: true };
     service.settings = TestBed.inject(SettingsService);
+    spyOn(service.settings, 'loadCsvDefinitions').and.returnValue(
+      of(csvDefinitions)
+    );
   });
 
   it('should be created', () => {
@@ -57,6 +66,18 @@ describe('FhirBackendService', () => {
   it('should initialize FhirBatchQuery', () => {
     service.initializeFhirBatchQuery();
     expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith('');
+  });
+
+  it('should add interpretation search parameter', (done) => {
+    service.initializeFhirBatchQuery();
+    service.currentDefinitions$.subscribe((definitions) => {
+      expect(
+        definitions.resources.Observation.searchParameters.some(
+          (sp) => sp.element === 'interpretation'
+        )
+      ).toBeTrue();
+      done();
+    });
   });
 
   it('should pass through non-FHIR requests', (done) => {
