@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.1.4] - 2022-02-07
+### Changed
+- Reduced time to get the first page of research studies.
+
 ## [4.1.3] - 2022-01-28
 ### Changed
 - Program to update the .xlsx configuration file and updated the .xlsx
