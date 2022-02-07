@@ -394,7 +394,7 @@ export class AutocompleteParameterValueComponent
         search: (fieldVal, count) => {
           return {
             then: (resolve, reject) => {
-              const url = 'http://lhc-lx-xiehao:3000/api/dbg_vars/v3/search';
+              const url = 'http://lhc-lx-luanx2:5000/api/dbg_vars/v3/search';
               const params = {
                 rec_type: 'dbgv',
                 terms: fieldVal,
