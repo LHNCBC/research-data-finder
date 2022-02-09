@@ -34,8 +34,6 @@ export interface Lookup {
   display: string;
 }
 
-const EVIDENCEVARIABLE = 'EvidenceVariable';
-
 /**
  * Component for search parameter value as autocomplete multi-select
  */
@@ -129,6 +127,7 @@ export class AutocompleteParameterValueComponent
   @Input() searchParameter: string;
   @Input() usePrefetch = false;
 
+  EVIDENCEVARIABLE = 'EvidenceVariable';
   dbgapLoincOnly = false;
   currentData: AutocompleteParameterValue = {
     codes: [],
@@ -228,7 +227,7 @@ export class AutocompleteParameterValueComponent
    */
   setupAutocomplete(): void {
     this.acInstance =
-      this.resourceType === EVIDENCEVARIABLE
+      this.resourceType === this.EVIDENCEVARIABLE
         ? this.getAutocomplete_EV()
         : this.getAutocomplete();
 
@@ -464,7 +463,7 @@ export class AutocompleteParameterValueComponent
         search: (fieldVal, count) => {
           return {
             then: (resolve, reject) => {
-              const url = `$fhir/${EVIDENCEVARIABLE}`;
+              const url = `$fhir/${this.EVIDENCEVARIABLE}`;
               const params = {
                 _elements: this.searchParameter
               };
@@ -693,7 +692,7 @@ export class AutocompleteParameterValueComponent
   }
 
   getAriaLabel(): string {
-    return this.resourceType === EVIDENCEVARIABLE
+    return this.resourceType === this.EVIDENCEVARIABLE
       ? `select Evidence Variables by ${this.searchParameter}`
       : this.searchParameter === 'code'
       ? `${this.resourceType} codes from FHIR server`
