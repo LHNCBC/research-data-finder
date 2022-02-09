@@ -11,13 +11,17 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
   styleUrls: ['./select-columns.component.less']
 })
 export class SelectColumnsComponent implements OnInit {
+  resourceType: string;
   columns: ColumnDescription[] = [];
+  wrapCellText: boolean;
 
   constructor(
     private dialogRef: MatDialogRef<SelectColumnsComponent>,
     @Inject(MAT_DIALOG_DATA) data
   ) {
+    this.resourceType = data.resourceType;
     this.columns = data.columns;
+    this.wrapCellText = data.wrapCellText;
   }
 
   ngOnInit(): void {}
@@ -27,7 +31,10 @@ export class SelectColumnsComponent implements OnInit {
   }
 
   save(): void {
-    this.dialogRef.close(this.columns);
+    this.dialogRef.close({
+      columns: this.columns,
+      wrapCellText: this.wrapCellText
+    });
   }
 
   clearSelection(): void {

@@ -92,6 +92,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   @Input() columnDescriptions: ColumnDescription[];
+  @Input() wrapCellText = false;
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
   @Input() resourceType;
