@@ -17,7 +17,7 @@ exports.config = {
     version: 'ANY',
     chromeOptions: {
       // Get rid of --ignore-certificate yellow warning
-      args: ['--no-sandbox', '--test-type=browser'],
+      args: ['--headless', '--no-sandbox', '--test-type=browser'],
       // Set download path and avoid prompting for download even though
       // this is already the default on Chrome but for completeness
       prefs: {
@@ -30,7 +30,7 @@ exports.config = {
   },
   directConnect: true,
   SELENIUM_PROMISE_MANAGER: false,
-  baseUrl: 'http://localhost:4201/',
+  baseUrl: 'http://localhost:8100/',
   framework: 'jasmine',
   jasmineNodeOpts: {
     showColors: true,

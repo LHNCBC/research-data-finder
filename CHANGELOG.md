@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.1.4] - 2022-02-03
+## [4.1.5] - 2022-02-03
 ### Changed
 - "Keywords" and "Id" for the ResearchStudy table is hidden by default.
 - Additional columns with numbers for ResearchStudy table are shown by default
@@ -13,6 +13,10 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Provided the option not to wrap the text in the field.
 - Forced "Title" column wider than others for the ResearchStudy table.
 - Columns are hidden when we know there is no data for them.
+
+## [4.1.4] - 2022-02-01
+### Changed
+- Migrated some of the e2e tests to Cypress.
 
 ## [4.1.3] - 2022-01-28
 ### Changed

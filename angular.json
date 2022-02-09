@@ -76,7 +76,7 @@
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
             "browserTarget": "fhir-obs-viewer:build",
-            "port": 4201
+            "port": 8100
           },
           "configurations": {
             "production": {
@@ -123,7 +123,7 @@
             "tsConfig": [
               "tsconfig.app.json",
               "tsconfig.spec.json",
-              "e2e/tsconfig.json"
+              "cypress/tsconfig.json"
             ],
             "exclude": [
               "**/node_modules/**"
@@ -140,6 +140,23 @@
             "production": {
               "devServerTarget": "fhir-obs-viewer:serve:production"
             }
+          }
+        },
+        "cypress-e2e": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "fhir-obs-viewer:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "fhir-obs-viewer:serve:production"
+            }
+          }
+        },
+        "cypress-open": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "watch": true
           }
         }
       }
