@@ -122,6 +122,7 @@
     <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"
                           (ngModelChange)="onChangeSearchParameter($event, parentRuleSet)"
                           [observationDataType]="observationDataType"
+                          [observationCodes]="observationCodes"
                           [observationLoincCodes]="observationLoincCodes"
                           [selectedSearchParameterNames]="selectedSearchParameterNamesMap.get(parentRuleSet)">
     </app-search-parameter>
