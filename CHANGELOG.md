@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.2.0] - 2021-02-09
+### Changed
+- Provided lists for valueCodeableConcept Observations.
+### Fixed
+- Enabled source map generation.
+
 ## [4.1.5] - 2022-02-03
 ### Changed
 - "Keywords" and "Id" for the ResearchStudy table is hidden by default.
