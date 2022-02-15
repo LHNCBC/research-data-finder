@@ -16,10 +16,21 @@
     </mat-form-field>
     <mat-form-field>
       <mat-label>Test value</mat-label>
-      <input *ngIf="datatype === 'Quantity'" type="number" step="any" matInput formControlName="testValue"
-             placeholder="enter number value">
-      <input *ngIf="datatype !== 'Quantity'" type="text" matInput formControlName="testValue"
-             placeholder="enter string value">
+      <ng-container [ngSwitch]="datatype">
+        <app-autocomplete-parameter-value
+            *ngSwitchCase="'CodeableConcept'"
+            formControlName="testValue" placeholder="Select one or more"
+            resourceType="Observation"
+            [observationCodes]="observationCodes"
+            columnName="value"
+            expression="value"
+            searchParameter="value-concept">
+        </app-autocomplete-parameter-value>
+        <input *ngSwitchCase="'Quantity'" type="number" step="any" matInput formControlName="testValue"
+               placeholder="enter number value">
+        <input *ngSwitchDefault type="text" matInput formControlName="testValue"
+               placeholder="enter string value">
+      </ng-container>
     </mat-form-field>
 
     <mat-form-field *ngIf="typeDescriptions[datatype].unit">

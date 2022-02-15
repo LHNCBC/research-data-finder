@@ -28,6 +28,7 @@ export class ObservationTestValueComponent
   extends BaseControlValueAccessor<ObservationTestValue>
   implements OnInit {
   @Input() datatype: string;
+  @Input() observationCodes: string[] = [];
   @Input() loincCodes: string[] = [];
 
   form = new FormGroup({
@@ -52,7 +53,6 @@ export class ObservationTestValueComponent
       unit: true
     },
     CodeableConcept: {
-      modifiers: [['starts with', ':text']],
       unit: false
     },
     string: {

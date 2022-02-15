@@ -90,6 +90,7 @@ describe('StepperComponent', () => {
         {
           provide: ColumnDescriptionsService,
           useValue: {
+            getWrapCellText: () => false,
             getVisibleColumns: () => of([])
           }
         }

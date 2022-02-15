@@ -385,7 +385,9 @@ function getSearchParametersConfig(
         const param = {
           name: item.resource.name,
           type: type || item.resource.type,
+          rootPropertyName: getPropertyPath(resourceType, path).split('.')[0],
           expression,
+          // TODO: Remove the unused 'path' after moving this code from the `prev` directory to the `source` directory.
           path,
           description: getDescription(resourceType, item.resource.description)
         };
@@ -394,6 +396,18 @@ function getSearchParametersConfig(
         }
         return param;
       });
+  }
+
+  /**
+   * Determines resource property path by simple FHIRPath expression
+   * @param {string} resourceType - resource type
+   * @param {string} path - simple FHIRPath expression starting with a resource
+   *                        type with a dot-separated listing of property names
+   * @return {string}
+   */
+  function getPropertyPath(resourceType, path) {
+    const searchValue = new RegExp(`^${resourceType}\\.`);
+    return path.replace(searchValue, '');
   }
 
   /**
