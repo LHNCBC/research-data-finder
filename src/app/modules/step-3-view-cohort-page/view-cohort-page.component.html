@@ -6,6 +6,5 @@
 
 <app-resource-table #resourceTableComponent
     [columnDescriptions]="columnDescriptions.getVisibleColumns('Patient') | async"
-    [wrapCellText]="columnDescriptions.getWrapCellText('Patient')"
     resourceType="Patient" [resourceStream]="patientStream" [loadingStatistics]="loadingStatistics">
 </app-resource-table>

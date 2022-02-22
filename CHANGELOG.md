@@ -6,6 +6,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [4.2.3] - 2022-02-22
 ### Changed
 - Show tooltip if the resource table cell text has been truncated.
+- Removed the option to wrap text in resource table cells.
 
 ## [4.2.2] - 2022-02-16
 ### Fixed
