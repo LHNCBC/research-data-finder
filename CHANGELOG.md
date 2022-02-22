@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.2.3] - 2022-02-22
+### Changed
+- Show tooltip if the resource table cell text has been truncated.
+
 ## [4.2.2] - 2022-02-16
 ### Fixed
 - Sorted the dropdown list items for the filter fields in the resource table

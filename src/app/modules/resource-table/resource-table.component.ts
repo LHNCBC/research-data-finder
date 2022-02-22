@@ -6,6 +6,7 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
+  SecurityContext,
   SimpleChanges
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -30,6 +31,7 @@ import {
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ResourceTableFilterComponent } from '../resource-table-filter/resource-table-filter.component';
 import { FilterType } from '../../types/filter-type';
+import { DomSanitizer } from '@angular/platform-browser';
 import Resource = fhir.Resource;
 
 /**
@@ -49,7 +51,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
     private liveAnnoncer: LiveAnnouncer,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private domSanitizer: DomSanitizer
   ) {
     this.subscription = fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Ready))
@@ -415,7 +418,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       );
 
       if (output && output.length) {
-        return output;
+        return output.map((str) =>
+          this.domSanitizer.sanitize(SecurityContext.HTML, str)
+        );
       }
     }
     return [];
@@ -567,5 +572,23 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       : column.displayName.startsWith('Number of')
       ? FilterType.Number
       : FilterType.Text;
+  }
+
+  /**
+   * Returns the text to display as a tooltip if the element's text
+   * has been truncated, otherwise returns an empty string.
+   * @param element - HTML element with possibly truncated text which has
+   *   a special structure to recognize truncation.
+   */
+  getTooltipText(element: HTMLElement): string {
+    // Can't use this simple check:
+    //   element.clientWidth < element.scrollWidth
+    // In some cases, this check will fail because these properties
+    // (clientWidth & scrollWidth) will round the value to an integer, but
+    // the ellipsis is displayed even if the difference is less than 0.5 pixels.
+    return element.getBoundingClientRect().right <
+      element.firstElementChild.getBoundingClientRect().right
+      ? element.innerText
+      : '';
   }
 }
