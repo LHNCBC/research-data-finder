@@ -44,6 +44,7 @@ export class SearchParameterComponent
   // options to avoid duplicate criteria.
   @Input() selectedSearchParameterNames: string[] = [];
   @Input() observationDataType: string;
+  @Input() observationCodes: string[];
   @Input() observationLoincCodes: string[];
   @Input() isPullData = false;
   readonly CODETEXT = CODETEXT;
@@ -161,6 +162,18 @@ export class SearchParameterComponent
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.selectedElements?.currentValue) {
       this.updateAvailableSearchParameters();
+    }
+
+    // Announce a change of the variable value type
+    if (
+      changes.observationDataType &&
+      this.selectedParameter?.element === OBSERVATION_VALUE &&
+      (changes.observationDataType.currentValue || '') !==
+        (changes.observationDataType.previousValue || '')
+    ) {
+      this.liveAnnoncer.announce(
+        'The fields for variable value have updated in response to the change to the variable name.'
+      );
     }
   }
 

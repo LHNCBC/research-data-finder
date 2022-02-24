@@ -31,6 +31,8 @@
         <app-autocomplete-parameter-value
           [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more"
           [resourceType]="resourceType" [searchParameter]="selectedParameter.element"
+          [columnName]="selectedParameter.rootPropertyName"
+          [expression]="selectedParameter.expression"
           [usePrefetch]="selectedParameter.required || nonRequiredBindingList !== undefined">
         </app-autocomplete-parameter-value>
       </mat-form-field>
@@ -64,6 +66,7 @@
   <app-observation-test-value *ngIf="selectedParameter?.element === OBSERVATION_VALUE"
                               class="parameter-value" [formControl]="parameterValue"
                               [datatype]="observationDataType || 'Quantity'"
+                              [observationCodes]="observationCodes"
                               [loincCodes]="observationLoincCodes">
   </app-observation-test-value>
 

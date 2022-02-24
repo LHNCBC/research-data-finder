@@ -76,7 +76,7 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
         // before the ResourceTableComponent subscribes to the resource stream.
         this.cdr.detectChanges();
         if (showResearchStudiesWithoutSubjects) {
-          this.loadResearchStudies('$fhir/ResearchStudy?_count=500');
+          this.loadResearchStudies('$fhir/ResearchStudy?_count=100');
         } else {
           this.option.disable({ emitEvent: false });
           const statuses = Object.keys(
@@ -85,7 +85,7 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
             ]
           ).join(',');
           this.loadResearchStudies(
-            `$fhir/ResearchStudy?_count=500&_has:ResearchSubject:study:status=${statuses}`,
+            `$fhir/ResearchStudy?_count=100&_has:ResearchSubject:study:status=${statuses}`,
             true
           );
         }

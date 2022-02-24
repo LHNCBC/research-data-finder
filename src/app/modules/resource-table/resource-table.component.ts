@@ -92,6 +92,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   @Input() columnDescriptions: ColumnDescription[];
+  @Input() wrapCellText = false;
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
   @Input() resourceType;
@@ -529,7 +530,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const columnValues = this.dataSource.data.map((row) =>
         this.getCellStrings(row, column).join('; ')
       );
-      options = [...new Set(columnValues)].filter((v) => v);
+      options = [...new Set(columnValues)]
+        .filter((v) => v)
+        .sort((a, b) => a.localeCompare(b));
     }
     dialogConfig.data = {
       value: this.filtersForm.get(column.element).value,

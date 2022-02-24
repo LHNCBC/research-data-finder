@@ -28,6 +28,7 @@ describe('ViewCohortComponent', () => {
         {
           provide: ColumnDescriptionsService,
           useValue: {
+            getWrapCellText: () => false,
             getVisibleColumns: () => of([]),
             destroy: () => {}
           }

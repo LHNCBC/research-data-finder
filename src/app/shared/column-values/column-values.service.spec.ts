@@ -75,6 +75,23 @@ describe('ColumnValuesService', () => {
       result: 'JIAN MCINTOSH'
     },
     {
+      value: {
+        reference: 'Organization/NLM',
+        display: 'National Library of Medicine'
+      },
+      type: 'Reference',
+      result: 'NLM'
+    },
+    {
+      value: {
+        reference: 'Organization/NIAMS',
+        display:
+          'National Institute of Arthritis and Musculoskeletal and Skin Diseases'
+      },
+      type: 'Reference',
+      result: 'NIAMS'
+    },
+    {
       value: { start: '2137-07-12T13:02:59Z', end: '2137-07-12T13:54:00Z' },
       type: 'Period',
       fullPath: 'Encounter.period',
