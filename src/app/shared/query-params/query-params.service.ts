@@ -67,7 +67,10 @@ export class QueryParamsService {
       return `&${selectedParameter.element}=${value.value.codes.join(',')}`;
     }
     if (selectedParameter.type === 'Quantity') {
-      const testValueCriteria = this.getCompositeTestValueCriteria(value.value);
+      const testValueCriteria = this.getCompositeTestValueCriteria(
+        selectedParameter.type,
+        value.value
+      );
       return testValueCriteria
         ? `&${selectedParameter.element}${testValueCriteria}`
         : '';
@@ -119,7 +122,10 @@ export class QueryParamsService {
         Quantity: 'combo-value-quantity',
         string: 'value-string'
       }[value.observationDataType] || 'combo-value-quantity';
-    const testValueCriteria = this.getCompositeTestValueCriteria(value.value);
+    const testValueCriteria = this.getCompositeTestValueCriteria(
+      value.observationDataType,
+      value.value
+    );
     return testValueCriteria ? `&${valueParamName}${testValueCriteria}` : '';
   }
 
@@ -127,7 +133,15 @@ export class QueryParamsService {
    * Get criteria string for composite test value controls
    * e.g. prefix + value + unit
    */
-  private getCompositeTestValueCriteria(value: any): string {
+  private getCompositeTestValueCriteria(datatype: string, value: any): string {
+    if (datatype === 'CodeableConcept') {
+      return (
+        '=' +
+        (value.testValue?.codes || [])
+          .map((code) => escapeFhirSearchParameter(code))
+          .join(',')
+      );
+    }
     const modifier = value.testValueModifier;
     const prefix = value.testValuePrefix;
     const testValue = value.testValue
