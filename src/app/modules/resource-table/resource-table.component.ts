@@ -6,7 +6,6 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
-  SecurityContext,
   SimpleChanges
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -31,7 +30,6 @@ import {
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ResourceTableFilterComponent } from '../resource-table-filter/resource-table-filter.component';
 import { FilterType } from '../../types/filter-type';
-import { DomSanitizer } from '@angular/platform-browser';
 import Resource = fhir.Resource;
 
 /**
@@ -51,8 +49,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
     private liveAnnoncer: LiveAnnouncer,
-    private dialog: MatDialog,
-    private domSanitizer: DomSanitizer
+    private dialog: MatDialog
   ) {
     this.subscription = fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Ready))
@@ -417,9 +414,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       );
 
       if (output && output.length) {
-        return output.map((str) =>
-          this.domSanitizer.sanitize(SecurityContext.HTML, str)
-        );
+        return output;
       }
     }
     return [];
