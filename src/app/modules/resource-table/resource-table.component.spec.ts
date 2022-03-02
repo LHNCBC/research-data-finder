@@ -78,7 +78,7 @@ describe('ResourceTableComponent', () => {
     HttpClient: jasmine.createSpyObj('HttpClient', ['get']),
     ColumnDescriptionsService: jasmine.createSpyObj(
       'ColumnDescriptionsService',
-      ['getAvailableColumns', 'setVisibleColumnNames', 'getWrapCellText']
+      ['getAvailableColumns', 'setVisibleColumnNames']
     ),
     SettingsService: jasmine.createSpyObj('SettingsService', ['get']),
     FhirBackendService: jasmine.createSpyObj('FhirBackendService', [], {
