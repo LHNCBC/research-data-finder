@@ -357,7 +357,8 @@ export class FhirBackendService implements HttpBackend {
           });
           if (specParameter) {
             Object.assign(parameter, {
-              // expression: specParameter.expression,
+              rootPropertyName: specParameter.rootPropertyName,
+              expression: specParameter.expression,
               // path: specParameter.path,
               valueSet: specParameter.valueSet,
               required: specParameter.required

@@ -23,9 +23,11 @@
       "pull-data": {
         "ResearchStudy": [
           {
+            // See src/app/types/column.description.ts for details
             displayName: "Patient Id",
             element: "contextPatientId",
             expression: "patientData.id",
+            displayByDefault: true,
             types: [
               "string"
             ]

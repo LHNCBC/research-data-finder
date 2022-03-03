@@ -16,7 +16,7 @@ import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { EMPTY, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { getNextPageUrl } from '../../shared/utils';
+import { escapeStringForRegExp, getNextPageUrl } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
 import { AutocompleteParameterValue } from '../../types/autocomplete-parameter-value';
 import { HttpClient } from '@angular/common/http';
@@ -24,6 +24,10 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
+import Resource = fhir.Resource;
+import * as fhirpath from 'fhirpath';
+import * as fhirPathModelR4 from 'fhirpath/fhir-context/r4';
+import Coding = fhir.Coding;
 import { ResearchStudyService } from '../../shared/research-study/research-study.service';
 
 /**
@@ -33,8 +37,6 @@ export interface Lookup {
   code: string;
   display: string;
 }
-
-const EVIDENCEVARIABLE = 'EvidenceVariable';
 
 /**
  * Component for search parameter value as autocomplete multi-select
@@ -126,9 +128,15 @@ export class AutocompleteParameterValueComponent
   @Input() options: Lookup[] = [];
   @Input() placeholder = '';
   @Input() resourceType: string;
+  @Input() observationCodes: string[];
   @Input() searchParameter: string;
+  // Column name, defaults to searchParameter
+  @Input() columnName: string;
+  // FHIRPath expression to extract autocomplete option, defaults to searchParameter
+  @Input() expression: string;
   @Input() usePrefetch = false;
 
+  EVIDENCEVARIABLE = 'EvidenceVariable';
   dbgapLoincOnly = false;
   currentData: AutocompleteParameterValue = {
     codes: [],
@@ -228,17 +236,15 @@ export class AutocompleteParameterValueComponent
    */
   setupAutocomplete(): void {
     this.acInstance =
-      this.resourceType === EVIDENCEVARIABLE
+      this.resourceType === this.EVIDENCEVARIABLE
         ? this.getAutocomplete_EV()
         : this.getAutocomplete();
 
     // Fill autocomplete with data (if currentData was set in writeValue).
-    if (this.currentData) {
-      this.currentData.items.forEach((item, index) => {
-        this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
-        this.acInstance.addToSelectedArea(item);
-      });
-    }
+    this.currentData.items.forEach((item, index) => {
+      this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
+      this.acInstance.addToSelectedArea(item);
+    });
 
     Def.Autocompleter.Event.observeListSelections(this.inputId, () => {
       const coding = this.acInstance.getSelectedCodes();
@@ -247,7 +253,7 @@ export class AutocompleteParameterValueComponent
         codes: coding,
         items
       };
-      this.onChange(this.currentData);
+      this.onChange(this.currentData?.codes.length ? this.currentData : null);
     });
   }
 
@@ -294,11 +300,19 @@ export class AutocompleteParameterValueComponent
             then: (resolve, reject) => {
               const url = `$fhir/${this.resourceType}`;
               const params = {
-                _elements: this.getCodeTextField()
+                ...(this.observationCodes
+                  ? { 'combo-code': this.observationCodes.join(',') }
+                  : {}),
+                _elements: this.getFhirName()
               };
-              params[`${this.searchParameter}:text`] =
-                fieldVal ||
-                'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z';
+
+              const filterText = fieldVal;
+              if (filterText) {
+                params[`${this.searchParameter}:text`] = filterText;
+              } else {
+                params[`${this.searchParameter}:not`] = 'zzz';
+              }
+
               // Hash of processed codes, used to exclude repeated codes
               const processedCodes = {};
               // Array of result items for autocompleter
@@ -317,15 +331,24 @@ export class AutocompleteParameterValueComponent
                 })
                 .pipe(
                   expand((response: Bundle) => {
-                    contains.push(
-                      ...this.getAutocompleteItems(
-                        response,
-                        processedCodes,
-                        selectedCodes
-                      )
+                    const newItems = this.getAutocompleteItems(
+                      response,
+                      filterText,
+                      processedCodes,
+                      selectedCodes
                     );
+                    contains.push(...newItems);
                     const nextPageUrl = getNextPageUrl(response);
                     if (nextPageUrl && contains.length < count) {
+                      if (!newItems.length) {
+                        // If the request did not return new items, then we need
+                        // to go to the next page.
+                        // Otherwise, it will be an infinite recursion.
+                        // You can reproduce this problem on https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1
+                        // if you comment next line and enter 'c' in the ResearchStudy.keyword
+                        // field and click the 'See more items' link.
+                        return this.httpClient.get(nextPageUrl);
+                      }
                       this.liveAnnoncer.announce('New items added to list.');
                       // Update list before calling server for next query.
                       resolve({
@@ -394,7 +417,8 @@ export class AutocompleteParameterValueComponent
         search: (fieldVal, count) => {
           return {
             then: (resolve, reject) => {
-              const url = 'http://lhc-lx-luanx2:5000/api/dbg_vars/v3/search';
+              const url =
+                'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search';
               const params = {
                 rec_type: 'dbgv',
                 terms: fieldVal,
@@ -464,7 +488,7 @@ export class AutocompleteParameterValueComponent
         search: (fieldVal, count) => {
           return {
             then: (resolve, reject) => {
-              const url = `$fhir/${EVIDENCEVARIABLE}`;
+              const url = `$fhir/${this.EVIDENCEVARIABLE}`;
               const params = {
                 _elements: this.searchParameter
               };
@@ -623,29 +647,43 @@ export class AutocompleteParameterValueComponent
   /**
    * Extracts autocomplete items from resource bundle
    * @param bundle - resource bundle
+   * @param filterText - text in autocomplete field
    * @param processedCodes - hash of processed codes,
    *   used to exclude repeated codes
    * @param selectedCodes - already selected codes
    */
   getAutocompleteItems(
     bundle: Bundle,
+    filterText: string,
     processedCodes: { [key: string]: boolean },
     selectedCodes: Array<string>
   ): ValueSetExpansionContains[] {
-    console.log(bundle.entry);
+    // Additional filter for options list.
+    // Because `coding` can have values that don't match the text in the autocomplete field.
+    // For example, ResearchStudy.keyword (https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1)
+    const reDisplayValue = filterText
+      ? new RegExp(`\\b${escapeStringForRegExp(filterText)}`, 'i')
+      : /.*/;
+    const codingsGetter = this.getCodingsGetter();
     return (bundle.entry || []).reduce((acc, entry) => {
-      if (!entry.resource[this.getCodeTextField()]) {
+      const codings = codingsGetter(entry.resource);
+      if (!codings.length) {
         return acc;
       }
       acc.push(
-        ...(
-          entry.resource[this.getCodeTextField()].coding ||
-          entry.resource[this.getCodeTextField()][0].coding
-        ).filter((coding) => {
+        ...codings.filter((coding) => {
           const matched =
+            // Encounter.class (https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1) have
+            // a strange `coding` value {code: 'ambulatory'} and normal `coding`
+            // value {code: 'AMB', display: 'ambulatory'}.
+            coding.display &&
+            // Additional filter for options list.
+            reDisplayValue.test(coding.display) &&
             !processedCodes[coding.code] &&
             selectedCodes.indexOf(coding.code) === -1;
+
           processedCodes[coding.code] = true;
+
           return matched;
         })
       );
@@ -674,14 +712,16 @@ export class AutocompleteParameterValueComponent
    * Part of the ControlValueAccessor interface
    */
   writeValue(value: AutocompleteParameterValue): void {
-    this.currentData = value;
+    this.currentData = value || {
+      codes: [],
+      items: []
+    };
   }
 
   /**
-   * Gets the main code field in case of "code text".
-   * Otherwise return the search parameter for normal parameters.
+   * Returns the FHIR name for the resource field that matches the search parameter.
    */
-  getCodeTextField(): string {
+  getFhirName(): string {
     if (this.searchParameter === 'code') {
       return (
         AutocompleteParameterValueComponent.codeTextFieldMapping[
@@ -689,11 +729,43 @@ export class AutocompleteParameterValueComponent
         ] || this.searchParameter
       );
     }
-    return this.searchParameter;
+    return this.columnName || this.searchParameter;
+  }
+
+  /**
+   * Returns a function which extracts the Codings that matches the
+   * search parameter from the resource object.
+   */
+  getCodingsGetter(): (resource: Resource) => Coding[] {
+    let propertyName;
+    if (this.searchParameter === 'code') {
+      propertyName =
+        AutocompleteParameterValueComponent.codeTextFieldMapping[
+          this.resourceType
+        ] || this.searchParameter;
+    } else {
+      propertyName = this.expression || this.searchParameter;
+    }
+    const compiledExpression = fhirpath.compile(propertyName, fhirPathModelR4);
+
+    return (resource) =>
+      [].concat(
+        ...compiledExpression(resource).map((value) => {
+          if (Array.isArray(value)) {
+            return [].concat(
+              ...value.map((v) => (v.code ? [v] : v.coding || []))
+            );
+          } else if (typeof value === 'string') {
+            // if we only have code, add a display value with the same value
+            return [{ code: value, display: value }];
+          }
+          return value.code ? [value] : value.coding || [];
+        })
+      );
   }
 
   getAriaLabel(): string {
-    return this.resourceType === EVIDENCEVARIABLE
+    return this.resourceType === this.EVIDENCEVARIABLE
       ? `select Evidence Variables by ${this.searchParameter}`
       : this.searchParameter === 'code'
       ? `${this.resourceType} codes from FHIR server`

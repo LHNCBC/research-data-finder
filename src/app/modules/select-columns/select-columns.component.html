@@ -1,13 +1,14 @@
 <h2 mat-dialog-title>
-  Select columns to show
+  Configure {{resourceType}} table
 </h2>
 <hr />
 <mat-dialog-content>
+  <p>Select columns to show:</p>
   <p class="info">
     <span class="info-icon" aria-hidden="true"></span>
     If no columns are selected, the default columns will be displayed.
   </p>
-  <hr />
+
   <ul>
     <li *ngFor="let x of columns">
       <mat-checkbox [(ngModel)]="x.visible">
@@ -18,7 +19,7 @@
 </mat-dialog-content>
 <hr />
 <div>
-  <button id="clearSelection" (click)="clearSelection()">Clear selection</button>
+  <button id="clearSelection" (click)="clearSelection()">Clear columns selection</button>
   <button class="mat-raised-button mat-primary" (click)="save()">Save changes</button>
   <button class="mat-raised-button" (click)="close()">Close</button>
 </div>

@@ -108,21 +108,24 @@ export class ColumnDescriptionsService {
     dialogConfig.disableClose = true;
     dialogConfig.hasBackdrop = true;
     dialogConfig.data = {
+      resourceType,
       columns: this.getAvailableColumns(resourceType, context)
     };
     const dialogRef = this.dialog.open(SelectColumnsComponent, dialogConfig);
-    dialogRef.afterClosed().subscribe((columns: ColumnDescription[]) => {
-      if (!columns) {
-        return;
-      }
-      const visibleColumns = columns.filter((c) => c.visible);
-      this.setVisibleColumnNames(
-        resourceType,
-        context,
-        visibleColumns.map((c) => c.element)
-      );
-      this.visibilityChanged[resourceType + '-' + context].next();
-    });
+    dialogRef
+      .afterClosed()
+      .subscribe((result: { columns: ColumnDescription[] }) => {
+        if (!result) {
+          return;
+        }
+        const visibleColumns = result.columns.filter((c) => c.visible);
+        this.setVisibleColumnNames(
+          resourceType,
+          context,
+          visibleColumns.map((c) => c.element)
+        );
+        this.visibilityChanged[resourceType + '-' + context].next();
+      });
   }
 
   /**

@@ -1,12 +1,11 @@
 import { AppPage } from './app.po';
-import { $, browser, logging, Key, $$, by, protractor } from 'protractor';
+import { $, browser, logging, $$, by, protractor } from 'protractor';
 import { ProtractorHarnessEnvironment } from '@angular/cdk/testing/protractor';
 import {
   MatStepHarness,
   MatStepperHarness,
   MatStepperNextHarness
 } from '@angular/material/stepper/testing';
-import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -20,7 +19,6 @@ let page: AppPage;
 let stepper: MatStepperHarness;
 let stepsArray: Array<MatStepHarness>;
 let settingsStep: MatStepHarness;
-let selectAnAreaOfInterestStep: MatStepHarness;
 let defineCohortStep: MatStepHarness;
 let viewCohortStep: MatStepHarness;
 let pullDataStep: MatStepHarness;
@@ -30,30 +28,25 @@ beforeAll(async () => {
   fileName = `${os.tmpdir()}/e2e_temp/cohort-100.json`;
   // Initialize common page objects & harnesses
   page = new AppPage();
-  await page.navigateTo('?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1');
+  await page.navigateTo('?server=https://lforms-fhir.nlm.nih.gov/baseR4');
   // TODO: ProtractorHarnessEnvironment should be replaced when migrating to Cypress.
   //       See the "FAQs" section here:
   //       https://github.com/angular/protractor/issues/5502
   const harnessLoader = ProtractorHarnessEnvironment.loader();
   stepper = await harnessLoader.getHarness(MatStepperHarness);
   stepsArray = await stepper.getSteps();
-  [
-    settingsStep,
-    selectAnAreaOfInterestStep,
-    defineCohortStep,
-    viewCohortStep,
-    pullDataStep
-  ] = stepsArray;
+  [settingsStep, defineCohortStep, viewCohortStep, pullDataStep] = stepsArray;
 });
 
-describe('Research Data Finder', () => {
+describe('Research Data Finder (FHIR Tools project FHIR server)', () => {
   // Current step next button harness
   let nextPageBtn: MatStepperNextHarness;
+  let currentStep: MatStepHarness;
 
   beforeEach(async () => {
     try {
       // Initialize current step next button harness
-      const currentStep = (await stepper.getSteps({ selected: true }))[0];
+      currentStep = (await stepper.getSteps({ selected: true }))[0];
       nextPageBtn = await currentStep.getHarness(MatStepperNextHarness);
     } catch (err) {
       console.log('No next step.');
@@ -65,42 +58,11 @@ describe('Research Data Finder', () => {
   });
 
   it('should display all steps', () => {
-    expect(stepsArray.length).toBe(5);
+    expect(stepsArray.length).toBe(4);
   });
 
   it('should select the Settings step by default', async () => {
     expect(await settingsStep.isSelected()).toBe(true);
-  });
-
-  describe('in Settings step', () => {
-    beforeAll(async () => {
-      const advancedSettings: MatExpansionPanelHarness = await settingsStep.getHarness(
-        MatExpansionPanelHarness
-      );
-      await advancedSettings.expand();
-    });
-
-    [
-      ['server URL', 'serviceBaseUrl'],
-      ['Request per batch', 'maxRequestsPerBatch'],
-      ['Maximum active requests', 'maxActiveRequests']
-    ].forEach(([displayName, controlName]) => {
-      it(`should not allow empty "${displayName}"`, async () => {
-        const inputField = $(
-          `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
-        );
-        inputField.sendKeys(
-          Key.chord(Key.CONTROL, 'a'),
-          Key.chord(Key.CONTROL, 'x')
-        );
-        await nextPageBtn.click();
-        expect(await settingsStep.isSelected()).toBe(true);
-        inputField.sendKeys(
-          Key.chord(Key.CONTROL, 'a'),
-          Key.chord(Key.CONTROL, 'v')
-        );
-      });
-    });
   });
 
   it('should not allow skipping the Define cohort step', async () => {
@@ -108,37 +70,12 @@ describe('Research Data Finder', () => {
     expect(await settingsStep.isSelected()).toBe(true);
   });
 
-  it('should allow skipping the Select Research Studies step', async () => {
-    await defineCohortStep.select();
-    expect(await defineCohortStep.isSelected()).toBe(true);
-    await settingsStep.select();
-  });
-
-  it('should allow to proceed to the Select Research Studies step', async () => {
-    await nextPageBtn.click();
-    expect(await selectAnAreaOfInterestStep.isSelected()).toBe(true);
-  });
-
   it('should allow to proceed to the Define cohort step', async () => {
     await nextPageBtn.click();
     expect(await defineCohortStep.isSelected()).toBe(true);
   });
 
-  it('should hide Research Study step if server has no data', async () => {
-    await page.navigateTo('?server=https://lforms-fhir.nlm.nih.gov/baseR4');
-    const harnessLoader = ProtractorHarnessEnvironment.loader();
-    stepper = await harnessLoader.getHarness(MatStepperHarness);
-    stepsArray = await stepper.getSteps();
-    expect(stepsArray.length).toEqual(4);
-    [settingsStep, defineCohortStep, viewCohortStep, pullDataStep] = stepsArray;
-    const currentStep = (await stepper.getSteps({ selected: true }))[0];
-    nextPageBtn = await currentStep.getHarness(MatStepperNextHarness);
-    await nextPageBtn.click();
-    expect(await defineCohortStep.isSelected()).toBe(true);
-  });
-
   it('should add search criterion', async () => {
-    const currentStep = (await stepper.getSteps({ selected: true }))[0];
     const addResourceBtn = await currentStep.getHarness(
       MatButtonHarness.with({ text: 'Add criteria for a record type' })
     );
@@ -193,7 +130,6 @@ describe('Research Data Finder', () => {
   });
 
   it('should load Observations table', async () => {
-    const currentStep = (await stepper.getSteps({ selected: true }))[0];
     const loadObservationBtn = await currentStep.getHarness(
       MatButtonHarness.with({ text: 'Load Observations' })
     );
