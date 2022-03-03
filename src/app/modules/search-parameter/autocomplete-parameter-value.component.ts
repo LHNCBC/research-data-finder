@@ -38,8 +38,6 @@ export interface Lookup {
   display: string;
 }
 
-const EVIDENCEVARIABLE = 'EvidenceVariable';
-
 /**
  * Component for search parameter value as autocomplete multi-select
  */
@@ -89,6 +87,16 @@ export class AutocompleteParameterValueComponent
     );
   }
 
+  /**
+   * Whether DbGap server is selected
+   */
+  get isDbgap(): boolean {
+    return (
+      this.fhirBackend.serviceBaseUrl ===
+      'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+    );
+  }
+
   constructor(
     @Optional() @Self() ngControl: NgControl,
     private elementRef: ElementRef,
@@ -128,6 +136,8 @@ export class AutocompleteParameterValueComponent
   @Input() expression: string;
   @Input() usePrefetch = false;
 
+  EVIDENCEVARIABLE = 'EvidenceVariable';
+  dbgapLoincOnly = false;
   currentData: AutocompleteParameterValue = {
     codes: [],
     items: []
@@ -226,7 +236,7 @@ export class AutocompleteParameterValueComponent
    */
   setupAutocomplete(): void {
     this.acInstance =
-      this.resourceType === EVIDENCEVARIABLE
+      this.resourceType === this.EVIDENCEVARIABLE
         ? this.getAutocomplete_EV()
         : this.getAutocomplete();
 
@@ -262,8 +272,7 @@ export class AutocompleteParameterValueComponent
    * The instance uses DbGap variable API if server is DbGap, otherwise it uses fhir queries.
    */
   getAutocomplete_EV(): any {
-    return this.fhirBackend.serviceBaseUrl ===
-      'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+    return this.isDbgap
       ? this.setupAutocomplete_EV_DbgapVariableApi()
       : this.setupAutocompleteSearch_EV();
   }
@@ -408,14 +417,19 @@ export class AutocompleteParameterValueComponent
         search: (fieldVal, count) => {
           return {
             then: (resolve, reject) => {
-              const url = 'http://lhc-lx-luanx2:5000/api/dbg_vars/v3/search';
+              const url =
+                'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search';
               const params = {
-                sf: `dbgv.${this.searchParameter}`,
-                df: `dbgv.${this.searchParameter}`,
+                rec_type: 'dbgv',
                 terms: fieldVal,
                 maxList: count,
+                sf: `dbgv.${this.searchParameter}`,
+                df: `dbgv.${this.searchParameter}`,
                 q: this.getDbgapEvResearchStudyParam()
               };
+              if (this.dbgapLoincOnly) {
+                params['q'] += ' has_loinc:true';
+              }
               // Array of result items for autocompleter
               const contains: ValueSetExpansionContains[] = [];
               // Already selected items
@@ -474,7 +488,7 @@ export class AutocompleteParameterValueComponent
         search: (fieldVal, count) => {
           return {
             then: (resolve, reject) => {
-              const url = `$fhir/${EVIDENCEVARIABLE}`;
+              const url = `$fhir/${this.EVIDENCEVARIABLE}`;
               const params = {
                 _elements: this.searchParameter
               };
@@ -751,7 +765,7 @@ export class AutocompleteParameterValueComponent
   }
 
   getAriaLabel(): string {
-    return this.resourceType === EVIDENCEVARIABLE
+    return this.resourceType === this.EVIDENCEVARIABLE
       ? `select Evidence Variables by ${this.searchParameter}`
       : this.searchParameter === 'code'
       ? `${this.resourceType} codes from FHIR server`
