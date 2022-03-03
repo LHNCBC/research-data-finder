@@ -5,3 +5,4 @@
   [placeholder]="shouldLabelFloat ? placeholder : ''"
   [attr.aria-label]="getAriaLabel()">
 <mat-spinner [diameter]="30"></mat-spinner>
+<mat-checkbox *ngIf="isDbgap && resourceType === EVIDENCEVARIABLE" [(ngModel)]="dbgapLoincOnly">limit to LOINC-coded variables</mat-checkbox>
