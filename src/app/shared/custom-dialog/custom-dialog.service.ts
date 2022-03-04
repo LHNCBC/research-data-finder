@@ -16,7 +16,7 @@ export type CustomDialogParams<T> = {
 /**
  * Service for creating custom dialogs.
  * Unlike the standard MatDialog, it allows you to:
- * - create dialog that do not prevent the browser window from scrolling
+ * - create dialog that does not prevent the browser window from scrolling
  * - bind the position of the created dialog to the specified origin HTML element
  */
 @Injectable({
