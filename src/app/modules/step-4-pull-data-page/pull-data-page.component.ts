@@ -394,10 +394,9 @@ export class PullDataPageComponent implements AfterViewInit {
                       };
                     });
                 })
-                ?.filter((p) => p) || null
+                ?.filter((p) => p) || []
             );
           }),
-          filter((p) => p !== null),
           concatMap(
             (
               bundlePromise: Promise<{
