@@ -319,7 +319,7 @@ export class PullDataPageComponent implements AfterViewInit {
           }
 
           const countParam =
-            resourceType === 'Observation' ||
+            resourceTypeParam === 'Observation' ||
             !this.perPatientFormControls[resourceType]
               ? '&_count=1000'
               : `&_count=${this.perPatientFormControls[resourceType].value}`;
