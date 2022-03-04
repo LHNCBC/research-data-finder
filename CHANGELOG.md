@@ -3,9 +3,14 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.2.3] - 2022-02-24
+## [4.2.4] - 2022-02-24
 ### Fixed
 - Partial hiding of expanded filter lists for research study table.
+
+## [4.2.3] - 2022-02-22
+### Changed
+- Show tooltip if the resource table cell text has been truncated.
+- Removed the option to wrap text in resource table cells.
 
 ## [4.2.2] - 2022-02-16
 ### Fixed

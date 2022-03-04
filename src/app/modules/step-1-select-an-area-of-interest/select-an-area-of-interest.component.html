@@ -17,7 +17,6 @@
 
     <app-resource-table #resourceTableComponent
         [columnDescriptions]="columnDescriptions.getVisibleColumns('ResearchStudy') | async"
-        [wrapCellText]="columnDescriptions.getWrapCellText('ResearchStudy')"
         [enableClientFiltering]="true" [enableSelection]="true"
         [resourceStream]="researchStudyStream" [myStudyIds]='myStudyIds'
         resourceType="ResearchStudy"></app-resource-table>

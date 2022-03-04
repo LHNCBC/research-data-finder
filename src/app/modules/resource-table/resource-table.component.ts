@@ -92,7 +92,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   @Input() columnDescriptions: ColumnDescription[];
-  @Input() wrapCellText = false;
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
   @Input() resourceType;
@@ -557,5 +556,23 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       : column.displayName.startsWith('Number of')
       ? FilterType.Number
       : FilterType.Text;
+  }
+
+  /**
+   * Returns the text to display as a tooltip if the element's text
+   * has been truncated, otherwise returns an empty string.
+   * @param element - HTML element with possibly truncated text which has
+   *   a special structure to recognize truncation.
+   */
+  getTooltipText(element: HTMLElement): string {
+    // Can't use this simple check:
+    //   element.clientWidth < element.scrollWidth
+    // In some cases, this check will fail because these properties
+    // (clientWidth & scrollWidth) will round the value to an integer, but
+    // the ellipsis is displayed even if the difference is less than 0.5 pixels.
+    return element.getBoundingClientRect().right <
+      element.firstElementChild.getBoundingClientRect().right
+      ? element.innerText
+      : '';
   }
 }

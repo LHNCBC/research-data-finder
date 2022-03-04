@@ -97,51 +97,6 @@ export class ColumnDescriptionsService {
   }
 
   /**
-   * Stores the cell text wrap flag in localStorage.
-   * @param resourceType - resource type
-   * @param context - context name which used to distinguish between resource
-   *  tables of the same resource type that may appear more than once in the
-   *  application
-   * @param wrapCellText - flag of the need to wrap the text in the cells of
-   *  the table.
-   */
-  setWrapCellText(
-    resourceType: string,
-    context: string,
-    wrapCellText: boolean
-  ): void {
-    window.localStorage.setItem(
-      this.fhirBackend.serviceBaseUrl +
-        '-' +
-        resourceType +
-        '-' +
-        context +
-        '-wrap-cell-text',
-      wrapCellText + ''
-    );
-  }
-
-  /**
-   * Gets the cell text wrap flag from localStorage.
-   * @param resourceType - resource type
-   * @param context - context name which used to distinguish between resource
-   *  tables of the same resource type that may appear more than once in the
-   *  application
-   */
-  getWrapCellText(resourceType: string, context: string = ''): boolean {
-    return (
-      window.localStorage.getItem(
-        this.fhirBackend.serviceBaseUrl +
-          '-' +
-          resourceType +
-          '-' +
-          context +
-          '-wrap-cell-text'
-      ) === 'true'
-    );
-  }
-
-  /**
    * Open dialog to manage visible columns
    * @param resourceType - resource type
    * @param context - context name which used to distinguish between resource
@@ -154,27 +109,23 @@ export class ColumnDescriptionsService {
     dialogConfig.hasBackdrop = true;
     dialogConfig.data = {
       resourceType,
-      columns: this.getAvailableColumns(resourceType, context),
-      wrapCellText: this.getWrapCellText(resourceType, context)
+      columns: this.getAvailableColumns(resourceType, context)
     };
     const dialogRef = this.dialog.open(SelectColumnsComponent, dialogConfig);
     dialogRef
       .afterClosed()
-      .subscribe(
-        (result: { columns: ColumnDescription[]; wrapCellText: boolean }) => {
-          if (!result) {
-            return;
-          }
-          const visibleColumns = result.columns.filter((c) => c.visible);
-          this.setVisibleColumnNames(
-            resourceType,
-            context,
-            visibleColumns.map((c) => c.element)
-          );
-          this.setWrapCellText(resourceType, context, result.wrapCellText);
-          this.visibilityChanged[resourceType + '-' + context].next();
+      .subscribe((result: { columns: ColumnDescription[] }) => {
+        if (!result) {
+          return;
         }
-      );
+        const visibleColumns = result.columns.filter((c) => c.visible);
+        this.setVisibleColumnNames(
+          resourceType,
+          context,
+          visibleColumns.map((c) => c.element)
+        );
+        this.visibilityChanged[resourceType + '-' + context].next();
+      });
   }
 
   /**
