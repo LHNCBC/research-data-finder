@@ -7,14 +7,7 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import {
-  concatMap,
-  filter,
-  map,
-  reduce,
-  startWith,
-  switchMap
-} from 'rxjs/operators';
+import { concatMap, map, reduce, startWith, switchMap } from 'rxjs/operators';
 import { chunk } from 'lodash-es';
 import {
   ConnectionStatus,
@@ -119,10 +112,11 @@ export class PullDataPageComponent implements AfterViewInit {
           ])
         };
         this.unselectedResourceTypes.forEach((r) => {
+          const defaultCount = r === 'EvidenceVariable' ? 1 : 1000;
           // Due to optimization, we cannot control the number of ResearchStudies
           // per Patient. Luckily it doesn't make much sense.
           if (r !== 'ResearchStudy' && r !== 'Patient') {
-            this.perPatientFormControls[r] = new FormControl(1000, [
+            this.perPatientFormControls[r] = new FormControl(defaultCount, [
               Validators.required,
               Validators.min(1)
             ]);
@@ -265,6 +259,7 @@ export class PullDataPageComponent implements AfterViewInit {
       resourceType === 'EvidenceVariable' ? 'Observation' : resourceType;
     const observationCodes = [];
     const patientToCodeToCount = {};
+    const patientEvCount = {};
     let sortParam = '';
 
     if (resourceTypeParam === 'Observation') {
@@ -373,9 +368,13 @@ export class PullDataPageComponent implements AfterViewInit {
       observable
         .pipe(
           concatMap(({ bundle, patientData }) => {
+            const perPatient = this.perPatientFormControls.EvidenceVariable
+              .value;
             return (
               bundle?.entry
                 ?.map((entry) => {
+                  const patientRef = (entry.resource as Observation).subject
+                    .reference;
                   const evUrl = entry.resource['extension']?.find(
                     (x) =>
                       x.url ===
@@ -384,6 +383,13 @@ export class PullDataPageComponent implements AfterViewInit {
                   if (!evUrl) {
                     return null;
                   }
+                  const evCount =
+                    patientEvCount[patientRef] ||
+                    (patientEvCount[patientRef] = 0);
+                  if (evCount >= perPatient) {
+                    return null;
+                  }
+                  ++patientEvCount[patientRef];
                   return this.http
                     .get(evUrl)
                     .toPromise()
