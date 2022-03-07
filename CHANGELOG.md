@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.2.4] - 2022-03-07
+### Changed
+- get code list for DocumentReference.contenttype via autocomplete search.
+
 ## [4.2.3] - 2022-02-22
 ### Changed
 - Show tooltip if the resource table cell text has been truncated.
