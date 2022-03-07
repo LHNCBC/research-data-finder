@@ -262,7 +262,13 @@ export class AutocompleteParameterValueComponent
               };
 
               const filterText = fieldVal;
-              if (filterText) {
+              if (
+                filterText &&
+                !(
+                  this.resourceType === 'DocumentReference' &&
+                  this.searchParameter === 'contenttype'
+                )
+              ) {
                 params[`${this.searchParameter}:text`] = filterText;
               } else {
                 params[`${this.searchParameter}:not`] = 'zzz';
