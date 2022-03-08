@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.2.5] - 2022-02-24
+## [4.2.5] - 2022-03-08
 ### Fixed
 - Partial hiding of expanded filter lists for research study table.
 
