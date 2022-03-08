@@ -50,7 +50,6 @@ describe('SelectAnAreaOfInterestComponent', () => {
         {
           provide: ColumnDescriptionsService,
           useValue: {
-            getWrapCellText: () => false,
             getVisibleColumns: () => of([]),
             destroy: () => {}
           }
