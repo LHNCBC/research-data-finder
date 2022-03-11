@@ -3,9 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.2.5] - 2022-03-08
+## [4.2.6] - 2022-03-11
 ### Changed
 - get code list for DocumentReference.contenttype via autocomplete search.
+
+## [4.2.5] - 2022-03-08
+### Fixed
+- Partial hiding of expanded filter lists for research study table.
 
 ## [4.2.4] - 2022-03-08
 ### Changed

@@ -27,10 +27,10 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ResourceTableFilterComponent } from '../resource-table-filter/resource-table-filter.component';
 import { FilterType } from '../../types/filter-type';
 import Resource = fhir.Resource;
+import { CustomDialog } from '../../shared/custom-dialog/custom-dialog.service';
 
 /**
  * Component for loading table of resources
@@ -49,7 +49,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
     private liveAnnoncer: LiveAnnouncer,
-    private dialog: MatDialog
+    private dialog: CustomDialog
   ) {
     this.subscription = fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Ready))
@@ -510,18 +510,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (!ResourceTableComponent.isA11yClick(event)) {
       return;
     }
-    const rect = event.target.getBoundingClientRect();
-    const dialogConfig = new MatDialogConfig();
-    dialogConfig.hasBackdrop = true;
-    dialogConfig.disableClose = true;
-
-    // Position the popup right below the invoking icon.
-    dialogConfig.position = { top: `${rect.bottom}px` };
-    if (rect.left < window.innerWidth / 2) {
-      dialogConfig.position.left = `${rect.left}px`;
-    } else {
-      dialogConfig.position.right = `${window.innerWidth - rect.right}px`;
-    }
 
     const filterType = this.getFilterType(column);
     let options: string[] = [];
@@ -533,16 +521,18 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         .filter((v) => v)
         .sort((a, b) => a.localeCompare(b));
     }
-    dialogConfig.data = {
-      value: this.filtersForm.get(column.element).value,
-      filterType,
-      options
-    };
-    const dialogRef = this.dialog.open(
-      ResourceTableFilterComponent,
-      dialogConfig
-    );
-    dialogRef.afterClosed().subscribe((value) => {
+
+    const dialogRef = this.dialog.open({
+      content: ResourceTableFilterComponent,
+      origin: event.target,
+      data: {
+        value: this.filtersForm.get(column.element).value,
+        filterType,
+        options
+      }
+    });
+
+    dialogRef.afterClosed$.subscribe((value) => {
       this.filtersForm.get(column.element).setValue(value);
     });
   }

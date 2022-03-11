@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "4.2.5",
+  "version": "4.2.6",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
@@ -53,7 +53,7 @@
     "@types/jasmine": "~3.6.0",
     "@types/node": "^12.11.1",
     "codelyzer": "^6.0.0",
-    "cypress": "latest",
+    "cypress": "^9.5.1",
     "cypress-pipe": "^2.0.0",
     "jasmine-core": "~3.6.0",
     "jasmine-spec-reporter": "~5.0.0",
