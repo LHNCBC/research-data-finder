@@ -3,9 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.3.0] - 2022-03-03
+## [4.3.0] - 2022-03-14
 ### Added
 - Evidence Variable search parameters in define cohort.
+
+## [4.2.5] - 2022-03-08
+### Fixed
+- Partial hiding of expanded filter lists for research study table.
+
+## [4.2.4] - 2022-03-08
+### Changed
+- Load shared header and footer from CTSS.
 
 ## [4.2.3] - 2022-02-22
 ### Changed
@@ -51,7 +59,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Missing spaces between words in autocomplete dropdown list.
 
-## [4.1.1] - 2022-01-12
+## [4.1.1] - 2022-1-12
 ### Added
 - Support for interpretation search parameter when applicable.
 
