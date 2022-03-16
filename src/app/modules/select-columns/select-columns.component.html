@@ -10,7 +10,7 @@
   </p>
 
   <ul>
-    <li *ngFor="let x of columns">
+    <li *ngFor="let x of (getColumns() | async)">
       <mat-checkbox [(ngModel)]="x.visible">
         {{x.displayName}}
       </mat-checkbox>

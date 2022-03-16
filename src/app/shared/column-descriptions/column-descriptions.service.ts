@@ -31,6 +31,12 @@ export class ColumnDescriptionsService {
     [key: string]: Observable<ColumnDescription[]>;
   } = {};
 
+  // Object which maps each resource type to the Observable of the names of
+  // the table columns with data.
+  columnsWithData: {
+    [key: string]: BehaviorSubject<string[]>;
+  } = {};
+
   /**
    * Compare function for column descriptions
    */
@@ -82,18 +88,49 @@ export class ColumnDescriptionsService {
    *  application
    */
   getVisibleColumnNames(resourceType: string, context: string): string[] {
-    return (
-      window.localStorage
-        .getItem(
-          this.fhirBackend.serviceBaseUrl +
-            '-' +
-            resourceType +
-            '-' +
-            context +
-            '-columns'
-        )
-        ?.split(',') || []
+    const storedValue = window.localStorage.getItem(
+      this.fhirBackend.serviceBaseUrl +
+        '-' +
+        resourceType +
+        '-' +
+        context +
+        '-columns'
     );
+    return storedValue ? storedValue.split(',') : [];
+  }
+
+  /**
+   * Notifies that server has data for the specified resource table column names
+   * @param resourceType - resource type
+   * @param context - context name which used to distinguish between resource
+   *  tables of the same resource type that may appear more than once in the
+   *  application
+   * @param columnNames - column names
+   */
+  setColumnsWithData(
+    resourceType: string,
+    context: string,
+    columnNames: string[]
+  ): void {
+    this.columnsWithData[resourceType + '-' + context].next(columnNames);
+  }
+
+  /**
+   * Returns the Observable of the names of the table columns with data.
+   * @param resourceType - resource type
+   * @param context - context name which used to distinguish between resource
+   *  tables of the same resource type that may appear more than once in the
+   *  application
+   */
+  getColumnsWithData(
+    resourceType: string,
+    context: string
+  ): BehaviorSubject<string[]> {
+    const key = resourceType + '-' + context;
+    if (!this.columnsWithData[key]) {
+      this.columnsWithData[key] = new BehaviorSubject([]);
+    }
+    return this.columnsWithData[key];
   }
 
   /**
@@ -109,7 +146,8 @@ export class ColumnDescriptionsService {
     dialogConfig.hasBackdrop = true;
     dialogConfig.data = {
       resourceType,
-      columns: this.getAvailableColumns(resourceType, context)
+      columns: this.getAvailableColumns(resourceType, context),
+      columnsWithData: this.getColumnsWithData(resourceType, context)
     };
     const dialogRef = this.dialog.open(SelectColumnsComponent, dialogConfig);
     dialogRef
@@ -144,12 +182,16 @@ export class ColumnDescriptionsService {
       this.visibilityChanged[key] = new BehaviorSubject<void>(undefined);
       this.visibleColumns[key] = combineLatest([
         this.fhirBackend.initialized,
+        this.getColumnsWithData(resourceType, context),
         this.visibilityChanged[key]
       ]).pipe(
         filter(([status]) => status === ConnectionStatus.Ready),
-        map(() => {
+        map(([, columnsWithData]) => {
           return this.getAvailableColumns(resourceType, context).filter(
-            (x) => x.visible
+            (x) =>
+              x.visible &&
+              (columnsWithData.length === 0 ||
+                columnsWithData.indexOf(x.element) !== -1)
           );
         })
       );
@@ -207,10 +249,11 @@ export class ColumnDescriptionsService {
             types: column.types.filter(
               (type) => this.columnValues.getValueFn(type) !== undefined
             ),
-            visible:
-              visibleColumnNames.indexOf(
-                column.customElement || column.element
-              ) !== -1
+            visible: visibleColumnNames.length
+              ? visibleColumnNames.indexOf(
+                  column.customElement || column.element
+                ) !== -1
+              : column.displayByDefault
           };
         })
         // Exclude unsupported columns

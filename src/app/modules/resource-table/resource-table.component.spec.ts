@@ -78,7 +78,7 @@ describe('ResourceTableComponent', () => {
     HttpClient: jasmine.createSpyObj('HttpClient', ['get']),
     ColumnDescriptionsService: jasmine.createSpyObj(
       'ColumnDescriptionsService',
-      ['getAvailableColumns', 'setVisibleColumnNames']
+      ['getAvailableColumns', 'setVisibleColumnNames', 'setColumnsWithData']
     ),
     SettingsService: jasmine.createSpyObj('SettingsService', ['get']),
     FhirBackendService: jasmine.createSpyObj('FhirBackendService', [], {
@@ -179,14 +179,12 @@ describe('ResourceTableComponent', () => {
   });
 
   it('should hide columns by default according to settings', async () => {
+    spies.ColumnDescriptionsService.getAvailableColumns.calls.reset();
     await fillTable([]);
     expect(component.dataSource.filteredData.length).toEqual(50);
     expect(
       spies.ColumnDescriptionsService.getAvailableColumns
     ).toHaveBeenCalledOnceWith('SomeResourceType', '');
-    expect(
-      spies.ColumnDescriptionsService.setVisibleColumnNames
-    ).toHaveBeenCalledOnceWith('SomeResourceType', '', ['id', 'customElement']);
   });
 
   it('should get a cell strings correctly', async () => {
@@ -196,7 +194,7 @@ describe('ResourceTableComponent', () => {
     for (let i = 0; i < cellValues.length; i++) {
       expect(
         component.getCellStrings(
-          component.dataSource.data[rowNumber],
+          component.dataSource.data[rowNumber].resource,
           component.columnDescriptions[i]
         )
       ).toEqual([cellValues[i]]);
@@ -206,7 +204,7 @@ describe('ResourceTableComponent', () => {
   it('should show selectable rows at beginning of table', async () => {
     component.myStudyIds = ['30'];
     await fillTable(availableColumns);
-    const firstRow = component.dataSource.data[0];
+    const firstRow = component.dataSource.data[0].resource;
     expect(firstRow.id).toEqual('30');
   });
 
@@ -256,9 +254,15 @@ describe('ResourceTableComponent', () => {
       direction: 'asc',
       active: 'customElement'
     });
-    const index50 = component.dataSource.data.findIndex((x) => x.id === '50');
-    const index12 = component.dataSource.data.findIndex((x) => x.id === '12');
-    const index9 = component.dataSource.data.findIndex((x) => x.id === '9');
+    const index50 = component.dataSource.data.findIndex(
+      (x) => x.resource.id === '50'
+    );
+    const index12 = component.dataSource.data.findIndex(
+      (x) => x.resource.id === '12'
+    );
+    const index9 = component.dataSource.data.findIndex(
+      (x) => x.resource.id === '9'
+    );
     expect(index50 < index12).toBeTrue();
     expect(index12 < index9).toBeTrue();
   });
