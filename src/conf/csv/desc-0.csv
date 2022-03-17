@@ -1,6 +1,6 @@
 Condition,,,,,,,
 ,"code text","search parameter","condition name",show,,,"The display text associated with the code of the identification of the condition, problem or diagnosis"
-,abatement-date,"search parameter",abatement-date,show,dateTime,,"Date-related abatements (dateTime and period)"
+,abatement-date,"search parameter",abatement-date,show,date,,"Date-related abatements (dateTime and period)"
 ,abatement[x],column,Abatement,show,"dateTime,Age,Period,Range,string",,"When in resolution/remission"
 ,asserter,column,Asserter,hide,Reference,,"Person who asserts this condition"
 ,clinical-status,"search parameter",clinical-status,show,CodeableConcept,,"The clinical status of the condition"
@@ -10,7 +10,7 @@ Condition,,,,,,,
 ,encounter,column,Encounter,hide,Reference,,"Encounter created as part of"
 ,id,column,Id,show,string,,
 ,note,column,Note,hide,Annotation,,"Additional information about the Condition"
-,onset-date,"search parameter",onset-date,show,dateTime,,"Date related onsets (dateTime and Period)"
+,onset-date,"search parameter",onset-date,show,date,,"Date related onsets (dateTime and Period)"
 ,onset[x],column,Onset,show,"dateTime,Age,Period,Range,string",,"Estimated or actual date,  date-time, or age"
 ,recorded-date,"search parameter",recorded-date,show,date,,"Date record was first recorded"
 ,recordedDate,column,"Recorded Date",show,dateTime,,"Date record was first recorded"
