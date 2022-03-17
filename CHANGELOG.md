@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.2.6] - 2022-03-17
+### Fixed
+- Replaced incorrect "dateTime" data type for search parameters with "date"
+  to use the correct controls.
+- Replaced hyphens in search parameter names with spaces.
+
 ## [4.2.5] - 2022-03-08
 ### Fixed
 - Partial hiding of expanded filter lists for research study table.
