@@ -11,16 +11,37 @@ const fhirPathModelR4 = require('fhirpath/fhir-context/r4');
 
 // Currently only Observation.category. Add other search parameters in future when seen fit.
 const updateList = [
-  ['https://lforms-fhir.nlm.nih.gov/baseR4', 'Observation', 'category'],
-  [
-    'https://lforms-fhir.nlm.nih.gov/baseR4',
-    'DocumentReference',
-    'contenttype',
-    'content',
-    'DocumentReference.content.attachment.contentType'
-  ]
+  ['https://lforms-fhir.nlm.nih.gov/baseR4', 'Observation', 'category']
 ];
-const data = {};
+const data = {
+  // Interpretation data is kept here due to a HAPI FHIR interpretation query bug.
+  'https://lforms-fhir.nlm.nih.gov/testR4': {
+    Observation: {
+      interpretation: [
+        {
+          code: 'HH',
+          display: 'Critically High'
+        },
+        {
+          code: 'H',
+          display: 'High'
+        },
+        {
+          code: 'N',
+          display: 'Normal'
+        },
+        {
+          code: 'L',
+          display: 'Low'
+        },
+        {
+          code: 'LL',
+          display: 'Critically low'
+        }
+      ]
+    }
+  }
+};
 const httpPromises = [];
 
 /**
@@ -165,7 +186,8 @@ updateList.forEach(
 try {
   Promise.all(httpPromises).then(() => {
     console.log(
-      data['https://lforms-fhir.nlm.nih.gov/baseR4']['Observation']['category']
+      // data['https://lforms-fhir.nlm.nih.gov/baseR4']['Observation']['category']
+      data
     );
     fs.writeFileSync(
       'non-required-binding-lists.json',
