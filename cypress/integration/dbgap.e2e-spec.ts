@@ -72,6 +72,7 @@ describe('Research Data Finder (dbGap)', () => {
 
   context('in Settings step', () => {
     before(() => {
+      settingsStep.select();
       settingsStep
         .getHarness(MatExpansionPanelHarness)
         .then((advancedSettings) => advancedSettings.expand());
