@@ -114,16 +114,33 @@ describe('Research Data Finder (baseR4)', () => {
 
   it('should load cohort', (done) => {
     defineCohortStep.select().then(() => {
-      cy.get('#hiddenFileInput')
-        .attachFile('cohort-to-upload.json')
+      cy.get('#hiddenFileInput').attachFile('cohort-to-upload.json');
+      cy.contains('Cohort of 4 Patient resources')
+        .should('exist')
         .then(() => {
-          cy.contains('Cohort of 4 Patient resources')
-            .should('exist')
-            .then(() => {
-              expect(Cypress.$('table tbody tr').length).to.equal(4);
-              done();
-            });
+          // Verify that 4 rows are loaded in table, same as in upload file.
+          expect(Cypress.$('table tbody tr').length).to.equal(4);
+          done();
         });
     });
+  });
+
+  it('should allow to proceed to the Pull Data for cohort step', (done) => {
+    nextPageBtn.click();
+    pullDataStep.isSelected().then((isSelected) => {
+      expect(isSelected).to.equal(true);
+      done();
+    });
+  });
+
+  it('should load Observation table', () => {
+    cy.contains('Load Observations').click();
+    cy.get('app-resource-table[context="pull-data"]').should('exist');
+  });
+
+  it('should show value column in Observations table', () => {
+    cy.get('app-resource-table[context="pull-data"] thead')
+      .contains('Value')
+      .should('exist');
   });
 });
