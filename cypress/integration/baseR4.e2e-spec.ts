@@ -4,6 +4,7 @@ import {
   MatStepperNextHarness
 } from '@angular/material/stepper/testing';
 import { getHarness } from '@jscutlery/cypress-harness';
+import 'cypress-file-upload';
 
 describe('Research Data Finder (baseR4)', () => {
   // Page objects & harnesses
@@ -109,5 +110,20 @@ describe('Research Data Finder (baseR4)', () => {
       timeout: 5000
     }).should('not.be.null');
     cy.task('removeCohortFileIfExist');
+  });
+
+  it('should load cohort', (done) => {
+    defineCohortStep.select().then(() => {
+      cy.get('#hiddenFileInput')
+        .attachFile('cohort-to-upload.json')
+        .then(() => {
+          cy.contains('Cohort of 4 Patient resources')
+            .should('exist')
+            .then(() => {
+              expect(Cypress.$('table tbody tr').length).to.equal(4);
+              done();
+            });
+        });
+    });
   });
 });
