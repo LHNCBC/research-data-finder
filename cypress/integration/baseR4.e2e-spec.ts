@@ -102,4 +102,12 @@ describe('Research Data Finder (baseR4)', () => {
       done();
     });
   });
+
+  it('should save cohort', () => {
+    cy.contains('Save the cohort and criteria for later').click();
+    cy.readFile(`${Cypress.config('downloadsFolder')}/cohort-100.json`, {
+      timeout: 5000
+    }).should('not.be.null');
+    cy.task('removeCohortFileIfExist');
+  });
 });
