@@ -100,7 +100,8 @@ export class ColumnDescriptionsService {
   }
 
   /**
-   * Notifies that server has data for the specified resource table column names
+   * Notifies that the server has data for the specified resource table column
+   * names.
    * @param resourceType - resource type
    * @param context - context name which used to distinguish between resource
    *  tables of the same resource type that may appear more than once in the

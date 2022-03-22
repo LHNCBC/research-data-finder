@@ -212,7 +212,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.columnDescriptionsService.setColumnsWithData(
         this.resourceType,
         this.context,
-        Object.keys(columnsWithData)
+        []
       );
       this.isLoading$.next(true);
       this.liveAnnoncer.announce(
@@ -233,7 +233,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
                 '; '
               );
               desc[columnDesc.element] = cellText;
-              if (cellText) {
+              if (!columnsWithData[columnDesc.element] && cellText) {
                 columnsWithData[columnDesc.element] = true;
                 columnsWithDataChanged = true;
               }
