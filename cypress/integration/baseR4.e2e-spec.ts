@@ -58,9 +58,10 @@ describe('Research Data Finder (baseR4)', () => {
     expect(stepsArray.length).to.equal(4);
   });
 
-  it('should select the Settings step by default', () => {
+  it('should select the Settings step by default', (done) => {
     settingsStep.isSelected().then((isSelected) => {
       expect(isSelected).to.equal(true);
+      done();
     });
   });
 

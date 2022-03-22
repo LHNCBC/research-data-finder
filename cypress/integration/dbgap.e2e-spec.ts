@@ -64,9 +64,10 @@ describe('Research Data Finder (dbGap)', () => {
     expect(stepsArray.length).to.equal(5);
   });
 
-  it('should select the Settings step by default', () => {
+  it('should select the Settings step by default', (done) => {
     settingsStep.isSelected().then((isSelected) => {
       expect(isSelected).to.equal(true);
+      done();
     });
   });
 
