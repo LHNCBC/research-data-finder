@@ -3,12 +3,16 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.2.6] - 2022-03-16
+## [4.2.7] - 2022-03-16
 ### Changed
 - Hide resource table columns without data after loading data.
 ### Fixed
 - The use of a number range filter for the Count column type of
   the ResearchStudy table has been restored.
+
+## [4.2.6] - 2022-03-11
+### Changed
+- get code list for DocumentReference.contenttype via autocomplete search.
 
 ## [4.2.5] - 2022-03-08
 ### Fixed
