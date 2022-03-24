@@ -73,12 +73,12 @@
       <div class="spacer" *ngIf="ruleset.rules?.length"></div>
       <div class="h-box">
         <button type="button"
-                (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button color="secondary">
+                (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button>
           <mat-icon svgIcon="add"></mat-icon>Add criteria for a record type
         </button>
         <div class="spacer"></div>
         <button type="button"
-                (click)="addRuleSet()" mat-stroked-button color="secondary">
+                (click)="addRuleSet()" mat-stroked-button>
           <mat-icon svgIcon="add"></mat-icon>Add a subgroup of record types and criteria
         </button>
       </div>
@@ -89,7 +89,7 @@
       <div class="h-box">
         <button type="button" *ngIf="ruleset.resourceType"
                 #addCriterionBtn
-                (click)="addRule()" mat-stroked-button color="secondary">
+                (click)="addRule()" mat-stroked-button>
           <mat-icon svgIcon="add"></mat-icon>Add a criterion for the {{ruleset.resourceType}} record
         </button>
       </div>
@@ -100,7 +100,7 @@
       <div class="h-box">
         <button type="button"
                 #addResourceTypeBtn
-                (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button color="secondary">
+                (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button>
           <mat-icon svgIcon="add"></mat-icon>Add criteria for a record type
         </button>
       </div>

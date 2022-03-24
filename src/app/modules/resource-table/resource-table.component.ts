@@ -67,7 +67,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   get loadingMessage(): string {
     if (this.isLoading$.value) {
-      return 'Loading ...';
+      return (
+        'Loading ... ' +
+        (this.progressValue ? Math.floor(this.progressValue) + '%' : '')
+      );
     } else if (this.dataSource.data.length === 0) {
       return `No matching ${this.resourceType} resources were found on the server.`;
     } else {
@@ -79,16 +82,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * Get count message according to number of resources loaded
    */
   get countMessage(): string {
-    if (this.dataSource.data.length === 0) {
-      return '';
-    } else {
-      let output = '';
-      if (this.enableSelection) {
-        output += `Selected ${this.selectedResources.selected.length} out of `;
-      }
-      output += `${this.dataSource.data.length} ${this.resourceType} resources loaded.`;
-      return output;
+    let output = '';
+    if (this.enableSelection) {
+      output += `Selected ${this.selectedResources.selected.length} out of `;
     }
+    output += `${this.dataSource.data.length} ${this.resourceType} resources loaded.`;
+    return output;
   }
 
   @Input() columnDescriptions: ColumnDescription[];
@@ -97,6 +96,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() resourceType;
   @Input() context = '';
   @Input() resourceStream: Subject<Resource>;
+  @Input() progressValue = 0;
   @Input() loadingStatistics: (string | number)[][] = [];
   @Input() myStudyIds: string[] = [];
   columns: string[] = [];

@@ -78,6 +78,8 @@ export class PullDataPageComponent implements AfterViewInit {
 
   // Stream of resources for ResourceTableComponent
   resourceStream: { [resourceType: string]: Subject<Resource> } = {};
+  // Resource loading progress values for ResourceTableComponent
+  progressValue: { [resourceType: string]: number } = {};
   // Form controls of 'per patient' input
   perPatientFormControls: { [resourceType: string]: FormControl } = {};
 
@@ -248,6 +250,7 @@ export class PullDataPageComponent implements AfterViewInit {
     }
     let criteria = parameterGroup.getConditions().criteria;
     this.resourceStream[resourceType] = new Subject<Resource>();
+    this.progressValue[resourceType] = 0;
 
     // Added "detectChanges" to prevent this issue:
     // If queries are cached, then the values will be sent to the Subject
@@ -362,6 +365,11 @@ export class PullDataPageComponent implements AfterViewInit {
 
         // Generate a sequence of resources
         concatMap(({ bundle, patientData }) => {
+          // Update progress indicator
+          this.progressValue[resourceType] +=
+            (numberOfPatientsInRequest * 100) /
+            (this.patients.length * (observationCodes.length || 1));
+
           const res: (Resource & PatientMixin)[] =
             bundle?.entry?.map((entry) => ({
               ...entry.resource,

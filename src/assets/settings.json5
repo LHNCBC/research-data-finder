@@ -5,6 +5,8 @@
   // Default settings for all servers
   default: {
     definitionsFile: 'desc-2.csv',
+    maxRequestsPerBatch: 10,
+    maxActiveRequests: 6,
 
     // Sort orders by resource type.
     // Columns without a sort order defined here will stay in the end.
@@ -45,6 +47,8 @@
 
     "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1": {
       definitionsFile: 'desc-1.csv',
+      maxRequestsPerBatch: 50,
+      maxActiveRequests: 1,
 
       // Coding system per resource per element for filtering data in
       // resource tables. If there is a coding with specified "system",
