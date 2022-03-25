@@ -26,22 +26,6 @@
     }
   },
   "https://lforms-fhir.nlm.nih.gov/baseR4": {
-    "DocumentReference": {
-      "contenttype": [
-        {
-          "code": "text/plain",
-          "display": "text/plain"
-        },
-        {
-          "code": "application/pdf",
-          "display": "application/pdf"
-        },
-        {
-          "code": "image/png",
-          "display": "image/png"
-        }
-      ]
-    },
     "Observation": {
       "category": [
         {

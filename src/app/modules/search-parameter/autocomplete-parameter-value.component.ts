@@ -307,7 +307,17 @@ export class AutocompleteParameterValueComponent
               };
 
               const filterText = fieldVal;
-              if (filterText) {
+              if (
+                filterText &&
+                !(
+                  // DocumentReference.contenttype does not support querying codes by ':text'.
+                  // We will return the whole list with ':not=zzz' and filter in client.
+                  (
+                    this.resourceType === 'DocumentReference' &&
+                    this.searchParameter === 'contenttype'
+                  )
+                )
+              ) {
                 params[`${this.searchParameter}:text`] = filterText;
               } else {
                 params[`${this.searchParameter}:not`] = 'zzz';
