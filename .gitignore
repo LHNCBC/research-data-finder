@@ -44,6 +44,6 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
-/cypress/videos/*
-/cypress/screenshots/*
-/cypress/downloads/*
+/test/cypress/videos/*
+/test/cypress/screenshots/*
+/test/cypress/downloads/*
