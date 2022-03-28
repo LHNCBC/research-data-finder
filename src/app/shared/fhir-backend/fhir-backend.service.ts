@@ -162,18 +162,18 @@ export class FhirBackendService implements HttpBackend {
   initializeFhirBatchQuery(serviceBaseUrl: string = ''): void {
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
-    this.fhirClient.setMaxRequestsPerBatch(
-      this.settings.get('maxRequestsPerBatch')
-    );
-    this.fhirClient.setMaxActiveRequests(
-      this.settings.get('maxActiveRequests')
-    );
     this.fhirClient.initialize(serviceBaseUrl).then(
       () => {
         // Load definitions of search parameters and columns from CSV file
         this.settings.loadCsvDefinitions().subscribe(
           (resourceDefinitions) => {
             this.currentDefinitions = { resources: resourceDefinitions };
+            this.fhirClient.setMaxRequestsPerBatch(
+              this.settings.get('maxRequestsPerBatch')
+            );
+            this.fhirClient.setMaxActiveRequests(
+              this.settings.get('maxActiveRequests')
+            );
             this.initialized.next(ConnectionStatus.Ready);
           },
           (err) => {
