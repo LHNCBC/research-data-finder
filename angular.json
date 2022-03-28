@@ -131,18 +131,6 @@
             ]
           }
         },
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "fhir-obs-viewer:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "fhir-obs-viewer:serve:production"
-            }
-          }
-        },
         "cypress-e2e": {
           "builder": "@cypress/schematic:cypress",
           "options": {
