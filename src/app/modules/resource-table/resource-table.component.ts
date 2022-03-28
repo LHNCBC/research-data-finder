@@ -12,11 +12,17 @@ import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ColumnDescription } from '../../types/column.description';
-import { bufferCount, filter, map } from 'rxjs/operators';
+import { bufferCount, filter, map, sample } from 'rxjs/operators';
 import { escapeStringForRegExp } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
-import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import {
+  BehaviorSubject,
+  interval,
+  Observable,
+  Subject,
+  Subscription
+} from 'rxjs';
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { SettingsService } from '../../shared/settings-service/settings.service';
 import { Sort } from '@angular/material/sort';
@@ -51,6 +57,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private liveAnnoncer: LiveAnnouncer,
     private dialog: CustomDialog
   ) {
+    this.progressBarPosition$ = this.progressValue$.pipe(
+      // A pause while updating the progress bar position is needed
+      // to avoid restarting the animation.
+      sample(interval(500))
+    );
     this.subscription = fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Ready))
       .subscribe(() => {
@@ -96,7 +107,14 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() resourceType;
   @Input() context = '';
   @Input() resourceStream: Subject<Resource>;
-  @Input() progressValue = 0;
+  @Input() set progressValue(value) {
+    this.progressValue$.next(value);
+  }
+  get progressValue(): number {
+    return this.progressValue$.value;
+  }
+  progressValue$ = new BehaviorSubject(0);
+  progressBarPosition$: Observable<number>;
   @Input() loadingStatistics: (string | number)[][] = [];
   @Input() myStudyIds: string[] = [];
   columns: string[] = [];

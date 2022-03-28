@@ -1,4 +1,8 @@
-<mat-progress-bar *ngIf="isLoading$ | async" mode="indeterminate"></mat-progress-bar>
+<mat-progress-bar
+    *ngIf="isLoading$ | async"
+    [mode]="(progressBarPosition$ | async) > 0 ? 'determinate' : 'indeterminate'"
+    [value]="progressBarPosition$ | async">
+</mat-progress-bar>
 <mat-accordion>
   <mat-expansion-panel hideToggle #panel>
     <mat-expansion-panel-header (click)="!loadingStatistics.length && panel.toggle()">
