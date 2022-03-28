@@ -34,6 +34,9 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
   subscription: Subscription;
   researchStudiesSubscription: Subscription;
   researchStudyStream: Subject<Resource>;
+  totalRecords: number;
+  loadedRecords: number;
+  progressValue: number;
   showTable = false;
   // A list of items that system will select once table loading is complete.
   idsToSelect: string[] = [];
@@ -69,13 +72,18 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
       )
       .subscribe(([showResearchStudiesWithoutSubjects, _]) => {
         this.researchStudyStream = new Subject<Resource>();
+        this.totalRecords = 0;
+        this.loadedRecords = 0;
+        this.progressValue = 0;
         this.showTable = true;
         // Added "detectChanges" to prevent this issue:
         // If queries are cached, then the values will be sent to the Subject
         // before the ResourceTableComponent subscribes to the resource stream.
         this.cdr.detectChanges();
         if (showResearchStudiesWithoutSubjects) {
-          this.loadResearchStudies('$fhir/ResearchStudy?_count=100');
+          this.loadResearchStudies(
+            '$fhir/ResearchStudy?_count=100&_total=accurate'
+          );
         } else {
           this.option.disable({ emitEvent: false });
           const statuses = Object.keys(
@@ -84,7 +92,7 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
             ]
           ).join(',');
           this.loadResearchStudies(
-            `$fhir/ResearchStudy?_count=100&_has:ResearchSubject:study:status=${statuses}`,
+            `$fhir/ResearchStudy?_count=100&_has:ResearchSubject:study:status=${statuses}&_total=accurate`,
             true
           );
         }
@@ -107,12 +115,19 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
     this.researchStudiesSubscription = this.http
       .get(url)
       .subscribe((data: Bundle) => {
+        if (data.total) {
+          this.totalRecords = data.total;
+        }
+        this.loadedRecords += data.entry?.length || 0;
         data.entry?.forEach((item) => {
           this.researchStudyStream.next(item.resource);
           if (myStudiesOnly) {
             myStudyIds.push(item.resource.id);
           }
         });
+        if (this.totalRecords) {
+          this.progressValue = (100 * this.loadedRecords) / this.totalRecords;
+        }
         const nextBundleUrl = data.link.find((l) => l.relation === 'next')?.url;
         if (nextBundleUrl) {
           this.loadResearchStudies(nextBundleUrl, myStudiesOnly);
