@@ -267,7 +267,7 @@ export class PullDataPageComponent implements AfterViewInit {
         return '';
       });
 
-      const sortFields = observationCodes.length ? [] : ['patient', 'code'];
+      const sortFields = observationCodes.length ? [] : ['code'];
       if (this.fhirBackend.features.sortObservationsByDate) {
         sortFields.push('-date');
       } else if (this.fhirBackend.features.sortObservationsByAgeAtEvent) {
