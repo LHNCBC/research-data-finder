@@ -299,6 +299,18 @@ export class PullDataPageComponent implements AfterViewInit {
               .join(',')}`;
           }
 
+          const prepareResponseData = (bundle) => {
+            // Update progress indicator
+            this.progressValue[resourceType] +=
+              (numberOfPatientsInRequest * 100) /
+              (this.patients.length * (observationCodes.length || 1));
+
+            return {
+              bundle,
+              patientData: patients.length === 1 ? patients[0] : null
+            };
+          };
+
           if (observationCodes.length) {
             // Create separate requests for each Observation code
             return observationCodes.map((code) => {
@@ -309,10 +321,7 @@ export class PullDataPageComponent implements AfterViewInit {
                   )
                   // toPromise needed to immediately execute query, this allows batch requests
                   .toPromise()
-                  .then((bundle) => ({
-                    bundle,
-                    patientData: patients.length === 1 ? patients[0] : null
-                  }))
+                  .then(prepareResponseData)
               );
             });
           }
@@ -329,10 +338,7 @@ export class PullDataPageComponent implements AfterViewInit {
               )
               // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
               .toPromise()
-              .then((bundle) => ({
-                bundle,
-                patientData: patients.length === 1 ? patients[0] : null
-              }))
+              .then(prepareResponseData)
           );
         })
       )
@@ -365,11 +371,6 @@ export class PullDataPageComponent implements AfterViewInit {
 
         // Generate a sequence of resources
         concatMap(({ bundle, patientData }) => {
-          // Update progress indicator
-          this.progressValue[resourceType] +=
-            (numberOfPatientsInRequest * 100) /
-            (this.patients.length * (observationCodes.length || 1));
-
           const res: (Resource & PatientMixin)[] =
             bundle?.entry?.map((entry) => ({
               ...entry.resource,
