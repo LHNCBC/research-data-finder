@@ -53,7 +53,13 @@
       "effectiveDateTime": "2140-12-27T12:20:48.472Z",
       "valueQuantity": {
         "value": 1
-      }
+      },
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/StructureDefinition/workflow-instantiatesUri",
+          "valueUri": "https://lforms-fhir.nlm.nih.gov/baseR4/EvidenceVariable/phv00492039"
+        }
+      ]
     },
     "search": {
       "mode": "match"

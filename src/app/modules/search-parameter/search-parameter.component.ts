@@ -49,6 +49,7 @@ export class SearchParameterComponent
   @Input() isPullData = false;
   readonly CODETEXT = CODETEXT;
   readonly OBSERVATION_VALUE = OBSERVATION_VALUE;
+  readonly EVIDENCEVARIABLE = 'EvidenceVariable';
   definitions: any;
 
   selectedResourceType: any;

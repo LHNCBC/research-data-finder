@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.3.0] - 2022-03-25
+### Added
+- Evidence Variable search parameters in define cohort.
+- Ability to pull Evidence Variable data for a cohort.
+
 ## [4.2.6] - 2022-03-11
 ### Changed
 - get code list for DocumentReference.contenttype via autocomplete search.
