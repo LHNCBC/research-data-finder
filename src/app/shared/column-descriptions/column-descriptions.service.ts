@@ -7,7 +7,7 @@ import {
 } from '../fhir-backend/fhir-backend.service';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { SelectColumnsComponent } from '../../modules/select-columns/select-columns.component';
-import { filter, map } from 'rxjs/operators';
+import { debounceTime, filter, map } from 'rxjs/operators';
 import { capitalize } from '../utils';
 import { ColumnValuesService } from '../column-values/column-values.service';
 import { SettingsService } from '../settings-service/settings.service';
@@ -183,7 +183,9 @@ export class ColumnDescriptionsService {
       this.visibilityChanged[key] = new BehaviorSubject<void>(undefined);
       this.visibleColumns[key] = combineLatest([
         this.fhirBackend.initialized,
-        this.getColumnsWithData(resourceType, context),
+        // debounceTime is needed to avoid the ExpressionChangedAfterItHasBeenCheckedError
+        // exception that occurs when changes are made frequently due to cached requests.
+        this.getColumnsWithData(resourceType, context).pipe(debounceTime(100)),
         this.visibilityChanged[key]
       ]).pipe(
         filter(([status]) => status === ConnectionStatus.Ready),
