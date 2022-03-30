@@ -45,14 +45,17 @@ describe('Research Data Finder (dbGap)', () => {
   // Current step next button harness
   let nextPageBtn: MatStepperNextHarness;
 
-  beforeEach(() => {
+  beforeEach((done) => {
     stepper
       .getSteps({ selected: true })
       .then(([currentStep]) =>
-        currentStep ? currentStep.getHarness(MatStepperNextHarness) : null
+        currentStep
+          ? currentStep.getHarness(MatStepperNextHarness).catch(() => null)
+          : null
       )
       .then((btn) => {
         nextPageBtn = btn;
+        done();
       });
   });
 
