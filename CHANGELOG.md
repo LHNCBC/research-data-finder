@@ -3,12 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.2.7] - 2022-03-16
+## [4.3.1] - 2022-04-01
 ### Changed
 - Hide resource table columns without data after loading data.
 ### Fixed
 - The use of a number range filter for the Count column type of
   the ResearchStudy table has been restored.
+
+## [4.3.0] - 2022-03-25
+### Added
+- Evidence Variable search parameters in define cohort.
+- Ability to pull Evidence Variable data for a cohort.
 
 ## [4.2.6] - 2022-03-11
 ### Changed

@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "4.2.7",
+  "version": "4.3.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
@@ -17,7 +17,8 @@
     "cypress:open": "ng run fhir-obs-viewer:cypress-open",
     "prettier-fix": "prettier --write '**/*.ts'",
     "update-excel-config": "node bin/update-excel-configurations.js && npm run build",
-    "update-cached-lists": "node bin/update-non-required-binding-lists.js"
+    "update-cached-lists": "node bin/update-non-required-binding-lists.js",
+    "post-evidence-variable-data": "curl -X POST 'https://lforms-fhir.nlm.nih.gov/baseR4' -H 'Content-Type: application/fhir+json; charset=UTF-8' -d '@evidence-variable-r4-bundle.json'"
   },
   "private": true,
   "dependencies": {
