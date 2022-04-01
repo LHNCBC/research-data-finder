@@ -165,14 +165,12 @@ export class ObservationCodeLookupComponent
   }
 
   /**
-   * Clean up the autocompleter instance
+   * Performs a cleanup when a component instance is destroyed.
    */
   ngOnDestroy(): void {
     this.stateChanges.complete();
     this.subscription?.unsubscribe();
-    if (this.acInstance) {
-      this.acInstance.destroy();
-    }
+    this.destroyAutocomplete();
   }
 
   /**
@@ -188,9 +186,7 @@ export class ObservationCodeLookupComponent
       items: []
     };
     if (this.acInstance) {
-      throw new Error(
-        'Failed to set value after initialization. Autocompleter only has method to add data (addToSelectedArea)'
-      );
+      this.setupAutocomplete();
     }
   }
 
@@ -209,8 +205,14 @@ export class ObservationCodeLookupComponent
   setupAutocomplete(): void {
     const testInputId = this.inputId;
 
+    // Autocompleter only has a method to add data, so we should recreate
+    // an instance.
+    this.destroyAutocomplete();
+
     const acInstance = (this.acInstance = new Def.Autocompleter.Search(
-      testInputId,
+      // We can't use the input element's id here, because it might not be
+      // in DOM if the component is in an inactive tab.
+      this.input.nativeElement,
       null,
       {
         suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
@@ -381,6 +383,21 @@ export class ObservationCodeLookupComponent
   }
 
   /**
+   * Destroy the autocompleter instance
+   */
+  destroyAutocomplete(): void {
+    if (this.acInstance) {
+      this.acInstance.destroy();
+      Def.Autocompleter.Event.removeCallback(
+        this.inputId,
+        'LIST_SEL',
+        this.listSelectionsObserver
+      );
+      this.acInstance = null;
+    }
+  }
+
+  /**
    * Extracts autocomplete items from resource bundle
    * @param bundle - resource bundle
    * @param processedCodes - hash of processed codes,
@@ -470,7 +487,7 @@ export class ObservationCodeLookupComponent
    */
   onContainerClick(event: MouseEvent): void {
     if (!this.focused) {
-      document.getElementById(this.inputId).focus();
+      this.input.nativeElement.focus();
     }
   }
 

@@ -7,7 +7,14 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { concatMap, map, reduce, startWith, switchMap } from 'rxjs/operators';
+import {
+  concatMap,
+  map,
+  reduce,
+  startWith,
+  switchMap,
+  take
+} from 'rxjs/operators';
 import { chunk } from 'lodash-es';
 import {
   ConnectionStatus,
@@ -26,6 +33,7 @@ import Observation = fhir.Observation;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { saveAs } from 'file-saver';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
+import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 
 type PatientMixin = { patientData: Patient };
 
@@ -41,6 +49,9 @@ export class PullDataPageComponent implements AfterViewInit {
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
   @ViewChildren(ResourceTableComponent)
   resourceTables: QueryList<ResourceTableComponent>;
+  @ViewChildren(SearchParameterGroupComponent)
+  parameterGroups: QueryList<SearchParameterGroupComponent>;
+  defaultObservationCodes: SelectedObservationCodes;
   // Resource table data ready to download
   canDownload$: Observable<boolean>;
 
@@ -164,6 +175,35 @@ export class PullDataPageComponent implements AfterViewInit {
   }
 
   /**
+   * Sets the default observation codes for the "Pull data for the cohort" step.
+   * @param defaultObservationCodes - default observation codes
+   */
+  setDefaultObservationCodes(
+    defaultObservationCodes: SelectedObservationCodes
+  ): void {
+    this.defaultObservationCodes = defaultObservationCodes;
+    this.updateObservationCodesWithDefaults();
+  }
+
+  /**
+   * Sets the default observation codes to the appropriate autocomplete field.
+   * @private
+   */
+  private updateObservationCodesWithDefaults(): void {
+    if (this.defaultObservationCodes) {
+      const observationParameterGroup = this.parameterGroups.find(
+        (parameterGroup) => parameterGroup.inputResourceType === 'Observation'
+      );
+      if (observationParameterGroup) {
+        observationParameterGroup.parameterList.controls[0].setValue({
+          element: 'code text',
+          selectedObservationCodes: this.defaultObservationCodes
+        });
+      }
+    }
+  }
+
+  /**
    * Returns plural form of resource type name.
    */
   getPluralFormOfResourceType(resourceType: string): string {
@@ -195,6 +235,12 @@ export class PullDataPageComponent implements AfterViewInit {
     );
     this.visibleResourceTypes.push(resourceType);
     this.tabGroup.selectedIndex = this.visibleResourceTypes.length - 1;
+    if (resourceType === 'Observation') {
+      // Update the default observation codes for the newly created Observation tab.
+      this.parameterGroups.changes.pipe(take(1)).subscribe(() => {
+        setTimeout(() => this.updateObservationCodesWithDefaults());
+      });
+    }
   }
 
   /**

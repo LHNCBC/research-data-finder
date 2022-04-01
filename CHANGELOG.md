@@ -3,6 +3,14 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.4.0] - 2022-04-01
+### Added
+- Default filter for the "Pull data for the cohort" step.
+### Fixed
+- Removed duplicate observation codes from requests. Duplication occurs when
+  different autocomplete items in the observation lookup component have the
+  same codes.
+
 ## [4.3.1] - 2022-04-01
 ### Changed
 - Hide resource table columns without data after loading data.
