@@ -31,6 +31,11 @@ import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import { ErrorStateMatcher } from '@angular/material/core';
 import WORDSYNONYMS from '../../../../word-synonyms.json';
 
+// This value should be used as the "datatype" field value for the form control
+// value if we don't have a "variable value" criterion (in the "Pull data for
+// the cohort" step) and we should not restrict the observation codes by datatype.
+const ANY_DATATYPE = 'any';
+
 /**
  * Component for selecting LOINC variables.
  */
@@ -100,7 +105,7 @@ export class ObservationCodeLookupComponent
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
    */
   get empty(): boolean {
-    return !this.currentData.datatype && !this.input?.nativeElement.value;
+    return !this.currentData.items.length && !this.input?.nativeElement.value;
   }
 
   /**
@@ -346,14 +351,17 @@ export class ObservationCodeLookupComponent
       this.acInstance.addToSelectedArea(item);
     });
 
-    // Restore mapping from code to datatype from preselected data
-    this.currentData.coding.forEach((code) => {
-      if (!this.code2Type[code.system + '|' + code.code]) {
-        this.code2Type[
-          code.system + '|' + code.code
-        ] = this.currentData.datatype;
-      }
-    });
+    // Restore mapping from code to datatype from preselected data,
+    // if restricted by datatype
+    if (this.currentData.datatype !== ANY_DATATYPE) {
+      this.currentData.coding.forEach((code) => {
+        if (!this.code2Type[code.system + '|' + code.code]) {
+          this.code2Type[
+            code.system + '|' + code.code
+          ] = this.currentData.datatype;
+        }
+      });
+    }
 
     this.listSelectionsObserver = (eventData) => {
       const coding = acInstance.getSelectedCodes();
@@ -371,7 +379,9 @@ export class ObservationCodeLookupComponent
       }
       this.currentData = {
         coding,
-        datatype,
+        // If there is no restriction by datatype, then do not reset the datatype
+        datatype:
+          this.currentData.datatype === ANY_DATATYPE ? ANY_DATATYPE : datatype,
         items
       };
       this.onChange(this.currentData);
@@ -413,6 +423,7 @@ export class ObservationCodeLookupComponent
       const observation = entry.resource as Observation;
       const datatype = this.getValueDataType(observation);
       if (
+        this.currentData.datatype === ANY_DATATYPE ||
         !this.currentData.datatype ||
         datatype === this.currentData.datatype
       ) {

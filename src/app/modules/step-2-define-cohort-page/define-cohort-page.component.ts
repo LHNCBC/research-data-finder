@@ -162,7 +162,7 @@ export class DefineCohortPageComponent
       },
       {
         coding: [],
-        datatype: 'Quantity',
+        datatype: 'any',
         items: []
       }
     );
