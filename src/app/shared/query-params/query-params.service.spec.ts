@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-
 import { QueryParamsService } from './query-params.service';
 import { SharedModule } from '../shared.module';
 

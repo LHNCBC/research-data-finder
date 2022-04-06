@@ -53,6 +53,10 @@ import { uniqBy } from 'lodash-es';
 const PATIENT_RESOURCE_TYPE = 'Patient';
 // ResearchStudy resource type name
 const RESEARCH_STUDY_RESOURCE_TYPE = 'ResearchStudy';
+// EvidenceVariable resource type name
+const EVIDENCE_VARIABLE_RESOURCE_TYPE = 'EvidenceVariable';
+// Observation resource type name
+const OBSERVATION_RESOURCE_TYPE = 'Observation';
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -469,9 +473,12 @@ export class DefineCohortPageComponent
         // Sequentially execute queries and put the result into the stream
         concatMap((rules) => {
           const useHas = this.canUseHas(criteria.resourceType, rules);
-          const resourceType = useHas
-            ? PATIENT_RESOURCE_TYPE
-            : criteria.resourceType;
+          const resourceType =
+            criteria.resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+              ? OBSERVATION_RESOURCE_TYPE
+              : useHas
+              ? PATIENT_RESOURCE_TYPE
+              : criteria.resourceType;
           // If the resource is not a Patient, we extract only the subject
           // element in order to further identify the Patient by it.
           const elements =
@@ -632,7 +639,10 @@ export class DefineCohortPageComponent
     return (
       resourceType !== PATIENT_RESOURCE_TYPE &&
       resourceType !== RESEARCH_STUDY_RESOURCE_TYPE &&
+      resourceType !== EVIDENCE_VARIABLE_RESOURCE_TYPE &&
       criteriaForResourceType.length === 1 &&
+      // Currently don't use _has for EV since it doesn't work with search parameter 'obs-evidence-variable'
+      criteriaForResourceType[0].field.element !== 'evidencevariable' &&
       this.queryParams
         .getQueryParam(resourceType, criteriaForResourceType[0].field)
         .lastIndexOf('&') === 0
@@ -678,10 +688,16 @@ export class DefineCohortPageComponent
   ): Observable<number> {
     const hasResearchSubjects = this.getHasResearchSubjectsParam();
     const useHas = this.canUseHas(resourceType, rules);
+    const queryResourceType =
+      resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+        ? OBSERVATION_RESOURCE_TYPE
+        : useHas
+        ? PATIENT_RESOURCE_TYPE
+        : resourceType;
 
     const query =
       '$fhir/' +
-      (useHas ? PATIENT_RESOURCE_TYPE : resourceType) +
+      queryResourceType +
       '?_total=accurate&_summary=count' +
       (resourceType === RESEARCH_STUDY_RESOURCE_TYPE
         ? hasResearchSubjects
@@ -774,7 +790,12 @@ export class DefineCohortPageComponent
     }
 
     const useHas = this.canUseHas(resourceType, rules);
-    const queryResourceType = useHas ? PATIENT_RESOURCE_TYPE : resourceType;
+    const queryResourceType =
+      resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+        ? OBSERVATION_RESOURCE_TYPE
+        : useHas
+        ? PATIENT_RESOURCE_TYPE
+        : resourceType;
     // If the resource is not a Patient, we extract only the subject
     // element in order to further identify the Patient by it.
     const elements =

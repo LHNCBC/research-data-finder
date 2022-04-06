@@ -49,6 +49,7 @@ export class SearchParameterComponent
   @Input() isPullData = false;
   readonly CODETEXT = CODETEXT;
   readonly OBSERVATION_VALUE = OBSERVATION_VALUE;
+  readonly EVIDENCEVARIABLE = 'EvidenceVariable';
   definitions: any;
 
   selectedResourceType: any;
@@ -132,10 +133,17 @@ export class SearchParameterComponent
         );
         if (this.nonRequiredBindingList) {
           this.parameterValues = this.nonRequiredBindingList;
-        } else if (this.selectedParameter.valueSet) {
+        } else if (
+          this.selectedParameter.valueSet &&
+          Array.isArray(
+            this.definitions.valueSets[this.selectedParameter.valueSet]
+          )
+        ) {
           this.parameterValues = this.definitions.valueSets[
             this.selectedParameter.valueSet
           ];
+        } else {
+          this.parameterValues = undefined;
         }
       }
       this.handleChange();

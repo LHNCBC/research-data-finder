@@ -61,6 +61,11 @@ Encounter,,,,,,,
 ,subject,column,Subject,show,Reference,,"The patient or group present at the encounter"
 ,type,column,Type,show,CodeableConcept,,"Specific type of encounter"
 ,type,"search parameter",type,show,CodeableConcept,,"Specific type of encounter"
+EvidenceVariable,,,,,,,
+,name,column,Name,show,string,,"Computationally friendly name of the evidence variable"
+,name,"search parameter",name,show,string,,"Computationally friendly name of the evidence variable"
+,description,column,Description,show,string,,"The description of the evidence variable"
+,description,"search parameter",description,show,string,,"The description of the evidence variable"
 MedicationDispense,,,,,,,
 ,"code text","search parameter","medication name",show,,,"The display text associated with the code of the medication being administered"
 ,authorizingPrescription,column,"Authorizing Prescription",hide,Reference,,"Medication order that authorizes the dispense"

@@ -3,11 +3,24 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.2.6] - 2022-03-17
+## [4.3.2] - 2022-04-01
 ### Fixed
 - Replaced incorrect "dateTime" data type for search parameters with "date"
   to use the correct controls.
 - Replaced hyphens in search parameter names with spaces.
+
+## [4.3.1] - 2022-03-31
+### Changed
+- Hide shared header/footer until page loads.
+
+## [4.3.0] - 2022-03-25
+### Added
+- Evidence Variable search parameters in define cohort.
+- Ability to pull Evidence Variable data for a cohort.
+
+## [4.2.6] - 2022-03-11
+### Changed
+- get code list for DocumentReference.contenttype via autocomplete search.
 
 ## [4.2.5] - 2022-03-08
 ### Fixed
