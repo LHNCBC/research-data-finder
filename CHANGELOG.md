@@ -3,12 +3,19 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.3.1] - 2022-04-01
+## [4.3.2] - 2022-04-01
 ### Changed
 - Hide resource table columns without data after loading data.
 ### Fixed
 - The use of a number range filter for the Count column type of
   the ResearchStudy table has been restored.
+- Replaced incorrect "dateTime" data type for search parameters with "date"
+  to use the correct controls.
+- Replaced hyphens in search parameter names with spaces.
+
+## [4.3.1] - 2022-03-31
+### Changed
+- Hide shared header/footer until page loads.
 
 ## [4.3.0] - 2022-03-25
 ### Added
