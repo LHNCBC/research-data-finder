@@ -191,7 +191,7 @@ export class ObservationCodeLookupComponent
       items: []
     };
     if (this.acInstance) {
-      this.setupAutocomplete();
+      this.updateAutocomplete();
     }
   }
 
@@ -209,10 +209,6 @@ export class ObservationCodeLookupComponent
    */
   setupAutocomplete(): void {
     const testInputId = this.inputId;
-
-    // Autocompleter only has a method to add data, so we should recreate
-    // an instance.
-    this.destroyAutocomplete();
 
     const acInstance = (this.acInstance = new Def.Autocompleter.Search(
       // We can't use the input element's id here, because it might not be
@@ -345,11 +341,7 @@ export class ObservationCodeLookupComponent
       }
     ));
 
-    // Fill component with data (see writeValue)
-    this.currentData.items.forEach((item, index) => {
-      this.acInstance.storeSelectedItem(item, this.currentData.coding[index]);
-      this.acInstance.addToSelectedArea(item);
-    });
+    this.updateAutocomplete();
 
     // Restore mapping from code to datatype from preselected data,
     // if restricted by datatype
@@ -390,6 +382,17 @@ export class ObservationCodeLookupComponent
       testInputId,
       this.listSelectionsObserver
     );
+  }
+
+  /**
+   * Fill component with this.currentData
+   */
+  private updateAutocomplete(): void {
+    this.acInstance.clearStoredSelection();
+    this.currentData.items.forEach((item, index) => {
+      this.acInstance.storeSelectedItem(item, this.currentData.coding[index]);
+      this.acInstance.addToSelectedArea(item);
+    });
   }
 
   /**
