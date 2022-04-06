@@ -92,8 +92,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
         .maxPatientsNumber,
       rawCriteria: this.defineCohortComponent.patientParams.queryCtrl.value,
       data:
-        this.viewCohortComponent?.resourceTableComponent?.dataSource?.data ??
-        [],
+        this.viewCohortComponent?.resourceTableComponent?.dataSource?.data.map(
+          (i) => i.resource
+        ) ?? [],
       researchStudies:
         this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
     };

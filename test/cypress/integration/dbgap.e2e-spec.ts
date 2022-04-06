@@ -18,11 +18,11 @@ describe('Research Data Finder (dbGap)', () => {
   let pullDataStep: MatStepHarness;
 
   before(() => {
-    cy.visit('/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1');
-    // Waiting for application initialization
-    cy.get('.overlay').as('InitOverlay');
-    cy.get('@InitOverlay').should('be.visible');
-    cy.get('@InitOverlay', { timeout: 30000 }).should('not.exist');
+    cy.visit('/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1')
+      // Waiting for application initialization
+      .wait(1000)
+      .get('.overlay', { timeout: 30000 })
+      .should('not.exist');
 
     // Initialize common page objects (harnesses)
     getHarness(MatStepperHarness)
@@ -45,14 +45,17 @@ describe('Research Data Finder (dbGap)', () => {
   // Current step next button harness
   let nextPageBtn: MatStepperNextHarness;
 
-  beforeEach(() => {
+  beforeEach((done) => {
     stepper
       .getSteps({ selected: true })
       .then(([currentStep]) =>
-        currentStep ? currentStep.getHarness(MatStepperNextHarness) : null
+        currentStep
+          ? currentStep.getHarness(MatStepperNextHarness).catch(() => null)
+          : null
       )
       .then((btn) => {
         nextPageBtn = btn;
+        done();
       });
   });
 
