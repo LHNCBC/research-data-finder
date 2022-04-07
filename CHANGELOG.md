@@ -3,6 +3,33 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.4.0] - 2022-04-07
+### Added
+- Default filter for the "Pull data for the cohort" step.
+### Fixed
+- Removed duplicate observation codes from requests. Duplication occurs when
+  different autocomplete items in the observation lookup component have the
+  same codes.
+
+## [4.3.2] - 2022-04-01
+### Changed
+- Hide resource table columns without data after loading data.
+### Fixed
+- The use of a number range filter for the Count column type of
+  the ResearchStudy table has been restored.
+- Replaced incorrect "dateTime" data type for search parameters with "date"
+  to use the correct controls.
+- Replaced hyphens in search parameter names with spaces.
+
+## [4.3.1] - 2022-03-31
+### Changed
+- Hide shared header/footer until page loads.
+
+## [4.3.0] - 2022-03-25
+### Added
+- Evidence Variable search parameters in define cohort.
+- Ability to pull Evidence Variable data for a cohort.
+
 ## [4.2.6] - 2022-03-11
 ### Changed
 - get code list for DocumentReference.contenttype via autocomplete search.

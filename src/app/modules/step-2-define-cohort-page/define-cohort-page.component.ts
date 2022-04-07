@@ -41,7 +41,10 @@ import {
   tap
 } from 'rxjs/operators';
 import Bundle = fhir.Bundle;
-import { QueryParamsService } from '../../shared/query-params/query-params.service';
+import {
+  CODETEXT,
+  QueryParamsService
+} from '../../shared/query-params/query-params.service';
 import { getNextPageUrl } from '../../shared/utils';
 import {
   Criteria,
@@ -49,10 +52,15 @@ import {
   ResourceTypeCriteria
 } from '../../types/search-parameters';
 import { uniqBy } from 'lodash-es';
+import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 // Patient resource type name
 const PATIENT_RESOURCE_TYPE = 'Patient';
 // ResearchStudy resource type name
 const RESEARCH_STUDY_RESOURCE_TYPE = 'ResearchStudy';
+// EvidenceVariable resource type name
+const EVIDENCE_VARIABLE_RESOURCE_TYPE = 'EvidenceVariable';
+// Observation resource type name
+const OBSERVATION_RESOURCE_TYPE = 'Observation';
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -134,6 +142,61 @@ export class DefineCohortPageComponent
       }
     }
     return result;
+  }
+
+  /**
+   * Returns all selected observation codes.
+   */
+  getObservationCodes(): SelectedObservationCodes {
+    return this.getObservationCodesFromCriteria(
+      this.patientParams.queryBuilderComponent.data as Criteria
+    ).reduce(
+      (result, cc) => {
+        cc.items.forEach((item, index) => {
+          if (result.items.indexOf(item) === -1) {
+            result.items.push(item);
+            result.coding.push(cc.coding[index]);
+          }
+        });
+        return result;
+      },
+      {
+        coding: [],
+        datatype: 'any',
+        items: []
+      }
+    );
+  }
+
+  /**
+   * Returns selected observation codes from specified criteria
+   * @param criteria - criteria tree
+   */
+  private getObservationCodesFromCriteria(
+    criteria: Criteria | ResourceTypeCriteria
+  ): SelectedObservationCodes[] {
+    let codeFieldValues: SelectedObservationCodes[] = [];
+    if ('resourceType' in criteria) {
+      if (criteria.resourceType === 'Observation') {
+        const foundRule = (criteria as ResourceTypeCriteria).rules.find(
+          (rule) =>
+            rule.field.element === CODETEXT &&
+            rule.field.selectedObservationCodes
+        );
+        if (foundRule) {
+          codeFieldValues.push(foundRule.field.selectedObservationCodes);
+        }
+      }
+    } else {
+      const length = criteria.rules.length;
+      for (let i = 0; i < length; ++i) {
+        codeFieldValues = codeFieldValues.concat(
+          this.getObservationCodesFromCriteria(criteria.rules[i])
+        );
+      }
+    }
+
+    return codeFieldValues;
   }
 
   /**
@@ -469,9 +532,12 @@ export class DefineCohortPageComponent
         // Sequentially execute queries and put the result into the stream
         concatMap((rules) => {
           const useHas = this.canUseHas(criteria.resourceType, rules);
-          const resourceType = useHas
-            ? PATIENT_RESOURCE_TYPE
-            : criteria.resourceType;
+          const resourceType =
+            criteria.resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+              ? OBSERVATION_RESOURCE_TYPE
+              : useHas
+              ? PATIENT_RESOURCE_TYPE
+              : criteria.resourceType;
           // If the resource is not a Patient, we extract only the subject
           // element in order to further identify the Patient by it.
           const elements =
@@ -632,7 +698,10 @@ export class DefineCohortPageComponent
     return (
       resourceType !== PATIENT_RESOURCE_TYPE &&
       resourceType !== RESEARCH_STUDY_RESOURCE_TYPE &&
+      resourceType !== EVIDENCE_VARIABLE_RESOURCE_TYPE &&
       criteriaForResourceType.length === 1 &&
+      // Currently don't use _has for EV since it doesn't work with search parameter 'obs-evidence-variable'
+      criteriaForResourceType[0].field.element !== 'evidencevariable' &&
       this.queryParams
         .getQueryParam(resourceType, criteriaForResourceType[0].field)
         .lastIndexOf('&') === 0
@@ -678,10 +747,16 @@ export class DefineCohortPageComponent
   ): Observable<number> {
     const hasResearchSubjects = this.getHasResearchSubjectsParam();
     const useHas = this.canUseHas(resourceType, rules);
+    const queryResourceType =
+      resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+        ? OBSERVATION_RESOURCE_TYPE
+        : useHas
+        ? PATIENT_RESOURCE_TYPE
+        : resourceType;
 
     const query =
       '$fhir/' +
-      (useHas ? PATIENT_RESOURCE_TYPE : resourceType) +
+      queryResourceType +
       '?_total=accurate&_summary=count' +
       (resourceType === RESEARCH_STUDY_RESOURCE_TYPE
         ? hasResearchSubjects
@@ -774,7 +849,12 @@ export class DefineCohortPageComponent
     }
 
     const useHas = this.canUseHas(resourceType, rules);
-    const queryResourceType = useHas ? PATIENT_RESOURCE_TYPE : resourceType;
+    const queryResourceType =
+      resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+        ? OBSERVATION_RESOURCE_TYPE
+        : useHas
+        ? PATIENT_RESOURCE_TYPE
+        : resourceType;
     // If the resource is not a Patient, we extract only the subject
     // element in order to further identify the Patient by it.
     const elements =

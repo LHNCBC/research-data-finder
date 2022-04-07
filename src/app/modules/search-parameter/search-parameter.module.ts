@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { SearchParameterComponent } from './search-parameter.component';
 import { ObservationCodeLookupModule } from '../observation-code-lookup/observation-code-lookup.module';
@@ -17,6 +17,7 @@ import { FormControlCollectorModule } from '../../shared/error-manager/form-cont
 import { TabToSelectModule } from '../../shared/tab-to-select/tab-to-select.module';
 import { MatRadioModule } from '@angular/material/radio';
 import { AutocompleteModule } from '../autocomplete/autocomplete.module';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @NgModule({
   declarations: [
@@ -40,7 +41,9 @@ import { AutocompleteModule } from '../autocomplete/autocomplete.module';
     MatProgressSpinnerModule,
     TabToSelectModule,
     MatRadioModule,
-    AutocompleteModule
+    AutocompleteModule,
+    MatCheckboxModule,
+    FormsModule
   ]
 })
 export class SearchParameterModule {}

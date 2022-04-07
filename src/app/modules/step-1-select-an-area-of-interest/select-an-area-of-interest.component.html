@@ -18,7 +18,7 @@
     <app-resource-table #resourceTableComponent
         [columnDescriptions]="columnDescriptions.getVisibleColumns('ResearchStudy') | async"
         [enableClientFiltering]="true" [enableSelection]="true"
-        [resourceStream]="researchStudyStream" [myStudyIds]='myStudyIds'
+        [resourceStream]="researchStudyStream" [myStudyIds]='researchStudy.myStudyIds'
         [progressValue]="progressValue"
         resourceType="ResearchStudy"></app-resource-table>
   </div>

@@ -18,15 +18,14 @@ describe('Research Data Finder (dbGap)', () => {
   let pullDataStep: MatStepHarness;
 
   before(() => {
-    cy.visit('/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1');
-    // Waiting for application initialization
-    cy.get('.overlay').as('InitOverlay');
-    cy.get('@InitOverlay').should('be.visible');
-    cy.get('@InitOverlay', { timeout: 30000 }).should('not.exist');
-
-    // Initialize common page objects (harnesses)
-    getHarness(MatStepperHarness)
-      .then((result) => {
+    cy.visit('/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1')
+      // Waiting for application initialization
+      .wait(1000)
+      .get('.overlay', { timeout: 30000 })
+      .should('not.exist')
+      // Initialize common page objects (harnesses)
+      .then(() => getHarness(MatStepperHarness))
+      .then((result: MatStepperHarness) => {
         stepper = result;
         return stepper.getSteps();
       })
@@ -45,14 +44,17 @@ describe('Research Data Finder (dbGap)', () => {
   // Current step next button harness
   let nextPageBtn: MatStepperNextHarness;
 
-  beforeEach(() => {
+  beforeEach((done) => {
     stepper
       .getSteps({ selected: true })
       .then(([currentStep]) =>
-        currentStep ? currentStep.getHarness(MatStepperNextHarness) : null
+        currentStep
+          ? currentStep.getHarness(MatStepperNextHarness).catch(() => null)
+          : null
       )
       .then((btn) => {
         nextPageBtn = btn;
+        done();
       });
   });
 
@@ -64,17 +66,22 @@ describe('Research Data Finder (dbGap)', () => {
     expect(stepsArray.length).to.equal(5);
   });
 
-  it('should select the Settings step by default', () => {
+  it('should select the Settings step by default', (done) => {
     settingsStep.isSelected().then((isSelected) => {
       expect(isSelected).to.equal(true);
+      done();
     });
   });
 
-  context('in Settings step', () => {
-    before(() => {
+  describe('in Settings step', () => {
+    before((done) => {
       settingsStep
-        .getHarness(MatExpansionPanelHarness)
-        .then((advancedSettings) => advancedSettings.expand());
+        .select()
+        .then(() => settingsStep.getHarness(MatExpansionPanelHarness))
+        .then((advancedSettings) => {
+          advancedSettings.expand();
+          done();
+        });
     });
 
     [
@@ -105,35 +112,43 @@ describe('Research Data Finder (dbGap)', () => {
   });
 
   it('should not allow skipping the Define cohort step', (done) => {
-    viewCohortStep.select();
-    settingsStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    viewCohortStep
+      .select()
+      .then(() => settingsStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
   });
 
   it('should allow skipping the Select Research Studies step', (done) => {
-    defineCohortStep.select();
-    defineCohortStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      settingsStep.select();
-      done();
-    });
+    defineCohortStep
+      .select()
+      .then(() => defineCohortStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        settingsStep.select();
+        done();
+      });
   });
 
   it('should allow to proceed to the Select Research Studies step', (done) => {
-    nextPageBtn.click();
-    selectAnAreaOfInterestStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    nextPageBtn
+      .click()
+      .then(() => selectAnAreaOfInterestStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
   });
 
   it('should allow to proceed to the Define cohort step', (done) => {
-    nextPageBtn.click();
-    defineCohortStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    nextPageBtn
+      .click()
+      .then(() => defineCohortStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
   });
 });

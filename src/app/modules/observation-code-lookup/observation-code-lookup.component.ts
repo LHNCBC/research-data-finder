@@ -31,6 +31,11 @@ import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import { ErrorStateMatcher } from '@angular/material/core';
 import WORDSYNONYMS from '../../../../word-synonyms.json';
 
+// This value should be used as the "datatype" field value for the form control
+// value if we don't have a "variable value" criterion (in the "Pull data for
+// the cohort" step) and we should not restrict the observation codes by datatype.
+const ANY_DATATYPE = 'any';
+
 /**
  * Component for selecting LOINC variables.
  */
@@ -100,7 +105,7 @@ export class ObservationCodeLookupComponent
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
    */
   get empty(): boolean {
-    return !this.currentData.datatype && !this.input?.nativeElement.value;
+    return !this.currentData.items.length && !this.input?.nativeElement.value;
   }
 
   /**
@@ -165,14 +170,12 @@ export class ObservationCodeLookupComponent
   }
 
   /**
-   * Clean up the autocompleter instance
+   * Performs a cleanup when a component instance is destroyed.
    */
   ngOnDestroy(): void {
     this.stateChanges.complete();
     this.subscription?.unsubscribe();
-    if (this.acInstance) {
-      this.acInstance.destroy();
-    }
+    this.destroyAutocomplete();
   }
 
   /**
@@ -188,9 +191,7 @@ export class ObservationCodeLookupComponent
       items: []
     };
     if (this.acInstance) {
-      throw new Error(
-        'Failed to set value after initialization. Autocompleter only has method to add data (addToSelectedArea)'
-      );
+      this.updateAutocomplete();
     }
   }
 
@@ -210,7 +211,9 @@ export class ObservationCodeLookupComponent
     const testInputId = this.inputId;
 
     const acInstance = (this.acInstance = new Def.Autocompleter.Search(
-      testInputId,
+      // We can't use the input element's id here, because it might not be
+      // in DOM if the component is in an inactive tab.
+      this.input.nativeElement,
       null,
       {
         suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
@@ -338,20 +341,19 @@ export class ObservationCodeLookupComponent
       }
     ));
 
-    // Fill component with data (see writeValue)
-    this.currentData.items.forEach((item, index) => {
-      this.acInstance.storeSelectedItem(item, this.currentData.coding[index]);
-      this.acInstance.addToSelectedArea(item);
-    });
+    this.updateAutocomplete();
 
-    // Restore mapping from code to datatype from preselected data
-    this.currentData.coding.forEach((code) => {
-      if (!this.code2Type[code.system + '|' + code.code]) {
-        this.code2Type[
-          code.system + '|' + code.code
-        ] = this.currentData.datatype;
-      }
-    });
+    // Restore mapping from code to datatype from preselected data,
+    // if restricted by datatype
+    if (this.currentData.datatype !== ANY_DATATYPE) {
+      this.currentData.coding.forEach((code) => {
+        if (!this.code2Type[code.system + '|' + code.code]) {
+          this.code2Type[
+            code.system + '|' + code.code
+          ] = this.currentData.datatype;
+        }
+      });
+    }
 
     this.listSelectionsObserver = (eventData) => {
       const coding = acInstance.getSelectedCodes();
@@ -369,7 +371,9 @@ export class ObservationCodeLookupComponent
       }
       this.currentData = {
         coding,
-        datatype,
+        // If there is no restriction by datatype, then do not reset the datatype
+        datatype:
+          this.currentData.datatype === ANY_DATATYPE ? ANY_DATATYPE : datatype,
         items
       };
       this.onChange(this.currentData);
@@ -378,6 +382,32 @@ export class ObservationCodeLookupComponent
       testInputId,
       this.listSelectionsObserver
     );
+  }
+
+  /**
+   * Fill component with this.currentData
+   */
+  private updateAutocomplete(): void {
+    this.acInstance.clearStoredSelection();
+    this.currentData.items.forEach((item, index) => {
+      this.acInstance.storeSelectedItem(item, this.currentData.coding[index]);
+      this.acInstance.addToSelectedArea(item);
+    });
+  }
+
+  /**
+   * Destroy the autocompleter instance
+   */
+  destroyAutocomplete(): void {
+    if (this.acInstance) {
+      this.acInstance.destroy();
+      Def.Autocompleter.Event.removeCallback(
+        this.inputId,
+        'LIST_SEL',
+        this.listSelectionsObserver
+      );
+      this.acInstance = null;
+    }
   }
 
   /**
@@ -396,6 +426,7 @@ export class ObservationCodeLookupComponent
       const observation = entry.resource as Observation;
       const datatype = this.getValueDataType(observation);
       if (
+        this.currentData.datatype === ANY_DATATYPE ||
         !this.currentData.datatype ||
         datatype === this.currentData.datatype
       ) {
@@ -470,7 +501,7 @@ export class ObservationCodeLookupComponent
    */
   onContainerClick(event: MouseEvent): void {
     if (!this.focused) {
-      document.getElementById(this.inputId).focus();
+      this.input.nativeElement.focus();
     }
   }
 
