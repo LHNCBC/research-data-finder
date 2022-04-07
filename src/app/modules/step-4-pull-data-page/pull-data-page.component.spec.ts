@@ -277,7 +277,7 @@ describe('PullDataForCohortComponent', () => {
       const patientId = item.patient.id;
       mockHttp
         .expectOne(
-          `$fhir/Observation?subject=Patient/${patientId}&_sort=patient,code,-date&_count=1000`
+          `$fhir/Observation?subject=Patient/${patientId}&_sort=code,-date&_count=1000`
         )
         .flush(item.observations);
     });
