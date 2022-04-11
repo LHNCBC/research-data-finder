@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.3.3] - 2022-04-11
+### Fixed
+- Fixed a bug in the webpack loader that caused the application to build on
+  Windows incorrectly.
+
 ## [4.3.2] - 2022-04-01
 ### Changed
 - Hide resource table columns without data after loading data.
