@@ -10,6 +10,8 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Removed duplicate observation codes from requests. Duplication occurs when
   different autocomplete items in the observation lookup component have the
   same codes.
+- Fixed a bug in the webpack loader that caused the application to build on
+  Windows incorrectly.
 
 ## [4.3.2] - 2022-04-01
 ### Changed

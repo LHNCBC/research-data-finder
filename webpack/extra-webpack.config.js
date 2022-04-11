@@ -126,7 +126,7 @@ module.exports = async (config) => {
 
   config.module.rules.push(
     {
-      test: /definitions\/index.json$/,
+      test: /definitions[\\\/]index.json$/,
       use: [
         {
           loader: path.resolve(
