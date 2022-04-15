@@ -9,9 +9,11 @@ import { ColumnDescriptionsService } from '../../shared/column-descriptions/colu
 import { filter } from 'rxjs/operators';
 import { Subject, Subscription } from 'rxjs';
 import { saveAs } from 'file-saver';
-import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
 import Resource = fhir.Resource;
 import { SelectAnAreaOfInterestComponent } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
+import { DefineCohortPageComponent } from '../step-2-define-cohort-page/define-cohort-page.component';
+import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
+import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.component';
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
@@ -26,9 +28,12 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
   @ViewChild('defineCohortStep') public defineCohortStep: MatStep;
   @ViewChild('selectAnAreaOfInterest')
   public selectAreaOfInterestComponent: SelectAnAreaOfInterestComponent;
-  @ViewChild('defineCohortComponent') public defineCohortComponent;
+  @ViewChild('defineCohortComponent')
+  public defineCohortComponent: DefineCohortPageComponent;
   @ViewChild('viewCohortComponent')
   public viewCohortComponent: ViewCohortPageComponent;
+  @ViewChild('pullDataPageComponent')
+  public pullDataPageComponent: PullDataPageComponent;
 
   defineCohort: FormControl = new FormControl();
   serverInitialized = false;
@@ -69,6 +74,10 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
   searchForPatients(): void {
     this.defineCohortStep.completed = !this.defineCohortComponent.hasErrors();
     if (this.defineCohortStep.completed) {
+      this.pullDataPageComponent.setDefaultObservationCodes(
+        this.defineCohortComponent.getObservationCodes()
+      );
+
       if (this.selectAreaOfInterestComponent) {
         this.defineCohortComponent.searchForPatients(
           this.selectAreaOfInterestComponent.getResearchStudySearchParam()
@@ -163,16 +172,17 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     fromResearchStudyStep = false
   ): void {
     this.defineCohortStep.completed = true;
-    this.defineCohortComponent.patientStream = new Subject<Resource>();
+    const patientStream = new Subject<Resource>();
+    this.defineCohortComponent.patientStream = patientStream;
     this.stepper.next();
     if (fromResearchStudyStep) {
       this.stepper.next();
     }
     setTimeout(() => {
       data.forEach((resource) => {
-        this.defineCohortComponent.patientStream.next(resource);
+        patientStream.next(resource);
       });
-      this.defineCohortComponent.patientStream.complete();
+      patientStream.complete();
     });
   }
 }

@@ -1,295 +1,158 @@
 {
   "serviceBaseUrl": "https://lforms-fhir.nlm.nih.gov/baseR4",
   "maxPatientCount": "100",
-  "rawCriteria": [
-    {
-      "resourceType": "Patient",
-      "parameters": [
-        {
-          "name": "name",
-          "value": "amy",
-          "selectedObservationCodes": null
-        }
-      ]
-    }
-  ],
+  "rawCriteria": {
+    "condition": "and",
+    "rules": [
+      {
+        "condition": "and",
+        "rules": [
+          {
+            "field": {
+              "element": "code text",
+              "value": "",
+              "selectedObservationCodes": {
+                "coding": [
+                  {
+                    "code": "3137-7",
+                    "system": "http://loinc.org"
+                  }
+                ],
+                "datatype": "Quantity",
+                "items": [
+                  "Height cm"
+                ]
+              }
+            }
+          }
+        ],
+        "resourceType": "Observation"
+      }
+    ]
+  },
   "data": [
     {
       "resourceType": "Patient",
-      "id": "smart-1032702",
-      "meta": {
-        "versionId": "1",
-        "lastUpdated": "2021-02-17T23:45:48.000-05:00",
-        "source": "#QCNNb2pIjZGgR5bI"
-      },
-      "text": {
-        "status": "generated",
-        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Amy Shaw</div>"
-      },
-      "identifier": [
-        {
-          "use": "official",
-          "type": {
-            "coding": [
-              {
-                "system": "http://hl7.org/fhir/v2/0203",
-                "code": "MR",
-                "display": "Medical Record Number"
-              }
-            ],
-            "text": "Medical Record Number"
-          },
-          "system": "http://hospital.smarthealthit.org",
-          "value": "smart-1032702"
-        }
-      ],
-      "active": true,
+      "id": "pat-5416",
+      "active": false,
       "name": [
         {
           "use": "official",
-          "family": "Shaw",
+          "family": "CHUN",
           "given": [
-            "Amy",
-            "V"
-          ]
-        }
-      ],
-      "telecom": [
-        {
-          "system": "phone",
-          "value": "800-782-6765",
-          "use": "mobile"
-        },
-        {
-          "system": "email",
-          "value": "amy.shaw@example.com"
-        }
-      ],
-      "gender": "female",
-      "birthDate": "2007-03-20",
-      "address": [
-        {
-          "use": "home",
-          "line": [
-            "49 Meadow St"
-          ],
-          "city": "Mounds",
-          "state": "OK",
-          "postalCode": "74047",
-          "country": "USA"
-        }
-      ],
-      "generalPractitioner": [
-        {
-          "reference": "Practitioner/smart-Practitioner-72004454"
-        }
-      ]
-    },
-    {
-      "resourceType": "Patient",
-      "id": "smart-1540505",
-      "meta": {
-        "versionId": "1",
-        "lastUpdated": "2021-02-17T23:46:32.000-05:00",
-        "source": "#UMgZhaAtxPlczKP1"
-      },
-      "text": {
-        "status": "generated",
-        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Amy Clark</div>"
-      },
-      "identifier": [
-        {
-          "use": "official",
-          "type": {
-            "coding": [
-              {
-                "system": "http://hl7.org/fhir/v2/0203",
-                "code": "MR",
-                "display": "Medical Record Number"
-              }
-            ],
-            "text": "Medical Record Number"
-          },
-          "system": "http://hospital.smarthealthit.org",
-          "value": "smart-1540505"
-        }
-      ],
-      "active": true,
-      "name": [
-        {
-          "use": "official",
-          "family": "Clark",
-          "given": [
-            "Amy",
+            "SOFIA",
             "E"
           ]
         }
       ],
-      "telecom": [
-        {
-          "system": "phone",
-          "value": "800-661-3584",
-          "use": "home"
-        },
-        {
-          "system": "email",
-          "value": "amy.clark@example.com"
-        }
-      ],
       "gender": "female",
-      "birthDate": "1964-01-21",
+      "birthDate": "2069",
+      "deceasedDateTime": "2135",
       "address": [
         {
           "use": "home",
+          "type": "both",
+          "text": "6487 Fake N DIERS AVE, DENVER, CO 80210",
           "line": [
-            "77 North St"
+            "6487 Fake N DIERS AVE"
           ],
-          "city": "Bixby",
-          "state": "OK",
-          "postalCode": "74008",
-          "country": "USA"
-        }
-      ],
-      "generalPractitioner": [
-        {
-          "reference": "Practitioner/smart-Practitioner-71482713"
+          "city": "DENVER",
+          "state": "CO",
+          "postalCode": "80210",
+          "country": "US"
         }
       ]
     },
     {
       "resourceType": "Patient",
-      "id": "smart-724111",
-      "meta": {
-        "versionId": "1",
-        "lastUpdated": "2021-02-17T23:49:16.000-05:00",
-        "source": "#4tQmy5XcoPvrx16B"
-      },
-      "text": {
-        "status": "generated",
-        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Amy Morgan</div>"
-      },
-      "identifier": [
-        {
-          "use": "official",
-          "type": {
-            "coding": [
-              {
-                "system": "http://hl7.org/fhir/v2/0203",
-                "code": "MR",
-                "display": "Medical Record Number"
-              }
-            ],
-            "text": "Medical Record Number"
-          },
-          "system": "http://hospital.smarthealthit.org",
-          "value": "smart-724111"
-        }
-      ],
-      "active": true,
+      "id": "pat-2436",
+      "active": false,
       "name": [
         {
           "use": "official",
-          "family": "Morgan",
+          "family": "HART",
           "given": [
-            "Amy",
-            "C"
+            "VENESSIA"
           ]
         }
       ],
-      "telecom": [
-        {
-          "system": "phone",
-          "value": "800-439-6984",
-          "use": "home"
-        },
-        {
-          "system": "email",
-          "value": "amy.morgan@example.com"
-        }
-      ],
       "gender": "female",
-      "birthDate": "1991-06-07",
+      "birthDate": "2040",
+      "deceasedDateTime": "2129",
       "address": [
         {
           "use": "home",
+          "type": "both",
+          "text": "45373 Fake BABCOCK RD, ABERDEEN, SD 57401",
           "line": [
-            "56 North Rd"
+            "45373 Fake BABCOCK RD"
           ],
-          "city": "Mounds",
-          "state": "OK",
-          "postalCode": "74047",
-          "country": "USA"
-        }
-      ],
-      "generalPractitioner": [
-        {
-          "reference": "Practitioner/smart-Practitioner-72004454"
+          "city": "ABERDEEN",
+          "state": "SD",
+          "postalCode": "57401",
+          "country": "US"
         }
       ]
     },
     {
       "resourceType": "Patient",
-      "id": "smart-880378",
-      "meta": {
-        "versionId": "1",
-        "lastUpdated": "2021-02-17T23:49:44.000-05:00",
-        "source": "#6DU3pMRHAqSEuvm3"
-      },
-      "text": {
-        "status": "generated",
-        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Amy Lee</div>"
-      },
-      "identifier": [
-        {
-          "use": "official",
-          "type": {
-            "coding": [
-              {
-                "system": "http://hl7.org/fhir/v2/0203",
-                "code": "MR",
-                "display": "Medical Record Number"
-              }
-            ],
-            "text": "Medical Record Number"
-          },
-          "system": "http://hospital.smarthealthit.org",
-          "value": "smart-880378"
-        }
-      ],
-      "active": true,
+      "id": "pat-7287",
+      "active": false,
       "name": [
         {
           "use": "official",
-          "family": "Lee",
+          "family": "BLAIR",
           "given": [
-            "Amy",
-            "R"
+            "ALEXANDER"
           ]
         }
       ],
-      "telecom": [
-        {
-          "system": "email",
-          "value": "amy.lee@example.com"
-        }
-      ],
-      "gender": "female",
-      "birthDate": "1999-12-08",
+      "gender": "male",
+      "birthDate": "2066",
+      "deceasedDateTime": "2133",
       "address": [
         {
           "use": "home",
+          "type": "both",
+          "text": "43963 Fake ENGLE RD, MARSHALLTOWN, IA 50158",
           "line": [
-            "35 Ridge St"
+            "43963 Fake ENGLE RD"
           ],
-          "city": "Tulsa",
-          "state": "OK",
-          "postalCode": "74117",
-          "country": "USA"
+          "city": "MARSHALLTOWN",
+          "state": "IA",
+          "postalCode": "50158",
+          "country": "US"
+        }
+      ]
+    },
+    {
+      "resourceType": "Patient",
+      "id": "pat-10044",
+      "active": false,
+      "name": [
+        {
+          "use": "official",
+          "family": "ABBOUD",
+          "given": [
+            "LLOYD"
+          ]
         }
       ],
-      "generalPractitioner": [
+      "gender": "male",
+      "birthDate": "2066",
+      "deceasedDateTime": "2137",
+      "address": [
         {
-          "reference": "Practitioner/smart-Practitioner-72080416"
+          "use": "home",
+          "type": "both",
+          "text": "8334 Fake BAILEY ST NW, COVINGTON, GA 30014",
+          "line": [
+            "8334 Fake BAILEY ST NW"
+          ],
+          "city": "COVINGTON",
+          "state": "GA",
+          "postalCode": "30014",
+          "country": "US"
         }
       ]
     }

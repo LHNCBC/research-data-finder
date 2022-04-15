@@ -22,11 +22,10 @@ describe('Research Data Finder (dbGap)', () => {
       // Waiting for application initialization
       .wait(1000)
       .get('.overlay', { timeout: 30000 })
-      .should('not.exist');
-
-    // Initialize common page objects (harnesses)
-    getHarness(MatStepperHarness)
-      .then((result) => {
+      .should('not.exist')
+      // Initialize common page objects (harnesses)
+      .then(() => getHarness(MatStepperHarness))
+      .then((result: MatStepperHarness) => {
         stepper = result;
         return stepper.getSteps();
       })
@@ -74,12 +73,15 @@ describe('Research Data Finder (dbGap)', () => {
     });
   });
 
-  context('in Settings step', () => {
-    before(() => {
-      settingsStep.select();
+  describe('in Settings step', () => {
+    before((done) => {
       settingsStep
-        .getHarness(MatExpansionPanelHarness)
-        .then((advancedSettings) => advancedSettings.expand());
+        .select()
+        .then(() => settingsStep.getHarness(MatExpansionPanelHarness))
+        .then((advancedSettings) => {
+          advancedSettings.expand();
+          done();
+        });
     });
 
     [
@@ -110,35 +112,43 @@ describe('Research Data Finder (dbGap)', () => {
   });
 
   it('should not allow skipping the Define cohort step', (done) => {
-    viewCohortStep.select();
-    settingsStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    viewCohortStep
+      .select()
+      .then(() => settingsStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
   });
 
   it('should allow skipping the Select Research Studies step', (done) => {
-    defineCohortStep.select();
-    defineCohortStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      settingsStep.select();
-      done();
-    });
+    defineCohortStep
+      .select()
+      .then(() => defineCohortStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        settingsStep.select();
+        done();
+      });
   });
 
   it('should allow to proceed to the Select Research Studies step', (done) => {
-    nextPageBtn.click();
-    selectAnAreaOfInterestStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    nextPageBtn
+      .click()
+      .then(() => selectAnAreaOfInterestStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
   });
 
   it('should allow to proceed to the Define cohort step', (done) => {
-    nextPageBtn.click();
-    defineCohortStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    nextPageBtn
+      .click()
+      .then(() => defineCohortStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
   });
 });

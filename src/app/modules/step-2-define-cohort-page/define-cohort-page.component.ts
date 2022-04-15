@@ -41,7 +41,10 @@ import {
   tap
 } from 'rxjs/operators';
 import Bundle = fhir.Bundle;
-import { QueryParamsService } from '../../shared/query-params/query-params.service';
+import {
+  CODETEXT,
+  QueryParamsService
+} from '../../shared/query-params/query-params.service';
 import { getNextPageUrl } from '../../shared/utils';
 import {
   Criteria,
@@ -49,6 +52,7 @@ import {
   ResourceTypeCriteria
 } from '../../types/search-parameters';
 import { uniqBy } from 'lodash-es';
+import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 // Patient resource type name
 const PATIENT_RESOURCE_TYPE = 'Patient';
 // ResearchStudy resource type name
@@ -138,6 +142,61 @@ export class DefineCohortPageComponent
       }
     }
     return result;
+  }
+
+  /**
+   * Returns all selected observation codes.
+   */
+  getObservationCodes(): SelectedObservationCodes {
+    return this.getObservationCodesFromCriteria(
+      this.patientParams.queryBuilderComponent.data as Criteria
+    ).reduce(
+      (result, cc) => {
+        cc.items.forEach((item, index) => {
+          if (result.items.indexOf(item) === -1) {
+            result.items.push(item);
+            result.coding.push(cc.coding[index]);
+          }
+        });
+        return result;
+      },
+      {
+        coding: [],
+        datatype: 'any',
+        items: []
+      }
+    );
+  }
+
+  /**
+   * Returns selected observation codes from specified criteria
+   * @param criteria - criteria tree
+   */
+  private getObservationCodesFromCriteria(
+    criteria: Criteria | ResourceTypeCriteria
+  ): SelectedObservationCodes[] {
+    let codeFieldValues: SelectedObservationCodes[] = [];
+    if ('resourceType' in criteria) {
+      if (criteria.resourceType === 'Observation') {
+        const foundRule = (criteria as ResourceTypeCriteria).rules.find(
+          (rule) =>
+            rule.field.element === CODETEXT &&
+            rule.field.selectedObservationCodes
+        );
+        if (foundRule) {
+          codeFieldValues.push(foundRule.field.selectedObservationCodes);
+        }
+      }
+    } else {
+      const length = criteria.rules.length;
+      for (let i = 0; i < length; ++i) {
+        codeFieldValues = codeFieldValues.concat(
+          this.getObservationCodesFromCriteria(criteria.rules[i])
+        );
+      }
+    }
+
+    return codeFieldValues;
   }
 
   /**

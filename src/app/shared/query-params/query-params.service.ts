@@ -39,7 +39,14 @@ export class QueryParamsService {
       if (resourceType === 'Observation') {
         return this.getObservationCodeTextCriteria(value);
       } else {
-        return `&code=${value.value.codes.join(',')}`;
+        const usedCodes = {};
+        const codes = value.value.codes.filter((code) => {
+          if (!code || usedCodes[code]) {
+            return false;
+          }
+          return (usedCodes[code] = true);
+        });
+        return codes.length ? `&code=${codes.join(',')}` : '';
       }
     }
     if (selectedParameter.element === OBSERVATION_VALUE) {
@@ -105,7 +112,13 @@ export class QueryParamsService {
     if (!selectedCodes) {
       return '';
     }
-    const coding = selectedCodes.coding.filter((c) => c);
+    const usedCodes = {};
+    const coding = selectedCodes.coding.filter((c) => {
+      if (!c || usedCodes[c.code]) {
+        return false;
+      }
+      return (usedCodes[c.code] = true);
+    });
     return coding.length
       ? '&combo-code=' +
           coding.map((code) => encodeFhirSearchParameter(code.code)).join(',')

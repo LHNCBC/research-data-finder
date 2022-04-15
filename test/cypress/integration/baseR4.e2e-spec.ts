@@ -72,43 +72,51 @@ describe('Research Data Finder (baseR4)', () => {
   });
 
   it('should not allow skipping the Define cohort step', (done) => {
-    viewCohortStep.select();
-    settingsStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    viewCohortStep
+      .select()
+      .then(() => settingsStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
   });
 
   it('should allow to proceed to the Define cohort step', (done) => {
-    nextPageBtn.click();
-    defineCohortStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    nextPageBtn
+      .click()
+      .then(() => defineCohortStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
   });
 
   it('should add search criterion', () => {
     cy.contains('Add criteria for a record type').click();
-    cy.get('app-autocomplete.resource-type input').type('Patient');
-    cy.contains('Add a criterion for the Patient record').click();
-    cy.get('app-autocomplete.parameter-name input').type('name');
-    cy.get('mat-form-field.parameter-value input').type('a');
+    cy.get('app-autocomplete.resource-type input').type('Observation');
+    cy.contains('Add a criterion for the Observation record').click();
+    cy.get('app-autocomplete.parameter-name input').type('variable name');
+    cy.get('#code-selector-2').type('Height cm').wait(1000).blur();
   });
 
   it('should not allow skipping the View cohort (search for patients) step', (done) => {
-    viewCohortStep.select();
-    defineCohortStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    viewCohortStep
+      .select()
+      .then(() => defineCohortStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
   });
 
   it('should allow to proceed to the View cohort step', (done) => {
-    nextPageBtn.click();
-    viewCohortStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    nextPageBtn
+      .click()
+      .then(() => viewCohortStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
   });
 
   it('should save cohort', () => {
@@ -133,11 +141,20 @@ describe('Research Data Finder (baseR4)', () => {
   });
 
   it('should allow to proceed to the Pull Data for cohort step', (done) => {
-    nextPageBtn.click();
-    pullDataStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
+    nextPageBtn
+      .click()
+      .then(() => pullDataStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
+  });
+
+  it('should use default observation codes for the "Pull data for the cohort" step', () => {
+    cy.get('app-search-parameter-group .autocomp_selected > ul > li').should(
+      'have.text',
+      '×Height cm'
+    );
   });
 
   it('should load Observation table', () => {

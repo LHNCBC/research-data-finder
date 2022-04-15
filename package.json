@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "4.3.3",
+  "version": "4.4.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
@@ -32,7 +32,7 @@
     "@angular/platform-browser": "~12.2.3",
     "@angular/platform-browser-dynamic": "~12.2.3",
     "@angular/router": "~12.2.3",
-    "autocomplete-lhc": "^18.1.4",
+    "autocomplete-lhc": "^18.4.0",
     "fhirpath": "^2.9.1",
     "file-saver": "^2.0.5",
     "json5": "^2.2.0",
