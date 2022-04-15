@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.5.0] - 2022-04-15
+### Added
+- % complete based on the number of requests processed.
+- the ability to set default values for "Requests per batch" and
+  "Maximum active requests" in settings.json5 per server and set the default
+  value for dbGap to 50.
+
 ## [4.4.0] - 2022-04-14
 ### Added
 - Default filter for the "Pull data for the cohort" step.
@@ -10,8 +17,6 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Removed duplicate observation codes from requests. Duplication occurs when
   different autocomplete items in the observation lookup component have the
   same codes.
-- Fixed a bug in the webpack loader that caused the application to build on
-  Windows incorrectly.
 
 ## [4.3.3] - 2022-04-11
 ### Fixed
