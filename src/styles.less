@@ -257,9 +257,6 @@ input.search_field.invalid {
 
   .auto_complete > ul > li, #moreResults, #searchCount {
     font-size: 16px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
     padding: 13.5px 16px;
     border: 0;
   }
@@ -291,4 +288,14 @@ mat-step-header[aria-selected=true] {
 // wrong tab highlighted for dbGap server where there is a conditional tab.
 .mat-step-header.cdk-program-focused[aria-selected=false] {
   background-color: unset;
+}
+
+.custom-overlay {
+  // Do not restrict the overlay height
+  max-height: unset;
+  .autocomp_selected ul {
+    // Limit height of selected item list if autocompleter is in CustomDialog
+    max-height: 25vh;
+    overflow-y: auto;
+  }
 }

@@ -53,11 +53,14 @@ async function prepareCsvData() {
 
         const urlIndex = rows.findIndex((row) => row[0] === marker);
         const urls = rows[urlIndex][1].split(',');
-        const desc = rows.slice(urlIndex + dataOffset).filter(
-          ([, , type, , hideShow, , ,]) =>
-            // Skip hidden search parameters
-            type !== 'search parameter' || hideShow !== 'hide'
-        );
+        const desc = rows
+          .slice(urlIndex + dataOffset)
+          .filter(([, , type, , hideShow, , ,]) =>
+            // Skip hidden search parameters and disabled columns
+            type === 'search parameter'
+              ? hideShow !== 'hide'
+              : hideShow !== 'disable'
+          );
         urls.forEach((url) => {
           url2desc[url] = (url2desc[url] || []).concat(desc);
         });
@@ -123,7 +126,7 @@ module.exports = async (config) => {
 
   config.module.rules.push(
     {
-      test: /definitions\/index.json$/,
+      test: /definitions[\\\/]index.json$/,
       use: [
         {
           loader: path.resolve(

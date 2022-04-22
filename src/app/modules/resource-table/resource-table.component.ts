@@ -27,10 +27,17 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ResourceTableFilterComponent } from '../resource-table-filter/resource-table-filter.component';
 import { FilterType } from '../../types/filter-type';
+import { CustomDialog } from '../../shared/custom-dialog/custom-dialog.service';
 import Resource = fhir.Resource;
+
+type TableCells = { [key: string]: string };
+
+interface TableRow {
+  cells: TableCells;
+  resource: Resource;
+}
 
 /**
  * Component for loading table of resources
@@ -49,7 +56,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
     private liveAnnoncer: LiveAnnouncer,
-    private dialog: MatDialog
+    private dialog: CustomDialog
   ) {
     this.subscription = fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Ready))
@@ -102,7 +109,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   columns: string[] = [];
   selectedResources = new SelectionModel<Resource>(true, []);
   filtersForm: FormGroup = new FormBuilder().group({});
-  dataSource = new TableVirtualScrollDataSource<Resource>([]);
+  dataSource = new TableVirtualScrollDataSource<TableRow>([]);
   lastResourceElement: HTMLElement;
   // Data is loading
   isLoading$ = new BehaviorSubject(false);
@@ -197,30 +204,16 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  /**
-   * Sets default columns.
-   * We show default columns on very first run of the application and when
-   * the user doesn't select any columns to show in the column selection dialog.
-   */
-  private setDefaultColumns(): void {
-    const allColumns = this.columnDescriptionsService.getAvailableColumns(
-      this.resourceType,
-      this.context
-    );
-    this.columnDescriptions = allColumns.filter((x) => x.displayByDefault);
-
-    // Save column selections of default
-    this.columnDescriptionsService.setVisibleColumnNames(
-      this.resourceType,
-      this.context,
-      this.columnDescriptions.map((x) => x.element)
-    );
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
     // update resource table if user searches again
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
+      const columnsWithData = {};
       this.dataSource.data.length = 0;
+      this.columnDescriptionsService.setColumnsWithData(
+        this.resourceType,
+        this.context,
+        []
+      );
       this.isLoading$.next(true);
       this.liveAnnoncer.announce(
         `The ${this.resourceType} resources loading process has started`
@@ -228,19 +221,39 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const startTime = Date.now();
       this.resourceStream.pipe(bufferCount(50)).subscribe(
         (resources) => {
+          const allColumns = this.columnDescriptionsService.getAvailableColumns(
+            this.resourceType,
+            this.context
+          );
+          let columnsWithDataChanged = false;
+          const newRows: TableRow[] = resources.map((resource) => ({
+            resource,
+            cells: allColumns.reduce((desc, columnDesc) => {
+              const cellText = this.getCellStrings(resource, columnDesc).join(
+                '; '
+              );
+              desc[columnDesc.element] = cellText;
+              if (!columnsWithData[columnDesc.element] && cellText) {
+                columnsWithData[columnDesc.element] = true;
+                columnsWithDataChanged = true;
+              }
+              return desc;
+            }, {} as TableCells)
+          }));
+
           if (this.enableClientFiltering) {
             // Move selectable studies to the beginning of table.
-            this.dataSource.data = [...this.dataSource.data, ...resources].sort(
-              (a, b) => {
+            this.dataSource.data = [...this.dataSource.data, ...newRows].sort(
+              (a: TableRow, b: TableRow) => {
                 if (
-                  !this.myStudyIds.includes(a.id) &&
-                  this.myStudyIds.includes(b.id)
+                  !this.myStudyIds.includes(a.resource.id) &&
+                  this.myStudyIds.includes(b.resource.id)
                 ) {
                   return 1;
                 }
                 if (
-                  this.myStudyIds.includes(a.id) &&
-                  !this.myStudyIds.includes(b.id)
+                  this.myStudyIds.includes(a.resource.id) &&
+                  !this.myStudyIds.includes(b.resource.id)
                 ) {
                   return -1;
                 }
@@ -248,7 +261,14 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
               }
             );
           } else {
-            this.dataSource.data = this.dataSource.data.concat(resources);
+            this.dataSource.data = this.dataSource.data.concat(newRows);
+          }
+          if (columnsWithDataChanged) {
+            this.columnDescriptionsService.setColumnsWithData(
+              this.resourceType,
+              this.context,
+              Object.keys(columnsWithData)
+            );
           }
         },
         () => {},
@@ -269,9 +289,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       if (this.enableSelection) {
         this.columns.push('select');
       }
-      if (!this.columnDescriptions.length) {
-        this.setDefaultColumns();
-      }
+
       this.setTableColumns();
     }
   }
@@ -303,10 +321,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           const columnDescription = this.columnDescriptions.find(
             (c) => c.element === key
           );
-          const cellValue = this.getCellStrings(data, columnDescription);
+          const cellValue = data.cells[columnDescription.element];
           const filterType = this.getFilterType(columnDescription);
           if (filterType === FilterType.Autocomplete) {
-            if (!(value as string[]).includes(cellValue.join('; '))) {
+            if (!(value as string[]).includes(cellValue)) {
               return false;
             }
           }
@@ -315,14 +333,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
               '\\b' + escapeStringForRegExp(value as string),
               'i'
             );
-            if (!cellValue.some((item) => reCondition.test(item))) {
-              return false;
-            }
+            return reCondition.test(cellValue);
           }
           if (filterType === FilterType.Number) {
             if (
               !ResourceTableComponent.checkNumberFilter(
-                cellValue.join('; '),
+                cellValue,
                 value as string
               )
             ) {
@@ -356,8 +372,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     this.isAllSelected()
       ? this.selectedResources.clear()
       : this.dataSource.data.forEach((row) => {
-          if (this.myStudyIds.includes(row.id)) {
-            this.selectedResources.select(row);
+          if (this.myStudyIds.includes(row.resource.id)) {
+            this.selectedResources.select(row.resource);
           }
         });
   }
@@ -433,13 +449,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       (c) => c.element === sort.active
     );
     const filterType = this.getFilterType(sortingColumnDescription);
-    this.dataSource.data.sort((a: Resource, b: Resource) => {
-      const cellValueA = this.getCellStrings(a, sortingColumnDescription).join(
-        '; '
-      );
-      const cellValueB = this.getCellStrings(b, sortingColumnDescription).join(
-        '; '
-      );
+    this.dataSource.data.sort((a: TableRow, b: TableRow) => {
+      const cellValueA = a.cells[sortingColumnDescription.element];
+      const cellValueB = b.cells[sortingColumnDescription.element];
       return filterType === FilterType.Number
         ? (+cellValueA - +cellValueB) * (isAsc ? -1 : 1)
         : cellValueA.localeCompare(cellValueB) * (isAsc ? -1 : 1);
@@ -456,13 +468,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const header = columnDescriptions
       .map((columnDescription) => columnDescription.displayName)
       .join(',');
-    const rows = this.dataSource.data.map((resource) =>
+    const rows = this.dataSource.data.map((row) =>
       columnDescriptions
         .map((columnDescription) => {
-          const cellText = this.getCellStrings(
-            resource,
-            columnDescription
-          ).join('; ');
+          const cellText = row.cells[columnDescription.element];
           if (/["\s,]/.test(cellText)) {
             // According to RFC-4180 which describes common format for CSV files:
             // Fields containing line breaks (CRLF), double quotes, and commas
@@ -493,8 +502,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   setSelectedIds(ids: string[]): void {
     this.selectedResources.clear();
-    const items = this.dataSource.data.filter((r) => ids.includes(r.id));
-    this.selectedResources.select(...items);
+    const items = this.dataSource.data.filter((r) =>
+      ids.includes(r.resource.id)
+    );
+    this.selectedResources.select(...items.map((r) => r.resource));
   }
 
   /**
@@ -510,37 +521,29 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (!ResourceTableComponent.isA11yClick(event)) {
       return;
     }
-    const rect = event.target.getBoundingClientRect();
-    const dialogConfig = new MatDialogConfig();
-    dialogConfig.hasBackdrop = true;
-    dialogConfig.disableClose = true;
-
-    // Position the popup right below the invoking icon.
-    dialogConfig.position = { top: `${rect.bottom}px` };
-    if (rect.left < window.innerWidth / 2) {
-      dialogConfig.position.left = `${rect.left}px`;
-    } else {
-      dialogConfig.position.right = `${window.innerWidth - rect.right}px`;
-    }
 
     const filterType = this.getFilterType(column);
     let options: string[] = [];
     if (filterType === FilterType.Autocomplete) {
-      const columnValues = this.dataSource.data.map((row) =>
-        this.getCellStrings(row, column).join('; ')
+      const columnValues = this.dataSource.data.map(
+        (row) => row.cells[column.element]
       );
-      options = [...new Set(columnValues)].filter((v) => v);
+      options = [...new Set(columnValues)]
+        .filter((v) => v)
+        .sort((a, b) => a.localeCompare(b));
     }
-    dialogConfig.data = {
-      value: this.filtersForm.get(column.element).value,
-      filterType,
-      options
-    };
-    const dialogRef = this.dialog.open(
-      ResourceTableFilterComponent,
-      dialogConfig
-    );
-    dialogRef.afterClosed().subscribe((value) => {
+
+    const dialogRef = this.dialog.open({
+      content: ResourceTableFilterComponent,
+      origin: event.target,
+      data: {
+        value: this.filtersForm.get(column.element).value,
+        filterType,
+        options
+      }
+    });
+
+    dialogRef.afterClosed$.subscribe((value) => {
       this.filtersForm.get(column.element).setValue(value);
     });
   }
@@ -561,8 +564,26 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   getFilterType(column: ColumnDescription): FilterType {
     return this.listFilterColumns.includes(column.element)
       ? FilterType.Autocomplete
-      : column.displayName.startsWith('Number of')
+      : column.types.length === 1 && column.types[0] === 'Count'
       ? FilterType.Number
       : FilterType.Text;
+  }
+
+  /**
+   * Returns the text to display as a tooltip if the element's text
+   * has been truncated, otherwise returns an empty string.
+   * @param element - HTML element with possibly truncated text which has
+   *   a special structure to recognize truncation.
+   */
+  getTooltipText(element: HTMLElement): string {
+    // Can't use this simple check:
+    //   element.clientWidth < element.scrollWidth
+    // In some cases, this check will fail because these properties
+    // (clientWidth & scrollWidth) will round the value to an integer, but
+    // the ellipsis is displayed even if the difference is less than 0.5 pixels.
+    return element.getBoundingClientRect().right <
+      element.firstElementChild.getBoundingClientRect().right
+      ? element.innerText
+      : '';
   }
 }

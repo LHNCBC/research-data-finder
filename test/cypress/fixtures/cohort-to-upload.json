@@ -1,0 +1,161 @@
+{
+  "serviceBaseUrl": "https://lforms-fhir.nlm.nih.gov/baseR4",
+  "maxPatientCount": "100",
+  "rawCriteria": {
+    "condition": "and",
+    "rules": [
+      {
+        "condition": "and",
+        "rules": [
+          {
+            "field": {
+              "element": "code text",
+              "value": "",
+              "selectedObservationCodes": {
+                "coding": [
+                  {
+                    "code": "3137-7",
+                    "system": "http://loinc.org"
+                  }
+                ],
+                "datatype": "Quantity",
+                "items": [
+                  "Height cm"
+                ]
+              }
+            }
+          }
+        ],
+        "resourceType": "Observation"
+      }
+    ]
+  },
+  "data": [
+    {
+      "resourceType": "Patient",
+      "id": "pat-5416",
+      "active": false,
+      "name": [
+        {
+          "use": "official",
+          "family": "CHUN",
+          "given": [
+            "SOFIA",
+            "E"
+          ]
+        }
+      ],
+      "gender": "female",
+      "birthDate": "2069",
+      "deceasedDateTime": "2135",
+      "address": [
+        {
+          "use": "home",
+          "type": "both",
+          "text": "6487 Fake N DIERS AVE, DENVER, CO 80210",
+          "line": [
+            "6487 Fake N DIERS AVE"
+          ],
+          "city": "DENVER",
+          "state": "CO",
+          "postalCode": "80210",
+          "country": "US"
+        }
+      ]
+    },
+    {
+      "resourceType": "Patient",
+      "id": "pat-2436",
+      "active": false,
+      "name": [
+        {
+          "use": "official",
+          "family": "HART",
+          "given": [
+            "VENESSIA"
+          ]
+        }
+      ],
+      "gender": "female",
+      "birthDate": "2040",
+      "deceasedDateTime": "2129",
+      "address": [
+        {
+          "use": "home",
+          "type": "both",
+          "text": "45373 Fake BABCOCK RD, ABERDEEN, SD 57401",
+          "line": [
+            "45373 Fake BABCOCK RD"
+          ],
+          "city": "ABERDEEN",
+          "state": "SD",
+          "postalCode": "57401",
+          "country": "US"
+        }
+      ]
+    },
+    {
+      "resourceType": "Patient",
+      "id": "pat-7287",
+      "active": false,
+      "name": [
+        {
+          "use": "official",
+          "family": "BLAIR",
+          "given": [
+            "ALEXANDER"
+          ]
+        }
+      ],
+      "gender": "male",
+      "birthDate": "2066",
+      "deceasedDateTime": "2133",
+      "address": [
+        {
+          "use": "home",
+          "type": "both",
+          "text": "43963 Fake ENGLE RD, MARSHALLTOWN, IA 50158",
+          "line": [
+            "43963 Fake ENGLE RD"
+          ],
+          "city": "MARSHALLTOWN",
+          "state": "IA",
+          "postalCode": "50158",
+          "country": "US"
+        }
+      ]
+    },
+    {
+      "resourceType": "Patient",
+      "id": "pat-10044",
+      "active": false,
+      "name": [
+        {
+          "use": "official",
+          "family": "ABBOUD",
+          "given": [
+            "LLOYD"
+          ]
+        }
+      ],
+      "gender": "male",
+      "birthDate": "2066",
+      "deceasedDateTime": "2137",
+      "address": [
+        {
+          "use": "home",
+          "type": "both",
+          "text": "8334 Fake BAILEY ST NW, COVINGTON, GA 30014",
+          "line": [
+            "8334 Fake BAILEY ST NW"
+          ],
+          "city": "COVINGTON",
+          "state": "GA",
+          "postalCode": "30014",
+          "country": "US"
+        }
+      ]
+    }
+  ],
+  "researchStudies": []
+}

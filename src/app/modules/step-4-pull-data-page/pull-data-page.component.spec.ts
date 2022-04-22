@@ -56,7 +56,7 @@ describe('PullDataForCohortComponent', () => {
 
     // Mock service base URL to apply default settings
     spyOnProperty(fhirBackend, 'serviceBaseUrl').and.returnValue(
-      'someDefaultURL'
+      'https://lforms-fhir.nlm.nih.gov/baseR4'
     );
 
     const settingsService = TestBed.inject(SettingsService);
@@ -256,5 +256,56 @@ describe('PullDataForCohortComponent', () => {
     component.removeTab('Patient');
     fixture.detectChanges();
     expect(component.getCurrentResourceType()).toEqual('Observation');
+  });
+
+  it('should load Evidence Variables for cohort of Patients', async () => {
+    const testData = [
+      { patient: { id: 'pat-106' }, observations: observationsForPat106 },
+      { patient: { id: 'pat-232' }, observations: observationsForPat232 },
+      { patient: { id: 'pat-269' }, observations: observationsForPat269 }
+    ];
+    const arrayOfPatients = testData.map((item) => item.patient);
+    component.patientStream = from(arrayOfPatients);
+    // Should collect Patients from input stream
+    expect(component.patients).toEqual(arrayOfPatients);
+
+    component.addTab('EvidenceVariable');
+    fixture.detectChanges();
+    component.perPatientFormControls['EvidenceVariable'].setValue(1000);
+    component.loadResources('EvidenceVariable', emptyParameterGroup);
+    testData.forEach((item) => {
+      const patientId = item.patient.id;
+      mockHttp
+        .expectOne(
+          `$fhir/Observation?subject=Patient/${patientId}&_sort=patient,code,-date&_count=1000`
+        )
+        .flush(item.observations);
+    });
+
+    await fixture.whenStable();
+    mockHttp
+      .expectOne(
+        'https://lforms-fhir.nlm.nih.gov/baseR4/EvidenceVariable/phv00492039'
+      )
+      .flush({
+        resourceType: 'EvidenceVariable',
+        id: 'phv00492039',
+        name: 'ENV_SMOKE_pretrial',
+        description: 'Home exposure to smoke prior to trial enrollment'
+      });
+
+    let loadedResourceCount = 0;
+    await component.resourceStream['EvidenceVariable']
+      .pipe(
+        tap({
+          next: () => {
+            loadedResourceCount++;
+          },
+          complete: () => {
+            expect(loadedResourceCount).toBe(1);
+          }
+        })
+      )
+      .toPromise();
   });
 });

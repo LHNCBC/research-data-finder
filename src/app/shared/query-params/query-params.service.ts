@@ -23,6 +23,9 @@ export class QueryParamsService {
    * @param value - search parameter value
    */
   getQueryParam(resourceType: string, value: SearchParameter): string {
+    if (resourceType === 'EvidenceVariable') {
+      return `&evidencevariable=${this.getEvidenceVariableIds(value)}`;
+    }
     const selectedParameter = this.definitions.resources[
       resourceType
     ]?.searchParameters.find((p) => p.element === value?.element);
@@ -36,7 +39,14 @@ export class QueryParamsService {
       if (resourceType === 'Observation') {
         return this.getObservationCodeTextCriteria(value);
       } else {
-        return `&code=${value.value.codes.join(',')}`;
+        const usedCodes = {};
+        const codes = value.value.codes.filter((code) => {
+          if (!code || usedCodes[code]) {
+            return false;
+          }
+          return (usedCodes[code] = true);
+        });
+        return codes.length ? `&code=${codes.join(',')}` : '';
       }
     }
     if (selectedParameter.element === OBSERVATION_VALUE) {
@@ -77,6 +87,24 @@ export class QueryParamsService {
   }
 
   /**
+   * Returns comma separated list of EV full URLs, to be used as query param
+   * for the EV search parameter.
+   * @param value search parameter value
+   * @private
+   */
+  private getEvidenceVariableIds(value: SearchParameter): string {
+    return value.value.codes
+      .map((codes: string[]) =>
+        codes
+          .map(
+            (c) => `${this.fhirBackend.serviceBaseUrl}/EvidenceVariable/${c}`
+          )
+          .join(',')
+      )
+      .join(',');
+  }
+
+  /**
    * Get criteria string for Observation "code text" parameter
    */
   private getObservationCodeTextCriteria(value: SearchParameter): string {
@@ -85,7 +113,13 @@ export class QueryParamsService {
     if (!selectedCodes) {
       return '';
     }
-    const coding = selectedCodes.coding.filter((c) => c);
+    const usedCodes = {};
+    const coding = selectedCodes.coding.filter((c) => {
+      if (!c || usedCodes[c.code]) {
+        return false;
+      }
+      return (usedCodes[c.code] = true);
+    });
 
     // Add value criteria if exists
     if (value.value) {
@@ -163,13 +197,6 @@ export class QueryParamsService {
    * Whether to use lookup control for search parameter value.
    */
   getUseLookupParamValue(selectedParameter: any): boolean {
-    const parameterValues =
-      selectedParameter.valueSet &&
-      this.definitions.valueSets[selectedParameter.valueSet];
-    return (
-      CODETYPES.includes(selectedParameter.type) &&
-      Array.isArray(parameterValues) &&
-      parameterValues.length > 0
-    );
+    return CODETYPES.includes(selectedParameter.type);
   }
 }

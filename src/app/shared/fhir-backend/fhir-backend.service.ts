@@ -349,21 +349,46 @@ export class FhirBackendService implements HttpBackend {
       const currentParameters = this.currentDefinitions.resources[resourceType]
         .searchParameters;
       const specParameters =
-        definitions.resources[resourceType].searchParameters;
-      currentParameters.forEach((parameter) => {
-        const specParameter = find(specParameters, {
-          element: parameter.element
-        });
-        if (specParameter) {
-          Object.assign(parameter, {
-            // expression: specParameter.expression,
-            // path: specParameter.path,
-            valueSet: specParameter.valueSet,
-            required: specParameter.required
+        definitions.resources[resourceType]?.searchParameters;
+      if (specParameters) {
+        currentParameters.forEach((parameter) => {
+          const specParameter = find(specParameters, {
+            element: parameter.element
           });
-        }
-      });
+          if (specParameter) {
+            Object.assign(parameter, {
+              rootPropertyName: specParameter.rootPropertyName,
+              expression: specParameter.expression,
+              // path: specParameter.path,
+              valueSet: specParameter.valueSet,
+              required: specParameter.required
+            });
+          }
+        });
+      }
     });
+
+    // Add interpretation search parameter if applicable.
+    if (this.features.interpretation) {
+      const observationSearchParams = this.currentDefinitions.resources
+        .Observation?.searchParameters;
+      if (
+        observationSearchParams &&
+        !observationSearchParams.some((sp) => sp.element === 'interpretation')
+      ) {
+        observationSearchParams.push({
+          element: 'interpretation',
+          displayName: 'interpretation',
+          description:
+            'A categorical assessment, providing a rough qualitative interpretation of the observation value',
+          type: 'CodeableConcept',
+          isArray: false
+        });
+        observationSearchParams.sort((a, b) =>
+          a.element.localeCompare(b.element)
+        );
+      }
+    }
 
     this.currentDefinitions.initialized = true;
     return this.currentDefinitions;

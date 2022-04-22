@@ -8,7 +8,16 @@
       [options]="parameterOptions"
       [formControl]="parameterName"></app-autocomplete>
 
-  <ng-container *ngIf="selectedParameter && selectedParameter.element !== CODETEXT && selectedParameter.element !== OBSERVATION_VALUE">
+  <mat-form-field class="parameter-value" *ngIf="resourceType === EVIDENCEVARIABLE && selectedParameter">
+    <mat-label>Search parameter value</mat-label>
+    <app-autocomplete-parameter-value
+      [resourceType]="EVIDENCEVARIABLE"
+      [formControl]="parameterValue" placeholder="Select one or more"
+      [searchParameter]="parameterName.value">
+    </app-autocomplete-parameter-value>
+  </mat-form-field>
+
+  <ng-container *ngIf="resourceType !== EVIDENCEVARIABLE && selectedParameter && selectedParameter.element !== CODETEXT && selectedParameter.element !== OBSERVATION_VALUE">
     <ng-container [ngSwitch]="selectedParameter.type">
 
       <mat-radio-group *ngSwitchCase="'boolean'" class="parameter-value" aria-label="Select a boolean value" [formControl]="parameterValue">
@@ -22,7 +31,9 @@
         <app-autocomplete-parameter-value
           [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more"
           [resourceType]="resourceType" [searchParameter]="selectedParameter.element"
-          [usePrefetch]="selectedParameter.required || nonRequiredBindingList !== undefined">
+          [columnName]="selectedParameter.rootPropertyName"
+          [expression]="selectedParameter.expression"
+          [usePrefetch]="parameterValues !== undefined">
         </app-autocomplete-parameter-value>
       </mat-form-field>
 

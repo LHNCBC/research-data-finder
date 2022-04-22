@@ -349,7 +349,7 @@ function getSearchParametersConfig(
       .map((item) => {
         let expression = '',
           path = '',
-          type;
+          typeFromExpression;
 
         item.resource.expression.split('|').some((i) => {
           // Select FHIRPath expression for resourceType
@@ -358,23 +358,23 @@ function getSearchParametersConfig(
             expression = i.trim();
             // Extract the type of value and property path from this expression
             if (/(.*)\.as\(([^)]*)\)$/.test(expression)) {
-              type = RegExp.$2;
-              path = RegExp.$1 + capitalize(type);
+              typeFromExpression = RegExp.$2;
+              path = RegExp.$1 + capitalize(typeFromExpression);
             } else if (
               /(.*)\.where\(resolve\(\) is ([^)]*)\)$/.test(expression)
             ) {
-              type = RegExp.$2;
+              typeFromExpression = RegExp.$2;
               path = RegExp.$1;
             } else if (/^\((.*) as ([^)]*)\)$/.test(expression)) {
-              type = RegExp.$2;
-              path = RegExp.$1 + capitalize(type);
+              typeFromExpression = RegExp.$2;
+              path = RegExp.$1 + capitalize(typeFromExpression);
             } else if (/^\((.*) is ([^)]*)\)$/.test(expression)) {
-              type = RegExp.$2;
+              typeFromExpression = RegExp.$2;
               path = RegExp.$1;
             } else if (/(.*)\.where\(/.test(expression)) {
               path = RegExp.$1;
             } else if (/\.exists\(\)/.test(expression)) {
-              type = 'boolean';
+              typeFromExpression = 'boolean';
             } else {
               path = expression;
             }
@@ -384,8 +384,15 @@ function getSearchParametersConfig(
 
         const param = {
           name: item.resource.name,
-          type: type || item.resource.type,
+          type:
+            (item.resource.type === 'token' ||
+            item.resource.type === 'reference' ||
+            item.resource.type === 'quantity'
+              ? typeFromExpression
+              : '') || item.resource.type,
+          rootPropertyName: getPropertyPath(resourceType, path).split('.')[0],
           expression,
+          // TODO: Remove the unused 'path' after moving this code from the `prev` directory to the `source` directory.
           path,
           description: getDescription(resourceType, item.resource.description)
         };
@@ -394,6 +401,18 @@ function getSearchParametersConfig(
         }
         return param;
       });
+  }
+
+  /**
+   * Determines resource property path by simple FHIRPath expression
+   * @param {string} resourceType - resource type
+   * @param {string} path - simple FHIRPath expression starting with a resource
+   *                        type with a dot-separated listing of property names
+   * @return {string}
+   */
+  function getPropertyPath(resourceType, path) {
+    const searchValue = new RegExp(`^${resourceType}\\.`);
+    return path.replace(searchValue, '');
   }
 
   /**

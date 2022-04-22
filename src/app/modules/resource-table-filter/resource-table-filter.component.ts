@@ -3,13 +3,12 @@ import {
   Component,
   ElementRef,
   HostListener,
-  Inject,
   OnDestroy,
   ViewChild
 } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import Def from 'autocomplete-lhc';
 import { FilterType } from '../../types/filter-type';
+import { CustomDialogRef } from '../../shared/custom-dialog/custom-dialog-ref';
 
 /**
  * Component for filtering criteria of a resource table column
@@ -44,13 +43,10 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
     'Examples: >5000, <=10, 50, 10 - 19.'
   ];
 
-  constructor(
-    private dialogRef: MatDialogRef<ResourceTableFilterComponent>,
-    @Inject(MAT_DIALOG_DATA) data
-  ) {
-    this.value = data.value;
-    this.filterType = data.filterType;
-    this.options = data.options;
+  constructor(private dialogRef: CustomDialogRef) {
+    this.value = this.dialogRef.data.value;
+    this.filterType = this.dialogRef.data.filterType;
+    this.options = this.dialogRef.data.options;
   }
 
   ngAfterViewInit(): void {
@@ -58,7 +54,11 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
       this.acInstance = new Def.Autocompleter.Prefetch(
         this.inputId,
         this.options,
-        { maxSelect: '*', matchListValue: true }
+        {
+          maxSelect: '*',
+          matchListValue: true,
+          suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS
+        }
       );
       if (this.value && this.value.length) {
         (this.value as string[]).forEach((v) => {
@@ -66,18 +66,10 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
           this.acInstance.addToSelectedArea(v);
         });
       }
-      // When page is scrolled down and a modal is in place, autocomplete-lhc don't calculate
-      // the correct top position to place the search results. The result of 'top' calculation
-      // is actually against the viewport, even though JQuery offset() is supposed to return
-      // the value against document.
-      // Setting position to 'fixed' solves this issue.
-      // See https://github.com/lhncbc/autocomplete-lhc/blob/master/source/autoCompBase.js#L1684.
-      this.searchResultsElm = document.getElementById('searchResults');
-      this.searchResultsElm.style.position = 'fixed';
     } else {
       this.input.nativeElement.value = this.value as string;
     }
-    this.dialogRef.backdropClick().subscribe(() => this.close());
+    this.dialogRef.overlay.backdropClick().subscribe(() => this.close());
   }
 
   ngOnDestroy(): void {

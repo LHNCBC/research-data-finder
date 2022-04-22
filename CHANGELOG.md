@@ -3,16 +3,112 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [4.1.0] - 2021-12-08
+## [4.4.0] - 2022-04-14
+### Added
+- Default filter for the "Pull data for the cohort" step.
+### Fixed
+- Removed duplicate observation codes from requests. Duplication occurs when
+  different autocomplete items in the observation lookup component have the
+  same codes.
+
+## [4.3.3] - 2022-04-11
+### Fixed
+- Fixed a bug in the webpack loader that caused the application to build on
+  Windows incorrectly.
+
+## [4.3.2] - 2022-04-01
+### Changed
+- Hide resource table columns without data after loading data.
+### Fixed
+- The use of a number range filter for the Count column type of
+  the ResearchStudy table has been restored.
+- Replaced incorrect "dateTime" data type for search parameters with "date"
+  to use the correct controls.
+- Replaced hyphens in search parameter names with spaces.
+
+## [4.3.1] - 2022-03-31
+### Changed
+- Hide shared header/footer until page loads.
+
+## [4.3.0] - 2022-03-25
+### Added
+- Evidence Variable search parameters in define cohort.
+- Ability to pull Evidence Variable data for a cohort.
+
+## [4.2.6] - 2022-03-11
+### Changed
+- get code list for DocumentReference.contenttype via autocomplete search.
+
+## [4.2.5] - 2022-03-08
+### Fixed
+- Partial hiding of expanded filter lists for research study table.
+
+## [4.2.4] - 2022-03-08
+### Changed
+- Load shared header and footer from CTSS.
+
+## [4.2.3] - 2022-02-22
+### Changed
+- Show tooltip if the resource table cell text has been truncated.
+- Removed the option to wrap text in resource table cells.
+
+## [4.2.2] - 2022-02-16
+### Fixed
+- Sorted the dropdown list items for the filter fields in the resource table
+  alphabetically.
+
+## [4.2.1] - 2022-02-10
+### Changed
+- Reduced time to get the first page of research studies.
+
+## [4.2.0] - 2021-02-09
+### Changed
+- Provided lists for valueCodeableConcept Observations.
+### Fixed
+- Enabled source map generation.
+
+## [4.1.5] - 2022-02-03
+### Changed
+- "Keywords" and "Id" for the ResearchStudy table is hidden by default.
+- Additional columns with numbers for ResearchStudy table are shown by default
+  and renamed.
+- Use acronym from Organization reference as a cell value in resource table.
+  when available and when it matches the display text.
+- Provided the option not to wrap the text in the field.
+- Forced "Title" column wider than others for the ResearchStudy table.
+- Columns are hidden when we know there is no data for them.
+
+## [4.1.4] - 2022-02-01
+### Changed
+- Migrated some of the e2e tests to Cypress.
+
+## [4.1.3] - 2022-01-28
+### Changed
+- Program to update the .xlsx configuration file and updated the .xlsx
+  configuration file.
+
+## [4.1.2] - 2022-01-19
+### Fixed
+- Missing spaces between words in autocomplete dropdown list.
+
+## [4.1.1] - 2022-1-12
+### Added
+- Support for interpretation search parameter when applicable.
+
+## [4.1.0] - 2021-12-20
 ### Changed
 - Moved comparator, value, and unit to a separate search parameter.
+
+## [4.0.4] - 2021-12-13
+### Changed
+- Show "Value" column in Observation table by default.
 
 ## [4.0.3] - 2021-12-08
 ### Changed
 - Query Builder widget:
   - Add color to the AND/OR lines.
   - Radio buttons to switch between AND/OR operators.
-  - Remove "OR" option for single-resource criteria. 
+  - Remove "OR" option for single-resource criteria.
   - Added AND/OR above connecting lines.
   - Hide AND/OR toggle when there is only one condition.
 

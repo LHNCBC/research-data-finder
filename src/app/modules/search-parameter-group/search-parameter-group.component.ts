@@ -67,22 +67,6 @@ export class SearchParameterGroupComponent
     private liveAnnoncer: LiveAnnouncer
   ) {
     super();
-    fhirBackend.initialized.subscribe((status) => {
-      if (status === ConnectionStatus.Ready) {
-        const definitions = this.fhirBackend.getCurrentDefinitions();
-        this.resourceTypes = Object.keys(definitions.resources);
-        if (this.inputResourceType === 'Observation') {
-          this.parameterList.push(
-            new FormControl({
-              element: 'code text'
-            })
-          );
-        }
-      } else if (status === ConnectionStatus.Disconnect) {
-        // Clear search parameters on server change
-        this.parameterList.clear();
-      }
-    });
     this.parameterList.valueChanges.subscribe(() => {
       this.onChange(this.value);
     });
@@ -109,6 +93,22 @@ export class SearchParameterGroupComponent
         }
       });
     }
+    this.fhirBackend.initialized.subscribe((status) => {
+      if (status === ConnectionStatus.Ready) {
+        const definitions = this.fhirBackend.getCurrentDefinitions();
+        this.resourceTypes = Object.keys(definitions.resources);
+        if (this.inputResourceType === 'Observation') {
+          this.parameterList.push(
+            new FormControl({
+              element: 'code text'
+            })
+          );
+        }
+      } else if (status === ConnectionStatus.Disconnect) {
+        // Clear search parameters on server change
+        this.parameterList.clear();
+      }
+    });
   }
 
   /**

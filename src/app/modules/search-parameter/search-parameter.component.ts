@@ -49,6 +49,7 @@ export class SearchParameterComponent
   @Input() isPullData = false;
   readonly CODETEXT = CODETEXT;
   readonly OBSERVATION_VALUE = OBSERVATION_VALUE;
+  readonly EVIDENCEVARIABLE = 'EvidenceVariable';
   definitions: any;
 
   selectedResourceType: any;
@@ -132,10 +133,17 @@ export class SearchParameterComponent
         );
         if (this.nonRequiredBindingList) {
           this.parameterValues = this.nonRequiredBindingList;
-        } else if (this.selectedParameter.valueSet) {
+        } else if (
+          this.selectedParameter.valueSet &&
+          Array.isArray(
+            this.definitions.valueSets[this.selectedParameter.valueSet]
+          )
+        ) {
           this.parameterValues = this.definitions.valueSets[
             this.selectedParameter.valueSet
           ];
+        } else {
+          this.parameterValues = undefined;
         }
       }
       this.handleChange();
@@ -161,6 +169,18 @@ export class SearchParameterComponent
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.selectedElements?.currentValue) {
       this.updateAvailableSearchParameters();
+    }
+
+    // Announce a change of the variable value type
+    if (
+      changes.observationDataType &&
+      this.selectedParameter?.element === OBSERVATION_VALUE &&
+      (changes.observationDataType.currentValue || '') !==
+        (changes.observationDataType.previousValue || '')
+    ) {
+      this.liveAnnoncer.announce(
+        'The fields for variable value have updated in response to the change to the variable name.'
+      );
     }
   }
 
