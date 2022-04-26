@@ -75,7 +75,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         .pipe(
           // A pause while announcing the progress bar position is needed
           // to avoid a large number of announcements.
-          sample(interval(1500)),
+          sample(interval(2000)),
+          map(
+            ([isLoading, progressValue]) =>
+              [isLoading, Math.floor(progressValue)] as [boolean, number]
+          ),
           filter(
             ([isLoading, progressValue]) => progressValue !== 0 && isLoading
           )
