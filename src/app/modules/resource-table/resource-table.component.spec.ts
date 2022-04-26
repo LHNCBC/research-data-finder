@@ -96,7 +96,7 @@ describe('ResourceTableComponent', () => {
     .and.returnValue(hiddenElements);
   spies.SettingsService.get.withArgs('listFilterColumns').and.returnValue([]);
 
-  async function fillTable(columnDescriptions): Promise<void> {
+  function fillTable(columnDescriptions): void {
     component.resourceType = 'SomeResourceType';
     const resourceStream = new Subject();
     component.resourceStream = resourceStream;
@@ -130,11 +130,10 @@ describe('ResourceTableComponent', () => {
     }
     resourceStream.complete();
     fixture.detectChanges();
-    await fixture.whenStable();
   }
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(() => {
+    TestBed.configureTestingModule({
       declarations: [ResourceTableComponent],
       imports: [
         ResourceTableModule,
@@ -162,14 +161,14 @@ describe('ResourceTableComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should show filter icons', async () => {
-    await fillTable(availableColumns);
+  it('should show filter icons', () => {
+    fillTable(availableColumns);
     expect(page.filterIcons).not.toBeNull();
     expect(page.filterIcons.length).toEqual(3);
   });
 
-  it('should filter', async () => {
-    await fillTable(availableColumns);
+  it('should filter', () => {
+    fillTable(availableColumns);
     expect(component.filtersForm).not.toBeNull();
     expect(component.filtersForm.get('id')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
@@ -178,17 +177,17 @@ describe('ResourceTableComponent', () => {
     expect(component.dataSource.filteredData.length).toEqual(1);
   });
 
-  it('should hide columns by default according to settings', async () => {
+  it('should hide columns by default according to settings', () => {
     spies.ColumnDescriptionsService.getAvailableColumns.calls.reset();
-    await fillTable([]);
+    fillTable([]);
     expect(component.dataSource.filteredData.length).toEqual(50);
     expect(
       spies.ColumnDescriptionsService.getAvailableColumns
     ).toHaveBeenCalledOnceWith('SomeResourceType', '');
   });
 
-  it('should get a cell strings correctly', async () => {
-    await fillTable(availableColumns);
+  it('should get a cell strings correctly', () => {
+    fillTable(availableColumns);
     const rowNumber = 4;
     const cellValues = ['5', 'value-5', '5'];
     for (let i = 0; i < cellValues.length; i++) {
@@ -201,15 +200,15 @@ describe('ResourceTableComponent', () => {
     }
   });
 
-  it('should show selectable rows at beginning of table', async () => {
+  it('should show selectable rows at beginning of table', () => {
     component.myStudyIds = ['30'];
-    await fillTable(availableColumns);
+    fillTable(availableColumns);
     const firstRow = component.dataSource.data[0].resource;
     expect(firstRow.id).toEqual('30');
   });
 
-  it('should filter number column - greater than', async () => {
-    await fillTable(availableColumns);
+  it('should filter number column - greater than', () => {
+    fillTable(availableColumns);
     expect(component.filtersForm).not.toBeNull();
     expect(component.filtersForm.get('customElement')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
@@ -218,8 +217,8 @@ describe('ResourceTableComponent', () => {
     expect(component.dataSource.filteredData.length).toEqual(2);
   });
 
-  it('should filter number column - smaller than', async () => {
-    await fillTable(availableColumns);
+  it('should filter number column - smaller than', () => {
+    fillTable(availableColumns);
     expect(component.filtersForm).not.toBeNull();
     expect(component.filtersForm.get('customElement')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
@@ -228,8 +227,8 @@ describe('ResourceTableComponent', () => {
     expect(component.dataSource.filteredData.length).toEqual(48);
   });
 
-  it('should filter number column - range', async () => {
-    await fillTable(availableColumns);
+  it('should filter number column - range', () => {
+    fillTable(availableColumns);
     expect(component.filtersForm).not.toBeNull();
     expect(component.filtersForm.get('customElement')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
@@ -248,8 +247,8 @@ describe('ResourceTableComponent', () => {
     expect(ResourceTableComponent.checkNumberFilter('10', '3 - 13')).toBeTrue();
   });
 
-  it('should sort number column as numbers', async () => {
-    await fillTable(availableColumns);
+  it('should sort number column as numbers', () => {
+    fillTable(availableColumns);
     component.sortData({
       direction: 'asc',
       active: 'customElement'

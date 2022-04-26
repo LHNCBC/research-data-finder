@@ -18,6 +18,7 @@ import { ColumnDescriptionsService } from '../../shared/column-descriptions/colu
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 import {
   BehaviorSubject,
+  combineLatest,
   interval,
   Observable,
   Subject,
@@ -69,14 +70,30 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       // to avoid restarting the animation.
       sample(interval(500))
     );
-    this.subscription = fhirBackend.initialized
-      .pipe(filter((status) => status === ConnectionStatus.Ready))
-      .subscribe(() => {
-        this.fhirPathModel = {
-          R4: fhirPathModelR4
-        }[fhirBackend.currentVersion];
-        this.compiledExpressions = {};
-      });
+    this.subscriptions.push(
+      combineLatest([this.isLoading$, this.progressValue$])
+        .pipe(
+          // A pause while announcing the progress bar position is needed
+          // to avoid a large number of announcements.
+          sample(interval(1500)),
+          filter(
+            ([isLoading, progressValue]) => progressValue !== 0 && isLoading
+          )
+        )
+        .subscribe(([, progressValue]) => {
+          liveAnnoncer.announce(`${progressValue}% loaded`);
+        })
+    );
+    this.subscriptions.push(
+      fhirBackend.initialized
+        .pipe(filter((status) => status === ConnectionStatus.Ready))
+        .subscribe(() => {
+          this.fhirPathModel = {
+            R4: fhirPathModelR4
+          }[fhirBackend.currentVersion];
+          this.compiledExpressions = {};
+        })
+    );
     this.listFilterColumns = settings.get('listFilterColumns') || [];
   }
 
@@ -137,7 +154,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   );
   loadTime = 0;
   loadedDateTime: number;
-  subscription: Subscription;
+  subscriptions: Subscription[] = [];
+  loadingSubscription: Subscription;
   fhirPathModel: any;
   readonly listFilterColumns: string[];
   compiledExpressions: { [expression: string]: (row: Resource) => any };
@@ -219,13 +237,15 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {}
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    this.loadingSubscription?.unsubscribe();
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     // update resource table if user searches again
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       const columnsWithData = {};
+      this.loadingSubscription?.unsubscribe();
       this.dataSource.data.length = 0;
       this.columnDescriptionsService.setColumnsWithData(
         this.resourceType,
@@ -237,70 +257,72 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         `The ${this.resourceType} resources loading process has started`
       );
       const startTime = Date.now();
-      this.resourceStream.pipe(bufferCount(50)).subscribe(
-        (resources) => {
-          const allColumns = this.columnDescriptionsService.getAvailableColumns(
-            this.resourceType,
-            this.context
-          );
-          let columnsWithDataChanged = false;
-          const newRows: TableRow[] = resources.map((resource) => ({
-            resource,
-            cells: allColumns.reduce((desc, columnDesc) => {
-              const cellText = this.getCellStrings(resource, columnDesc).join(
-                '; '
-              );
-              desc[columnDesc.element] = cellText;
-              if (!columnsWithData[columnDesc.element] && cellText) {
-                columnsWithData[columnDesc.element] = true;
-                columnsWithDataChanged = true;
-              }
-              return desc;
-            }, {} as TableCells)
-          }));
-
-          if (this.enableClientFiltering) {
-            // Move selectable studies to the beginning of table.
-            this.dataSource.data = [...this.dataSource.data, ...newRows].sort(
-              (a: TableRow, b: TableRow) => {
-                if (
-                  !this.myStudyIds.includes(a.resource.id) &&
-                  this.myStudyIds.includes(b.resource.id)
-                ) {
-                  return 1;
-                }
-                if (
-                  this.myStudyIds.includes(a.resource.id) &&
-                  !this.myStudyIds.includes(b.resource.id)
-                ) {
-                  return -1;
-                }
-                return 0;
-              }
-            );
-          } else {
-            this.dataSource.data = this.dataSource.data.concat(newRows);
-          }
-          if (columnsWithDataChanged) {
-            this.columnDescriptionsService.setColumnsWithData(
+      this.loadingSubscription = this.resourceStream
+        .pipe(bufferCount(50))
+        .subscribe(
+          (resources) => {
+            const allColumns = this.columnDescriptionsService.getAvailableColumns(
               this.resourceType,
-              this.context,
-              Object.keys(columnsWithData)
+              this.context
+            );
+            let columnsWithDataChanged = false;
+            const newRows: TableRow[] = resources.map((resource) => ({
+              resource,
+              cells: allColumns.reduce((desc, columnDesc) => {
+                const cellText = this.getCellStrings(resource, columnDesc).join(
+                  '; '
+                );
+                desc[columnDesc.element] = cellText;
+                if (!columnsWithData[columnDesc.element] && cellText) {
+                  columnsWithData[columnDesc.element] = true;
+                  columnsWithDataChanged = true;
+                }
+                return desc;
+              }, {} as TableCells)
+            }));
+
+            if (this.enableClientFiltering) {
+              // Move selectable studies to the beginning of table.
+              this.dataSource.data = [...this.dataSource.data, ...newRows].sort(
+                (a: TableRow, b: TableRow) => {
+                  if (
+                    !this.myStudyIds.includes(a.resource.id) &&
+                    this.myStudyIds.includes(b.resource.id)
+                  ) {
+                    return 1;
+                  }
+                  if (
+                    this.myStudyIds.includes(a.resource.id) &&
+                    !this.myStudyIds.includes(b.resource.id)
+                  ) {
+                    return -1;
+                  }
+                  return 0;
+                }
+              );
+            } else {
+              this.dataSource.data = this.dataSource.data.concat(newRows);
+            }
+            if (columnsWithDataChanged) {
+              this.columnDescriptionsService.setColumnsWithData(
+                this.resourceType,
+                this.context,
+                Object.keys(columnsWithData)
+              );
+            }
+          },
+          () => {},
+          () => {
+            this.loadedDateTime = Date.now();
+            this.loadTime =
+              Math.round((this.loadedDateTime - startTime) / 100) / 10;
+            this.isLoading$.next(false);
+            this.liveAnnoncer.announce(
+              `The ${this.resourceType} resources loading process has finished. ` +
+                `${this.dataSource.data.length} rows loaded.`
             );
           }
-        },
-        () => {},
-        () => {
-          this.loadedDateTime = Date.now();
-          this.loadTime =
-            Math.round((this.loadedDateTime - startTime) / 100) / 10;
-          this.isLoading$.next(false);
-          this.liveAnnoncer.announce(
-            `The ${this.resourceType} resources loading process has finished. ` +
-              `${this.dataSource.data.length} rows loaded.`
-          );
-        }
-      );
+        );
     }
     if (changes['columnDescriptions'] && this.columnDescriptions) {
       this.columns.length = 0;
