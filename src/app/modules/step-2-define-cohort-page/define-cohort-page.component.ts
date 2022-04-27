@@ -43,6 +43,7 @@ import {
 import Bundle = fhir.Bundle;
 import {
   CODETEXT,
+  OBSERVATION_VALUE,
   QueryParamsService
 } from '../../shared/query-params/query-params.service';
 import { getNextPageUrl } from '../../shared/utils';
@@ -205,6 +206,7 @@ export class DefineCohortPageComponent
    *  - inserts the criteria for the selected ResearchStudies into the existing
    *    (ANDed with other) Patients criteria, otherwise adds the root criteria
    *    for the selected ResearchStudies
+   *  - combine code and value criteria for Observation
    */
   prepareCriteria(
     criteria: Criteria | ResourceTypeCriteria,
@@ -270,13 +272,42 @@ export class DefineCohortPageComponent
         return null;
       }
 
+      let rules;
+
+      // Combine code and value criteria for Observation
+      const obsCodeCriterion = criteria.rules.find(
+        (c) => c.field.element === CODETEXT
+      );
+      if (obsCodeCriterion) {
+        const obsValueCriterion = criteria.rules.find(
+          (c) => c.field.element === OBSERVATION_VALUE
+        );
+        if (obsValueCriterion) {
+          rules = [
+            ...criteria.rules.filter(
+              (c) => c !== obsCodeCriterion && c !== obsValueCriterion
+            ),
+            {
+              field: {
+                ...obsCodeCriterion.field,
+                value: obsValueCriterion.field.value
+              }
+            }
+          ];
+        }
+      }
+
+      if (!rules) {
+        rules = criteria.rules.concat();
+      }
+
       // We need a copy of the object in order not to visualize our changes
       return {
         // if we have only one criterion with the OR operator, replace the
         // operator with AND
         condition: criteria.rules.length === 1 ? 'and' : criteria.condition,
         resourceType: criteria.resourceType,
-        rules: criteria.rules.concat()
+        rules
       };
     } else {
       // Remove empty subgroups so we don't have to consider them in the search algorithm

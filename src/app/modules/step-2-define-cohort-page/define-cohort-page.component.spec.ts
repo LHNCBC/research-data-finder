@@ -158,6 +158,15 @@ describe('DefineCohortComponent', () => {
                 },
                 observationDataType: 'Quantity'
               }
+            },
+            {
+              field: {
+                element: 'status',
+                value: {
+                  codes: ['final'],
+                  items: ['Final']
+                }
+              }
             }
           ]
         }
@@ -180,7 +189,7 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=120&_elements=subject&combo-code=3137-7&combo-value-quantity=gt100`
+        `$fhir/Observation?_count=120&_elements=subject&status=final&combo-code-value-quantity=3137-7%24gt100`
       )
       .flush(tenObservationBundle);
 
@@ -247,6 +256,15 @@ describe('DefineCohortComponent', () => {
                 },
                 observationDataType: 'Quantity'
               }
+            },
+            {
+              field: {
+                element: 'status',
+                value: {
+                  codes: ['final'],
+                  items: ['Final']
+                }
+              }
             }
           ]
         }
@@ -274,13 +292,13 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_total=accurate&_summary=count&combo-code=3137-7&combo-value-quantity=gt100`
+        `$fhir/Observation?_total=accurate&_summary=count&status=final&combo-code-value-quantity=3137-7%24gt100`
       )
       .flush({ total: 20 });
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=10&_elements=subject&combo-code=3137-7&combo-value-quantity=gt100`
+        `$fhir/Observation?_count=10&_elements=subject&status=final&combo-code-value-quantity=3137-7%24gt100`
       )
       .flush({
         ...tenObservationBundle,
@@ -351,9 +369,18 @@ describe('DefineCohortComponent', () => {
                   testValuePrefix: 'gt',
                   testValueModifier: '',
                   testValue: 100,
-                  testValueUnit: ''
+                  testValueUnit: 'cm'
                 },
                 observationDataType: 'Quantity'
+              }
+            },
+            {
+              field: {
+                element: 'status',
+                value: {
+                  codes: ['final'],
+                  items: ['Final']
+                }
               }
             }
           ]
@@ -384,13 +411,13 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_total=accurate&_summary=count&combo-code=3137-7&combo-value-quantity=gt100`
+        `$fhir/Observation?_total=accurate&_summary=count&status=final&combo-code-value-quantity=3137-7%24gt100%7C%7Ccm`
       )
       .flush({ total: 10 });
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=10&_elements=subject&combo-code=3137-7&combo-value-quantity=gt100`
+        `$fhir/Observation?_count=10&_elements=subject&status=final&combo-code-value-quantity=3137-7%24gt100%7C%7Ccm`
       )
       .flush(tenObservationBundle);
 
@@ -425,6 +452,68 @@ describe('DefineCohortComponent', () => {
         .expectOne(`$fhir/Patient?_id=${patientId}`)
         .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
     });
+  });
+
+  it('should load Patients using _has with Observation code and value', (done) => {
+    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    component.patientParams.queryCtrl.setValue({
+      condition: 'and',
+      rules: [
+        {
+          condition: 'and',
+          resourceType: 'Observation',
+          rules: [
+            {
+              field: {
+                element: 'code text',
+                selectedObservationCodes: {
+                  coding: [
+                    {
+                      code: '3137-7',
+                      system: 'http://loinc.org'
+                    }
+                  ],
+                  datatype: 'Quantity',
+                  items: ['Height cm']
+                }
+              }
+            },
+            {
+              field: {
+                element: 'observation value',
+                value: {
+                  testValuePrefix: 'gt',
+                  testValueModifier: '',
+                  testValue: 100,
+                  testValueUnit: ''
+                },
+                observationDataType: 'Quantity'
+              }
+            }
+          ]
+        }
+      ]
+    });
+    component.searchForPatients();
+    component.patientStream
+      .pipe(
+        reduce((acc, patient) => {
+          acc.push(patient);
+          return acc;
+        }, [])
+      )
+      .subscribe((patients) => {
+        // We have two Observations for the same Patient, that's why one
+        // Observation ignored
+        expect(patients.length).toEqual(10);
+        done();
+      });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_count=20&_has:Observation:subject:combo-code-value-quantity=3137-7%24gt100`
+      )
+      .flush(tenPatientBundle);
   });
 
   it('should load Patients by EvidenceVariable criteria', (done) => {

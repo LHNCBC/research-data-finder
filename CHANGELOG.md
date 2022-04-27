@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.4.1] - 2022-04-22
+### Fixed
+- When requesting Observations, replaced the use of two separate parameters
+  "combo-code" and "combo-value-quantity" with a single parameter
+  "combo-code-value-quantity".
+
 ## [4.4.0] - 2022-04-14
 ### Added
 - Default filter for the "Pull data for the cohort" step.
