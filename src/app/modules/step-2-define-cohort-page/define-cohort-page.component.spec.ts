@@ -9,11 +9,13 @@ import tenObservationBundle from './test-fixtures/observations-10.json';
 import examplePatient from './test-fixtures/example-patient.json';
 import exampleResearchStudy from './test-fixtures/example-research-study.json';
 import { reduce } from 'rxjs/operators';
+import { CohortService } from '../../shared/cohort/cohort.service';
 
 describe('DefineCohortComponent', () => {
   let component: DefineCohortPageComponent;
   let fixture: ComponentFixture<DefineCohortPageComponent>;
   let mockHttp: HttpTestingController;
+  let cohort: CohortService;
 
   beforeEach(async () => {
     await configureTestingModule({
@@ -21,6 +23,7 @@ describe('DefineCohortComponent', () => {
       imports: [DefineCohortPageModule, MatIconTestingModule]
     });
     mockHttp = TestBed.inject(HttpTestingController);
+    cohort = TestBed.inject(CohortService);
   });
 
   beforeEach(() => {
@@ -40,7 +43,7 @@ describe('DefineCohortComponent', () => {
 
   it('should add ResearchStudy ids to search parameters', () => {
     expect(
-      component.prepareCriteria({ condition: 'and', rules: [] }, [
+      cohort.prepareCriteria({ condition: 'and', rules: [] }, [
         'someResearchStudyId'
       ])
     ).toEqual({
@@ -58,7 +61,7 @@ describe('DefineCohortComponent', () => {
   });
 
   it('should load Patients by empty criteria', (done) => {
-    component.defineCohortForm.get('maxPatientsNumber').setValue(10);
+    component.defineCohortForm.get('maxNumberOfPatients').setValue(10);
     component.searchForPatients();
     component.patientStream
       .pipe(
@@ -76,7 +79,7 @@ describe('DefineCohortComponent', () => {
   });
 
   it('should load Patients by Observation criteria using _has', (done) => {
-    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    component.defineCohortForm.get('maxNumberOfPatients').setValue(20);
     component.patientParams.queryCtrl.setValue({
       condition: 'and',
       rules: [
@@ -124,7 +127,7 @@ describe('DefineCohortComponent', () => {
   });
 
   it('should load Patients by Observation criteria', (done) => {
-    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    component.defineCohortForm.get('maxNumberOfPatients').setValue(20);
     component.patientParams.queryCtrl.setValue({
       condition: 'and',
       rules: [
@@ -208,8 +211,8 @@ describe('DefineCohortComponent', () => {
   });
 
   it('should load Patients by Observation and Patient criteria', (done) => {
-    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
-    spyOn(component, 'getPageSize').and.returnValue(10);
+    component.defineCohortForm.get('maxNumberOfPatients').setValue(20);
+    spyOn(cohort, 'getPageSize').and.returnValue(10);
     component.patientParams.queryCtrl.setValue({
       condition: 'and',
       rules: [
@@ -325,8 +328,8 @@ describe('DefineCohortComponent', () => {
   });
 
   it('should load Patients by Observation and ResearchStudy criteria', (done) => {
-    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
-    spyOn(component, 'getPageSize').and.returnValue(10);
+    component.defineCohortForm.get('maxNumberOfPatients').setValue(20);
+    spyOn(cohort, 'getPageSize').and.returnValue(10);
     component.patientParams.queryCtrl.setValue({
       condition: 'and',
       rules: [
@@ -455,7 +458,7 @@ describe('DefineCohortComponent', () => {
   });
 
   it('should load Patients using _has with Observation code and value', (done) => {
-    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
+    component.defineCohortForm.get('maxNumberOfPatients').setValue(20);
     component.patientParams.queryCtrl.setValue({
       condition: 'and',
       rules: [
@@ -517,8 +520,8 @@ describe('DefineCohortComponent', () => {
   });
 
   it('should load Patients by EvidenceVariable criteria', (done) => {
-    component.defineCohortForm.get('maxPatientsNumber').setValue(20);
-    spyOn(component, 'getPageSize').and.returnValue(10);
+    component.defineCohortForm.get('maxNumberOfPatients').setValue(20);
+    spyOn(cohort, 'getPageSize').and.returnValue(10);
     component.patientParams.queryCtrl.setValue({
       condition: 'and',
       rules: [

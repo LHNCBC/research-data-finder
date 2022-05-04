@@ -14,6 +14,7 @@ import { SelectAnAreaOfInterestComponent } from '../step-1-select-an-area-of-int
 import { DefineCohortPageComponent } from '../step-2-define-cohort-page/define-cohort-page.component';
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
 import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.component';
+import { CohortService } from '../../shared/cohort/cohort.service';
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
@@ -36,12 +37,12 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
   public pullDataPageComponent: PullDataPageComponent;
 
   defineCohort: FormControl = new FormControl();
-  serverInitialized = false;
   subscription: Subscription;
 
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
-    public fhirBackend: FhirBackendService
+    public fhirBackend: FhirBackendService,
+    private cohort: CohortService
   ) {
     this.subscription = this.fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Disconnect))
@@ -74,10 +75,6 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
   searchForPatients(): void {
     this.defineCohortStep.completed = !this.defineCohortComponent.hasErrors();
     if (this.defineCohortStep.completed) {
-      this.pullDataPageComponent.setDefaultObservationCodes(
-        this.defineCohortComponent.getObservationCodes()
-      );
-
       if (this.selectAreaOfInterestComponent) {
         this.defineCohortComponent.searchForPatients(
           this.selectAreaOfInterestComponent.getResearchStudySearchParam()
@@ -85,6 +82,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       } else {
         this.defineCohortComponent.searchForPatients();
       }
+      this.pullDataPageComponent.setDefaultObservationCodes(
+        this.cohort.getObservationCodes()
+      );
       this.stepper.next();
     } else {
       this.defineCohortComponent.showErrors();
@@ -98,7 +98,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     const objectToSave = {
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
       maxPatientCount: this.defineCohortComponent.defineCohortForm.value
-        .maxPatientsNumber,
+        .maxNumberOfPatients,
       rawCriteria: this.defineCohortComponent.patientParams.queryCtrl.value,
       data:
         this.viewCohortComponent?.resourceTableComponent?.dataSource?.data.map(
@@ -139,7 +139,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
           }
           // Set max field value.
           this.defineCohortComponent.defineCohortForm
-            .get('maxPatientsNumber')
+            .get('maxNumberOfPatients')
             .setValue(maxPatientCount);
           // Set search parameter form values.
           this.defineCohortComponent.patientParams.queryCtrl.setValue(

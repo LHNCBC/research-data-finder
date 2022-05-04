@@ -20,6 +20,7 @@ import { ColumnDescriptionsService } from '../../shared/column-descriptions/colu
 import { ColumnDescription } from '../../types/column.description';
 import { SelectOptions } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-select-an-area-of-interest',
@@ -48,7 +49,7 @@ class SettingsPageComponentStub {
 // tslint:disable-next-line:component-class-suffix
 class DefineCohortPageComponentStub {
   defineCohortForm = new FormBuilder().group({
-    maxPatientsNumber: ['100', Validators.required]
+    maxNumberOfPatients: ['100', Validators.required]
   });
   patientStream = new Subject<any>();
   @Input() formControl: FormControl;
@@ -73,6 +74,7 @@ describe('StepperComponent', () => {
       ],
       imports: [
         CommonModule,
+        HttpClientModule,
         MatStepperModule,
         MatButtonModule,
         NoopAnimationsModule,
