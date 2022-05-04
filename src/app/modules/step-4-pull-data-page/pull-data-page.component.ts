@@ -3,7 +3,9 @@ import {
   ChangeDetectorRef,
   Component,
   Input,
+  OnChanges,
   QueryList,
+  SimpleChanges,
   ViewChild,
   ViewChildren
 } from '@angular/core';
@@ -45,13 +47,14 @@ type PatientMixin = { patientData: Patient };
   templateUrl: './pull-data-page.component.html',
   styleUrls: ['./pull-data-page.component.less']
 })
-export class PullDataPageComponent implements AfterViewInit {
+export class PullDataPageComponent implements OnChanges, AfterViewInit {
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
   @ViewChildren(ResourceTableComponent)
   resourceTables: QueryList<ResourceTableComponent>;
   @ViewChildren(SearchParameterGroupComponent)
   parameterGroups: QueryList<SearchParameterGroupComponent>;
-  defaultObservationCodes: SelectedObservationCodes;
+  // Default observation codes for the "Pull data for the cohort" step
+  @Input() defaultObservationCodes: SelectedObservationCodes;
   // Resource table data ready to download
   canDownload$: Observable<boolean>;
 
@@ -176,15 +179,10 @@ export class PullDataPageComponent implements AfterViewInit {
     );
   }
 
-  /**
-   * Sets the default observation codes for the "Pull data for the cohort" step.
-   * @param defaultObservationCodes - default observation codes
-   */
-  setDefaultObservationCodes(
-    defaultObservationCodes: SelectedObservationCodes
-  ): void {
-    this.defaultObservationCodes = defaultObservationCodes;
-    this.updateObservationCodesWithDefaults();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.defaultObservationCodes) {
+      this.updateObservationCodesWithDefaults();
+    }
   }
 
   /**

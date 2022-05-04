@@ -75,9 +75,7 @@
 
   <mat-step label="View cohort">
     <div class="v-box">
-      <app-view-cohort-page #viewCohortComponent
-          [patientStream]="defineCohortComponent.patientStream"
-          [loadingStatistics]="defineCohortComponent.loadingStatistics">
+      <app-view-cohort-page #viewCohortComponent>
       </app-view-cohort-page>
       <div class="spacer"></div>
       <div class="h-box">
@@ -107,7 +105,9 @@
   <mat-step label="Pull data for the cohort">
     <div class="v-box">
       <app-pull-data-page #pullDataPageComponent
-                          [patientStream]="defineCohortComponent.patientStream"></app-pull-data-page>
+                          [patientStream]="cohort.patientStream"
+                          [defaultObservationCodes]="pullData.defaultObservationCodes$ | async">
+      </app-pull-data-page>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>

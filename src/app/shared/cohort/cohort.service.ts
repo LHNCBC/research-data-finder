@@ -43,7 +43,6 @@ import { getNextPageUrl } from '../utils';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
-import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 
 // Patient resource type name
 const PATIENT_RESOURCE_TYPE = 'Patient';
@@ -64,11 +63,18 @@ export class CohortService {
     private http: HttpClient
   ) {}
 
+  // Observable that emits Patient resources that match the criteria
+  patientStream: Observable<Resource>;
+
   // Cohort criteria
   criteria: Criteria;
+  criteria$ = new Subject<Criteria>();
 
   // Maximum number of patients
   maxPatientCount = 100;
+
+  // A matrix of loading info that will be displayed with View Cohort resource table.
+  loadingStatistics: (string | number)[][] = [];
 
   // Number of matched Patients
   patientCount = 0;
@@ -80,6 +86,25 @@ export class CohortService {
   numberOfProcessingResources$: BehaviorSubject<number>;
 
   /**
+   * Sets the cohort criteria
+   */
+  setCriteria(criteria: Criteria): void {
+    this.criteria = criteria;
+    this.criteria$.next(criteria);
+  }
+
+  /**
+   * Resets the cohort criteria to its default value and returns that value
+   */
+  resetCriteria(): Criteria {
+    const defaultCriteria: Criteria = {
+      condition: 'and',
+      rules: []
+    };
+    this.setCriteria(defaultCriteria);
+    return defaultCriteria;
+  }
+  /**
    * Search for a list of Patient resources using the criteria tree.
    * This method searches from the server and checks Patient resources
    * against all criteria, and emits Patient resources that match criteria
@@ -89,7 +114,8 @@ export class CohortService {
     criteria: Criteria,
     maxPatientCount: number,
     researchStudyIds: string[] = null
-  ): Observable<Resource> {
+  ): void {
+    this.loadingStatistics = [];
     this.maxPatientCount = maxPatientCount;
     // Maximum number of Patients to load
     const emptyPatientCriteria: ResourceTypeCriteria = {
@@ -98,12 +124,12 @@ export class CohortService {
       rules: []
     };
 
+    this.setCriteria(criteria);
+
     // Preprocess a criteria tree built using the Query Builder component.
     // If there are no criteria - use default empty Patient criteria.
-    this.criteria = criteria = (this.prepareCriteria(
-      criteria,
-      researchStudyIds
-    ) || emptyPatientCriteria) as Criteria;
+    criteria = (this.prepareCriteria(criteria, researchStudyIds) ||
+      emptyPatientCriteria) as Criteria;
 
     // Reset the number of matched Patients
     this.patientCount = 0;
@@ -112,7 +138,7 @@ export class CohortService {
 
     // Create a new Observable which emits Patient resources that match the criteria.
     // If we have only one block with Patient criteria - load all Patient in one request.
-    return this.search(
+    this.patientStream = this.search(
       maxPatientCount,
       criteria,
       this.isOnlyOneBlockWithPatientCriteria(criteria)
@@ -871,58 +897,5 @@ export class CohortService {
       }
     }
     return result;
-  }
-
-  /**
-   * Returns all selected observation codes.
-   */
-  getObservationCodes(): SelectedObservationCodes {
-    return this.getObservationCodesFromCriteria(this.criteria).reduce(
-      (result, cc) => {
-        cc.items.forEach((item, index) => {
-          if (result.items.indexOf(item) === -1) {
-            result.items.push(item);
-            result.coding.push(cc.coding[index]);
-          }
-        });
-        return result;
-      },
-      {
-        coding: [],
-        datatype: 'any',
-        items: []
-      }
-    );
-  }
-
-  /**
-   * Returns selected observation codes from specified criteria
-   * @param criteria - criteria tree
-   */
-  private getObservationCodesFromCriteria(
-    criteria: Criteria | ResourceTypeCriteria
-  ): SelectedObservationCodes[] {
-    let codeFieldValues: SelectedObservationCodes[] = [];
-    if ('resourceType' in criteria) {
-      if (criteria.resourceType === 'Observation') {
-        const foundRule = (criteria as ResourceTypeCriteria).rules.find(
-          (rule) =>
-            rule.field.element === CODETEXT &&
-            rule.field.selectedObservationCodes
-        );
-        if (foundRule) {
-          codeFieldValues.push(foundRule.field.selectedObservationCodes);
-        }
-      }
-    } else {
-      const length = criteria.rules.length;
-      for (let i = 0; i < length; ++i) {
-        codeFieldValues = codeFieldValues.concat(
-          this.getObservationCodesFromCriteria(criteria.rules[i])
-        );
-      }
-    }
-
-    return codeFieldValues;
   }
 }

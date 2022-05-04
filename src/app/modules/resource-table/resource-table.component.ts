@@ -6,7 +6,8 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges
+  SimpleChanges,
+  ViewChild
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
@@ -21,7 +22,6 @@ import {
   combineLatest,
   interval,
   Observable,
-  Subject,
   Subscription
 } from 'rxjs';
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
@@ -38,6 +38,7 @@ import { ResourceTableFilterComponent } from '../resource-table-filter/resource-
 import { FilterType } from '../../types/filter-type';
 import { CustomDialog } from '../../shared/custom-dialog/custom-dialog.service';
 import Resource = fhir.Resource;
+import { MatExpansionPanel } from '@angular/material/expansion';
 
 type TableCells = { [key: string]: string };
 
@@ -129,12 +130,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     return output;
   }
 
+  @ViewChild('panel') panel: MatExpansionPanel;
   @Input() columnDescriptions: ColumnDescription[];
   @Input() enableClientFiltering = false;
   @Input() enableSelection = false;
   @Input() resourceType;
   @Input() context = '';
-  @Input() resourceStream: Subject<Resource>;
+  @Input() resourceStream: Observable<Resource>;
   @Input() set progressValue(value) {
     this.progressValue$.next(value);
   }
@@ -246,6 +248,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes.loadingStatistics && this.loadingStatistics.length === 0) {
+      this.panel.close();
+    }
     // update resource table if user searches again
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {
       const columnsWithData = {};

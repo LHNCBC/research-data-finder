@@ -63,7 +63,7 @@ describe('DefineCohortComponent', () => {
   it('should load Patients by empty criteria', (done) => {
     component.defineCohortForm.get('maxNumberOfPatients').setValue(10);
     component.searchForPatients();
-    component.patientStream
+    cohort.patientStream
       .pipe(
         reduce((acc, patient) => {
           acc.push(patient);
@@ -107,7 +107,7 @@ describe('DefineCohortComponent', () => {
       ]
     });
     component.searchForPatients();
-    component.patientStream
+    cohort.patientStream
       .pipe(
         reduce((acc, patient) => {
           acc.push(patient);
@@ -176,7 +176,7 @@ describe('DefineCohortComponent', () => {
       ]
     });
     component.searchForPatients();
-    component.patientStream
+    cohort.patientStream
       .pipe(
         reduce((acc, patient) => {
           acc.push(patient);
@@ -275,7 +275,7 @@ describe('DefineCohortComponent', () => {
     });
 
     component.searchForPatients();
-    component.patientStream
+    cohort.patientStream
       .pipe(
         reduce((acc, patient) => {
           acc.push(patient);
@@ -392,7 +392,7 @@ describe('DefineCohortComponent', () => {
     });
 
     component.searchForPatients();
-    component.patientStream
+    cohort.patientStream
       .pipe(
         reduce((acc, patient) => {
           acc.push(patient);
@@ -498,7 +498,7 @@ describe('DefineCohortComponent', () => {
       ]
     });
     component.searchForPatients();
-    component.patientStream
+    cohort.patientStream
       .pipe(
         reduce((acc, patient) => {
           acc.push(patient);
@@ -544,7 +544,7 @@ describe('DefineCohortComponent', () => {
     });
 
     component.searchForPatients();
-    component.patientStream
+    cohort.patientStream
       .pipe(
         reduce((acc, patient) => {
           acc.push(patient);

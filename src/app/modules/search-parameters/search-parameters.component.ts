@@ -29,6 +29,7 @@ import { Criterion, ResourceTypeCriteria } from '../../types/search-parameters';
 import { CODETEXT } from '../../shared/query-params/query-params.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { getFocusableChildren } from '../../shared/utils';
+import { CohortService } from '../../shared/cohort/cohort.service';
 
 const OPERATOR_ADDING_MESSAGE =
   ' A radio group for selecting an AND/OR operator to combine criteria has appeared above the criteria.';
@@ -73,7 +74,8 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
 
   constructor(
     private fhirBackend: FhirBackendService,
-    private liveAnnoncer: LiveAnnouncer
+    private liveAnnoncer: LiveAnnouncer,
+    private cohort: CohortService
   ) {
     super();
 
@@ -181,10 +183,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
           config.fields[resourceType + '-' + desc.element] = desc;
         });
       });
-      this.queryCtrl.setValue({
-        condition: 'and',
-        rules: []
-      });
+      this.queryCtrl.setValue(this.cohort.resetCriteria());
       this.queryBuilderConfig = config;
     });
   }

@@ -11,11 +11,9 @@ import {
   createControlValueAccessorAndValidatorProviders
 } from '../base-control-value-accessor';
 import { SearchParametersComponent } from '../search-parameters/search-parameters.component';
-import { Observable } from 'rxjs';
-import Resource = fhir.Resource;
+
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 
-import { Criteria } from '../../types/search-parameters';
 import { CohortService } from '../../shared/cohort/cohort.service';
 
 /**
@@ -36,17 +34,13 @@ export class DefineCohortPageComponent
   extends BaseControlValueAccessorAndValidator<any>
   implements OnInit {
   defineCohortForm: FormGroup;
-  // Observable that emits Patient resources that match the criteria
-  patientStream: Observable<Resource>;
-  // A matrix of loading info that will be displayed with View Cohort resource table.
-  loadingStatistics: (string | number)[][] = [];
 
   @ViewChild('patientParams') patientParams: SearchParametersComponent;
 
   constructor(
     private formBuilder: FormBuilder,
     private errorManager: ErrorManager,
-    private cohort: CohortService
+    public cohort: CohortService
   ) {
     super();
   }
@@ -73,8 +67,8 @@ export class DefineCohortPageComponent
    * through {patientStream}
    */
   searchForPatients(researchStudyIds: string[] = null): void {
-    this.patientStream = this.cohort.searchForPatients(
-      this.patientParams.queryBuilderComponent.data as Criteria,
+    this.cohort.searchForPatients(
+      this.patientParams.queryCtrl.value,
       this.defineCohortForm.value.maxNumberOfPatients,
       researchStudyIds
     );

@@ -15,6 +15,7 @@ import { DefineCohortPageComponent } from '../step-2-define-cohort-page/define-c
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
 import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.component';
 import { CohortService } from '../../shared/cohort/cohort.service';
+import { PullDataService } from '../../shared/pull-data/pull-data.service';
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
@@ -42,13 +43,13 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
     public fhirBackend: FhirBackendService,
-    private cohort: CohortService
+    public cohort: CohortService,
+    public pullData: PullDataService
   ) {
     this.subscription = this.fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Disconnect))
       .subscribe(() => {
         this.defineCohortStep.completed = false;
-        this.defineCohortComponent.patientStream = new Subject<Resource>();
         this.stepper.steps.forEach((s) => s.reset());
       });
   }
@@ -82,9 +83,6 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       } else {
         this.defineCohortComponent.searchForPatients();
       }
-      this.pullDataPageComponent.setDefaultObservationCodes(
-        this.cohort.getObservationCodes()
-      );
       this.stepper.next();
     } else {
       this.defineCohortComponent.showErrors();
@@ -97,9 +95,8 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
   saveCohort(): void {
     const objectToSave = {
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
-      maxPatientCount: this.defineCohortComponent.defineCohortForm.value
-        .maxNumberOfPatients,
-      rawCriteria: this.defineCohortComponent.patientParams.queryCtrl.value,
+      maxPatientCount: this.cohort.maxPatientCount,
+      rawCriteria: this.cohort.criteria,
       data:
         this.viewCohortComponent?.resourceTableComponent?.dataSource?.data.map(
           (i) => i.resource
@@ -145,13 +142,14 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
           this.defineCohortComponent.patientParams.queryCtrl.setValue(
             rawCriteria
           );
+          this.cohort.criteria$.next(rawCriteria);
           // Set selected research studies.
           this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
             researchStudies
           );
           // Set patient table data.
           this.loadPatientsData(data, fromResearchStudyStep);
-          this.defineCohortComponent.loadingStatistics = [
+          this.cohort.loadingStatistics = [
             [`Data loaded from file ${filename}.`]
           ];
         } catch (e) {
@@ -173,7 +171,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
   ): void {
     this.defineCohortStep.completed = true;
     const patientStream = new Subject<Resource>();
-    this.defineCohortComponent.patientStream = patientStream;
+    this.cohort.patientStream = patientStream.asObservable();
     this.stepper.next();
     if (fromResearchStudyStep) {
       this.stepper.next();

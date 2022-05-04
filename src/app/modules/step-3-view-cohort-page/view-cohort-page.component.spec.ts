@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ViewCohortPageComponent } from './view-cohort-page.component';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { of } from 'rxjs';
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { MockComponent } from 'ng-mocks';
@@ -22,7 +22,12 @@ describe('ViewCohortComponent', () => {
         ViewCohortPageComponent,
         MockComponent(ResourceTableComponent)
       ],
-      imports: [CommonModule, BrowserAnimationsModule, MatExpansionModule],
+      imports: [
+        CommonModule,
+        BrowserAnimationsModule,
+        MatExpansionModule,
+        HttpClientModule
+      ],
       providers: [
         { provide: HttpClient, useValue: spies[0] },
         {
