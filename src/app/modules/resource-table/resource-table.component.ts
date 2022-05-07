@@ -154,10 +154,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   lastResourceElement: HTMLElement;
   // Data is loading
   isLoading$ = new BehaviorSubject(false);
-  // Loading is complete and there is data in the table
-  hasLoadedData$ = this.isLoading$.pipe(
-    map((isLoading) => !isLoading && this.dataSource.data.length > 0)
-  );
   loadTime = 0;
   loadedDateTime: number;
   subscriptions: Subscription[] = [];
@@ -249,7 +245,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.loadingStatistics && this.loadingStatistics.length === 0) {
-      this.panel.close();
+      this.panel?.close();
     }
     // update resource table if user searches again
     if (changes['resourceStream'] && changes['resourceStream'].currentValue) {

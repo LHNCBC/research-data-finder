@@ -1,6 +1,5 @@
 import {
   AfterViewInit,
-  ChangeDetectorRef,
   Component,
   Input,
   OnChanges,
@@ -9,35 +8,20 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import {
-  concatMap,
-  map,
-  reduce,
-  startWith,
-  switchMap,
-  take
-} from 'rxjs/operators';
-import { chunk } from 'lodash-es';
+import { map, startWith, take } from 'rxjs/operators';
 import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { MatTabGroup } from '@angular/material/tabs';
-import { combineLatest, from, Observable, of, Subject } from 'rxjs';
-import Patient = fhir.Patient;
+import { Observable } from 'rxjs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import { HttpClient } from '@angular/common/http';
 import { FormControl, Validators } from '@angular/forms';
-import { ColumnValuesService } from '../../shared/column-values/column-values.service';
-import Resource = fhir.Resource;
-import Bundle = fhir.Bundle;
-import Observation = fhir.Observation;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { saveAs } from 'file-saver';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
-
-type PatientMixin = { patientData: Patient };
+import { PullDataService } from '../../shared/pull-data/pull-data.service';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -55,8 +39,6 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
   parameterGroups: QueryList<SearchParameterGroupComponent>;
   // Default observation codes for the "Pull data for the cohort" step
   @Input() defaultObservationCodes: SelectedObservationCodes;
-  // Resource table data ready to download
-  canDownload$: Observable<boolean>;
 
   // Array of visible resource type names
   visibleResourceTypes: string[];
@@ -65,44 +47,17 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
   // Array of resource type names that has "code text" search parameter
   codeTextResourceTypes: string[] = [];
 
-  // Array of loaded Patients
-  patients: Patient[] = [];
   // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
   // when the active tab changes
   currentResourceType$: Observable<string>;
 
-  // Input stream of loaded Patients from DefineCohortComponent
-  @Input() set patientStream(stream: Observable<Patient>) {
-    this.resourceStream = {};
-    if (stream) {
-      stream
-        .pipe(
-          reduce((acc, patient) => {
-            acc.push(patient);
-            return acc;
-          }, [])
-        )
-        .subscribe((patients) => {
-          this.patients = patients;
-        });
-    } else {
-      this.patients = [];
-    }
-  }
-
-  // Stream of resources for ResourceTableComponent
-  resourceStream: { [resourceType: string]: Subject<Resource> } = {};
-  // Resource loading progress values for ResourceTableComponent
-  progressValue: { [resourceType: string]: number } = {};
   // Form controls of 'per patient' input
   perPatientFormControls: { [resourceType: string]: FormControl } = {};
 
   constructor(
     private fhirBackend: FhirBackendService,
-    private http: HttpClient,
     public columnDescriptions: ColumnDescriptionsService,
-    private columnValues: ColumnValuesService,
-    private cdr: ChangeDetectorRef
+    public pullData: PullDataService
   ) {
     fhirBackend.initialized
       .pipe(map((status) => status === ConnectionStatus.Ready))
@@ -164,17 +119,6 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
           window.dispatchEvent(evt);
         }
         return this.getCurrentResourceType();
-      })
-    );
-    this.canDownload$ = combineLatest([
-      this.currentResourceType$,
-      this.resourceTables.changes
-    ]).pipe(
-      switchMap(([currentResourceType]) => {
-        const currentResourceTable = this.resourceTables.find(
-          (resourceTable) => resourceTable.resourceType === currentResourceType
-        );
-        return currentResourceTable?.hasLoadedData$ || of(false);
       })
     );
   }
@@ -293,233 +237,12 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
       parameterGroup.showErrors();
       return;
     }
-    let criteria = parameterGroup.getConditions().criteria;
-    this.resourceStream[resourceType] = new Subject<Resource>();
-    this.progressValue[resourceType] = 0;
-
-    // Added "detectChanges" to prevent this issue:
-    // If queries are cached, then the values will be sent to the Subject
-    // before the ResourceTableComponent subscribes to the resource stream.
-    this.cdr.detectChanges();
-
-    const resourceTypeParam =
-      resourceType === 'EvidenceVariable' ? 'Observation' : resourceType;
-    const observationCodes = [];
-    const patientToCodeToCount = {};
-    const patientEvCount = {};
-    let sortParam = '';
-
-    if (resourceTypeParam === 'Observation') {
-      criteria = criteria.replace(/&combo-code=([^&]*)/g, (_, $1) => {
-        observationCodes.push(...$1.split(','));
-        return '';
-      });
-
-      const sortFields = observationCodes.length ? [] : ['code'];
-      if (this.fhirBackend.features.sortObservationsByDate) {
-        sortFields.push('-date');
-      } else if (this.fhirBackend.features.sortObservationsByAgeAtEvent) {
-        sortFields.push('-age-at-event');
-      }
-      sortParam = '&_sort=' + sortFields.join(',');
-    }
-
-    // To optimize Patient loading, we load them for 10 Patients
-    // in one query. We don't use this optimization for other resource types
-    // because we need to limit the number of resources per Patient.
-    const numberOfPatientsInRequest = resourceType === 'Patient' ? 10 : 1;
-    const observable = from(
-      [].concat(
-        ...chunk(this.patients, numberOfPatientsInRequest).map((patients) => {
-          let linkToPatient;
-
-          if (resourceType === 'ResearchStudy') {
-            linkToPatient = `_has:ResearchSubject:study:individual=${patients
-              .map((patient) => patient.id)
-              .join(',')}`;
-          } else if (resourceType === 'Patient') {
-            linkToPatient = `_id=${patients
-              .map((patient) => patient.id)
-              .join(',')}`;
-          } else {
-            linkToPatient = `subject=${patients
-              .map((patient) => 'Patient/' + patient.id)
-              .join(',')}`;
-          }
-
-          const prepareResponseData = (bundle) => {
-            // Update progress indicator
-            this.progressValue[resourceType] +=
-              (numberOfPatientsInRequest * 100) /
-              (this.patients.length * (observationCodes.length || 1));
-
-            return {
-              bundle,
-              patientData: patients.length === 1 ? patients[0] : null
-            };
-          };
-
-          if (observationCodes.length) {
-            // Create separate requests for each Observation code
-            return observationCodes.map((code) => {
-              return (
-                this.http
-                  .get(
-                    `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${this.perPatientFormControls.Observation.value}&combo-code=${code}`
-                  )
-                  // toPromise needed to immediately execute query, this allows batch requests
-                  .toPromise()
-                  .then(prepareResponseData)
-              );
-            });
-          }
-
-          const countParam =
-            resourceTypeParam === 'Observation' ||
-            !this.perPatientFormControls[resourceType]
-              ? '&_count=1000'
-              : `&_count=${this.perPatientFormControls[resourceType].value}`;
-          return (
-            this.http
-              .get(
-                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}${countParam}`
-              )
-              // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
-              .toPromise()
-              .then(prepareResponseData)
-          );
-        })
-      )
-    ).pipe(
-      concatMap(
-        (bundlePromise: Promise<{ bundle: Bundle; patientData: Patient }>) => {
-          return from(bundlePromise);
-          // TODO: Currently we load only 1000 resources per Patient.
-          //       (In the previous version of Research Data Finder,
-          //       we only loaded the first page with the default size)
-          //       Uncommenting the below code will allow loading all resources,
-          //       but this could take time.
-          /*.pipe(
-            // Modifying the Observable to load the following pages sequentially
-            expand((response: Bundle) => {
-              const nextPageUrl = getNextPageUrl(response);
-              if (nextPageUrl) {
-                return from(this.http.get(nextPageUrl).toPromise());
-              } else {
-                // Emit a complete notification
-                return EMPTY;
-              }
-            })
-          )*/
-        }
-      )
+    this.pullData.loadResources(
+      resourceType,
+      this.perPatientFormControls[resourceType]?.value || 1000,
+      parameterGroup.getConditions().criteria
     );
-
-    // For pulling EV, we first pull Observations and then retrieve EVs asynchronously by looking at
-    // Observation extensions.
-    if (resourceType === 'EvidenceVariable') {
-      observable
-        .pipe(
-          concatMap(({ bundle, patientData }) => {
-            const perPatient = this.perPatientFormControls.EvidenceVariable
-              .value;
-            return (
-              bundle?.entry
-                ?.map((entry) => {
-                  const patientRef = (entry.resource as Observation).subject
-                    .reference;
-                  const evUrl = entry.resource['extension']?.find(
-                    (x) =>
-                      x.url ===
-                      'http://hl7.org/fhir/StructureDefinition/workflow-instantiatesUri'
-                  )?.valueUri;
-                  if (!evUrl) {
-                    return null;
-                  }
-                  const evCount =
-                    patientEvCount[patientRef] ||
-                    (patientEvCount[patientRef] = 0);
-                  if (evCount >= perPatient) {
-                    return null;
-                  }
-                  ++patientEvCount[patientRef];
-                  return this.http
-                    .get(evUrl)
-                    .toPromise()
-                    .then((evBundle: Resource) => {
-                      return {
-                        resource: evBundle,
-                        patientData
-                      };
-                    });
-                })
-                ?.filter((p) => p) || []
-            );
-          }),
-          concatMap(
-            (
-              bundlePromise: Promise<{
-                resource: Resource;
-                patientData: Patient;
-              }>
-            ) => {
-              return from(bundlePromise);
-            }
-          ),
-          map(({ resource, patientData }) => {
-            return {
-              ...resource,
-              patientData
-            };
-          })
-        )
-        .subscribe(this.resourceStream[resourceType]);
-    } else {
-      observable
-        .pipe(
-          // Generate a sequence of resources
-          concatMap(({ bundle, patientData }) => {
-            const res: (Resource & PatientMixin)[] =
-              bundle?.entry?.map((entry) => ({
-                ...entry.resource,
-                patientData
-              })) || [];
-
-            if (resourceType === 'Observation' && !observationCodes.length) {
-              // When no code is specified in criteria and we loaded last 1000 Observations.
-              // Per Clem, we will only show perPatientPerTest results per patient per test.
-              const perPatientPerTest = this.perPatientFormControls.Observation
-                .value;
-              return res.filter((obs: Observation & PatientMixin) => {
-                const patientRef = obs.subject.reference;
-                const codeStr = this.columnValues.getCodeableConceptAsText(
-                  obs.code
-                );
-                const codeToCount =
-                  patientToCodeToCount[patientRef] ||
-                  (patientToCodeToCount[patientRef] = {});
-
-                // For now skip Observations without a code in the first coding.
-                if (codeStr) {
-                  const codeCount =
-                    codeToCount[codeStr] || (codeToCount[codeStr] = 0);
-                  if (codeCount < perPatientPerTest) {
-                    ++codeToCount[codeStr];
-                    return true;
-                  }
-                }
-                return false;
-              });
-            }
-
-            return res;
-          })
-          // Sequentially send the loaded resources to the resource table
-        )
-        .subscribe(this.resourceStream[resourceType]);
-    }
   }
-
   /**
    * Initiates downloading of resourceTable data in CSV format.
    */

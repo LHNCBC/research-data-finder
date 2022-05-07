@@ -9,6 +9,7 @@ import {
 } from '../../types/search-parameters';
 import {
   BehaviorSubject,
+  defer,
   EMPTY,
   forkJoin,
   from,
@@ -43,6 +44,7 @@ import { getNextPageUrl } from '../utils';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import Patient = fhir.Patient;
 
 // Patient resource type name
 const PATIENT_RESOURCE_TYPE = 'Patient';
@@ -65,6 +67,9 @@ export class CohortService {
 
   // Observable that emits Patient resources that match the criteria
   patientStream: Observable<Resource>;
+
+  // Array of loaded Patients
+  patients: Patient[] = [];
 
   // Cohort criteria
   criteria: Criteria;
@@ -116,6 +121,7 @@ export class CohortService {
     researchStudyIds: string[] = null
   ): void {
     this.loadingStatistics = [];
+    const patients: Patient[] = [];
     this.maxPatientCount = maxPatientCount;
     // Maximum number of Patients to load
     const emptyPatientCriteria: ResourceTypeCriteria = {
@@ -138,13 +144,16 @@ export class CohortService {
 
     // Create a new Observable which emits Patient resources that match the criteria.
     // If we have only one block with Patient criteria - load all Patient in one request.
-    this.patientStream = this.search(
-      maxPatientCount,
-      criteria,
-      this.isOnlyOneBlockWithPatientCriteria(criteria)
-        ? maxPatientCount
-        : this.getPageSize()
-    ).pipe(
+    this.patientStream = defer(() => {
+      this.patients = [];
+      return this.search(
+        maxPatientCount,
+        criteria,
+        this.isOnlyOneBlockWithPatientCriteria(criteria)
+          ? maxPatientCount
+          : this.getPageSize()
+      );
+    }).pipe(
       // Expand each array of resources into separate resources
       concatMap((resources) => from(resources)),
       // Skip already processed Patients
@@ -173,9 +182,10 @@ export class CohortService {
         // if there are criteria for the patient
         return this.check(resource, emptyPatientCriteria);
       }),
-      tap(() => {
+      tap((patient) => {
         // Increment the number of matched Patients
         this.patientCount++;
+        patients.push(patient as Patient);
         if (this.patientCount < maxPatientCount) {
           // Update the number of resources in processing
           this.numberOfProcessingResources$.next(
@@ -190,6 +200,9 @@ export class CohortService {
       }),
       // Complete observable on error
       catchError(() => EMPTY),
+      finalize(() => {
+        this.patients = patients;
+      }),
       // Do not create a new stream for each subscription
       share()
     );

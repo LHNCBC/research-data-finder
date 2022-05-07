@@ -14,7 +14,6 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import { filter, take, tap } from 'rxjs/operators';
-import { from } from 'rxjs';
 import {
   HttpClientTestingModule,
   HttpTestingController
@@ -22,12 +21,16 @@ import {
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { SettingsService } from '../../shared/settings-service/settings.service';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
+import { CohortService } from '../../shared/cohort/cohort.service';
+import { PullDataService } from '../../shared/pull-data/pull-data.service';
 
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
   let fixture: ComponentFixture<PullDataPageComponent>;
   let fhirBackend: FhirBackendService;
   let mockHttp: HttpTestingController;
+  let cohort: CohortService;
+  let pullData: PullDataService;
   const emptyParameterGroup = {
     hasErrors: () => false,
     getConditions: () => ({
@@ -47,6 +50,8 @@ describe('PullDataForCohortComponent', () => {
     }).compileComponents();
     spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
     fhirBackend = TestBed.inject(FhirBackendService);
+    cohort = TestBed.inject(CohortService);
+    pullData = TestBed.inject(PullDataService);
     spyOnProperty(fhirBackend, 'currentVersion').and.returnValue('R4');
     spyOnProperty(fhirBackend, 'features').and.returnValue({
       lastnLookup: true,
@@ -141,10 +146,7 @@ describe('PullDataForCohortComponent', () => {
       { patient: { id: 'pat-232' }, observations: observationsForPat232 },
       { patient: { id: 'pat-269' }, observations: observationsForPat269 }
     ];
-    const arrayOfPatients = testData.map((item) => item.patient);
-    component.patientStream = from(arrayOfPatients);
-    // Should collect Patients from input stream
-    expect(component.patients).toEqual(arrayOfPatients);
+    cohort.patients = testData.map((item) => item.patient);
 
     component.loadResources('Observation', emptyParameterGroup);
     testData.forEach((item) => {
@@ -157,7 +159,7 @@ describe('PullDataForCohortComponent', () => {
     });
     // Should load 4 of 5 Observations from test fixtures (one Observation per Patient per test)
     let loadedResourceCount = 0;
-    await component.resourceStream['Observation']
+    await pullData.resourceStream['Observation']
       .pipe(
         tap({
           next: () => {
@@ -177,9 +179,7 @@ describe('PullDataForCohortComponent', () => {
     ];
     const arrayOfPatients = testData.map((item) => item.patient);
     const encountersPerPatient = 2;
-    component.patientStream = from(arrayOfPatients);
-    // Should collect Patients from input stream
-    expect(component.patients).toEqual(arrayOfPatients);
+    cohort.patients = arrayOfPatients;
 
     component.addTab('Encounter');
     fixture.detectChanges();
@@ -197,7 +197,7 @@ describe('PullDataForCohortComponent', () => {
     });
     // Should load 2 resources from test fixtures (2 encounters per Patient)
     let loadedResourceCount = 0;
-    await component.resourceStream['Encounter']
+    await pullData.resourceStream['Encounter']
       .pipe(
         tap({
           next: () => {
@@ -215,9 +215,7 @@ describe('PullDataForCohortComponent', () => {
     const arrayOfPatients = Array.from({ length: 30 }, (_, index) => ({
       id: 'smart-' + index
     }));
-    component.patientStream = from(arrayOfPatients);
-    // Should collect Patients from input stream
-    expect(component.patients).toEqual(arrayOfPatients);
+    cohort.patients = arrayOfPatients;
 
     component.addTab('ResearchStudy');
     fixture.detectChanges();
@@ -233,7 +231,7 @@ describe('PullDataForCohortComponent', () => {
     });
     // Should load all (non-unique) resources from test fixtures
     let loadedResourceCount = 0;
-    await component.resourceStream['ResearchStudy']
+    await pullData.resourceStream['ResearchStudy']
       .pipe(
         tap({
           next: () => {
@@ -264,10 +262,7 @@ describe('PullDataForCohortComponent', () => {
       { patient: { id: 'pat-232' }, observations: observationsForPat232 },
       { patient: { id: 'pat-269' }, observations: observationsForPat269 }
     ];
-    const arrayOfPatients = testData.map((item) => item.patient);
-    component.patientStream = from(arrayOfPatients);
-    // Should collect Patients from input stream
-    expect(component.patients).toEqual(arrayOfPatients);
+    cohort.patients = testData.map((item) => item.patient);
 
     component.addTab('EvidenceVariable');
     fixture.detectChanges();
@@ -282,20 +277,20 @@ describe('PullDataForCohortComponent', () => {
         .flush(item.observations);
     });
 
-    await fixture.whenStable();
-    mockHttp
-      .expectOne(
-        'https://lforms-fhir.nlm.nih.gov/baseR4/EvidenceVariable/phv00492039'
-      )
-      .flush({
-        resourceType: 'EvidenceVariable',
-        id: 'phv00492039',
-        name: 'ENV_SMOKE_pretrial',
-        description: 'Home exposure to smoke prior to trial enrollment'
-      });
-
+    setTimeout(() => {
+      mockHttp
+        .expectOne(
+          'https://lforms-fhir.nlm.nih.gov/baseR4/EvidenceVariable/phv00492039'
+        )
+        .flush({
+          resourceType: 'EvidenceVariable',
+          id: 'phv00492039',
+          name: 'ENV_SMOKE_pretrial',
+          description: 'Home exposure to smoke prior to trial enrollment'
+        });
+    });
     let loadedResourceCount = 0;
-    await component.resourceStream['EvidenceVariable']
+    await pullData.resourceStream['EvidenceVariable']
       .pipe(
         tap({
           next: () => {

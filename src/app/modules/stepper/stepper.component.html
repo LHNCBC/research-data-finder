@@ -105,7 +105,6 @@
   <mat-step label="Pull data for the cohort">
     <div class="v-box">
       <app-pull-data-page #pullDataPageComponent
-                          [patientStream]="cohort.patientStream"
                           [defaultObservationCodes]="pullData.defaultObservationCodes$ | async">
       </app-pull-data-page>
       <div class="spacer"></div>
@@ -119,7 +118,7 @@
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button (click)="pullDataPageComponent.downloadCsv()"
-                [disabled]="!(pullDataPageComponent.canDownload$ | async)">
+                [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
           <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
         </button>
         <div class="spacer"></div>

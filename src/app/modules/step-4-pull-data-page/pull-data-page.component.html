@@ -45,12 +45,12 @@
         <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams></app-search-parameter-group>
       </div>
       <div class="spacer"></div>
-      <app-resource-table *ngIf="resourceStream[resourceType]"
+      <app-resource-table *ngIf="pullData.resourceStream[resourceType]"
           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'pull-data') | async"
           context="pull-data"
           resourceType="{{resourceType}}"
-          [resourceStream]="resourceStream[resourceType]"
-          [progressValue]="progressValue[resourceType]">
+          [resourceStream]="pullData.resourceStream[resourceType]"
+          [progressValue]="pullData.progress[resourceType].value">
       </app-resource-table>
     </div>
   </mat-tab>
