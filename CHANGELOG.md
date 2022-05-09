@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.5.1] - 2022-05-09
+### Fixed
+- Fixed exception "expression has changed after it was checked"
+  (https://angular.io/errors/NG0100).
+- Simplified component code by moving code from components to services.
+
 ## [4.5.0] - 2022-04-28
 ### Added
 - % complete based on the number of requests processed.
