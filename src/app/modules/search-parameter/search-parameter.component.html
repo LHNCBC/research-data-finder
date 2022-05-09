@@ -33,7 +33,7 @@
           [resourceType]="resourceType" [searchParameter]="selectedParameter.element"
           [columnName]="selectedParameter.rootPropertyName"
           [expression]="selectedParameter.expression"
-          [usePrefetch]="parameterValues !== undefined">
+          [usePrefetch]="selectedParameter.required && parameterValues !== undefined">
         </app-autocomplete-parameter-value>
       </mat-form-field>
 

@@ -84,9 +84,15 @@ export class SettingsPageComponent {
     return this.fhirBackend.initialized.pipe(
       filter((status) => status !== ConnectionStatus.Pending),
       take(1),
-      map((status) =>
-        status === ConnectionStatus.Ready ? null : { wrongUrl: true }
-      )
+      map((status) => {
+        this.settingsFormGroup
+          .get('maxRequestsPerBatch')
+          .setValue(this.fhirBackend.maxRequestsPerBatch);
+        this.settingsFormGroup
+          .get('maxActiveRequests')
+          .setValue(this.fhirBackend.maxActiveRequests);
+        return status === ConnectionStatus.Ready ? null : { wrongUrl: true };
+      })
     );
   }
 }

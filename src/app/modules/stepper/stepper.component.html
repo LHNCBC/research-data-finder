@@ -29,13 +29,13 @@
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Settings
         </button>
         <div class='spacer'></div>
-        <button mat-stroked-button color='secondary' (click)='hiddenFileInput2.click()'>
+        <button mat-stroked-button (click)='hiddenFileInput2.click()'>
           <mat-icon svgIcon='upload'></mat-icon>
           Load cohort and criteria
         </button>
         <input type='file' #hiddenFileInput2 style='display: none;' (change)='loadCohort($event, true)'>
         <div class="spacer" *ngIf="selectAnAreaOfInterest.showTable"></div>
-        <button mat-stroked-button color="secondary" *ngIf="selectAnAreaOfInterest.showTable"
+        <button mat-stroked-button *ngIf="selectAnAreaOfInterest.showTable"
                 (click)="columnDescriptions.openColumnsDialog('ResearchStudy')">
           <mat-icon svgIcon="create"></mat-icon>
           Configure table
@@ -57,7 +57,7 @@
           {{fhirBackend.features.hasResearchStudy ? 'Select Research Studies' : 'Settings'}}
         </button>
         <div class='spacer'></div>
-        <button mat-stroked-button color='secondary' (click)='hiddenFileInput.click()'>
+        <button mat-stroked-button (click)='hiddenFileInput.click()'>
           <mat-icon svgIcon='upload'></mat-icon>
           Load cohort and criteria
         </button>
@@ -85,15 +85,15 @@
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Define cohort
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary" (click)='saveCohort()'>
+        <button mat-stroked-button (click)='saveCohort()'>
           <mat-icon svgIcon="save"></mat-icon>Save the cohort and criteria for later
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary">
+        <button mat-stroked-button>
           <mat-icon svgIcon="refresh"></mat-icon>Reload
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary" (click)="columnDescriptions.openColumnsDialog('Patient')">
+        <button mat-stroked-button (click)="columnDescriptions.openColumnsDialog('Patient')">
           <mat-icon svgIcon="create"></mat-icon>Configure table
         </button>
         <div class="spacer"></div>
@@ -114,11 +114,11 @@
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>View cohort
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.configureColumns()">
+        <button mat-stroked-button (click)="pullDataPageComponent.configureColumns()">
           <mat-icon svgIcon="create"></mat-icon>Configure table
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button color="secondary" (click)="pullDataPageComponent.downloadCsv()"
+        <button mat-stroked-button (click)="pullDataPageComponent.downloadCsv()"
                 [disabled]="!(pullDataPageComponent.canDownload$ | async)">
           <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
         </button>

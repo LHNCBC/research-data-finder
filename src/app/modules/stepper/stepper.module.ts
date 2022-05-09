@@ -11,6 +11,7 @@ import { DefineCohortPageModule } from '../step-2-define-cohort-page/define-coho
 import { ViewCohortPageModule } from '../step-3-view-cohort-page/view-cohort-page.module';
 import { PullDataPageModule } from '../step-4-pull-data-page/pull-data-page.module';
 import { SelectAnAreaOfInterestModule } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.module';
+import { AnnounceIfActiveModule } from '../../shared/announce-if-active/announce-if-active.module';
 
 @NgModule({
   declarations: [StepperComponent],
@@ -26,7 +27,8 @@ import { SelectAnAreaOfInterestModule } from '../step-1-select-an-area-of-intere
     DefineCohortPageModule,
     ViewCohortPageModule,
     PullDataPageModule,
-    SelectAnAreaOfInterestModule
+    SelectAnAreaOfInterestModule,
+    AnnounceIfActiveModule
   ]
 })
 export class StepperModule {}

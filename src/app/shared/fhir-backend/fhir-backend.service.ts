@@ -168,6 +168,12 @@ export class FhirBackendService implements HttpBackend {
         this.settings.loadCsvDefinitions().subscribe(
           (resourceDefinitions) => {
             this.currentDefinitions = { resources: resourceDefinitions };
+            this.fhirClient.setMaxRequestsPerBatch(
+              this.settings.get('maxRequestsPerBatch')
+            );
+            this.fhirClient.setMaxActiveRequests(
+              this.settings.get('maxActiveRequests')
+            );
             this.initialized.next(ConnectionStatus.Ready);
           },
           (err) => {

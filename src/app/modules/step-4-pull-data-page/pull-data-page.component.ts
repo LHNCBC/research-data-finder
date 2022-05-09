@@ -89,6 +89,8 @@ export class PullDataPageComponent implements AfterViewInit {
 
   // Stream of resources for ResourceTableComponent
   resourceStream: { [resourceType: string]: Subject<Resource> } = {};
+  // Resource loading progress values for ResourceTableComponent
+  progressValue: { [resourceType: string]: number } = {};
   // Form controls of 'per patient' input
   perPatientFormControls: { [resourceType: string]: FormControl } = {};
 
@@ -295,6 +297,7 @@ export class PullDataPageComponent implements AfterViewInit {
     }
     let criteria = parameterGroup.getConditions().criteria;
     this.resourceStream[resourceType] = new Subject<Resource>();
+    this.progressValue[resourceType] = 0;
 
     // Added "detectChanges" to prevent this issue:
     // If queries are cached, then the values will be sent to the Subject
@@ -314,7 +317,7 @@ export class PullDataPageComponent implements AfterViewInit {
         return '';
       });
 
-      const sortFields = observationCodes.length ? [] : ['patient', 'code'];
+      const sortFields = observationCodes.length ? [] : ['code'];
       if (this.fhirBackend.features.sortObservationsByDate) {
         sortFields.push('-date');
       } else if (this.fhirBackend.features.sortObservationsByAgeAtEvent) {
@@ -346,6 +349,18 @@ export class PullDataPageComponent implements AfterViewInit {
               .join(',')}`;
           }
 
+          const prepareResponseData = (bundle) => {
+            // Update progress indicator
+            this.progressValue[resourceType] +=
+              (numberOfPatientsInRequest * 100) /
+              (this.patients.length * (observationCodes.length || 1));
+
+            return {
+              bundle,
+              patientData: patients.length === 1 ? patients[0] : null
+            };
+          };
+
           if (observationCodes.length) {
             // Create separate requests for each Observation code
             return observationCodes.map((code) => {
@@ -356,10 +371,7 @@ export class PullDataPageComponent implements AfterViewInit {
                   )
                   // toPromise needed to immediately execute query, this allows batch requests
                   .toPromise()
-                  .then((bundle) => ({
-                    bundle,
-                    patientData: patients.length === 1 ? patients[0] : null
-                  }))
+                  .then(prepareResponseData)
               );
             });
           }
@@ -376,10 +388,7 @@ export class PullDataPageComponent implements AfterViewInit {
               )
               // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
               .toPromise()
-              .then((bundle) => ({
-                bundle,
-                patientData: patients.length === 1 ? patients[0] : null
-              }))
+              .then(prepareResponseData)
           );
         })
       )
