@@ -624,17 +624,25 @@ export class CohortService {
   ): boolean {
     // We can use _has to select Patients if we only have one
     // criterion for the resource type:
-    return (
+    if (
       resourceType !== PATIENT_RESOURCE_TYPE &&
       resourceType !== RESEARCH_STUDY_RESOURCE_TYPE &&
       resourceType !== EVIDENCE_VARIABLE_RESOURCE_TYPE &&
       criteriaForResourceType.length === 1 &&
       // Currently don't use _has for EV since it doesn't work with search parameter 'obs-evidence-variable'
-      criteriaForResourceType[0].field.element !== 'evidencevariable' &&
-      this.queryParams
-        .getQueryParam(resourceType, criteriaForResourceType[0].field)
-        .lastIndexOf('&') === 0
-    );
+      criteriaForResourceType[0].field.element !== 'evidencevariable'
+    ) {
+      const queryParam = this.queryParams.getQueryParam(
+        resourceType,
+        criteriaForResourceType[0].field
+      );
+      return (
+        queryParam.lastIndexOf('&') === 0 &&
+        // Do not use _has when using modifier on the Observation value
+        !/:(contains|exact)/.test(queryParam)
+      );
+    }
+    return false;
   }
 
   /**
