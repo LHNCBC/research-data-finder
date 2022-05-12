@@ -212,7 +212,7 @@ export class CohortService {
    * Returns an Observable that emits arrays of resources (page by page) that
    * match the criteria. If among the criteria there are criteria for Patients,
    * then the Observable will emit arrays of Patient resources.
-   * @param maxPatientCount -
+   * @param maxPatientCount - maximum number of Patients
    * @param criteria - criteria tree
    * @param pageSize - the value of the _count parameter
    */
