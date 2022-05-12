@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Fixed exception "expression has changed after it was checked"
   (https://angular.io/errors/NG0100).
 - Simplified component code by moving code from components to services.
+- Disabled "Save the cohort and criteria for later" button when loading
+  a cohort of Patients.
 
 ## [4.5.0] - 2022-04-28
 ### Added

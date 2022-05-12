@@ -78,6 +78,11 @@ export class CohortService {
   // Maximum number of patients
   maxPatientCount = 100;
 
+  currentState = {
+    // Indicates that data is loading
+    loading: false
+  };
+
   // A matrix of loading info that will be displayed with View Cohort resource table.
   loadingStatistics: (string | number)[][] = [];
 
@@ -120,6 +125,10 @@ export class CohortService {
     maxPatientCount: number,
     researchStudyIds: string[] = null
   ): void {
+    const currentState = {
+      loading: true
+    };
+    this.currentState = currentState;
     this.loadingStatistics = [];
     const patients: Patient[] = [];
     this.maxPatientCount = maxPatientCount;
@@ -202,6 +211,7 @@ export class CohortService {
       catchError(() => EMPTY),
       finalize(() => {
         this.patients = patients;
+        currentState.loading = false;
       }),
       // Do not create a new stream for each subscription
       share()
