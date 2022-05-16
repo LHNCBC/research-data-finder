@@ -78,6 +78,11 @@ export class CohortService {
   // Maximum number of patients
   maxPatientCount = 100;
 
+  currentState = {
+    // Indicates that data is loading
+    loading: false
+  };
+
   // A matrix of loading info that will be displayed with View Cohort resource table.
   loadingStatistics: (string | number)[][] = [];
 
@@ -120,6 +125,10 @@ export class CohortService {
     maxPatientCount: number,
     researchStudyIds: string[] = null
   ): void {
+    const currentState = {
+      loading: true
+    };
+    this.currentState = currentState;
     this.loadingStatistics = [];
     const patients: Patient[] = [];
     this.maxPatientCount = maxPatientCount;
@@ -202,6 +211,7 @@ export class CohortService {
       catchError(() => EMPTY),
       finalize(() => {
         this.patients = patients;
+        currentState.loading = false;
       }),
       // Do not create a new stream for each subscription
       share()
@@ -212,7 +222,7 @@ export class CohortService {
    * Returns an Observable that emits arrays of resources (page by page) that
    * match the criteria. If among the criteria there are criteria for Patients,
    * then the Observable will emit arrays of Patient resources.
-   * @param maxPatientCount -
+   * @param maxPatientCount - maximum number of Patients
    * @param criteria - criteria tree
    * @param pageSize - the value of the _count parameter
    */

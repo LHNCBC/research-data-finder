@@ -83,7 +83,7 @@
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Define cohort
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button (click)='saveCohort()'>
+        <button mat-stroked-button (click)="saveCohort()" [disabled]="cohort.currentState.loading">
           <mat-icon svgIcon="save"></mat-icon>Save the cohort and criteria for later
         </button>
         <div class="spacer"></div>
