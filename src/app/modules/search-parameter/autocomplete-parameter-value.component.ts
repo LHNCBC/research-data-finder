@@ -6,6 +6,7 @@ import {
   HostListener,
   Input,
   OnChanges,
+  OnDestroy,
   Optional,
   Self,
   ViewChild
@@ -56,6 +57,7 @@ export class AutocompleteParameterValueComponent
   extends BaseControlValueAccessor<AutocompleteParameterValue>
   implements
     OnChanges,
+    OnDestroy,
     AfterViewInit,
     MatFormFieldControl<AutocompleteParameterValue> {
   get value(): AutocompleteParameterValue {
@@ -145,6 +147,8 @@ export class AutocompleteParameterValueComponent
   ngControl: NgControl = null;
   // Autocompleter instance
   acInstance: any;
+  // Callback to handle changes
+  listSelectionsObserver: (eventData: any) => void;
   // Subscription used to cancel the previous loading process
   subscription: Subscription;
   // Reference to the <input> element
@@ -230,11 +234,21 @@ export class AutocompleteParameterValueComponent
   }
 
   /**
+   * Performs cleanup when a component instance is destroyed.
+   */
+  ngOnDestroy(): void {
+    this.destroyAutocomplete();
+  }
+
+  /**
    * Set up Autocompleter.
    * Also call this.onChange() of ControlValueAccessor interface on selection event,
    * so that form control value is updated and can be read from parent form.
    */
   setupAutocomplete(): void {
+    // Destroy previous instance
+    this.destroyAutocomplete();
+
     this.acInstance =
       this.resourceType === this.EVIDENCEVARIABLE
         ? this.getAutocomplete_EV()
@@ -246,7 +260,7 @@ export class AutocompleteParameterValueComponent
       this.acInstance.addToSelectedArea(item);
     });
 
-    Def.Autocompleter.Event.observeListSelections(this.inputId, () => {
+    this.listSelectionsObserver = () => {
       const coding = this.acInstance.getSelectedCodes();
       const items = this.acInstance.getSelectedItems();
       this.currentData = {
@@ -254,7 +268,27 @@ export class AutocompleteParameterValueComponent
         items
       };
       this.onChange(this.currentData?.codes.length ? this.currentData : null);
-    });
+    };
+
+    Def.Autocompleter.Event.observeListSelections(
+      this.inputId,
+      this.listSelectionsObserver
+    );
+  }
+
+  /**
+   * Destroy the autocompleter
+   */
+  destroyAutocomplete(): void {
+    if (this.acInstance) {
+      this.acInstance.destroy();
+      Def.Autocompleter.Event.removeCallback(
+        this.inputId,
+        'LIST_SEL',
+        this.listSelectionsObserver
+      );
+      this.acInstance = null;
+    }
   }
 
   /**

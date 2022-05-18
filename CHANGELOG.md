@@ -5,6 +5,13 @@ This project follows [Semantic Versioning](http://semver.org/).
 
 ## [4.5.3] - 2022-05-18
 ### Fixed
+- Reinitialize autocomplete field for "variable value" when "variable name"
+  changes.
+- Incorrect query in some cases:
+  * when multiple values are specified in the "variable name" field, and there
+    is a "variable value" field.
+  * when multiple values are specified in the autocomplete field for
+    "variable value".
 - Simplified code of resource table component and components that use it.
 
 ## [4.5.2] - 2022-05-10

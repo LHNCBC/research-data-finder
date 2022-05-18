@@ -523,15 +523,22 @@ export class CohortService {
 
       let rules;
 
-      // Combine code and value criteria for Observation
+      // Combine code and value criteria for Observation when we have one code
+      // and one value:
       const obsCodeCriterion = criteria.rules.find(
         (c) => c.field.element === CODETEXT
       );
-      if (obsCodeCriterion) {
+      if (
+        obsCodeCriterion?.field.selectedObservationCodes.coding.length === 1
+      ) {
         const obsValueCriterion = criteria.rules.find(
           (c) => c.field.element === OBSERVATION_VALUE
         );
-        if (obsValueCriterion) {
+        if (
+          obsValueCriterion &&
+          (!obsValueCriterion.field.value.testValue.codes ||
+            obsValueCriterion.field.value.testValue.codes.length === 1)
+        ) {
           rules = [
             ...criteria.rules.filter(
               (c) => c !== obsCodeCriterion && c !== obsValueCriterion
