@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { CohortService } from './cohort.service';
 import { SharedModule } from '../shared.module';
-import { reduce } from 'rxjs/operators';
+import { last } from 'rxjs/operators';
 import tenObservationBundle from '../../modules/step-2-define-cohort-page/test-fixtures/observations-10.json';
 import examplePatient from '../../modules/step-2-define-cohort-page/test-fixtures/example-patient.json';
 import {
@@ -69,19 +69,11 @@ describe('CohortService', () => {
       ]
     };
     cohort.searchForPatients(criteria, 20);
-    cohort.patientStream
-      .pipe(
-        reduce((acc, patient) => {
-          acc.push(patient);
-          return acc;
-        }, [])
-      )
-      .subscribe((patients) => {
-        // We have two Observations for the same Patient, that's why one
-        // Observation ignored
-        expect(patients.length).toEqual(9);
-        done();
-      });
+
+    cohort.patientStream.pipe(last()).subscribe((patients) => {
+      expect(patients.length).toEqual(9);
+      done();
+    });
 
     mockHttp
       .expectOne(
@@ -98,10 +90,14 @@ describe('CohortService', () => {
       )
     ];
 
-    patientIds.forEach((patientId) => {
-      mockHttp
-        .expectOne(`$fhir/Patient?_id=${patientId}`)
-        .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
-    });
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_id=${patientIds.join(',')}&_count=${patientIds.length}`
+      )
+      .flush({
+        entry: patientIds.map((patientId) => ({
+          resource: { ...examplePatient, id: patientId }
+        }))
+      });
   });
 });

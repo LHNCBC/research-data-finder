@@ -30,8 +30,7 @@ import {
   share,
   startWith,
   switchMap,
-  take,
-  tap
+  take
 } from 'rxjs/operators';
 import Resource = fhir.Resource;
 import {
@@ -55,6 +54,17 @@ const EVIDENCE_VARIABLE_RESOURCE_TYPE = 'EvidenceVariable';
 // Observation resource type name
 const OBSERVATION_RESOURCE_TYPE = 'Observation';
 
+interface CurrentState {
+  // Indicates that data is loading
+  loading: boolean;
+  // Array of loaded Patients
+  patients: Patient[];
+  // Processed Patient Ids used to skip already selected Patients
+  processedPatientIds: { [patientId: string]: boolean };
+  // The number of resources in processing is used to pause the loading of the next page
+  numberOfProcessingResources$: BehaviorSubject<number>;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -66,10 +76,7 @@ export class CohortService {
   ) {}
 
   // Observable that emits Patient resources that match the criteria
-  patientStream: Observable<Resource>;
-
-  // Array of loaded Patients
-  patients: Patient[] = [];
+  patientStream: Observable<Patient[]>;
 
   // Cohort criteria
   criteria: Criteria;
@@ -78,22 +85,15 @@ export class CohortService {
   // Maximum number of patients
   maxPatientCount = 100;
 
-  currentState = {
-    // Indicates that data is loading
-    loading: false
+  currentState: CurrentState = {
+    loading: false,
+    patients: [],
+    processedPatientIds: {},
+    numberOfProcessingResources$: null
   };
 
   // A matrix of loading info that will be displayed with View Cohort resource table.
   loadingStatistics: (string | number)[][] = [];
-
-  // Number of matched Patients
-  patientCount = 0;
-
-  // Processed Patient Ids used to skip already selected Patients
-  processedPatientIds: { [patientId: string]: boolean };
-
-  // The number of resources in processing is used to pause the loading of the next page
-  numberOfProcessingResources$: BehaviorSubject<number>;
 
   /**
    * Sets the cohort criteria
@@ -125,12 +125,14 @@ export class CohortService {
     maxPatientCount: number,
     researchStudyIds: string[] = null
   ): void {
-    const currentState = {
-      loading: true
+    const currentState: CurrentState = {
+      loading: true,
+      patients: [],
+      processedPatientIds: {},
+      numberOfProcessingResources$: new BehaviorSubject<number>(0)
     };
     this.currentState = currentState;
     this.loadingStatistics = [];
-    const patients: Patient[] = [];
     this.maxPatientCount = maxPatientCount;
     // Maximum number of Patients to load
     const emptyPatientCriteria: ResourceTypeCriteria = {
@@ -146,73 +148,87 @@ export class CohortService {
     criteria = (this.prepareCriteria(criteria, researchStudyIds) ||
       emptyPatientCriteria) as Criteria;
 
-    // Reset the number of matched Patients
-    this.patientCount = 0;
-    this.processedPatientIds = {};
-    this.numberOfProcessingResources$ = new BehaviorSubject<number>(0);
-
     // Create a new Observable which emits Patient resources that match the criteria.
     // If we have only one block with Patient criteria - load all Patient in one request.
     this.patientStream = defer(() => {
-      this.patients = [];
+      currentState.patients = [];
       return this.search(
         maxPatientCount,
         criteria,
         this.isOnlyOneBlockWithPatientCriteria(criteria)
           ? maxPatientCount
-          : this.getPageSize()
+          : this.getPageSize(),
+        currentState
       );
     }).pipe(
       // Expand each array of resources into separate resources
-      concatMap((resources) => from(resources)),
-      // Skip already processed Patients
-      filter((resource) => {
-        const patientId = this.getPatientIdFromResource(resource);
-        if (this.processedPatientIds[patientId]) {
-          // Update the number of resources in processing
-          this.numberOfProcessingResources$.next(
-            this.numberOfProcessingResources$.value - 1
-          );
-          return false;
-        }
-        this.processedPatientIds[patientId] = true;
-        return true;
-      }),
-      // Stop emitting resources when the maximum number is reached
-      take(maxPatientCount),
-      // If the found resource isn't a Patient (when no criteria for Patients),
-      // replace it with a Patient
-      mergeMap((resource) => {
-        if (resource.resourceType === PATIENT_RESOURCE_TYPE) {
-          return of(resource);
+      concatMap((resources) => {
+        resources = resources
+          // Skip already processed Patients
+          .filter((resource) => {
+            const patientId = this.getPatientIdFromResource(resource);
+            if (currentState.processedPatientIds[patientId]) {
+              // Update the number of resources in processing
+              currentState.numberOfProcessingResources$.next(
+                currentState.numberOfProcessingResources$.value - 1
+              );
+              return false;
+            }
+            currentState.processedPatientIds[patientId] = true;
+            return true;
+          });
+        if (currentState.patients.length + resources.length > maxPatientCount) {
+          resources.length = maxPatientCount - currentState.patients.length;
         }
 
-        // The check function replaces the resource with the Patient resource
-        // if there are criteria for the patient
-        return this.check(resource, emptyPatientCriteria);
+        // If the found resource isn't a Patient (when no criteria for Patients),
+        // replace it with a Patient
+        if (resources[0].resourceType !== PATIENT_RESOURCE_TYPE) {
+          return this.http
+            .get<Bundle>(`$fhir/${PATIENT_RESOURCE_TYPE}`, {
+              params: {
+                _id: resources
+                  .map((resource) => this.getPatientIdFromResource(resource))
+                  .join(','),
+                _count: resources.length
+              }
+            })
+            .pipe(
+              map((response) => {
+                if (!response?.entry?.length) {
+                  return [];
+                }
+                return response.entry.map((entry) => entry.resource);
+              })
+            );
+        } else {
+          return of(resources);
+        }
       }),
-      tap((patient) => {
-        // Increment the number of matched Patients
-        this.patientCount++;
-        patients.push(patient as Patient);
-        if (this.patientCount < maxPatientCount) {
+      map((patients: Patient[]) => {
+        const processedResources = patients.length;
+        currentState.patients.push(...patients);
+        if (currentState.patients.length < maxPatientCount) {
           // Update the number of resources in processing
-          this.numberOfProcessingResources$.next(
-            this.numberOfProcessingResources$.value - 1
+          currentState.numberOfProcessingResources$.next(
+            currentState.numberOfProcessingResources$.value - processedResources
           );
         } else {
           // Cancel the loading of the next page if the maximum number of
           // Patients has been reached
-          this.numberOfProcessingResources$.next(0);
-          this.numberOfProcessingResources$.complete();
+          currentState.numberOfProcessingResources$.next(0);
+          currentState.numberOfProcessingResources$.complete();
         }
+        return [...currentState.patients];
       }),
+      // Stop emitting resources when the maximum number is reached
+      // takeWhile((patients) => patients.length < maxPatientCount),
       // Complete observable on error
       catchError(() => EMPTY),
       finalize(() => {
-        this.patients = patients;
         currentState.loading = false;
       }),
+      startWith([]),
       // Do not create a new stream for each subscription
       share()
     );
@@ -225,11 +241,13 @@ export class CohortService {
    * @param maxPatientCount - maximum number of Patients
    * @param criteria - criteria tree
    * @param pageSize - the value of the _count parameter
+   * @param currentState - an object describing the current loading process
    */
   search(
     maxPatientCount: number,
     criteria: Criteria | ResourceTypeCriteria,
-    pageSize: number
+    pageSize: number,
+    currentState: CurrentState
   ): Observable<Resource[]> {
     // Loading resources by criteria for specified resource type
     if ('resourceType' in criteria) {
@@ -246,14 +264,17 @@ export class CohortService {
             criteria.resourceType,
             rules,
             pageSize,
-            maxPatientCount
+            maxPatientCount,
+            currentState
           )
         )
       );
       // Loading a subgroup of resources by criteria combined by the OR operator
     } else if (criteria.condition === 'or') {
       return from(criteria.rules).pipe(
-        concatMap((rule) => this.search(maxPatientCount, rule, pageSize))
+        concatMap((rule) =>
+          this.search(maxPatientCount, rule, pageSize, currentState)
+        )
       );
     } else {
       // Loading a subgroup of resources by criteria combined by the AND operator
@@ -271,7 +292,8 @@ export class CohortService {
             return this.search(
               maxPatientCount,
               newCriteria.rules[0],
-              pageSize
+              pageSize,
+              currentState
             ).pipe(
               mergeMap((resources: Resource[]) => {
                 // Exclude processed and duplicate resources
@@ -280,7 +302,7 @@ export class CohortService {
                   this.getPatientIdFromResource
                 ) as Resource[]).filter(
                   (resource) =>
-                    !this.processedPatientIds[
+                    !currentState.processedPatientIds[
                       this.getPatientIdFromResource(resource)
                     ]
                 );
@@ -301,8 +323,8 @@ export class CohortService {
                   map((r: Resource[]) => {
                     const checkedResources = r.filter((resource) => !!resource);
                     // Update the number of resources in processing
-                    this.numberOfProcessingResources$.next(
-                      this.numberOfProcessingResources$.value -
+                    currentState.numberOfProcessingResources$.next(
+                      currentState.numberOfProcessingResources$.value -
                         (resources.length - checkedResources.length)
                     );
                     return checkedResources;
@@ -313,7 +335,12 @@ export class CohortService {
           })
         );
       } else {
-        return this.search(maxPatientCount, criteria.rules[0], pageSize);
+        return this.search(
+          maxPatientCount,
+          criteria.rules[0],
+          pageSize,
+          currentState
+        );
       }
     }
   }
@@ -740,15 +767,17 @@ export class CohortService {
    * @param rules - array of ANDed criteria
    * @param pageSize - page size
    * @param maxPatientCount - maximum number of Patients to load
+   * @param currentState - an object describing the current loading process
    */
   requestResources(
     resourceType: string,
     rules: Criterion[],
     pageSize: number,
-    maxPatientCount: number
+    maxPatientCount: number,
+    currentState: CurrentState
   ): Observable<Resource[]> {
     // Returns an empty Observable if the maximum number of patients has been reached
-    if (this.patientCount >= maxPatientCount) {
+    if (currentState.patients.length >= maxPatientCount) {
       return EMPTY;
     }
 
@@ -767,7 +796,11 @@ export class CohortService {
         )
         .pipe(
           // Modifying the Observable to load the following pages sequentially
-          this.loadPagesSequentially(maxPatientCount, nextResearchStudyPage$),
+          this.loadPagesSequentially(
+            maxPatientCount,
+            nextResearchStudyPage$,
+            currentState
+          ),
           // Expand the BundleEntries array into separate resources
           concatMap((response) => {
             return from((response?.entry || []).map((i) => i.resource.id)).pipe(
@@ -784,7 +817,8 @@ export class CohortService {
                     }
                   ],
                   pageSize,
-                  maxPatientCount
+                  maxPatientCount,
+                  currentState
                 );
               }),
               finalize(() => {
@@ -824,19 +858,20 @@ export class CohortService {
       // Modifying the Observable to load the following pages sequentially
       this.loadPagesSequentially(
         maxPatientCount,
-        this.numberOfProcessingResources$.pipe(
+        currentState.numberOfProcessingResources$.pipe(
           // Waiting for processing of already loaded resources
           filter(
             (numberOfProcessingResources) => numberOfProcessingResources === 0
           )
-        )
+        ),
+        currentState
       ),
       // Expand the BundleEntries array into separate resources
       map((response: Bundle) => {
         const resources = (response?.entry || []).map((i) => i.resource);
         // Update the number of resources in processing
-        this.numberOfProcessingResources$.next(
-          this.numberOfProcessingResources$.value + resources.length
+        currentState.numberOfProcessingResources$.next(
+          currentState.numberOfProcessingResources$.value + resources.length
         );
         return resources;
       })
@@ -848,10 +883,12 @@ export class CohortService {
    * @param maxPatientCount - maximum number of Patients to load
    * @param readyForNextPage - the next page request will be executed after this
    *   Observable emits a value.
+   * @param currentState - an object describing the current loading process
    */
   loadPagesSequentially(
     maxPatientCount: number,
-    readyForNextPage: Observable<any>
+    readyForNextPage: Observable<any>,
+    currentState: CurrentState
   ): OperatorFunction<Bundle, Bundle> {
     return expand((response: Bundle) => {
       const nextPageUrl = getNextPageUrl(response);
@@ -864,7 +901,7 @@ export class CohortService {
         // Load each page once
         take(1),
         switchMap(() => {
-          if (this.patientCount < maxPatientCount) {
+          if (currentState.patients.length < maxPatientCount) {
             // Load the next page of resources
             return this.http.get<Bundle>(nextPageUrl);
           } else {

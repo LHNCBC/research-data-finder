@@ -13,7 +13,7 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
-import { filter, take, tap } from 'rxjs/operators';
+import { filter, last, take } from 'rxjs/operators';
 import {
   HttpClientTestingModule,
   HttpTestingController
@@ -146,7 +146,7 @@ describe('PullDataForCohortComponent', () => {
       { patient: { id: 'pat-232' }, observations: observationsForPat232 },
       { patient: { id: 'pat-269' }, observations: observationsForPat269 }
     ];
-    cohort.patients = testData.map((item) => item.patient);
+    cohort.currentState.patients = testData.map((item) => item.patient);
 
     component.loadResources('Observation', emptyParameterGroup);
     testData.forEach((item) => {
@@ -158,19 +158,12 @@ describe('PullDataForCohortComponent', () => {
         .flush(item.observations);
     });
     // Should load 4 of 5 Observations from test fixtures (one Observation per Patient per test)
-    let loadedResourceCount = 0;
     await pullData.resourceStream['Observation']
-      .pipe(
-        tap({
-          next: () => {
-            loadedResourceCount++;
-          },
-          complete: () => {
-            expect(loadedResourceCount).toBe(4);
-          }
-        })
-      )
-      .toPromise();
+      .pipe(last())
+      .toPromise()
+      .then((resources) => {
+        expect(resources.length).toBe(4);
+      });
   });
 
   it('should load Encounters with correct numbers per patient', async () => {
@@ -179,7 +172,7 @@ describe('PullDataForCohortComponent', () => {
     ];
     const arrayOfPatients = testData.map((item) => item.patient);
     const encountersPerPatient = 2;
-    cohort.patients = arrayOfPatients;
+    cohort.currentState.patients = arrayOfPatients;
 
     component.addTab('Encounter');
     fixture.detectChanges();
@@ -196,26 +189,19 @@ describe('PullDataForCohortComponent', () => {
         .flush(item.encounters);
     });
     // Should load 2 resources from test fixtures (2 encounters per Patient)
-    let loadedResourceCount = 0;
     await pullData.resourceStream['Encounter']
-      .pipe(
-        tap({
-          next: () => {
-            loadedResourceCount++;
-          },
-          complete: () => {
-            expect(loadedResourceCount).toBe(2);
-          }
-        })
-      )
-      .toPromise();
+      .pipe(last())
+      .toPromise()
+      .then((resources) => {
+        expect(resources.length).toBe(2);
+      });
   });
 
   it('should load all (non-unique) ResearchStudies', async () => {
     const arrayOfPatients = Array.from({ length: 30 }, (_, index) => ({
       id: 'smart-' + index
     }));
-    cohort.patients = arrayOfPatients;
+    cohort.currentState.patients = arrayOfPatients;
 
     component.addTab('ResearchStudy');
     fixture.detectChanges();
@@ -230,19 +216,12 @@ describe('PullDataForCohortComponent', () => {
         .flush(researchStudies);
     });
     // Should load all (non-unique) resources from test fixtures
-    let loadedResourceCount = 0;
     await pullData.resourceStream['ResearchStudy']
-      .pipe(
-        tap({
-          next: () => {
-            loadedResourceCount++;
-          },
-          complete: () => {
-            expect(loadedResourceCount).toBe(60);
-          }
-        })
-      )
-      .toPromise();
+      .pipe(last())
+      .toPromise()
+      .then((resources) => {
+        expect(resources.length).toBe(60);
+      });
   });
 
   it('should add/remove Patient tab', async () => {
@@ -262,7 +241,7 @@ describe('PullDataForCohortComponent', () => {
       { patient: { id: 'pat-232' }, observations: observationsForPat232 },
       { patient: { id: 'pat-269' }, observations: observationsForPat269 }
     ];
-    cohort.patients = testData.map((item) => item.patient);
+    cohort.currentState.patients = testData.map((item) => item.patient);
 
     component.addTab('EvidenceVariable');
     fixture.detectChanges();
@@ -289,18 +268,11 @@ describe('PullDataForCohortComponent', () => {
           description: 'Home exposure to smoke prior to trial enrollment'
         });
     });
-    let loadedResourceCount = 0;
     await pullData.resourceStream['EvidenceVariable']
-      .pipe(
-        tap({
-          next: () => {
-            loadedResourceCount++;
-          },
-          complete: () => {
-            expect(loadedResourceCount).toBe(1);
-          }
-        })
-      )
-      .toPromise();
+      .pipe(last())
+      .toPromise()
+      .then((resources) => {
+        expect(resources.length).toBe(1);
+      });
   });
 });

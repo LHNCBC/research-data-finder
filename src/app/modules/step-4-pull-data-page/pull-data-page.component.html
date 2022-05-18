@@ -49,8 +49,9 @@
           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'pull-data') | async"
           context="pull-data"
           resourceType="{{resourceType}}"
-          [resourceStream]="pullData.resourceStream[resourceType]"
-          [progressValue]="pullData.progress[resourceType].value">
+          [loading]="pullData.currentState[resourceType].loading"
+          [resources]="pullData.resourceStream[resourceType] | async"
+          [progressValue]="pullData.currentState[resourceType].progressValue">
       </app-resource-table>
     </div>
   </mat-tab>

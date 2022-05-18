@@ -707,13 +707,13 @@ export class AutocompleteParameterValueComponent
    * @private
    */
   private getDbgapEvResearchStudyParam(): string {
-    if (!this.researchStudy.myStudyIds.length) {
+    if (!this.researchStudy.currentState.myStudyIds.length) {
       return '';
     }
-    if (this.researchStudy.myStudyIds.length === 1) {
-      return `study_id:${this.researchStudy.myStudyIds[0]}*`;
+    if (this.researchStudy.currentState.myStudyIds.length === 1) {
+      return `study_id:${this.researchStudy.currentState.myStudyIds[0]}*`;
     }
-    return `study_id:(${this.researchStudy.myStudyIds
+    return `study_id:(${this.researchStudy.currentState.myStudyIds
       .map((id) => id + '*')
       .join(' OR ')})`;
   }

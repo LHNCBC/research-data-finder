@@ -1,19 +1,11 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from '@angular/core';
-import Bundle = fhir.Bundle;
-import { HttpClient } from '@angular/common/http';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { combineLatest, Subject, Subscription } from 'rxjs';
-import { filter, startWith, tap } from 'rxjs/operators';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { filter, finalize, startWith, tap } from 'rxjs/operators';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
 import { ResearchStudyService } from '../../shared/research-study/research-study.service';
@@ -33,11 +25,7 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
   SelectOptions = SelectOptions;
   option = new FormControl(SelectOptions.showOnlyStudiesWithSubjects);
   subscription: Subscription;
-  researchStudiesSubscription: Subscription;
-  researchStudyStream: Subject<Resource>;
-  totalRecords: number;
-  loadedRecords: number;
-  progressValue: number;
+  researchStudyStream: Observable<Resource[]>;
   showTable = false;
   // A list of items that system will select once table loading is complete.
   idsToSelect: string[] = [];
@@ -48,10 +36,8 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
    */
   constructor(
     private fhirBackend: FhirBackendService,
-    private http: HttpClient,
     public columnDescriptions: ColumnDescriptionsService,
-    private cdr: ChangeDetectorRef,
-    private researchStudy: ResearchStudyService
+    public researchStudy: ResearchStudyService
   ) {}
 
   ngOnInit(): void {
@@ -64,7 +50,6 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
       .pipe(
         tap(() => {
           this.showTable = false;
-          this.researchStudiesSubscription?.unsubscribe();
           this.resourceTableComponent?.clearSelection();
         }),
         filter(([_, initialized]) => {
@@ -72,17 +57,11 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe(([showResearchStudiesWithoutSubjects, _]) => {
-        this.researchStudyStream = new Subject<Resource>();
-        this.totalRecords = 0;
-        this.loadedRecords = 0;
-        this.progressValue = 0;
+        let researchStudyStream;
         this.showTable = true;
-        // Added "detectChanges" to prevent this issue:
-        // If queries are cached, then the values will be sent to the Subject
-        // before the ResourceTableComponent subscribes to the resource stream.
-        this.cdr.detectChanges();
+
         if (showResearchStudiesWithoutSubjects) {
-          this.loadResearchStudies(
+          researchStudyStream = this.researchStudy.loadResearchStudies(
             '$fhir/ResearchStudy?_count=100&_total=accurate'
           );
         } else {
@@ -92,58 +71,27 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
               'ResearchSubject.status'
             ]
           ).join(',');
-          this.loadResearchStudies(
+          researchStudyStream = this.researchStudy.loadResearchStudies(
             `$fhir/ResearchStudy?_count=100&_has:ResearchSubject:study:status=${statuses}&_total=accurate`,
             true
           );
         }
+        this.researchStudyStream = researchStudyStream.pipe(
+          finalize(() => {
+            if (!showResearchStudiesWithoutSubjects) {
+              this.option.enable({ emitEvent: false });
+            }
+            if (this.idsToSelect.length) {
+              this.resourceTableComponent.setSelectedIds(this.idsToSelect);
+              this.idsToSelect.length = 0;
+            }
+          })
+        );
       });
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
-    this.researchStudiesSubscription?.unsubscribe();
-  }
-
-  /**
-   * Calls server for a bundle of ResearchStudy resources.
-   * Will be recursively called if having next bundle.
-   * @param url - request URL.
-   * @param myStudiesOnly - whether it's loading only studies that user has access to.
-   */
-  loadResearchStudies(url: string, myStudiesOnly = false): void {
-    const myStudyIds: string[] = [];
-    this.researchStudiesSubscription = this.http
-      .get(url)
-      .subscribe((data: Bundle) => {
-        if (data.total) {
-          this.totalRecords = data.total;
-        }
-        this.loadedRecords += data.entry?.length || 0;
-        data.entry?.forEach((item) => {
-          this.researchStudyStream.next(item.resource);
-          if (myStudiesOnly) {
-            myStudyIds.push(item.resource.id);
-          }
-        });
-        if (this.totalRecords) {
-          this.progressValue = (100 * this.loadedRecords) / this.totalRecords;
-        }
-        const nextBundleUrl = data.link.find((l) => l.relation === 'next')?.url;
-        if (nextBundleUrl) {
-          this.loadResearchStudies(nextBundleUrl, myStudiesOnly);
-        } else {
-          this.researchStudyStream.complete();
-          if (myStudiesOnly) {
-            this.researchStudy.myStudyIds = myStudyIds;
-            this.option.enable({ emitEvent: false });
-          }
-          if (this.idsToSelect.length) {
-            this.resourceTableComponent.setSelectedIds(this.idsToSelect);
-            this.idsToSelect.length = 0;
-          }
-        }
-      });
   }
 
   /**
@@ -155,7 +103,7 @@ export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
     }
     if (
       this.resourceTableComponent.selectedResources.selected.length ===
-      this.researchStudy.myStudyIds.length
+      this.researchStudy.currentState.myStudyIds.length
     ) {
       // If all applicable rows are selected, use empty array (same as no rows selected).
       return [];
