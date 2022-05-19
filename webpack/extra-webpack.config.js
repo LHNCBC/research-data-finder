@@ -3,6 +3,7 @@ const fs = require('fs');
 const readXlsxFile = require('read-excel-file/node');
 const JSON5 = require('json5');
 const json5Writer = require('json5-writer');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const xlsxFolder = './src/conf/xlsx';
 const csvFolder = './src/conf/csv';
@@ -146,6 +147,12 @@ module.exports = async (config) => {
         }
       ]
     }
+  );
+
+  config.plugins.push(
+    new CopyWebpackPlugin({
+      patterns: [{ from: 'notice-banner', to: 'notice-banner' }]
+    })
   );
 
   return config;
