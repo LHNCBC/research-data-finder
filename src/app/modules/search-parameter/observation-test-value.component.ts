@@ -55,7 +55,7 @@ export class ObservationTestValueComponent
     CodeableConcept: {
       unit: false
     },
-    string: {
+    String: {
       modifiers: [
         ['starts with', ''],
         ['contains', ':contains'],

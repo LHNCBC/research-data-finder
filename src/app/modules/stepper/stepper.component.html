@@ -75,9 +75,7 @@
 
   <mat-step label="View cohort">
     <div class="v-box">
-      <app-view-cohort-page #viewCohortComponent
-          [patientStream]="defineCohortComponent.patientStream"
-          [loadingStatistics]="defineCohortComponent.loadingStatistics">
+      <app-view-cohort-page #viewCohortComponent>
       </app-view-cohort-page>
       <div class="spacer"></div>
       <div class="h-box">
@@ -85,7 +83,7 @@
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Define cohort
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button (click)='saveCohort()'>
+        <button mat-stroked-button (click)="saveCohort()" [disabled]="cohort.currentState.loading">
           <mat-icon svgIcon="save"></mat-icon>Save the cohort and criteria for later
         </button>
         <div class="spacer"></div>
@@ -107,7 +105,8 @@
   <mat-step label="Pull data for the cohort">
     <div class="v-box">
       <app-pull-data-page #pullDataPageComponent
-                          [patientStream]="defineCohortComponent.patientStream"></app-pull-data-page>
+                          [defaultObservationCodes]="pullData.defaultObservationCodes$ | async">
+      </app-pull-data-page>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
@@ -119,7 +118,7 @@
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button (click)="pullDataPageComponent.downloadCsv()"
-                [disabled]="!(pullDataPageComponent.canDownload$ | async)">
+                [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
           <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
         </button>
         <div class="spacer"></div>

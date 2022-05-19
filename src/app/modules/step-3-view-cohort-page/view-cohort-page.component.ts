@@ -1,8 +1,7 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import { Subject } from 'rxjs';
-import BundleEntry = fhir.BundleEntry;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
+import { CohortService } from '../../shared/cohort/cohort.service';
 
 /**
  * Component for viewing a cohort of Patient resources
@@ -13,13 +12,13 @@ import { ResourceTableComponent } from '../resource-table/resource-table.compone
   styleUrls: ['./view-cohort-page.component.less']
 })
 export class ViewCohortPageComponent implements OnInit {
-  @Input() patientStream: Subject<BundleEntry>;
-  @Input() loadingStatistics: (string | number)[][] = [];
-
   @ViewChild('resourceTableComponent')
   public resourceTableComponent: ResourceTableComponent;
 
-  constructor(public columnDescriptions: ColumnDescriptionsService) {}
+  constructor(
+    public columnDescriptions: ColumnDescriptionsService,
+    public cohort: CohortService
+  ) {}
 
   ngOnInit(): void {}
 }

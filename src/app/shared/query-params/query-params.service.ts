@@ -128,7 +128,7 @@ export class QueryParamsService {
       const valueParamName = {
         CodeableConcept: 'combo-code-value-concept',
         Quantity: 'combo-code-value-quantity',
-        string: 'code-value-string'
+        String: 'code-value-string'
       }[datatype];
       const testValueCriteria = this.getCompositeTestValueCriteria(
         datatype,
@@ -159,7 +159,7 @@ export class QueryParamsService {
       {
         CodeableConcept: 'combo-value-concept',
         Quantity: 'combo-value-quantity',
-        string: 'value-string'
+        String: 'value-string'
       }[value.observationDataType] || 'combo-value-quantity';
     const modifier = value.value.testValueModifier;
     const testValueCriteria = this.getCompositeTestValueCriteria(
