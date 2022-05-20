@@ -28,7 +28,12 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/conf/csv"
+              "src/conf/csv",
+              {
+                "glob": "**/*",
+                "input": "notice-banner/",
+                "output": "/notice-banner/"
+              }
             ],
             "styles": [
               "src/theme/theme.scss",
