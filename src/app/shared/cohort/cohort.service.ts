@@ -54,7 +54,7 @@ const EVIDENCE_VARIABLE_RESOURCE_TYPE = 'EvidenceVariable';
 // Observation resource type name
 const OBSERVATION_RESOURCE_TYPE = 'Observation';
 
-interface CurrentState {
+interface CohortState {
   // Indicates that data is loading
   loading: boolean;
   // Array of loaded Patients
@@ -85,7 +85,7 @@ export class CohortService {
   // Maximum number of patients
   maxPatientCount = 100;
 
-  currentState: CurrentState = {
+  currentState: CohortState = {
     loading: false,
     patients: [],
     processedPatientIds: {},
@@ -125,7 +125,7 @@ export class CohortService {
     maxPatientCount: number,
     researchStudyIds: string[] = null
   ): void {
-    const currentState: CurrentState = {
+    const currentState: CohortState = {
       loading: true,
       patients: [],
       processedPatientIds: {},
@@ -247,7 +247,7 @@ export class CohortService {
     maxPatientCount: number,
     criteria: Criteria | ResourceTypeCriteria,
     pageSize: number,
-    currentState: CurrentState
+    currentState: CohortState
   ): Observable<Resource[]> {
     // Loading resources by criteria for specified resource type
     if ('resourceType' in criteria) {
@@ -781,7 +781,7 @@ export class CohortService {
     rules: Criterion[],
     pageSize: number,
     maxPatientCount: number,
-    currentState: CurrentState
+    currentState: CohortState
   ): Observable<Resource[]> {
     // Returns an empty Observable if the maximum number of patients has been reached
     if (currentState.patients.length >= maxPatientCount) {
@@ -895,7 +895,7 @@ export class CohortService {
   loadPagesSequentially(
     maxPatientCount: number,
     readyForNextPage: Observable<any>,
-    currentState: CurrentState
+    currentState: CohortState
   ): OperatorFunction<Bundle, Bundle> {
     return expand((response: Bundle) => {
       const nextPageUrl = getNextPageUrl(response);

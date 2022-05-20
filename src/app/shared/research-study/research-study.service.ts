@@ -6,12 +6,18 @@ import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import Resource = fhir.Resource;
 
-interface CurrentState {
-  resources: Resource[];
+interface ResearchStudyState{
+  // Indicates that data is loading
   loading: boolean;
+  // Array of loaded studies
+  resources: Resource[];
+  // Resource loading progress value
   progressValue: number;
+  // Total number of records
   totalRecords: number;
+  // Number of loaded records
   loadedRecords: number;
+  // Study IDs to which the user has access
   myStudyIds: string[];
 }
 
@@ -20,7 +26,7 @@ interface CurrentState {
 })
 export class ResearchStudyService {
   constructor(private http: HttpClient) {}
-  currentState: CurrentState;
+  currentState: ResearchStudyState;
 
   /**
    * Calls server for a bundle of ResearchStudy resources.
@@ -32,7 +38,7 @@ export class ResearchStudyService {
     url: string,
     myStudiesOnly = false
   ): Observable<Resource[]> {
-    const currentState: CurrentState = {
+    const currentState: ResearchStudyState = {
       resources: [],
       loading: true,
       progressValue: 0,

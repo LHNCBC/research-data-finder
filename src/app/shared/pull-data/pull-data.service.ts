@@ -19,7 +19,7 @@ import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 
 type PatientMixin = { patientData: Patient };
 
-interface CurrentState {
+interface PullDataState {
   // Indicates that data is loading
   loading: boolean;
   // Array of loaded resources
@@ -43,7 +43,7 @@ export class PullDataService {
     });
   }
 
-  currentState: { [resourceType: string]: CurrentState } = {};
+  currentState: { [resourceType: string]: PullDataState } = {};
   // Stream of resources for ResourceTableComponent
   resourceStream: { [resourceType: string]: Observable<Resource[]> } = {};
 
@@ -120,7 +120,7 @@ export class PullDataService {
     perPatientCount: number,
     criteria: string
   ): void {
-    const currentState: CurrentState = {
+    const currentState: PullDataState = {
       loading: true,
       resources: [],
       progressValue: 0
