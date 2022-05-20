@@ -144,7 +144,7 @@ describe('Research Data Finder (baseR4)', () => {
   });
 
   it('should save cohort', () => {
-    cy.contains('Save the cohort and criteria for later', { timeout: 5000 })
+    cy.contains('Save the cohort and criteria for later', { timeout: 10000 })
       .should('be.enabled')
       .click();
     cy.readFile(`${Cypress.config('downloadsFolder')}/cohort-100.json`, {
@@ -189,7 +189,7 @@ describe('Research Data Finder (baseR4)', () => {
   });
 
   it('should show value column in Observations table', () => {
-    cy.get('app-resource-table[context="pull-data"] thead')
+    cy.get('app-resource-table[context="pull-data"] thead', { timeout: 10000 })
       .contains('Value')
       .should('exist');
   });
