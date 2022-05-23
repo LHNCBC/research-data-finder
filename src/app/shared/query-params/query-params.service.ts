@@ -74,10 +74,10 @@ export class QueryParamsService {
       return `&${selectedParameter.element}=${value.value.codes.join(',')}`;
     }
     if (selectedParameter.type === 'Quantity') {
-      const modifier = value.value.testValueModifier;
+      const modifier = value.value.formValue.testValueModifier;
       const testValueCriteria = this.getCompositeTestValueCriteria(
         selectedParameter.type,
-        value.value
+        value.value.formValue
       );
       return testValueCriteria
         ? `&${selectedParameter.element}${modifier}=${testValueCriteria}`
@@ -122,8 +122,8 @@ export class QueryParamsService {
     });
 
     // Add value criteria if exists
-    if (value.value) {
-      const modifier = value.value.testValueModifier;
+    if (value.value?.formValue) {
+      const modifier = value.value.formValue.testValueModifier;
       const datatype = value.selectedObservationCodes.datatype;
       const valueParamName = {
         CodeableConcept: 'combo-code-value-concept',
@@ -132,7 +132,7 @@ export class QueryParamsService {
       }[datatype];
       const testValueCriteria = this.getCompositeTestValueCriteria(
         datatype,
-        value.value
+        value.value.formValue
       );
       return coding.length
         ? `&${valueParamName}${modifier}=` +
@@ -161,10 +161,10 @@ export class QueryParamsService {
         Quantity: 'combo-value-quantity',
         String: 'value-string'
       }[value.observationDataType] || 'combo-value-quantity';
-    const modifier = value.value.testValueModifier;
+    const modifier = value.value.formValue.testValueModifier;
     const testValueCriteria = this.getCompositeTestValueCriteria(
       value.observationDataType,
-      value.value
+      value.value.formValue
     );
     return testValueCriteria
       ? `&${valueParamName}${modifier}=${testValueCriteria}`
