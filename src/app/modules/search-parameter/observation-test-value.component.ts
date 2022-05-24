@@ -108,7 +108,9 @@ export class ObservationTestValueComponent
    * Part of the ControlValueAccessor interface
    */
   writeValue(value: ObservationTestValue): void {
-    this.selectedDatatype = value.observationDataType || 'Quantity';
+    if (!this.selectedDatatype) {
+      this.selectedDatatype = value.observationDataType || 'Quantity';
+    }
     this.form.setValue(
       (value && value.formValue) || {
         testValueComparator: '',
@@ -119,7 +121,7 @@ export class ObservationTestValueComponent
       }
     );
     if (
-      this.selectedDatatype &&
+      this.datatype &&
       !value.formValue?.testValueModifier &&
       this.typeDescriptions[this.selectedDatatype].modifiers &&
       this.typeDescriptions[this.selectedDatatype].modifiers.length === 1
