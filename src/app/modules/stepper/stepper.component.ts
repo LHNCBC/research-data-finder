@@ -9,13 +9,13 @@ import { ColumnDescriptionsService } from '../../shared/column-descriptions/colu
 import { filter } from 'rxjs/operators';
 import { Subject, Subscription } from 'rxjs';
 import { saveAs } from 'file-saver';
-import Resource = fhir.Resource;
 import { SelectAnAreaOfInterestComponent } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
 import { DefineCohortPageComponent } from '../step-2-define-cohort-page/define-cohort-page.component';
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
 import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.component';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
+import Patient = fhir.Patient;
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
@@ -166,20 +166,19 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    * @private
    */
   private loadPatientsData(
-    data: Resource[],
+    data: Patient[],
     fromResearchStudyStep = false
   ): void {
     this.defineCohortStep.completed = true;
-    const patientStream = new Subject<Resource>();
+    const patientStream = new Subject<Patient[]>();
     this.cohort.patientStream = patientStream.asObservable();
     this.stepper.next();
     if (fromResearchStudyStep) {
       this.stepper.next();
     }
     setTimeout(() => {
-      data.forEach((resource) => {
-        patientStream.next(resource);
-      });
+      this.cohort.currentState.patients = data;
+      patientStream.next(data);
       patientStream.complete();
     });
   }

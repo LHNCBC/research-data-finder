@@ -1,5 +1,5 @@
 <mat-progress-bar
-    *ngIf="isLoading$ | async"
+    *ngIf="loading"
     [mode]="(progressBarPosition$ | async) > 0 ? 'determinate' : 'indeterminate'"
     [value]="progressBarPosition$ | async">
 </mat-progress-bar>
@@ -7,7 +7,7 @@
   <mat-expansion-panel hideToggle #panel>
     <mat-expansion-panel-header (click)="!loadingStatistics.length && panel.toggle()">
       <mat-panel-title>
-        <span *ngIf="resourceType === 'Patient' && !(isLoading$ | async); else countTemplate">
+        <span *ngIf="resourceType === 'Patient' && !loading; else countTemplate">
           Cohort of&nbsp;{{dataSource.data.length}} {{resourceType}} resources
         </span>
         <ng-template #countTemplate>
@@ -15,7 +15,7 @@
         </ng-template>
       </mat-panel-title>
       <mat-panel-description>
-        <span *ngIf="isLoading$ | async; else loadedTemplate">
+        <span *ngIf="loading; else loadedTemplate">
           <span>{{loadingMessage}}</span>
         </span>
         <ng-template #loadedTemplate>
