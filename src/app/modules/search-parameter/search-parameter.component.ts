@@ -84,7 +84,7 @@ export class SearchParameterComponent
         ? { selectedObservationCodes: this.selectedObservationCodes.value }
         : {}),
       ...(this.selectedParameter?.element === OBSERVATION_VALUE
-        ? { observationDataType: this.parameterValue.value.observationDataType }
+        ? { observationDataType: this.observationDataType }
         : {})
     };
   }

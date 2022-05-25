@@ -1,10 +1,4 @@
-import {
-  Component,
-  Input,
-  OnChanges,
-  OnInit,
-  SimpleChanges
-} from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import {
   BaseControlValueAccessor,
@@ -15,14 +9,10 @@ import {
  * data type used for this control
  */
 interface ObservationTestValue {
-  formValue: {
-    testValueComparator: string;
-    testValuePrefix: string;
-    testValueModifier: string;
-    testValue: number | string;
-    testValueUnit: string;
-  };
-  observationDataType: string;
+  testValuePrefix: string;
+  testValueModifier: string;
+  testValue: number | string;
+  testValueUnit: string;
 }
 
 /**
@@ -36,14 +26,12 @@ interface ObservationTestValue {
 })
 export class ObservationTestValueComponent
   extends BaseControlValueAccessor<ObservationTestValue>
-  implements OnInit, OnChanges {
+  implements OnInit {
   @Input() datatype: string;
   @Input() observationCodes: string[] = [];
   @Input() loincCodes: string[] = [];
-  selectedDatatype = '';
 
   form = new FormGroup({
-    testValueComparator: new FormControl(''),
     testValuePrefix: new FormControl(''),
     testValueModifier: new FormControl(''),
     testValue: new FormControl('', Validators.required),
@@ -79,41 +67,16 @@ export class ObservationTestValueComponent
 
   ngOnInit(): void {
     this.form.valueChanges.subscribe(() => {
-      const formValue = this.form.getRawValue();
-      if (!this.datatype) {
-        // In case of "Variable Value" without "Variable Name", move value from 'testValueComparator' to construct the right query.
-        formValue.testValuePrefix =
-          (this.selectedDatatype === 'Quantity' &&
-            formValue.testValueComparator) ||
-          '';
-        formValue.testValueModifier =
-          (this.selectedDatatype === 'String' &&
-            formValue.testValueComparator) ||
-          '';
-      }
-      this.onChange({
-        formValue,
-        observationDataType: this.selectedDatatype
-      });
+      this.onChange(this.form.getRawValue());
     });
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.datatype) {
-      this.selectedDatatype = this.datatype || 'Quantity';
-    }
   }
 
   /**
    * Part of the ControlValueAccessor interface
    */
   writeValue(value: ObservationTestValue): void {
-    if (!this.selectedDatatype) {
-      this.selectedDatatype = value.observationDataType || 'Quantity';
-    }
     this.form.setValue(
-      (value && value.formValue) || {
-        testValueComparator: '',
+      value || {
         testValuePrefix: '',
         testValueModifier: '',
         testValue: '',
@@ -121,25 +84,15 @@ export class ObservationTestValueComponent
       }
     );
     if (
-      this.datatype &&
-      !value.formValue?.testValueModifier &&
-      this.typeDescriptions[this.selectedDatatype].modifiers &&
-      this.typeDescriptions[this.selectedDatatype].modifiers.length === 1
+      !value.testValueModifier &&
+      this.typeDescriptions[this.datatype].modifiers &&
+      this.typeDescriptions[this.datatype].modifiers.length === 1
     ) {
       // default and disable control if only one option
       this.form
         .get('testValueModifier')
-        .setValue(this.typeDescriptions[this.selectedDatatype].modifiers[0][1]);
+        .setValue(this.typeDescriptions[this.datatype].modifiers[0][1]);
       this.form.get('testValueModifier').disable();
     }
-  }
-
-  /**
-   * When user select a comparator from the whole list of comparators ('testValueComparator' control).
-   */
-  setSelectedDatatype(value): void {
-    this.selectedDatatype = value;
-    this.form.get('testValue').setValue('');
-    this.form.get('testValueUnit').setValue('');
   }
 }

@@ -65,7 +65,7 @@
 
   <app-observation-test-value *ngIf="selectedParameter?.element === OBSERVATION_VALUE"
                               class="parameter-value" [formControl]="parameterValue"
-                              [datatype]="observationDataType"
+                              [datatype]="observationDataType || 'Quantity'"
                               [observationCodes]="observationCodes"
                               [loincCodes]="observationLoincCodes">
   </app-observation-test-value>
