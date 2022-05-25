@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.5.4] - 2022-05-25
+### Fixed
+- If user selects Observation "Variable Value" search parameter without
+  "Variable Name", show the complete list of numeric and string comparators.
+
 ## [4.5.3] - 2022-05-18
 ### Fixed
 - Reinitialize autocomplete field for "variable value" when "variable name"
