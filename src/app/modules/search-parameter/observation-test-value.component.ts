@@ -102,7 +102,7 @@ export class ObservationTestValueComponent
    * Part of the ControlValueAccessor interface
    */
   writeValue(value: ObservationTestValue): void {
-    this.form.setValue(
+    this.form.patchValue(
       value || {
         testValuePrefix: '',
         testValueModifier: '',
