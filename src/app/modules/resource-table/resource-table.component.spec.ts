@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ResourceTableComponent } from './resource-table.component';
-import { of, Subject } from 'rxjs';
+import { of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { ResourceTableModule } from './resource-table.module';
 import { ColumnDescription } from '../../types/column.description';
@@ -98,21 +98,20 @@ describe('ResourceTableComponent', () => {
 
   function fillTable(columnDescriptions): void {
     component.resourceType = 'SomeResourceType';
-    const resourceStream = new Subject();
-    component.resourceStream = resourceStream;
+    const resources = [];
+    component.resources = resources;
     component.columns = [];
     component.columnDescriptions = columnDescriptions;
     const changesObj: SimpleChanges = {
-      resourceStream: new SimpleChange(null, resourceStream, true),
+      resources: new SimpleChange(null, resources, true),
       columnDescriptions: new SimpleChange(
         null,
         { columnDescriptions: [] },
         true
       )
     };
-    component.ngOnChanges(changesObj);
     for (let i = 1; i < 51; i++) {
-      resourceStream.next({
+      resources.push({
         resourceType: component.resourceType,
         id: i.toString(),
         anotherElement: 'value-' + i.toString(),
@@ -128,7 +127,7 @@ describe('ResourceTableComponent', () => {
         ]
       });
     }
-    resourceStream.complete();
+    component.ngOnChanges(changesObj);
     fixture.detectChanges();
   }
 

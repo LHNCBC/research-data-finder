@@ -8,7 +8,7 @@ import tenPatientBundle from './test-fixtures/patients-10.json';
 import tenObservationBundle from './test-fixtures/observations-10.json';
 import examplePatient from './test-fixtures/example-patient.json';
 import exampleResearchStudy from './test-fixtures/example-research-study.json';
-import { reduce } from 'rxjs/operators';
+import { last } from 'rxjs/operators';
 import { CohortService } from '../../shared/cohort/cohort.service';
 
 describe('DefineCohortComponent', () => {
@@ -63,17 +63,10 @@ describe('DefineCohortComponent', () => {
   it('should load Patients by empty criteria', (done) => {
     component.defineCohortForm.get('maxNumberOfPatients').setValue(10);
     component.searchForPatients();
-    cohort.patientStream
-      .pipe(
-        reduce((acc, patient) => {
-          acc.push(patient);
-          return acc;
-        }, [])
-      )
-      .subscribe((patients) => {
-        expect(patients.length).toEqual(10);
-        done();
-      });
+    cohort.patientStream.pipe(last()).subscribe((patients) => {
+      expect(patients.length).toEqual(10);
+      done();
+    });
 
     mockHttp.expectOne(`$fhir/Patient?_count=10`).flush(tenPatientBundle);
   });
@@ -107,17 +100,10 @@ describe('DefineCohortComponent', () => {
       ]
     });
     component.searchForPatients();
-    cohort.patientStream
-      .pipe(
-        reduce((acc, patient) => {
-          acc.push(patient);
-          return acc;
-        }, [])
-      )
-      .subscribe((patients) => {
-        expect(patients.length).toEqual(10);
-        done();
-      });
+    cohort.patientStream.pipe(last()).subscribe((patients) => {
+      expect(patients.length).toEqual(10);
+      done();
+    });
 
     mockHttp
       .expectOne(
@@ -176,19 +162,10 @@ describe('DefineCohortComponent', () => {
       ]
     });
     component.searchForPatients();
-    cohort.patientStream
-      .pipe(
-        reduce((acc, patient) => {
-          acc.push(patient);
-          return acc;
-        }, [])
-      )
-      .subscribe((patients) => {
-        // We have two Observations for the same Patient, that's why one
-        // Observation ignored
-        expect(patients.length).toEqual(9);
-        done();
-      });
+    cohort.patientStream.pipe(last()).subscribe((patients) => {
+      expect(patients.length).toEqual(9);
+      done();
+    });
 
     mockHttp
       .expectOne(
@@ -196,18 +173,24 @@ describe('DefineCohortComponent', () => {
       )
       .flush(tenObservationBundle);
 
-    [
+    const patientIds = [
       // Search ignores duplicate Patients
       ...new Set(
         tenObservationBundle.entry.map(({ resource }) =>
           resource.subject.reference.replace(/^Patient\//, '')
         )
       )
-    ].forEach((patientId) => {
-      mockHttp
-        .expectOne(`$fhir/Patient?_id=${patientId}`)
-        .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
-    });
+    ];
+
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_id=${patientIds.join(',')}&_count=${patientIds.length}`
+      )
+      .flush({
+        entry: patientIds.map((patientId) => ({
+          resource: { ...examplePatient, id: patientId }
+        }))
+      });
   });
 
   it('should load Patients by Observation and Patient criteria', (done) => {
@@ -275,19 +258,10 @@ describe('DefineCohortComponent', () => {
     });
 
     component.searchForPatients();
-    cohort.patientStream
-      .pipe(
-        reduce((acc, patient) => {
-          acc.push(patient);
-          return acc;
-        }, [])
-      )
-      .subscribe((patients) => {
-        // We have two Observations for the same Patient, that's why one
-        // Observation ignored
-        expect(patients.length).toEqual(9);
-        done();
-      });
+    cohort.patientStream.pipe(last()).subscribe((patients) => {
+      expect(patients.length).toEqual(9);
+      done();
+    });
 
     mockHttp
       .expectOne(`$fhir/Patient?_total=accurate&_summary=count&gender=female`)
@@ -392,19 +366,10 @@ describe('DefineCohortComponent', () => {
     });
 
     component.searchForPatients();
-    cohort.patientStream
-      .pipe(
-        reduce((acc, patient) => {
-          acc.push(patient);
-          return acc;
-        }, [])
-      )
-      .subscribe((patients) => {
-        // We have two Observations for the same Patient, that's why one
-        // Observation ignored
-        expect(patients.length).toEqual(9);
-        done();
-      });
+    cohort.patientStream.pipe(last()).subscribe((patients) => {
+      expect(patients.length).toEqual(9);
+      done();
+    });
 
     mockHttp
       .expectOne(
@@ -450,11 +415,15 @@ describe('DefineCohortComponent', () => {
         });
     });
 
-    patientIds.forEach((patientId) => {
-      mockHttp
-        .expectOne(`$fhir/Patient?_id=${patientId}`)
-        .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
-    });
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_id=${patientIds.join(',')}&_count=${patientIds.length}`
+      )
+      .flush({
+        entry: patientIds.map((patientId) => ({
+          resource: { ...examplePatient, id: patientId }
+        }))
+      });
   });
 
   it('should load Patients using _has with Observation code and value', (done) => {
@@ -498,19 +467,10 @@ describe('DefineCohortComponent', () => {
       ]
     });
     component.searchForPatients();
-    cohort.patientStream
-      .pipe(
-        reduce((acc, patient) => {
-          acc.push(patient);
-          return acc;
-        }, [])
-      )
-      .subscribe((patients) => {
-        // We have two Observations for the same Patient, that's why one
-        // Observation ignored
-        expect(patients.length).toEqual(10);
-        done();
-      });
+    cohort.patientStream.pipe(last()).subscribe((patients) => {
+      expect(patients.length).toEqual(10);
+      done();
+    });
 
     mockHttp
       .expectOne(
@@ -544,19 +504,10 @@ describe('DefineCohortComponent', () => {
     });
 
     component.searchForPatients();
-    cohort.patientStream
-      .pipe(
-        reduce((acc, patient) => {
-          acc.push(patient);
-          return acc;
-        }, [])
-      )
-      .subscribe((patients) => {
-        // We have two Observations for the same Patient, that's why one
-        // Observation ignored
-        expect(patients.length).toEqual(1);
-        done();
-      });
+    cohort.patientStream.pipe(last()).subscribe((patients) => {
+      expect(patients.length).toEqual(1);
+      done();
+    });
 
     mockHttp
       .expectOne(
@@ -574,7 +525,7 @@ describe('DefineCohortComponent', () => {
         ]
       });
 
-    mockHttp.expectOne(`$fhir/Patient?_id=p-999`).flush({
+    mockHttp.expectOne(`$fhir/Patient?_id=p-999&_count=1`).flush({
       entry: [
         {
           fullUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4/Patient/p-999',

@@ -3,59 +3,48 @@ import { SelectAnAreaOfInterestComponent } from './select-an-area-of-interest.co
 import { MockComponent } from 'ng-mocks';
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
-import {
-  ConnectionStatus,
-  FhirBackendService
-} from '../../shared/fhir-backend/fhir-backend.service';
-import { BehaviorSubject, of } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { MatCheckbox } from '@angular/material/checkbox';
+import { configureTestingModule } from '../../../test/helpers';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 describe('SelectAnAreaOfInterestComponent', () => {
   let component: SelectAnAreaOfInterestComponent;
   let fixture: ComponentFixture<SelectAnAreaOfInterestComponent>;
-  const fakeHttpClient = jasmine.createSpyObj('HttpClient', ['get']);
-  fakeHttpClient.get.and.returnValue(of({ entry: [], link: [] }));
+  let mockHttp: HttpTestingController;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [
-        SelectAnAreaOfInterestComponent,
-        MockComponent(MatRadioGroup),
-        MockComponent(MatRadioButton),
-        MockComponent(MatCheckbox),
-        MockComponent(ResourceTableComponent)
-      ],
-      imports: [ReactiveFormsModule],
-      providers: [
-        {
-          provide: FhirBackendService,
-          useValue: {
-            initialized: new BehaviorSubject(ConnectionStatus.Ready),
-            getCurrentDefinitions: () => {
-              return {
-                valueSetMapByPath: {
-                  'ResearchSubject.status': []
-                }
-              };
+    await configureTestingModule(
+      {
+        declarations: [
+          SelectAnAreaOfInterestComponent,
+          MockComponent(MatRadioGroup),
+          MockComponent(MatRadioButton),
+          MockComponent(MatCheckbox),
+          MockComponent(ResourceTableComponent)
+        ],
+        imports: [ReactiveFormsModule],
+        providers: [
+          {
+            provide: ColumnDescriptionsService,
+            useValue: {
+              getVisibleColumns: () => of([]),
+              destroy: () => {}
             }
           }
-        },
-        {
-          provide: HttpClient,
-          useValue: fakeHttpClient
-        },
-        {
-          provide: ColumnDescriptionsService,
-          useValue: {
-            getVisibleColumns: () => of([]),
-            destroy: () => {}
+        ]
+      },
+      {
+        definitions: {
+          valueSetMapByPath: {
+            'ResearchSubject.status': []
           }
         }
-      ]
-    }).compileComponents();
+      }
+    );
+    mockHttp = TestBed.inject(HttpTestingController);
   });
 
   beforeEach(async () => {
@@ -64,14 +53,17 @@ describe('SelectAnAreaOfInterestComponent', () => {
     await fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  afterEach(() => {
+    // Verify that no unmatched requests are outstanding
+    mockHttp.verify();
   });
 
   it('should show table of ResearchStudies', async () => {
     expect(component.showTable).toBeTruthy();
-    expect(fakeHttpClient.get).toHaveBeenCalledWith(
-      jasmine.stringMatching(/ResearchStudy/)
-    );
+    mockHttp
+      .expectOne(
+        '$fhir/ResearchStudy?_count=100&_has:ResearchSubject:study:status=&_total=accurate'
+      )
+      .flush({ entry: [], link: [] });
   });
 });
