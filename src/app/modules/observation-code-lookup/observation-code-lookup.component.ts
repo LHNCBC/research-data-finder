@@ -309,6 +309,7 @@ export class ObservationCodeLookupComponent
                         if (contains.length > count) {
                           contains.length = count;
                         }
+                        this.appendCodeSystemToDuplicateDisplay(contains);
                         // Emit a complete notification
                         return EMPTY;
                       }
@@ -517,5 +518,26 @@ export class ObservationCodeLookupComponent
     } else {
       this.elementRef.nativeElement.removeAttribute('aria-describedby');
     }
+  }
+
+  /**
+   * For autocomplete items with the same display and different code + code system
+   * combination, append code + code system to the display so distinct items are
+   * shown to user.
+   * @param contains the array of items for the autocomplete
+   */
+  appendCodeSystemToDuplicateDisplay(contains: any[]): void {
+    // an array of displays that have more than one appearance.
+    const duplicateDisplays = contains
+      .filter(
+        (item, index, arr) =>
+          arr.findIndex((x) => x.display === item.display) !== index
+      )
+      .map((item) => item.display);
+    contains.forEach((item) => {
+      if (duplicateDisplays.includes(item.display)) {
+        item.display = `${item.display} | ${item.code.code} | ${item.code.system}`;
+      }
+    });
   }
 }
