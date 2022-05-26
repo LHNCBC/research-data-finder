@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { SearchParameter } from '../../types/search.parameter';
-import { encodeFhirSearchParameter, escapeFhirSearchParameter } from '../utils';
+import { escapeFhirSearchParameter } from '../utils';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import { ObservationCoding } from '../../types/selected-observation-codes';
 
 export const CODETEXT = 'code text';
 export const OBSERVATION_VALUE = 'observation value';
@@ -137,7 +138,7 @@ export class QueryParamsService {
       return coding.length
         ? `&${valueParamName}${modifier}=` +
             coding
-              .map((code) => encodeFhirSearchParameter(code.code))
+              .map((code) => this.getCodeSystemQuerySegment(code))
               .join(',') +
             encodeURIComponent('$') +
             testValueCriteria
@@ -147,8 +148,19 @@ export class QueryParamsService {
     // Otherwise, use only the code criteria
     return coding.length
       ? '&combo-code=' +
-          coding.map((code) => encodeFhirSearchParameter(code.code)).join(',')
+          coding.map((code) => this.getCodeSystemQuerySegment(code)).join(',')
       : '';
+  }
+
+  /**
+   * Get encoded segment of coding search query
+   */
+  private getCodeSystemQuerySegment(code: ObservationCoding): string {
+    let query = escapeFhirSearchParameter(code.code);
+    if (code.system) {
+      query = `${escapeFhirSearchParameter(code.system)}|${query}`;
+    }
+    return encodeURIComponent(query);
   }
 
   /**
