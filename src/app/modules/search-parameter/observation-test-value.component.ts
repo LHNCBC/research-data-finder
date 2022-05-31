@@ -125,10 +125,10 @@ export class ObservationTestValueComponent
     if (!this.datatype) {
       this.selectedDatatype = value.observationDataType || 'Quantity';
       // Write back to the composite Comparator control.
-      if (value.observationDataType === 'Quantity') {
-        this.testValueComparator = `${value.observationDataType} - ${value.testValuePrefix}`;
-      } else if (value.observationDataType === 'String') {
-        this.testValueComparator = `${value.observationDataType} - ${value.testValueModifier}`;
+      if (this.selectedDatatype === 'Quantity') {
+        this.testValueComparator = `${this.selectedDatatype} - ${value.testValuePrefix}`;
+      } else if (this.selectedDatatype === 'String') {
+        this.testValueComparator = `${this.selectedDatatype} - ${value.testValueModifier}`;
       }
     }
   }
