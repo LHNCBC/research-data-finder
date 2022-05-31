@@ -160,10 +160,10 @@ export class QueryParamsService {
         CodeableConcept: 'combo-value-concept',
         Quantity: 'combo-value-quantity',
         String: 'value-string'
-      }[value.observationDataType] || 'combo-value-quantity';
+      }[value.value.observationDataType] || 'combo-value-quantity';
     const modifier = value.value.testValueModifier;
     const testValueCriteria = this.getCompositeTestValueCriteria(
-      value.observationDataType,
+      value.value.observationDataType,
       value.value
     );
     return testValueCriteria

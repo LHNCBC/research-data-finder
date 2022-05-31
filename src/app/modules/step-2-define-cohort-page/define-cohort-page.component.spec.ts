@@ -143,9 +143,9 @@ describe('DefineCohortComponent', () => {
                   testValuePrefix: 'gt',
                   testValueModifier: '',
                   testValue: 100,
-                  testValueUnit: ''
-                },
-                observationDataType: 'Quantity'
+                  testValueUnit: '',
+                  observationDataType: 'Quantity'
+                }
               }
             },
             {
@@ -238,9 +238,9 @@ describe('DefineCohortComponent', () => {
                   testValuePrefix: 'gt',
                   testValueModifier: '',
                   testValue: 100,
-                  testValueUnit: ''
-                },
-                observationDataType: 'Quantity'
+                  testValueUnit: '',
+                  observationDataType: 'Quantity'
+                }
               }
             },
             {
@@ -346,9 +346,9 @@ describe('DefineCohortComponent', () => {
                   testValuePrefix: 'gt',
                   testValueModifier: '',
                   testValue: 100,
-                  testValueUnit: 'cm'
-                },
-                observationDataType: 'Quantity'
+                  testValueUnit: 'cm',
+                  observationDataType: 'Quantity'
+                }
               }
             },
             {
@@ -457,9 +457,9 @@ describe('DefineCohortComponent', () => {
                   testValuePrefix: 'gt',
                   testValueModifier: '',
                   testValue: 100,
-                  testValueUnit: ''
-                },
-                observationDataType: 'Quantity'
+                  testValueUnit: '',
+                  observationDataType: 'Quantity'
+                }
               }
             }
           ]

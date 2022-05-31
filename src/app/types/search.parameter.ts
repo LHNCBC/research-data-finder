@@ -7,7 +7,5 @@ export interface SearchParameter {
   displayName?: string;
   // TODO: value type TBD
   value?: any;
-  // Data type of "observation value" parameter
-  observationDataType?: string;
   selectedObservationCodes?: SelectedObservationCodes;
 }
