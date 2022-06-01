@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.5.5] - 2022-06-01
+### Fixed
+- Show "display | code | system" for Observation codes that have duplicate display.
+- In Observation codes query, include code system.
+
 ## [4.5.4] - 2022-05-25
 ### Fixed
 - If user selects Observation "Variable Value" search parameter without
