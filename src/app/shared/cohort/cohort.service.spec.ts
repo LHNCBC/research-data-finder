@@ -58,9 +58,9 @@ describe('CohortService', () => {
                   testValuePrefix: '',
                   testValueModifier: ':contains',
                   testValue: 'a',
-                  testValueUnit: ''
-                },
-                observationDataType: 'String'
+                  testValueUnit: '',
+                  observationDataType: 'String'
+                }
               }
             }
           ],
