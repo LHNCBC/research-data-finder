@@ -1,0 +1,52 @@
+<p class="info">
+  <span class="info-icon" aria-hidden="true"></span>
+  In this step, you can search, select, and add records to the cart.
+  Records added to the cart will be used to build a cohort of patients.</p>
+<mat-form-field class="number-field">
+  <mat-label>Maximum number of patients</mat-label>
+  <input matInput [formControl]="maxPatientsNumber" type="number" min="1">
+</mat-form-field>
+
+<div class="h-box">
+  <button mat-stroked-button
+          [disabled]="!unselectedResourceTypes.length"
+          [matMenuTriggerFor]="menu">
+    <mat-icon svgIcon="add"></mat-icon>Add a new record type tab
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item *ngFor="let resourceType of unselectedResourceTypes">
+      <span>{{resourceType}}</span>
+    </button>
+  </mat-menu>
+  <div class="spacer"></div>
+  <button mat-stroked-button
+          *ngIf="(currentResourceType$ | async) && visibleResourceTypes.length > 1">
+    <mat-icon svgIcon="clear"></mat-icon>{{getRemoveTabButtonText(currentResourceType$ | async)}}
+  </button>
+</div>
+
+<mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
+  <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfResourceType(resourceType)">
+    <div class="v-box tab-content">
+      <app-resource-table *ngIf="resourceType !== 'Variable' && selectRecords.currentState[resourceType]"
+                          #researchStudyTable
+                          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'browse') | async"
+                          [enableClientFiltering]="true" [enableSelection]="true"
+                          [loading]="selectRecords.currentState[resourceType].loading"
+                          [resources]="selectRecords.resourceStream[resourceType] | async"
+                          (loadNextPage)="selectRecords.loadNextPage(resourceType)"
+                          [selectAny]="true"
+                          [resourceType]="resourceType"></app-resource-table>
+      <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState['Variable']"
+                          #variableTable
+                          [columnDescriptions]="columnDescriptions.getVisibleColumns('Variable', 'browse') | async"
+                          (filterChanged)="filterVariables()"
+                          [enableClientFiltering]="true" [enableSelection]="true"
+                          [loading]="selectRecords.currentState['Variable'].loading"
+                          [resources]="selectRecords.resourceStream['Variable'] | async"
+                          [selectAny]="true"
+                          context="browse"
+                          resourceType="Variable"></app-resource-table>
+    </div>
+  </mat-tab>
+</mat-tab-group>

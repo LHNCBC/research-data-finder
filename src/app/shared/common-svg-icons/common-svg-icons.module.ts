@@ -26,7 +26,8 @@ const icons = [
   'filter_list',
   'filter_outlined',
   'filter_filled',
-  'info'
+  'info',
+  'settings'
 ];
 
 @NgModule({
@@ -41,10 +42,7 @@ export class CommonSvgIconsModule {
     icons.forEach((key) => {
       this.matIconRegistry.addSvgIcon(
         key,
-        this.domSanitizer.bypassSecurityTrustResourceUrl(
-          // Maybe rename the image to 'info-24px.svg' to be consistent with other icons.
-          key === 'info' ? 'assets/info.svg' : `assets/${key}-24px.svg`
-        )
+        this.domSanitizer.bypassSecurityTrustResourceUrl(`assets/${key}.svg`)
       );
     });
   }

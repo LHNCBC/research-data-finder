@@ -1,0 +1,20 @@
+<p class="info">
+  <span class="info-icon" aria-hidden="true"></span>
+  <span>
+          In this step, you can select what you want to do.
+        </span>
+</p>
+<span>Create a cohort of patients:</span>
+<mat-radio-group aria-label="Select an option" class="h-box" [formControl]="createCohortMode">
+  <ul style="list-style-type: none">
+    <li>
+      <mat-radio-button [value]="CreateCohortMode.BROWSE">by browsing and selecting records</mat-radio-button>
+    </li>
+    <li>
+      <div style="height: 16px"></div>
+    </li>
+    <li>
+      <mat-radio-button [value]="CreateCohortMode.SEARCH">using advanced search</mat-radio-button>
+    </li>
+  </ul>
+</mat-radio-group>

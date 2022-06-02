@@ -16,6 +16,7 @@ import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.c
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import Patient = fhir.Patient;
+import { CreateCohortMode } from '../select-an-action/select-an-action.component';
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
@@ -28,17 +29,18 @@ import Patient = fhir.Patient;
 export class StepperComponent implements AfterViewInit, OnDestroy {
   @ViewChild('stepper') public stepper: MatStepper;
   @ViewChild('defineCohortStep') public defineCohortStep: MatStep;
-  @ViewChild('selectAnAreaOfInterest')
+  @ViewChild(SelectAnAreaOfInterestComponent)
   public selectAreaOfInterestComponent: SelectAnAreaOfInterestComponent;
-  @ViewChild('defineCohortComponent')
+  @ViewChild(DefineCohortPageComponent)
   public defineCohortComponent: DefineCohortPageComponent;
-  @ViewChild('viewCohortComponent')
+  @ViewChild(ViewCohortPageComponent)
   public viewCohortComponent: ViewCohortPageComponent;
-  @ViewChild('pullDataPageComponent')
+  @ViewChild(PullDataPageComponent)
   public pullDataPageComponent: PullDataPageComponent;
 
   defineCohort: FormControl = new FormControl();
   subscription: Subscription;
+  CreateCohortMode = CreateCohortMode;
 
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
@@ -49,7 +51,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     this.subscription = this.fhirBackend.initialized
       .pipe(filter((status) => status === ConnectionStatus.Disconnect))
       .subscribe(() => {
-        this.defineCohortStep.completed = false;
+        if (this.defineCohortStep) {
+          this.defineCohortStep.completed = false;
+        }
         this.stepper.steps.forEach((s) => s.reset());
       });
   }
@@ -59,7 +63,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    * a component's view.
    */
   ngAfterViewInit(): void {
-    this.defineCohortStep.completed = false;
+    if (this.defineCohortStep) {
+      this.defineCohortStep.completed = false;
+    }
   }
 
   /**
@@ -74,18 +80,22 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    * Runs searching for Patient resources
    */
   searchForPatients(): void {
-    this.defineCohortStep.completed = !this.defineCohortComponent.hasErrors();
-    if (this.defineCohortStep.completed) {
-      if (this.selectAreaOfInterestComponent) {
-        this.defineCohortComponent.searchForPatients(
-          this.selectAreaOfInterestComponent.getResearchStudySearchParam()
-        );
+    if (this.defineCohortStep) {
+      this.defineCohortStep.completed = !this.defineCohortComponent.hasErrors();
+      if (this.defineCohortStep.completed) {
+        if (this.selectAreaOfInterestComponent) {
+          this.defineCohortComponent.searchForPatients(
+            this.selectAreaOfInterestComponent.getResearchStudySearchParam()
+          );
+        } else {
+          this.defineCohortComponent.searchForPatients();
+        }
+        this.stepper.next();
       } else {
-        this.defineCohortComponent.searchForPatients();
+        this.defineCohortComponent.showErrors();
       }
-      this.stepper.next();
     } else {
-      this.defineCohortComponent.showErrors();
+      // TODO:
     }
   }
 
@@ -115,6 +125,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    * Process file and load criteria and patient list data.
    */
   loadCohort(event, fromResearchStudyStep = false): void {
+    // TODO
     if (event.target.files.length === 1) {
       const reader = new FileReader();
       const filename = event.target.files[0].name;

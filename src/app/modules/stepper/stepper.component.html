@@ -11,14 +11,38 @@
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperNext type="button">
-          {{fhirBackend.features.hasResearchStudy ? 'Select Research Studies' : 'Define Cohort'}}
+          Select an action
           <mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
   </mat-step>
 
-  <mat-step *ngIf='fhirBackend.features.hasResearchStudy'
+  <mat-step label="Select an action" state="edit">
+    <div class="v-box">
+      <app-select-an-action #selectAnActionComponent></app-select-an-action>
+      <div class='spacer'></div>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperPrevious>
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Settings
+        </button>
+        <div class='spacer'></div>
+        <button mat-stroked-button color="primary"
+                matStepperNext
+                type="button">
+          Public data<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+        </button>
+        <div class='spacer'></div>
+        <button mat-stroked-button color="primary"
+                matStepperNext
+                type="button">
+          Controlled access<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step *ngIf="fhirBackend.features.hasResearchStudy && selectAnActionComponent.createCohortMode.value === CreateCohortMode.SEARCH"
             label="Select Research Studies" state="edit" optional>
     <div class="v-box">
       <app-select-an-area-of-interest #selectAnAreaOfInterest>
@@ -26,7 +50,7 @@
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Settings
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Select an action
         </button>
         <div class='spacer'></div>
         <button mat-stroked-button (click)='hiddenFileInput2.click()'>
@@ -48,13 +72,42 @@
     </div>
   </mat-step>
 
-  <mat-step #defineCohortStep label="Define cohort">
-      <app-define-cohort-page #defineCohortComponent
+  <mat-step label="Select records"
+            *ngIf="selectAnActionComponent.createCohortMode.value === CreateCohortMode.BROWSE">
+    <div class="v-box">
+      <app-select-records-page></app-select-records-page>
+      <div class="spacer"></div>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperPrevious>
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>
+          Select an action
+        </button>
+        <div class='spacer'></div>
+        <button mat-stroked-button (click)='hiddenFileInput3.click()'>
+          <mat-icon svgIcon='upload'></mat-icon>
+          Load cohort and criteria
+        </button>
+        <input type='file' #hiddenFileInput3 style='display: none;' (change)='loadCohort($event)'>
+        <div class="spacer"></div>
+        <!-- We can't use the matStepperNext directive, but we need to treat this
+         button as the "next button" in e2e tests. To do this, the mat-stepper-next
+         class has been added. MatStepperNextHarness uses this class. -->
+        <button mat-stroked-button color="primary" class="mat-stepper-next"
+                (click)="searchForPatients()">
+          Search for Patients<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step #defineCohortStep label="Define cohort"
+            *ngIf="selectAnActionComponent.createCohortMode.value === CreateCohortMode.SEARCH">
+      <app-define-cohort-page
         [formControl]="defineCohort"></app-define-cohort-page>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>
-          {{fhirBackend.features.hasResearchStudy ? 'Select Research Studies' : 'Settings'}}
+          {{fhirBackend.features.hasResearchStudy ? 'Select Research Studies' : 'Select an action'}}
         </button>
         <div class='spacer'></div>
         <button mat-stroked-button (click)='hiddenFileInput.click()'>
@@ -73,7 +126,8 @@
       </div>
   </mat-step>
 
-  <mat-step label="View cohort">
+  <mat-step label="View cohort"
+            *ngIf="selectAnActionComponent.createCohortMode.value !== CreateCohortMode.UNSELECTED">
     <div class="v-box">
       <app-view-cohort-page #viewCohortComponent>
       </app-view-cohort-page>
@@ -102,7 +156,7 @@
     </div>
   </mat-step>
 
-  <mat-step label="Pull data for the cohort">
+  <mat-step label="Pull data for the cohort" *ngIf="selectAnActionComponent.createCohortMode.value !== CreateCohortMode.UNSELECTED">
     <div class="v-box">
       <app-pull-data-page #pullDataPageComponent
                           [defaultObservationCodes]="pullData.defaultObservationCodes$ | async">

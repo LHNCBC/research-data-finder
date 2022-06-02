@@ -113,7 +113,7 @@ export class ColumnDescriptionsService {
     context: string,
     columnNames: string[]
   ): void {
-    this.columnsWithData[resourceType + '-' + context].next(columnNames);
+    this.getColumnsWithData(resourceType, context).next(columnNames);
   }
 
   /**
@@ -214,12 +214,9 @@ export class ColumnDescriptionsService {
     context: string
   ): ColumnDescription[] {
     const currentDefinitions = this.fhirBackend.getCurrentDefinitions();
-    if (!currentDefinitions.resources[resourceType]) {
-      return [];
-    }
-    const columnDescriptions = currentDefinitions.resources[
-      resourceType
-    ].columnDescriptions.concat(
+    const columnDescriptions = (
+      currentDefinitions.resources[resourceType]?.columnDescriptions || []
+    ).concat(
       (context &&
         this.settings.get(`contextColumns.${context}.${resourceType}`)) ||
         []
