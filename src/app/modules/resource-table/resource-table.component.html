@@ -50,7 +50,7 @@
           <button type="button" mat-icon-button
                   *ngIf="selectAny"
                   class="configure-btn"
-                  (click)="columnDescriptionsService.openColumnsDialog('ResearchStudy')"
+                  (click)="columnDescriptionsService.openColumnsDialog(resourceType, context)"
                   matTooltip="Configure table">
             <mat-icon svgIcon="settings"></mat-icon>
           </button>
