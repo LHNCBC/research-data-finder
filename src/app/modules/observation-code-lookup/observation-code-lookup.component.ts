@@ -427,15 +427,15 @@ export class ObservationCodeLookupComponent
       const observation = entry.resource as Observation;
       const datatype = this.getValueDataType(observation);
       acc.push(
-        ...observation.code.coding
-          .filter((coding) => {
+        ...(observation.code.coding
+          ?.filter((coding) => {
             let matched = false;
             if (coding.code && !processedCodes[coding.code]) {
               // Even though this observation's data type does not match selected codes, we want to
               // go through its codings and mark 'processedCodes' accordingly, so that these codes
               // can be excluded from next queries. Otherwise, we might get into a near-infinite loop
               // of queries returning the same code. This happened with searching "Total Cholesterol"
-              // and select code "14647-2".
+              // and selecting code "14647-2".
               processedCodes[coding.code] = true;
               if (
                 (!this.currentData.datatype ||
@@ -454,7 +454,7 @@ export class ObservationCodeLookupComponent
               code: { code: coding.code, system: coding.system },
               display: coding.display || coding.code
             };
-          })
+          }) || [])
       );
       return acc;
     }, []);
