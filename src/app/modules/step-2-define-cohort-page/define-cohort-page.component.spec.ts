@@ -107,7 +107,7 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Patient?_count=20&_has:Observation:subject:combo-code=3137-7`
+        `$fhir/Patient?_count=20&_has:Observation:subject:combo-code=http%3A%2F%2Floinc.org%7C3137-7`
       )
       .flush(tenPatientBundle);
   });
@@ -169,7 +169,7 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=120&_elements=subject&status=final&combo-code-value-quantity=3137-7%24gt100`
+        `$fhir/Observation?_count=120&_elements=subject&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100`
       )
       .flush(tenObservationBundle);
 
@@ -269,13 +269,13 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_total=accurate&_summary=count&status=final&combo-code-value-quantity=3137-7%24gt100`
+        `$fhir/Observation?_total=accurate&_summary=count&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100`
       )
       .flush({ total: 20 });
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=10&_elements=subject&status=final&combo-code-value-quantity=3137-7%24gt100`
+        `$fhir/Observation?_count=10&_elements=subject&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100`
       )
       .flush({
         ...tenObservationBundle,
@@ -379,13 +379,13 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_total=accurate&_summary=count&status=final&combo-code-value-quantity=3137-7%24gt100%7C%7Ccm`
+        `$fhir/Observation?_total=accurate&_summary=count&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100%7C%7Ccm`
       )
       .flush({ total: 10 });
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=10&_elements=subject&status=final&combo-code-value-quantity=3137-7%24gt100%7C%7Ccm`
+        `$fhir/Observation?_count=10&_elements=subject&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100%7C%7Ccm`
       )
       .flush(tenObservationBundle);
 
@@ -474,7 +474,7 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Patient?_count=20&_has:Observation:subject:combo-code-value-quantity=3137-7%24gt100`
+        `$fhir/Patient?_count=20&_has:Observation:subject:combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100`
       )
       .flush(tenPatientBundle);
   });
