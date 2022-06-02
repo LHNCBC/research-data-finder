@@ -426,29 +426,36 @@ export class ObservationCodeLookupComponent
     return (bundle.entry || []).reduce((acc, entry) => {
       const observation = entry.resource as Observation;
       const datatype = this.getValueDataType(observation);
-      if (
-        this.currentData.datatype === ANY_DATATYPE ||
-        !this.currentData.datatype ||
-        datatype === this.currentData.datatype
-      ) {
-        acc.push(
-          ...observation.code.coding
-            .filter((coding) => {
-              const matched =
-                !processedCodes[coding.code] &&
-                selectedCodes.indexOf(coding.code) === -1;
+      acc.push(
+        ...observation.code.coding
+          .filter((coding) => {
+            let matched = false;
+            if (coding.code && !processedCodes[coding.code]) {
+              // Even though this observation's data type does not match selected codes, we want to
+              // go through its codings and mark 'processedCodes' accordingly, so that these codes
+              // can be excluded from next queries. Otherwise, we might get into a near-infinite loop
+              // of queries returning the same code. This happened with searching "Total Cholesterol"
+              // and select code "14647-2".
               processedCodes[coding.code] = true;
-              return matched;
-            })
-            .map((coding) => {
-              this.code2Type[coding.system + '|' + coding.code] = datatype;
-              return {
-                code: { code: coding.code, system: coding.system },
-                display: coding.display
-              };
-            })
-        );
-      }
+              if (
+                (!this.currentData.datatype ||
+                  this.currentData.datatype === ANY_DATATYPE ||
+                  datatype === this.currentData.datatype) &&
+                selectedCodes.indexOf(coding.code) === -1
+              ) {
+                matched = true;
+              }
+            }
+            return matched;
+          })
+          .map((coding) => {
+            this.code2Type[coding.system + '|' + coding.code] = datatype;
+            return {
+              code: { code: coding.code, system: coding.system },
+              display: coding.display || coding.code
+            };
+          })
+      );
       return acc;
     }, []);
   }
