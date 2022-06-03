@@ -188,6 +188,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   columns: string[] = [];
   columnsWithData: { [element: string]: boolean } = {};
   selectedResources = new SelectionModel<Resource>(true, []);
+  @Output() selectionChange = this.selectedResources.changed;
   filtersForm: FormGroup = new FormBuilder().group({});
   dataSource = new TableVirtualScrollDataSource<TableRow>([]);
   loadTime = 0;

@@ -12,6 +12,8 @@ interface SelectRecordState {
   resources: Resource[];
   // Next page URL
   nextBundleUrl?: string;
+  // Indicates whether we need to reload data
+  reset?: boolean;
 }
 
 @Injectable({
@@ -22,6 +24,28 @@ export class SelectRecordsService {
 
   currentState: { [resourceType: string]: SelectRecordState } = {};
   resourceStream: { [resourceType: string]: Observable<Resource[]> } = {};
+
+  /**
+   * Resets the state for the specified resource type
+   * @param resourceType - resource type
+   */
+  resetState(resourceType: string): void {
+    if (this.currentState[resourceType]) {
+      // The easiest way is to delete the state, but in this case, the table
+      // component will be recreated, which will lead to the image flickering.
+      this.currentState[resourceType].reset = true;
+    }
+  }
+
+  /**
+   * Returns true if resource type records need to be reloaded.
+   * @param resourceType - resource type
+   */
+  isNeedToReload(resourceType: string): boolean {
+    return (
+      !this.currentState[resourceType] || this.currentState[resourceType].reset
+    );
+  }
 
   /**
    * Loads the first page of resources of specified resource type.

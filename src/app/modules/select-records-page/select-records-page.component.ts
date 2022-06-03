@@ -1,9 +1,11 @@
 import {
   AfterViewInit,
-  ChangeDetectorRef,
   Component,
+  OnDestroy,
   OnInit,
-  ViewChild
+  QueryList,
+  ViewChild,
+  ViewChildren
 } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import {
@@ -11,7 +13,7 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { map, startWith } from 'rxjs/operators';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
@@ -23,9 +25,12 @@ import { SelectRecordsService } from '../../shared/select-records/select-records
   templateUrl: './select-records-page.component.html',
   styleUrls: ['./select-records-page.component.less']
 })
-export class SelectRecordsPageComponent implements OnInit, AfterViewInit {
+export class SelectRecordsPageComponent
+  implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
-  @ViewChild('researchStudyTable') researchStudyTable: ResourceTableComponent;
+  @ViewChildren(ResourceTableComponent)
+  tables: QueryList<ResourceTableComponent>;
+  subscriptions: Subscription[] = [];
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
   maxPatientsNumber = new FormControl('100', Validators.required);
 
@@ -40,33 +45,36 @@ export class SelectRecordsPageComponent implements OnInit, AfterViewInit {
   // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
   // when the active tab changes
   currentResourceType$: Observable<string>;
-  variablesStream: Subject<Resource>;
 
   constructor(
     private fhirBackend: FhirBackendService,
-
     public columnDescriptions: ColumnDescriptionsService,
-    private cdr: ChangeDetectorRef,
     public selectRecords: SelectRecordsService
   ) {
-    fhirBackend.initialized
-      .pipe(map((status) => status === ConnectionStatus.Ready))
-      .subscribe((connected) => {
-        this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
-          ? ['ResearchStudy', 'Variable']
-          : ['Observation'];
-        this.unselectedResourceTypes = [];
-        if (connected) {
-          const resources = fhirBackend.getCurrentDefinitions().resources;
-          this.unselectedResourceTypes = Object.keys(resources).filter(
-            (resourceType) =>
-              this.visibleResourceTypes.indexOf(resourceType) === -1
-          );
-        }
-      });
+    this.subscriptions.push(
+      fhirBackend.initialized
+        .pipe(map((status) => status === ConnectionStatus.Ready))
+        .subscribe((connected) => {
+          this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
+            ? ['ResearchStudy', 'Variable']
+            : ['Observation'];
+          this.unselectedResourceTypes = [];
+          if (connected) {
+            const resources = fhirBackend.getCurrentDefinitions().resources;
+            this.unselectedResourceTypes = Object.keys(resources).filter(
+              (resourceType) =>
+                this.visibleResourceTypes.indexOf(resourceType) === -1
+            );
+          }
+        })
+    );
   }
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+  }
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -100,11 +108,6 @@ export class SelectRecordsPageComponent implements OnInit, AfterViewInit {
         resourceType,
         `$fhir/${resourceType}?_count=50`
       );
-
-      // this.selectRecords.loadFirstPage(
-      //   'ResearchStudy',
-      //   '$fhir/ResearchStudy?_count=50&_total=accurate'
-      // );
     });
   }
 
@@ -141,7 +144,7 @@ export class SelectRecordsPageComponent implements OnInit, AfterViewInit {
    */
   selectedTabChange(event: MatTabChangeEvent): void {
     const resourceType = this.visibleResourceTypes[event.index];
-    if (!this.selectRecords.currentState[resourceType]) {
+    if (this.selectRecords.isNeedToReload(resourceType)) {
       if (resourceType === 'Variable') {
         this.filterVariables();
       } else {
@@ -154,13 +157,31 @@ export class SelectRecordsPageComponent implements OnInit, AfterViewInit {
   }
 
   /**
+   * Handles selection change
+   * @param resourceType - type of selected resources
+   */
+  onSelectionChange(resourceType: string): void {
+    if (resourceType === 'ResearchStudy') {
+      this.selectRecords.resetState('Variable');
+    }
+  }
+
+  /**
+   * Returns selected ResearchStudies.
+   */
+  getSelectedResearchStudies(): Resource[] {
+    const researchStudyTable = this.tables.find(
+      (table) => table.resourceType === 'ResearchStudy'
+    );
+    return researchStudyTable?.selectedResources.selected || [];
+  }
+
+  /**
    * Applies the variable table filter change.
    */
   filterVariables(): void {
-    this.variablesStream = new Subject<Resource>();
-    this.cdr.detectChanges();
     this.selectRecords.loadVariables(
-      this.researchStudyTable.selectedResources.selected,
+      this.getSelectedResearchStudies(),
       this.variableTable?.filtersForm.value || {}
     );
   }
