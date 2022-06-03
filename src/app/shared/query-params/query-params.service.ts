@@ -195,7 +195,7 @@ export class QueryParamsService {
     }
     const prefix = value.testValuePrefix;
     const testValue =
-      value.testValue || value.testValue === 0 // preserve "0" in query if user type "0" in numeric test value
+      value.testValue !== undefined && value.testValue !== null // preserve "0" in query if user type "0" in numeric test value
         ? escapeFhirSearchParameter(value.testValue.toString())
         : '';
     const unit = value.testValueUnit;
