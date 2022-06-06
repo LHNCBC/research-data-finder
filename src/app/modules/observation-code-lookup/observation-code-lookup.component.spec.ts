@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import observations from './test-fixtures/observations.json';
+import observationsDuplicateDisplay from './test-fixtures/observations_duplicate_display.json';
 import metadata from './test-fixtures/metadata.json';
 
 @Component({
@@ -54,7 +55,12 @@ describe('ObservationCodeLookupComponent', () => {
         spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
           const HTTP_OK = 200;
           const HTTP_ERROR = 404;
-          if (/\$lastn\?/.test(url) || /Observation/.test(url)) {
+          if (/Duplicate/i.test(url)) {
+            return Promise.resolve({
+              status: HTTP_OK,
+              data: observationsDuplicateDisplay
+            });
+          } else if (/\$lastn\?/.test(url) || /Observation/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: observations });
           } else if (/metadata$/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: metadata });
@@ -80,6 +86,11 @@ describe('ObservationCodeLookupComponent', () => {
           const HTTP_ERROR = 404;
           if (/\$lastn\?/.test(url)) {
             return Promise.reject({ status: HTTP_ERROR, error: 'error' });
+          } else if (/Duplicate/i.test(url)) {
+            return Promise.resolve({
+              status: HTTP_OK,
+              data: observationsDuplicateDisplay
+            });
           } else if (/Observation/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: observations });
           } else if (/metadata$/.test(url)) {
@@ -170,6 +181,36 @@ describe('ObservationCodeLookupComponent', () => {
         expect(hostComponent.selectedObservationCodes.value.coding.length).toBe(
           2
         );
+      });
+
+      it('should show distinct code and system for duplicate display', async () => {
+        // clear autocomplete selected value
+        hostComponent.selectedObservationCodes.setValue(null);
+        // get the input element from the DOM
+        const hostElement = fixture.nativeElement;
+        const input: HTMLInputElement = hostElement.querySelector('input');
+
+        // simulate user entering a new text into the input box
+        input.value = 'Duplicate';
+        const ARROW_DOWN = 40;
+        const ENTER = 13;
+        input.focus();
+        await keyDownInAutocompleteInput(input, ARROW_DOWN);
+        await keyDownInAutocompleteInput(input, ARROW_DOWN);
+        await keyDownInAutocompleteInput(input, ENTER);
+        await keyDownInAutocompleteInput(input, ARROW_DOWN);
+        await keyDownInAutocompleteInput(input, ENTER);
+        await keyDownInAutocompleteInput(input, ARROW_DOWN);
+        await keyDownInAutocompleteInput(input, ENTER);
+
+        expect(hostComponent.selectedObservationCodes.value.coding.length).toBe(
+          3
+        );
+        expect(hostComponent.selectedObservationCodes.value.items).toEqual([
+          'Duplicate Display | code1 | system1',
+          'Duplicate Display | code2 | system1',
+          'Duplicate Display | code3 | system2'
+        ]);
       });
     });
   });
