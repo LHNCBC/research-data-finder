@@ -39,7 +39,7 @@ import {
   QueryParamsService
 } from '../query-params/query-params.service';
 import { uniqBy } from 'lodash-es';
-import { getNextPageUrl } from '../utils';
+import { getNextPageUrl, getUrlParam } from '../utils';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
@@ -53,6 +53,12 @@ const RESEARCH_STUDY_RESOURCE_TYPE = 'ResearchStudy';
 const EVIDENCE_VARIABLE_RESOURCE_TYPE = 'EvidenceVariable';
 // Observation resource type name
 const OBSERVATION_RESOURCE_TYPE = 'Observation';
+
+export enum CreateCohortMode {
+  UNSELECTED,
+  BROWSE,
+  SEARCH
+}
 
 interface CohortState {
   // Indicates that data is loading
@@ -74,6 +80,11 @@ export class CohortService {
     private queryParams: QueryParamsService,
     private http: HttpClient
   ) {}
+
+  allowChangeCreateCohortMode = getUrlParam('alpha-version') === 'enable';
+  createCohortMode = this.allowChangeCreateCohortMode
+    ? CreateCohortMode.UNSELECTED
+    : CreateCohortMode.SEARCH;
 
   // Observable that emits Patient resources that match the criteria
   patientStream: Observable<Patient[]>;

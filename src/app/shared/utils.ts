@@ -138,3 +138,42 @@ export function getFocusableChildren(element: HTMLElement): HTMLElement[] {
     .call(element.querySelectorAll(focusableSelector))
     .filter((child) => isVisible(child));
 }
+
+/**
+ * Returns the value of the specified parameter from the current URL
+ * @param name - parameter name
+ */
+export function getUrlParam(name): string {
+  if (window.URLSearchParams !== undefined) {
+    const params = new URLSearchParams(window.location.search);
+    return params.has(name) ? decodeURIComponent(params.get(name)) : null;
+  }
+
+  // IE does not support URLSearchParams
+  const queryMatch = window.location.search.match(
+    new RegExp(`[?&]${escapeStringForRegExp(name)}=([^&]+)`, 'i')
+  );
+  return queryMatch && queryMatch.length
+    ? decodeURIComponent(queryMatch[1])
+    : null;
+}
+
+/**
+ * Returns a new URL from the current URL, adding a new parameter or
+ * updating an existing one.
+ * @param name - parameter name
+ * @param value - parameter value
+ */
+export function setUrlParam(name, value): string {
+  const urlParts = window.location.href
+    .split(/[?&]/)
+    .filter((paramStr) => !paramStr.startsWith(name + '='));
+  return (
+    urlParts[0] +
+    '?' +
+    urlParts
+      .slice(1)
+      .concat([name + '=' + encodeURIComponent(value)])
+      .join('&')
+  );
+}

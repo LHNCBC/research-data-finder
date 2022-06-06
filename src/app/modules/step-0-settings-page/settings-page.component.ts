@@ -12,6 +12,7 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
+import { setUrlParam } from '../../shared/utils';
 
 /**
  * Settings page component for defining general parameters such as FHIR REST API Service Base URL.
@@ -54,8 +55,7 @@ export class SettingsPageComponent {
       .subscribe(() => {
         const server = this.settingsFormGroup.get('serviceBaseUrl').value;
         // Update url query params after valid server change
-        const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?server=${server}`;
-        window.history.pushState({ path: newUrl }, '', newUrl);
+        window.history.pushState({}, '', setUrlParam('server', server));
       });
   }
 
