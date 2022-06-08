@@ -5,7 +5,7 @@ const notice = `
 <style>
   #notice {
     /*Just apply "display: none" when no notice banner needs to show.*/
-    /*display: none;*/
+    display: none;
     background-color: #dc3545;
     padding-top: 0.5em;
     padding-bottom: 0.5em;
