@@ -13,10 +13,12 @@ import { SelectAnAreaOfInterestComponent } from '../step-1-select-an-area-of-int
 import { DefineCohortPageComponent } from '../step-2-define-cohort-page/define-cohort-page.component';
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
 import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.component';
-import { CohortService } from '../../shared/cohort/cohort.service';
+import {
+  CohortService,
+  CreateCohortMode
+} from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import Patient = fhir.Patient;
-import { CreateCohortMode } from '../select-an-action/select-an-action.component';
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.

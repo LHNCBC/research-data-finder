@@ -10,17 +10,22 @@
       <app-settings-page #settings></app-settings-page>
       <div class="spacer"></div>
       <div class="h-box">
-        <button mat-stroked-button color="primary" matStepperNext type="button">
-          Select an action
+        <button mat-stroked-button color="primary" matStepperNext type="button">{{
+          cohort.allowChangeCreateCohortMode
+            ? 'Select an action'
+            : fhirBackend.features.hasResearchStudy
+              ? 'Select Research Studies'
+              : 'Define Cohort'
+          }}
           <mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
   </mat-step>
 
-  <mat-step label="Select an action" state="edit">
+  <mat-step label="Select an action" state="edit" *ngIf="cohort.allowChangeCreateCohortMode">
     <div class="v-box">
-      <app-select-an-action #selectAnActionComponent></app-select-an-action>
+      <app-select-an-action></app-select-an-action>
       <div class='spacer'></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
@@ -42,7 +47,7 @@
     </div>
   </mat-step>
 
-  <mat-step *ngIf="fhirBackend.features.hasResearchStudy && selectAnActionComponent.createCohortMode.value === CreateCohortMode.SEARCH"
+  <mat-step *ngIf="fhirBackend.features.hasResearchStudy && cohort.createCohortMode === CreateCohortMode.SEARCH"
             label="Select Research Studies" state="edit" optional>
     <div class="v-box">
       <app-select-an-area-of-interest #selectAnAreaOfInterest>
@@ -50,7 +55,11 @@
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Select an action
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>{{
+            cohort.allowChangeCreateCohortMode
+              ? 'Select an action'
+              : 'Settings'
+          }}
         </button>
         <div class='spacer'></div>
         <button mat-stroked-button (click)='hiddenFileInput2.click()'>
@@ -73,7 +82,7 @@
   </mat-step>
 
   <mat-step label="Select records"
-            *ngIf="selectAnActionComponent.createCohortMode.value === CreateCohortMode.BROWSE">
+            *ngIf="cohort.createCohortMode === CreateCohortMode.BROWSE">
     <div class="v-box">
       <app-select-records-page></app-select-records-page>
       <div class="spacer"></div>
@@ -101,13 +110,18 @@
   </mat-step>
 
   <mat-step #defineCohortStep label="Define cohort"
-            *ngIf="selectAnActionComponent.createCohortMode.value === CreateCohortMode.SEARCH">
+            *ngIf="cohort.createCohortMode === CreateCohortMode.SEARCH">
       <app-define-cohort-page
         [formControl]="defineCohort"></app-define-cohort-page>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>
-          {{fhirBackend.features.hasResearchStudy ? 'Select Research Studies' : 'Select an action'}}
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>{{
+          fhirBackend.features.hasResearchStudy
+            ? 'Select Research Studies'
+            : cohort.allowChangeCreateCohortMode
+              ? 'Select an action'
+              : 'Settings'
+          }}
         </button>
         <div class='spacer'></div>
         <button mat-stroked-button (click)='hiddenFileInput.click()'>
@@ -127,7 +141,7 @@
   </mat-step>
 
   <mat-step label="View cohort"
-            *ngIf="selectAnActionComponent.createCohortMode.value !== CreateCohortMode.UNSELECTED">
+            *ngIf="cohort.createCohortMode !== CreateCohortMode.UNSELECTED">
     <div class="v-box">
       <app-view-cohort-page #viewCohortComponent>
       </app-view-cohort-page>
@@ -156,7 +170,7 @@
     </div>
   </mat-step>
 
-  <mat-step label="Pull data for the cohort" *ngIf="selectAnActionComponent.createCohortMode.value !== CreateCohortMode.UNSELECTED">
+  <mat-step label="Pull data for the cohort" *ngIf="cohort.createCohortMode !== CreateCohortMode.UNSELECTED">
     <div class="v-box">
       <app-pull-data-page #pullDataPageComponent
                           [defaultObservationCodes]="pullData.defaultObservationCodes$ | async">

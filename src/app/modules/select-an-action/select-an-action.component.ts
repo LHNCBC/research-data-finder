@@ -7,12 +7,10 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
-
-export enum CreateCohortMode {
-  UNSELECTED,
-  BROWSE,
-  SEARCH
-}
+import {
+  CohortService,
+  CreateCohortMode
+} from '../../shared/cohort/cohort.service';
 
 /**
  * Component for selecting how to create a cohort of Patient resources.
@@ -25,16 +23,28 @@ export enum CreateCohortMode {
 export class SelectAnActionComponent implements OnInit, OnDestroy {
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
-    public fhirBackend: FhirBackendService
+    public fhirBackend: FhirBackendService,
+    private cohort: CohortService
   ) {
-    this.subscription = this.fhirBackend.initialized
-      .pipe(filter((status) => status === ConnectionStatus.Disconnect))
-      .subscribe(() => {
-        this.createCohortMode.setValue(CreateCohortMode.UNSELECTED);
-      });
+    this.subscriptions.push(
+      this.createCohortMode.valueChanges.subscribe((value) => {
+        // Recreating the following steps when selection changes
+        this.cohort.createCohortMode = CreateCohortMode.UNSELECTED;
+        setTimeout(() => {
+          this.cohort.createCohortMode = value;
+        });
+      })
+    );
+    this.subscriptions.push(
+      this.fhirBackend.initialized
+        .pipe(filter((status) => status === ConnectionStatus.Disconnect))
+        .subscribe(() => {
+          this.createCohortMode.setValue(CreateCohortMode.UNSELECTED);
+        })
+    );
   }
 
-  subscription: Subscription;
+  subscriptions: Subscription[] = [];
   createCohortMode = new FormControl(CreateCohortMode.UNSELECTED);
   CreateCohortMode = CreateCohortMode;
 
@@ -44,6 +54,6 @@ export class SelectAnActionComponent implements OnInit, OnDestroy {
    * Performs cleanup when a component instance is destroyed.
    */
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 }

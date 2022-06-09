@@ -5,7 +5,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 
 ## [5.0.0] - 2022-06-02
 ### Added
-- Create a cohort of patients by browsing and selecting records.
+- Alpha version of creating a cohort of patients by browsing and selecting records.
 
 ## [4.5.4] - 2022-05-25
 ### Fixed

@@ -1,4 +1,10 @@
-import { Component, ViewChildren, QueryList, ViewChild } from '@angular/core';
+import {
+  Component,
+  ViewChildren,
+  QueryList,
+  ViewChild,
+  OnDestroy
+} from '@angular/core';
 import { FormControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
@@ -17,7 +23,7 @@ import {
   Rule,
   RuleSet
 } from '../../../query-builder/public-api';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import {
   AutocompleteComponent,
   AutocompleteOption
@@ -49,9 +55,9 @@ const OPERATOR_ADDING_MESSAGE =
     }
   ]
 })
-export class SearchParametersComponent extends BaseControlValueAccessor<
-  SearchParameter[]
-> {
+export class SearchParametersComponent
+  extends BaseControlValueAccessor<SearchParameter[]>
+  implements OnDestroy {
   @ViewChildren(AutocompleteComponent)
   resourceTypeComponents: QueryList<AutocompleteComponent>;
   @ViewChildren(SearchParameterComponent)
@@ -61,7 +67,6 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   @ViewChildren('addResourceTypeBtn')
   addResourceTypeBtns: QueryList<MatButton>;
   switchRadioGroupMap = new Map<RuleSet, string>();
-  switchRadioGroupIndex = 1;
   @ViewChild(QueryBuilderComponent)
   queryBuilderComponent: QueryBuilderComponent;
   public queryCtrl: FormControl = new FormControl({});
@@ -71,6 +76,7 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
   observationDataType: string;
   observationCodes: string[] = [];
   observationLoincCodes: string[] = [];
+  subscriptions: Subscription[] = [];
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -83,109 +89,123 @@ export class SearchParametersComponent extends BaseControlValueAccessor<
       map((definitions) => Object.keys(definitions.resources))
     );
 
-    fhirBackend.currentDefinitions$.subscribe((definitions) => {
-      // Clear search parameters on server change
-      const config = {
-        allowEmptyRulesets: true,
-        fields: {},
+    this.subscriptions.push(
+      fhirBackend.currentDefinitions$.subscribe((definitions) => {
+        // Clear search parameters on server change
+        const config = {
+          allowEmptyRulesets: true,
+          fields: {},
 
-        /**
-         * Adds a rule (criterion) for a resource type
-         */
-        addRule: (parent: RuleSet): void => {
-          parent.rules = parent.rules.concat([
-            {
-              field: {}
-            } as Rule
-          ]);
+          /**
+           * Adds a rule (criterion) for a resource type
+           */
+          addRule: (parent: RuleSet): void => {
+            parent.rules = parent.rules.concat([
+              {
+                field: {}
+              } as Rule
+            ]);
 
-          let message = 'A new line of search criterion is added.';
-          if (parent.rules.length === 2) {
-            message +=
-              ' The AND operator is used to combine criteria for the resource type.';
-          }
-          this.liveAnnoncer.announce(message);
-
-          // Focus the input control of the newly added search parameter line.
-          this.searchParameterComponents.changes
-            .pipe(take(1))
-            .subscribe((components) => {
-              setTimeout(() => components.last.focusSearchParamNameInput());
-            });
-        },
-
-        /**
-         * Adds a subgroup of criteria for resource types.
-         * @param parent - parent group of criteria.
-         */
-        addRuleSet: (parent: RuleSet): void => {
-          parent.rules = parent.rules.concat([{ condition: 'and', rules: [] }]);
-          let message =
-            'A new subgroup of criteria for resource types is added.';
-          if (parent.rules.length === 2) {
-            message += OPERATOR_ADDING_MESSAGE;
-          }
-          this.liveAnnoncer.announce(message);
-
-          // Focus the newly added add resource type button.
-          this.addResourceTypeBtns.changes
-            .pipe(take(1))
-            .subscribe((components) => {
-              setTimeout(() => components.last.focus());
-            });
-        },
-
-        /**
-         * Removes a rule (criterion) from a resource type criteria
-         * @param rule - criterion
-         * @param parent - resource type criteria
-         */
-        removeRule: (rule: Rule, parent: RuleSet) => {
-          parent.rules = parent.rules.filter((r) => r !== rule);
-          if ('resourceType' in parent) {
-            if (((rule as unknown) as Criterion).field.element === CODETEXT) {
-              this.updateSelectedObservationCodes(null);
+            let message = 'A new line of search criterion is added.';
+            if (parent.rules.length === 2) {
+              message +=
+                ' The AND operator is used to combine criteria for the resource type.';
             }
-            this.updateSelectedSearchParameterNames(
-              (parent as unknown) as ResourceTypeCriteria
-            );
-          } else if ('resourceType' in rule) {
-            this.selectedSearchParameterNamesMap.delete(
-              (rule as unknown) as ResourceTypeCriteria
-            );
-          }
-        },
+            this.liveAnnoncer.announce(message);
 
-        /**
-         * Removes a ruleset from a parent ruleset.
-         * @param ruleset - set of rules (ResourceTypeCriteria or Criteria).
-         * @param parent - set of rules (Criteria).
-         */
-        removeRuleSet: (ruleset: RuleSet, parent: RuleSet) => {
-          parent.rules = parent.rules.filter((r) => r !== ruleset);
-          this.switchRadioGroupMap.delete(ruleset);
-        },
+            // Focus the input control of the newly added search parameter line.
+            this.searchParameterComponents.changes
+              .pipe(take(1))
+              .subscribe((components) => {
+                setTimeout(() => components.last.focusSearchParamNameInput());
+              });
+          },
 
-        getInputType: (fieldName: string, operator: string): string => {
-          return 'search-parameter';
-        },
+          /**
+           * Adds a subgroup of criteria for resource types.
+           * @param parent - parent group of criteria.
+           */
+          addRuleSet: (parent: RuleSet): void => {
+            parent.rules = parent.rules.concat([
+              { condition: 'and', rules: [] }
+            ]);
+            let message =
+              'A new subgroup of criteria for resource types is added.';
+            if (parent.rules.length === 2) {
+              message += OPERATOR_ADDING_MESSAGE;
+            }
+            this.liveAnnoncer.announce(message);
 
-        getOperators: (fieldName: string, field: Field): string[] => {
-          return [];
-        },
+            // Focus the newly added add resource type button.
+            this.addResourceTypeBtns.changes
+              .pipe(take(1))
+              .subscribe((components) => {
+                setTimeout(() => components.last.focus());
+              });
+          },
 
-        // Override to an empty method only to remove the exception
-        getOptions: (fieldName: string): Option[] => null
-      };
-      const resourceTypes = Object.keys(definitions.resources);
-      resourceTypes.forEach((resourceType) => {
-        definitions.resources[resourceType].searchParameters.forEach((desc) => {
-          config.fields[resourceType + '-' + desc.element] = desc;
+          /**
+           * Removes a rule (criterion) from a resource type criteria
+           * @param rule - criterion
+           * @param parent - resource type criteria
+           */
+          removeRule: (rule: Rule, parent: RuleSet) => {
+            parent.rules = parent.rules.filter((r) => r !== rule);
+            if ('resourceType' in parent) {
+              if (((rule as unknown) as Criterion).field.element === CODETEXT) {
+                this.updateSelectedObservationCodes(null);
+              }
+              this.updateSelectedSearchParameterNames(
+                (parent as unknown) as ResourceTypeCriteria
+              );
+            } else if ('resourceType' in rule) {
+              this.selectedSearchParameterNamesMap.delete(
+                (rule as unknown) as ResourceTypeCriteria
+              );
+            }
+          },
+
+          /**
+           * Removes a ruleset from a parent ruleset.
+           * @param ruleset - set of rules (ResourceTypeCriteria or Criteria).
+           * @param parent - set of rules (Criteria).
+           */
+          removeRuleSet: (ruleset: RuleSet, parent: RuleSet) => {
+            parent.rules = parent.rules.filter((r) => r !== ruleset);
+            this.switchRadioGroupMap.delete(ruleset);
+          },
+
+          getInputType: (fieldName: string, operator: string): string => {
+            return 'search-parameter';
+          },
+
+          getOperators: (fieldName: string, field: Field): string[] => {
+            return [];
+          },
+
+          // Override to an empty method only to remove the exception
+          getOptions: (fieldName: string): Option[] => null
+        };
+        const resourceTypes = Object.keys(definitions.resources);
+        resourceTypes.forEach((resourceType) => {
+          definitions.resources[resourceType].searchParameters.forEach(
+            (desc) => {
+              config.fields[resourceType + '-' + desc.element] = desc;
+            }
+          );
         });
-      });
-      this.queryCtrl.setValue(this.cohort.resetCriteria());
-      this.queryBuilderConfig = config;
-    });
+        this.queryCtrl.setValue(this.cohort.resetCriteria());
+        this.queryBuilderConfig = config;
+      })
+    );
+  }
+
+  /**
+   * Performs cleanup when a component instance is destroyed.
+   */
+  ngOnDestroy(): void {
+    this.cohort.resetCriteria();
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
   /**

@@ -21,7 +21,7 @@ import { ColumnDescription } from '../../types/column.description';
 import { SelectOptions } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpClientModule } from '@angular/common/http';
-import { CreateCohortMode } from '../select-an-action/select-an-action.component';
+import { CreateCohortMode } from '../../shared/cohort/cohort.service';
 
 @Component({
   selector: 'app-select-an-area-of-interest',
