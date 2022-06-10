@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import Bundle = fhir.Bundle;
 import { catchError, map } from 'rxjs/operators';
+import { getNextPageUrl } from '../utils';
 
 interface SelectRecordState {
   // Indicates that data is loading
@@ -80,10 +81,7 @@ export class SelectRecordsService {
         currentState.resources = currentState.resources.concat(
           data.entry?.map((item) => item.resource) || []
         );
-
-        currentState.nextBundleUrl =
-          data.link.find((l) => l.relation === 'next')?.url || null;
-
+        currentState.nextBundleUrl = getNextPageUrl(data);
         currentState.loading = false;
         return currentState.resources;
       }),

@@ -16,12 +16,7 @@ export function capitalize(str: string): string {
  * Extracts next page URL from a bundle (see: https://www.hl7.org/fhir/http.html#paging)
  */
 export function getNextPageUrl(response: Bundle): string | undefined {
-  let result;
-  return (
-    response.link?.some(
-      (link) => link.relation === 'next' && (result = link.url)
-    ) && result
-  );
+  return response.link?.find((l) => l.relation === 'next')?.url || null;
 }
 
 /**

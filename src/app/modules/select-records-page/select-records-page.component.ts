@@ -163,6 +163,10 @@ export class SelectRecordsPageComponent
   onSelectionChange(resourceType: string): void {
     if (resourceType === 'ResearchStudy') {
       this.selectRecords.resetState('Variable');
+      const variableTable = this.tables.find(
+        (table) => table.resourceType === 'Variable'
+      );
+      variableTable?.clearSelection();
     }
   }
 
