@@ -18,6 +18,7 @@ import { ColumnDescriptionsService } from '../../shared/column-descriptions/colu
 import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-browse-records-page',
@@ -38,6 +39,15 @@ export class BrowseRecordsPageComponent
   resourceType2TabName = {
     ResearchStudy: 'Study'
   };
+
+  // The sort state for each resource.
+  sort: { [resourceType: string]: Sort } = {
+    ResearchStudy: {
+      active: 'title',
+      direction: 'desc'
+    }
+  };
+
   // Array of not visible resource type names
   unselectedResourceTypes: string[];
   // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
@@ -76,36 +86,37 @@ export class BrowseRecordsPageComponent
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-      this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
-        startWith(this.getCurrentResourceType()),
-        map(() => {
-          // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
-          // displaying an empty table when the active tab is changed.
-          // This event runs _changeListener in ViewportRuler which run checkViewportSize
-          // in CdkVirtualScrollViewport.
-          // See code for details:
-          // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
-          // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
-          if (typeof Event === 'function') {
-            // fire resize event for modern browsers
-            window.dispatchEvent(new Event('resize'));
-          } else {
-            // for IE and other old browsers
-            // causes deprecation warning on modern browsers
-            const evt = window.document.createEvent('UIEvents');
-            // @ts-ignore
-            evt.initUIEvent('resize', true, false, window, 0);
-            window.dispatchEvent(evt);
-          }
-          return this.getCurrentResourceType();
-        })
+      this.subscriptions.push(
+        this.tabGroup.selectedTabChange
+          .pipe(
+            startWith(this.getCurrentResourceType()),
+            map(() => {
+              // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
+              // displaying an empty table when the active tab is changed.
+              // This event runs _changeListener in ViewportRuler which run checkViewportSize
+              // in CdkVirtualScrollViewport.
+              // See code for details:
+              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
+              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
+              if (typeof Event === 'function') {
+                // fire resize event for modern browsers
+                window.dispatchEvent(new Event('resize'));
+              } else {
+                // for IE and other old browsers
+                // causes deprecation warning on modern browsers
+                const evt = window.document.createEvent('UIEvents');
+                // @ts-ignore
+                evt.initUIEvent('resize', true, false, window, 0);
+                window.dispatchEvent(evt);
+              }
+              return this.getCurrentResourceType();
+            })
+          )
+          .subscribe()
       );
 
       const resourceType = this.visibleResourceTypes[0];
-      this.selectRecords.loadFirstPage(
-        resourceType,
-        `$fhir/${resourceType}?_count=50`
-      );
+      this.loadFirstPage(resourceType);
     });
   }
 
@@ -143,14 +154,7 @@ export class BrowseRecordsPageComponent
   selectedTabChange(event: MatTabChangeEvent): void {
     const resourceType = this.visibleResourceTypes[event.index];
     if (this.selectRecords.isNeedToReload(resourceType)) {
-      if (resourceType === 'Variable') {
-        this.filterVariables();
-      } else {
-        this.selectRecords.loadFirstPage(
-          resourceType,
-          `$fhir/${resourceType}?_count=50&_total=accurate`
-        );
-      }
+      this.loadFirstPage(resourceType);
     }
   }
 
@@ -179,14 +183,56 @@ export class BrowseRecordsPageComponent
   }
 
   /**
+   * Handles sort state change.
+   * @param resourceType - resource type.
+   * @param newSort - new sort description.
+   */
+  onSortChanged(resourceType: string, newSort: Sort): void {
+    this.sort[resourceType] = newSort;
+    this.loadFirstPage(resourceType);
+  }
+
+  /**
    * Applies the variable table filter change.
    */
   filterVariables(): void {
+    // TODO: Currently, user can sort loaded Variable records on
+    //       the client-side only. CTSS doesn't support sorting.
+    // TODO: Also, CTSS doesn't support paging.
     this.selectRecords.loadVariables(
       this.getSelectedResearchStudies(),
       this.variableTable?.filtersForm.value || {},
-      // TODO: add sorting
-      null
+      this.sort['Variable']
     );
+  }
+
+  /**
+   * Returns the URL parameter for sorting.
+   * @param resourceType - resource type.
+   */
+  getSortParam(resourceType: string): string {
+    const sort = this.sort[resourceType];
+    if (!sort) {
+      return '';
+    }
+    return `_sort=${sort.direction === 'asc' ? '-' : ''}${sort.active}`;
+  }
+
+  /**
+   * Loads the first page of the specified resource type.
+   * @param resourceType - resource type.
+   */
+  loadFirstPage(resourceType: string): void {
+    if (resourceType === 'Variable') {
+      this.filterVariables();
+    } else {
+      const sortParam = this.getSortParam(resourceType);
+      // TODO: Currently, user can filter loaded ResearchStudy records on
+      //       the client-side only.
+      this.selectRecords.loadFirstPage(
+        resourceType,
+        `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`
+      );
+    }
   }
 }

@@ -10,7 +10,6 @@
   *ngIf="!fhirBackend.serviceBaseUrl.startsWith('https://dbgap-api.ncbi.nlm.nih.gov')">[TODO: Don't know what to show for non dbGap servers.]</span>
 </p>
 
-<div style="display: none">{{(currentResourceType$ | async)}}</div>
 <mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
   <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfResourceType(resourceType)">
     <div class="v-box tab-content">
@@ -23,6 +22,8 @@
                           (selectionChange)="onSelectionChange(resourceType)"
                           [selectAny]="true"
                           context="browse"
+                          [defaultSort]="sort[resourceType]"
+                          (sortChanged)="onSortChanged(resourceType, $event)"
                           [resourceType]="resourceType"></app-resource-table>
       <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState['Variable']"
                           #variableTable
@@ -32,6 +33,7 @@
                           [loading]="selectRecords.currentState['Variable'].loading"
                           [resources]="selectRecords.resourceStream['Variable'] | async"
                           context="browse"
+                          [defaultSort]="sort['Variable']"
                           resourceType="Variable"></app-resource-table>
     </div>
   </mat-tab>
