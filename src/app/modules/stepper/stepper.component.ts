@@ -182,6 +182,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
           ) {
             rule.field.value.observationDataType =
               rule.field.observationDataType;
+            delete rule.field.observationDataType;
           }
         });
       }
