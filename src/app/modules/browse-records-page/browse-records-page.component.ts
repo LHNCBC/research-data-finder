@@ -7,7 +7,6 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -21,18 +20,17 @@ import { ResourceTableComponent } from '../resource-table/resource-table.compone
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 
 @Component({
-  selector: 'app-select-records-page',
-  templateUrl: './select-records-page.component.html',
-  styleUrls: ['./select-records-page.component.less']
+  selector: 'app-browse-records-page',
+  templateUrl: './browse-records-page.component.html',
+  styleUrls: ['./browse-records-page.component.less']
 })
-export class SelectRecordsPageComponent
+export class BrowseRecordsPageComponent
   implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
   @ViewChildren(ResourceTableComponent)
   tables: QueryList<ResourceTableComponent>;
   subscriptions: Subscription[] = [];
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
-  maxPatientsNumber = new FormControl('100', Validators.required);
 
   // Array of visible resource type names
   visibleResourceTypes: string[];
@@ -63,8 +61,7 @@ export class SelectRecordsPageComponent
             const resources = fhirBackend.getCurrentDefinitions().resources;
             this.unselectedResourceTypes = Object.keys(resources).filter(
               (resourceType) =>
-                this.visibleResourceTypes.indexOf(resourceType) === -1 &&
-                resourceType !== 'EvidenceVariable'
+                this.visibleResourceTypes.indexOf(resourceType) === -1
             );
           }
         })
@@ -105,7 +102,10 @@ export class SelectRecordsPageComponent
       );
 
       const resourceType = this.visibleResourceTypes[0];
-      this.loadFirstPage(resourceType);
+      this.selectRecords.loadFirstPage(
+        resourceType,
+        `$fhir/${resourceType}?_count=50`
+      );
     });
   }
 
@@ -143,7 +143,14 @@ export class SelectRecordsPageComponent
   selectedTabChange(event: MatTabChangeEvent): void {
     const resourceType = this.visibleResourceTypes[event.index];
     if (this.selectRecords.isNeedToReload(resourceType)) {
-      this.loadFirstPage(resourceType);
+      if (resourceType === 'Variable') {
+        this.filterVariables();
+      } else {
+        this.selectRecords.loadFirstPage(
+          resourceType,
+          `$fhir/${resourceType}?_count=50&_total=accurate`
+        );
+      }
     }
   }
 
@@ -179,36 +186,5 @@ export class SelectRecordsPageComponent
       this.getSelectedResearchStudies(),
       this.variableTable?.filtersForm.value || {}
     );
-  }
-
-  /**
-   * Returns the URL parameter for sorting.
-   * @param resourceType - resource type.
-   */
-  getSortParam(resourceType: string): string {
-    switch (resourceType) {
-      case 'ResearchStudy':
-        return '_sort=title';
-      default:
-        return '';
-    }
-  }
-
-  /**
-   * Loads the first page of the specified resource type.
-   * @param resourceType - resource type.
-   */
-  loadFirstPage(resourceType: string): void {
-    if (resourceType === 'Variable') {
-      this.filterVariables();
-    } else {
-      const sortParam = this.getSortParam(resourceType);
-      // TODO: Currently, user can sort and filter loaded ResearchStudy records
-      //       on the client-side only
-      this.selectRecords.loadFirstPage(
-        resourceType,
-        `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`
-      );
-    }
   }
 }

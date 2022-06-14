@@ -15,6 +15,7 @@ import { AnnounceIfActiveModule } from '../../shared/announce-if-active/announce
 import { MatRadioModule } from '@angular/material/radio';
 import { SelectRecordsPageModule } from '../select-records-page/select-records-page.module';
 import { SelectAnActionModule } from '../select-an-action/select-an-action.module';
+import { BrowseRecordsPageModule } from '../browse-records-page/browse-records-page.module';
 
 @NgModule({
   declarations: [StepperComponent],
@@ -34,7 +35,8 @@ import { SelectAnActionModule } from '../select-an-action/select-an-action.modul
     PullDataPageModule,
     SelectAnAreaOfInterestModule,
     AnnounceIfActiveModule,
-    MatRadioModule
+    MatRadioModule,
+    BrowseRecordsPageModule
   ]
 })
 export class StepperModule {}

@@ -369,7 +369,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     // Update resource table columns
     if (changes['columnDescriptions'] && this.columnDescriptions) {
       this.columns.length = 0;
-      if (this.enableSelection) {
+      if (this.enableSelection || this.context === 'browse') {
         this.columns.push('select');
       }
 

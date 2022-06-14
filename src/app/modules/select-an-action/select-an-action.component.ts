@@ -1,11 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import {
-  ConnectionStatus,
-  FhirBackendService
-} from '../../shared/fhir-backend/fhir-backend.service';
-import { filter } from 'rxjs/operators';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { Subscription } from 'rxjs';
 import {
   CohortService,
@@ -34,13 +30,6 @@ export class SelectAnActionComponent implements OnInit, OnDestroy {
           this.cohort.createCohortMode = value;
         });
       })
-    );
-    this.subscriptions.push(
-      this.fhirBackend.initialized
-        .pipe(filter((status) => status === ConnectionStatus.Disconnect))
-        .subscribe(() => {
-          this.createCohortMode.setValue(CreateCohortMode.UNSELECTED);
-        })
     );
   }
 

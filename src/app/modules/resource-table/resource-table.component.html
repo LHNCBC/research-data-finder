@@ -32,7 +32,7 @@
   </mat-expansion-panel>
 </mat-accordion>
 
-<div class="container" *ngIf="this.dataSource.data.length > 0 || context === 'browse'">
+<div class="container" *ngIf="this.dataSource.data.length > 0 || context === 'browse' || context === 'select'">
   <cdk-virtual-scroll-viewport tvsItemSize class="table-container mat-elevation-z4"
                                (scroll)="onScroll()">
     <table mat-table matSort matSortDisableClear matSortStart='desc' [dataSource]="dataSource"
@@ -40,15 +40,15 @@
            (matSortChange)="sortData($event)">
       <!-- Select checkbox column -->
       <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef class="cell-with-icon">
-          <mat-checkbox *ngIf="!selectAny"
+        <th mat-header-cell *matHeaderCellDef class="cell-with-icon" width="28">
+          <mat-checkbox *ngIf="!selectAny && !context === 'browse'"
                         (change)="$event ? masterToggle() : null"
                         [checked]="selectedResources.hasValue() && isAllSelected()"
                         [indeterminate]="selectedResources.hasValue() && !isAllSelected()"
                         matTooltip='Select/Unselect all'>
           </mat-checkbox>
           <button type="button" mat-icon-button
-                  *ngIf="selectAny"
+                  *ngIf="context === 'browse' || context==='select'"
                   class="configure-btn"
                   (click)="columnDescriptionsService.openColumnsDialog(resourceType, context)"
                   matTooltip="Configure table">
