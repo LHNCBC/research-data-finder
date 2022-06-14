@@ -16,6 +16,7 @@ import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.c
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import Patient = fhir.Patient;
+import { OBSERVATION_VALUE } from '../../shared/query-params/query-params.service';
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
@@ -138,6 +139,8 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
           this.defineCohortComponent.defineCohortForm
             .get('maxNumberOfPatients')
             .setValue(maxPatientCount);
+          // Update criteria object if the cohort was downloaded from an older version.
+          this.updateOldFormatCriteria(rawCriteria);
           // Set search parameter form values.
           this.defineCohortComponent.patientParams.queryCtrl.setValue(
             rawCriteria
@@ -159,6 +162,34 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       reader.readAsText(event.target.files[0]);
     }
     event.target.value = '';
+  }
+
+  /**
+   * Move observationDataType property to field value level in new format,
+   * in case it came from an earlier-downloaded cohort.
+   * @param criteria rawCriteria object from cohort file
+   */
+  updateOldFormatCriteria(criteria: any): void {
+    if ('resourceType' in criteria) {
+      if (criteria.resourceType !== 'Observation') {
+        return;
+      } else {
+        criteria.rules.forEach((rule) => {
+          if (
+            rule.field.element === OBSERVATION_VALUE &&
+            rule.field.observationDataType &&
+            !rule.field.value.observationDataType
+          ) {
+            rule.field.value.observationDataType =
+              rule.field.observationDataType;
+          }
+        });
+      }
+    } else {
+      criteria.rules.forEach((rule) => {
+        this.updateOldFormatCriteria(rule);
+      });
+    }
   }
 
   /**
