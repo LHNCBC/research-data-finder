@@ -19,6 +19,7 @@ import { ColumnDescriptionsService } from '../../shared/column-descriptions/colu
 import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-select-records-page',
@@ -39,6 +40,14 @@ export class SelectRecordsPageComponent
   // Map a resource type to a tab name
   resourceType2TabName = {
     ResearchStudy: 'Study'
+  };
+
+  // The sort state for each resource.
+  sort: { [resourceType: string]: Sort } = {
+    ResearchStudy: {
+      active: 'title',
+      direction: 'desc'
+    }
   };
 
   constructor(
@@ -155,12 +164,26 @@ export class SelectRecordsPageComponent
   }
 
   /**
+   * Handles sort state change.
+   * @param resourceType - resource type.
+   * @param newSort - new sort description.
+   */
+  onSortChanged(resourceType: string, newSort: Sort): void {
+    this.sort[resourceType] = newSort;
+    this.loadFirstPage(resourceType);
+  }
+
+  /**
    * Applies the variable table filter change.
    */
   filterVariables(): void {
+    // TODO: Currently, user can sort loaded Variable records on
+    //       the client-side only. CTSS doesn't support sorting.
+    // TODO: Also, CTSS doesn't support paging.
     this.selectRecords.loadVariables(
       this.getSelectedResearchStudies(),
-      this.variableTable?.filtersForm.value || {}
+      this.variableTable?.filtersForm.value || {},
+      this.sort['Variable']
     );
   }
 
@@ -169,12 +192,11 @@ export class SelectRecordsPageComponent
    * @param resourceType - resource type.
    */
   getSortParam(resourceType: string): string {
-    switch (resourceType) {
-      case 'ResearchStudy':
-        return '_sort=title';
-      default:
-        return '';
+    const sort = this.sort[resourceType];
+    if (!sort) {
+      return '';
     }
+    return `_sort=${sort.direction === 'asc' ? '-' : ''}${sort.active}`;
   }
 
   /**
@@ -186,8 +208,8 @@ export class SelectRecordsPageComponent
       this.filterVariables();
     } else {
       const sortParam = this.getSortParam(resourceType);
-      // TODO: Currently, user can sort and filter loaded ResearchStudy records
-      //       on the client-side only
+      // TODO: Currently, user can filter loaded ResearchStudy records on
+      //       the client-side only.
       this.selectRecords.loadFirstPage(
         resourceType,
         `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`

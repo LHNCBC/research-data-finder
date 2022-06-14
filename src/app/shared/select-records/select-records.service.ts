@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import Bundle = fhir.Bundle;
 import { catchError, map } from 'rxjs/operators';
 import { getNextPageUrl } from '../utils';
+import { Sort } from '@angular/material/sort';
 
 interface SelectRecordState {
   // Indicates that data is loading
@@ -96,8 +97,14 @@ export class SelectRecordsService {
    * Loads variables for selected research studies.
    * @param selectedResearchStudies - array of selected research studies.
    * @param filters - filter values
+   * @param sort - the current sort state
    */
-  loadVariables(selectedResearchStudies: Resource[], filters: any): void {
+  loadVariables(
+    selectedResearchStudies: Resource[],
+    filters: any,
+    sort: Sort
+  ): void {
+    // TODO: Add sorting when CTSS will support it
     const currentState = {
       loading: true,
       resources: [],

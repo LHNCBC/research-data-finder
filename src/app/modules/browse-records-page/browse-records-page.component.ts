@@ -184,7 +184,9 @@ export class BrowseRecordsPageComponent
   filterVariables(): void {
     this.selectRecords.loadVariables(
       this.getSelectedResearchStudies(),
-      this.variableTable?.filtersForm.value || {}
+      this.variableTable?.filtersForm.value || {},
+      // TODO: add sorting
+      null
     );
   }
 }

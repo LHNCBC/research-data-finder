@@ -165,7 +165,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
   @ViewChild('panel') panel: MatExpansionPanel;
   @Input() columnDescriptions: ColumnDescription[];
-  @Input() enableClientFiltering = false;
+  // If true, client-side filtering is applied by default.
+  // To enable server-side filtering, define a "(filterChanged)" handler.
+  @Input() enableFiltering = false;
   @Input() enableSelection = false;
   @Input() resourceType;
   @Input() context = '';
@@ -185,6 +187,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @ViewChild(CdkVirtualScrollViewport) scrollViewport: CdkVirtualScrollViewport;
   @Output() loadNextPage = new EventEmitter();
   @Output() filterChanged = new EventEmitter();
+  @Output() sortChanged = new EventEmitter();
+  @Input() defaultSort: Sort;
   columns: string[] = [];
   columnsWithData: { [element: string]: boolean } = {};
   selectedResources = new SelectionModel<Resource>(true, []);
@@ -336,7 +340,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }, {} as TableCells)
       }));
 
-      if (this.enableClientFiltering) {
+      if (this.enableFiltering) {
         // Move selectable studies to the beginning of table.
         this.dataSource.data = [...newRows].sort((a: TableRow, b: TableRow) => {
           if (
@@ -385,7 +389,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     this.columns = this.columns.concat(
       this.columnDescriptions.map((c) => c.element)
     );
-    if (this.enableClientFiltering) {
+    if (this.enableFiltering) {
       // Remove controls for removed columns
       Object.keys(this.filtersForm.controls).forEach((controlName) => {
         if (this.columns.indexOf(controlName) === -1) {
@@ -492,6 +496,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   sortData(sort: Sort): void {
     if (!sort.active || sort.direction === '') {
+      return;
+    }
+    if (this.sortChanged.observers.length) {
+      this.sortChanged.emit(sort);
       return;
     }
     const isAsc = sort.direction === 'asc';
@@ -653,5 +661,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.loadNextPage.emit();
       }
     }
+  }
+
+  /**
+   * Whether the specified column is sortable.
+   * @param column - column description
+   */
+  isSortable(column: ColumnDescription): boolean {
+    return this.sortChanged.observers.length ? !column.expression : true;
   }
 }
