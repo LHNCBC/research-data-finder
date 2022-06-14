@@ -12,8 +12,8 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { map, startWith } from 'rxjs/operators';
-import { Observable, Subscription } from 'rxjs';
+import { filter, map, startWith } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
@@ -40,11 +40,6 @@ export class SelectRecordsPageComponent
   resourceType2TabName = {
     ResearchStudy: 'Study'
   };
-  // Array of not visible resource type names
-  unselectedResourceTypes: string[];
-  // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
-  // when the active tab changes
-  currentResourceType$: Observable<string>;
 
   constructor(
     public fhirBackend: FhirBackendService,
@@ -53,20 +48,11 @@ export class SelectRecordsPageComponent
   ) {
     this.subscriptions.push(
       fhirBackend.initialized
-        .pipe(map((status) => status === ConnectionStatus.Ready))
-        .subscribe((connected) => {
+        .pipe(filter((status) => status === ConnectionStatus.Ready))
+        .subscribe(() => {
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
             ? ['ResearchStudy', 'Variable']
             : ['Observation'];
-          this.unselectedResourceTypes = [];
-          if (connected) {
-            const resources = fhirBackend.getCurrentDefinitions().resources;
-            this.unselectedResourceTypes = Object.keys(resources).filter(
-              (resourceType) =>
-                this.visibleResourceTypes.indexOf(resourceType) === -1 &&
-                resourceType !== 'EvidenceVariable'
-            );
-          }
         })
     );
   }
@@ -79,41 +65,38 @@ export class SelectRecordsPageComponent
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-      this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
-        startWith(this.getCurrentResourceType()),
-        map(() => {
-          // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
-          // displaying an empty table when the active tab is changed.
-          // This event runs _changeListener in ViewportRuler which run checkViewportSize
-          // in CdkVirtualScrollViewport.
-          // See code for details:
-          // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
-          // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
-          if (typeof Event === 'function') {
-            // fire resize event for modern browsers
-            window.dispatchEvent(new Event('resize'));
-          } else {
-            // for IE and other old browsers
-            // causes deprecation warning on modern browsers
-            const evt = window.document.createEvent('UIEvents');
-            // @ts-ignore
-            evt.initUIEvent('resize', true, false, window, 0);
-            window.dispatchEvent(evt);
-          }
-          return this.getCurrentResourceType();
-        })
+      this.subscriptions.push(
+        this.tabGroup.selectedTabChange
+          .pipe(
+            startWith(this.getCurrentResourceType()),
+            map(() => {
+              // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
+              // displaying an empty table when the active tab is changed.
+              // This event runs _changeListener in ViewportRuler which run checkViewportSize
+              // in CdkVirtualScrollViewport.
+              // See code for details:
+              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
+              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
+              if (typeof Event === 'function') {
+                // fire resize event for modern browsers
+                window.dispatchEvent(new Event('resize'));
+              } else {
+                // for IE and other old browsers
+                // causes deprecation warning on modern browsers
+                const evt = window.document.createEvent('UIEvents');
+                // @ts-ignore
+                evt.initUIEvent('resize', true, false, window, 0);
+                window.dispatchEvent(evt);
+              }
+              return this.getCurrentResourceType();
+            })
+          )
+          .subscribe()
       );
 
       const resourceType = this.visibleResourceTypes[0];
       this.loadFirstPage(resourceType);
     });
-  }
-
-  /**
-   * Returns text for the remove tab button.
-   */
-  getRemoveTabButtonText(resourceType: string): string {
-    return `Remove ${this.getPluralFormOfResourceType(resourceType)} tab`;
   }
 
   /**
