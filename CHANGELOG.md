@@ -7,6 +7,13 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Added
 - Alpha version of creating a cohort of patients by browsing and selecting records.
 
+## [4.5.5] - 2022-06-01
+### Fixed
+- Show "display | code | system" for Observation codes that have duplicate display.
+- In Observation codes query, include code system.
+- Filter out Observation codings with no code in autocomplete.
+- Display code if a coding has code but no display.
+
 ## [4.5.4] - 2022-05-25
 ### Fixed
 - If user selects Observation "Variable Value" search parameter without

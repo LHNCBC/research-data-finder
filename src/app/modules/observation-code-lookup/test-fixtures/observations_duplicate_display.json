@@ -1,0 +1,78 @@
+{
+  "resourceType": "Bundle",
+  "id": "473388b6-115c-4da4-acf7-893618226b6a",
+  "meta": {
+    "lastUpdated": "2022-06-01T16:37:49.444-04:00"
+  },
+  "type": "searchset",
+  "total": 3,
+  "link": [
+    {
+      "relation": "self",
+      "url": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation?code%3Atext=depr"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation/34024",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "34024",
+        "code": {
+          "coding": [
+            {
+              "system": "system1",
+              "code": "code1",
+              "display": "Duplicate Display"
+            }
+          ],
+          "text": "Duplicate Display"
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation/39769",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "39769",
+        "code": {
+          "coding": [
+            {
+              "system": "system1",
+              "code": "code2",
+              "display": "Duplicate Display"
+            }
+          ],
+          "text": "Duplicate Display"
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation/58773",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "58773",
+        "status": "final",
+        "code": {
+          "coding": [
+            {
+              "system": "system2",
+              "code": "code3",
+              "display": "Duplicate Display"
+            }
+          ],
+          "text": "Duplicate Display"
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    }
+  ]
+}
