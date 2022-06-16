@@ -18,6 +18,9 @@ describe('QueryParamsService', () => {
       resources: {
         Observation: {
           searchParameters: [{ element: 'code text' }]
+        },
+        DocumentReference: {
+          searchParameters: [{ element: 'description', type: 'string' }]
         }
       }
     });
@@ -52,6 +55,23 @@ describe('QueryParamsService', () => {
 
     expect(service.getQueryParam(resourceType, searchParameter)).toEqual(
       '&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt0'
+    );
+  });
+
+  it('should include modifier for string type search parameter', () => {
+    const resourceType = 'DocumentReference';
+    const searchParameter: SearchParameter = {
+      element: 'description',
+      value: {
+        testValue: 'note',
+        testValueModifier: ':contains',
+        testValuePrefix: '',
+        testValueUnit: ''
+      }
+    };
+
+    expect(service.getQueryParam(resourceType, searchParameter)).toEqual(
+      '&description:contains=note'
     );
   });
 });

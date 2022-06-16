@@ -74,7 +74,10 @@ export class QueryParamsService {
     if (this.getUseLookupParamValue(selectedParameter)) {
       return `&${selectedParameter.element}=${value.value.codes.join(',')}`;
     }
-    if (selectedParameter.type === 'Quantity') {
+    if (
+      selectedParameter.type === 'Quantity' ||
+      selectedParameter.type === 'string'
+    ) {
       const modifier = value.value.testValueModifier;
       const testValueCriteria = this.getCompositeTestValueCriteria(
         selectedParameter.type,
