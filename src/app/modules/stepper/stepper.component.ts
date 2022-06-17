@@ -17,6 +17,7 @@ import { CohortService } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import Patient = fhir.Patient;
 import { OBSERVATION_VALUE } from '../../shared/query-params/query-params.service';
+import pkg from '../../../../package.json';
 
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
@@ -95,6 +96,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    */
   saveCohort(): void {
     const objectToSave = {
+      version: pkg.version,
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
       maxPatientCount: this.cohort.maxPatientCount,
       rawCriteria: this.cohort.criteria,
@@ -123,6 +125,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
         try {
           const blobData = JSON.parse(loadEvent.target.result as string);
           const {
+            version,
             serviceBaseUrl,
             maxPatientCount,
             rawCriteria,
@@ -140,7 +143,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
             .get('maxNumberOfPatients')
             .setValue(maxPatientCount);
           // Update criteria object if the cohort was downloaded from an older version.
-          this.updateOldFormatCriteria(rawCriteria);
+          if (!version) {
+            this.updateOldFormatCriteria(rawCriteria);
+          }
           // Set search parameter form values.
           this.defineCohortComponent.patientParams.queryCtrl.setValue(
             rawCriteria
@@ -166,7 +171,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
 
   /**
    * Move observationDataType property to field value level in new format,
-   * in case it came from an earlier-downloaded cohort.
+   * in case it came from an earlier-downloaded cohort which has no version.
    * @param criteria rawCriteria object from cohort file
    */
   updateOldFormatCriteria(criteria: any): void {
