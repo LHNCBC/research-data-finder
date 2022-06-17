@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [4.5.6] - 2022-06-09
+### Fixed
+- Use comparators for "string" type search parameters.
+
 ## [4.5.5] - 2022-06-01
 ### Fixed
 - Show "display | code | system" for Observation codes that have duplicate display.
