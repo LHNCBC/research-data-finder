@@ -43,6 +43,10 @@
                                   datatype="Quantity">
       </app-observation-test-value>
 
+      <app-observation-test-value *ngSwitchCase="'string'" class="parameter-value" [formControl]="parameterValue"
+                                  datatype="String">
+      </app-observation-test-value>
+
       <mat-form-field *ngSwitchDefault class="parameter-value">
         <mat-label>Search parameter value</mat-label>
         <input matInput [formControl]="parameterValue" [placeholder]="selectedParameter.description">

@@ -3,9 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.0.0] - 2022-06-02
+## [5.0.0] - 2022-06-21
 ### Added
 - Alpha version of creating a cohort of patients by browsing and selecting records.
+
+## [4.5.6] - 2022-06-09
+### Fixed
+- Use comparators for "string" type search parameters.
 
 ## [4.5.5] - 2022-06-01
 ### Fixed
