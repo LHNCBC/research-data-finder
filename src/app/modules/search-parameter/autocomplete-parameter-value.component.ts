@@ -318,7 +318,11 @@ export class AutocompleteParameterValueComponent
     return new Def.Autocompleter.Prefetch(
       this.inputId,
       this.options.map((o) => o.display),
-      { maxSelect: '*', codes: this.options.map((o) => o.code) }
+      {
+        maxSelect: '*',
+        codes: this.options.map((o) => o.code),
+        matchListValue: true
+      }
     );
   }
 
