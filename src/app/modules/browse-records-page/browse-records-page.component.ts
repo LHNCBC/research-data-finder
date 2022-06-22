@@ -20,6 +20,9 @@ import { ResourceTableComponent } from '../resource-table/resource-table.compone
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
 
+/**
+ * Component for browsing public data (ResearchStudies and Variables).
+ */
 @Component({
   selector: 'app-browse-records-page',
   templateUrl: './browse-records-page.component.html',

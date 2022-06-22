@@ -21,6 +21,9 @@ import { ResourceTableComponent } from '../resource-table/resource-table.compone
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
 
+/**
+ * Component for searching, selecting, and adding records to the cart.
+ */
 @Component({
   selector: 'app-select-records-page',
   templateUrl: './select-records-page.component.html',
