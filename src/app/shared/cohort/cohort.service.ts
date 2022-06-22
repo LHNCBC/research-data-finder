@@ -973,4 +973,33 @@ export class CohortService {
     }
     return result;
   }
+
+  /**
+   * Move observationDataType property to field value level in new format,
+   * in case it came from an earlier-downloaded cohort which has no version.
+   * @param criteria rawCriteria object from cohort file
+   */
+  updateOldFormatCriteria(criteria: any): void {
+    if ('resourceType' in criteria) {
+      if (criteria.resourceType !== 'Observation') {
+        return;
+      } else {
+        criteria.rules.forEach((rule) => {
+          if (
+            rule.field.element === OBSERVATION_VALUE &&
+            rule.field.observationDataType &&
+            !rule.field.value.observationDataType
+          ) {
+            rule.field.value.observationDataType =
+              rule.field.observationDataType;
+            delete rule.field.observationDataType;
+          }
+        });
+      }
+    } else {
+      criteria.rules.forEach((rule) => {
+        this.updateOldFormatCriteria(rule);
+      });
+    }
+  }
 }

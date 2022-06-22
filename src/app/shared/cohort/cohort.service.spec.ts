@@ -100,4 +100,62 @@ describe('CohortService', () => {
         }))
       });
   });
+
+  it('should update old format criteria for observationDataType', () => {
+    const criteria = {
+      condition: 'and',
+      rules: [
+        {
+          condition: 'and',
+          rules: [
+            {
+              field: {
+                element: 'code text',
+                value: '',
+                selectedObservationCodes: {
+                  coding: [
+                    {
+                      code: '44255-8',
+                      system: 'http://loinc.org'
+                    }
+                  ],
+                  datatype: 'CodeableConcept',
+                  items: ['Feeling down, depressed, or hopeless?']
+                }
+              }
+            },
+            {
+              field: {
+                element: 'observation value',
+                value: {
+                  testValuePrefix: '',
+                  testValueModifier: '',
+                  testValue: {
+                    codes: ['LA6569-3', 'LA6568-5'],
+                    items: ['Several days', 'Not at all']
+                  },
+                  testValueUnit: ''
+                },
+                observationDataType: 'CodeableConcept'
+              }
+            }
+          ],
+          resourceType: 'Observation'
+        }
+      ]
+    };
+    expect(criteria.rules[0].rules[1].field.observationDataType).toBe(
+      'CodeableConcept'
+    );
+    expect(Object.keys(criteria.rules[0].rules[1].field.value)).not.toContain(
+      'observationDataType'
+    );
+    cohort.updateOldFormatCriteria(criteria);
+    expect(criteria.rules[0].rules[1].field.value).toEqual(
+      jasmine.objectContaining({ observationDataType: 'CodeableConcept' })
+    );
+    expect(Object.keys(criteria.rules[0].rules[1].field)).not.toContain(
+      'observationDataType'
+    );
+  });
 });
