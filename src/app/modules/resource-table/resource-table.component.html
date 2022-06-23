@@ -64,7 +64,7 @@
           </span>
           <button *ngIf='column.description'
                   [attr.aria-label]='column.description'
-                  #tooltip="matTooltip" (focusin)="tooltip.show()"
+                  (click)="onInfoIconClick($event)"
                   [matTooltip]='column.description' matTooltipPosition='above'>
             <mat-icon svgIcon='info'></mat-icon>
           </button>

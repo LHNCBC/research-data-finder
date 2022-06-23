@@ -600,4 +600,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       ? element.innerText
       : '';
   }
+
+  onInfoIconClick(event): void {
+    event.stopPropagation();
+  }
 }
