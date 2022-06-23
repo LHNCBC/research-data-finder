@@ -20,7 +20,7 @@
   <mat-step [label]="getLabel(Step.SELECT_AN_ACTION)"
             *ngIf="isVisible(Step.SELECT_AN_ACTION)">
     <div class="v-box">
-      <app-select-an-action></app-select-an-action>
+      <app-select-an-action #selectAnActionComponent></app-select-an-action>
       <div class='spacer'></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
@@ -30,8 +30,8 @@
         <button mat-stroked-button color="primary"
                 matStepperNext
                 type="button"
-                *ngIf="cohort.createCohortMode !== CreateCohortMode.UNSELECTED">
-          {{ getNextStepLabel(Step.SELECT_AN_ACTION) }}<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+                [disabled]="selectAnActionComponent.createCohortMode.value === CreateCohortMode.UNSELECTED">
+          Next<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
