@@ -58,6 +58,8 @@ export class SelectRecordsPageComponent
     public columnDescriptions: ColumnDescriptionsService,
     public selectRecords: SelectRecordsService
   ) {
+    selectRecords.resetAll();
+
     this.subscriptions.push(
       fhirBackend.initialized
         .pipe(filter((status) => status === ConnectionStatus.Ready))

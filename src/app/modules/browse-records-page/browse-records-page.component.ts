@@ -62,6 +62,8 @@ export class BrowseRecordsPageComponent
     public columnDescriptions: ColumnDescriptionsService,
     public selectRecords: SelectRecordsService
   ) {
+    selectRecords.resetAll();
+
     this.subscriptions.push(
       fhirBackend.initialized
         .pipe(map((status) => status === ConnectionStatus.Ready))

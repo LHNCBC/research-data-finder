@@ -28,6 +28,14 @@ export class SelectRecordsService {
   resourceStream: { [resourceType: string]: Observable<Resource[]> } = {};
 
   /**
+   * Resets the state of all resource types.
+   */
+  resetAll(): void {
+    this.currentState = {};
+    this.resourceStream = {};
+  }
+
+  /**
    * Resets the state for the specified resource type
    * @param resourceType - resource type
    */
