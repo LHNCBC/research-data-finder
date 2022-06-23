@@ -91,6 +91,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       label: 'Select Research Studies',
       isVisible: () =>
         this.fhirBackend.features.hasResearchStudy &&
+        !this.allowChangeCreateCohortMode &&
         this.cohort.createCohortMode === CreateCohortMode.SEARCH
     };
     this.stepDescriptions[Step.SELECT_RECORDS] = {
