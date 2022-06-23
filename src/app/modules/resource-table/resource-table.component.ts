@@ -601,6 +601,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       : '';
   }
 
+  /**
+   * Stops event propagation so that when info icon is clicked, it does not
+   * sort the column.
+   * @param event the click event
+   */
   onInfoIconClick(event): void {
     event.stopPropagation();
   }
