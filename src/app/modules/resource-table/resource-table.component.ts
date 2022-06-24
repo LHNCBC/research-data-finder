@@ -130,6 +130,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             this.filterChanged.next(value);
           } else {
             this.dataSource.filter = { ...value } as string;
+            // setTimeout is needed to update the table after this.dataSource changes
             setTimeout(() => this.onScroll());
           }
         })
@@ -186,6 +187,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() selectAny = false;
   @ViewChild(CdkVirtualScrollViewport) scrollViewport: CdkVirtualScrollViewport;
   @Output() loadNextPage = new EventEmitter();
+  // A number that identifies a timer to periodically load the next page.
+  // This is necessary to avoid expiration of the link to the next page.
+  loadNextPageTimer: number;
+  // Interval in milliseconds to force the next page to load
+  keepAliveTimeout = 120000;
   @Output() filterChanged = new EventEmitter();
   @Output() sortChanged = new EventEmitter();
   @Input() defaultSort: Sort;
@@ -367,6 +373,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           Object.keys(this.columnsWithData)
         );
       }
+      // setTimeout is needed to update the table after this.dataSource changes
       setTimeout(() => this.onScroll());
     }
 
@@ -657,8 +664,16 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         scrollViewport.scrollTop -
         scrollViewport.clientHeight;
 
+      clearTimeout(this.loadNextPageTimer);
       if (delta >= bottomDistance) {
         this.loadNextPage.emit();
+      } else {
+        // In any case, load the next page after the specified time has elapsed
+        // so that the link to the next page does not expire:
+        this.loadNextPageTimer = setTimeout(
+          () => this.loadNextPage.emit(),
+          this.keepAliveTimeout
+        );
       }
     }
   }
