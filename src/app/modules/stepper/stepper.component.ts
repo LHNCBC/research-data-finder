@@ -18,7 +18,6 @@ import {
 } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import Patient = fhir.Patient;
-import { OBSERVATION_VALUE } from '../../shared/query-params/query-params.service';
 import pkg from '../../../../package.json';
 import { findLast } from 'lodash-es';
 import { getUrlParam } from '../../shared/utils';
