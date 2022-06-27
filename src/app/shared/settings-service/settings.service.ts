@@ -129,9 +129,14 @@ export class SettingsService {
    */
   get(paramPath): any {
     const url = this.fhirBackend.serviceBaseUrl;
-    return (
-      getPropertyByPath(this.config, `customization['${url}'].${paramPath}`) ||
-      getPropertyByPath(this.config, `default.${paramPath}`)
-    );
+    // Treat https://dbgap-api.ncbi.nlm.nih.gov/fhir* as a dbGap server (at least for now).
+    const isDbgap = /^https:\/\/dbgap-api.ncbi.nlm.nih.gov\/fhir.*/.test(url);
+    return isDbgap
+      ? getPropertyByPath(this.config, `customization.dbgap.${paramPath}`) ||
+          getPropertyByPath(this.config, `default.${paramPath}`)
+      : getPropertyByPath(
+          this.config,
+          `customization['${url}'].${paramPath}`
+        ) || getPropertyByPath(this.config, `default.${paramPath}`);
   }
 }
