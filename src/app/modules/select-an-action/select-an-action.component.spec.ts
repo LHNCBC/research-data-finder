@@ -36,7 +36,7 @@ describe('SelectAnActionComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should recreate the following steps when the action is changes', fakeAsync(() => {
+  it('should recreate the following steps when the action is changed', fakeAsync(() => {
     component.createCohortMode.setValue(CreateCohortMode.BROWSE);
     expect(cohort.createCohortMode).toBe(CreateCohortMode.UNSELECTED);
     tick();
