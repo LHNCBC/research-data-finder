@@ -97,7 +97,7 @@ export class FhirBatchQuery {
       return this._initializationPromise;
     }
     this._features = {};
-    if (this._serviceBaseUrl === 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1') {
+    if (isDbgap(this._serviceBaseUrl)) {
       this._initializationPromise = new Promise((resolve, _) => {
         Promise.allSettled([
           // Query to extract the consent group that must be included as _security param in particular queries.
@@ -894,4 +894,13 @@ export function updateUrlWithParam(url, name, value) {
     .join('&');
 
   return params ? urlWithoutParams + '?' + params : urlWithoutParams;
+}
+
+/**
+ * Whether the URL is dbGap (https://dbgap-api.ncbi.nlm.nih.gov/fhir*).
+ * @param url
+ * @returns {boolean}
+ */
+export function isDbgap(url) {
+  return /^https:\/\/dbgap-api.ncbi.nlm.nih.gov\/fhir.*/.test(url);
 }

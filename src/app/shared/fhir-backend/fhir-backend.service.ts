@@ -11,7 +11,7 @@ import {
   HttpXhrBackend
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
-import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import { FhirBatchQuery, isDbgap } from '@legacy/js/common/fhir-batch-query';
 import definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp } from '../utils';
@@ -149,10 +149,8 @@ export class FhirBackendService implements HttpBackend {
 
   // Whether an authorization tag should be added to the url.
   private static isAuthorizationRequiredForUrl(url: string): boolean {
-    const regEx = new RegExp(
-      `https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/(${RESOURCES_REQUIRING_AUTHORIZATION})`
-    );
-    return regEx.test(url);
+    const regEx = new RegExp(`/(${RESOURCES_REQUIRING_AUTHORIZATION})`);
+    return isDbgap(url) && regEx.test(url);
   }
 
   /**
