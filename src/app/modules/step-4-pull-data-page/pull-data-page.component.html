@@ -42,7 +42,7 @@
           <mat-icon svgIcon="refresh"></mat-icon>Load {{getPluralFormOfResourceType(resourceType)}}
         </button>
         <span *ngIf='showCodeSelection(resourceType)'>For selected codes:</span>
-        <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams></app-search-parameter-group>
+        <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams [allowAddRemoveButtons]="false"></app-search-parameter-group>
       </div>
       <div class="spacer"></div>
       <app-resource-table *ngIf="pullData.resourceStream[resourceType]"

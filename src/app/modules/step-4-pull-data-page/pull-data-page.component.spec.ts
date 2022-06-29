@@ -118,17 +118,6 @@ describe('PullDataForCohortComponent', () => {
     expect(component.unselectedResourceTypes.length).toBeGreaterThan(0);
   });
 
-  it('should convert resourceType to plural form correctly', () => {
-    [
-      ['Observation', 'Observations'],
-      ['ResearchStudy', 'ResearchStudies']
-    ].forEach(([resourceType, pluralForm]) =>
-      expect(component.getPluralFormOfResourceType(resourceType)).toBe(
-        pluralForm
-      )
-    );
-  });
-
   it('should add/remove tab', async () => {
     fixture.detectChanges();
     component.addTab('Encounter');

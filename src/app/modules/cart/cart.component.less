@@ -1,0 +1,195 @@
+.remove-btn {
+  margin-top: -0.3em;
+}
+
+.h-box {
+  align-items: center;
+}
+
+.list {
+  max-height: 400px;
+  overflow: auto;
+  padding-bottom: 1px;
+}
+
+mat-radio-group.switch-group {
+  margin-bottom: 10px;
+  mat-radio-button {
+    ::ng-deep .mat-radio-container,
+    ::ng-deep .mat-radio-label-content {
+      font-size: 14px;
+      line-height: 28px;
+      font-weight: normal;
+    }
+    text-align: center;
+    text-shadow: none;
+    box-sizing: border-box;
+    border-width: 1px 0;
+    border-style: solid;
+    border-color: rgb(97, 158, 215);
+    background: white;
+    color: rgb(49, 118, 179);
+    padding: 0 8px;
+  }
+
+  mat-radio-button:first-child {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+  }
+  mat-radio-button:last-child {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-right-width: 1px;
+  }
+}
+
+.cell {
+  min-width: 100px;
+  max-width: 100px;
+  flex: 1 1;
+  padding-right: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.list-toolbar {
+  min-width: 40px;
+  max-width: 40px;
+}
+
+.list-header {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+  min-width: 100%;
+  width: fit-content;
+}
+
+.list-title {
+  position: relative;
+  margin-left: 27px;
+  padding-left: 13px;
+
+  &:before {
+    content: "";
+    left: -9px;
+    border-color: #619ed7;
+    border-style: solid;
+    width: 22px;
+    height: calc(100% + 10px);
+    position: absolute;
+    border-width: 0 0 0 1px;
+    top: -10px;
+  }
+  label {
+    font-weight: bold;
+  }
+}
+
+.list-item {
+  position: relative;
+  margin-left: 27px;
+  padding-left: 13px;
+
+  &:before {
+      content: "";
+      left: -9px;
+      border-color: #619ed7;
+      border-style: solid;
+      width: 22px;
+      height: calc(50% - 1px);
+      position: absolute;
+      border-width: 0 0 1px 1px;
+      top: 0;
+  }
+
+  &:not(:last-child):after {
+      content: "";
+      left: -9px;
+      border-color: #619ed7;
+      border-style: solid;
+      width: 22px;
+      height: calc(50% - 6px);
+      position: absolute;
+      border-width: 0 0 0 1px;
+      top: calc(50% + 6px);
+  }
+
+  .condition-label {
+    position: absolute;
+    left: -22px;
+    top: calc(50% - 9px);
+    width: 26px;
+    font-size: 0.6em;
+    border: 1px solid rgb(97, 158, 215);
+    border-radius: 5px;
+    background-color: rgba(255,255,255,1);
+    text-align: center;
+    text-transform: uppercase;
+  }
+}
+
+// ResearchStudy table:
+.cell-ResearchStudy-title {
+  min-width: 400px;
+  max-width: 600px;
+}
+
+.cell-ResearchStudy-identifier {
+  min-width: 130px;
+  max-width: 130px;
+}
+
+.cell-ResearchStudy-category,
+.cell-ResearchStudy-focus{
+  min-width: 140px;
+  max-width: 140px;
+}
+
+.cell-ResearchStudy-NumMolecularDatasets {
+  min-width: 160px;
+  max-width: 160px;
+}
+
+.cell-ResearchStudy-NumPhenotypeDatasets {
+  min-width: 170px;
+  max-width: 170px;
+}
+
+.cell-ResearchStudy-NumDocuments,
+.cell-ResearchStudy-NumSubStudies {
+  min-width: 110px;
+  max-width: 110px;
+}
+
+.cell-ResearchStudy-NumAnalyses,
+.cell-ResearchStudy-NumDocuments,
+.cell-ResearchStudy-NumSamples,
+.cell-ResearchStudy-NumSubjects,
+.cell-ResearchStudy-NumVariables,
+.cell-ResearchStudy-NumMolecularDatasets,
+.cell-ResearchStudy-NumPhenotypeDatasets,
+.cell-ResearchStudy-NumSubStudies {
+  text-align: right;
+}
+
+// Variable table:
+.cell-Variable-display_name {
+  min-width: 200px;
+  max-width: 600px;
+}
+
+.cell-Variable-study_id,
+.cell-Variable-dataset_id,
+.cell-Variable-class {
+  min-width: 150px;
+  max-width: 150px;
+}
+.cell-Variable-type {
+  min-width: 200px;
+  max-width: 200px;
+}

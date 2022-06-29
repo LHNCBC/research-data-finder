@@ -15,7 +15,7 @@ import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
 
-describe('SelectRecordsPageComponent', () => {
+describe('BrowseRecordsPageComponent', () => {
   let component: BrowseRecordsPageComponent;
   let fixture: ComponentFixture<BrowseRecordsPageComponent>;
   let mockHttp: HttpTestingController;

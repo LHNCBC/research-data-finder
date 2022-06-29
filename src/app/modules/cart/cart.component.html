@@ -1,0 +1,38 @@
+<div class="v-box">
+  <div class="h-box">
+    <h4>{{pluralFormOfRecordType}} in Cart:</h4>
+    <div class="spacer"></div>
+    <label style="color: blue">[TODO: this part is not ready]</label>
+  </div>
+
+  <ng-container *ngIf="records.length > 0; else emptyTemplate">
+    <div class="v-box list">
+      <div class="v-box list-header">
+        <mat-radio-group [(ngModel)]="condition"
+                         aria-label="Select an operator to combine criteria"
+                         class="switch-group">
+          <mat-radio-button value="and">AND</mat-radio-button>
+          <mat-radio-button value="or">OR</mat-radio-button>
+        </mat-radio-group>
+        <div class="h-box list-title">
+          <div class="list-toolbar"></div>
+          <label class="cell cell-{{resourceType}}-{{column.element}}" *ngFor="let column of columnDescriptions">{{column.displayName}}</label>
+        </div>
+      </div>
+      <div class="v-box list-body">
+        <div class="h-box list-item" *ngFor="let record of records">
+          <div class="condition-label">{{condition}}</div>
+          <div class="list-toolbar">
+            <button type="button" mat-icon-button class="remove-btn" (click)="removeRecordFromCart(resourceType, record)">
+              <mat-icon svgIcon="clear"></mat-icon>
+            </button>
+          </div>
+          <label class="cell cell-{{resourceType}}-{{column.element}}" *ngFor="let column of columnDescriptions">{{cells[record.id][column.element] || '&nbsp;'}}</label>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+  <ng-template #emptyTemplate>
+    <label>No {{pluralFormOfRecordType.toLowerCase()}} in the cart. Select the {{pluralFormOfRecordType.toLowerCase()}} for which you want to build a cohort of patients.</label>
+  </ng-template>
+</div>

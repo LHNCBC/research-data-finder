@@ -22,6 +22,7 @@ import { saveAs } from 'file-saver';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
+import { getPluralFormOfResourceType } from '../../shared/utils';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -96,6 +97,11 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
       });
   }
 
+  /**
+   * Returns plural form of resource type name.
+   */
+  getPluralFormOfResourceType = getPluralFormOfResourceType;
+
   ngAfterViewInit(): void {
     this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
       startWith(this.getCurrentResourceType()),
@@ -148,18 +154,6 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
   }
 
   /**
-   * Returns plural form of resource type name.
-   */
-  getPluralFormOfResourceType(resourceType: string): string {
-    return resourceType.replace(/(.*)(.)/, (_, $1, $2) => {
-      if ($2 === 'y') {
-        return $1 + 'ies';
-      }
-      return _ + 's';
-    });
-  }
-
-  /**
    * Whether to show code selection after Load button.
    */
   showCodeSelection(resourceType: string): boolean {
@@ -191,7 +185,7 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
    * Returns text for the remove tab button.
    */
   getRemoveTabButtonText(resourceType: string): string {
-    return `Remove ${this.getPluralFormOfResourceType(resourceType)} tab`;
+    return `Remove ${getPluralFormOfResourceType(resourceType)} tab`;
   }
 
   /**
@@ -253,8 +247,7 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
     );
     saveAs(
       currentResourceTable.getBlob(),
-      this.getPluralFormOfResourceType(currentResourceType).toLowerCase() +
-        '.csv'
+      getPluralFormOfResourceType(currentResourceType).toLowerCase() + '.csv'
     );
   }
 }

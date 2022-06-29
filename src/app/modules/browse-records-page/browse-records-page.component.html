@@ -11,7 +11,7 @@
 </p>
 
 <mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
-  <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfResourceType(resourceType)">
+  <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfRecordName(resourceType)">
     <div class="v-box tab-content">
       <app-resource-table *ngIf="resourceType !== 'Variable' && selectRecords.currentState[resourceType]"
                           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'browse') | async"

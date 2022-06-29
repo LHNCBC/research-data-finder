@@ -14,6 +14,8 @@ import variables from 'src/test/test-fixtures/variables.json';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 describe('SelectRecordsPageComponent', () => {
   let component: SelectRecordsPageComponent;
@@ -58,6 +60,7 @@ describe('SelectRecordsPageComponent', () => {
     mockHttp
       .expectOne('$fhir/ResearchStudy?_count=50&_sort=title')
       .flush(researchStudies);
+    await expectNumberOfRecords(2);
   }
 
   /**
@@ -75,6 +78,18 @@ describe('SelectRecordsPageComponent', () => {
   }
 
   /**
+   * Creates an expectation for the number of records on the current tab.
+   * @param n - number of expected records
+   */
+  async function expectNumberOfRecords(n: number): Promise<void> {
+    const tabGroup = await loader.getHarness(MatTabGroupHarness);
+    const currentTab = await tabGroup.getSelectedTab();
+    const table = await currentTab.getHarness(MatTableHarness);
+    const rows = await table.getRows();
+    expect(rows.length).toBe(n);
+  }
+
+  /**
    * Go to variables tab and load variables.
    */
   async function loadVariables(): Promise<void> {
@@ -89,6 +104,7 @@ describe('SelectRecordsPageComponent', () => {
         );
       })
       .flush(variables);
+    await expectNumberOfRecords(4);
   }
 
   it('should create', () => {
@@ -112,6 +128,11 @@ describe('SelectRecordsPageComponent', () => {
     fixture.debugElement
       .query(By.css('mat-tab-body:first-child mat-checkbox label'))
       .nativeElement.click();
+    // Add study to cart
+    const addButton = await loader.getHarness(
+      MatButtonHarness.with({ text: 'Add selected records to Studies cart' })
+    );
+    await addButton.click();
     await selectTab('Variables');
     mockHttp
       .expectOne((req: HttpRequest<any>) => {
