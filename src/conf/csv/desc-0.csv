@@ -217,6 +217,7 @@ Patient,,,,,,,
 ,id,column,Id,show,string,,
 ,identifier,"search parameter",identifier,show,Identifier,,"A patient identifier"
 ,identifier,column,Identifier,show,Identifier,,"An identifier for this patient"
+,language,"search parameter",language,show,CodeableConcept,,"Language code (irrespective of use value)"
 ,link,column,Link,hide,BackboneElement,,"Link to another patient resource that concerns the same actual person"
 ,managingOrganization,column,"Managing Organization",hide,Reference,,"Organization that is the custodian of the patient record"
 ,maritalStatus,column,"Marital Status",hide,CodeableConcept,,"Marital (civil) status of a patient"

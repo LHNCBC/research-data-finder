@@ -12,6 +12,7 @@ const https = require('https');
 const writeXlsxFile = require('write-excel-file/node');
 
 const SERVICEBASEURL = '---SERVICE BASE URL:';
+const DBGAPBASEURL = 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1';
 const SEARCHPARAMETER = 'search parameter';
 const COLUMN = 'column';
 const RESOURCETYPECOLUMN = 'A';
@@ -260,6 +261,9 @@ for (let i = 0; i < file.SheetNames.length; i++) {
         if (serviceBaseUrl === 'default') {
           break;
         }
+        if (serviceBaseUrl === 'dbgap') {
+          serviceBaseUrl = DBGAPBASEURL;
+        }
       }
     }
     if (sheet[`${TYPECOLUMN}${rowNum}`]?.v === SEARCHPARAMETER) {
@@ -293,6 +297,10 @@ function camelCaseToHyphenated(camel) {
  */
 function paintRow(sheet, rowNum, columnCount, color, doNotUpdateColor) {
   for (let i = 0; i < columnCount; i++) {
+    // xlsx package now reads an empty cell in excel as undefined...
+    if (!sheet[`${xlsxColumnHeaders[i]}${rowNum}`]) {
+      sheet[`${xlsxColumnHeaders[i]}${rowNum}`] = {};
+    }
     if (
       sheet[`${xlsxColumnHeaders[i]}${rowNum}`].s?.fgColor?.rgb !==
       doNotUpdateColor
@@ -333,6 +341,9 @@ function updateColumnRows() {
     for (let rowNum = 1; rowNum <= maxRowNumber; rowNum++) {
       if (sheet[`${RESOURCETYPECOLUMN}${rowNum}`]?.v === SERVICEBASEURL) {
         serviceBaseUrl = sheet[`${FHIRNAMECOLUMN}${rowNum}`]?.v;
+        if (serviceBaseUrl === 'dbgap') {
+          serviceBaseUrl = DBGAPBASEURL;
+        }
       }
 
       // The resourceType variable will contain the resource type at the
@@ -377,6 +388,7 @@ function updateColumnRows() {
 requestQueuePromise.then(() => {
   updateColumnRows();
   const sheetsData = [];
+  const columns = [];
   for (let i = 0; i < file.SheetNames.length; i++) {
     const sheet = file.Sheets[file.SheetNames[i]];
     const maxRowNumber = +sheet['!ref'].slice(4);
@@ -388,9 +400,9 @@ requestQueuePromise.then(() => {
       sheetData.push(getRowData(sheet, rowNum, columnCount));
     }
     sheetsData.push(sheetData);
+    // writeXlsxFile now takes an array of columns for each sheet.
+    columns.push(sheet['!cols']);
   }
-  // Writing with column width data from 1st sheet, since you can only pass in one column width array.
-  const columns = file.Sheets[file.SheetNames[0]]['!cols'];
   writeXlsxFile(sheetsData, {
     sheets: file.SheetNames,
     columns,
