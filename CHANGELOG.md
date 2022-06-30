@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.1] - 2022-06-30
+### Added
+- Simple prototype of the component for records in cart for the alpha version.
+- The ability to switch to the alpha version using the menu on the version
+  number link.
+
 ## [5.0.0] - 2022-06-21
 ### Added
 - Alpha version of creating a cohort of patients by browsing and selecting records.
