@@ -1,4 +1,5 @@
 import definitionsIndex from '../search-parameters/definitions/index.json';
+import settings from '../../../../src/assets/settings.json5';
 
 let commonRequestCache = {}; // Map from url to result JSON
 
@@ -902,5 +903,6 @@ export function updateUrlWithParam(url, name, value) {
  * @returns {boolean}
  */
 export function isDbgap(url) {
-  return /^https:\/\/dbgap-api.ncbi.nlm.nih.gov\/fhir.*/.test(url);
+  const urlPattern = settings.customization.dbgap.urlPattern;
+  return new RegExp(urlPattern).test(url);
 }

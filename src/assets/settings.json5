@@ -47,7 +47,7 @@
 
     "dbgap": {
       definitionsFile: 'desc-1.csv',
-      urlPattern: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir*',
+      urlPattern: '^https://dbgap-api.ncbi.nlm.nih.gov/fhir',
       maxRequestsPerBatch: 50,
       maxActiveRequests: 1,
 
