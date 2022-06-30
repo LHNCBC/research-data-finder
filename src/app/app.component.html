@@ -7,8 +7,16 @@
     <span id=tagline>An <a
       href="https://github.com/lhncbc/fhir-obs-viewer">open source</a> viewer
          for FHIR Observations from the National Library of Medicine</span>
-    <div id="version">Version: <a target="_blank" rel="noopener noreferrer"
-                                  href="https://github.com/lhncbc/fhir-obs-viewer/blob/master/CHANGELOG.md">{{version}}</a></div>
+    <div id="version">Version: <a target="_blank"
+                                  tabIndex="0"
+                                  (keyup.enter)="$event.currentTarget.click()"
+                                  [matMenuTriggerFor]="menu">{{version + (isAlpha ? ' (alpha)' : '') }}</a></div>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item
+              (click)="openChangelog()">View changelog</button>
+      <button mat-menu-item
+              (click)="switchVersion()">Switch to the {{isAlpha ? 'stable' : 'alpha' }} version</button>
+    </mat-menu>
   </div>
 </div>
 <!-- end page header -->
