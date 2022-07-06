@@ -12,11 +12,13 @@ describe('AppComponent', () => {
       declarations: [AppComponent],
       imports: [AppModule, FhirBackendModule, SharedModule]
     }).compileComponents();
-    const service = TestBed.inject(FhirBackendService);
-    service.settings = TestBed.inject(SettingsService);
-    spyOn(service.settings, 'getDbgapUrlPattern').and.returnValue(
+    const fhirBackend = TestBed.inject(FhirBackendService);
+    const settingsService = TestBed.inject(SettingsService);
+    spyOn(settingsService, 'getDbgapUrlPattern').and.returnValue(
       '^https://dbgap-api.ncbi.nlm.nih.gov/fhir'
     );
+    settingsService.loadJsonConfig().subscribe();
+    fhirBackend.settings = settingsService;
   });
 
   it('should create the app', () => {
