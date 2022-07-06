@@ -1,5 +1,4 @@
 import definitionsIndex from '../search-parameters/definitions/index.json';
-import settings from '../../../../src/assets/settings.json5';
 
 let commonRequestCache = {}; // Map from url to result JSON
 
@@ -28,6 +27,7 @@ export class FhirBatchQuery {
     batchTimeout = 20
   }) {
     this._serviceBaseUrl = serviceBaseUrl;
+    this._isDbgap = false;
     this._pending = [];
     this._batchTimeoutId = null;
     this._batchTimeout = batchTimeout;
@@ -53,6 +53,13 @@ export class FhirBatchQuery {
    */
   getServiceBaseUrl() {
     return this._serviceBaseUrl;
+  }
+
+  /**
+   * Sets whether the service base url is a dbGap url.
+   */
+  setIsDbgap(value) {
+    this._isDbgap = value;
   }
 
   /**
@@ -98,7 +105,7 @@ export class FhirBatchQuery {
       return this._initializationPromise;
     }
     this._features = {};
-    if (isDbgap(this._serviceBaseUrl)) {
+    if (this._isDbgap) {
       this._initializationPromise = new Promise((resolve, _) => {
         Promise.allSettled([
           // Query to extract the consent group that must be included as _security param in particular queries.
@@ -895,14 +902,4 @@ export function updateUrlWithParam(url, name, value) {
     .join('&');
 
   return params ? urlWithoutParams + '?' + params : urlWithoutParams;
-}
-
-/**
- * Whether the URL is dbGap (https://dbgap-api.ncbi.nlm.nih.gov/fhir*).
- * @param url
- * @returns {boolean}
- */
-export function isDbgap(url) {
-  const urlPattern = settings.customization.dbgap.urlPattern;
-  return new RegExp(urlPattern).test(url);
 }

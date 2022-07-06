@@ -11,7 +11,6 @@ import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import { get as getPropertyByPath } from 'lodash-es';
 import json5 from 'json5';
 import { csvStringToArray } from '../utils';
-import { isDbgap } from '@legacy/js/common/fhir-batch-query';
 
 @Injectable({
   providedIn: 'root'
@@ -131,12 +130,19 @@ export class SettingsService {
   get(paramPath): any {
     const url = this.fhirBackend.serviceBaseUrl;
     // Treat https://dbgap-api.ncbi.nlm.nih.gov/fhir* as a dbGap server (at least for now).
-    return isDbgap(url)
+    return this.fhirBackend.isDbgap(url)
       ? getPropertyByPath(this.config, `customization.dbgap.${paramPath}`) ||
           getPropertyByPath(this.config, `default.${paramPath}`)
       : getPropertyByPath(
           this.config,
           `customization['${url}'].${paramPath}`
         ) || getPropertyByPath(this.config, `default.${paramPath}`);
+  }
+
+  /**
+   * Returns the URL pattern for dbGap from config.
+   */
+  getDbgapUrlPattern(): string {
+    return this.config.customization.dbgap.urlPattern;
   }
 }

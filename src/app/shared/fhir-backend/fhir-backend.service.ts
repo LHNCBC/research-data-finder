@@ -11,7 +11,7 @@ import {
   HttpXhrBackend
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
-import { FhirBatchQuery, isDbgap } from '@legacy/js/common/fhir-batch-query';
+import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp } from '../utils';
@@ -148,9 +148,9 @@ export class FhirBackendService implements HttpBackend {
   private currentDefinitions: any;
 
   // Whether an authorization tag should be added to the url.
-  private static isAuthorizationRequiredForUrl(url: string): boolean {
+  private isAuthorizationRequiredForUrl(url: string): boolean {
     const regEx = new RegExp(`/(${RESOURCES_REQUIRING_AUTHORIZATION})`);
-    return isDbgap(url) && regEx.test(url);
+    return this.isDbgap(url) && regEx.test(url);
   }
 
   /**
@@ -158,6 +158,8 @@ export class FhirBackendService implements HttpBackend {
    * @param [serviceBaseUrl] - new FHIR REST API Service Base URL
    */
   initializeFhirBatchQuery(serviceBaseUrl: string = ''): void {
+    // Set _isDbgap flag in fhirClient
+    this.fhirClient.setIsDbgap(this.isDbgap(serviceBaseUrl));
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
     this.fhirClient.initialize(serviceBaseUrl).then(
@@ -228,7 +230,7 @@ export class FhirBackendService implements HttpBackend {
     // Observation and ResearchSubject queries will be sent with _security params.
     const fullUrl =
       this.features.consentGroup &&
-      FhirBackendService.isAuthorizationRequiredForUrl(newRequest.url)
+      this.isAuthorizationRequiredForUrl(newRequest.url)
         ? this.fhirClient.addParamToUrl(
             newRequest.urlWithParams,
             '_security',
@@ -396,5 +398,13 @@ export class FhirBackendService implements HttpBackend {
 
     this.currentDefinitions.initialized = true;
     return this.currentDefinitions;
+  }
+
+  /**
+   * Whether the URL is dbGap (https://dbgap-api.ncbi.nlm.nih.gov/fhir*).
+   */
+  isDbgap(url): boolean {
+    const urlPattern = this.settings.getDbgapUrlPattern();
+    return new RegExp(urlPattern).test(url);
   }
 }
