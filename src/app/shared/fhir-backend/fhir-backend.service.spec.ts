@@ -57,6 +57,9 @@ describe('FhirBackendService', () => {
     spyOn(service.settings, 'loadCsvDefinitions').and.returnValue(
       of(csvDefinitions)
     );
+    spyOn(service.settings, 'getDbgapUrlPattern').and.returnValue(
+      '^https://dbgap-api.ncbi.nlm.nih.gov/fhir'
+    );
   });
 
   it('should be created', () => {
