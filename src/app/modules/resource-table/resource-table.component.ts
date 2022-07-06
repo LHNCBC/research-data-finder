@@ -33,6 +33,7 @@ import { FilterType } from '../../types/filter-type';
 import { CustomDialog } from '../../shared/custom-dialog/custom-dialog.service';
 import Resource = fhir.Resource;
 import { MatExpansionPanel } from '@angular/material/expansion';
+import { MatTooltip } from '@angular/material/tooltip';
 
 type TableCells = { [key: string]: string };
 
@@ -602,11 +603,14 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Toggles tooltip.
    * Stops event propagation so that when info icon is clicked, it does not
    * sort the column.
    * @param event the click event
+   * @param tooltip MatTooltip object
    */
-  onInfoIconClick(event): void {
+  onInfoIconClick(event: any, tooltip: MatTooltip): void {
+    tooltip.toggle();
     event.stopPropagation();
   }
 }
