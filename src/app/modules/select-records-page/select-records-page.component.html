@@ -33,17 +33,18 @@
                           [defaultSort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
                           [resourceType]="resourceType"></app-resource-table>
-      <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState['Variable']"
+      <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState[resourceType]"
                           #variableTable
-                          [columnDescriptions]="columnDescriptions.getVisibleColumns('Variable', 'select') | async"
-                          (filterChanged)="filterVariables()"
+                          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'select') | async"
+                          (filterChanged)="loadFirstPage(resourceType)"
                           [enableFiltering]="true" [enableSelection]="true"
-                          [loading]="selectRecords.currentState['Variable'].loading"
-                          [resources]="selectRecords.resourceStream['Variable'] | async"
+                          [loading]="selectRecords.currentState[resourceType].loading"
+                          [resources]="selectRecords.resourceStream[resourceType] | async"
                           [selectAny]="true"
                           context="select"
-                          [defaultSort]="sort['Variable']"
-                          resourceType="Variable"></app-resource-table>
+                          [defaultSort]="sort[resourceType]"
+                          (sortChanged)="onSortChanged(resourceType, $event)"
+                          [resourceType]="resourceType"></app-resource-table>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button [disabled]="getSelectedRecords(resourceType).length === 0"

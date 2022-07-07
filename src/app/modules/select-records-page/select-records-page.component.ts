@@ -51,6 +51,12 @@ export class SelectRecordsPageComponent
   sort: { [resourceType: string]: Sort } = {
     ResearchStudy: {
       active: 'title',
+      // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+      direction: 'desc'
+    },
+    Variable: {
+      active: 'display_name',
+      // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
       direction: 'desc'
     }
   };
@@ -225,6 +231,7 @@ export class SelectRecordsPageComponent
     if (!sort) {
       return '';
     }
+    // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
     return `_sort=${sort.direction === 'asc' ? '-' : ''}${sort.active}`;
   }
 

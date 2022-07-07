@@ -167,7 +167,16 @@ export class SelectRecordsService {
           has_loinc: true,
           df: uniqDataFields.join(','),
           terms: '',
-          q: query.join(' AND ')
+          q: query.join(' AND '),
+          ...(sort
+            ? {
+                of:
+                  dataFields[sort.active] +
+                  ':' +
+                  // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+                  (sort.direction === 'asc' ? 'desc' : 'asc')
+              }
+            : {})
         }
       })
       .pipe(

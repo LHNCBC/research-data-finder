@@ -509,7 +509,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.sortChanged.emit(sort);
       return;
     }
-    const isAsc = sort.direction === 'asc';
+    // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+    const isAsc = sort.direction === 'desc';
     const sortingColumnDescription = this.columnDescriptions.find(
       (c) => c.element === sort.active
     );
@@ -518,8 +519,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const cellValueA = a.cells[sortingColumnDescription.element];
       const cellValueB = b.cells[sortingColumnDescription.element];
       return filterType === FilterType.Number
-        ? (+cellValueA - +cellValueB) * (isAsc ? -1 : 1)
-        : cellValueA.localeCompare(cellValueB) * (isAsc ? -1 : 1);
+        ? (+cellValueA - +cellValueB) * (isAsc ? 1 : -1)
+        : cellValueA.localeCompare(cellValueB) * (isAsc ? 1 : -1);
     });
     // Table will re-render only after data reference changed.
     this.dataSource.data = this.dataSource.data.slice();
