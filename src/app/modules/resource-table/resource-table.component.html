@@ -42,7 +42,7 @@
       <!-- Select checkbox column -->
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef class="cell-with-icon" width="28">
-          <mat-checkbox *ngIf="!selectAny && !context === 'browse'"
+          <mat-checkbox *ngIf="!selectAny && !(context === 'browse' || context === 'select')"
                         (change)="$event ? masterToggle() : null"
                         [checked]="selectedResources.hasValue() && isAllSelected()"
                         [indeterminate]="selectedResources.hasValue() && !isAllSelected()"
