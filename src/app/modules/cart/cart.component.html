@@ -1,11 +1,17 @@
 <div class="v-box">
+  <div class="spacer"></div>
   <div class="h-box">
-    <h4>{{pluralFormOfRecordType}} in Cart:</h4>
+    <b>{{pluralFormOfRecordType}} in Cart:</b>
     <div class="spacer"></div>
-    <label style="color: blue">[TODO: this part is not ready]</label>
+    <label style="color: blue" *ngIf="resourceType !== 'ResearchStudy'">[TODO: this part is not ready]</label>
   </div>
+  <div class="spacer"></div>
 
   <ng-container *ngIf="records.length > 0; else emptyTemplate">
+    <label class="info" *ngIf="resourceType === 'ResearchStudy'">
+      <span class="info-icon" aria-hidden="true"></span>
+      Patients will be added to the cohort if they participate in all (AND) or one of (OR) the studies in the cart.</label>
+    <div class="spacer" *ngIf="resourceType === 'ResearchStudy'"></div>
     <div class="v-box list">
       <div class="v-box list-header">
         <mat-radio-group [(ngModel)]="condition"
