@@ -440,6 +440,51 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Checks if the specified row is the last selected
+   * @param row - table row to check
+   */
+  isLastSelected(row: TableRow): boolean {
+    return (
+      this.selectedResources.selected[
+        this.selectedResources.selected.length - 1
+      ] === row.resource
+    );
+  }
+
+  /**
+   * Adds the ability to select multiple rows in a table with a mouse click
+   * while holding down the Shift key.
+   * @param $event - event produced by click
+   * @param row - clicked table row
+   */
+  checkboxClick($event: MouseEvent, row: TableRow): void {
+    if ($event.shiftKey) {
+      const from = this.selectedResources.selected[
+        this.selectedResources.selected.length - 1
+      ];
+      if (from) {
+        const fromIndex = this.dataSource.data.findIndex(
+          (r) => r.resource === from
+        );
+        if (fromIndex !== -1) {
+          const toIndex = this.dataSource.data.indexOf(row);
+          const direction = Math.sign(toIndex - fromIndex);
+
+          for (
+            let i = fromIndex;
+            direction * i <= direction * toIndex;
+            i = i + direction
+          ) {
+            this.selectedResources.select(this.dataSource.data[i].resource);
+          }
+          $event.preventDefault();
+        }
+      }
+    }
+    $event.stopPropagation();
+  }
+
+  /**
    * Deselect all rows.
    */
   clearSelection(): void {

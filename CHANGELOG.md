@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.4] - 2022-07-11
+### Added
+- The ability to select multiple rows in a table with a mouse click
+  while holding down the Shift key.
+
 ## [5.0.3] - 2022-07-08
 ### Added
 - The ability to deselect all selected records.

@@ -76,7 +76,7 @@
         </th>
         <td mat-cell *matCellDef="let row" class="cell-with-icon">
           <mat-checkbox *ngIf='selectAny || myStudyIds.includes(row.resource.id)'
-                        (click)="$event.stopPropagation()"
+                        (click)="checkboxClick($event, row)"
                         (change)="$event ? selectedResources.toggle(row.resource) : null"
                         [checked]="selectedResources.isSelected(row.resource)"
                         matTooltip='Select this research study to pull data in the next step'>
@@ -136,7 +136,7 @@
 
       <!-- TODO: replace with https://github.com/swimlane/ngx-datatable to support IE11 or find another way to support sticky header -->
       <tr mat-header-row *matHeaderRowDef="columns; sticky: true"></tr>
-      <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns;" [class.anchor-row]="isLastSelected(row)"></tr>
     </table>
   </cdk-virtual-scroll-viewport>
 </div>
