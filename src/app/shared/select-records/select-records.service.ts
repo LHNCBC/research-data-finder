@@ -116,11 +116,15 @@ export class SelectRecordsService {
   /**
    * Loads variables for selected research studies.
    * @param selectedResearchStudies - array of selected research studies.
+   * @param params - http parameters
    * @param filters - filter values
    * @param sort - the current sort state
    */
   loadVariables(
     selectedResearchStudies: Resource[],
+    params: {
+      [param: string]: any;
+    },
     filters: any,
     sort: Sort
   ): void {
@@ -162,12 +166,11 @@ export class SelectRecordsService {
     this.resourceStream[resourceType] = this.http
       .get(url, {
         params: {
-          rec_type: 'dbgv',
           maxList: 50,
-          has_loinc: true,
           df: uniqDataFields.join(','),
           terms: '',
           q: query.join(' AND '),
+          ...params,
           ...(sort
             ? {
                 of:

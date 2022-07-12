@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.5] - 2022-07-12
+### Added
+- Options to variables tab for CTSS API.
+
 ## [5.0.4] - 2022-07-11
 ### Added
 - The ability to select multiple rows in a table with a mouse click

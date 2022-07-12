@@ -35,7 +35,21 @@
                           context="browse"
                           [defaultSort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
-                          [resourceType]="resourceType"></app-resource-table>
+                          [resourceType]="resourceType">
+        <ng-template #prefix>
+          <div class="v-box">
+            <div class="h-box">
+              <mat-checkbox [(ngModel)]="hasLoinc"
+                            [disabled]="recTypeLoinc"
+                            (change)="loadFirstPage(resourceType)">Show only LOINC-coded variables</mat-checkbox>
+              <div class="spacer"></div>
+              <mat-checkbox [(ngModel)]="recTypeLoinc"
+                            (change)="hasLoinc=true;loadFirstPage(resourceType)">Show one row per LOINC code</mat-checkbox>
+            </div>
+            <div class="spacer"></div>
+          </div>
+        </ng-template>
+      </app-resource-table>
     </div>
   </mat-tab>
 </mat-tab-group>

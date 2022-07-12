@@ -1,5 +1,6 @@
 import {
   Component,
+  ContentChild,
   EventEmitter,
   HostBinding,
   Input,
@@ -9,6 +10,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  TemplateRef,
   ViewChild
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -164,6 +166,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     return output;
   }
 
+  @ContentChild('prefix') prefixTemplate: TemplateRef<any>;
+  get prefixContext(): any {
+    return {};
+  }
   @ViewChild('panel') panel: MatExpansionPanel;
   @Input() columnDescriptions: ColumnDescription[];
   // If true, client-side filtering is applied by default.
