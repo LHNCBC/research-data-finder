@@ -164,7 +164,6 @@ export class SelectRecordsService {
         params: {
           rec_type: 'dbgv',
           maxList: 50,
-          has_loinc: true,
           df: uniqDataFields.join(','),
           terms: '',
           q: query.join(' AND ')
