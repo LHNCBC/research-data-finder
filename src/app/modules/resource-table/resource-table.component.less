@@ -20,6 +20,13 @@
   margin-left: -20px;
 }
 
+.no-sort-header-container {
+  display: flex;
+  align-items: center;
+  letter-spacing: normal;
+  outline: 0;
+}
+
 td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
   padding-right: 10px;
 }
@@ -85,7 +92,7 @@ th button[mat-icon-button] {
   margin-left: -12px;
 }
 
-th button {
+th button:not(.configure-btn) {
   display: flex;
   margin-left: 5px;
   border: 0;

@@ -6,7 +6,7 @@ import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import Resource = fhir.Resource;
 
-interface ResearchStudyState{
+interface ResearchStudyState {
   // Indicates that data is loading
   loading: boolean;
   // Array of loaded studies
@@ -44,7 +44,7 @@ export class ResearchStudyService {
       progressValue: 0,
       totalRecords: 0,
       loadedRecords: 0,
-      myStudyIds: []
+      myStudyIds: this.currentState?.myStudyIds || []
     };
     this.currentState = currentState;
     return this.http.get(url).pipe(

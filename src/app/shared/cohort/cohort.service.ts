@@ -54,6 +54,13 @@ const EVIDENCE_VARIABLE_RESOURCE_TYPE = 'EvidenceVariable';
 // Observation resource type name
 const OBSERVATION_RESOURCE_TYPE = 'Observation';
 
+export enum CreateCohortMode {
+  UNSELECTED,
+  NO_COHORT,
+  BROWSE,
+  SEARCH
+}
+
 interface CohortState {
   // Indicates that data is loading
   loading: boolean;
@@ -74,6 +81,8 @@ export class CohortService {
     private queryParams: QueryParamsService,
     private http: HttpClient
   ) {}
+
+  createCohortMode = CreateCohortMode.SEARCH;
 
   // Observable that emits Patient resources that match the criteria
   patientStream: Observable<Patient[]>;
