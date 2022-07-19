@@ -695,7 +695,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   getSortMessage(): string {
     return this.sort?.active
-      ? `The data sorted by ${this.sort.active} in ${
+      ? `The data was sorted by ${this.sort.active} in ${
           // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
           this.sort.direction === 'desc' ? 'ascending' : 'descending'
         } order.`
