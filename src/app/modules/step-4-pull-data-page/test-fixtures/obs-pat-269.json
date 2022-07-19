@@ -7,7 +7,7 @@
   "type": "searchset",
   "link": [ {
     "relation": "self",
-    "url": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation?_count=1000&_sort=patient%2Ccode%2C-date&_type=json&subject=Patient%2Fpat-269"
+    "url": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation?_count=1000&_sort=patient%2Ccode%2C-date&_format=json&subject=Patient%2Fpat-269"
   } ],
   "entry": [ {
     "fullUrl": "https://lforms-fhir.nlm.nih.gov/baseR4/Observation/234256",

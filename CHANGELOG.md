@@ -8,6 +8,8 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Simple prototype of the component for records in cart for the alpha version.
 - The ability to switch to the alpha version using the menu on the version
   number link.
+### Fixed
+- Incorrect query parameter _type replaced with _format.
 
 ## [5.0.0] - 2022-06-21
 ### Added

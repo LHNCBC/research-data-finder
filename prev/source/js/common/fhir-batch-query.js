@@ -514,7 +514,7 @@ export class FhirBatchQuery {
       }
 
       if (method === 'GET') {
-        sendUrl = this.addParamToUrl(sendUrl, '_type', 'json');
+        sendUrl = this.addParamToUrl(sendUrl, '_format', 'json');
       }
 
       oReq.open(method, sendUrl);
