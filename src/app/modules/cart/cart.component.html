@@ -12,10 +12,11 @@
       <span class="info-icon" aria-hidden="true"></span>
       Patients will be added to the cohort if they participate in all (AND) or one of (OR) the studies in the cart.</label>
     <div class="spacer" *ngIf="resourceType === 'ResearchStudy'"></div>
-    <div class="v-box list">
+    <div class="v-box list" [class.list--tree-view]="isTree()">
       <div class="v-box list-header">
         <mat-radio-group [(ngModel)]="condition"
                          aria-label="Select an operator to combine criteria"
+                         *ngIf="isTree()"
                          class="switch-group">
           <mat-radio-button value="and">AND</mat-radio-button>
           <mat-radio-button value="or">OR</mat-radio-button>
@@ -27,7 +28,7 @@
       </div>
       <div class="v-box list-body">
         <div class="h-box list-item" *ngFor="let record of records">
-          <div class="condition-label">{{condition}}</div>
+          <div class="condition-label" *ngIf="isTree()">{{condition}}</div>
           <div class="list-toolbar">
             <button type="button" mat-icon-button class="remove-btn" (click)="removeRecordFromCart(resourceType, record)">
               <mat-icon svgIcon="clear"></mat-icon>

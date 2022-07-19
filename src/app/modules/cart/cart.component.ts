@@ -20,7 +20,6 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import { Subscription } from 'rxjs';
-import { CartService } from '../../shared/cart/cart.service';
 
 type ListCells = { [key: string]: string };
 
@@ -136,5 +135,12 @@ export class CartComponent implements OnInit, OnChanges {
       this.compiledExpressions[expression] = compiledExpression;
     }
     return compiledExpression;
+  }
+
+  /**
+   * Whether to display records in a tree view.
+   */
+  isTree(): boolean {
+    return this.resourceType !== 'ResearchStudy' && this.records.length > 1;
   }
 }
