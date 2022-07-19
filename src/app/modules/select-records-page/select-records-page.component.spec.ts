@@ -16,6 +16,7 @@ import { HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { CartComponent } from '../cart/cart.component';
 
 describe('SelectRecordsPageComponent', () => {
   let component: SelectRecordsPageComponent;
@@ -133,6 +134,15 @@ describe('SelectRecordsPageComponent', () => {
       MatButtonHarness.with({ text: 'Add selected records to Studies cart' })
     );
     await addButton.click();
+
+    // Check for studies in the cart:
+    const studyCartEl = fixture.debugElement
+      .query(By.css('.mat-tab-body-active'))
+      .query(By.directive(CartComponent));
+    const studyCart = studyCartEl.componentInstance;
+    expect(studyCart.records.length).toEqual(1);
+    expect(studyCart.records[0].id).toEqual('phs001603.v1.p1');
+
     await selectTab('Variables');
     mockHttp
       .expectOne((req: HttpRequest<any>) => {
