@@ -18,8 +18,9 @@
   </ul>
 </mat-dialog-content>
 <hr />
-<div>
+<div class="h-box">
   <button id="clearSelection" (click)="clearSelection()">Clear columns selection</button>
-  <button class="mat-raised-button mat-primary" (click)="save()">Save changes</button>
-  <button class="mat-raised-button" (click)="close()">Close</button>
+  <div class="flex"></div>
+  <button mat-raised-button  (click)="close()">Close</button>
+  <button mat-raised-button color="primary" (click)="save()">Save changes</button>
 </div>

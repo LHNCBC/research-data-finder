@@ -6,7 +6,7 @@ import observationsForPat106 from './test-fixtures/obs-pat-106.json';
 import observationsForPat232 from './test-fixtures/obs-pat-232.json';
 import observationsForPat269 from './test-fixtures/obs-pat-269.json';
 import encountersForSmart880378 from './test-fixtures/encounter-smart-880378.json';
-import researchStudies from './test-fixtures/research-studies.json';
+import researchStudies from 'src/test/test-fixtures/research-studies.json';
 import { chunk } from 'lodash-es';
 import {
   ConnectionStatus,

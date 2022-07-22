@@ -4,29 +4,49 @@
   and then pull data for those patients.
 </p>
 <mat-horizontal-stepper linear="true" #stepper>
-
-  <mat-step [completed]="settings.settingsFormGroup.valid" label="Settings" state="edit">
+  <mat-step [label]="getLabel(Step.SETTINGS)"
+            [completed]="settings.settingsFormGroup.valid">
     <div class="v-box">
       <app-settings-page #settings></app-settings-page>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperNext type="button">
-          {{fhirBackend.features.hasResearchStudy ? 'Select Research Studies' : 'Define Cohort'}}
-          <mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+          {{ getNextStepLabel(Step.SETTINGS) }}<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
   </mat-step>
 
-  <mat-step *ngIf='fhirBackend.features.hasResearchStudy'
-            label="Select Research Studies" state="edit" optional>
+  <mat-step [label]="getLabel(Step.SELECT_AN_ACTION)"
+            *ngIf="isVisible(Step.SELECT_AN_ACTION)">
+    <div class="v-box">
+      <app-select-an-action #selectAnActionComponent></app-select-an-action>
+      <div class='spacer'></div>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperPrevious>
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Settings
+        </button>
+        <div class='spacer'></div>
+        <button mat-stroked-button color="primary"
+                matStepperNext
+                type="button"
+                [disabled]="selectAnActionComponent.createCohortMode.value === CreateCohortMode.UNSELECTED">
+          Next<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step [label]="getLabel(Step.SELECT_RESEARCH_STUDIES)"
+            *ngIf="isVisible(Step.SELECT_RESEARCH_STUDIES)"
+            optional>
     <div class="v-box">
       <app-select-an-area-of-interest #selectAnAreaOfInterest>
       </app-select-an-area-of-interest>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Settings
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>{{ getPrevStepLabel(Step.SELECT_RESEARCH_STUDIES) }}
         </button>
         <div class='spacer'></div>
         <button mat-stroked-button (click)='hiddenFileInput2.click()'>
@@ -48,13 +68,57 @@
     </div>
   </mat-step>
 
-  <mat-step #defineCohortStep label="Define cohort">
-      <app-define-cohort-page #defineCohortComponent
-        [formControl]="defineCohort"></app-define-cohort-page>
+  <mat-step [label]="getLabel(Step.SELECT_RECORDS)"
+            *ngIf="isVisible(Step.SELECT_RECORDS)">
+    <div class="v-box">
+      <app-select-records-page></app-select-records-page>
+      <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>
-          {{fhirBackend.features.hasResearchStudy ? 'Select Research Studies' : 'Settings'}}
+          Select an action
+        </button>
+        <div class='spacer'></div>
+        <button mat-stroked-button (click)='hiddenFileInput3.click()'>
+          <mat-icon svgIcon='upload'></mat-icon>
+          Load cohort and criteria
+        </button>
+        <input type='file' #hiddenFileInput3 style='display: none;' (change)='loadCohort($event)'>
+        <div class="spacer"></div>
+        <!-- We can't use the matStepperNext directive, but we need to treat this
+         button as the "next button" in e2e tests. To do this, the mat-stepper-next
+         class has been added. MatStepperNextHarness uses this class. -->
+        <button mat-stroked-button color="primary" class="mat-stepper-next"
+                style="color: blue;"
+                (click)="searchForPatients()">
+          [TODO: Search for Patients]<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step [label]="getLabel(Step.BROWSE_PUBLIC_DATA)"
+            *ngIf="isVisible(Step.BROWSE_PUBLIC_DATA)">
+    <div class="v-box">
+      <app-browse-records-page></app-browse-records-page>
+      <div class="spacer"></div>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperPrevious>
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>
+          Select an action
+        </button>
+      </div>
+    </div>
+  </mat-step>
+
+  <mat-step #defineCohortStep
+            [label]="getLabel(Step.DEFINE_COHORT)"
+            *ngIf="isVisible(Step.DEFINE_COHORT)">
+      <app-define-cohort-page
+        [formControl]="defineCohort"></app-define-cohort-page>
+      <div class="h-box">
+        <button mat-stroked-button color="primary" matStepperPrevious>
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>{{ getPrevStepLabel(Step.DEFINE_COHORT) }}
         </button>
         <div class='spacer'></div>
         <button mat-stroked-button (click)='hiddenFileInput.click()'>
@@ -73,14 +137,14 @@
       </div>
   </mat-step>
 
-  <mat-step label="View cohort">
+  <mat-step [label]="getLabel(Step.VIEW_COHORT)"
+            *ngIf="isVisible(Step.VIEW_COHORT)">
     <div class="v-box">
-      <app-view-cohort-page #viewCohortComponent>
-      </app-view-cohort-page>
+      <app-view-cohort-page></app-view-cohort-page>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
-          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>Define cohort
+          <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>{{ getPrevStepLabel(Step.VIEW_COHORT) }}
         </button>
         <div class="spacer"></div>
         <button mat-stroked-button (click)="saveCohort()" [disabled]="cohort.currentState.loading">
@@ -102,7 +166,8 @@
     </div>
   </mat-step>
 
-  <mat-step label="Pull data for the cohort">
+  <mat-step [label]="getLabel(Step.PULL_DATA_FOR_THE_COHORT)"
+            *ngIf="isVisible(Step.PULL_DATA_FOR_THE_COHORT)">
     <div class="v-box">
       <app-pull-data-page #pullDataPageComponent
                           [defaultObservationCodes]="pullData.defaultObservationCodes$ | async">

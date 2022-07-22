@@ -12,6 +12,10 @@ import { ViewCohortPageModule } from '../step-3-view-cohort-page/view-cohort-pag
 import { PullDataPageModule } from '../step-4-pull-data-page/pull-data-page.module';
 import { SelectAnAreaOfInterestModule } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.module';
 import { AnnounceIfActiveModule } from '../../shared/announce-if-active/announce-if-active.module';
+import { MatRadioModule } from '@angular/material/radio';
+import { SelectRecordsPageModule } from '../select-records-page/select-records-page.module';
+import { SelectAnActionModule } from '../select-an-action/select-an-action.module';
+import { BrowseRecordsPageModule } from '../browse-records-page/browse-records-page.module';
 
 @NgModule({
   declarations: [StepperComponent],
@@ -24,11 +28,15 @@ import { AnnounceIfActiveModule } from '../../shared/announce-if-active/announce
     MatIconModule,
     SearchParametersModule,
     SettingsPageModule,
+    SelectRecordsPageModule,
+    SelectAnActionModule,
     DefineCohortPageModule,
     ViewCohortPageModule,
     PullDataPageModule,
     SelectAnAreaOfInterestModule,
-    AnnounceIfActiveModule
+    AnnounceIfActiveModule,
+    MatRadioModule,
+    BrowseRecordsPageModule
   ]
 })
 export class StepperModule {}

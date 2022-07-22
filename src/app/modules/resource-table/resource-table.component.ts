@@ -1,11 +1,13 @@
 import {
   Component,
+  EventEmitter,
   HostBinding,
   Input,
   NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
+  Output,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
@@ -13,7 +15,7 @@ import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ColumnDescription } from '../../types/column.description';
-import { filter, sample, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, sample, tap } from 'rxjs/operators';
 import { escapeStringForRegExp } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
@@ -33,6 +35,8 @@ import { FilterType } from '../../types/filter-type';
 import { CustomDialog } from '../../shared/custom-dialog/custom-dialog.service';
 import Resource = fhir.Resource;
 import { MatExpansionPanel } from '@angular/material/expansion';
+import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import { isEqual, pickBy } from 'lodash-es';
 
 type TableCells = { [key: string]: string };
 
@@ -54,7 +58,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private fhirBackend: FhirBackendService,
     private http: HttpClient,
     private ngZone: NgZone,
-    private columnDescriptionsService: ColumnDescriptionsService,
+    public columnDescriptionsService: ColumnDescriptionsService,
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
     private liveAnnoncer: LiveAnnouncer,
@@ -71,6 +75,66 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         })
     );
     this.listFilterColumns = settings.get('listFilterColumns') || [];
+
+    // The method to determine if a row satisfies all filter criteria by returning
+    // true or false. filterValues is extracted from this.filtersForm.
+    this.dataSource.filterPredicate = ((data, filterValues) => {
+      for (const [key, value] of Object.entries(filterValues)) {
+        if (!value || (value as string[]).length === 0) {
+          continue;
+        }
+        const columnDescription = this.columnDescriptions.find(
+          (c) => c.element === key
+        );
+        const cellValue = data.cells[columnDescription.element];
+        const filterType = this.getFilterType(columnDescription);
+        if (filterType === FilterType.Autocomplete) {
+          if (!(value as string[]).includes(cellValue)) {
+            return false;
+          }
+        }
+        if (filterType === FilterType.Text) {
+          const reCondition = new RegExp(
+            '\\b' + escapeStringForRegExp(value as string),
+            'i'
+          );
+          if (!reCondition.test(cellValue)) {
+            return false;
+          }
+        }
+        if (filterType === FilterType.Number) {
+          if (
+            !ResourceTableComponent.checkNumberFilter(
+              cellValue,
+              value as string
+            )
+          ) {
+            return false;
+          }
+        }
+      }
+      return true;
+      // casting method signature here because filterPredicate defines filter param as string
+      // tslint:disable-next-line:variable-name
+    }) as (BundleEntry, string) => boolean;
+
+    this.subscriptions.push(
+      this.filtersForm.valueChanges
+        .pipe(
+          distinctUntilChanged((prev, curr) =>
+            isEqual(pickBy(prev), pickBy(curr))
+          )
+        )
+        .subscribe((value) => {
+          if (this.filterChanged.observers.length) {
+            this.filterChanged.next(value);
+          } else {
+            this.dataSource.filter = { ...value } as string;
+            // setTimeout is needed to update the table after this.dataSource changes
+            setTimeout(() => this.onScroll());
+          }
+        })
+    );
   }
 
   /**
@@ -102,7 +166,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
   @ViewChild('panel') panel: MatExpansionPanel;
   @Input() columnDescriptions: ColumnDescription[];
-  @Input() enableClientFiltering = false;
+  // If true, client-side filtering is applied by default.
+  // To enable server-side filtering, define a "(filterChanged)" handler.
+  @Input() enableFiltering = false;
   @Input() enableSelection = false;
   @Input() resourceType;
   @Input() context = '';
@@ -118,9 +184,21 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   progressBarPosition$: Observable<number>;
   @Input() loadingStatistics: (string | number)[][] = [];
   @Input() myStudyIds: string[] = [];
+  @Input() selectAny = false;
+  @ViewChild(CdkVirtualScrollViewport) scrollViewport: CdkVirtualScrollViewport;
+  @Output() loadNextPage = new EventEmitter();
+  // A number that identifies a timer to periodically load the next page.
+  // This is necessary to avoid expiration of the link to the next page.
+  loadNextPageTimer: number;
+  // Interval in milliseconds to force the next page to load
+  keepAliveTimeout = 120000;
+  @Output() filterChanged = new EventEmitter();
+  @Output() sortChanged = new EventEmitter();
+  @Input() defaultSort: Sort;
   columns: string[] = [];
   columnsWithData: { [element: string]: boolean } = {};
   selectedResources = new SelectionModel<Resource>(true, []);
+  @Output() selectionChange = this.selectedResources.changed;
   filtersForm: FormGroup = new FormBuilder().group({});
   dataSource = new TableVirtualScrollDataSource<TableRow>([]);
   loadTime = 0;
@@ -268,7 +346,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }, {} as TableCells)
       }));
 
-      if (this.enableClientFiltering) {
+      if (this.enableFiltering) {
         // Move selectable studies to the beginning of table.
         this.dataSource.data = [...newRows].sort((a: TableRow, b: TableRow) => {
           if (
@@ -295,12 +373,14 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           Object.keys(this.columnsWithData)
         );
       }
+      // setTimeout is needed to update the table after this.dataSource changes
+      setTimeout(() => this.onScroll());
     }
 
     // Update resource table columns
     if (changes['columnDescriptions'] && this.columnDescriptions) {
       this.columns.length = 0;
-      if (this.enableSelection) {
+      if (this.enableSelection || this.context === 'browse') {
         this.columns.push('select');
       }
 
@@ -316,61 +396,28 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     this.columns = this.columns.concat(
       this.columnDescriptions.map((c) => c.element)
     );
-    if (this.enableClientFiltering) {
-      const oldFilterValues = this.filtersForm.value;
-      this.filtersForm = new FormBuilder().group({});
-      this.columnDescriptions.forEach((column) => {
-        this.filtersForm.addControl(
-          column.element,
-          new FormControl(oldFilterValues[column.element] || '')
-        );
-      });
-      // The method to determine if a row satisfies all filter criteria by returning
-      // true or false. filterValues is extracted from this.filtersForm.
-      this.dataSource.filterPredicate = ((data, filterValues) => {
-        for (const [key, value] of Object.entries(filterValues)) {
-          if (!value || (value as string[]).length === 0) {
-            continue;
-          }
-          const columnDescription = this.columnDescriptions.find(
-            (c) => c.element === key
-          );
-          const cellValue = data.cells[columnDescription.element];
-          const filterType = this.getFilterType(columnDescription);
-          if (filterType === FilterType.Autocomplete) {
-            if (!(value as string[]).includes(cellValue)) {
-              return false;
-            }
-          }
-          if (filterType === FilterType.Text) {
-            const reCondition = new RegExp(
-              '\\b' + escapeStringForRegExp(value as string),
-              'i'
-            );
-            return reCondition.test(cellValue);
-          }
-          if (filterType === FilterType.Number) {
-            if (
-              !ResourceTableComponent.checkNumberFilter(
-                cellValue,
-                value as string
-              )
-            ) {
-              return false;
-            }
-          }
+    if (this.enableFiltering) {
+      // Remove controls for removed columns
+      Object.keys(this.filtersForm.controls).forEach((controlName) => {
+        if (this.columns.indexOf(controlName) === -1) {
+          this.filtersForm.removeControl(controlName, { emitEvent: false });
         }
-        return true;
-        // casting method signature here because filterPredicate defines filter param as string
-        // tslint:disable-next-line:variable-name
-      }) as (BundleEntry, string) => boolean;
-      this.filtersForm.valueChanges.subscribe((value) => {
-        this.dataSource.filter = { ...value } as string;
       });
-      this.filtersForm.updateValueAndValidity({
-        onlySelf: true,
-        emitEvent: true
+      // Add controls for added columns
+      this.columns.forEach((column) => {
+        if (!this.filtersForm.contains(column)) {
+          this.filtersForm.addControl(column, new FormControl(''), {
+            emitEvent: false
+          });
+        }
       });
+
+      if (!this.filterChanged.observers.length) {
+        this.filtersForm.updateValueAndValidity({
+          onlySelf: true,
+          emitEvent: true
+        });
+      }
     }
   }
 
@@ -456,6 +503,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   sortData(sort: Sort): void {
     if (!sort.active || sort.direction === '') {
+      return;
+    }
+    if (this.sortChanged.observers.length) {
+      this.sortChanged.emit(sort);
       return;
     }
     const isAsc = sort.direction === 'asc';
@@ -599,5 +650,39 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       element.firstElementChild.getBoundingClientRect().right
       ? element.innerText
       : '';
+  }
+
+  /**
+   * Emits the next page load event when scrolling to the bottom of the table
+   */
+  onScroll(): void {
+    const scrollViewport = this.scrollViewport?.elementRef.nativeElement;
+    if (scrollViewport) {
+      const delta = 150;
+      const bottomDistance =
+        scrollViewport.scrollHeight -
+        scrollViewport.scrollTop -
+        scrollViewport.clientHeight;
+
+      clearTimeout(this.loadNextPageTimer);
+      if (delta >= bottomDistance) {
+        this.loadNextPage.emit();
+      } else {
+        // In any case, load the next page after the specified time has elapsed
+        // so that the link to the next page does not expire:
+        this.loadNextPageTimer = setTimeout(
+          () => this.loadNextPage.emit(),
+          this.keepAliveTimeout
+        );
+      }
+    }
+  }
+
+  /**
+   * Whether the specified column is sortable.
+   * @param column - column description
+   */
+  isSortable(column: ColumnDescription): boolean {
+    return this.sortChanged.observers.length ? !column.expression : true;
   }
 }
