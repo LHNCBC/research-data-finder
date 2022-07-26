@@ -1,0 +1,40 @@
+<p class="info">
+  <span class="info-icon" aria-hidden="true"></span>
+  In this step, you can just browse public data.
+  {{
+  fhirBackend.serviceBaseUrl.startsWith('https://dbgap-api.ncbi.nlm.nih.gov')
+  ? 'Study selection limits list of variables'
+  : ''
+  }}
+  <span style="color: blue"
+  *ngIf="!fhirBackend.serviceBaseUrl.startsWith('https://dbgap-api.ncbi.nlm.nih.gov')">[TODO: Don't know what to show for non dbGap servers.]</span>
+</p>
+
+<mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
+  <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfResourceType(resourceType)">
+    <div class="v-box tab-content">
+      <app-resource-table *ngIf="resourceType !== 'Variable' && selectRecords.currentState[resourceType]"
+                          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'browse') | async"
+                          [enableFiltering]="true" [enableSelection]="true"
+                          [loading]="selectRecords.currentState[resourceType].loading"
+                          [resources]="selectRecords.resourceStream[resourceType] | async"
+                          (loadNextPage)="selectRecords.loadNextPage(resourceType)"
+                          (selectionChange)="onSelectionChange(resourceType)"
+                          [selectAny]="true"
+                          context="browse"
+                          [defaultSort]="sort[resourceType]"
+                          (sortChanged)="onSortChanged(resourceType, $event)"
+                          [resourceType]="resourceType"></app-resource-table>
+      <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState['Variable']"
+                          #variableTable
+                          [columnDescriptions]="columnDescriptions.getVisibleColumns('Variable', 'browse') | async"
+                          (filterChanged)="filterVariables()"
+                          [enableFiltering]="true"
+                          [loading]="selectRecords.currentState['Variable'].loading"
+                          [resources]="selectRecords.resourceStream['Variable'] | async"
+                          context="browse"
+                          [defaultSort]="sort['Variable']"
+                          resourceType="Variable"></app-resource-table>
+    </div>
+  </mat-tab>
+</mat-tab-group>

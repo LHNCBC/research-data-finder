@@ -21,6 +21,7 @@ import { ColumnDescription } from '../../types/column.description';
 import { SelectOptions } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpClientModule } from '@angular/common/http';
+import { CreateCohortMode } from '../../shared/cohort/cohort.service';
 
 @Component({
   selector: 'app-select-an-area-of-interest',
@@ -31,6 +32,15 @@ class SelectAnAreaOfInterestComponentStub {
   option = { value: SelectOptions.showOnlyStudiesWithSubjects };
   SelectOptions = SelectOptions;
   @Input() columnDescriptions: ColumnDescription[];
+}
+
+@Component({
+  selector: 'app-select-an-action',
+  template: ''
+})
+// tslint:disable-next-line:component-class-suffix
+class SelectAnActionComponentStub {
+  createCohortMode = new FormControl(CreateCohortMode.UNSELECTED);
 }
 
 @Component({
@@ -66,6 +76,7 @@ describe('StepperComponent', () => {
         StepperComponent,
         MockComponent(SelectColumnsComponent),
         SettingsPageComponentStub,
+        SelectAnActionComponentStub,
         DefineCohortPageComponentStub,
         MockComponent(ViewCohortPageComponent),
         MockComponent(PullDataPageComponent),

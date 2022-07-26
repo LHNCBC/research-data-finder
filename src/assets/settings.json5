@@ -68,6 +68,126 @@
         'sponsor',
         'status'
       ],
+
+      contextColumns: {
+        // Custom definition of the "Variable" table columns
+        "browse": {
+          "Variable": [
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Variable name",
+              element: "display_name",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Study ID",
+              element: "study_id",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Dataset ID",
+              element: "dataset_id",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Class",
+              element: "class",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Type",
+              element: "type",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Unit",
+              element: "unit",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            }
+          ],
+        },
+        "select": {
+          "Variable": [
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Variable name",
+              element: "display_name",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Study ID",
+              element: "study_id",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Dataset ID",
+              element: "dataset_id",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Class",
+              element: "class",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Type",
+              element: "type",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Unit",
+              element: "unit",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            }
+          ],
+        }
+      }
     }
   }
 }

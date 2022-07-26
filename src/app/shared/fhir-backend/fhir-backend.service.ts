@@ -14,7 +14,7 @@ import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
 import definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
-import { escapeStringForRegExp } from '../utils';
+import { escapeStringForRegExp, getUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
 import { find } from 'lodash-es';
 import { filter, map } from 'rxjs/operators';
@@ -105,22 +105,7 @@ export class FhirBackendService implements HttpBackend {
    *   XMLHttpRequest to send requests to a backend server.
    */
   constructor(private defaultBackend: HttpXhrBackend) {
-    let queryServer;
-    if (window.URLSearchParams !== undefined) {
-      const params = new URLSearchParams(window.location.search);
-      queryServer = params.has('server')
-        ? decodeURIComponent(params.get('server'))
-        : null;
-    } else {
-      // IE does not support URLSearchParams
-      const queryMatch = window.location.search.match(
-        new RegExp('[?&]server=([^&]+)', 'i')
-      );
-      queryServer =
-        queryMatch && queryMatch.length
-          ? decodeURIComponent(queryMatch[1])
-          : null;
-    }
+    const queryServer = getUrlParam('server');
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
     this.fhirClient = new FhirBatchQuery({
       serviceBaseUrl: queryServer || defaultServer
