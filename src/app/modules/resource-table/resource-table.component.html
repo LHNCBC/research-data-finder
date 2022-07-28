@@ -74,9 +74,11 @@
               {{column.displayName}}
             </span>
             <button *ngIf='column.description'
-                    [attr.aria-label]='column.description'
                     title=""
+                    aria-label="column info"
                     #tooltip="matTooltip"
+                    (focus)="onInfoIconFocus(tooltip)"
+                    (mouseenter)="onInfoIconFocus(tooltip)"
                     (click)="onInfoIconClick($event, tooltip)"
                     (keydown.enter)="onInfoIconClick($event, tooltip)"
                     [matTooltip]='column.description' matTooltipPosition='above'>
@@ -97,9 +99,11 @@
                 {{column.displayName}}
               </span>
               <button *ngIf='column.description'
-                      [attr.aria-label]='column.description'
                       title=""
+                      aria-label="column info"
                       #tooltip="matTooltip"
+                      (focus)="onInfoIconFocus(tooltip)"
+                      (mouseenter)="onInfoIconFocus(tooltip)"
                       (click)="onInfoIconClick($event, tooltip)"
                       (keydown.enter)="onInfoIconClick($event, tooltip)"
                       [matTooltip]='column.description' matTooltipPosition='above'>

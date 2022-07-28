@@ -695,7 +695,23 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param tooltip MatTooltip object
    */
   onInfoIconClick(event: any, tooltip: MatTooltip): void {
-    tooltip.toggle();
     event.stopPropagation();
+    tooltip.toggle();
+    this.liveAnnoncer.announce(tooltip.message);
+  }
+
+  /**
+   * Overrides the default behavior of MatToolTip to show the tooltip when the
+   * button is hovered over or focused. MatToolTip does this by adding event
+   * listeners like 'mouseenter'.
+   * @param tooltip MatTooltip object
+   */
+  onInfoIconFocus(tooltip: MatTooltip): void {
+    setTimeout(() => {
+      // We cannot call removeEventListener() since we don't have reference to
+      // the anonymous event listener function set by MatToolTip, but hide(0)
+      // will clear out any timeout set to show tooltip.
+      tooltip.hide(0);
+    }, 0);
   }
 }
