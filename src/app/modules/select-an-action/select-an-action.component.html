@@ -1,0 +1,11 @@
+<mat-radio-group aria-label="Select an option" class="h-box" [formControl]="createCohortMode">
+  <div class="v-box">
+    <div class="spacer"></div>
+    <mat-radio-button [value]="CreateCohortMode.NO_COHORT">Browse public data</mat-radio-button>
+    <div class="spacer"></div>
+    <mat-radio-button [value]="CreateCohortMode.BROWSE">Create a cohort of patients by browsing and selecting records (and then pull data for the cohort)</mat-radio-button>
+    <div class="spacer"></div>
+    <mat-radio-button [value]="CreateCohortMode.SEARCH">Create a cohort of patients using advanced search (and then pull data for the cohort)</mat-radio-button>
+    <div class="spacer"></div>
+  </div>
+</mat-radio-group>

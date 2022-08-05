@@ -153,7 +153,7 @@ describe('ResourceTableComponent', () => {
     fixture = TestBed.createComponent(ResourceTableComponent);
     page = new Page(fixture);
     component = fixture.componentInstance;
-    component.enableClientFiltering = true;
+    component.enableFiltering = true;
   });
 
   it('should create', () => {

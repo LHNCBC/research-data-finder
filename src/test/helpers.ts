@@ -14,6 +14,7 @@ import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
+import { HttpRequest } from '@angular/common/http';
 
 /**
  * Wrapper for standard TestBed.configureTestingModule which does additional
@@ -31,6 +32,7 @@ export async function configureTestingModule(
   moduleDef: TestModuleMetadata,
   options: {
     definitions?: any;
+    features?: any;
   } = {}
 ): Promise<void> {
   moduleDef.imports = (moduleDef.imports || []).concat(
@@ -44,7 +46,8 @@ export async function configureTestingModule(
   spyOnProperty(fhirBackend, 'features').and.returnValue({
     lastnLookup: true,
     sortObservationsByDate: true,
-    sortObservationsByAgeAtEvent: false
+    sortObservationsByAgeAtEvent: false,
+    ...(options.features ? options.features : {})
   });
 
   // Mock service base URL to apply default settings
@@ -90,4 +93,16 @@ export async function configureTestingModule(
       options.definitions
     );
   }
+}
+
+/**
+ * Verify that no unmatched requests except for SVG icons are outstanding
+ */
+export function verifyOutstandingRequests(
+  mockHttp: HttpTestingController
+): void {
+  mockHttp
+    .match((request: HttpRequest<any>) => /assets\/.*\.svg/.test(request.url))
+    .forEach((testReq) => testReq.flush('<svg></svg>'));
+  mockHttp.verify();
 }

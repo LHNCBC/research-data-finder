@@ -17,7 +17,7 @@
 
     <app-resource-table #resourceTableComponent
         [columnDescriptions]="columnDescriptions.getVisibleColumns('ResearchStudy') | async"
-        [enableClientFiltering]="true" [enableSelection]="true"
+        [enableFiltering]="true" [enableSelection]="true"
         [loading]="researchStudy.currentState.loading"
         [resources]="researchStudyStream | async" [myStudyIds]='researchStudy.currentState.myStudyIds'
         [progressValue]="researchStudy.currentState.progressValue"
