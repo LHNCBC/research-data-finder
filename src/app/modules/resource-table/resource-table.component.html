@@ -81,6 +81,7 @@
                     (mouseenter)="onInfoIconFocus(tooltip)"
                     (click)="onInfoIconClick($event, tooltip)"
                     (keydown.enter)="onInfoIconClick($event, tooltip)"
+                    (keydown.space)="onInfoIconClick($event, tooltip)"
                     [matTooltip]='column.description' matTooltipPosition='above'>
               <mat-icon svgIcon='info'></mat-icon>
             </button>
@@ -106,6 +107,7 @@
                       (mouseenter)="onInfoIconFocus(tooltip)"
                       (click)="onInfoIconClick($event, tooltip)"
                       (keydown.enter)="onInfoIconClick($event, tooltip)"
+                      (keydown.space)="onInfoIconClick($event, tooltip)"
                       [matTooltip]='column.description' matTooltipPosition='above'>
                 <mat-icon svgIcon='info'></mat-icon>
               </button>

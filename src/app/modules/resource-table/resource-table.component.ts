@@ -221,7 +221,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       return true;
     }
     return (
-      event.type === 'keydown' && (event.key === 'ENTER' || event.key === ' ')
+      event.type === 'keydown' && (event.key === 'Enter' || event.key === ' ')
     );
   }
 
@@ -581,6 +581,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param column - column description of the header being clicked
    */
   openFilterDialog(event, column: ColumnDescription): void {
+    event.preventDefault();
     event.stopPropagation();
     // The button that sits inside the table header with mat-sort-header attribute does not
     // fire the 'click' event properly. Have to listen to 'keydown' event here.
@@ -695,6 +696,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param tooltip MatTooltip object
    */
   onInfoIconClick(event: any, tooltip: MatTooltip): void {
+    event.preventDefault();
     event.stopPropagation();
     tooltip.toggle();
     this.liveAnnoncer.announce(tooltip.message);
