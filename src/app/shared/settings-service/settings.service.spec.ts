@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-
 import { SettingsService } from './settings.service';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import { FhirBackendModule } from '../fhir-backend/fhir-backend.module';
@@ -18,7 +17,7 @@ describe('SettingsService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('read custom settings for dbGap', async () => {
+  it('should read custom settings for dbGap', async () => {
     spyOnProperty(fhirBackendService, 'serviceBaseUrl').and.returnValue(
       'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
     );
