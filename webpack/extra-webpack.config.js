@@ -145,6 +145,11 @@ module.exports = async (config) => {
           loader: path.resolve('webpack/package-json-loader.js')
         }
       ]
+    },
+    {
+      test: /\.json5$/,
+      loader: 'json5-loader',
+      type: 'javascript/auto'
     }
   );
 
