@@ -11,7 +11,7 @@ import {
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { FormControl, NgControl } from '@angular/forms';
-import { Observable, ReplaySubject, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import Def from 'autocomplete-lhc';
 
@@ -145,13 +145,13 @@ export class AutocompleteComponent
   setDescribedByIds(): void {}
 
   ngAfterViewInit(): void {
-    this.setUpAutocomplete();
+    this.setupAutocomplete();
   }
 
   /**
    * Set up Autocomplete prefetch options.
    */
-  setUpAutocomplete(): void {
+  setupAutocomplete(): void {
     this.acInstance = new Def.Autocompleter.Prefetch(
       this.inputId,
       this.options.map((o) => AutocompleteComponent.getOptionText(o)),
@@ -182,6 +182,9 @@ export class AutocompleteComponent
    */
   writeValue(value: string): void {
     this.currentData = value || '';
+    if (this.acInstance) {
+      this.acInstance.setFieldToListValue(this.currentData);
+    }
   }
 
   /**

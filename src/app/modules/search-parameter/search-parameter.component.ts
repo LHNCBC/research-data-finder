@@ -206,10 +206,14 @@ export class SearchParameterComponent
     if (this.isPullData) {
       this.parameterName.disable({ emitEvent: false });
     }
-    this.parameterValue.setValue(value?.value || '');
-    this.selectedObservationCodes.setValue(
-      value?.selectedObservationCodes || null
-    );
+    // Make sure to write value to this.parameterValue after its initialization value is set after
+    // this.parameterName change.
+    setTimeout(() => {
+      this.parameterValue.setValue(value?.value || '');
+      this.selectedObservationCodes.setValue(
+        value?.selectedObservationCodes || null
+      );
+    }, 0);
   }
 
   /**

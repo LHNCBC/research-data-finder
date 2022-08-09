@@ -56,7 +56,6 @@ export interface Lookup {
 export class AutocompleteParameterValueComponent
   extends BaseControlValueAccessor<AutocompleteParameterValue>
   implements
-    OnChanges,
     OnDestroy,
     AfterViewInit,
     MatFormFieldControl<AutocompleteParameterValue> {
@@ -220,12 +219,6 @@ export class AutocompleteParameterValueComponent
   onContainerClick(event: MouseEvent): void {
     if (!this.focused) {
       document.getElementById(this.inputId).focus();
-    }
-  }
-
-  ngOnChanges(): void {
-    if (this.acInstance) {
-      this.setupAutocomplete();
     }
   }
 
@@ -764,6 +757,12 @@ export class AutocompleteParameterValueComponent
       codes: [],
       items: []
     };
+    if (this.acInstance) {
+      this.currentData.items.forEach((item, index) => {
+        this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
+        this.acInstance.addToSelectedArea(item);
+      });
+    }
   }
 
   /**
