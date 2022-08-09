@@ -54,7 +54,7 @@ export class SearchParameterComponent
 
   selectedResourceType: any;
 
-  parameterName: FormControl = new FormControl('');
+  parameterName: FormControl = new FormControl('', Validators.required);
   parameters: any[] = [];
   parameterOptions: AutocompleteOption[] = [];
   selectedParameter: any;

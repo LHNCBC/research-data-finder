@@ -166,9 +166,11 @@ export class AutocompleteComponent
     this.acInstance.setFieldToListValue(this.currentData);
     Def.Autocompleter.Event.observeListSelections(
       this.inputId,
-      ({ final_val }) => {
-        this.currentData = final_val;
-        this.onChange(final_val);
+      ({ final_val, on_list }) => {
+        if (on_list) {
+          this.currentData = final_val;
+          this.onChange(final_val);
+        }
       }
     );
   }
