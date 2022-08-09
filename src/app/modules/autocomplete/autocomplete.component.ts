@@ -1,22 +1,19 @@
 import {
-  Attribute,
+  AfterViewInit,
   Component,
   ElementRef,
+  HostListener,
   Input,
-  OnInit,
   Optional,
+  Self,
   ViewChild
 } from '@angular/core';
-import {
-  BaseControlValueAccessorAndValidator,
-  createControlValueAccessorAndValidatorProviders
-} from '../base-control-value-accessor';
-import { ErrorManager } from '../../shared/error-manager/error-manager.service';
+import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { FormControl, ValidationErrors } from '@angular/forms';
-import { combineLatest, Observable, ReplaySubject } from 'rxjs';
-import { map, startWith, take } from 'rxjs/operators';
-import { escapeStringForRegExp } from '../../shared/utils';
+import { FormControl, NgControl } from '@angular/forms';
+import { Observable, ReplaySubject, Subject } from 'rxjs';
+import { MatFormFieldControl } from '@angular/material/form-field';
+import Def from 'autocomplete-lhc';
 
 /**
  * Autocomplete option can have display name, value and description.
@@ -32,53 +29,95 @@ export type AutocompleteOption =
   | string;
 
 /**
- * Component for selecting values from a list of options using autocomplete.
+ * Component for selecting values from a list of options using autocomplete-lhc.
  */
 @Component({
   selector: 'app-autocomplete',
   templateUrl: './autocomplete.component.html',
   styleUrls: ['./autocomplete.component.less'],
   providers: [
-    ...createControlValueAccessorAndValidatorProviders(AutocompleteComponent),
-    ErrorManager,
     {
-      provide: ErrorStateMatcher,
-      useExisting: ErrorManager
+      provide: MatFormFieldControl,
+      useExisting: AutocompleteComponent
     }
   ]
 })
 export class AutocompleteComponent
-  extends BaseControlValueAccessorAndValidator<any>
-  implements OnInit {
-  private errors: ValidationErrors = null;
+  extends BaseControlValueAccessor<string>
+  implements AfterViewInit, MatFormFieldControl<string> {
+  get value(): string {
+    return this.currentData;
+  }
 
   /**
-   * Constructor
-   * @param required - value of the "required" attribute of the host element,
-   *   used to check for the existence of the attribute. If the attribute exists,
-   *   marks the component that cannot have an empty value.
+   * Whether the control is empty (Implemented as part of MatFormFieldControl)
    */
-  constructor(@Optional() @Attribute('required') required: any) {
+  get empty(): boolean {
+    return !this.currentData;
+  }
+
+  /**
+   * Whether the MatFormField label should try to float.
+   */
+  get shouldLabelFloat(): boolean {
+    return this.focused || !this.empty;
+  }
+
+  /**
+   * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
+   */
+  get errorState(): boolean {
+    const formControl = this.ngControl?.control as FormControl;
+    return (
+      this.inputField?.nativeElement.className.indexOf('invalid') >= 0 ||
+      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
+    );
+  }
+
+  constructor(
+    @Optional() @Self() ngControl: NgControl,
+    private errorStateMatcher: ErrorStateMatcher,
+    private elementRef: ElementRef
+  ) {
     super();
-    this.required = required !== null;
-    this.updateValidationStatus();
+    if (ngControl != null) {
+      this.ngControl = ngControl;
+      // Setting the value accessor directly (instead of using
+      // the providers) to avoid running into a circular import.
+      ngControl.valueAccessor = this;
+    }
   }
 
-  @Input() set options(options: AutocompleteOption[]) {
-    this.options$.next(options);
-  }
-
-  control: FormControl = new FormControl('', () => {
-    return this.errors;
-  });
-
-  @ViewChild('inputField') inputField: ElementRef;
-  private required = false;
-  selectedOption = null;
-  @Input() label = '';
+  static idPrefix = 'autocomplete-';
+  static idIndex = 0;
+  @Input() options: AutocompleteOption[] = [];
   @Input() placeholder = '';
-  options$ = new ReplaySubject<AutocompleteOption[]>();
-  filteredOptions$: Observable<AutocompleteOption[]>;
+
+  ngControl: NgControl = null;
+  // Autocompleter instance
+  acInstance: any;
+  inputId = AutocompleteComponent.idPrefix + ++AutocompleteComponent.idIndex;
+  currentData = '';
+  // Reference to the <input> element
+  @ViewChild('input') inputField: ElementRef<HTMLInputElement>;
+
+  /**
+   * Whether the control is focused (Implemented as part of MatFormFieldControl)
+   */
+  focused = false;
+
+  /**
+   * Stream that emits whenever the state of the control changes such that
+   * the parent `MatFormField` needs to run change detection.
+   */
+  readonly stateChanges = new Subject<void>();
+
+  /**
+   * These properties currently unused but required by MatFormFieldControl:
+   */
+  readonly disabled: boolean = false;
+  readonly id: string;
+  readonly required = true;
 
   /**
    * Returns the option value for the data model
@@ -90,107 +129,57 @@ export class AutocompleteComponent
   /**
    * Returns the textual representation of the option for the input field
    */
-  getOptionText(option: AutocompleteOption): string {
+  static getOptionText(option: AutocompleteOption): string {
     return option instanceof Object ? option?.name : option;
   }
 
-  ngOnInit(): void {
-    this.filteredOptions$ = combineLatest([
-      this.control.valueChanges.pipe(startWith('')),
-      this.options$
-    ]).pipe(
-      map(([value, options]) => {
-        // Filters options list by matching value.
-        // It does a left match at word boundaries, example:
-        // 'variable name' will test true for 'va' or 'na', but not 'ri' or 'le'.
-        const reg = `\\b${escapeStringForRegExp(value)}`;
-        const regEx = new RegExp(reg, 'i');
-        const filteredOptions = options.filter((option) =>
-          regEx.test(this.getOptionText(option))
-        );
-        const selectedOption =
-          filteredOptions.find(
-            (option) => this.getOptionText(option) === value
-          ) || null;
-        if (
-          this.getOptionText(this.selectedOption) !==
-          this.getOptionText(selectedOption)
-        ) {
-          if (selectedOption) {
-            const newValue = AutocompleteComponent.getOptionValue(
-              selectedOption
-            );
-            this.selectedOption = selectedOption;
-            this.updateValidationStatus();
-            this.onChange(newValue);
-          } else {
-            this.selectedOption = null;
-            this.updateValidationStatus();
-            this.onChange('');
-          }
-        }
-        return filteredOptions;
-      })
+  /**
+   * Returns the HTML formatted representation of the option description for the input field
+   */
+  static getOptionDesc(option: AutocompleteOption): string {
+    return option instanceof Object && option.desc
+      ? ` <span style="color: rgba(0, 0, 0, 0.38);">(${option?.desc})</span>`
+      : '';
+  }
+
+  setDescribedByIds(): void {}
+
+  ngAfterViewInit(): void {
+    this.setUpAutocomplete();
+  }
+
+  /**
+   * Set up Autocomplete prefetch options.
+   */
+  setUpAutocomplete(): void {
+    this.acInstance = new Def.Autocompleter.Prefetch(
+      this.inputId,
+      this.options.map((o) => AutocompleteComponent.getOptionText(o)),
+      {
+        codes: this.options.map((o) => AutocompleteComponent.getOptionValue(o)),
+        matchListValue: true,
+        formattedListItems: this.options.map((o) =>
+          AutocompleteComponent.getOptionDesc(o)
+        )
+      }
+    );
+    this.acInstance.setFieldToListValue(this.currentData);
+    Def.Autocompleter.Event.observeListSelections(
+      this.inputId,
+      ({ final_val }) => {
+        this.currentData = final_val;
+        this.onChange(final_val);
+      }
     );
   }
 
   /**
    * Part of the ControlValueAccessor interface
    * required to integrate with Angular's core forms API.
-   *
    * @param value New value to be written to the model.
    */
   writeValue(value: string): void {
-    this.options$.pipe(take(1)).subscribe((options) => {
-      const selectedOption =
-        options.find(
-          (option) => AutocompleteComponent.getOptionValue(option) === value
-        ) || null;
-      this.selectedOption = selectedOption;
-      if (selectedOption) {
-        this.control.setValue(
-          selectedOption instanceof Object
-            ? selectedOption.name
-            : selectedOption
-        );
-      } else {
-        this.control.setValue('');
-      }
-      this.updateValidationStatus();
-    });
-  }
-
-  /**
-   * Performs synchronous validation.
-   */
-  validate({ value }: FormControl): ValidationErrors {
-    return this.errors;
-  }
-
-  /**
-   * Updates validation status
-   */
-  updateValidationStatus(): void {
-    this.errors =
-      !this.required || this.selectedOption
-        ? null
-        : {
-            required: true
-          };
-
-    this.control.setErrors(this.errors);
-  }
-
-  /**
-   * Enables or disables component.
-   * @param isDisabled The disabled status to set on the element
-   */
-  setDisabledState(isDisabled: boolean): void {
-    if (isDisabled) {
-      this.control.disable({ emitEvent: false });
-    } else {
-      this.control.enable({ emitEvent: false });
-    }
+    this.currentData = value || '';
   }
 
   /**
@@ -198,5 +187,39 @@ export class AutocompleteComponent
    */
   focus(): void {
     this.inputField.nativeElement.focus();
+  }
+
+  /**
+   * Handles focusin event to maintain the focused state.
+   */
+  @HostListener('focusin')
+  onFocusin(): void {
+    if (!this.focused) {
+      this.focused = true;
+      this.stateChanges.next();
+    }
+  }
+
+  /**
+   * Handles focusout event to maintain the focused state.
+   */
+  @HostListener('focusout', ['$event.relatedTarget'])
+  onFocusOut(relatedTarget: HTMLElement): void {
+    if (
+      this.focused &&
+      !this.elementRef.nativeElement.contains(relatedTarget)
+    ) {
+      this.focused = false;
+      this.stateChanges.next();
+    }
+  }
+
+  /**
+   * Handles a click on the control's container to maintain the focused state.
+   */
+  onContainerClick(event: MouseEvent): void {
+    if (!this.focused) {
+      document.getElementById(this.inputId).focus();
+    }
   }
 }
