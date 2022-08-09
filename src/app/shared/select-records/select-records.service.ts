@@ -140,6 +140,7 @@ export class SelectRecordsService {
     const dataFields = {
       id: 'uid',
       display_name: 'display_name',
+      loinc_num: 'loinc_num',
       study_id: 'study_id',
       dataset_id: 'dataset_id',
       class: 'loinc.CLASS',

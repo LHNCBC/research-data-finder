@@ -141,6 +141,14 @@
               ]
             },
             {
+              displayName: "LOINC code",
+              element: "loinc_num",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
               // See src/app/types/column.description.ts for details
               displayName: "Study ID",
               element: "study_id",
