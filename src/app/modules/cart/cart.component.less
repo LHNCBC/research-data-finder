@@ -70,32 +70,36 @@ mat-radio-group.switch-group {
 }
 
 .list-title {
-  position: relative;
-  margin-left: 27px;
-  padding-left: 13px;
-
-  &:before {
-    content: "";
-    left: -9px;
-    border-color: #619ed7;
-    border-style: solid;
-    width: 22px;
-    height: calc(100% + 10px);
-    position: absolute;
-    border-width: 0 0 0 1px;
-    top: -10px;
-  }
   label {
     font-weight: bold;
   }
 }
 
-.list-item {
-  position: relative;
-  margin-left: 27px;
-  padding-left: 13px;
+.list--tree-view {
+  .list-title {
+    position: relative;
+    margin-left: 27px;
+    padding-left: 13px;
 
-  &:before {
+    &:before {
+      content: "";
+      left: -9px;
+      border-color: #619ed7;
+      border-style: solid;
+      width: 22px;
+      height: calc(100% + 10px);
+      position: absolute;
+      border-width: 0 0 0 1px;
+      top: -10px;
+    }
+  }
+
+  .list-item {
+    position: relative;
+    margin-left: 27px;
+    padding-left: 13px;
+
+    &:before {
       content: "";
       left: -9px;
       border-color: #619ed7;
@@ -105,9 +109,9 @@ mat-radio-group.switch-group {
       position: absolute;
       border-width: 0 0 1px 1px;
       top: 0;
-  }
+    }
 
-  &:not(:last-child):after {
+    &:not(:last-child):after {
       content: "";
       left: -9px;
       border-color: #619ed7;
@@ -117,19 +121,20 @@ mat-radio-group.switch-group {
       position: absolute;
       border-width: 0 0 0 1px;
       top: calc(50% + 6px);
-  }
+    }
 
-  .condition-label {
-    position: absolute;
-    left: -22px;
-    top: calc(50% - 9px);
-    width: 26px;
-    font-size: 0.6em;
-    border: 1px solid rgb(97, 158, 215);
-    border-radius: 5px;
-    background-color: rgba(255,255,255,1);
-    text-align: center;
-    text-transform: uppercase;
+    .condition-label {
+      position: absolute;
+      left: -22px;
+      top: calc(50% - 9px);
+      width: 26px;
+      font-size: 0.6em;
+      border: 1px solid rgb(97, 158, 215);
+      border-radius: 5px;
+      background-color: rgba(255,255,255,1);
+      text-align: center;
+      text-transform: uppercase;
+    }
   }
 }
 

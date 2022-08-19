@@ -133,11 +133,9 @@ export class FhirBackendService implements HttpBackend {
   private currentDefinitions: any;
 
   // Whether an authorization tag should be added to the url.
-  private static isAuthorizationRequiredForUrl(url: string): boolean {
-    const regEx = new RegExp(
-      `https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/(${RESOURCES_REQUIRING_AUTHORIZATION})`
-    );
-    return regEx.test(url);
+  private isAuthorizationRequiredForUrl(url: string): boolean {
+    const regEx = new RegExp(`/(${RESOURCES_REQUIRING_AUTHORIZATION})`);
+    return this.isDbgap(url) && regEx.test(url);
   }
 
   /**
@@ -145,6 +143,8 @@ export class FhirBackendService implements HttpBackend {
    * @param [serviceBaseUrl] - new FHIR REST API Service Base URL
    */
   initializeFhirBatchQuery(serviceBaseUrl: string = ''): void {
+    // Set _isDbgap flag in fhirClient
+    this.fhirClient.setIsDbgap(this.isDbgap(serviceBaseUrl));
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
     this.fhirClient.initialize(serviceBaseUrl).then(
@@ -215,7 +215,7 @@ export class FhirBackendService implements HttpBackend {
     // Observation and ResearchSubject queries will be sent with _security params.
     const fullUrl =
       this.features.consentGroup &&
-      FhirBackendService.isAuthorizationRequiredForUrl(newRequest.url)
+      this.isAuthorizationRequiredForUrl(newRequest.url)
         ? this.fhirClient.addParamToUrl(
             newRequest.urlWithParams,
             '_security',
@@ -383,5 +383,13 @@ export class FhirBackendService implements HttpBackend {
 
     this.currentDefinitions.initialized = true;
     return this.currentDefinitions;
+  }
+
+  /**
+   * Whether the URL is dbGap (https://dbgap-api.ncbi.nlm.nih.gov/fhir*).
+   */
+  isDbgap(url): boolean {
+    const urlPattern = this.settings.getDbgapUrlPattern();
+    return new RegExp(urlPattern).test(url);
   }
 }
