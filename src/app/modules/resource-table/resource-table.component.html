@@ -58,7 +58,7 @@
                                [class.table-container-with-prefix]="!!prefixTemplate"
                                (scroll)="onScroll()">
     <table mat-table matSort matSortDisableClear matSortStart='desc' [dataSource]="dataSource"
-           [matSortActive]="defaultSort?.active" [matSortDirection]="defaultSort?.direction"
+           [matSortActive]="sort?.active" [matSortDirection]="sort?.direction"
            class="cell-text-no-wrap"
            (matSortChange)="sortData($event)">
       <!-- Select checkbox column -->
