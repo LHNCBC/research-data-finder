@@ -39,7 +39,8 @@ describe('ColumnDescriptionsService', () => {
                   ]
                 }
               }
-            })
+            }),
+            isDbgap: () => false
           }
         },
         ColumnDescriptionsService
