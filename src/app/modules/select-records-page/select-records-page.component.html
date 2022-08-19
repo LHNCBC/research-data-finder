@@ -30,7 +30,7 @@
                           (selectionChange)="onSelectionChange(resourceType)"
                           [selectAny]="true"
                           context="select"
-                          [defaultSort]="sort[resourceType]"
+                          [sort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
                           [resourceType]="resourceType"></app-resource-table>
       <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState[resourceType]"
@@ -42,7 +42,7 @@
                           [resources]="selectRecords.resourceStream[resourceType] | async"
                           [selectAny]="true"
                           context="select"
-                          [defaultSort]="sort[resourceType]"
+                          [sort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
                           [resourceType]="resourceType"></app-resource-table>
       <div class="spacer"></div>

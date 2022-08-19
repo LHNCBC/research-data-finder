@@ -3,19 +3,25 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.0.3] - 2022-07-08
+## [5.0.4] - 2022-07-25
 ### Added
 - The ability to deselect all selected records.
 
-## [5.0.2] - 2022-07-07
+## [5.0.3] - 2022-07-24
 ### Added
 - Sorting to the variable table (for the alpha version).
 
-## [5.0.1] - 2022-06-30
+## [5.0.2] - 2022-07-23
 ### Added
 - Simple prototype of the component for records in cart for the alpha version.
 - The ability to switch to the alpha version using the menu on the version
   number link.
+### Fixed
+- Incorrect query parameter _type replaced with _format.
+
+## [5.0.1] - 2022-07-22
+### Changed
+- Use url pattern https://dbgap-api.ncbi.nlm.nih.gov/fhir* for dbGap.
 
 ## [5.0.0] - 2022-06-21
 ### Added

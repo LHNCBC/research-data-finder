@@ -57,19 +57,23 @@ describe('FhirBackendService', () => {
     spyOn(service.settings, 'loadCsvDefinitions').and.returnValue(
       of(csvDefinitions)
     );
+    spyOn(service.settings, 'getDbgapUrlPattern').and.returnValue(
+      '^https://dbgap-api.ncbi.nlm.nih.gov/fhir'
+    );
+    spyOn(service, 'isDbgap').and.returnValue(false);
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should initialize FhirBatchQuery', () => {
-    service.initializeFhirBatchQuery();
+  it('should initialize FhirBatchQuery', async () => {
+    await service.initializeFhirBatchQuery();
     expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith('');
   });
 
-  it('should add interpretation search parameter', (done) => {
-    service.initializeFhirBatchQuery();
+  it('should add interpretation search parameter', async (done) => {
+    await service.initializeFhirBatchQuery();
     service.currentDefinitions$.subscribe((definitions) => {
       expect(
         definitions.resources.Observation.searchParameters.some(
