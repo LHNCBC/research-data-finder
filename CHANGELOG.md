@@ -3,9 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.0.1] - 2022-07-26
+## [5.0.2] - 2022-07-26
 ### Fixed
 - Do not sort the column when user clicks on header info icon.
+
+## [5.0.1] - 2022-07-22
+### Changed
+- Use url pattern https://dbgap-api.ncbi.nlm.nih.gov/fhir* for dbGap.
 
 ## [5.0.0] - 2022-06-21
 ### Added
