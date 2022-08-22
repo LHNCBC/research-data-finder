@@ -74,8 +74,14 @@
               {{column.displayName}}
             </span>
             <button *ngIf='column.description'
-                    [attr.aria-label]='column.description'
-                    #tooltip="matTooltip" (focusin)="tooltip.show()"
+                    title=""
+                    aria-label="column info"
+                    #tooltip="matTooltip"
+                    (focus)="onInfoIconFocus(tooltip)"
+                    (mouseenter)="onInfoIconFocus(tooltip)"
+                    (click)="onInfoIconClick($event, tooltip)"
+                    (keydown.enter)="onInfoIconClick($event, tooltip)"
+                    (keydown.space)="onInfoIconClick($event, tooltip)"
                     [matTooltip]='column.description' matTooltipPosition='above'>
               <mat-icon svgIcon='info'></mat-icon>
             </button>
@@ -94,8 +100,14 @@
                 {{column.displayName}}
               </span>
               <button *ngIf='column.description'
-                      [attr.aria-label]='column.description'
-                      #tooltip="matTooltip" (focusin)="tooltip.show()"
+                      title=""
+                      aria-label="column info"
+                      #tooltip="matTooltip"
+                      (focus)="onInfoIconFocus(tooltip)"
+                      (mouseenter)="onInfoIconFocus(tooltip)"
+                      (click)="onInfoIconClick($event, tooltip)"
+                      (keydown.enter)="onInfoIconClick($event, tooltip)"
+                      (keydown.space)="onInfoIconClick($event, tooltip)"
                       [matTooltip]='column.description' matTooltipPosition='above'>
                 <mat-icon svgIcon='info'></mat-icon>
               </button>
