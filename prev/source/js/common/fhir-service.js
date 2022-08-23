@@ -1,4 +1,4 @@
-import { FhirBatchQuery } from './fhir-batch-query';
+import { FhirBatchQuery } from '../../../../src/app/shared/fhir-backend/fhir-batch-query';
 
 // Create a common FhirBatchQuery instance for making requests to the FHIR REST API Service
 let fhirClient = new FhirBatchQuery({

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import { FhirBatchQuery } from '../fhir-backend/fhir-batch-query';
 import { ColumnValuesService } from './column-values.service';
 import { FhirBackendModule } from '../fhir-backend/fhir-backend.module';
 import {

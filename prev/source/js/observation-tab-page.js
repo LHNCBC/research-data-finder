@@ -1,4 +1,4 @@
-import { HTTP_ABORT } from './common/fhir-batch-query';
+import { HTTP_ABORT } from '../../../src/app/shared/fhir-backend/fhir-batch-query';
 import { ObservationTable } from './observation-table';
 import { ResourceTabPage } from './resource-tab-page';
 import { getFhirClient } from './common/fhir-service';
@@ -87,7 +87,7 @@ export class ObservationTabPage extends ResourceTabPage {
       <input type=text id=${this.loincTestsId} placeholder="LOINC variables – type and select one or more">
       <span>Note:  A given FHIR server will only have matches for some subset of these values.</span>
     </div>
-    
+
     <div>
       <label for=${this.perPatientPerTestId}>Limit per patient per test:</label>
       <input type=number id=${this.perPatientPerTestId} value=1>

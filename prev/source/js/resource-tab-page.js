@@ -1,4 +1,4 @@
-import { HTTP_ABORT } from './common/fhir-batch-query';
+import { HTTP_ABORT } from '../../../src/app/shared/fhir-backend/fhir-batch-query';
 import { Reporter } from './reporter';
 import { saveAs } from 'file-saver';
 import { ResourceTable, getValueFnDescriptor } from './resource-table';

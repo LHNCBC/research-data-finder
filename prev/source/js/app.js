@@ -8,7 +8,10 @@ import '../css/app.css';
 // "Real" imports
 import './common/polyfills';
 import { saveAs } from 'file-saver';
-import { FhirBatchQuery, HTTP_ABORT } from './common/fhir-batch-query';
+import {
+  FhirBatchQuery,
+  HTTP_ABORT
+} from '../../../src/app/shared/fhir-backend/fhir-batch-query';
 import {
   SearchParameters,
   PatientSearchParameters,
