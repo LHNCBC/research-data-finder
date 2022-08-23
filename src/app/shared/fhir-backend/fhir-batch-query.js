@@ -1,4 +1,4 @@
-import definitionsIndex from '../../../../prev/source/js/search-parameters/definitions';
+import definitionsIndex from '../definitions/index.json';
 
 let commonRequestCache = {}; // Map from url to result JSON
 

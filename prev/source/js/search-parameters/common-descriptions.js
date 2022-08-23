@@ -9,7 +9,7 @@ import {
   addAutocompleterRawDataById,
   getAutocompleterRawDataById
 } from '../common/utils';
-import definitionsIndex from './definitions/index.json';
+import definitionsIndex from '../../../../src/app/shared/definitions/index.json';
 
 const _searchParamGroupFactoriesByResourceTypes = {};
 
