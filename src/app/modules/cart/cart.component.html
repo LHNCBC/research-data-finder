@@ -2,8 +2,6 @@
   <div class="spacer"></div>
   <div class="h-box">
     <b>{{pluralFormOfRecordType}} in Cart:</b>
-    <div class="spacer"></div>
-    <label style="color: blue" *ngIf="resourceType !== 'ResearchStudy'">[TODO: this part is not ready]</label>
   </div>
   <div class="spacer"></div>
 
@@ -14,7 +12,7 @@
     <div class="spacer" *ngIf="resourceType === 'ResearchStudy'"></div>
     <div class="v-box list" [class.list--tree-view]="isTree()">
       <div class="v-box list-header">
-        <mat-radio-group [(ngModel)]="condition"
+        <mat-radio-group [(ngModel)]="cart.logicalOperator[resourceType]"
                          aria-label="Select an operator to combine criteria"
                          *ngIf="isTree()"
                          class="switch-group">
@@ -24,17 +22,35 @@
         <div class="h-box list-title">
           <div class="list-toolbar"></div>
           <label class="cell cell-{{resourceType}}-{{column.element}}" *ngFor="let column of columnDescriptions">{{column.displayName}}</label>
+          <label class="cell cell-Variable-constraint" *ngIf="resourceType === 'Variable'">Value constraint</label>
         </div>
       </div>
       <div class="v-box list-body">
         <div class="h-box list-item" *ngFor="let record of records">
-          <div class="condition-label" *ngIf="isTree()">{{condition}}</div>
+          <div class="condition-label" *ngIf="isTree()">{{cart.logicalOperator[resourceType]}}</div>
           <div class="list-toolbar">
             <button type="button" mat-icon-button class="remove-btn" (click)="removeRecordFromCart(resourceType, record)">
               <mat-icon svgIcon="clear"></mat-icon>
             </button>
           </div>
-          <label class="cell cell-{{resourceType}}-{{column.element}}" *ngFor="let column of columnDescriptions">{{cells[record.id][column.element] || '&nbsp;'}}</label>
+          <label class="cell cell-{{resourceType}}-{{column.element}}"
+                 *ngFor="let column of columnDescriptions">
+            <app-ellipsis-text>{{cells[record.id][column.element] || '&nbsp;'}}</app-ellipsis-text>
+          </label>
+          <ng-container *ngIf="resourceType === 'Variable'" [ngSwitch]="!cart.getVariableType(record.id)">
+            <div class="cell cell-Variable-constraint h-box" *ngSwitchCase="true"><label>Loading...</label>&nbsp;<mat-spinner [diameter]="30"></mat-spinner></div>
+            <ng-container [ngSwitch]="cart.getVariableType(record.id)" *ngSwitchDefault>
+              <label class="cell cell-Variable-constraint" *ngSwitchCase="'empty'">No observations for this variable.</label>
+              <label class="cell cell-Variable-constraint" *ngSwitchCase="'error'">Error loading observations.</label>
+              <app-observation-test-value
+                  *ngSwitchDefault
+                  class="cell cell-Variable-constraint"
+                  [(ngModel)]="cart.variableData[record.id].value"
+                  [observationCodes]="[record.id]"
+                  [datatype]="cart.getVariableType(record.id)">
+              </app-observation-test-value>
+            </ng-container>
+          </ng-container>
         </div>
       </div>
     </div>

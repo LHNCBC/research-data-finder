@@ -142,7 +142,9 @@ export class SelectRecordsService {
       display_name: 'display_name',
       loinc_num: 'loinc_num',
       study_id: 'study_id',
+      study_name: 'study_name',
       dataset_id: 'dataset_id',
+      dataset_name: 'dataset_name',
       class: 'loinc.CLASS',
       type: 'dbgv.type',
       unit: 'dbgv.unit'

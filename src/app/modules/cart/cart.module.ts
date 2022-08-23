@@ -4,7 +4,10 @@ import { CartComponent } from './cart.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatRadioModule } from '@angular/material/radio';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { SearchParameterModule } from '../search-parameter/search-parameter.module';
+import { EllipsisTextModule } from '../../shared/ellipsis-text/ellipsis-text.module';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [CartComponent],
@@ -14,7 +17,11 @@ import { FormsModule } from '@angular/forms';
     MatButtonModule,
     MatIconModule,
     MatRadioModule,
-    FormsModule
+    FormsModule,
+    SearchParameterModule,
+    ReactiveFormsModule,
+    EllipsisTextModule,
+    MatProgressSpinnerModule
   ]
 })
 export class CartModule {}

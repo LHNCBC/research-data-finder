@@ -1,0 +1,5 @@
+<div #cell (mouseenter)="tooltip.message = getTooltipText(cell)">
+  <span
+    #tooltip="matTooltip"
+    [matTooltip]="''"><ng-content></ng-content></span>
+</div>

@@ -5,7 +5,6 @@ import {
   HostBinding,
   HostListener,
   Input,
-  OnChanges,
   OnDestroy,
   Optional,
   Self,
@@ -56,7 +55,6 @@ export interface Lookup {
 export class AutocompleteParameterValueComponent
   extends BaseControlValueAccessor<AutocompleteParameterValue>
   implements
-    OnChanges,
     OnDestroy,
     AfterViewInit,
     MatFormFieldControl<AutocompleteParameterValue> {
@@ -220,12 +218,6 @@ export class AutocompleteParameterValueComponent
   onContainerClick(event: MouseEvent): void {
     if (!this.focused) {
       document.getElementById(this.inputId).focus();
-    }
-  }
-
-  ngOnChanges(): void {
-    if (this.acInstance) {
-      this.setupAutocomplete();
     }
   }
 
@@ -760,6 +752,9 @@ export class AutocompleteParameterValueComponent
       codes: [],
       items: []
     };
+    if (this.acInstance) {
+      this.setupAutocomplete();
+    }
   }
 
   /**

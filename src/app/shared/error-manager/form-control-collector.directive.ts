@@ -14,17 +14,17 @@ export class FormControlCollectorDirective implements OnInit, OnDestroy {
   constructor(
     @Self() @Optional() private formControlDirective: FormControlDirective,
     @Self() @Optional() private formControlName: FormControlName,
-    private errorManager: ErrorManager
+    @Optional() private errorManager: ErrorManager
   ) {}
 
   ngOnInit(): void {
-    this.errorManager.addControl(
+    this.errorManager?.addControl(
       this.formControlDirective?.control || this.formControlName?.control
     );
   }
 
   ngOnDestroy(): void {
-    this.errorManager.removeControl(
+    this.errorManager?.removeControl(
       this.formControlDirective?.control || this.formControlName?.control
     );
   }
