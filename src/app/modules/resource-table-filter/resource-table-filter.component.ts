@@ -80,8 +80,14 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  @HostListener('document:keydown.escape')
-  @HostListener('keydown.enter')
+  @HostListener('document:keydown.escape', ['$event'])
+  @HostListener('keydown.enter', ['$event'])
+  onKeydown(event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.close();
+  }
+
   close(): void {
     if (
       this.filterType === FilterType.Number &&
