@@ -214,9 +214,7 @@ export class SelectRecordsPageComponent
    * Applies the variable table filter change.
    */
   filterVariables(): void {
-    // TODO: Currently, user can sort loaded Variable records on
-    //       the client-side only. CTSS doesn't support sorting.
-    // TODO: Also, CTSS doesn't support paging.
+    // TODO: Add paging which should be supported by CTSS.
     this.selectRecords.loadVariables(
       this.cart.getRecords('ResearchStudy'),
       this.recTypeLoinc

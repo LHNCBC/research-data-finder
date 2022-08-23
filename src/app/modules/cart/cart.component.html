@@ -8,17 +8,21 @@
   <ng-container *ngIf="records.length > 0; else emptyTemplate">
     <label class="info" *ngIf="resourceType === 'ResearchStudy'">
       <span class="info-icon" aria-hidden="true"></span>
-      Patients will be added to the cohort if they participate in all (AND) or one of (OR) the studies in the cart.</label>
+      Patients will be added to the cohort if they participate in one of the studies in the cart.</label>
     <div class="spacer" *ngIf="resourceType === 'ResearchStudy'"></div>
     <div class="v-box list" [class.list--tree-view]="isTree()">
       <div class="v-box list-header">
-        <mat-radio-group [(ngModel)]="cart.logicalOperator[resourceType]"
-                         aria-label="Select an operator to combine criteria"
-                         *ngIf="isTree()"
-                         class="switch-group">
-          <mat-radio-button value="and">AND</mat-radio-button>
-          <mat-radio-button value="or">OR</mat-radio-button>
-        </mat-radio-group>
+        <div class="h-box switch-group" *ngIf="isTree()">
+          <mat-radio-group [(ngModel)]="cart.logicalOperator[resourceType]"
+                           aria-label="Select an operator to combine criteria">
+            <mat-radio-button value="and">AND</mat-radio-button>
+            <mat-radio-button value="or">OR</mat-radio-button>
+          </mat-radio-group>
+          <div class="spacer"></div>
+          <label class="info">
+            <span class="info-icon" aria-hidden="true"></span>
+            Patients will be added to the cohort if they have all (AND) or one of (OR) the variables from the cart.</label>
+        </div>
         <div class="h-box list-title">
           <div class="list-toolbar"></div>
           <label class="cell cell-{{resourceType}}-{{column.element}}" *ngFor="let column of columnDescriptions">{{column.displayName}}</label>
