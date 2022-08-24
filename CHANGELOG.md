@@ -3,13 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.0.2] - 2022-07-23
+## [5.0.3] - 2022-07-27
 ### Added
 - Simple prototype of the component for records in cart for the alpha version.
 - The ability to switch to the alpha version using the menu on the version
   number link.
 ### Fixed
 - Incorrect query parameter _type replaced with _format.
+
+## [5.0.2] - 2022-07-26
+### Fixed
+- Do not sort the column when user clicks on header info icon.
 
 ## [5.0.1] - 2022-07-22
 ### Changed
