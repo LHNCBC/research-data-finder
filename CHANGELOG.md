@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.3] - 2022-08-24
+### Changed
+- Removed prev folder.
+
 ## [5.0.2] - 2022-07-26
 ### Fixed
 - Do not sort the column when user clicks on header info icon.
