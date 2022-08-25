@@ -11,6 +11,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 const icons = [
   'keyboard_arrow_right',
   'keyboard_arrow_left',
+  'keyboard_double_arrow_down_black',
   'cancel',
   'clear',
   'clear_all_black',

@@ -96,10 +96,10 @@ function callServer(
   }
   const url =
     paramType === 'date' || paramType === 'dateTime'
-      ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&${paramName}=gt1000-01-01`
+      ? `${serviceBaseUrl}/${resourceType}?_count=1&_format=json&${paramName}=gt1000-01-01`
       : paramType === 'Quantity' || paramType === 'quantity'
-      ? `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&_filter=${paramName}%20ne%20000`
-      : `${serviceBaseUrl}/${resourceType}?_count=1&_type=json&_filter=${paramName}%20ne%20zzz`;
+      ? `${serviceBaseUrl}/${resourceType}?_count=1&_format=json&_filter=${paramName}%20ne%20000`
+      : `${serviceBaseUrl}/${resourceType}?_count=1&_format=json&_filter=${paramName}%20ne%20zzz`;
   console.log(url);
 
   https.get(url, (res) => {

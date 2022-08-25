@@ -19,6 +19,7 @@ import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
+import { getPluralFormOfRecordName } from '../../shared/utils';
 
 /**
  * Component for browsing public data (ResearchStudies and Variables).
@@ -83,6 +84,11 @@ export class BrowseRecordsPageComponent
     );
   }
 
+  /**
+   * Returns plural form of resource type name.
+   */
+  getPluralFormOfRecordName = getPluralFormOfRecordName;
+
   ngOnInit(): void {}
 
   ngOnDestroy(): void {
@@ -122,26 +128,6 @@ export class BrowseRecordsPageComponent
 
       const resourceType = this.visibleResourceTypes[0];
       this.loadFirstPage(resourceType);
-    });
-  }
-
-  /**
-   * Returns text for the remove tab button.
-   */
-  getRemoveTabButtonText(resourceType: string): string {
-    return `Remove ${this.getPluralFormOfResourceType(resourceType)} tab`;
-  }
-
-  /**
-   * Returns plural form of resource type name.
-   */
-  getPluralFormOfResourceType(resourceType: string): string {
-    const tabName = this.resourceType2TabName[resourceType] || resourceType;
-    return tabName.replace(/(.*)(.)/, (_, $1, $2) => {
-      if ($2 === 'y') {
-        return $1 + 'ies';
-      }
-      return _ + 's';
     });
   }
 

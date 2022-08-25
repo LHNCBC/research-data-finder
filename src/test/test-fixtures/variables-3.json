@@ -1,0 +1,35 @@
+[
+  4,
+  [
+    "phv00325554.v1.p1",
+    "phv00347548.v1.p1",
+    "phv00347549.v1.p1"
+  ],
+  null,
+  [
+    [
+      "Subject age",
+      "phs001457.v1",
+      "pht007054.v1",
+      "MISC",
+      "integer",
+      "years"
+    ],
+    [
+      "Subject's weight",
+      "phs001459.v1",
+      "pht007311.v1",
+      "BDYWGT.ATOM",
+      "decimal, encoded value",
+      "pounds"
+    ],
+    [
+      "Subject age",
+      "phs001459.v1",
+      "pht007311.v1",
+      "MISC",
+      "integer",
+      "years"
+    ]
+  ]
+]

@@ -103,6 +103,6 @@ export function verifyOutstandingRequests(
 ): void {
   mockHttp
     .match((request: HttpRequest<any>) => /assets\/.*\.svg/.test(request.url))
-    .forEach((testReq) => testReq.flush('<svg></svg>'));
+    .forEach((testReq) => !testReq.cancelled && testReq.flush('<svg></svg>'));
   mockHttp.verify();
 }

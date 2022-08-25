@@ -3,9 +3,10 @@ import Resource = fhir.Resource;
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import Bundle = fhir.Bundle;
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 import { getNextPageUrl } from '../utils';
 import { Sort } from '@angular/material/sort';
+import { CartService } from '../cart/cart.service';
 
 interface SelectRecordState {
   // Indicates that data is loading
@@ -22,7 +23,7 @@ interface SelectRecordState {
   providedIn: 'root'
 })
 export class SelectRecordsService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private cart: CartService) {}
 
   currentState: { [resourceType: string]: SelectRecordState } = {};
   resourceStream: { [resourceType: string]: Observable<Resource[]> } = {};
@@ -97,7 +98,18 @@ export class SelectRecordsService {
       catchError((error) => {
         currentState.nextBundleUrl = url;
         throw error;
-      })
+      }),
+      switchMap((resources: Resource[]) =>
+        // Exclude records added to the cart from the list
+        this.cart.getCartChanged(resourceType).pipe(
+          startWith(resources),
+          map(() =>
+            resources.filter(
+              (resource) => !this.cart.hasRecord(resourceType, resource)
+            )
+          )
+        )
+      )
     );
   }
 
@@ -112,6 +124,7 @@ export class SelectRecordsService {
     filters: any,
     sort: Sort
   ): void {
+    const resourceType = 'Variable';
     // TODO: Add sorting when CTSS will support it
     const currentState = {
       loading: true,
@@ -119,8 +132,9 @@ export class SelectRecordsService {
       progressValue: 0,
       totalRecords: 0
     };
-    this.currentState['Variable'] = currentState;
+    this.currentState[resourceType] = currentState;
     const dataFields = {
+      id: 'uid',
       display_name: 'display_name',
       study_id: 'study_id',
       dataset_id: 'dataset_id',
@@ -143,13 +157,14 @@ export class SelectRecordsService {
       }
     });
 
-    this.resourceStream['Variable'] = this.http
+    const uniqDataFields = [...new Set(Object.values(dataFields))];
+
+    this.resourceStream[resourceType] = this.http
       .get(url, {
         params: {
           rec_type: 'dbgv',
           maxList: 50,
-          has_loinc: true,
-          df: Object.values(dataFields).join(','),
+          df: uniqDataFields.join(','),
           terms: '',
           q: query.join(' AND ')
         }
@@ -162,17 +177,31 @@ export class SelectRecordsService {
           if (total && list) {
             list.forEach((item) => {
               const res = {
-                resourceType: 'Variable'
+                resourceType
               };
+              const values = {};
               Object.keys(dataFields).forEach((key, index) => {
-                res[key] = item[index];
+                values[uniqDataFields[index]] = item[index];
+              });
+              Object.entries(dataFields).forEach(([key, field]) => {
+                res[key] = values[field];
               });
               currentState.resources.push(res);
             });
           }
           currentState.loading = false;
           return currentState.resources;
-        })
+        }),
+        switchMap((resources: Resource[]) =>
+          this.cart.getCartChanged(resourceType).pipe(
+            startWith(resources),
+            map(() =>
+              resources.filter(
+                (resource) => !this.cart.hasRecord(resourceType, resource)
+              )
+            )
+          )
+        )
       );
   }
 }

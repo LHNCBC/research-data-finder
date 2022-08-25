@@ -9,6 +9,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { ResourceTableModule } from '../resource-table/resource-table.module';
+import { CartModule } from '../cart/cart.module';
+import { SearchParameterGroupModule } from '../search-parameter-group/search-parameter-group.module';
 
 @NgModule({
   declarations: [SelectRecordsPageComponent],
@@ -22,7 +24,9 @@ import { ResourceTableModule } from '../resource-table/resource-table.module';
     MatIconModule,
     MatTabsModule,
     MatButtonModule,
-    ResourceTableModule
+    ResourceTableModule,
+    CartModule,
+    SearchParameterGroupModule
   ]
 })
 export class SelectRecordsPageModule {}
