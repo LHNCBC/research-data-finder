@@ -22,19 +22,20 @@
                           (selectionChange)="onSelectionChange(resourceType)"
                           [selectAny]="true"
                           context="browse"
-                          [defaultSort]="sort[resourceType]"
+                          [sort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
                           [resourceType]="resourceType"></app-resource-table>
-      <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState['Variable']"
+      <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState[resourceType]"
                           #variableTable
-                          [columnDescriptions]="columnDescriptions.getVisibleColumns('Variable', 'browse') | async"
-                          (filterChanged)="filterVariables()"
+                          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'browse') | async"
+                          (filterChanged)="loadFirstPage(resourceType)"
                           [enableFiltering]="true"
-                          [loading]="selectRecords.currentState['Variable'].loading"
-                          [resources]="selectRecords.resourceStream['Variable'] | async"
+                          [loading]="selectRecords.currentState[resourceType].loading"
+                          [resources]="selectRecords.resourceStream[resourceType] | async"
                           context="browse"
-                          [defaultSort]="sort['Variable']"
-                          resourceType="Variable"></app-resource-table>
+                          [sort]="sort[resourceType]"
+                          (sortChanged)="onSortChanged(resourceType, $event)"
+                          [resourceType]="resourceType"></app-resource-table>
     </div>
   </mat-tab>
 </mat-tab-group>

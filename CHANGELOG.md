@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.5] - 2022-08-25
+### Added
+- Sorting to the variable table (for the alpha version).
+
 ## [5.0.4] - 2022-08-25
 ### Added
 - Simple prototype of the component for records in cart for the alpha version.
