@@ -11,8 +11,8 @@ import {
   HttpXhrBackend
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
-import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
-import definitionsIndex from '@legacy/js/search-parameters/definitions/index.json';
+import { FhirBatchQuery } from './fhir-batch-query';
+import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';

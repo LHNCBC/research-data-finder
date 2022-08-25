@@ -129,11 +129,9 @@ module.exports = async (config) => {
       test: /definitions[\\\/]index.json$/,
       use: [
         {
-          loader: path.resolve(
-            'prev/source/js/search-parameters/definitions/webpack-loader.js'
-          ),
+          loader: path.resolve('src/app/shared/definitions/webpack-loader.js'),
           options: require(path.resolve(
-            'prev/source/js/search-parameters/definitions/webpack-options.json'
+            'src/app/shared/definitions/webpack-options.json'
           ))
         }
       ]
