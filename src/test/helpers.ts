@@ -7,7 +7,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../app/shared/fhir-backend/fhir-backend.service';
-import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import { FhirBatchQuery } from '../app/shared/fhir-backend/fhir-batch-query';
 import { SettingsService } from '../app/shared/settings-service/settings.service';
 import { filter, take } from 'rxjs/operators';
 import {
@@ -103,6 +103,6 @@ export function verifyOutstandingRequests(
 ): void {
   mockHttp
     .match((request: HttpRequest<any>) => /assets\/.*\.svg/.test(request.url))
-    .forEach((testReq) => testReq.flush('<svg></svg>'));
+    .forEach((testReq) => !testReq.cancelled && testReq.flush('<svg></svg>'));
   mockHttp.verify();
 }

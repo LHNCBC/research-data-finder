@@ -9,6 +9,7 @@ import {
 } from '@angular/material/form-field';
 import { HttpClientModule } from '@angular/common/http';
 import { SettingsService } from './shared/settings-service/settings.service';
+import { MatMenuModule } from '@angular/material/menu';
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
@@ -24,7 +25,13 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, SharedModule, HttpClientModule, StepperModule],
+  imports: [
+    BrowserModule,
+    SharedModule,
+    HttpClientModule,
+    StepperModule,
+    MatMenuModule
+  ],
   providers: [
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,

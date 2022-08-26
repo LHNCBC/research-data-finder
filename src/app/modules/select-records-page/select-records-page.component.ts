@@ -20,6 +20,8 @@ import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
+import { CartService } from '../../shared/cart/cart.service';
+import { getPluralFormOfRecordName } from '../../shared/utils';
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -49,6 +51,12 @@ export class SelectRecordsPageComponent
   sort: { [resourceType: string]: Sort } = {
     ResearchStudy: {
       active: 'title',
+      // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+      direction: 'desc'
+    },
+    Variable: {
+      active: 'display_name',
+      // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
       direction: 'desc'
     }
   };
@@ -56,7 +64,8 @@ export class SelectRecordsPageComponent
   constructor(
     public fhirBackend: FhirBackendService,
     public columnDescriptions: ColumnDescriptionsService,
-    public selectRecords: SelectRecordsService
+    public selectRecords: SelectRecordsService,
+    public cart: CartService
   ) {
     selectRecords.resetAll();
 
@@ -64,12 +73,15 @@ export class SelectRecordsPageComponent
       fhirBackend.initialized
         .pipe(filter((status) => status === ConnectionStatus.Ready))
         .subscribe(() => {
+          this.cart.reset();
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
             ? ['ResearchStudy', 'Variable']
             : ['Observation'];
         })
     );
   }
+
+  getPluralFormOfRecordName = getPluralFormOfRecordName;
 
   ngOnInit(): void {}
 
@@ -114,19 +126,6 @@ export class SelectRecordsPageComponent
   }
 
   /**
-   * Returns plural form of resource type name.
-   */
-  getPluralFormOfResourceType(resourceType: string): string {
-    const tabName = this.resourceType2TabName[resourceType] || resourceType;
-    return tabName.replace(/(.*)(.)/, (_, $1, $2) => {
-      if ($2 === 'y') {
-        return $1 + 'ies';
-      }
-      return _ + 's';
-    });
-  }
-
-  /**
    * Returns resourceType for the selected tab
    */
   getCurrentResourceType(): string {
@@ -148,24 +147,55 @@ export class SelectRecordsPageComponent
    * Handles selection change
    * @param resourceType - type of selected resources
    */
-  onSelectionChange(resourceType: string): void {
+  onSelectionChange(resourceType: string): void {}
+
+  /**
+   * Adds records of the specified resource type to the card.
+   * @param resourceType - resource type
+   * @param resources - records to add
+   */
+  addRecordsToCart(resourceType, resources: Resource[]): void {
+    this.cart.addRecords(resourceType, resources);
+    this.clearSelectedRecords(resourceType);
     if (resourceType === 'ResearchStudy') {
       this.selectRecords.resetState('Variable');
-      const variableTable = this.tables.find(
-        (table) => table.resourceType === 'Variable'
-      );
-      variableTable?.clearSelection();
+      this.clearSelectedRecords('Variable');
     }
   }
 
   /**
-   * Returns selected ResearchStudies.
+   * Removes record from the cart.
+   * @param resourceType - resource type
+   * @param resource - record to remove
    */
-  getSelectedResearchStudies(): Resource[] {
-    const researchStudyTable = this.tables.find(
-      (table) => table.resourceType === 'ResearchStudy'
+  removeRecordFromCart(resourceType: string, resource: Resource): void {
+    this.cart.removeRecords(resourceType, [resource]);
+    if (resourceType === 'ResearchStudy') {
+      this.selectRecords.resetState('Variable');
+      this.clearSelectedRecords('Variable');
+    }
+  }
+
+  /**
+   * Returns selected records of the specified resource type.
+   * @param resourceType - resource type
+   */
+  getSelectedRecords(resourceType: string): Resource[] {
+    const resourceTable = this.tables?.find(
+      (table) => table.resourceType === resourceType
     );
-    return researchStudyTable?.selectedResources.selected || [];
+    return resourceTable?.selectedResources.selected || [];
+  }
+
+  /**
+   * Clears the selected records of the specified resource type.
+   * @param resourceType - resource type
+   */
+  clearSelectedRecords(resourceType: string): void {
+    const resourceTable = this.tables?.find(
+      (table) => table.resourceType === resourceType
+    );
+    return resourceTable?.selectedResources.clear();
   }
 
   /**
@@ -186,7 +216,7 @@ export class SelectRecordsPageComponent
     //       the client-side only. CTSS doesn't support sorting.
     // TODO: Also, CTSS doesn't support paging.
     this.selectRecords.loadVariables(
-      this.getSelectedResearchStudies(),
+      this.cart.getRecords('ResearchStudy'),
       this.variableTable?.filtersForm.value || {},
       this.sort['Variable']
     );
@@ -201,6 +231,7 @@ export class SelectRecordsPageComponent
     if (!sort) {
       return '';
     }
+    // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
     return `_sort=${sort.direction === 'asc' ? '-' : ''}${sort.active}`;
   }
 

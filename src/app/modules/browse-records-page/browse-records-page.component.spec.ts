@@ -10,12 +10,12 @@ import {
 import { BrowseRecordsPageModule } from './browse-records-page.module';
 import { HttpTestingController } from '@angular/common/http/testing';
 import researchStudies from 'src/test/test-fixtures/research-studies.json';
-import variables from 'src/test/test-fixtures/variables.json';
+import variables from 'src/test/test-fixtures/variables-4.json';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
 
-describe('SelectRecordsPageComponent', () => {
+describe('BrowseRecordsPageComponent', () => {
   let component: BrowseRecordsPageComponent;
   let fixture: ComponentFixture<BrowseRecordsPageComponent>;
   let mockHttp: HttpTestingController;

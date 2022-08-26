@@ -195,7 +195,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   keepAliveTimeout = 120000;
   @Output() filterChanged = new EventEmitter();
   @Output() sortChanged = new EventEmitter();
-  @Input() defaultSort: Sort;
+  @Input() sort: Sort;
   columns: string[] = [];
   columnsWithData: { [element: string]: boolean } = {};
   selectedResources = new SelectionModel<Resource>(true, []);
@@ -321,7 +321,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           Math.round((this.loadedDateTime - this.startTime) / 100) / 10;
         this.liveAnnoncer.announce(
           `The ${this.resourceType} resources loading process has finished. ` +
-            `${this.resources.length} rows loaded.`
+            `${this.resources.length} rows loaded. ` +
+            this.getSortMessage()
         );
         this.progressBarPosition$ = null;
       }
@@ -503,6 +504,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param sort - sorting event object containing info of table column and sort direction
    */
   sortData(sort: Sort): void {
+    this.sort = sort;
     if (!sort.active || sort.direction === '') {
       return;
     }
@@ -510,7 +512,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.sortChanged.emit(sort);
       return;
     }
-    const isAsc = sort.direction === 'asc';
+    // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+    const isAsc = sort.direction === 'desc';
     const sortingColumnDescription = this.columnDescriptions.find(
       (c) => c.element === sort.active
     );
@@ -519,11 +522,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const cellValueA = a.cells[sortingColumnDescription.element];
       const cellValueB = b.cells[sortingColumnDescription.element];
       return filterType === FilterType.Number
-        ? (+cellValueA - +cellValueB) * (isAsc ? -1 : 1)
-        : cellValueA.localeCompare(cellValueB) * (isAsc ? -1 : 1);
+        ? (+cellValueA - +cellValueB) * (isAsc ? 1 : -1)
+        : cellValueA.localeCompare(cellValueB) * (isAsc ? 1 : -1);
     });
     // Table will re-render only after data reference changed.
     this.dataSource.data = this.dataSource.data.slice();
+    this.liveAnnoncer.announce(this.getSortMessage());
   }
 
   /**
@@ -715,5 +719,17 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       // will clear out any timeout set to show tooltip.
       tooltip.hide(0);
     }, 0);
+  }
+
+  /**
+   * Returns a sort message.
+   */
+  getSortMessage(): string {
+    return this.sort?.active
+      ? `The data was sorted by ${this.sort.active} in ${
+          // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+          this.sort.direction === 'desc' ? 'ascending' : 'descending'
+        } order.`
+      : '';
   }
 }

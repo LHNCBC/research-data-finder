@@ -172,3 +172,34 @@ export function setUrlParam(name, value): string {
       .join('&')
   );
 }
+
+/**
+ * Returns plural form of resource type name.
+ */
+export function getPluralFormOfResourceType(resourceType: string): string {
+  return resourceType.replace(/(.*)(.)/, (_, $1, $2) => {
+    if ($2 === 'y') {
+      return $1 + 'ies';
+    }
+    return _ + 's';
+  });
+}
+
+// Map a resource type to a user-friendly record name
+const resourceType2RecordName = {
+  ResearchStudy: 'Study'
+};
+/**
+ * Returns record name (user friendly name for resource type).
+ * @param resourceType - resource type
+ */
+export function getRecordName(resourceType: string): string {
+  return resourceType2RecordName[resourceType] || resourceType;
+}
+
+/**
+ * Returns plural form of record name (user-friendly name for resource type).
+ */
+export function getPluralFormOfRecordName(resourceType: string): string {
+  return getPluralFormOfResourceType(getRecordName(resourceType));
+}

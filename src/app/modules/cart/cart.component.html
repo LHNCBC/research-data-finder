@@ -1,0 +1,45 @@
+<div class="v-box">
+  <div class="spacer"></div>
+  <div class="h-box">
+    <b>{{pluralFormOfRecordType}} in Cart:</b>
+    <div class="spacer"></div>
+    <label style="color: blue" *ngIf="resourceType !== 'ResearchStudy'">[TODO: this part is not ready]</label>
+  </div>
+  <div class="spacer"></div>
+
+  <ng-container *ngIf="records.length > 0; else emptyTemplate">
+    <label class="info" *ngIf="resourceType === 'ResearchStudy'">
+      <span class="info-icon" aria-hidden="true"></span>
+      Patients will be added to the cohort if they participate in all (AND) or one of (OR) the studies in the cart.</label>
+    <div class="spacer" *ngIf="resourceType === 'ResearchStudy'"></div>
+    <div class="v-box list" [class.list--tree-view]="isTree()">
+      <div class="v-box list-header">
+        <mat-radio-group [(ngModel)]="condition"
+                         aria-label="Select an operator to combine criteria"
+                         *ngIf="isTree()"
+                         class="switch-group">
+          <mat-radio-button value="and">AND</mat-radio-button>
+          <mat-radio-button value="or">OR</mat-radio-button>
+        </mat-radio-group>
+        <div class="h-box list-title">
+          <div class="list-toolbar"></div>
+          <label class="cell cell-{{resourceType}}-{{column.element}}" *ngFor="let column of columnDescriptions">{{column.displayName}}</label>
+        </div>
+      </div>
+      <div class="v-box list-body">
+        <div class="h-box list-item" *ngFor="let record of records">
+          <div class="condition-label" *ngIf="isTree()">{{condition}}</div>
+          <div class="list-toolbar">
+            <button type="button" mat-icon-button class="remove-btn" (click)="removeRecordFromCart(resourceType, record)">
+              <mat-icon svgIcon="clear"></mat-icon>
+            </button>
+          </div>
+          <label class="cell cell-{{resourceType}}-{{column.element}}" *ngFor="let column of columnDescriptions">{{cells[record.id][column.element] || '&nbsp;'}}</label>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+  <ng-template #emptyTemplate>
+    <label>No {{pluralFormOfRecordType.toLowerCase()}} in the cart. Select the {{pluralFormOfRecordType.toLowerCase()}} for which you want to build a cohort of patients.</label>
+  </ng-template>
+</div>

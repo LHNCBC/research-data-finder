@@ -4,7 +4,8 @@ import {
   encodeFhirSearchParameter,
   csvStringToArray,
   modifyStringForSynonyms,
-  generateSynonymLookup
+  generateSynonymLookup,
+  getPluralFormOfResourceType
 } from './utils';
 
 describe('utils.escapeFhirSearchParameter returns expected value for certain input', () => {
@@ -82,5 +83,16 @@ describe('modifyStringForSynonyms', () => {
     it(`${input}  -->  ${output}`, () => {
       expect(modifyStringForSynonyms(wordSynonymsLookup, input)).toBe(output);
     });
+  });
+});
+
+describe('modifyStringForSynonyms', () => {
+  it('should convert resourceType to plural form correctly', () => {
+    [
+      ['Observation', 'Observations'],
+      ['ResearchStudy', 'ResearchStudies']
+    ].forEach(([resourceType, pluralForm]) =>
+      expect(getPluralFormOfResourceType(resourceType)).toBe(pluralForm)
+    );
   });
 });

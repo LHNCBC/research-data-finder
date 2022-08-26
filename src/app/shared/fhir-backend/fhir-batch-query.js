@@ -1,4 +1,4 @@
-import definitionsIndex from '../search-parameters/definitions/index.json';
+import definitionsIndex from '../definitions/index.json';
 
 let commonRequestCache = {}; // Map from url to result JSON
 
@@ -522,7 +522,7 @@ export class FhirBatchQuery {
       }
 
       if (method === 'GET') {
-        sendUrl = this.addParamToUrl(sendUrl, '_type', 'json');
+        sendUrl = this.addParamToUrl(sendUrl, '_format', 'json');
       }
 
       oReq.open(method, sendUrl);

@@ -12,7 +12,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import { FhirBatchQuery } from '../../shared/fhir-backend/fhir-batch-query';
 import { filter, last, take } from 'rxjs/operators';
 import {
   HttpClientTestingModule,
@@ -116,17 +116,6 @@ describe('PullDataForCohortComponent', () => {
 
   it('should initialize on connect', async () => {
     expect(component.unselectedResourceTypes.length).toBeGreaterThan(0);
-  });
-
-  it('should convert resourceType to plural form correctly', () => {
-    [
-      ['Observation', 'Observations'],
-      ['ResearchStudy', 'ResearchStudies']
-    ].forEach(([resourceType, pluralForm]) =>
-      expect(component.getPluralFormOfResourceType(resourceType)).toBe(
-        pluralForm
-      )
-    );
   });
 
   it('should add/remove tab', async () => {

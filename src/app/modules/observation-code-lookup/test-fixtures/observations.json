@@ -10,7 +10,7 @@
     {
       "relation": "self",
       "url":
-      "https://lforms-fhir.nlm.nih.gov/baseR4/Observation/$lastn?_count=500&_elements=code%2Cvalue%2Ccomponent&_type=json&code%3Atext=Height&max=1"
+      "https://lforms-fhir.nlm.nih.gov/baseR4/Observation/$lastn?_count=500&_elements=code%2Cvalue%2Ccomponent&_format=json&code%3Atext=Height&max=1"
     }
   ],
   "entry": [

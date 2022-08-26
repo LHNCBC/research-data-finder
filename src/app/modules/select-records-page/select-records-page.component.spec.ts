@@ -10,10 +10,15 @@ import {
 import { SelectRecordsPageModule } from './select-records-page.module';
 import { HttpTestingController } from '@angular/common/http/testing';
 import researchStudies from 'src/test/test-fixtures/research-studies.json';
-import variables from 'src/test/test-fixtures/variables.json';
+import threeVariables from 'src/test/test-fixtures/variables-3.json';
+import fourVariables from 'src/test/test-fixtures/variables-4.json';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { CartComponent } from '../cart/cart.component';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 describe('SelectRecordsPageComponent', () => {
   let component: SelectRecordsPageComponent;
@@ -58,6 +63,7 @@ describe('SelectRecordsPageComponent', () => {
     mockHttp
       .expectOne('$fhir/ResearchStudy?_count=50&_sort=title')
       .flush(researchStudies);
+    await expectNumberOfRecords(2);
   }
 
   /**
@@ -75,9 +81,22 @@ describe('SelectRecordsPageComponent', () => {
   }
 
   /**
-   * Go to variables tab and load variables.
+   * Creates an expectation for the number of records on the current tab.
+   * @param n - number of expected records
    */
-  async function loadVariables(): Promise<void> {
+  async function expectNumberOfRecords(n: number): Promise<void> {
+    const tabGroup = await loader.getHarness(MatTabGroupHarness);
+    const currentTab = await tabGroup.getSelectedTab();
+    const table = await currentTab.getHarness(MatTableHarness);
+    const rows = await table.getRows();
+    expect(rows.length).toBe(n);
+  }
+
+  /**
+   * Go to variables tab and load variables.
+   * @param query - value of the q parameter for the request to the CTSS.
+   */
+  async function loadVariables(query = ''): Promise<void> {
     await selectTab('Variables');
 
     mockHttp
@@ -85,10 +104,11 @@ describe('SelectRecordsPageComponent', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === ''
+          req.params.get('q') === query
         );
       })
-      .flush(variables);
+      .flush(query ? threeVariables : fourVariables);
+    await expectNumberOfRecords(query ? 3 : 4);
   }
 
   it('should create', () => {
@@ -107,20 +127,43 @@ describe('SelectRecordsPageComponent', () => {
   it('should reload variables when the selected studies changes', async () => {
     await loadStudies();
     await loadVariables();
+
     await selectTab('Studies');
+    const addButton = await loader.getHarness(
+      MatButtonHarness.with({ text: 'Add selected records to Studies cart' })
+    );
+    const studyCartEl = fixture.debugElement
+      .query(By.css('.mat-tab-body-active'))
+      .query(By.directive(CartComponent));
+    const studyCart = studyCartEl.componentInstance;
     // Select first study
-    fixture.debugElement
-      .query(By.css('mat-tab-body:first-child mat-checkbox label'))
-      .nativeElement.click();
-    await selectTab('Variables');
-    mockHttp
-      .expectOne((req: HttpRequest<any>) => {
-        return (
-          req.url ===
-            'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === 'study_id:(phs001603.v1.p1)'
-        );
+    const checkBox = await loader.getHarness(
+      MatCheckboxHarness.with({
+        selector: 'mat-tab-body:first-child mat-checkbox'
       })
-      .flush(variables);
+    );
+    await checkBox.check();
+    // No studies in the cart
+    expect(studyCart.records.length).toEqual(0);
+    // Add the selected study to the cart
+    await addButton.click();
+    // One study in the cart
+    expect(studyCart.records.length).toEqual(1);
+    expect(studyCart.records[0].id).toEqual('phs001603.v1.p1');
+
+    await loadVariables('study_id:(phs001603.v1.p1)');
+
+    await selectTab('Studies');
+    const removeButton = await loader.getHarness(
+      MatButtonHarness.with({
+        selector: '.mat-tab-body-active app-cart .remove-btn'
+      })
+    );
+    // Remove the study from the cart
+    await removeButton.click();
+    // No studies in the cart
+    expect(studyCart.records.length).toEqual(0);
+
+    await loadVariables();
   });
 });

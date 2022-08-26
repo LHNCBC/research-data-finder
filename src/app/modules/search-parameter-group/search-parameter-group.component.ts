@@ -46,6 +46,7 @@ export class SearchParameterGroupComponent
   extends BaseControlValueAccessor<SearchParameterGroup>
   implements OnInit {
   @Input() inputResourceType = '';
+  @Input() allowAddRemoveButtons = true;
   @ViewChild('resourceTypeInput') resourceTypeInput: ElementRef;
   @ViewChildren(SearchParameterComponent)
   searchParameterComponents: QueryList<SearchParameterComponent>;
