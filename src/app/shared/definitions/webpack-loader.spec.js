@@ -1,4 +1,4 @@
-import { getVersionNameByNumber } from '../../common/fhir-batch-query';
+import { getVersionNameByNumber } from '../fhir-backend/fhir-batch-query';
 
 const fs = require('fs');
 const loader = require('./webpack-loader');

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { FhirBackendService } from './fhir-backend.service';
 import { FhirBackendModule } from './fhir-backend.module';
-import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import { FhirBatchQuery } from './fhir-batch-query';
 import {
   HttpClient,
   HttpClientModule,
