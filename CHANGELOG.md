@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.6] - 2022-08-26
+### Added
+- The ability to deselect all selected records.
+
 ## [5.0.5] - 2022-08-25
 ### Added
 - Sorting to the variable table (for the alpha version).
