@@ -7,7 +7,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../app/shared/fhir-backend/fhir-backend.service';
-import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import { FhirBatchQuery } from '../app/shared/fhir-backend/fhir-batch-query';
 import { SettingsService } from '../app/shared/settings-service/settings.service';
 import { filter, take } from 'rxjs/operators';
 import {

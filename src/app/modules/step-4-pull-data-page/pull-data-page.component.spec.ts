@@ -12,7 +12,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import { FhirBatchQuery } from '../../shared/fhir-backend/fhir-batch-query';
 import { filter, last, take } from 'rxjs/operators';
 import {
   HttpClientTestingModule,
