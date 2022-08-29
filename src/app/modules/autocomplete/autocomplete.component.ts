@@ -70,9 +70,7 @@ export class AutocompleteComponent
     const formControl = this.ngControl?.control as FormControl;
     return (
       this.inputField?.nativeElement.className.indexOf('invalid') >= 0 ||
-      (formControl && this.errorStateMatcher.isErrorState(formControl, null)) ||
-      // Show error state if a Record Type control is not filled.
-      (this.isRecordType && !this.focused)
+      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
     );
   }
 

@@ -20,7 +20,7 @@
         <mat-form-field class="resource-type"*ngIf="!ruleset.resourceType">
           <mat-label>Record type</mat-label>
           <app-autocomplete
-            isRecordType="true"
+            required
             [options]="resourceTypes$ | async"
             [(ngModel)]="ruleset.resourceType"
             (ngModelChange)="focusOnAddCriterionBtn()"></app-autocomplete>

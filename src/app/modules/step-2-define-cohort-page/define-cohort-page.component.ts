@@ -78,12 +78,7 @@ export class DefineCohortPageComponent
    * Checks for errors
    */
   hasErrors(): boolean {
-    return (
-      this.errorManager.errors !== null ||
-      this.defineCohortForm.invalid ||
-      // Do not allow searching for patients if a Record Type control is not filled.
-      this.patientParams.hasResourceTypeControls
-    );
+    return this.errorManager.errors !== null || this.defineCohortForm.invalid;
   }
 
   /**
