@@ -78,6 +78,10 @@ export class SearchParametersComponent
   observationLoincCodes: string[] = [];
   subscriptions: Subscription[] = [];
 
+  get hasResourceTypeControls(): boolean {
+    return this.resourceTypeComponents.length > 0;
+  }
+
   constructor(
     private fhirBackend: FhirBackendService,
     private liveAnnoncer: LiveAnnouncer,
