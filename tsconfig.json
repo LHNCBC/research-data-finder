@@ -17,9 +17,6 @@
     "lib": [
       "es2018",
       "dom"
-    ],
-    "paths": {
-      "@legacy/*": ["prev/source/*"]
-    }
+    ]
   }
 }

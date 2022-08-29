@@ -35,6 +35,7 @@ import { FilterType } from '../../types/filter-type';
 import { CustomDialog } from '../../shared/custom-dialog/custom-dialog.service';
 import Resource = fhir.Resource;
 import { MatExpansionPanel } from '@angular/material/expansion';
+import { MatTooltip } from '@angular/material/tooltip';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { isEqual, pickBy } from 'lodash-es';
 
@@ -220,7 +221,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       return true;
     }
     return (
-      event.type === 'keydown' && (event.key === 'ENTER' || event.key === ' ')
+      event.type === 'keydown' && (event.key === 'Enter' || event.key === ' ')
     );
   }
 
@@ -629,6 +630,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param column - column description of the header being clicked
    */
   openFilterDialog(event, column: ColumnDescription): void {
+    event.preventDefault();
     event.stopPropagation();
     // The button that sits inside the table header with mat-sort-header attribute does not
     // fire the 'click' event properly. Have to listen to 'keydown' event here.
@@ -733,6 +735,35 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   isSortable(column: ColumnDescription): boolean {
     return this.sortChanged.observers.length ? !column.expression : true;
+  }
+
+  /**
+   * Toggles tooltip.
+   * Stops event propagation so that when info icon is clicked, it does not
+   * sort the column.
+   * @param event the click event
+   * @param tooltip MatTooltip object
+   */
+  onInfoIconClick(event: any, tooltip: MatTooltip): void {
+    event.preventDefault();
+    event.stopPropagation();
+    tooltip.toggle();
+    this.liveAnnoncer.announce(tooltip.message);
+  }
+
+  /**
+   * Overrides the default behavior of MatToolTip to show the tooltip when the
+   * button is hovered over or focused. MatToolTip does this by adding event
+   * listeners like 'mouseenter'.
+   * @param tooltip MatTooltip object
+   */
+  onInfoIconFocus(tooltip: MatTooltip): void {
+    setTimeout(() => {
+      // We cannot call removeEventListener() since we don't have reference to
+      // the anonymous event listener function set by MatToolTip, but hide(0)
+      // will clear out any timeout set to show tooltip.
+      tooltip.hide(0);
+    }, 0);
   }
 
   /**
