@@ -3,10 +3,14 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.0.6] - 2022-08-26
+## [5.0.7] - 2022-08-29
 ### Changed
 - Replace mat-autocomplete with autocomplete-lhc controls.
 - Match list value on search parameter value autocomplete controls.
+
+## [5.0.6] - 2022-08-26
+### Added
+- The ability to deselect all selected records.
 
 ## [5.0.5] - 2022-08-25
 ### Added

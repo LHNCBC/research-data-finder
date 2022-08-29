@@ -92,7 +92,7 @@ th button[mat-icon-button] {
   margin-left: -12px;
 }
 
-th button:not(.configure-btn) {
+th button:not(.clear-btn) {
   display: flex;
   margin-left: 5px;
   border: 0;
@@ -105,10 +105,21 @@ th button:not(.configure-btn) {
   }
 }
 
-.fullscreen-button {
+.clear-btn.mat-button-disabled ::ng-deep svg {
+  fill: rgba(0, 0, 0, 0.54);
+}
+
+.fullscreen-btn {
   position: absolute;
   top: -50px;
-  right: 20px;
+  right: 15px;
+  z-index: 100;
+}
+
+.configure-btn {
+  position: absolute;
+  top: -50px;
+  right: 65px;
   z-index: 100;
 }
 
