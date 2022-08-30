@@ -11,7 +11,7 @@ import {
   Self,
   ViewChild
 } from '@angular/core';
-import { FormControl, NgControl } from '@angular/forms';
+import { AbstractControl, FormControl, NgControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
@@ -86,6 +86,20 @@ export class AutocompleteParameterValueComponent
       this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
       (formControl && this.errorStateMatcher.isErrorState(formControl, null))
     );
+  }
+
+  /**
+   * Whether the control is has required validator (Implemented as part of MatFormFieldControl)
+   */
+  get required(): boolean {
+    const validator = this.ngControl?.control.validator;
+    if (validator) {
+      const exampleResult = validator({} as AbstractControl);
+      if (exampleResult && exampleResult.required) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -174,7 +188,6 @@ export class AutocompleteParameterValueComponent
    */
   readonly disabled: boolean = false;
   readonly id: string;
-  readonly required = false;
 
   /**
    * Returns EV id from a DbGap variable API response

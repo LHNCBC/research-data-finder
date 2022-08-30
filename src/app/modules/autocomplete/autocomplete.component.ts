@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { FormControl, NgControl } from '@angular/forms';
+import { AbstractControl, FormControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import Def from 'autocomplete-lhc';
@@ -74,6 +74,20 @@ export class AutocompleteComponent
     );
   }
 
+  /**
+   * Whether the control is has required validator (Implemented as part of MatFormFieldControl)
+   */
+  get required(): boolean {
+    const validator = this.ngControl?.control.validator;
+    if (validator) {
+      const exampleResult = validator({} as AbstractControl);
+      if (exampleResult && exampleResult.required) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   constructor(
     @Optional() @Self() ngControl: NgControl,
     private errorStateMatcher: ErrorStateMatcher,
@@ -118,7 +132,6 @@ export class AutocompleteComponent
    */
   readonly disabled: boolean = false;
   readonly id: string;
-  readonly required = true;
 
   /**
    * Returns the option value for the data model
