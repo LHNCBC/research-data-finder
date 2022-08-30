@@ -44,8 +44,8 @@
           <ng-container *ngIf="resourceType === 'Variable'" [ngSwitch]="!cart.getVariableType(record.id)">
             <div class="cell cell-Variable-constraint h-box" *ngSwitchCase="true"><label>Loading...</label>&nbsp;<mat-spinner [diameter]="30"></mat-spinner></div>
             <ng-container [ngSwitch]="cart.getVariableType(record.id)" *ngSwitchDefault>
-              <label class="cell cell-Variable-constraint" *ngSwitchCase="'empty'">No observations for this variable.</label>
-              <label class="cell cell-Variable-constraint" *ngSwitchCase="'error'">Error loading observations.</label>
+              <label class="cell cell-Variable-constraint" *ngSwitchCase="'empty'">No data found for this variable.</label>
+              <label class="cell cell-Variable-constraint" *ngSwitchCase="'error'">Error loading data for this variable.</label>
               <app-observation-test-value
                   *ngSwitchDefault
                   class="cell cell-Variable-constraint"
