@@ -2,7 +2,8 @@ import { FormControlCollectorDirective } from './form-control-collector.directiv
 import {
   FormControl,
   FormControlDirective,
-  FormControlName
+  FormControlName,
+  NgModel
 } from '@angular/forms';
 import { ErrorManager } from './error-manager.service';
 
@@ -10,6 +11,7 @@ describe('FormControlCollectorDirective', () => {
   let formControl: FormControl;
   let formControlDirective: FormControlDirective;
   let formControlName: FormControlName;
+  let ngModel: NgModel;
   let errorManager: ErrorManager;
   let directive: FormControlCollectorDirective;
 
@@ -21,6 +23,9 @@ describe('FormControlCollectorDirective', () => {
     formControlName = {
       control: formControl
     } as FormControlName;
+    ngModel = {
+      control: formControl
+    } as NgModel;
     errorManager = new ErrorManager(null);
   });
 
@@ -45,6 +50,7 @@ describe('FormControlCollectorDirective', () => {
       directive = new FormControlCollectorDirective(
         formControlDirective,
         null,
+        null,
         errorManager
       );
     });
@@ -59,6 +65,22 @@ describe('FormControlCollectorDirective', () => {
       directive = new FormControlCollectorDirective(
         null,
         formControlName,
+        null,
+        errorManager
+      );
+    });
+
+    tests();
+  });
+
+  describe('for [ngModel]', () => {
+    beforeAll(() => {
+      spyOn(errorManager, 'addControl');
+      spyOn(errorManager, 'removeControl');
+      directive = new FormControlCollectorDirective(
+        null,
+        null,
+        ngModel,
         errorManager
       );
     });
