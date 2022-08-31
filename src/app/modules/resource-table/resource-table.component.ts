@@ -132,6 +132,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         )
         .subscribe((value) => {
           if (this.filterChanged.observers.length) {
+            this.scrollViewport.scrollToIndex(0);
             this.filterChanged.next(value);
           } else {
             this.dataSource.filter = { ...value } as string;
@@ -574,6 +575,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
     if (this.sortChanged.observers.length) {
+      this.scrollViewport.scrollToIndex(0);
       this.sortChanged.emit(sort);
       return;
     }

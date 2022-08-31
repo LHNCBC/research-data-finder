@@ -8,6 +8,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Constraints for variables in the cart.
 - Names of studies and datasets to the table of variables.
 - A component for displaying text that can be truncated.
+- Loading variables when scrolling the table.
 
 ### Fixed
 - Unnecessary too fast loading of studies in an inactive tab after a 2-minute pause.

@@ -192,12 +192,10 @@ export class BrowseRecordsPageComponent
   }
 
   /**
-   * Applies the variable table filter change.
+   * Loads variable records.
+   * @param pageNumber - page number to load
    */
-  filterVariables(): void {
-    // TODO: Currently, user can sort loaded Variable records on
-    //       the client-side only. CTSS doesn't support sorting.
-    // TODO: Also, CTSS doesn't support paging.
+  loadVariables(pageNumber = 0): void {
     this.selectRecords.loadVariables(
       this.getSelectedResearchStudies(),
       this.recTypeLoinc
@@ -209,7 +207,8 @@ export class BrowseRecordsPageComponent
             has_loinc: this.hasLoinc
           },
       this.variableTable?.filtersForm.value || {},
-      this.sort['Variable']
+      this.sort['Variable'],
+      pageNumber
     );
   }
 
@@ -232,7 +231,7 @@ export class BrowseRecordsPageComponent
    */
   loadFirstPage(resourceType: string): void {
     if (resourceType === 'Variable') {
-      this.filterVariables();
+      this.loadVariables();
     } else {
       const sortParam = this.getSortParam(resourceType);
       // TODO: Currently, user can filter loaded ResearchStudy records on
@@ -241,6 +240,20 @@ export class BrowseRecordsPageComponent
         resourceType,
         `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`
       );
+    }
+  }
+
+  /**
+   * Loads the next page of the specified resource type.
+   * @param resourceType - resource type.
+   */
+  loadNextPage(resourceType: string): void {
+    if (resourceType === 'Variable') {
+      this.loadVariables(
+        this.selectRecords.currentState[resourceType].currentPage + 1
+      );
+    } else {
+      this.selectRecords.loadNextPage(resourceType);
     }
   }
 }
