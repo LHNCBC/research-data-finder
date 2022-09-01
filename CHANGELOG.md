@@ -6,6 +6,9 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [5.0.8] - 2022-08-29
 ### Added
 - Options to variables tab for CTSS API.
+### Fixed
+- Updating the position of the sticky table header when changing the content of
+  the header.
 
 ## [5.0.7] - 2022-08-29
 ### Added
