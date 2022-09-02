@@ -91,7 +91,7 @@ export class FhirServerSelectComponent
   }
 
   /**
-   * Whether the control is has required validator (Implemented as part of MatFormFieldControl)
+   * Whether the control has required validator (Implemented as part of MatFormFieldControl)
    */
   get required(): boolean {
     const validator = this.ngControl?.control.validator;
