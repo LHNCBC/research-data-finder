@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { SearchParametersComponent } from './search-parameters.component';
 import { SearchParametersModule } from './search-parameters.module';
 import {
@@ -7,6 +6,7 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { configureTestingModule } from 'src/test/helpers';
+import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 
 describe('SearchParametersComponent', () => {
   let component: SearchParametersComponent;
@@ -16,7 +16,8 @@ describe('SearchParametersComponent', () => {
   beforeEach(async () => {
     await configureTestingModule({
       declarations: [SearchParametersComponent],
-      imports: [SearchParametersModule]
+      imports: [SearchParametersModule],
+      providers: [ErrorManager]
     });
     fhirBackend = TestBed.inject(FhirBackendService);
   });

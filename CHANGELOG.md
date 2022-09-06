@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.8] - 2022-08-30
+### Changed
+- Replace mat-autocomplete with autocomplete-lhc controls.
+- Match list value on search parameter value autocomplete controls.
+
 ## [5.0.7] - 2022-08-29
 ### Added
 - The ability to select multiple rows in a table with a mouse click

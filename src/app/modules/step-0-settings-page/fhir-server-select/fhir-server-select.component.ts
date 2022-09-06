@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { BaseControlValueAccessor } from '../../base-control-value-accessor';
-import { NgControl } from '@angular/forms';
+import { AbstractControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import Def from 'autocomplete-lhc';
 
@@ -91,11 +91,25 @@ export class FhirServerSelectComponent
   }
 
   /**
+   * Whether the control has required validator (Implemented as part of MatFormFieldControl)
+   */
+  get required(): boolean {
+    const validator = this.ngControl?.control.validator;
+    if (validator) {
+      const exampleResult = validator({} as AbstractControl);
+      if (exampleResult && exampleResult.required) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * These properties currently unused but required by MatFormFieldControl:
    */
   readonly disabled: boolean = false;
   readonly id: string;
-  readonly required = false;
+
   setDescribedByIds(): void {}
 
   /**
