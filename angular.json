@@ -33,16 +33,14 @@
                 "glob": "**/*",
                 "input": "notice-banner/",
                 "output": "/notice-banner/"
-              },
-              "src/launch.html"
+              }
             ],
             "styles": [
               "src/theme/theme.scss",
               "src/styles.less"
             ],
             "scripts": [
-              "./node_modules/jquery/dist/jquery.min.js",
-              "./node_modules/fhirclient/build/fhir-client.js"
+              "./node_modules/jquery/dist/jquery.min.js"
             ],
             "customWebpackConfig": {
               "path": "./webpack/extra-webpack.config.js",

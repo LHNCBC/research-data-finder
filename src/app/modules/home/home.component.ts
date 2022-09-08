@@ -1,13 +1,14 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
-import pkg from '../../package.json';
-import { getUrlParam, setUrlParam } from './shared/utils';
-import { FhirService } from './shared/fhir-service/fhir.service';
+import pkg from '../../../../package.json';
+import { getUrlParam, setUrlParam } from '../../shared/utils';
+import { FhirService } from '../../shared/fhir-service/fhir.service';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html'
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.less']
 })
-export class AppComponent implements AfterViewInit, OnInit {
+export class HomeComponent implements AfterViewInit, OnInit {
   version = pkg.version;
   isAlpha: boolean;
 
