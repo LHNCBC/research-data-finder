@@ -8,6 +8,7 @@ import {
 import { SettingsService } from './shared/settings-service/settings.service';
 import { AppRoutingModule } from './app-routing.module';
 import { HomeModule } from './modules/home/home.module';
+import { LaunchModule } from './modules/launch/launch.module';
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
@@ -23,7 +24,7 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, AppRoutingModule, HomeModule],
+  imports: [BrowserModule, AppRoutingModule, HomeModule, LaunchModule],
   providers: [
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
