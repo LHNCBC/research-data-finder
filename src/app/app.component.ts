@@ -1,18 +1,44 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import pkg from '../../package.json';
 import { getUrlParam, setUrlParam } from './shared/utils';
+import { FhirService } from './shared/fhir-service/fhir.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.less']
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements AfterViewInit, OnInit {
   version = pkg.version;
   isAlpha: boolean;
 
-  constructor() {
+  constructor(private fhirService: FhirService) {
     this.isAlpha = getUrlParam('alpha-version') === 'enable';
+  }
+
+  ngOnInit(): void {
+    if (
+      !this.fhirService.getSmartConnection() &&
+      !this.fhirService.smartConnectionInProgress()
+    ) {
+      this.fhirService.requestSmartConnection((success) => {
+        if (success) {
+          const smart = this.fhirService.getSmartConnection();
+          const userPromise = smart.user.read().then((user) => {
+            this.fhirService.setCurrentUser(user);
+          });
+          Promise.all([userPromise]).then(
+            () => {},
+            (msg) => {
+              console.log('Unable to read the patient and user resources.');
+              console.log(msg);
+            }
+          );
+        } else {
+          console.log('Could not establish a SMART connection.');
+        }
+      });
+    }
   }
 
   openChangelog(): void {

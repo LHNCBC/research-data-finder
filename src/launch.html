@@ -12,17 +12,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-59GQ6JK" height="0" width="0" style="display:none;visibility:hidden" title="googletagmanager" sandbox></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
-  <div id="noticeBanner"></div>
-  <div id="sharedHeader" style="display: none;"></div>
-  <app-root>Loading...</app-root>
-  <div id="sharedFooter" style="display: none;"></div>
-  <script src="./notice-banner/notice-banner.js"></script>
-  <script src="https://clinicaltables.nlm.nih.gov/shared/loadShared.min.js"></script>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-59GQ6JK" height="0" width="0" style="display:none;visibility:hidden" title="googletagmanager" sandbox></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 
-  <!-- smart on fhir client -->
-<!--  <script src="./node_modules/fhirclient/build/fhir-client.js"></script>-->
+<!-- smart on fhir client -->
+<!--<script src="./node_modules/fhirclient/build/fhir-client.js"></script>-->
+<script>
+  FHIR.oauth2.authorize({
+    "client_id": "my_web_app",  // hard coded client_id to work with SMART on FHIR starter server
+    "scope":  "openid fhirUser user/*.read"
+  });
+</script>
+Loading...
 </body>
 </html>
