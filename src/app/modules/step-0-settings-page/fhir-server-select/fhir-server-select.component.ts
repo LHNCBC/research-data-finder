@@ -43,6 +43,11 @@ export class FhirServerSelectComponent
     {
       description: 'dbGap (https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1)',
       url: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+    },
+    {
+      description:
+        'SMART on FHIR launch (https://lforms-smart-fhir.nlm.nih.gov)',
+      url: 'https://lforms-smart-fhir.nlm.nih.gov'
     }
   ];
 
@@ -209,7 +214,14 @@ export class FhirServerSelectComponent
     const inputFieldValue = this.input.nativeElement.value;
     if (this.currentValue !== inputFieldValue) {
       this.currentValue = inputFieldValue;
-      this.onChange(this.value);
+      if (this.currentValue === 'https://lforms-smart-fhir.nlm.nih.gov') {
+        window.location.href =
+          'https://lforms-smart-fhir.nlm.nih.gov/?launch_url=' +
+          window.location.origin +
+          '/launch';
+      } else {
+        this.onChange(this.value);
+      }
     }
   }
 
