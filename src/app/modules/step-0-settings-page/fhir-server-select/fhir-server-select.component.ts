@@ -46,8 +46,8 @@ export class FhirServerSelectComponent
     },
     {
       description:
-        'SMART on FHIR launch (https://lforms-smart-fhir.nlm.nih.gov)',
-      url: 'https://lforms-smart-fhir.nlm.nih.gov'
+        'SMART on FHIR launch (https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir)',
+      url: 'https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir'
     }
   ];
 
@@ -214,7 +214,9 @@ export class FhirServerSelectComponent
     const inputFieldValue = this.input.nativeElement.value;
     if (this.currentValue !== inputFieldValue) {
       this.currentValue = inputFieldValue;
-      if (this.currentValue === 'https://lforms-smart-fhir.nlm.nih.gov') {
+      if (
+        this.currentValue === 'https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir'
+      ) {
         window.location.href =
           'https://lforms-smart-fhir.nlm.nih.gov/?launch_url=' +
           window.location.origin +

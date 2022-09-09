@@ -13,6 +13,7 @@ import {
 import { Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
 import { setUrlParam } from '../../shared/utils';
+import { FhirService } from '../../shared/fhir-service/fhir.service';
 
 /**
  * Settings page component for defining general parameters such as FHIR REST API Service Base URL.
@@ -28,13 +29,14 @@ export class SettingsPageComponent {
 
   constructor(
     private formBuilder: FormBuilder,
-    public fhirBackend: FhirBackendService
+    public fhirBackend: FhirBackendService,
+    private fhirService: FhirService
   ) {
-    this.isWaitingForConnection = fhirBackend.initialized.pipe(
+    this.isWaitingForConnection = this.fhirBackend.initialized.pipe(
       map((status) => status === ConnectionStatus.Pending)
     );
     this.settingsFormGroup = this.formBuilder.group({
-      serviceBaseUrl: new FormControl(this.fhirBackend.serviceBaseUrl, {
+      serviceBaseUrl: new FormControl(fhirBackend.serviceBaseUrl, {
         validators: Validators.required,
         asyncValidators: this.serviceBaseUrlValidator.bind(this)
       }),
@@ -57,6 +59,34 @@ export class SettingsPageComponent {
         // Update url query params after valid server change
         window.history.pushState({}, '', setUrlParam('server', server));
       });
+    if (
+      !this.fhirService.getSmartConnection() &&
+      !this.fhirService.smartConnectionInProgress()
+    ) {
+      this.fhirService.requestSmartConnection((success) => {
+        if (success) {
+          // It's SMART on FHIR launch instance
+          this.settingsFormGroup
+            .get('serviceBaseUrl')
+            .setValue('https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir');
+          const smart = this.fhirService.getSmartConnection();
+          const userPromise = smart.user.read().then((user) => {
+            // TODO: what to do with this info, in regards to following queries?
+            console.log(user);
+            this.fhirService.setCurrentUser(user);
+          });
+          Promise.all([userPromise]).then(
+            () => {},
+            (msg) => {
+              console.log('Unable to read the patient and user resources.');
+              console.log(msg);
+            }
+          );
+        } else {
+          console.log('Could not establish a SMART connection.');
+        }
+      });
+    }
   }
 
   /**
