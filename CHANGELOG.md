@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.11] - 2022-09-12
+### Added
+- Grouping/ungrouping variables in the cart.
+
 ## [5.0.10] - 2022-09-01
 ### Added
 - Constraints for variables in the cart.

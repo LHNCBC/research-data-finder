@@ -69,8 +69,8 @@
       </div>
       <app-cart [resourceType]="resourceType"
                 [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'select') | async"
-                [records]="cart.getRecords(resourceType)"
-                (removeRecord)="removeRecordFromCart($event.resourceType, $event.resource)">
+                [listItems]="cart.getListItems(resourceType)"
+                (removeRecord)="removeRecordFromCart($event.resourceType, $event.listItem)">
       </app-cart>
     </div>
   </mat-tab>

@@ -20,8 +20,10 @@ import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
-import { CartService } from '../../shared/cart/cart.service';
+import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { getPluralFormOfRecordName } from '../../shared/utils';
+import { ErrorManager } from '../../shared/error-manager/error-manager.service';
+import { ErrorStateMatcher } from '@angular/material/core';
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -29,7 +31,14 @@ import { getPluralFormOfRecordName } from '../../shared/utils';
 @Component({
   selector: 'app-select-records-page',
   templateUrl: './select-records-page.component.html',
-  styleUrls: ['./select-records-page.component.less']
+  styleUrls: ['./select-records-page.component.less'],
+  providers: [
+    ErrorManager,
+    {
+      provide: ErrorStateMatcher,
+      useExisting: ErrorManager
+    }
+  ]
 })
 export class SelectRecordsPageComponent
   implements OnInit, AfterViewInit, OnDestroy {
@@ -168,10 +177,11 @@ export class SelectRecordsPageComponent
   /**
    * Removes record from the cart.
    * @param resourceType - resource type
-   * @param resource - record to remove
+   * @param listItem - list item, this can be a record or a group (array)
+   *   of records.
    */
-  removeRecordFromCart(resourceType: string, resource: Resource): void {
-    this.cart.removeRecords(resourceType, [resource]);
+  removeRecordFromCart(resourceType: string, listItem: ListItem): void {
+    this.cart.removeRecords(resourceType, [listItem]);
     if (resourceType === 'ResearchStudy') {
       this.selectRecords.resetState('Variable');
       this.clearSelectedRecords('Variable');
@@ -215,16 +225,19 @@ export class SelectRecordsPageComponent
    * @param pageNumber - page number to load
    */
   loadVariables(pageNumber = 0): void {
-    // TODO: Add paging which should be supported by CTSS.
     this.selectRecords.loadVariables(
-      this.cart.getRecords('ResearchStudy'),
+      [].concat(...(this.cart.getListItems('ResearchStudy') || [])),
       this.recTypeLoinc
         ? {
             rec_type: 'loinc'
           }
-        : {
+        : this.hasLoinc
+        ? {
             rec_type: 'dbgv',
             has_loinc: this.hasLoinc
+          }
+        : {
+            rec_type: 'dbgv'
           },
       this.variableTable?.filtersForm.value || {},
       this.sort['Variable'],
