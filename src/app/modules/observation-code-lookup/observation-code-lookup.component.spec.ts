@@ -6,7 +6,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
-import { FhirBatchQuery } from '@legacy/js/common/fhir-batch-query';
+import { FhirBatchQuery } from '../../shared/fhir-backend/fhir-batch-query';
 import observations from './test-fixtures/observations.json';
 import observationsDuplicateDisplay from './test-fixtures/observations_duplicate_display.json';
 import metadata from './test-fixtures/metadata.json';

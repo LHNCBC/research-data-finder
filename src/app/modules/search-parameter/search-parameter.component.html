@@ -1,12 +1,8 @@
 <div class="search-parameter">
-  <app-autocomplete
-      *ngIf="!isPullData"
-      #searchParamName
-      class="parameter-name"
-      label="Search parameter name"
-      required
-      [options]="parameterOptions"
-      [formControl]="parameterName"></app-autocomplete>
+  <mat-form-field class="parameter-name" *ngIf="!isPullData">
+    <mat-label>Search parameter name</mat-label>
+    <app-autocomplete #searchParamName [options]="parameterOptions" [formControl]="parameterName"></app-autocomplete>
+  </mat-form-field>
 
   <mat-form-field class="parameter-value" *ngIf="resourceType === EVIDENCEVARIABLE && selectedParameter">
     <mat-label>Search parameter value</mat-label>

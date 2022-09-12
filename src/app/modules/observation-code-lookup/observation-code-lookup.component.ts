@@ -16,7 +16,7 @@ import Def from 'autocomplete-lhc';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { FormControl, NgControl } from '@angular/forms';
+import { AbstractControl, FormControl, NgControl } from '@angular/forms';
 import { EMPTY, forkJoin, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
@@ -129,6 +129,20 @@ export class ObservationCodeLookupComponent
     );
   }
 
+  /**
+   * Whether the control has required validator (Implemented as part of MatFormFieldControl)
+   */
+  get required(): boolean {
+    const validator = this.ngControl?.control.validator;
+    if (validator) {
+      const exampleResult = validator({} as AbstractControl);
+      if (exampleResult && exampleResult.required) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Mapping from code to datatype
   code2Type: { [key: string]: string } = {};
 
@@ -137,7 +151,6 @@ export class ObservationCodeLookupComponent
    */
   readonly disabled: boolean = false;
   readonly id: string;
-  readonly required = false;
 
   /**
    * Whether the MatFormField label should try to float.

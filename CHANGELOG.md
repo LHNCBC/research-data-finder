@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.0.7] - 2022-08-22
+## [5.0.10] - 2022-09-01
 ### Added
 - Constraints for variables in the cart.
 - Names of studies and datasets to the table of variables.
@@ -14,30 +14,46 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Unnecessary too fast loading of studies in an inactive tab after a 2-minute pause.
 - Writing a value to AutocompleteParameterValueComponent.
 
-## [5.0.6] - 2022-07-27
+## [5.0.9] - 2022-08-31
 ### Added
 - Options to variables tab for CTSS API.
+### Fixed
+- Updating the position of the sticky table header when changing the content of
+  the header.
 
-## [5.0.5] - 2022-07-26
+## [5.0.8] - 2022-08-30
+### Changed
+- Replace mat-autocomplete with autocomplete-lhc controls.
+- Match list value on search parameter value autocomplete controls.
+
+## [5.0.7] - 2022-08-29
 ### Added
 - The ability to select multiple rows in a table with a mouse click
   while holding down the Shift key.
 
-## [5.0.4] - 2022-07-25
+## [5.0.6] - 2022-08-26
 ### Added
 - The ability to deselect all selected records.
 
-## [5.0.3] - 2022-07-24
+## [5.0.5] - 2022-08-25
 ### Added
 - Sorting to the variable table (for the alpha version).
 
-## [5.0.2] - 2022-07-23
+## [5.0.4] - 2022-08-25
 ### Added
 - Simple prototype of the component for records in cart for the alpha version.
 - The ability to switch to the alpha version using the menu on the version
   number link.
 ### Fixed
 - Incorrect query parameter _type replaced with _format.
+
+## [5.0.3] - 2022-08-24
+### Changed
+- Removed prev folder.
+
+## [5.0.2] - 2022-07-26
+### Fixed
+- Do not sort the column when user clicks on header info icon.
 
 ## [5.0.1] - 2022-07-22
 ### Changed

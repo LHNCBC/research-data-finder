@@ -16,6 +16,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
       placeholder="Type and select one or more"
       resourceType="Observation"
       searchParameter="category"
+      usePrefetch="true"
+      [options]="options"
     >
     </app-autocomplete-parameter-value>
   </mat-form-field>`
@@ -27,6 +29,10 @@ class TestHostComponent {
     codes: [{ code: 'PHY' }, { code: 'PHR' }],
     items: ['Physician', 'Pharmacy']
   });
+  options = [
+    { code: 'PHY', display: 'Physician' },
+    { code: 'PHR', display: 'Pharmacy' }
+  ];
 }
 
 describe('AutoCompleteTestValueComponent', () => {
@@ -67,5 +73,13 @@ describe('AutoCompleteTestValueComponent', () => {
     expect(component.acInstance.getSelectedItems()).toEqual(
       hostComponent.selectedCodes.value.items
     );
+  });
+
+  it('should not allow non-list values', () => {
+    const el = component.input.nativeElement;
+    el.value = 'someValue';
+    el.dispatchEvent(new Event('input'));
+    el.dispatchEvent(new Event('blur'));
+    expect(el.className.indexOf('invalid') >= 0).toBeTrue();
   });
 });
