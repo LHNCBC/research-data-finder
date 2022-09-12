@@ -17,14 +17,14 @@
                 (click)="focusOnPreviousElement(removeResTypeBtn._elementRef.nativeElement);removeRuleSet()">
           <mat-icon svgIcon="clear"></mat-icon>
         </button>
-        <app-autocomplete
-            class="resource-type"
-            label="Record type"
+        <mat-form-field class="resource-type"*ngIf="!ruleset.resourceType">
+          <mat-label>Record type</mat-label>
+          <app-autocomplete
             required
             [options]="resourceTypes$ | async"
             [(ngModel)]="ruleset.resourceType"
-            (ngModelChange)="focusOnAddCriterionBtn()"
-            *ngIf="!ruleset.resourceType"></app-autocomplete>
+            (ngModelChange)="focusOnAddCriterionBtn()"></app-autocomplete>
+        </mat-form-field>
         <p *ngIf="ruleset.resourceType && ruleset.resourceType !== 'Patient'">Select Patients which have
           {{getIndefiniteArticle(ruleset.resourceType)}}
           <b>{{ruleset.resourceType}}</b> record that meets the criteria below</p>

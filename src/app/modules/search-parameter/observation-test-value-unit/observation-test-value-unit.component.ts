@@ -16,7 +16,7 @@ import {
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { BaseControlValueAccessor } from '../../base-control-value-accessor';
-import { NgControl } from '@angular/forms';
+import { AbstractControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
@@ -117,11 +117,24 @@ export class ObservationTestValueUnitComponent
   }
 
   /**
+   * Whether the control has required validator (Implemented as part of MatFormFieldControl)
+   */
+  get required(): boolean {
+    const validator = this.ngControl?.control.validator;
+    if (validator) {
+      const exampleResult = validator({} as AbstractControl);
+      if (exampleResult && exampleResult.required) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * This properties currently unused but required by MatFormFieldControl:
    */
   readonly disabled: boolean = false;
   readonly id: string;
-  readonly required = false;
 
   /**
    * Whether the MatFormField label should try to float.

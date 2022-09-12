@@ -93,9 +93,13 @@ describe('Research Data Finder (baseR4)', () => {
 
   it('should be an autocomplete field for DocumentReference.contenttype', () => {
     cy.contains('Add criteria for a record type').click();
-    cy.get('app-autocomplete.resource-type input').type('DocumentReference');
+    cy.get('mat-form-field.resource-type app-autocomplete input')
+      .type('DocumentReference')
+      .blur();
     cy.contains('Add a criterion for the DocumentReference record').click();
-    cy.get('app-autocomplete.parameter-name input').type('contenttype');
+    cy.get('mat-form-field.parameter-name app-autocomplete input')
+      .type('contenttype')
+      .blur();
     cy.get('#autocomplete-test-value-1').focus();
     cy.get('#completionOptions').should('be.visible');
     cy.get('#completionOptions > ul > li').should('not.be.empty');
@@ -104,9 +108,13 @@ describe('Research Data Finder (baseR4)', () => {
 
   it('should be an autocomplete field for Encounter.type', () => {
     cy.contains('Add criteria for a record type').click();
-    cy.get('app-autocomplete.resource-type input').type('Encounter');
+    cy.get('mat-form-field.resource-type app-autocomplete input')
+      .type('Encounter')
+      .blur();
     cy.contains('Add a criterion for the Encounter record').click();
-    cy.get('app-autocomplete.parameter-name input').type('type');
+    cy.get('mat-form-field.parameter-name app-autocomplete input')
+      .type('type')
+      .blur();
     cy.get('#autocomplete-test-value-2').focus();
     cy.get('#completionOptions').should('be.visible');
     cy.get('#completionOptions > ul > li').should('not.be.empty');
@@ -115,9 +123,13 @@ describe('Research Data Finder (baseR4)', () => {
 
   it('should add search criterion', () => {
     cy.contains('Add criteria for a record type').click();
-    cy.get('app-autocomplete.resource-type input').type('Observation');
+    cy.get('mat-form-field.resource-type app-autocomplete input')
+      .type('Observation')
+      .blur();
     cy.contains('Add a criterion for the Observation record').click();
-    cy.get('app-autocomplete.parameter-name input').type('variable name');
+    cy.get('mat-form-field.parameter-name app-autocomplete input')
+      .type('variable name')
+      .blur();
     cy.get('#code-selector-2').type('Height cm');
     cy.get('#completionOptions').should('be.visible');
     cy.get('#completionOptions > ul > li:first-child').click();

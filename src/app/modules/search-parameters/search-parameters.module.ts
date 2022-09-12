@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
 import { AutocompleteModule } from '../autocomplete/autocomplete.module';
 import { SearchParameterModule } from '../search-parameter/search-parameter.module';
+import { FormControlCollectorModule } from '../../shared/error-manager/form-control-collector.module';
 
 @NgModule({
   declarations: [SearchParametersComponent],
@@ -27,7 +28,8 @@ import { SearchParameterModule } from '../search-parameter/search-parameter.modu
     MatSelectModule,
     MatRadioModule,
     AutocompleteModule,
-    SearchParameterModule
+    SearchParameterModule,
+    FormControlCollectorModule
   ]
 })
 export class SearchParametersModule {}

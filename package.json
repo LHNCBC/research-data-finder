@@ -32,7 +32,7 @@
     "@angular/platform-browser": "~12.2.3",
     "@angular/platform-browser-dynamic": "~12.2.3",
     "@angular/router": "~12.2.3",
-    "autocomplete-lhc": "^18.4.0",
+    "autocomplete-lhc": "^18.5.0",
     "fhirpath": "^2.9.1",
     "file-saver": "^2.0.5",
     "json5": "^2.2.0",
