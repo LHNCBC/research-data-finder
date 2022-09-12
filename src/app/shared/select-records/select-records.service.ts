@@ -137,7 +137,10 @@ export class SelectRecordsService {
   ): void {
     const resourceType = 'Variable';
     let currentState = this.currentState[resourceType];
-    if (currentState?.totalRecords <= pageNumber * 50) {
+    if (
+      currentState?.loading ||
+      (pageNumber && currentState?.totalRecords <= pageNumber * 50)
+    ) {
       return;
     }
     if (pageNumber === 0) {
@@ -202,7 +205,6 @@ export class SelectRecordsService {
       })
       .pipe(
         map((data: any) => {
-          // TODO
           const total = data[0];
           currentState.totalRecords = total;
           const list = data[3];
@@ -222,7 +224,12 @@ export class SelectRecordsService {
             });
           }
           currentState.loading = false;
+          currentState.currentPage = pageNumber;
           return currentState.resources;
+        }),
+        catchError((error) => {
+          currentState.loading = false;
+          throw error;
         }),
         switchMap((resources: Resource[]) =>
           this.cart.getCartChanged(resourceType).pipe(
