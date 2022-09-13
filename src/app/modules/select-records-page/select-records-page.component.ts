@@ -49,6 +49,7 @@ export class SelectRecordsPageComponent
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
   maxPatientsNumber = new FormControl('100', Validators.required);
   hasLoinc = false;
+  showOnlyStudiesWithSubjects = true;
   recTypeLoinc = false;
 
   // Array of visible resource type names
@@ -269,9 +270,19 @@ export class SelectRecordsPageComponent
       const sortParam = this.getSortParam(resourceType);
       // TODO: Currently, user can filter loaded ResearchStudy records on
       //       the client-side only.
+      const hasStatuses = this.showOnlyStudiesWithSubjects
+        ? '&_has:ResearchSubject:study:status=' +
+          Object.keys(
+            this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
+              'ResearchSubject.status'
+            ]
+          ).join(',')
+        : '';
       this.selectRecords.loadFirstPage(
         resourceType,
-        `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`
+        `$fhir/${resourceType}?_count=50${hasStatuses}${
+          sortParam ? '&' + sortParam : ''
+        }`
       );
     }
   }
