@@ -226,75 +226,102 @@ export class FhirBackendService implements HttpBackend {
       return this.defaultBackend.handle(request);
     }
 
-    const newUrl = request.url.replace(
-      serviceBaseUrlRegExp,
-      this.serviceBaseUrl
-    );
-    const serviceBaseUrlWithEndpoint = new RegExp(
-      '^' + escapeStringForRegExp(this.serviceBaseUrl) + '\\/[^?]+'
-    );
-    const newRequest = request.clone({
-      url: newUrl
-    });
+    if (this.isSmartOnFhir) {
+      const newUrl = request.url.replace(serviceBaseUrlRegExp, '');
+      return new Observable<HttpResponse<any>>(
+        (observer: Observer<HttpResponse<any>>) => {
+          this.fhirService
+            .getSmartConnection()
+            .request(newUrl)
+            .then(
+              (res) => {
+                observer.next(
+                  new HttpResponse<any>({
+                    body: res
+                  })
+                );
+                observer.complete();
+              },
+              (res) =>
+                observer.error(
+                  new HttpErrorResponse({
+                    error: res.error
+                  })
+                )
+            );
+        }
+      );
+    } else {
+      const newUrl = request.url.replace(
+        serviceBaseUrlRegExp,
+        this.serviceBaseUrl
+      );
+      const serviceBaseUrlWithEndpoint = new RegExp(
+        '^' + escapeStringForRegExp(this.serviceBaseUrl) + '\\/[^?]+'
+      );
+      const newRequest = request.clone({
+        url: newUrl
+      });
 
-    if (request.method !== 'GET') {
-      // If it is not a GET request to the FHIR server,
-      // pass the request to the default Angular backend.
-      return this.defaultBackend.handle(newRequest);
-    }
-
-    // Until authentication is in place for dbGaP, we need to include the
-    // consent groups as values for _security.
-    // Observation and ResearchSubject queries will be sent with _security params.
-    const fullUrl =
-      this.features.consentGroup &&
-      this.isAuthorizationRequiredForUrl(newRequest.url)
-        ? this.fhirClient.addParamToUrl(
-            newRequest.urlWithParams,
-            '_security',
-            this.features.consentGroup
-          )
-        : newRequest.urlWithParams;
-
-    // Otherwise, use the FhirBatchQuery from the old version of
-    // Research Data Finder to handle the HTTP request.
-    return new Observable<HttpResponse<any>>(
-      (observer: Observer<HttpResponse<any>>) => {
-        this.fhirClient.initialize().then(() => {
-          // Requests to the FHIR server without endpoint cannot be combined
-          // into a batch request
-          const options = {
-            combine:
-              this.fhirClient.getFeatures().batch &&
-              serviceBaseUrlWithEndpoint.test(newUrl)
-          };
-          const promise = this.isCacheEnabled
-            ? this.fhirClient.getWithCache(fullUrl, options)
-            : this.fhirClient.get(fullUrl, options);
-
-          promise.then(
-            ({ status, data }) => {
-              observer.next(
-                new HttpResponse<any>({
-                  status,
-                  body: data,
-                  url: fullUrl
-                })
-              );
-              observer.complete();
-            },
-            ({ status, error }) =>
-              observer.error(
-                new HttpErrorResponse({
-                  status,
-                  error,
-                  url: fullUrl
-                })
-              )
-          );
-        });
+      if (request.method !== 'GET') {
+        // If it is not a GET request to the FHIR server,
+        // pass the request to the default Angular backend.
+        return this.defaultBackend.handle(newRequest);
       }
-    );
+
+      // Until authentication is in place for dbGaP, we need to include the
+      // consent groups as values for _security.
+      // Observation and ResearchSubject queries will be sent with _security params.
+      const fullUrl =
+        this.features.consentGroup &&
+        this.isAuthorizationRequiredForUrl(newRequest.url)
+          ? this.fhirClient.addParamToUrl(
+              newRequest.urlWithParams,
+              '_security',
+              this.features.consentGroup
+            )
+          : newRequest.urlWithParams;
+
+      // Otherwise, use the FhirBatchQuery from the old version of
+      // Research Data Finder to handle the HTTP request.
+      return new Observable<HttpResponse<any>>(
+        (observer: Observer<HttpResponse<any>>) => {
+          this.fhirClient.initialize().then(() => {
+            // Requests to the FHIR server without endpoint cannot be combined
+            // into a batch request
+            const options = {
+              combine:
+                this.fhirClient.getFeatures().batch &&
+                serviceBaseUrlWithEndpoint.test(newUrl)
+            };
+            const promise = this.isCacheEnabled
+              ? this.fhirClient.getWithCache(fullUrl, options)
+              : this.fhirClient.get(fullUrl, options);
+
+            promise.then(
+              ({ status, data }) => {
+                observer.next(
+                  new HttpResponse<any>({
+                    status,
+                    body: data,
+                    url: fullUrl
+                  })
+                );
+                observer.complete();
+              },
+              ({ status, error }) =>
+                observer.error(
+                  new HttpErrorResponse({
+                    status,
+                    error,
+                    url: fullUrl
+                  })
+                )
+            );
+          });
+        }
+      );
+    }
   }
 
   /**

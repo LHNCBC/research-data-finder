@@ -54,7 +54,6 @@ export class FhirServerSelectComponent
         'https://launch.smarthealthit.org/v/r4/sim/eyJoIjoiMSIsImoiOiIxIn0/fhir'
     }
   ];
-  isSmartOnFhir = false;
 
   @Input() placeholder = '';
 
