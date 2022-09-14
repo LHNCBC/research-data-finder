@@ -18,6 +18,9 @@ import { BaseControlValueAccessor } from '../../base-control-value-accessor';
 import { AbstractControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import Def from 'autocomplete-lhc';
+import { Router } from '@angular/router';
+import { FhirService } from '../../../shared/fhir-service/fhir.service';
+import { FhirBackendService } from '../../../shared/fhir-backend/fhir-backend.service';
 
 @Component({
   selector: 'app-fhir-server-select',
@@ -46,10 +49,12 @@ export class FhirServerSelectComponent
     },
     {
       description:
-        'SMART on FHIR launch (https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir)',
-      url: 'https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir'
+        'https://launch.smarthealthit.org/v/r4/sim/eyJoIjoiMSIsImoiOiIxIn0/fhir',
+      url:
+        'https://launch.smarthealthit.org/v/r4/sim/eyJoIjoiMSIsImoiOiIxIn0/fhir'
     }
   ];
+  isSmartOnFhir = false;
 
   @Input() placeholder = '';
 
@@ -158,7 +163,8 @@ export class FhirServerSelectComponent
 
   constructor(
     @Optional() @Self() public ngControl: NgControl,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    public fhirBackend: FhirBackendService
   ) {
     super();
     if (ngControl != null) {
@@ -214,16 +220,7 @@ export class FhirServerSelectComponent
     const inputFieldValue = this.input.nativeElement.value;
     if (this.currentValue !== inputFieldValue) {
       this.currentValue = inputFieldValue;
-      if (
-        this.currentValue === 'https://lforms-smart-fhir.nlm.nih.gov/v/r4/fhir'
-      ) {
-        window.location.href =
-          'https://lforms-smart-fhir.nlm.nih.gov/?launch_url=' +
-          window.location.origin +
-          '/launch';
-      } else {
-        this.onChange(this.value);
-      }
+      this.onChange(this.value);
     }
   }
 

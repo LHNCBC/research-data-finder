@@ -18,6 +18,8 @@ import { escapeStringForRegExp, getUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
 import { find } from 'lodash-es';
 import { filter, map } from 'rxjs/operators';
+import { FhirService } from '../fhir-service/fhir.service';
+import { Router } from '@angular/router';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -50,7 +52,11 @@ export class FhirBackendService implements HttpBackend {
     if (this.serviceBaseUrl !== url) {
       this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
-      this.initializeFhirBatchQuery(url);
+      if (this.isSmartOnFhir) {
+        this.router.navigate(['/launch', { iss: url }]);
+      } else {
+        this.initializeFhirBatchQuery(url);
+      }
     }
   }
   get serviceBaseUrl(): string {
@@ -104,7 +110,12 @@ export class FhirBackendService implements HttpBackend {
    * @param defaultBackend - default Angular final HttpHandler which uses
    *   XMLHttpRequest to send requests to a backend server.
    */
-  constructor(private defaultBackend: HttpXhrBackend) {
+  constructor(
+    private defaultBackend: HttpXhrBackend,
+    private fhirService: FhirService,
+    private router: Router
+  ) {
+    this.isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const queryServer = getUrlParam('server');
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
     this.fhirClient = new FhirBatchQuery({
@@ -122,6 +133,9 @@ export class FhirBackendService implements HttpBackend {
   // Whether to cache requests to the FHIR server
   private isCacheEnabled = true;
 
+  // Whether to use a SMART on FHIR client.
+  public isSmartOnFhir = false;
+
   // Javascript client from the old version of Research Data Finder
   // for FHIR with the ability to automatically combine requests in a batch .
   fhirClient: FhirBatchQuery;
@@ -138,6 +152,44 @@ export class FhirBackendService implements HttpBackend {
     return this.isDbgap(url) && regEx.test(url);
   }
 
+  private fhirConnectionCallback(success = true): void {
+    if (success) {
+      // Load definitions of search parameters and columns from CSV file
+      this.settings.loadCsvDefinitions().subscribe(
+        (resourceDefinitions) => {
+          this.currentDefinitions = { resources: resourceDefinitions };
+          this.fhirClient.setMaxRequestsPerBatch(
+            this.settings.get('maxRequestsPerBatch')
+          );
+          this.fhirClient.setMaxActiveRequests(
+            this.settings.get('maxActiveRequests')
+          );
+          this.initialized.next(ConnectionStatus.Ready);
+        },
+        (err) => {
+          if (!(err instanceof HttpErrorResponse)) {
+            // Show exceptions from loadCsvDefinitions in console
+            console.error(err.message);
+          }
+          this.initialized.next(ConnectionStatus.Error);
+        }
+      );
+    } else {
+      this.initialized.next(ConnectionStatus.Error);
+    }
+  }
+
+  initializeSmartOnFhirConnection(): void {
+    if (
+      !this.fhirService.getSmartConnection() &&
+      !this.fhirService.smartConnectionInProgress()
+    ) {
+      this.fhirService.requestSmartConnection(
+        this.fhirConnectionCallback.bind(this)
+      );
+    }
+  }
+
   /**
    * Initialize/reinitialize FhirBatchQuery instance
    * @param [serviceBaseUrl] - new FHIR REST API Service Base URL
@@ -149,29 +201,10 @@ export class FhirBackendService implements HttpBackend {
     this.currentDefinitions = null;
     this.fhirClient.initialize(serviceBaseUrl).then(
       () => {
-        // Load definitions of search parameters and columns from CSV file
-        this.settings.loadCsvDefinitions().subscribe(
-          (resourceDefinitions) => {
-            this.currentDefinitions = { resources: resourceDefinitions };
-            this.fhirClient.setMaxRequestsPerBatch(
-              this.settings.get('maxRequestsPerBatch')
-            );
-            this.fhirClient.setMaxActiveRequests(
-              this.settings.get('maxActiveRequests')
-            );
-            this.initialized.next(ConnectionStatus.Ready);
-          },
-          (err) => {
-            if (!(err instanceof HttpErrorResponse)) {
-              // Show exceptions from loadCsvDefinitions in console
-              console.error(err.message);
-            }
-            this.initialized.next(ConnectionStatus.Error);
-          }
-        );
+        this.fhirConnectionCallback(true);
       },
       () => {
-        this.initialized.next(ConnectionStatus.Error);
+        this.fhirConnectionCallback(false);
       }
     );
   }
@@ -280,7 +313,7 @@ export class FhirBackendService implements HttpBackend {
       return this.currentDefinitions;
     }
 
-    const versionName = this.currentVersion;
+    const versionName = this.currentVersion || 'R4';
     const definitions = definitionsIndex.configByVersionName[versionName];
 
     // Initialize common definitions
