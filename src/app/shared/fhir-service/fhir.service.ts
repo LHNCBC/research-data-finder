@@ -1,3 +1,7 @@
+/**
+ * This file contains a service used to establish and maintain a
+ * SMART on FHIR connection client.
+ */
 import { Injectable } from '@angular/core';
 import FHIR from 'fhirclient';
 

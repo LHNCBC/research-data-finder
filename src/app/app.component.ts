@@ -1,7 +1,6 @@
 import { AfterViewInit, Component } from '@angular/core';
 import pkg from '../../package.json';
 import { getUrlParam, setUrlParam } from './shared/utils';
-import { FhirService } from './shared/fhir-service/fhir.service';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +10,7 @@ export class AppComponent implements AfterViewInit {
   version = pkg.version;
   isAlpha: boolean;
 
-  constructor(private fhirService: FhirService) {
+  constructor() {
     this.isAlpha = getUrlParam('alpha-version') === 'enable';
   }
 

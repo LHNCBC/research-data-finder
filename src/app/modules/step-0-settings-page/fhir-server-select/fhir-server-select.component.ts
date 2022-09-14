@@ -18,8 +18,6 @@ import { BaseControlValueAccessor } from '../../base-control-value-accessor';
 import { AbstractControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import Def from 'autocomplete-lhc';
-import { Router } from '@angular/router';
-import { FhirService } from '../../../shared/fhir-service/fhir.service';
 import { FhirBackendService } from '../../../shared/fhir-backend/fhir-backend.service';
 
 @Component({

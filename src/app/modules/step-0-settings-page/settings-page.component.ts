@@ -13,8 +13,6 @@ import {
 import { Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
 import { setUrlParam } from '../../shared/utils';
-import { FhirService } from '../../shared/fhir-service/fhir.service';
-import { Router } from '@angular/router';
 
 /**
  * Settings page component for defining general parameters such as FHIR REST API Service Base URL.
@@ -30,15 +28,13 @@ export class SettingsPageComponent {
 
   constructor(
     private formBuilder: FormBuilder,
-    public fhirBackend: FhirBackendService,
-    private fhirService: FhirService,
-    private router: Router
+    public fhirBackend: FhirBackendService
   ) {
-    this.isWaitingForConnection = this.fhirBackend.initialized.pipe(
+    this.isWaitingForConnection = fhirBackend.initialized.pipe(
       map((status) => status === ConnectionStatus.Pending)
     );
     this.settingsFormGroup = this.formBuilder.group({
-      serviceBaseUrl: new FormControl(fhirBackend.serviceBaseUrl, {
+      serviceBaseUrl: new FormControl(this.fhirBackend.serviceBaseUrl, {
         validators: Validators.required,
         asyncValidators: this.serviceBaseUrlValidator.bind(this)
       }),

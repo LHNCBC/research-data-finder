@@ -53,6 +53,7 @@ export class FhirBackendService implements HttpBackend {
       this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
       if (this.isSmartOnFhir) {
+        // Navigate to 'launch' page to authorize a SMART on FHIR connection.
         this.router.navigate(['/launch', { iss: url }]);
       } else {
         this.initializeFhirBatchQuery(url);
@@ -109,6 +110,8 @@ export class FhirBackendService implements HttpBackend {
    * Creates and initializes an instance of FhirBackendService
    * @param defaultBackend - default Angular final HttpHandler which uses
    *   XMLHttpRequest to send requests to a backend server.
+   * @param fhirService a service which holds the SMART on FHIR connection client
+   * @param router Angular router
    */
   constructor(
     private defaultBackend: HttpXhrBackend,
@@ -152,6 +155,13 @@ export class FhirBackendService implements HttpBackend {
     return this.isDbgap(url) && regEx.test(url);
   }
 
+  /**
+   * Callback of connection with either FhirBatchQuery or SMART on FHIR.
+   * Emit ConnectionStatus.Ready if connection succeeds, or ConnectionStatus.Error
+   * if connection fails.
+   * @param success whether FHIR connection is successful
+   * @private
+   */
   private fhirConnectionCallback(success = true): void {
     if (success) {
       // Load definitions of search parameters and columns from CSV file
@@ -179,6 +189,9 @@ export class FhirBackendService implements HttpBackend {
     }
   }
 
+  /**
+   * Establish a SMART on FHIR connection.
+   */
   initializeSmartOnFhirConnection(): void {
     if (
       !this.fhirService.getSmartConnection() &&
@@ -227,6 +240,7 @@ export class FhirBackendService implements HttpBackend {
     }
 
     if (this.isSmartOnFhir) {
+      // Use the FHIR client in fhirService for queries.
       const newUrl = request.url.replace(serviceBaseUrlRegExp, '');
       return new Observable<HttpResponse<any>>(
         (observer: Observer<HttpResponse<any>>) => {
@@ -252,6 +266,7 @@ export class FhirBackendService implements HttpBackend {
         }
       );
     } else {
+      // not a SMART on FHIR connection
       const newUrl = request.url.replace(
         serviceBaseUrlRegExp,
         this.serviceBaseUrl
