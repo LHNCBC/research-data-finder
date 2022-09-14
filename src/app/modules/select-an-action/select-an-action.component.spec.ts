@@ -12,6 +12,7 @@ import {
   CohortService,
   CreateCohortMode
 } from '../../shared/cohort/cohort.service';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('SelectAnActionComponent', () => {
   let component: SelectAnActionComponent;
@@ -21,7 +22,7 @@ describe('SelectAnActionComponent', () => {
   beforeEach(async () => {
     await configureTestingModule({
       declarations: [SelectAnActionComponent],
-      imports: [SelectAnActionModule]
+      imports: [SelectAnActionModule, RouterTestingModule]
     });
   });
 

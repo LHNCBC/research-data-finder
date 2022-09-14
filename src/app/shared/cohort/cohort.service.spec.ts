@@ -11,6 +11,7 @@ import {
 } from '@angular/common/http/testing';
 import { Criteria } from '../../types/search-parameters';
 import { configureTestingModule } from '../../../test/helpers';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CohortService', () => {
   let cohort: CohortService;
@@ -18,7 +19,7 @@ describe('CohortService', () => {
 
   beforeEach(async () => {
     await configureTestingModule({
-      imports: [SharedModule, HttpClientTestingModule]
+      imports: [SharedModule, HttpClientTestingModule, RouterTestingModule]
     });
     mockHttp = TestBed.inject(HttpTestingController);
     cohort = TestBed.inject(CohortService);

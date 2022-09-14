@@ -10,6 +10,7 @@ import examplePatient from './test-fixtures/example-patient.json';
 import exampleResearchStudy from './test-fixtures/example-research-study.json';
 import { last } from 'rxjs/operators';
 import { CohortService } from '../../shared/cohort/cohort.service';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('DefineCohortComponent', () => {
   let component: DefineCohortPageComponent;
@@ -20,7 +21,11 @@ describe('DefineCohortComponent', () => {
   beforeEach(async () => {
     await configureTestingModule({
       declarations: [DefineCohortPageComponent],
-      imports: [DefineCohortPageModule, MatIconTestingModule]
+      imports: [
+        DefineCohortPageModule,
+        MatIconTestingModule,
+        RouterTestingModule
+      ]
     });
     mockHttp = TestBed.inject(HttpTestingController);
     cohort = TestBed.inject(CohortService);

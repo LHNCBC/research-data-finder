@@ -19,6 +19,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { CartComponent } from '../cart/cart.component';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('SelectRecordsPageComponent', () => {
   let component: SelectRecordsPageComponent;
@@ -30,7 +31,7 @@ describe('SelectRecordsPageComponent', () => {
     await configureTestingModule(
       {
         declarations: [SelectRecordsPageComponent],
-        imports: [SelectRecordsPageModule]
+        imports: [SelectRecordsPageModule, RouterTestingModule]
       },
       {
         features: {
