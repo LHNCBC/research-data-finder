@@ -24,6 +24,7 @@ import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { getPluralFormOfRecordName } from '../../shared/utils';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -76,6 +77,7 @@ export class SelectRecordsPageComponent
     public fhirBackend: FhirBackendService,
     public columnDescriptions: ColumnDescriptionsService,
     public selectRecords: SelectRecordsService,
+    private liveAnnouncer: LiveAnnouncer,
     public cart: CartService
   ) {
     selectRecords.resetAll();
@@ -186,6 +188,9 @@ export class SelectRecordsPageComponent
       this.selectRecords.resetState('Variable');
       this.clearSelectedRecords('Variable');
     }
+    this.liveAnnouncer.announce(
+      'Added selected variables to the cart area below.'
+    );
   }
 
   /**

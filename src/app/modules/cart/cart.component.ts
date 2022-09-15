@@ -21,6 +21,7 @@ import {
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import { Subscription } from 'rxjs';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 type ListCells = { [key: string]: string };
 
@@ -37,6 +38,7 @@ export class CartComponent implements OnInit, OnChanges {
     private fhirBackend: FhirBackendService,
     private columnDescriptionsService: ColumnDescriptionsService,
     private columnValuesService: ColumnValuesService,
+    private liveAnnouncer: LiveAnnouncer,
     public cart: CartService
   ) {
     this.subscriptions.push(
@@ -77,6 +79,11 @@ export class CartComponent implements OnInit, OnChanges {
   cells: { [id: string]: ListCells } = {};
   compiledExpressions: { [expression: string]: (row: Resource) => any };
   fhirPathModel: any;
+  createRemoveGroupTooltip = "Create/Remove OR'd groups";
+  selectGroupTooltip = 'Select this group of records to group/ungroup';
+  selectRecordTooltip = 'Select this record to group/ungroup';
+  removeGroupTooltip = 'Remove group of records from the cart';
+  removeRecordTooltip = 'Remove record from the cart';
 
   ngOnInit(): void {}
 
@@ -181,10 +188,13 @@ export class CartComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Groups all list items.
+   * Groups all list items with the same datatype.
    */
   groupAllItems(): void {
     this.cart.groupItems(this.resourceType, new Set(this.listItems));
+    this.liveAnnouncer.announce(
+      'Grouped all list items with the same datatype in the cart area below.'
+    );
   }
 
   /**
@@ -192,6 +202,9 @@ export class CartComponent implements OnInit, OnChanges {
    */
   groupSelectedItems(): void {
     this.cart.groupItems(this.resourceType, this.selectedItems);
+    this.liveAnnouncer.announce(
+      'Grouped selected list items in the cart area below.'
+    );
   }
 
   /**
@@ -199,6 +212,9 @@ export class CartComponent implements OnInit, OnChanges {
    */
   ungroupAllItems(): void {
     this.cart.ungroupItems(this.resourceType, new Set(this.listItems));
+    this.liveAnnouncer.announce(
+      'Ungrouped all list items in the cart area below.'
+    );
   }
 
   /**
@@ -206,6 +222,9 @@ export class CartComponent implements OnInit, OnChanges {
    */
   ungroupSelectedItems(): void {
     this.cart.ungroupItems(this.resourceType, this.selectedItems);
+    this.liveAnnouncer.announce(
+      'Ungrouped selected list items in the cart area below.'
+    );
   }
 
   /**

@@ -23,12 +23,14 @@
           <div class="spacer" *ngIf="isTree() && listItems.length > 1"></div>
           <label class="info">
             <span class="info-icon" aria-hidden="true"></span>
-            Patients will be added to the cohort if they have all (AND) or one of (OR) the variables from the cart.</label>
+            AND = Patients will be added to the cohort if they meet all criteria in the cart; OR = Patients will be added if they meet any of the criteria.
+          </label>
         </div>
         <div class="h-box list-title">
           <div class="list-toolbar" *ngIf="isTree()">
             <button type="button" mat-icon-button
-                    matTooltip="Create/Remove OR'd groups"
+                    [attr.aria-label]="createRemoveGroupTooltip"
+                    [matTooltip]="createRemoveGroupTooltip"
                     [matMenuTriggerFor]="menu"
                     [disabled]="">
               <mat-icon svgIcon="rule"></mat-icon>
@@ -50,18 +52,24 @@
         <ng-container *ngFor="let listItem of listItems">
           <div class="v-box list-item">
             <!-- individual records and group headers -->
-            <div class="h-box">
-              <div class="condition-label" *ngIf="isTree()">{{cart.logicalOperator[resourceType]}}</div>
+            <div class="condition-label" *ngIf="isTree()">{{cart.logicalOperator[resourceType]}}</div>
+            <div class="h-box" [class.group-header]="cart.isGroup(listItem)">
               <div class="list-toolbar" *ngIf="isTree()">
                 <mat-checkbox
                     *ngIf="isTree()"
-                    matTooltip="Select this record to group/ungroup"
+                    [attr.aria-label]="cart.isGroup(listItem) ? selectGroupTooltip : selectRecordTooltip"
+                    [matTooltip]="cart.isGroup(listItem) ? selectGroupTooltip : selectRecordTooltip"
                     (change)="toggleSelection(listItem, $event.checked)"
                     [checked]="selectedItems.has(listItem)">
                 </mat-checkbox>
               </div>
               <div class="list-toolbar list-toolbar__icon">
-                <button type="button" mat-icon-button (click)="removeRecordFromCart(resourceType, listItem)">
+                <button
+                    type="button"
+                    mat-icon-button
+                    (click)="removeRecordFromCart(resourceType, listItem)"
+                    [attr.aria-label]="cart.isGroup(listItem) ? removeGroupTooltip : removeRecordTooltip"
+                    [matTooltip]="cart.isGroup(listItem) ? removeGroupTooltip : removeRecordTooltip">
                   <mat-icon svgIcon="clear"></mat-icon>
                 </button>
               </div>
@@ -99,14 +107,20 @@
                 <div class="condition-label">or</div>
                 <div class="list-toolbar">
                   <mat-checkbox
-                      matTooltip="Select this record to group/ungroup"
+                      [attr.aria-label]="selectRecordTooltip"
+                      [matTooltip]="selectRecordTooltip"
                       (change)="toggleSelection(innerItem, $event.checked)"
                       [checked]="selectedItems.has(innerItem)">
                   </mat-checkbox>
                 </div>
                 <div class="list-toolbar list-toolbar__spacer"></div>
                 <div class="list-toolbar list-toolbar__icon">
-                  <button type="button" mat-icon-button (click)="removeRecordFromCart(resourceType, innerItem)">
+                  <button
+                      type="button"
+                      mat-icon-button
+                      (click)="removeRecordFromCart(resourceType, innerItem)"
+                      [attr.aria-label]="removeRecordTooltip"
+                      [matTooltip]="removeRecordTooltip">
                     <mat-icon svgIcon="clear"></mat-icon>
                   </button>
                 </div>

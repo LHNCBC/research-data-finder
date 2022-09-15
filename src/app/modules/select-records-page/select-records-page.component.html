@@ -32,6 +32,7 @@
                           context="select"
                           [sort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
+                          checkboxTooltipText="Select this study to add it to the cart"
                           [resourceType]="resourceType"></app-resource-table>
       <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState[resourceType]"
                           #variableTable
@@ -45,6 +46,7 @@
                           context="select"
                           [sort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
+                          checkboxTooltipText="Select this variable to add it to the cart"
                           [resourceType]="resourceType">
         <ng-template #prefix>
           <div class="v-box">
