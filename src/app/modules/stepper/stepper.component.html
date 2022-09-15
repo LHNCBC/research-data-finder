@@ -100,12 +100,17 @@
   <mat-step [label]="getLabel(Step.BROWSE_PUBLIC_DATA)"
             *ngIf="isVisible(Step.BROWSE_PUBLIC_DATA)">
     <div class="v-box">
-      <app-browse-records-page></app-browse-records-page>
+      <app-browse-records-page #browseRecordsPageComponent></app-browse-records-page>
       <div class="spacer"></div>
       <div class="h-box">
         <button mat-stroked-button color="primary" matStepperPrevious>
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>
           Select an action
+        </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button (click)="browseRecordsPageComponent.downloadCsv()"
+                [disabled]="!selectRecord.getHasLoadedData(browseRecordsPageComponent.currentResourceType$ | async)">
+          <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
         </button>
       </div>
     </div>

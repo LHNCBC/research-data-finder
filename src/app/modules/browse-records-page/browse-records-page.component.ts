@@ -19,7 +19,11 @@ import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
-import { getPluralFormOfRecordName } from '../../shared/utils';
+import {
+  getPluralFormOfRecordName,
+  getPluralFormOfResourceType
+} from '../../shared/utils';
+import { saveAs } from 'file-saver';
 
 /**
  * Component for browsing public data (ResearchStudies and Variables).
@@ -36,6 +40,8 @@ export class BrowseRecordsPageComponent
   tables: QueryList<ResourceTableComponent>;
   subscriptions: Subscription[] = [];
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
+  @ViewChildren(ResourceTableComponent)
+  resourceTables: QueryList<ResourceTableComponent>;
 
   // Array of visible resource type names
   visibleResourceTypes: string[];
@@ -102,36 +108,32 @@ export class BrowseRecordsPageComponent
   }
 
   ngAfterViewInit(): void {
+    this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
+      startWith(this.getCurrentResourceType()),
+      map(() => {
+        // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
+        // displaying an empty table when the active tab is changed.
+        // This event runs _changeListener in ViewportRuler which run checkViewportSize
+        // in CdkVirtualScrollViewport.
+        // See code for details:
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
+        if (typeof Event === 'function') {
+          // fire resize event for modern browsers
+          window.dispatchEvent(new Event('resize'));
+        } else {
+          // for IE and other old browsers
+          // causes deprecation warning on modern browsers
+          const evt = window.document.createEvent('UIEvents');
+          // @ts-ignore
+          evt.initUIEvent('resize', true, false, window, 0);
+          window.dispatchEvent(evt);
+        }
+        return this.getCurrentResourceType();
+      })
+    );
     setTimeout(() => {
-      this.subscriptions.push(
-        this.tabGroup.selectedTabChange
-          .pipe(
-            startWith(this.getCurrentResourceType()),
-            map(() => {
-              // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
-              // displaying an empty table when the active tab is changed.
-              // This event runs _changeListener in ViewportRuler which run checkViewportSize
-              // in CdkVirtualScrollViewport.
-              // See code for details:
-              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
-              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
-              if (typeof Event === 'function') {
-                // fire resize event for modern browsers
-                window.dispatchEvent(new Event('resize'));
-              } else {
-                // for IE and other old browsers
-                // causes deprecation warning on modern browsers
-                const evt = window.document.createEvent('UIEvents');
-                // @ts-ignore
-                evt.initUIEvent('resize', true, false, window, 0);
-                window.dispatchEvent(evt);
-              }
-              return this.getCurrentResourceType();
-            })
-          )
-          .subscribe()
-      );
-
+      this.subscriptions.push(this.currentResourceType$.subscribe());
       const resourceType = this.visibleResourceTypes[0];
       this.loadFirstPage(resourceType);
     });
@@ -232,5 +234,19 @@ export class BrowseRecordsPageComponent
         `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`
       );
     }
+  }
+
+  /**
+   * Initiates downloading of resourceTable data in CSV format.
+   */
+  downloadCsv(): void {
+    const currentResourceType = this.getCurrentResourceType();
+    const currentResourceTable = this.resourceTables.find(
+      (resourceTable) => resourceTable.resourceType === currentResourceType
+    );
+    saveAs(
+      currentResourceTable.getBlob(),
+      getPluralFormOfResourceType(currentResourceType).toLowerCase() + '.csv'
+    );
   }
 }

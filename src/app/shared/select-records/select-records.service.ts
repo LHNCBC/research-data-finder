@@ -213,4 +213,12 @@ export class SelectRecordsService {
         )
       );
   }
+
+  // Loading is complete and there is data in the table
+  getHasLoadedData(resourceType: string): boolean {
+    return (
+      !this.currentState[resourceType]?.loading &&
+      this.currentState[resourceType]?.resources.length > 0
+    );
+  }
 }
