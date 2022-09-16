@@ -84,7 +84,8 @@
                         (click)="checkboxClick($event, row)"
                         (change)="$event ? selectedResources.toggle(row.resource) : null"
                         [checked]="selectedResources.isSelected(row.resource)"
-                        matTooltip='Select this research study to pull data in the next step'>
+                        [attr.aria-label]="checkboxTooltipText"
+                        [matTooltip]="checkboxTooltipText">
           </mat-checkbox>
         </td>
       </ng-container>
@@ -111,7 +112,8 @@
             <button *ngIf='enableFiltering' aria-label='open filter criteria for this column'
                     title='open filter criteria for this column'
                     (click)='openFilterDialog($event, column)'
-                    (keydown)='openFilterDialog($event, column)'>
+                    (keydown.enter)='openFilterDialog($event, column)'
+                    (keydown.space)='openFilterDialog($event, column)'>
               <mat-icon [svgIcon]="hasFilter(column.element) ? 'filter_filled' : 'filter_outlined'"></mat-icon>
             </button>
           </th>
@@ -137,7 +139,8 @@
               <button *ngIf='enableFiltering' aria-label='open filter criteria for this column'
                       title='open filter criteria for this column'
                       (click)='openFilterDialog($event, column)'
-                      (keydown)='openFilterDialog($event, column)'>
+                      (keydown.enter)='openFilterDialog($event, column)'
+                      (keydown.space)='openFilterDialog($event, column)'>
                 <mat-icon [svgIcon]="hasFilter(column.element) ? 'filter_filled' : 'filter_outlined'"></mat-icon>
               </button>
             </div>

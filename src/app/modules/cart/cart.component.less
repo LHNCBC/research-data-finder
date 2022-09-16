@@ -195,6 +195,20 @@
   }
 }
 
+.list--tree-view .list-item .group-header {
+  position: relative;
+  & > .list-toolbar:first-child:after {
+    content: "";
+    left: 54px;
+    border-color: #619ed7;
+    border-style: solid;
+    width: 22px;
+    height: calc(100% - 46px);
+    position: absolute;
+    border-width: 0 0 0 1px;
+    top: 46px;
+  }
+}
 .list--tree-view .list-item .list-item {
   margin-left: 0;
   padding-left: 0;

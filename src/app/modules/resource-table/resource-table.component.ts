@@ -145,6 +145,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Tooltip text for a record checkbox.
+   */
+  @Input() checkboxTooltipText: string;
+
+  /**
    * Get loading message according to loading status
    */
   get loadingMessage(): string {
