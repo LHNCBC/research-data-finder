@@ -136,13 +136,7 @@ export class SelectRecordsService {
     pageNumber: number
   ): void {
     const resourceType = 'Variable';
-    let currentState = this.currentState[resourceType];
-    if (
-      currentState?.loading ||
-      (pageNumber && currentState?.totalRecords <= pageNumber * 50)
-    ) {
-      return;
-    }
+    let currentState;
     if (pageNumber === 0) {
       currentState = {
         loading: true,
@@ -152,8 +146,16 @@ export class SelectRecordsService {
       };
       this.currentState[resourceType] = currentState;
     } else {
+      currentState = this.currentState[resourceType];
+      if (
+        currentState?.loading ||
+        currentState?.totalRecords <= pageNumber * 50
+      ) {
+        return;
+      }
       currentState.loading = true;
     }
+
     const dataFields = {
       id: 'uid',
       display_name: 'display_name',
