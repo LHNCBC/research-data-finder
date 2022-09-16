@@ -116,11 +116,15 @@ export class SelectRecordsService {
   /**
    * Loads variables for selected research studies.
    * @param selectedResearchStudies - array of selected research studies.
+   * @param params - http parameters
    * @param filters - filter values
    * @param sort - the current sort state
    */
   loadVariables(
     selectedResearchStudies: Resource[],
+    params: {
+      [param: string]: any;
+    },
     filters: any,
     sort: Sort
   ): void {
@@ -136,6 +140,7 @@ export class SelectRecordsService {
     const dataFields = {
       id: 'uid',
       display_name: 'display_name',
+      loinc_num: 'loinc_num',
       study_id: 'study_id',
       dataset_id: 'dataset_id',
       class: 'loinc.CLASS',
@@ -162,11 +167,11 @@ export class SelectRecordsService {
     this.resourceStream[resourceType] = this.http
       .get(url, {
         params: {
-          rec_type: 'dbgv',
           maxList: 50,
           df: uniqDataFields.join(','),
           terms: '',
           q: query.join(' AND '),
+          ...params,
           ...(sort
             ? {
                 of:

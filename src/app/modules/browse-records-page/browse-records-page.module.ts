@@ -2,13 +2,14 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BrowseRecordsPageComponent } from './browse-records-page.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { ResourceTableModule } from '../resource-table/resource-table.module';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @NgModule({
   declarations: [BrowseRecordsPageComponent],
@@ -22,7 +23,9 @@ import { ResourceTableModule } from '../resource-table/resource-table.module';
     MatIconModule,
     MatTabsModule,
     MatButtonModule,
-    ResourceTableModule
+    ResourceTableModule,
+    FormsModule,
+    MatCheckboxModule
   ]
 })
 export class BrowseRecordsPageModule {}
