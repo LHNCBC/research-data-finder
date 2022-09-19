@@ -3,10 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.0.9] - 2022-09-15
+## [5.0.10] - 2022-09-19
 ### Added
 - Button to download the Research Study or Variable tables into .csv
-- files.
+  files.
+
+## [5.0.9] - 2022-08-31
+### Added
+- Options to variables tab for CTSS API.
+### Fixed
+- Updating the position of the sticky table header when changing the content of
+  the header.
 
 ## [5.0.8] - 2022-08-30
 ### Changed
