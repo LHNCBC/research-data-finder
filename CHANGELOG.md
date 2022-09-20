@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.13] - 2022-09-20
+### Fixed
+- Loss of focus on resource table header cell when sorting table.
+
 ## [5.0.12] - 2022-09-13
 ### Added
 - Option to limit the ResearchStudy resources to ones the user has access.
