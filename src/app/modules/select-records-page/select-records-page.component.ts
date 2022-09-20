@@ -13,7 +13,7 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { filter, map, startWith } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
@@ -21,7 +21,11 @@ import { ResourceTableComponent } from '../resource-table/resource-table.compone
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
 import { CartService } from '../../shared/cart/cart.service';
-import { getPluralFormOfRecordName } from '../../shared/utils';
+import {
+  getPluralFormOfRecordName,
+  getPluralFormOfResourceType
+} from '../../shared/utils';
+import { saveAs } from 'file-saver';
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -62,6 +66,9 @@ export class SelectRecordsPageComponent
       direction: 'desc'
     }
   };
+  // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
+  // when the active tab changes
+  currentResourceType$: Observable<string>;
 
   constructor(
     public fhirBackend: FhirBackendService,
@@ -92,36 +99,32 @@ export class SelectRecordsPageComponent
   }
 
   ngAfterViewInit(): void {
+    this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
+      startWith(this.getCurrentResourceType()),
+      map(() => {
+        // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
+        // displaying an empty table when the active tab is changed.
+        // This event runs _changeListener in ViewportRuler which run checkViewportSize
+        // in CdkVirtualScrollViewport.
+        // See code for details:
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
+        if (typeof Event === 'function') {
+          // fire resize event for modern browsers
+          window.dispatchEvent(new Event('resize'));
+        } else {
+          // for IE and other old browsers
+          // causes deprecation warning on modern browsers
+          const evt = window.document.createEvent('UIEvents');
+          // @ts-ignore
+          evt.initUIEvent('resize', true, false, window, 0);
+          window.dispatchEvent(evt);
+        }
+        return this.getCurrentResourceType();
+      })
+    );
     setTimeout(() => {
-      this.subscriptions.push(
-        this.tabGroup.selectedTabChange
-          .pipe(
-            startWith(this.getCurrentResourceType()),
-            map(() => {
-              // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
-              // displaying an empty table when the active tab is changed.
-              // This event runs _changeListener in ViewportRuler which run checkViewportSize
-              // in CdkVirtualScrollViewport.
-              // See code for details:
-              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
-              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
-              if (typeof Event === 'function') {
-                // fire resize event for modern browsers
-                window.dispatchEvent(new Event('resize'));
-              } else {
-                // for IE and other old browsers
-                // causes deprecation warning on modern browsers
-                const evt = window.document.createEvent('UIEvents');
-                // @ts-ignore
-                evt.initUIEvent('resize', true, false, window, 0);
-                window.dispatchEvent(evt);
-              }
-              return this.getCurrentResourceType();
-            })
-          )
-          .subscribe()
-      );
-
+      this.subscriptions.push(this.currentResourceType$.subscribe());
       const resourceType = this.visibleResourceTypes[0];
       this.loadFirstPage(resourceType);
     });
@@ -261,5 +264,19 @@ export class SelectRecordsPageComponent
         `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`
       );
     }
+  }
+
+  /**
+   * Initiates downloading of resourceTable data in CSV format.
+   */
+  downloadCsv(): void {
+    const currentResourceType = this.getCurrentResourceType();
+    const currentResourceTable = this.tables.find(
+      (resourceTable) => resourceTable.resourceType === currentResourceType
+    );
+    saveAs(
+      currentResourceTable.getBlob(),
+      getPluralFormOfResourceType(currentResourceType).toLowerCase() + '.csv'
+    );
   }
 }
