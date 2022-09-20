@@ -49,6 +49,7 @@
               <app-observation-test-value
                   *ngSwitchDefault
                   class="cell cell-Variable-constraint"
+                  [required]="false"
                   [(ngModel)]="cart.variableData[record.id].value"
                   [observationCodes]="[record.id]"
                   [datatype]="cart.getVariableType(record.id)">
