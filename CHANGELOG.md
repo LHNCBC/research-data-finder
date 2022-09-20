@@ -5,7 +5,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 
 ## [5.0.12] - 2022-09-13
 ### Added
-- Option to limit the ResearchStudy resources to ones the user has access.
+- Option to limit the ResearchStudy resources to ones the user can access.
 
 ## [5.0.11] - 2022-09-12
 ### Added
