@@ -36,6 +36,8 @@ export class BrowseRecordsPageComponent
   tables: QueryList<ResourceTableComponent>;
   subscriptions: Subscription[] = [];
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
+  hasLoinc = false;
+  recTypeLoinc = false;
 
   // Array of visible resource type names
   visibleResourceTypes: string[];
@@ -198,6 +200,14 @@ export class BrowseRecordsPageComponent
     // TODO: Also, CTSS doesn't support paging.
     this.selectRecords.loadVariables(
       this.getSelectedResearchStudies(),
+      this.recTypeLoinc
+        ? {
+            rec_type: 'loinc'
+          }
+        : {
+            rec_type: 'dbgv',
+            has_loinc: this.hasLoinc
+          },
       this.variableTable?.filtersForm.value || {},
       this.sort['Variable']
     );

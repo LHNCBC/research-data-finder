@@ -39,6 +39,8 @@ export class SelectRecordsPageComponent
   subscriptions: Subscription[] = [];
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
   maxPatientsNumber = new FormControl('100', Validators.required);
+  hasLoinc = false;
+  recTypeLoinc = false;
 
   // Array of visible resource type names
   visibleResourceTypes: string[];
@@ -217,6 +219,14 @@ export class SelectRecordsPageComponent
     // TODO: Also, CTSS doesn't support paging.
     this.selectRecords.loadVariables(
       this.cart.getRecords('ResearchStudy'),
+      this.recTypeLoinc
+        ? {
+            rec_type: 'loinc'
+          }
+        : {
+            rec_type: 'dbgv',
+            has_loinc: this.hasLoinc
+          },
       this.variableTable?.filtersForm.value || {},
       this.sort['Variable']
     );

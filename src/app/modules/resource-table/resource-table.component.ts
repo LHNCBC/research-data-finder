@@ -1,5 +1,6 @@
 import {
   Component,
+  ContentChild,
   EventEmitter,
   HostBinding,
   Input,
@@ -9,6 +10,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  TemplateRef,
   ViewChild
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -20,7 +22,10 @@ import { escapeStringForRegExp } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 import { BehaviorSubject, interval, Observable, Subscription } from 'rxjs';
-import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
+import {
+  TableItemSizeDirective,
+  TableVirtualScrollDataSource
+} from 'ng-table-virtual-scroll';
 import { SettingsService } from '../../shared/settings-service/settings.service';
 import { Sort } from '@angular/material/sort';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
@@ -165,7 +170,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     return output;
   }
 
+  @ContentChild('prefix') prefixTemplate: TemplateRef<any>;
+  get prefixContext(): any {
+    return {};
+  }
   @ViewChild('panel') panel: MatExpansionPanel;
+  @ViewChild(TableItemSizeDirective) itemSizeDirective: TableItemSizeDirective;
   @Input() columnDescriptions: ColumnDescription[];
   // If true, client-side filtering is applied by default.
   // To enable server-side filtering, define a "(filterChanged)" handler.
@@ -421,6 +431,17 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         });
       }
     }
+    // ng-table-virtual-scroll updates the sticky header position when scrolling
+    // the table content. But when the header content changes, the position
+    // attributes are reset. In this case, manually update the header position.
+    setTimeout(() => {
+      const strategy = this.itemSizeDirective?.scrollStrategy;
+      if (strategy) {
+        strategy.stickyChange.next(
+          strategy.viewport.getOffsetToRenderedContentStart()
+        );
+      }
+    });
   }
 
   /** Whether the number of selected elements matches the total number of selectable rows. */
