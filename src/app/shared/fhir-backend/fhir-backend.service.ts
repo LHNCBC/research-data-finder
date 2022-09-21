@@ -30,7 +30,9 @@ export enum ConnectionStatus {
   Pending = 0,
   Ready,
   Error,
-  Disconnect
+  Disconnect,
+  SmartConnectionFailure,
+  SmartConnectionSuccess
 }
 
 // A list of resources in dbGap that must have _security params passed along when querying.
@@ -174,7 +176,7 @@ export class FhirBackendService implements HttpBackend {
           this.fhirClient.setMaxActiveRequests(
             this.settings.get('maxActiveRequests')
           );
-          this.initialized.next(ConnectionStatus.Ready);
+          this.initialized.next(ConnectionStatus.SmartConnectionSuccess);
         },
         (err) => {
           if (!(err instanceof HttpErrorResponse)) {
@@ -185,7 +187,7 @@ export class FhirBackendService implements HttpBackend {
         }
       );
     } else {
-      this.initialized.next(ConnectionStatus.Error);
+      this.initialized.next(ConnectionStatus.SmartConnectionFailure);
     }
   }
 

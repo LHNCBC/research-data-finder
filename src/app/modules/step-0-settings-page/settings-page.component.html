@@ -16,10 +16,16 @@
         <p>Initializing ...</p>
       </div>
     </div>
+    <mat-hint *ngIf="isSmartConnectionSuccess | async" align="end">
+      SMART on FHIR connection succeeded.
+    </mat-hint>
     <mat-hint align="start" *ngIf="(isWaitingForConnection | async) === false">
       See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
       details.
     </mat-hint>
+    <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('smartConnectionFailure')">
+      SMART on FHIR connection failed.
+    </mat-error>
     <mat-error>
       Please, specify valid FHIR server URL.
       See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
