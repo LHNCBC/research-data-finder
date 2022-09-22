@@ -25,7 +25,6 @@ import { setUrlParam } from '../../shared/utils';
 export class SettingsPageComponent {
   settingsFormGroup: FormGroup;
   isWaitingForConnection: Observable<boolean>;
-  isSmartConnectionSuccess: Observable<boolean>;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -33,9 +32,6 @@ export class SettingsPageComponent {
   ) {
     this.isWaitingForConnection = fhirBackend.initialized.pipe(
       map((status) => status === ConnectionStatus.Pending)
-    );
-    this.isSmartConnectionSuccess = fhirBackend.initialized.pipe(
-      map((status) => status === ConnectionStatus.SmartConnectionSuccess)
     );
     this.settingsFormGroup = this.formBuilder.group({
       serviceBaseUrl: new FormControl(this.fhirBackend.serviceBaseUrl, {
@@ -98,11 +94,11 @@ export class SettingsPageComponent {
         this.settingsFormGroup
           .get('maxActiveRequests')
           .setValue(this.fhirBackend.maxActiveRequests);
-        return status === ConnectionStatus.SmartConnectionFailure
+        return status !== ConnectionStatus.Error
+          ? null
+          : this.fhirBackend.isSmartOnFhir
           ? { smartConnectionFailure: true }
-          : status === ConnectionStatus.Error
-          ? { wrongUrl: true }
-          : null;
+          : { wrongUrl: true };
       })
     );
   }

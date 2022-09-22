@@ -30,9 +30,7 @@ export enum ConnectionStatus {
   Pending = 0,
   Ready,
   Error,
-  Disconnect,
-  SmartConnectionFailure,
-  SmartConnectionSuccess
+  Disconnect
 }
 
 // A list of resources in dbGap that must have _security params passed along when querying.
@@ -54,6 +52,7 @@ export class FhirBackendService implements HttpBackend {
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
     if (this.serviceBaseUrl !== url) {
+      this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
       this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
@@ -134,11 +133,7 @@ export class FhirBackendService implements HttpBackend {
       serviceBaseUrl: this._serviceBaseUrl
     });
     this.currentDefinitions$ = this.initialized.pipe(
-      filter(
-        (status) =>
-          status === ConnectionStatus.Ready ||
-          status === ConnectionStatus.SmartConnectionSuccess
-      ),
+      filter((status) => status === ConnectionStatus.Ready),
       map(() => this.getCurrentDefinitions())
     );
   }
@@ -149,8 +144,10 @@ export class FhirBackendService implements HttpBackend {
   // Whether to cache requests to the FHIR server
   private isCacheEnabled = true;
 
-  // Whether to use a SMART on FHIR client.
+  // Checkbox value of whether to use a SMART on FHIR client.
   public isSmartOnFhir = false;
+  // Whether a SMART on FHIR connection has been successfully established.
+  public smartConnectionSuccess = false;
 
   // Javascript client from the old version of Research Data Finder
   // for FHIR with the ability to automatically combine requests in a batch .
@@ -178,6 +175,7 @@ export class FhirBackendService implements HttpBackend {
     ) {
       this.fhirService.requestSmartConnection((success) => {
         if (success) {
+          this.smartConnectionSuccess = true;
           // Load definitions of search parameters and columns from CSV file
           this.settings.loadCsvDefinitions().subscribe(
             (resourceDefinitions) => {
@@ -188,7 +186,7 @@ export class FhirBackendService implements HttpBackend {
               this.fhirClient.setMaxActiveRequests(
                 this.settings.get('maxActiveRequests')
               );
-              this.initialized.next(ConnectionStatus.SmartConnectionSuccess);
+              this.initialized.next(ConnectionStatus.Ready);
             },
             (err) => {
               if (!(err instanceof HttpErrorResponse)) {
@@ -199,7 +197,8 @@ export class FhirBackendService implements HttpBackend {
             }
           );
         } else {
-          this.initialized.next(ConnectionStatus.SmartConnectionFailure);
+          this.smartConnectionSuccess = false;
+          this.initialized.next(ConnectionStatus.Error);
         }
       });
     }
@@ -260,7 +259,7 @@ export class FhirBackendService implements HttpBackend {
       return this.defaultBackend.handle(request);
     }
 
-    if (this.isSmartOnFhir) {
+    if (this.smartConnectionSuccess) {
       // Use the FHIR client in fhirService for queries.
       const newUrl = request.url.replace(serviceBaseUrlRegExp, '');
       return new Observable<HttpResponse<any>>(

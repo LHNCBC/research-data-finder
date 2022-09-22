@@ -16,7 +16,7 @@
         <p>Initializing ...</p>
       </div>
     </div>
-    <mat-hint *ngIf="isSmartConnectionSuccess | async" align="end">
+    <mat-hint *ngIf="fhirBackend.smartConnectionSuccess" align="end">
       SMART on FHIR connection succeeded.
     </mat-hint>
     <mat-hint align="start" *ngIf="(isWaitingForConnection | async) === false">
