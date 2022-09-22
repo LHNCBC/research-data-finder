@@ -20,6 +20,7 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import { Subscription } from 'rxjs';
+import { CartService } from '../../shared/cart/cart.service';
 
 type ListCells = { [key: string]: string };
 
@@ -35,7 +36,8 @@ export class CartComponent implements OnInit, OnChanges {
   constructor(
     private fhirBackend: FhirBackendService,
     private columnDescriptionsService: ColumnDescriptionsService,
-    private columnValuesService: ColumnValuesService
+    private columnValuesService: ColumnValuesService,
+    public cart: CartService
   ) {
     this.subscriptions.push(
       fhirBackend.initialized
@@ -50,8 +52,6 @@ export class CartComponent implements OnInit, OnChanges {
   }
 
   @Input() resourceType: string;
-  // TODO: Store this value in the cart service
-  condition: 'and' | 'or' = 'and';
   @Input() records: Resource[];
   @Output() removeRecord = new EventEmitter<{
     resourceType: string;
@@ -60,7 +60,19 @@ export class CartComponent implements OnInit, OnChanges {
   pluralFormOfRecordType: string;
   subscriptions: Subscription[] = [];
 
-  @Input() columnDescriptions: ColumnDescription[];
+  @Input('columnDescriptions') set updateColumnDescriptions(
+    columnDescriptions: ColumnDescription[]
+  ) {
+    if (this.resourceType === 'Variable') {
+      this.columnDescriptions = columnDescriptions?.filter(
+        // Exclude unnecessary columns
+        (c) => c.element !== 'type' && c.element !== 'unit'
+      );
+    } else {
+      this.columnDescriptions = columnDescriptions;
+    }
+  }
+  columnDescriptions: ColumnDescription[];
   cells: { [id: string]: ListCells } = {};
   compiledExpressions: { [expression: string]: (row: Resource) => any };
   fhirPathModel: any;

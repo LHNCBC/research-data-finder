@@ -3,6 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.10] - 2022-09-01
+### Added
+- Constraints for variables in the cart.
+- Names of studies and datasets to the table of variables.
+- A component for displaying text that can be truncated.
+- Loading variables when scrolling the table.
+
+### Fixed
+- Unnecessary too fast loading of studies in an inactive tab after a 2-minute pause.
+- Writing a value to AutocompleteParameterValueComponent.
+
 ## [5.0.9] - 2022-08-31
 ### Added
 - Options to variables tab for CTSS API.

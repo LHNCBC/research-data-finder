@@ -27,7 +27,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     ObservationTestValueComponent,
     ObservationTestValueUnitComponent
   ],
-  exports: [SearchParameterComponent],
+  exports: [SearchParameterComponent, ObservationTestValueComponent],
   imports: [
     CommonModule,
     MatFormFieldModule,
