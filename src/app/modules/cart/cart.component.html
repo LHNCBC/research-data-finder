@@ -86,6 +86,7 @@
                     <app-observation-test-value
                         *ngSwitchCase="true"
                         class="cell cell-Variable-constraint"
+                        [required]="false"
                         [(ngModel)]="cart.variableData[listItem[0].id].value"
                         [observationCodes]="[listItem[0].id]"
                         [datatype]="cart.getVariableType(listItem)">
@@ -93,6 +94,7 @@
                     <app-observation-test-value
                         *ngSwitchCase="false"
                         class="cell cell-Variable-constraint"
+                        [required]="false"
                         [(ngModel)]="cart.variableData[listItem.id].value"
                         [observationCodes]="[listItem.id]"
                         [datatype]="cart.getVariableType(listItem)">
