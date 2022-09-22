@@ -49,11 +49,15 @@ const RESOURCES_REQUIRING_AUTHORIZATION = 'Observation|ResearchSubject';
   providedIn: 'root'
 })
 export class FhirBackendService implements HttpBackend {
+  // tslint:disable-next-line:variable-name
+  private _serviceBaseUrl = '';
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
     if (this.serviceBaseUrl !== url) {
+      this.fhirService.setSmartConnection(null);
       this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
+      this._serviceBaseUrl = url;
       if (this.isSmartOnFhir) {
         // Navigate to 'launch' page to authorize a SMART on FHIR connection.
         this.router.navigate(['/launch', { iss: url }]);
@@ -63,7 +67,7 @@ export class FhirBackendService implements HttpBackend {
     }
   }
   get serviceBaseUrl(): string {
-    return this.fhirClient.getServiceBaseUrl();
+    return this._serviceBaseUrl;
   }
 
   // Maximum number of requests that can be combined
@@ -120,14 +124,21 @@ export class FhirBackendService implements HttpBackend {
     private fhirService: FhirService,
     private router: Router
   ) {
-    this.isSmartOnFhir = getUrlParam('isSmart') === 'true';
+    // Default server is able to authorize a SMART on FHIR connection but redirects to a
+    // url appending a 'state', so getUrlParam('isSmart') returns 'true?state=...'.
+    this.isSmartOnFhir = getUrlParam('isSmart')?.substr(0, 4) === 'true';
     const queryServer = getUrlParam('server');
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
+    this._serviceBaseUrl = queryServer || defaultServer;
     this.fhirClient = new FhirBatchQuery({
-      serviceBaseUrl: queryServer || defaultServer
+      serviceBaseUrl: this._serviceBaseUrl
     });
     this.currentDefinitions$ = this.initialized.pipe(
-      filter((status) => status === ConnectionStatus.Ready),
+      filter(
+        (status) =>
+          status === ConnectionStatus.Ready ||
+          status === ConnectionStatus.SmartConnectionSuccess
+      ),
       map(() => this.getCurrentDefinitions())
     );
   }
@@ -158,40 +169,6 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
-   * Callback of connection with either FhirBatchQuery or SMART on FHIR.
-   * Emit ConnectionStatus.Ready if connection succeeds, or ConnectionStatus.Error
-   * if connection fails.
-   * @param success whether FHIR connection is successful
-   * @private
-   */
-  private fhirConnectionCallback(success = true): void {
-    if (success) {
-      // Load definitions of search parameters and columns from CSV file
-      this.settings.loadCsvDefinitions().subscribe(
-        (resourceDefinitions) => {
-          this.currentDefinitions = { resources: resourceDefinitions };
-          this.fhirClient.setMaxRequestsPerBatch(
-            this.settings.get('maxRequestsPerBatch')
-          );
-          this.fhirClient.setMaxActiveRequests(
-            this.settings.get('maxActiveRequests')
-          );
-          this.initialized.next(ConnectionStatus.SmartConnectionSuccess);
-        },
-        (err) => {
-          if (!(err instanceof HttpErrorResponse)) {
-            // Show exceptions from loadCsvDefinitions in console
-            console.error(err.message);
-          }
-          this.initialized.next(ConnectionStatus.Error);
-        }
-      );
-    } else {
-      this.initialized.next(ConnectionStatus.SmartConnectionFailure);
-    }
-  }
-
-  /**
    * Establish a SMART on FHIR connection.
    */
   initializeSmartOnFhirConnection(): void {
@@ -199,9 +176,32 @@ export class FhirBackendService implements HttpBackend {
       !this.fhirService.getSmartConnection() &&
       !this.fhirService.smartConnectionInProgress()
     ) {
-      this.fhirService.requestSmartConnection(
-        this.fhirConnectionCallback.bind(this)
-      );
+      this.fhirService.requestSmartConnection((success) => {
+        if (success) {
+          // Load definitions of search parameters and columns from CSV file
+          this.settings.loadCsvDefinitions().subscribe(
+            (resourceDefinitions) => {
+              this.currentDefinitions = { resources: resourceDefinitions };
+              this.fhirClient.setMaxRequestsPerBatch(
+                this.settings.get('maxRequestsPerBatch')
+              );
+              this.fhirClient.setMaxActiveRequests(
+                this.settings.get('maxActiveRequests')
+              );
+              this.initialized.next(ConnectionStatus.SmartConnectionSuccess);
+            },
+            (err) => {
+              if (!(err instanceof HttpErrorResponse)) {
+                // Show exceptions from loadCsvDefinitions in console
+                console.error(err.message);
+              }
+              this.initialized.next(ConnectionStatus.Error);
+            }
+          );
+        } else {
+          this.initialized.next(ConnectionStatus.SmartConnectionFailure);
+        }
+      });
     }
   }
 
@@ -216,10 +216,29 @@ export class FhirBackendService implements HttpBackend {
     this.currentDefinitions = null;
     this.fhirClient.initialize(serviceBaseUrl).then(
       () => {
-        this.fhirConnectionCallback(true);
+        // Load definitions of search parameters and columns from CSV file
+        this.settings.loadCsvDefinitions().subscribe(
+          (resourceDefinitions) => {
+            this.currentDefinitions = { resources: resourceDefinitions };
+            this.fhirClient.setMaxRequestsPerBatch(
+              this.settings.get('maxRequestsPerBatch')
+            );
+            this.fhirClient.setMaxActiveRequests(
+              this.settings.get('maxActiveRequests')
+            );
+            this.initialized.next(ConnectionStatus.Ready);
+          },
+          (err) => {
+            if (!(err instanceof HttpErrorResponse)) {
+              // Show exceptions from loadCsvDefinitions in console
+              console.error(err.message);
+            }
+            this.initialized.next(ConnectionStatus.Error);
+          }
+        );
       },
       () => {
-        this.fhirConnectionCallback(false);
+        this.initialized.next(ConnectionStatus.Error);
       }
     );
   }

@@ -15,12 +15,13 @@ export class LaunchComponent implements OnInit {
       .authorize({
         redirectUri: `/?server=${fhirServerUrl}&isSmart=true`,
         client_id: 'my_web_app', // hard coded client_id to work with SMART on FHIR starter server
-        scope: 'launch openid fhirUser patient/*.read',
+        scope: 'openid fhirUser patient/*.read',
         iss: fhirServerUrl
       })
-      .catch((err) => {
-        console.log(err);
-        this.router.navigate([`/?server=${fhirServerUrl}&isSmart=true`]);
+      .finally(() => {
+        this.router.navigate(['/'], {
+          queryParams: { server: fhirServerUrl, isSmart: true }
+        });
       });
   }
 }
