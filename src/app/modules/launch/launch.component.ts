@@ -18,7 +18,7 @@ export class LaunchComponent implements OnInit {
         scope: 'openid fhirUser patient/*.read',
         iss: fhirServerUrl
       })
-      .finally(() => {
+      .catch(() => {
         this.router.navigate(['/'], {
           queryParams: { server: fhirServerUrl, isSmart: true }
         });

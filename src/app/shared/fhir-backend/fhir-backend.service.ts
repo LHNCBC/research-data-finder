@@ -123,9 +123,7 @@ export class FhirBackendService implements HttpBackend {
     private fhirService: FhirService,
     private router: Router
   ) {
-    // Default server is able to authorize a SMART on FHIR connection but redirects to a
-    // url appending a 'state', so getUrlParam('isSmart') returns 'true?state=...'.
-    this.isSmartOnFhir = getUrlParam('isSmart')?.substr(0, 4) === 'true';
+    this.isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const queryServer = getUrlParam('server');
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
     this._serviceBaseUrl = queryServer || defaultServer;
