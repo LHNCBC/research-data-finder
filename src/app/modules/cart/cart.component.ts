@@ -244,6 +244,6 @@ export class CartComponent implements OnInit, OnChanges {
     } else {
       result = this.cells[listItem.id][element];
     }
-    return result;
+    return result || '';
   }
 }

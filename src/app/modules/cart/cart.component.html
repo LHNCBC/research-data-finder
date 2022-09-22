@@ -1,6 +1,6 @@
 <div class="v-box">
   <div class="spacer"></div>
-  <div class="h-box">
+  <div class="h-box" role="heading" aria-level="1">
     <b>{{pluralFormOfRecordType}} in Cart:</b>
   </div>
   <div class="spacer"></div>
@@ -10,8 +10,8 @@
       <span class="info-icon" aria-hidden="true"></span>
       Patients will be added to the cohort if they participate in one of the studies in the cart.</label>
     <div class="spacer" *ngIf="resourceType === 'ResearchStudy'"></div>
-    <div class="v-box list" [class.list--tree-view]="isTree()" [class.single-top-item]="listItems.length === 1">
-      <div class="v-box list-header">
+    <div class="v-box list" [class.list--tree-view]="isTree()" [class.single-top-item]="listItems.length === 1" role="table">
+      <div class="v-box list-header" role="rowgroup">
         <div class="h-box switch-group" *ngIf="resourceType === 'Variable'">
           <mat-radio-group
               *ngIf="isTree() && listItems.length > 1"
@@ -26,8 +26,8 @@
             AND = Patients will be added to the cohort if they meet all criteria in the cart; OR = Patients will be added if they meet any of the criteria.
           </label>
         </div>
-        <div class="h-box list-title">
-          <div class="list-toolbar" *ngIf="isTree()">
+        <div class="h-box list-title" role="row">
+          <div class="list-toolbar" *ngIf="isTree()" role="columnheader">
             <button type="button" mat-icon-button
                     [attr.aria-label]="createRemoveGroupTooltip"
                     [matTooltip]="createRemoveGroupTooltip"
@@ -42,19 +42,19 @@
               <button mat-menu-item (click)="ungroupSelectedItems()">Ungroup selected records</button>
             </mat-menu>
           </div>
-          <div class="list-toolbar list-toolbar__icon"></div>
-          <label class="cell cell-{{resourceType}}-{{column.element}}" *ngFor="let column of columnDescriptions">{{column.displayName}}</label>
-          <label class="cell cell-Variable-constraint" *ngIf="resourceType === 'Variable'">Value constraint</label>
+          <div class="list-toolbar list-toolbar__icon" role="columnheader"></div>
+          <div class="cell cell-{{resourceType}}-{{column.element}}" *ngFor="let column of columnDescriptions" role="columnheader">{{column.displayName}}</div>
+          <div class="cell cell-Variable-constraint" *ngIf="resourceType === 'Variable'" role="columnheader">Value constraint</div>
         </div>
       </div>
-      <div class="v-box list-body">
+      <div class="v-box list-body" role="rowgroup">
         <!-- the top level list -->
         <ng-container *ngFor="let listItem of listItems">
           <div class="v-box list-item">
             <!-- individual records and group headers -->
             <div class="condition-label" *ngIf="isTree()">{{cart.logicalOperator[resourceType]}}</div>
-            <div class="h-box" [class.group-header]="cart.isGroup(listItem)">
-              <div class="list-toolbar" *ngIf="isTree()">
+            <div class="h-box" [class.group-header]="cart.isGroup(listItem)" role="row">
+              <div class="list-toolbar" *ngIf="isTree()" role="cell">
                 <mat-checkbox
                     *ngIf="isTree()"
                     [attr.aria-label]="cart.isGroup(listItem) ? selectGroupTooltip : selectRecordTooltip"
@@ -63,7 +63,7 @@
                     [checked]="selectedItems.has(listItem)">
                 </mat-checkbox>
               </div>
-              <div class="list-toolbar list-toolbar__icon">
+              <div class="list-toolbar list-toolbar__icon" role="cell">
                 <button
                     type="button"
                     mat-icon-button
@@ -73,17 +73,20 @@
                   <mat-icon svgIcon="clear"></mat-icon>
                 </button>
               </div>
-              <label class="cell cell-{{resourceType}}-{{column.element}}"
-                     *ngFor="let column of columnDescriptions">
-                <app-ellipsis-text>{{ getCellText(listItem, column.element) || '&nbsp;'}}</app-ellipsis-text>
-              </label>
+              <div class="cell cell-{{resourceType}}-{{column.element}}"
+                     *ngFor="let column of columnDescriptions" role="cell">
+                <app-ellipsis-text>{{ getCellText(listItem, column.element) }}</app-ellipsis-text>
+              </div>
               <ng-container *ngIf="resourceType === 'Variable'" [ngSwitch]="!cart.getVariableType(listItem)">
-                <div class="cell cell-Variable-constraint h-box" *ngSwitchCase="true"><label>Loading...</label>&nbsp;<mat-spinner [diameter]="30"></mat-spinner></div>
+                <div class="cell cell-Variable-constraint h-box" *ngSwitchCase="true" role="cell">
+                  <label>Loading...</label> <mat-spinner [diameter]="23"></mat-spinner>
+                </div>
                 <ng-container [ngSwitch]="cart.getVariableType(listItem)" *ngSwitchDefault>
-                  <label class="cell cell-Variable-constraint h-box" *ngSwitchCase="'empty'">No data found for this variable.</label>
-                  <label class="cell cell-Variable-constraint h-box" *ngSwitchCase="'error'">Error loading data for this variable.</label>
+                  <div class="cell cell-Variable-constraint h-box" *ngSwitchCase="'empty'" role="cell">No data found for this variable.</div>
+                  <div class="cell cell-Variable-constraint h-box" *ngSwitchCase="'error'" role="cell">Error loading data for this variable.</div>
                   <ng-container [ngSwitch]="cart.isGroup(listItem)" *ngSwitchDefault>
                     <app-observation-test-value
+                        role="cell"
                         *ngSwitchCase="true"
                         class="cell cell-Variable-constraint"
                         [required]="false"
@@ -92,6 +95,7 @@
                         [datatype]="cart.getVariableType(listItem)">
                     </app-observation-test-value>
                     <app-observation-test-value
+                        role="cell"
                         *ngSwitchCase="false"
                         class="cell cell-Variable-constraint"
                         [required]="false"
@@ -105,9 +109,9 @@
             </div>
             <!-- nested list of records in a group -->
             <ng-container *ngIf="cart.isGroup(listItem)">
-              <div class="h-box list-item" *ngFor="let innerItem of listItem">
+              <div class="h-box list-item" *ngFor="let innerItem of listItem" role="row">
                 <div class="condition-label">or</div>
-                <div class="list-toolbar">
+                <div class="list-toolbar" role="cell">
                   <mat-checkbox
                       [attr.aria-label]="selectRecordTooltip"
                       [matTooltip]="selectRecordTooltip"
@@ -116,7 +120,7 @@
                   </mat-checkbox>
                 </div>
                 <div class="list-toolbar list-toolbar__spacer"></div>
-                <div class="list-toolbar list-toolbar__icon">
+                <div class="list-toolbar list-toolbar__icon" role="cell">
                   <button
                       type="button"
                       mat-icon-button
@@ -126,12 +130,12 @@
                     <mat-icon svgIcon="clear"></mat-icon>
                   </button>
                 </div>
-                <label *ngFor="let column of columnDescriptions; let index = index"
-                       class="cell cell-{{resourceType}}-{{column.element}} cell-index-{{index}}">
-                  <app-ellipsis-text>{{ getCellText(innerItem, column.element) || '&nbsp;'}}</app-ellipsis-text>
-                </label>
+                <div *ngFor="let column of columnDescriptions; let index = index"
+                       class="cell cell-{{resourceType}}-{{column.element}} cell-index-{{index}}"  role="cell">
+                  <app-ellipsis-text>{{ getCellText(innerItem, column.element) }}</app-ellipsis-text>
+                </div>
 
-                <label class="cell cell-Variable-constraint"></label>
+                <div class="cell cell-Variable-constraint" role="cell"></div>
               </div>
             </ng-container>
           </div>
