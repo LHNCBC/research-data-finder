@@ -134,6 +134,15 @@
           "Variable": [
             {
               // See src/app/types/column.description.ts for details
+              displayName: "Id",
+              element: "id",
+              displayByDefault: false,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
               displayName: "Variable name",
               element: "display_name",
               displayByDefault: true,
@@ -153,6 +162,15 @@
               // See src/app/types/column.description.ts for details
               displayName: "Study ID",
               element: "study_id",
+              displayByDefault: false,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Study",
+              element: "study_name",
               displayByDefault: true,
               types: [
                 "string"
@@ -162,6 +180,15 @@
               // See src/app/types/column.description.ts for details
               displayName: "Dataset ID",
               element: "dataset_id",
+              displayByDefault: false,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "Dataset",
+              element: "dataset_name",
               displayByDefault: true,
               types: [
                 "string"
@@ -169,7 +196,7 @@
             },
             {
               // See src/app/types/column.description.ts for details
-              displayName: "Class",
+              displayName: "Class (category)",
               element: "class",
               displayByDefault: true,
               types: [

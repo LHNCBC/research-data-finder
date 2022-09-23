@@ -144,10 +144,8 @@
           </th>
         </ng-template>
 
-        <td mat-cell *matCellDef="let row" (mouseenter)="tooltip.message=getTooltipText(cell)">
-          <div #cell
-               #tooltip="matTooltip"
-               [matTooltip]="''"><span>{{row.cells[column.element]}}</span></div>
+        <td mat-cell *matCellDef="let row">
+          <app-ellipsis-text>{{row.cells[column.element]}}</app-ellipsis-text>
         </td>
       </ng-container>
 

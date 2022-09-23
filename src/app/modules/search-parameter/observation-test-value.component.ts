@@ -14,7 +14,7 @@ import {
 /**
  * data type used for this control
  */
-interface ObservationTestValue {
+export interface ObservationTestValue {
   observationDataType: string;
   testValuePrefix: string;
   testValueModifier: string;
@@ -37,6 +37,7 @@ export class ObservationTestValueComponent
   @Input() datatype: string;
   @Input() observationCodes: string[] = [];
   @Input() loincCodes: string[] = [];
+  @Input() required = true;
   selectedDatatype = 'Quantity';
   testValueComparator = 'Quantity - ';
   form = new FormGroup({
@@ -96,6 +97,11 @@ export class ObservationTestValueComponent
     if (changes.datatype) {
       this.selectedDatatype = this.datatype || 'Quantity';
     }
+    if (changes.required) {
+      this.form
+        .get('testValue')
+        .setValidators(this.required ? Validators.required : null);
+    }
   }
 
   /**
@@ -112,7 +118,7 @@ export class ObservationTestValueComponent
     );
     if (
       this.datatype &&
-      !value.testValueModifier &&
+      !value?.testValueModifier &&
       this.typeDescriptions[this.datatype].modifiers &&
       this.typeDescriptions[this.datatype].modifiers.length === 1
     ) {

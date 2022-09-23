@@ -5,7 +5,6 @@ import {
   HostBinding,
   HostListener,
   Input,
-  OnChanges,
   OnDestroy,
   Optional,
   Self,
@@ -771,10 +770,7 @@ export class AutocompleteParameterValueComponent
       items: []
     };
     if (this.acInstance) {
-      this.currentData.items.forEach((item, index) => {
-        this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
-        this.acInstance.addToSelectedArea(item);
-      });
+      this.setupAutocomplete();
     }
   }
 

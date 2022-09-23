@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import Resource = fhir.Resource;
+import { HttpClient } from '@angular/common/http';
+import Bundle = fhir.Bundle;
+import { ObservationTestValue } from '../../modules/search-parameter/observation-test-value.component';
 
 export type SelectedRecords = { [id: string]: Resource };
 
@@ -15,28 +18,89 @@ export class CartService {
     [resourceType: string]: SelectedRecords;
   } = {};
 
+  public logicalOperator: {
+    [resourceType: string]: 'and' | 'or';
+  } = {
+    ResearchStudy: 'and',
+    Variable: 'and'
+  };
+
+  public variableData: {
+    [uid: string]: {
+      datatype: string;
+      value?: ObservationTestValue;
+    };
+  } = {};
+
   private selectionChanged: {
     [resourceType: string]: Subject<SelectedRecords>;
   } = {};
 
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
   /**
    * Adds records of the specified resource type to the card.
    * @param resourceType - resource type
-   * @param resources - records to add
+   * @param newRecords - records to add
    */
-  addRecords(resourceType: string, resources: Resource[]): void {
-    const ids = (this.selectedRecords[resourceType] =
+  addRecords(resourceType: string, newRecords: Resource[]): void {
+    const selectedRecords = (this.selectedRecords[resourceType] =
       this.selectedRecords[resourceType] || {});
 
-    resources.forEach((resource) => {
-      ids[this.getResourceId(resource)] = resource;
+    newRecords.forEach((record) => {
+      selectedRecords[this.getResourceId(record)] = record;
     });
     if (resourceType === 'ResearchStudy') {
       this.updateVariables();
+    } else if (resourceType === 'Variable') {
+      newRecords.forEach((record) => {
+        if (!this.variableData[record.id]) {
+          this.http
+            .get<Bundle>(`$fhir/Observation?_count=1&combo-code=${record.id}`)
+            .subscribe(
+              (bundle) => {
+                const observation = bundle.entry?.[0]?.resource;
+                this.variableData[record.id] = { datatype: 'empty' };
+                for (const prop in observation || {}) {
+                  if (prop.startsWith('value')) {
+                    const datatype = prop.substr(5);
+                    this.variableData[record.id] = {
+                      datatype
+                    };
+
+                    if (datatype === 'Quantity') {
+                      const testValueUnit = observation[prop].unit;
+                      if (testValueUnit) {
+                        this.variableData[record.id].value = {
+                          observationDataType: datatype,
+                          testValuePrefix: '',
+                          testValueModifier: '',
+                          testValue: '',
+                          testValueUnit
+                        };
+                      }
+                    }
+                    break;
+                  }
+                }
+              },
+              () => {
+                this.variableData[record.id] = { datatype: 'error' };
+              }
+            );
+        }
+      });
     }
-    this.getCartChangedSubject(resourceType).next(ids);
+    this.getCartChangedSubject(resourceType).next(selectedRecords);
+  }
+
+  /**
+   * Returns the value type of variable by unique ID.
+   * @param uid - Unique id, either dbGaP variable id or LOINC number depending
+   *   on rec_type.
+   */
+  getVariableType(uid: string): string {
+    return this.variableData[uid]?.datatype;
   }
 
   /**
@@ -117,7 +181,7 @@ export class CartService {
     resourceType: string
   ): Subject<SelectedRecords> {
     if (!this.selectionChanged[resourceType]) {
-      this.selectionChanged[resourceType] = new Subject<any>();
+      this.selectionChanged[resourceType] = new Subject<SelectedRecords>();
     }
     return this.selectionChanged[resourceType];
   }
