@@ -3,9 +3,7 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  QueryList,
-  ViewChild,
-  ViewChildren
+  ViewChild
 } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import {
@@ -14,18 +12,15 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { filter, map, startWith } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
-import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
 import { CartService } from '../../shared/cart/cart.service';
-import {
-  getPluralFormOfRecordName,
-  getPluralFormOfResourceType
-} from '../../shared/utils';
-import { saveAs } from 'file-saver';
+import { getPluralFormOfRecordName } from '../../shared/utils';
+import { ResourceTableParentComponent } from '../resource-table-parent.component';
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -36,18 +31,14 @@ import { saveAs } from 'file-saver';
   styleUrls: ['./select-records-page.component.less']
 })
 export class SelectRecordsPageComponent
+  extends ResourceTableParentComponent
   implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
-  @ViewChildren(ResourceTableComponent)
-  tables: QueryList<ResourceTableComponent>;
   subscriptions: Subscription[] = [];
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
   maxPatientsNumber = new FormControl('100', Validators.required);
   hasLoinc = false;
   recTypeLoinc = false;
 
-  // Array of visible resource type names
-  visibleResourceTypes: string[];
   // Map a resource type to a tab name
   resourceType2TabName = {
     ResearchStudy: 'Study'
@@ -76,6 +67,7 @@ export class SelectRecordsPageComponent
     public selectRecords: SelectRecordsService,
     public cart: CartService
   ) {
+    super();
     selectRecords.resetAll();
 
     this.subscriptions.push(
@@ -128,13 +120,6 @@ export class SelectRecordsPageComponent
       const resourceType = this.visibleResourceTypes[0];
       this.loadFirstPage(resourceType);
     });
-  }
-
-  /**
-   * Returns resourceType for the selected tab
-   */
-  getCurrentResourceType(): string {
-    return this.visibleResourceTypes[this.tabGroup.selectedIndex];
   }
 
   /**
@@ -278,19 +263,5 @@ export class SelectRecordsPageComponent
     } else {
       this.selectRecords.loadNextPage(resourceType);
     }
-  }
-
-  /**
-   * Initiates downloading of resourceTable data in CSV format.
-   */
-  downloadCsv(): void {
-    const currentResourceType = this.getCurrentResourceType();
-    const currentResourceTable = this.tables.find(
-      (resourceTable) => resourceTable.resourceType === currentResourceType
-    );
-    saveAs(
-      currentResourceTable.getBlob(),
-      getPluralFormOfResourceType(currentResourceType).toLowerCase() + '.csv'
-    );
   }
 }

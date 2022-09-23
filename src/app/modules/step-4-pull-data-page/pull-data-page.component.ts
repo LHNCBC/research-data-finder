@@ -5,7 +5,6 @@ import {
   OnChanges,
   QueryList,
   SimpleChanges,
-  ViewChild,
   ViewChildren
 } from '@angular/core';
 import { map, startWith, take } from 'rxjs/operators';
@@ -13,16 +12,14 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { MatTabGroup } from '@angular/material/tabs';
 import { Observable } from 'rxjs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { FormControl, Validators } from '@angular/forms';
-import { ResourceTableComponent } from '../resource-table/resource-table.component';
-import { saveAs } from 'file-saver';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import { getPluralFormOfResourceType } from '../../shared/utils';
+import { ResourceTableParentComponent } from '../resource-table-parent.component';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -32,10 +29,9 @@ import { getPluralFormOfResourceType } from '../../shared/utils';
   templateUrl: './pull-data-page.component.html',
   styleUrls: ['./pull-data-page.component.less']
 })
-export class PullDataPageComponent implements OnChanges, AfterViewInit {
-  @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
-  @ViewChildren(ResourceTableComponent)
-  resourceTables: QueryList<ResourceTableComponent>;
+export class PullDataPageComponent
+  extends ResourceTableParentComponent
+  implements OnChanges, AfterViewInit {
   @ViewChildren(SearchParameterGroupComponent)
   parameterGroups: QueryList<SearchParameterGroupComponent>;
   // Default observation codes for the "Pull data for the cohort" step
@@ -60,6 +56,7 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
     public columnDescriptions: ColumnDescriptionsService,
     public pullData: PullDataService
   ) {
+    super();
     fhirBackend.initialized
       .pipe(map((status) => status === ConnectionStatus.Ready))
       .subscribe((connected) => {
@@ -202,13 +199,6 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
   }
 
   /**
-   * Returns resourceType for the selected tab
-   */
-  getCurrentResourceType(): string {
-    return this.visibleResourceTypes[this.tabGroup.selectedIndex];
-  }
-
-  /**
    * Opens a dialog for configuring resource table columns.
    */
   configureColumns(): void {
@@ -235,19 +225,6 @@ export class PullDataPageComponent implements OnChanges, AfterViewInit {
       resourceType,
       this.perPatientFormControls[resourceType]?.value || 1000,
       parameterGroup.getConditions().criteria
-    );
-  }
-  /**
-   * Initiates downloading of resourceTable data in CSV format.
-   */
-  downloadCsv(): void {
-    const currentResourceType = this.getCurrentResourceType();
-    const currentResourceTable = this.resourceTables.find(
-      (resourceTable) => resourceTable.resourceType === currentResourceType
-    );
-    saveAs(
-      currentResourceTable.getBlob(),
-      getPluralFormOfResourceType(currentResourceType).toLowerCase() + '.csv'
     );
   }
 }
