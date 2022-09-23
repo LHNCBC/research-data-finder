@@ -78,11 +78,6 @@
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>
           Select an action
         </button>
-        <div class="spacer"></div>
-        <button mat-stroked-button (click)="selectRecordsPageComponent.downloadCsv()"
-                [disabled]="!selectRecord.getHasLoadedData(selectRecordsPageComponent.currentResourceType$ | async)">
-          <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
-        </button>
         <div class='spacer'></div>
         <button mat-stroked-button (click)='hiddenFileInput3.click()'>
           <mat-icon svgIcon='upload'></mat-icon>
