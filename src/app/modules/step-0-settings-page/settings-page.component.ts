@@ -90,12 +90,14 @@ export class SettingsPageComponent {
       filter((status) => status !== ConnectionStatus.Pending),
       take(1),
       map((status) => {
-        this.settingsFormGroup
-          .get('maxRequestsPerBatch')
-          .setValue(this.fhirBackend.maxRequestsPerBatch);
-        this.settingsFormGroup
-          .get('maxActiveRequests')
-          .setValue(this.fhirBackend.maxActiveRequests);
+        if (!this.fhirBackend.isSmartOnFhir) {
+          this.settingsFormGroup
+            .get('maxRequestsPerBatch')
+            .setValue(this.fhirBackend.maxRequestsPerBatch);
+          this.settingsFormGroup
+            .get('maxActiveRequests')
+            .setValue(this.fhirBackend.maxActiveRequests);
+        }
         return status !== ConnectionStatus.Error
           ? null
           : this.fhirBackend.isSmartOnFhir

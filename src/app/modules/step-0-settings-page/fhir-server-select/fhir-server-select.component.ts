@@ -57,6 +57,8 @@ export class FhirServerSelectComponent
 
   // Autocompleter instance
   acInstance: Def.Autocompleter.Prefetch;
+  // Callback to handle changes
+  listSelectionsObserver: (eventData: any) => void;
   // Reference to the <input> element
   @ViewChild('input') input: ElementRef<HTMLInputElement>;
 
@@ -186,6 +188,12 @@ export class FhirServerSelectComponent
     this.stateChanges.complete();
     if (this.acInstance) {
       this.acInstance.destroy();
+      Def.Autocompleter.Event.removeCallback(
+        this.inputId,
+        'LIST_SEL',
+        this.listSelectionsObserver
+      );
+      this.acInstance = null;
     }
   }
 
@@ -200,13 +208,17 @@ export class FhirServerSelectComponent
       { codes: this.options.map((o) => o.url) }
     );
     this.acInstance.setFieldVal(this.currentValue);
-    Def.Autocompleter.Event.observeListSelections(testInputId, (eventData) => {
+    this.listSelectionsObserver = (eventData) => {
       if (eventData.item_code) {
         this.acInstance.setFieldVal(eventData.item_code);
       } else {
         this.updateCurrentValue();
       }
-    });
+    };
+    Def.Autocompleter.Event.observeListSelections(
+      testInputId,
+      this.listSelectionsObserver
+    );
   }
 
   /**

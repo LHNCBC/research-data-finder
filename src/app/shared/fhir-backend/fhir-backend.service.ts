@@ -54,13 +54,14 @@ export class FhirBackendService implements HttpBackend {
     if (this.serviceBaseUrl !== url) {
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
-      this.initialized.next(ConnectionStatus.Disconnect);
-      this.initialized.next(ConnectionStatus.Pending);
       this._serviceBaseUrl = url;
       if (this.isSmartOnFhir) {
+        this.initialized.next(ConnectionStatus.Pending);
         // Navigate to 'launch' page to authorize a SMART on FHIR connection.
         this.router.navigate(['/launch', { iss: url }]);
       } else {
+        this.initialized.next(ConnectionStatus.Disconnect);
+        this.initialized.next(ConnectionStatus.Pending);
         this.initializeFhirBatchQuery(url);
       }
     }
