@@ -69,7 +69,7 @@
         <div class="spacer"></div>
         <button mat-stroked-button (click)="downloadCsv()"
                 [disabled]="!selectRecords.getHasLoadedData(currentResourceType$ | async)">
-          <mat-icon svgIcon="file_download"></mat-icon>Download(in CSV format)
+          <mat-icon svgIcon="file_download"></mat-icon>Download (in CSV format)
         </button>
       </div>
       <app-cart [resourceType]="resourceType"
