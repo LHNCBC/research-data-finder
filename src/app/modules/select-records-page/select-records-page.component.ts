@@ -18,8 +18,6 @@ import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
-import { CartService } from '../../shared/cart/cart.service';
-import { getPluralFormOfRecordName } from '../../shared/utils';
 import { ResourceTableParentComponent } from '../resource-table-parent.component';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';
