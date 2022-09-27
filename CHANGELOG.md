@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.12] - 2022-09-27
+### Added
+- Button to download the Research Study or Variable tables into .csv
+  files.
+
 ## [5.0.11] - 2022-09-12
 ### Added
 - Grouping/ungrouping variables in the cart.
