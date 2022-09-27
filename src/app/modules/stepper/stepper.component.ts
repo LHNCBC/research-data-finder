@@ -17,10 +17,10 @@ import {
   CreateCohortMode
 } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
-import Patient = fhir.Patient;
 import pkg from '../../../../package.json';
 import { findLast } from 'lodash-es';
 import { getUrlParam } from '../../shared/utils';
+import Patient = fhir.Patient;
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -315,5 +315,19 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    */
   isVisible(step: Step): boolean {
     return this.stepDescriptions[step].isVisible();
+  }
+
+  /**
+   * Contact ref-server for dbGap login, if required.
+   */
+  onSelectAnActionNext(createCohortModeValue: CreateCohortMode): void {
+    if (
+      createCohortModeValue === CreateCohortMode.BROWSE ||
+      createCohortModeValue === CreateCohortMode.SEARCH
+    ) {
+      window.location.href = `${window.location.origin}/dbgap-login-portal`;
+    } else {
+      this.stepper.next();
+    }
   }
 }

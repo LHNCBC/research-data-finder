@@ -82,7 +82,8 @@
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
             "browserTarget": "fhir-obs-viewer:build",
-            "port": 8100
+            "port": 8100,
+            "proxyConfig": "src/proxy.conf.json"
           },
           "configurations": {
             "production": {
