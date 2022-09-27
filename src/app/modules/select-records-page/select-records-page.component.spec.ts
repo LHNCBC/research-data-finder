@@ -144,25 +144,25 @@ describe('SelectRecordsPageComponent', () => {
     );
     await checkBox.check();
     // No studies in the cart
-    expect(studyCart.records.length).toEqual(0);
+    expect(studyCart.listItems.length).toEqual(0);
     // Add the selected study to the cart
     await addButton.click();
     // One study in the cart
-    expect(studyCart.records.length).toEqual(1);
-    expect(studyCart.records[0].id).toEqual('phs001603.v1.p1');
+    expect(studyCart.listItems.length).toEqual(1);
+    expect(studyCart.listItems[0].id).toEqual('phs001603.v1.p1');
 
     await loadVariables('study_id:(phs001603.v1.p1)');
 
     await selectTab('Studies');
     const removeButton = await loader.getHarness(
       MatButtonHarness.with({
-        selector: '.mat-tab-body-active app-cart .remove-btn'
+        selector: '.mat-tab-body-active app-cart .list-toolbar__icon button'
       })
     );
     // Remove the study from the cart
     await removeButton.click();
     // No studies in the cart
-    expect(studyCart.records.length).toEqual(0);
+    expect(studyCart.listItems.length).toEqual(0);
 
     await loadVariables();
   });

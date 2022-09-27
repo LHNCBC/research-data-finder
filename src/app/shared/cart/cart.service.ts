@@ -5,7 +5,16 @@ import { HttpClient } from '@angular/common/http';
 import Bundle = fhir.Bundle;
 import { ObservationTestValue } from '../../modules/search-parameter/observation-test-value.component';
 
-export type SelectedRecords = { [id: string]: Resource };
+// List item, this can be a record or a group (array) of records
+export type ListItem = Resource | Resource[];
+
+type ListData = {
+  // List of records in the cart, if the list item is an array, it is a group
+  // of records.
+  list: ListItem[];
+  // Mapping a record ID to a record used for quick access record data.
+  byId: Map<string, Resource>;
+};
 
 /**
  * Service for storing records in the cart.
@@ -14,8 +23,8 @@ export type SelectedRecords = { [id: string]: Resource };
   providedIn: 'root'
 })
 export class CartService {
-  private selectedRecords: {
-    [resourceType: string]: SelectedRecords;
+  private itemsByResourceType: {
+    [resourceType: string]: ListData;
   } = {};
 
   public logicalOperator: {
@@ -33,7 +42,7 @@ export class CartService {
   } = {};
 
   private selectionChanged: {
-    [resourceType: string]: Subject<SelectedRecords>;
+    [resourceType: string]: Subject<ListData>;
   } = {};
 
   constructor(private http: HttpClient) {}
@@ -44,94 +53,139 @@ export class CartService {
    * @param newRecords - records to add
    */
   addRecords(resourceType: string, newRecords: Resource[]): void {
-    const selectedRecords = (this.selectedRecords[resourceType] =
-      this.selectedRecords[resourceType] || {});
-
-    newRecords.forEach((record) => {
-      selectedRecords[this.getResourceId(record)] = record;
+    const items = (this.itemsByResourceType[resourceType] = this
+      .itemsByResourceType[resourceType] || {
+      list: [],
+      byId: new Map<string, Resource>()
     });
-    if (resourceType === 'ResearchStudy') {
-      this.updateVariables();
-    } else if (resourceType === 'Variable') {
-      newRecords.forEach((record) => {
-        if (!this.variableData[record.id]) {
-          this.http
-            .get<Bundle>(`$fhir/Observation?_count=1&combo-code=${record.id}`)
-            .subscribe(
-              (bundle) => {
-                const observation = bundle.entry?.[0]?.resource;
-                this.variableData[record.id] = { datatype: 'empty' };
-                for (const prop in observation || {}) {
-                  if (prop.startsWith('value')) {
-                    const datatype = prop.substr(5);
-                    this.variableData[record.id] = {
-                      datatype
-                    };
 
-                    if (datatype === 'Quantity') {
-                      const testValueUnit = observation[prop].unit;
-                      if (testValueUnit) {
-                        this.variableData[record.id].value = {
-                          observationDataType: datatype,
-                          testValuePrefix: '',
-                          testValueModifier: '',
-                          testValue: '',
-                          testValueUnit
-                        };
+    newRecords = newRecords.filter((record) => {
+      const recordId = this.getResourceId(record);
+      const isNewRecord = !items.byId.has(recordId);
+      if (isNewRecord) {
+        items.byId.set(recordId, record);
+      }
+      return isNewRecord;
+    });
+
+    if (newRecords.length) {
+      // Update list
+      items.list = items.list.concat(newRecords);
+
+      if (resourceType === 'ResearchStudy') {
+        this.updateVariables();
+      } else if (resourceType === 'Variable') {
+        newRecords.forEach((record) => {
+          const id = this.getResourceId(record);
+          if (!this.variableData[id]) {
+            this.http
+              .get<Bundle>(`$fhir/Observation?_count=1&combo-code=${id}`)
+              .subscribe(
+                (bundle) => {
+                  const observation = bundle.entry?.[0]?.resource;
+                  this.variableData[id] = { datatype: 'empty' };
+                  for (const prop in observation || {}) {
+                    if (prop.startsWith('value')) {
+                      const datatype = prop.substr(5);
+                      this.variableData[id] = {
+                        datatype
+                      };
+
+                      if (datatype === 'Quantity') {
+                        const testValueUnit = observation[prop].unit;
+                        if (testValueUnit) {
+                          this.variableData[id].value = {
+                            observationDataType: datatype,
+                            testValuePrefix: '',
+                            testValueModifier: '',
+                            testValue: '',
+                            testValueUnit
+                          };
+                        }
                       }
+                      break;
                     }
-                    break;
                   }
+                },
+                () => {
+                  this.variableData[id] = { datatype: 'error' };
                 }
-              },
-              () => {
-                this.variableData[record.id] = { datatype: 'error' };
-              }
-            );
-        }
-      });
+              );
+          }
+        });
+      }
+      this.getCartChangedSubject(resourceType).next(items);
     }
-    this.getCartChangedSubject(resourceType).next(selectedRecords);
   }
 
   /**
    * Returns the value type of variable by unique ID.
-   * @param uid - Unique id, either dbGaP variable id or LOINC number depending
-   *   on rec_type.
+   * @param listItem - list item, this can be a record or a group (array)
+   *   of records.
    */
-  getVariableType(uid: string): string {
+  getVariableType(listItem: ListItem): string {
+    const uid = Array.isArray(listItem) ? listItem[0].id : listItem.id;
     return this.variableData[uid]?.datatype;
   }
 
   /**
-   * Removes records of the specified resource type from the card.
+   * Removes list items of the specified resource type from the card.
    * @param resourceType - resource type
-   * @param resources - records to remove
+   * @param listItems - list items, each of each can be a record or a group (array)
+   *   of records.
    */
-  removeRecords(resourceType: string, resources: Resource[]): void {
-    const ids = this.selectedRecords[resourceType];
-    resources.forEach((resource) => {
-      delete ids[this.getResourceId(resource)];
+  removeRecords(resourceType: string, listItems: ListItem[]): void {
+    const recordsToRemove = new Set<ListItem>(listItems);
+    const items = this.itemsByResourceType[resourceType];
+
+    // Update mapping by record ID
+    new Set<string>(
+      [].concat(...listItems).map((record) => this.getResourceId(record))
+    ).forEach((id) => {
+      items.byId.delete(id);
     });
+
+    // Update list
+    items.list = items.list.reduce((newList: ListItem[], currentItem) => {
+      if (Array.isArray(currentItem)) {
+        if (!recordsToRemove.has(currentItem)) {
+          const groupItems = currentItem.filter(
+            (item) => !recordsToRemove.has(item)
+          );
+          if (groupItems.length) {
+            if (groupItems.length === 1) {
+              newList.push(groupItems[0]);
+            } else {
+              newList.push(groupItems);
+            }
+          }
+        }
+      } else if (!recordsToRemove.has(currentItem)) {
+        newList.push(currentItem);
+      }
+      return newList;
+    }, []);
+
     if (resourceType === 'ResearchStudy') {
       this.updateVariables();
     }
-    this.getCartChangedSubject(resourceType).next(ids);
+
+    this.getCartChangedSubject(resourceType).next(items);
   }
 
   /**
    * Updates Variables in the cart when removing ResearchStudies from the cart.
    */
   updateVariables(): void {
-    const researchStudies = this.selectedRecords['ResearchStudy'];
-    const variables = this.selectedRecords['Variable'];
-    if (researchStudies && variables) {
-      // TODO: IDs may not match. I don't know yet how to solve this problem.
-      Object.values(variables).forEach((variable) => {
-        if (!researchStudies[(variable as any).study_id]) {
-          delete variables[this.getResourceId(variable)];
-        }
-      });
+    const researchStudies = this.itemsByResourceType['ResearchStudy']?.byId;
+    const variables = this.itemsByResourceType['Variable']?.byId;
+    if (researchStudies?.size && variables?.size) {
+      this.removeRecords(
+        'Variable',
+        [...variables.values()].filter(
+          (record) => !researchStudies.has((record as any).study_id)
+        )
+      );
     }
   }
 
@@ -149,18 +203,17 @@ export class CartService {
    * @param resource - resource
    */
   hasRecord(resourceType: string, resource: Resource): boolean {
-    return (
-      this.selectedRecords[resourceType]?.[this.getResourceId(resource)] !==
-      undefined
+    return this.itemsByResourceType[resourceType]?.byId.has(
+      this.getResourceId(resource)
     );
   }
 
   /**
-   * Returns records of the specified resource type from the cart.
+   * Returns list items of the specified resource type from the cart.
    * @param resourceType - resource type
    */
-  getRecords(resourceType: string): Resource[] {
-    return Object.values(this.selectedRecords[resourceType] || {});
+  getListItems(resourceType: string): ListItem[] | null {
+    return this.itemsByResourceType[resourceType]?.list || null;
   }
 
   /**
@@ -168,7 +221,7 @@ export class CartService {
    * the specified resource type when the cart for that resource type changes.
    * @param resourceType - resource type
    */
-  getCartChanged(resourceType: string): Observable<SelectedRecords> {
+  getCartChanged(resourceType: string): Observable<ListData> {
     return this.getCartChangedSubject(resourceType).asObservable();
   }
 
@@ -177,11 +230,9 @@ export class CartService {
    * resource type when the cart for that resource type changes.
    * @param resourceType - resource type
    */
-  private getCartChangedSubject(
-    resourceType: string
-  ): Subject<SelectedRecords> {
+  private getCartChangedSubject(resourceType: string): Subject<ListData> {
     if (!this.selectionChanged[resourceType]) {
-      this.selectionChanged[resourceType] = new Subject<SelectedRecords>();
+      this.selectionChanged[resourceType] = new Subject<ListData>();
     }
     return this.selectionChanged[resourceType];
   }
@@ -190,6 +241,97 @@ export class CartService {
    * Resets all selected records.
    */
   reset(): void {
-    this.selectedRecords = {};
+    this.itemsByResourceType = {};
+  }
+
+  /**
+   * Whether the specified list item is a group of records.
+   * @param listItem - list item
+   */
+  isGroup(listItem: ListItem): boolean {
+    return Array.isArray(listItem);
+  }
+
+  /**
+   * Group list items.
+   * @param resourceType - resource type
+   * @param itemsToGroup - set of items to group
+   */
+  groupItems(resourceType: string, itemsToGroup: Set<ListItem>): void {
+    const items = this.itemsByResourceType[resourceType];
+    const datatypeToIndex: { [datatype: string]: number } = {};
+
+    const groupItem = (list: ListItem[], item: ListItem) => {
+      const datatype = this.getVariableType(item);
+      const index = datatypeToIndex[datatype];
+      if (index !== undefined) {
+        list[index] = [].concat(list[index], item);
+      } else {
+        datatypeToIndex[datatype] = list.push(item) - 1;
+      }
+    };
+
+    items.list = items.list.reduce((newList: ListItem[], currentItem) => {
+      if (itemsToGroup.has(currentItem)) {
+        groupItem(newList, currentItem);
+      } else {
+        if (Array.isArray(currentItem)) {
+          const restItems = currentItem.filter((i) => {
+            const shouldBeGrouped = itemsToGroup.has(i);
+            if (shouldBeGrouped) {
+              groupItem(newList, i);
+            }
+            return !shouldBeGrouped;
+          });
+          if (restItems.length) {
+            newList.push(restItems.length > 1 ? restItems : restItems[0]);
+          }
+        } else {
+          newList.push(currentItem);
+        }
+      }
+      return newList;
+    }, []);
+
+    itemsToGroup.clear();
+    this.getCartChangedSubject(resourceType).next(items);
+  }
+
+  /**
+   * Ungroup list items.
+   * @param resourceType - resource type
+   * @param itemsToUngroup - set of items to ungroup
+   */
+  ungroupItems(resourceType: string, itemsToUngroup: Set<ListItem>): void {
+    const items = this.itemsByResourceType[resourceType];
+
+    const ungroupItem = (list: ListItem[], item: ListItem) => {
+      list.push(...[].concat(item));
+    };
+
+    items.list = items.list.reduce((newList: ListItem[], currentItem) => {
+      if (itemsToUngroup.has(currentItem)) {
+        ungroupItem(newList, currentItem);
+      } else {
+        if (Array.isArray(currentItem)) {
+          const restItems = currentItem.filter((i) => {
+            const shouldBeGrouped = itemsToUngroup.has(i);
+            if (shouldBeGrouped) {
+              ungroupItem(newList, i);
+            }
+            return !shouldBeGrouped;
+          });
+          if (restItems.length) {
+            newList.push(restItems.length > 1 ? restItems : restItems[0]);
+          }
+        } else {
+          newList.push(currentItem);
+        }
+      }
+      return newList;
+    }, []);
+
+    itemsToUngroup.clear();
+    this.getCartChangedSubject(resourceType).next(items);
   }
 }

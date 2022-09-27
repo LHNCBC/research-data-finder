@@ -1,0 +1,95 @@
+[
+  {
+    "resourceType": "Variable",
+    "id": "phv00492021.v1.p1",
+    "display_name": "Affection status",
+    "loinc_num": "",
+    "study_id": "phs002409.v1.p1",
+    "study_name": "FHIR Test Study's ALPHA",
+    "dataset_id": "",
+    "dataset_name": "",
+    "class": "",
+    "type": "",
+    "unit": ""
+  },
+  {
+    "resourceType": "Variable",
+    "id": "phv00492022.v1.p1",
+    "display_name": "Affection status in PEAK",
+    "loinc_num": "",
+    "study_id": "phs002409.v1.p1",
+    "study_name": "FHIR Test Study's ALPHA",
+    "dataset_id": "",
+    "dataset_name": "",
+    "class": "",
+    "type": "",
+    "unit": ""
+  },
+  {
+    "resourceType": "Variable",
+    "id": "phv00492024.v1.p1",
+    "display_name": "Age at Baseline",
+    "loinc_num": "",
+    "study_id": "phs002409.v1.p1",
+    "study_name": "FHIR Test Study's ALPHA",
+    "dataset_id": "",
+    "dataset_name": "",
+    "class": "",
+    "type": "",
+    "unit": ""
+  },
+  {
+    "resourceType": "Variable",
+    "id": "phv00492067.v1.p1",
+    "display_name":
+    "Average Baseline AM peak flow (L/min) as recorded in daily diary card data between visits. Visits are in most cases four months apart.",
+    "loinc_num": "",
+    "study_id": "phs002409.v1.p1",
+    "study_name": "FHIR Test Study's ALPHA",
+    "dataset_id": "",
+    "dataset_name": "",
+    "class": "",
+    "type": "",
+    "unit": ""
+  },
+  {
+    "resourceType": "Variable",
+    "id": "phv00492069.v1.p1",
+    "display_name":
+    "Average Baseline AM symptoms as recorded in daily diary card data between visits. Visits are in most cases four months apart.",
+    "loinc_num": "",
+    "study_id": "phs002409.v1.p1",
+    "study_name": "FHIR Test Study's ALPHA",
+    "dataset_id": "",
+    "dataset_name": "",
+    "class": "",
+    "type": "",
+    "unit": ""
+  },
+  {
+    "resourceType": "Variable",
+    "id": "phv00492063.v1.p1",
+    "display_name": "Baseline blood eosinophils",
+    "loinc_num": "",
+    "study_id": "phs002409.v1.p1",
+    "study_name": "FHIR Test Study's ALPHA",
+    "dataset_id": "",
+    "dataset_name": "",
+    "class": "",
+    "type": "",
+    "unit": ""
+  },
+  {
+    "resourceType": "Variable",
+    "id": "phv00492029.v1.p1",
+    "display_name": "Baseline BMIZ",
+    "loinc_num": "",
+    "study_id": "phs002409.v1.p1",
+    "study_name": "FHIR Test Study's ALPHA",
+    "dataset_id": "",
+    "dataset_name": "",
+    "class": "",
+    "type": "",
+    "unit": ""
+  }
+]

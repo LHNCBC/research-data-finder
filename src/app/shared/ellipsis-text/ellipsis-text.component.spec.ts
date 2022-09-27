@@ -40,7 +40,7 @@ describe('EllipsisTextComponent', () => {
     spyOn(component, 'getTooltipText').and.callThrough();
     div = fixture.nativeElement.querySelector('app-ellipsis-text div');
     tooltip = fixture.debugElement
-      .query(By.css('app-ellipsis-text div span'))
+      .query(By.css('app-ellipsis-text div div'))
       .injector.get(MatTooltip);
   });
 

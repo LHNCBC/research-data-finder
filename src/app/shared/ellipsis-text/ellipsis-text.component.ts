@@ -26,7 +26,7 @@ export class EllipsisTextComponent {
     // (clientWidth & scrollWidth) will round the value to an integer, but
     // the ellipsis is displayed even if the difference is less than 0.5 pixels.
     return element.getBoundingClientRect().right <
-      element.firstElementChild.getBoundingClientRect().right
+      element.firstElementChild.firstElementChild.getBoundingClientRect().right
       ? element.innerText
       : '';
   }
