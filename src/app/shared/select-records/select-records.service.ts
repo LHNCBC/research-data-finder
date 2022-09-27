@@ -13,10 +13,15 @@ interface SelectRecordState {
   loading: boolean;
   // Array of loaded resources
   resources: Resource[];
-  // Next page URL
+  // Next page URL for regular FHIR resources
   nextBundleUrl?: string;
+  // Page number for CTSS variables
+  currentPage?: number;
   // Indicates whether we need to reload data
   reset?: boolean;
+  // The total number of records is used to determine whether the next page
+  // of CTSS variables exists
+  totalRecords?: number;
 }
 
 @Injectable({
@@ -119,6 +124,7 @@ export class SelectRecordsService {
    * @param params - http parameters
    * @param filters - filter values
    * @param sort - the current sort state
+   * @param pageNumber - page number to load
    */
   loadVariables(
     selectedResearchStudies: Resource[],
@@ -126,23 +132,38 @@ export class SelectRecordsService {
       [param: string]: any;
     },
     filters: any,
-    sort: Sort
+    sort: Sort,
+    pageNumber: number
   ): void {
     const resourceType = 'Variable';
-    // TODO: Add sorting when CTSS will support it
-    const currentState = {
-      loading: true,
-      resources: [],
-      progressValue: 0,
-      totalRecords: 0
-    };
-    this.currentState[resourceType] = currentState;
+    let currentState;
+    if (pageNumber === 0) {
+      currentState = {
+        loading: true,
+        resources: [],
+        currentPage: pageNumber,
+        totalRecords: 0
+      };
+      this.currentState[resourceType] = currentState;
+    } else {
+      currentState = this.currentState[resourceType];
+      if (
+        currentState?.loading ||
+        currentState?.totalRecords <= pageNumber * 50
+      ) {
+        return;
+      }
+      currentState.loading = true;
+    }
+
     const dataFields = {
       id: 'uid',
       display_name: 'display_name',
       loinc_num: 'loinc_num',
       study_id: 'study_id',
+      study_name: 'study_name',
       dataset_id: 'dataset_id',
+      dataset_name: 'dataset_name',
       class: 'loinc.CLASS',
       type: 'dbgv.type',
       unit: 'dbgv.unit'
@@ -167,7 +188,8 @@ export class SelectRecordsService {
     this.resourceStream[resourceType] = this.http
       .get(url, {
         params: {
-          maxList: 50,
+          offset: pageNumber * 50,
+          count: 50,
           df: uniqDataFields.join(','),
           terms: '',
           q: query.join(' AND '),
@@ -185,8 +207,8 @@ export class SelectRecordsService {
       })
       .pipe(
         map((data: any) => {
-          // TODO
           const total = data[0];
+          currentState.totalRecords = total;
           const list = data[3];
           if (total && list) {
             list.forEach((item) => {
@@ -204,7 +226,12 @@ export class SelectRecordsService {
             });
           }
           currentState.loading = false;
+          currentState.currentPage = pageNumber;
           return currentState.resources;
+        }),
+        catchError((error) => {
+          currentState.loading = false;
+          throw error;
         }),
         switchMap((resources: Resource[]) =>
           this.cart.getCartChanged(resourceType).pipe(
@@ -217,5 +244,13 @@ export class SelectRecordsService {
           )
         )
       );
+  }
+
+  // Loading is complete and there is data in the table
+  getHasLoadedData(resourceType: string): boolean {
+    return (
+      !this.currentState[resourceType]?.loading &&
+      this.currentState[resourceType]?.resources.length > 0
+    );
   }
 }

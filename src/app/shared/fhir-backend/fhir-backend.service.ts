@@ -209,7 +209,9 @@ export class FhirBackendService implements HttpBackend {
    */
   initializeFhirBatchQuery(serviceBaseUrl: string = ''): void {
     // Set _isDbgap flag in fhirClient
-    this.fhirClient.setIsDbgap(this.isDbgap(serviceBaseUrl));
+    this.fhirClient.setIsDbgap(
+      this.isDbgap(serviceBaseUrl || this.serviceBaseUrl)
+    );
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
     this.fhirClient.initialize(serviceBaseUrl).then(

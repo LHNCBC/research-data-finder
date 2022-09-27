@@ -8,7 +8,7 @@ import Resource = fhir.Resource;
 import { RouterTestingModule } from '@angular/router/testing';
 
 @Component({
-  template: `<app-cart [resourceType]="resourceType" [records]="records">
+  template: `<app-cart [resourceType]="resourceType" [listItems]="records">
   </app-cart>`
 })
 class TestHostComponent {

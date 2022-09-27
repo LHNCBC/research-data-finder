@@ -1,6 +1,6 @@
 <form [formGroup]="form">
   <div class="test-value">
-    <mat-form-field *ngIf="!datatype">
+    <mat-form-field *ngIf="!datatype" class="comparator">
       <mat-label>Comparator</mat-label>
       <mat-select [(ngModel)]="testValueComparator" [ngModelOptions]="{standalone: true}">
         <mat-optgroup label="numeric comparators">
@@ -15,21 +15,21 @@
         </mat-optgroup>
       </mat-select>
     </mat-form-field>
-    <mat-form-field *ngIf="datatype && typeDescriptions[datatype].searchValPrefixes">
+    <mat-form-field *ngIf="datatype && typeDescriptions[datatype].searchValPrefixes" class="comparator">
       <mat-label>Comparator</mat-label>
       <mat-select formControlName="testValuePrefix">
         <mat-option *ngFor="let option of typeDescriptions[datatype].searchValPrefixes"
                     [value]="option[1]">{{option[0]}}</mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-form-field *ngIf="datatype && typeDescriptions[datatype].modifiers">
+    <mat-form-field *ngIf="datatype && typeDescriptions[datatype].modifiers" class="comparator">
       <mat-label>Comparator</mat-label>
       <mat-select formControlName="testValueModifier">
         <mat-option *ngFor="let option of typeDescriptions[datatype].modifiers"
                     [value]="option[1]">{{option[0]}}</mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-form-field>
+    <mat-form-field class="value">
       <mat-label>Test value</mat-label>
       <ng-container [ngSwitch]="selectedDatatype">
         <app-autocomplete-parameter-value
@@ -42,13 +42,14 @@
             searchParameter="value-concept">
         </app-autocomplete-parameter-value>
         <input *ngSwitchCase="'Quantity'" type="number" step="any" matInput formControlName="testValue"
+               autocomplete="off"
                placeholder="enter number value">
         <input *ngSwitchDefault type="text" matInput formControlName="testValue"
                placeholder="enter string value">
       </ng-container>
     </mat-form-field>
 
-    <mat-form-field *ngIf="typeDescriptions[selectedDatatype].unit">
+    <mat-form-field *ngIf="typeDescriptions[selectedDatatype].unit" class="unit">
       <mat-label>Test value unit</mat-label>
       <app-observation-test-value-units
           formControlName="testValueUnit"

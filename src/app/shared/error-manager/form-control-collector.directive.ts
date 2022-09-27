@@ -15,11 +15,11 @@ export class FormControlCollectorDirective implements OnInit, OnDestroy {
     @Self() @Optional() private formControlDirective: FormControlDirective,
     @Self() @Optional() private formControlName: FormControlName,
     @Self() @Optional() private ngModel: NgModel,
-    private errorManager: ErrorManager
+    @Optional() private errorManager: ErrorManager
   ) {}
 
   ngOnInit(): void {
-    this.errorManager.addControl(
+    this.errorManager?.addControl(
       this.formControlDirective?.control ||
         this.formControlName?.control ||
         this.ngModel?.control
@@ -27,7 +27,7 @@ export class FormControlCollectorDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.errorManager.removeControl(
+    this.errorManager?.removeControl(
       this.formControlDirective?.control ||
         this.formControlName?.control ||
         this.ngModel?.control

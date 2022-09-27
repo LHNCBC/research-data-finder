@@ -1,47 +1,60 @@
-.remove-btn {
-  margin-top: -0.3em;
-}
-
-.h-box {
-  align-items: center;
-}
-
 .list {
   max-height: 400px;
   overflow: auto;
   padding-bottom: 1px;
+
+  .h-box.switch-group {
+    align-items: center;
+    label {
+      margin-top: 0;
+    }
+  }
+
+  .h-box {
+    align-items: flex-start;
+    div.cell {
+      margin-top: 15px;
+    }
+    mat-spinner {
+      margin-left: 15px;
+    }
+  }
 }
 
-mat-radio-group.switch-group {
+.switch-group {
   margin-bottom: 10px;
-  mat-radio-button {
-    ::ng-deep .mat-radio-container,
-    ::ng-deep .mat-radio-label-content {
-      font-size: 14px;
-      line-height: 28px;
-      font-weight: normal;
-    }
-    text-align: center;
-    text-shadow: none;
-    box-sizing: border-box;
-    border-width: 1px 0;
-    border-style: solid;
-    border-color: rgb(97, 158, 215);
-    background: white;
-    color: rgb(49, 118, 179);
-    padding: 0 8px;
-  }
+  mat-radio-group {
+    mat-radio-button {
+      ::ng-deep .mat-radio-container,
+      ::ng-deep .mat-radio-label-content {
+        font-size: 14px;
+        line-height: 28px;
+        font-weight: normal;
+      }
 
-  mat-radio-button:first-child {
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-    border-left-width: 1px;
-    border-right-width: 1px;
-  }
-  mat-radio-button:last-child {
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
-    border-right-width: 1px;
+      text-align: center;
+      text-shadow: none;
+      box-sizing: border-box;
+      border-width: 1px 0;
+      border-style: solid;
+      border-color: rgb(97, 158, 215);
+      background: white;
+      color: rgb(49, 118, 179);
+      padding: 0 8px;
+    }
+
+    mat-radio-button:first-child {
+      border-top-left-radius: 5px;
+      border-bottom-left-radius: 5px;
+      border-left-width: 1px;
+      border-right-width: 1px;
+    }
+
+    mat-radio-button:last-child {
+      border-top-right-radius: 5px;
+      border-bottom-right-radius: 5px;
+      border-right-width: 1px;
+    }
   }
 }
 
@@ -56,8 +69,32 @@ mat-radio-group.switch-group {
 }
 
 .list-toolbar {
-  min-width: 40px;
-  max-width: 40px;
+  min-width: 34px;
+  max-width: 34px;
+  &.list-toolbar__spacer {
+    min-width: 43px;
+    max-width: 43px;
+  }
+
+  &.list-toolbar__icon {
+    min-width: 40px;
+    max-width: 40px;
+  }
+  mat-checkbox {
+    margin-left: 12px;
+    margin-top: 17px;
+    line-height: 1;
+  }
+  button {
+    margin-top: 6px;
+    line-height: 1;
+  }
+}
+
+:host ::ng-deep {
+  .mat-form-field-subscript-wrapper {
+    display: none;
+  }
 }
 
 .list-header {
@@ -70,12 +107,12 @@ mat-radio-group.switch-group {
 }
 
 .list-title {
-  label {
+  div.cell {
     font-weight: bold;
   }
 }
 
-.list--tree-view {
+.list--tree-view:not(.single-top-item) {
   .list-title {
     position: relative;
     margin-left: 27px;
@@ -87,54 +124,105 @@ mat-radio-group.switch-group {
       border-color: #619ed7;
       border-style: solid;
       width: 22px;
-      height: calc(100% + 10px);
+      height: calc(100% + 15px);
       position: absolute;
       border-width: 0 0 0 1px;
-      top: -10px;
+      top: -15px;
+    }
+  }
+}
+
+.list--tree-view:not(.single-top-item) .list-item,
+.list-item .list-item{
+  position: relative;
+  margin-left: 27px;
+  padding-left: 13px;
+
+  &:before {
+    content: "";
+    left: -9px;
+    border-color: #619ed7;
+    border-style: solid;
+    width: 22px;
+    height: 26px;
+    position: absolute;
+    border-width: 0 0 1px 1px;
+    top: 0;
+  }
+
+  &.hideCheckbox {
+    &:before {
+      width: 49px;
+    }
+
+    mat-checkbox {
+      visibility: hidden;
     }
   }
 
-  .list-item {
-    position: relative;
-    margin-left: 27px;
-    padding-left: 13px;
+  &:not(:last-child):after {
+    content: "";
+    left: -9px;
+    border-color: #619ed7;
+    border-style: solid;
+    width: 22px;
+    height: calc(100% - 34px);
+    position: absolute;
+    border-width: 0 0 0 1px;
+    top: 34px;
+  }
 
-    &:before {
-      content: "";
-      left: -9px;
-      border-color: #619ed7;
-      border-style: solid;
-      width: 22px;
-      height: calc(50% - 1px);
-      position: absolute;
-      border-width: 0 0 1px 1px;
-      top: 0;
-    }
+  .condition-label {
+    position: absolute;
+    left: -22px;
+    top: 19px;
+    width: 26px;
+    font-size: 0.6em;
+    border: 1px solid rgb(97, 158, 215);
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 1);
+    text-align: center;
+    text-transform: uppercase;
+  }
+}
 
-    &:not(:last-child):after {
-      content: "";
-      left: -9px;
-      border-color: #619ed7;
-      border-style: solid;
-      width: 22px;
-      height: calc(50% - 6px);
-      position: absolute;
-      border-width: 0 0 0 1px;
-      top: calc(50% + 6px);
-    }
+.list--tree-view.single-top-item .list-item {
+  .condition-label {
+    display: none;
+  }
+}
 
-    .condition-label {
-      position: absolute;
-      left: -22px;
-      top: calc(50% - 9px);
-      width: 26px;
-      font-size: 0.6em;
-      border: 1px solid rgb(97, 158, 215);
-      border-radius: 5px;
-      background-color: rgba(255,255,255,1);
-      text-align: center;
-      text-transform: uppercase;
-    }
+.list--tree-view.single-top-item .list-item .list-item {
+  .condition-label {
+    display: unset;
+  }
+}
+
+.list--tree-view .list-item .group-header {
+  position: relative;
+  & > .list-toolbar:first-child:after {
+    content: "";
+    left: 54px;
+    border-color: #619ed7;
+    border-style: solid;
+    width: 22px;
+    height: calc(100% - 46px);
+    position: absolute;
+    border-width: 0 0 0 1px;
+    top: 46px;
+  }
+}
+.list--tree-view .list-item .list-item {
+  margin-left: 0;
+  padding-left: 0;
+  &:before {
+    left: 54px;
+  }
+  &:not(:last-child):after {
+    left: 54px;
+  }
+  .condition-label {
+    left: 41px;
   }
 }
 
@@ -183,9 +271,14 @@ mat-radio-group.switch-group {
 }
 
 // Variable table:
+.cell-Variable-id {
+  min-width: 150px;
+  max-width: 150px;
+}
+
 .cell-Variable-display_name {
   min-width: 200px;
-  max-width: 600px;
+  max-width: unset;
 }
 
 .cell-Variable-study_id,
@@ -194,7 +287,29 @@ mat-radio-group.switch-group {
   min-width: 150px;
   max-width: 150px;
 }
+
+.cell-Variable-study_name,
+.cell-Variable-dataset_name {
+  min-width: 300px;
+  max-width: 300px;
+}
+
 .cell-Variable-type {
   min-width: 200px;
   max-width: 200px;
+}
+
+.cell-Variable-constraint {
+  min-width: 415px;
+  max-width: unset;
+  .list-body & {
+    min-height: 38px;
+  }
+}
+
+.list-item .list-item .cell-index-0 {
+  margin-left: -43px;
+  app-ellipsis-text ::ng-deep span {
+    padding-left: 43px;
+  }
 }

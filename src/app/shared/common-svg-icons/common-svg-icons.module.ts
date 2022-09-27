@@ -29,7 +29,8 @@ const icons = [
   'filter_filled',
   'info',
   'settings',
-  'remove_done_black'
+  'remove_done_black',
+  'rule'
 ];
 
 @NgModule({

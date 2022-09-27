@@ -133,6 +133,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         )
         .subscribe((value) => {
           if (this.filterChanged.observers.length) {
+            this.scrollViewport.scrollToIndex(0);
             this.filterChanged.next(value);
           } else {
             this.dataSource.filter = { ...value } as string;
@@ -142,6 +143,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         })
     );
   }
+
+  /**
+   * Tooltip text for a record checkbox.
+   */
+  @Input() checkboxTooltipText: string;
 
   /**
    * Get loading message according to loading status
@@ -575,6 +581,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
     if (this.sortChanged.observers.length) {
+      this.scrollViewport.scrollToIndex(0);
       this.sortChanged.emit(sort);
       return;
     }
@@ -604,7 +611,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const header = columnDescriptions
       .map((columnDescription) => columnDescription.displayName)
       .join(',');
-    const rows = this.dataSource.data.map((row) =>
+    const rowsToDownload = this.enableFiltering
+      ? this.dataSource.filteredData
+      : this.dataSource.data;
+    const rows = rowsToDownload.map((row) =>
       columnDescriptions
         .map((columnDescription) => {
           const cellText = row.cells[columnDescription.element];
@@ -707,37 +717,21 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Returns the text to display as a tooltip if the element's text
-   * has been truncated, otherwise returns an empty string.
-   * @param element - HTML element with possibly truncated text which has
-   *   a special structure to recognize truncation.
-   */
-  getTooltipText(element: HTMLElement): string {
-    // Can't use this simple check:
-    //   element.clientWidth < element.scrollWidth
-    // In some cases, this check will fail because these properties
-    // (clientWidth & scrollWidth) will round the value to an integer, but
-    // the ellipsis is displayed even if the difference is less than 0.5 pixels.
-    return element.getBoundingClientRect().right <
-      element.firstElementChild.getBoundingClientRect().right
-      ? element.innerText
-      : '';
-  }
-
-  /**
    * Emits the next page load event when scrolling to the bottom of the table
    */
   onScroll(): void {
     const scrollViewport = this.scrollViewport?.elementRef.nativeElement;
     if (scrollViewport) {
       const delta = 150;
+      // scrollHeight === 0, when the table is in an inactive MatTab (tab content is detached)
+      const isNotDetached = scrollViewport.scrollHeight !== 0;
       const bottomDistance =
         scrollViewport.scrollHeight -
         scrollViewport.scrollTop -
         scrollViewport.clientHeight;
 
       clearTimeout(this.loadNextPageTimer);
-      if (delta >= bottomDistance) {
+      if (isNotDetached && delta >= bottomDistance) {
         this.loadNextPage.emit();
       } else {
         // In any case, load the next page after the specified time has elapsed

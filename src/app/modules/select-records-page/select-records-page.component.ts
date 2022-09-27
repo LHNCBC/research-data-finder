@@ -3,9 +3,7 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  QueryList,
-  ViewChild,
-  ViewChildren
+  ViewChild
 } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import {
@@ -13,15 +11,19 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { filter, map, startWith } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
-import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { Observable, Subscription } from 'rxjs';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
-import { CartService } from '../../shared/cart/cart.service';
-import { getPluralFormOfRecordName } from '../../shared/utils';
+import { ResourceTableParentComponent } from '../resource-table-parent.component';
+import { CartService, ListItem } from '../../shared/cart/cart.service';
+import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';
+import { ErrorManager } from '../../shared/error-manager/error-manager.service';
+import { ErrorStateMatcher } from '@angular/material/core';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -29,21 +31,24 @@ import { getPluralFormOfRecordName } from '../../shared/utils';
 @Component({
   selector: 'app-select-records-page',
   templateUrl: './select-records-page.component.html',
-  styleUrls: ['./select-records-page.component.less']
+  styleUrls: ['./select-records-page.component.less'],
+  providers: [
+    ErrorManager,
+    {
+      provide: ErrorStateMatcher,
+      useExisting: ErrorManager
+    }
+  ]
 })
 export class SelectRecordsPageComponent
+  extends ResourceTableParentComponent
   implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
-  @ViewChildren(ResourceTableComponent)
-  tables: QueryList<ResourceTableComponent>;
   subscriptions: Subscription[] = [];
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
   maxPatientsNumber = new FormControl('100', Validators.required);
   hasLoinc = false;
   recTypeLoinc = false;
 
-  // Array of visible resource type names
-  visibleResourceTypes: string[];
   // Map a resource type to a tab name
   resourceType2TabName = {
     ResearchStudy: 'Study'
@@ -62,13 +67,18 @@ export class SelectRecordsPageComponent
       direction: 'desc'
     }
   };
+  // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
+  // when the active tab changes
+  currentResourceType$: Observable<string>;
 
   constructor(
     public fhirBackend: FhirBackendService,
     public columnDescriptions: ColumnDescriptionsService,
     public selectRecords: SelectRecordsService,
+    private liveAnnouncer: LiveAnnouncer,
     public cart: CartService
   ) {
+    super();
     selectRecords.resetAll();
 
     this.subscriptions.push(
@@ -92,46 +102,35 @@ export class SelectRecordsPageComponent
   }
 
   ngAfterViewInit(): void {
+    this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
+      startWith(this.getCurrentResourceType()),
+      map(() => {
+        // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
+        // displaying an empty table when the active tab is changed.
+        // This event runs _changeListener in ViewportRuler which run checkViewportSize
+        // in CdkVirtualScrollViewport.
+        // See code for details:
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
+        if (typeof Event === 'function') {
+          // fire resize event for modern browsers
+          window.dispatchEvent(new Event('resize'));
+        } else {
+          // for IE and other old browsers
+          // causes deprecation warning on modern browsers
+          const evt = window.document.createEvent('UIEvents');
+          // @ts-ignore
+          evt.initUIEvent('resize', true, false, window, 0);
+          window.dispatchEvent(evt);
+        }
+        return this.getCurrentResourceType();
+      })
+    );
     setTimeout(() => {
-      this.subscriptions.push(
-        this.tabGroup.selectedTabChange
-          .pipe(
-            startWith(this.getCurrentResourceType()),
-            map(() => {
-              // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
-              // displaying an empty table when the active tab is changed.
-              // This event runs _changeListener in ViewportRuler which run checkViewportSize
-              // in CdkVirtualScrollViewport.
-              // See code for details:
-              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
-              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
-              if (typeof Event === 'function') {
-                // fire resize event for modern browsers
-                window.dispatchEvent(new Event('resize'));
-              } else {
-                // for IE and other old browsers
-                // causes deprecation warning on modern browsers
-                const evt = window.document.createEvent('UIEvents');
-                // @ts-ignore
-                evt.initUIEvent('resize', true, false, window, 0);
-                window.dispatchEvent(evt);
-              }
-              return this.getCurrentResourceType();
-            })
-          )
-          .subscribe()
-      );
-
+      this.subscriptions.push(this.currentResourceType$.subscribe());
       const resourceType = this.visibleResourceTypes[0];
       this.loadFirstPage(resourceType);
     });
-  }
-
-  /**
-   * Returns resourceType for the selected tab
-   */
-  getCurrentResourceType(): string {
-    return this.visibleResourceTypes[this.tabGroup.selectedIndex];
   }
 
   /**
@@ -163,19 +162,30 @@ export class SelectRecordsPageComponent
       this.selectRecords.resetState('Variable');
       this.clearSelectedRecords('Variable');
     }
+    this.liveAnnouncer.announce(
+      'Added selected variables to the cart area below.'
+    );
   }
 
   /**
    * Removes record from the cart.
    * @param resourceType - resource type
-   * @param resource - record to remove
+   * @param listItem - list item, this can be a record or a group (array)
+   *   of records.
    */
-  removeRecordFromCart(resourceType: string, resource: Resource): void {
-    this.cart.removeRecords(resourceType, [resource]);
+  removeRecordFromCart(resourceType: string, listItem: ListItem): void {
+    this.cart.removeRecords(resourceType, [listItem]);
     if (resourceType === 'ResearchStudy') {
       this.selectRecords.resetState('Variable');
       this.clearSelectedRecords('Variable');
     }
+    this.liveAnnouncer.announce(
+      `Removed ${
+        this.cart.isGroup(listItem)
+          ? 'group of ' + getPluralFormOfRecordName(resourceType)
+          : getRecordName(resourceType)
+      } from the cart.`
+    );
   }
 
   /**
@@ -211,24 +221,27 @@ export class SelectRecordsPageComponent
   }
 
   /**
-   * Applies the variable table filter change.
+   * Loads variable records.
+   * @param pageNumber - page number to load
    */
-  filterVariables(): void {
-    // TODO: Currently, user can sort loaded Variable records on
-    //       the client-side only. CTSS doesn't support sorting.
-    // TODO: Also, CTSS doesn't support paging.
+  loadVariables(pageNumber = 0): void {
     this.selectRecords.loadVariables(
-      this.cart.getRecords('ResearchStudy'),
+      [].concat(...(this.cart.getListItems('ResearchStudy') || [])),
       this.recTypeLoinc
         ? {
             rec_type: 'loinc'
           }
-        : {
+        : this.hasLoinc
+        ? {
             rec_type: 'dbgv',
             has_loinc: this.hasLoinc
+          }
+        : {
+            rec_type: 'dbgv'
           },
       this.variableTable?.filtersForm.value || {},
-      this.sort['Variable']
+      this.sort['Variable'],
+      pageNumber
     );
   }
 
@@ -251,7 +264,7 @@ export class SelectRecordsPageComponent
    */
   loadFirstPage(resourceType: string): void {
     if (resourceType === 'Variable') {
-      this.filterVariables();
+      this.loadVariables();
     } else {
       const sortParam = this.getSortParam(resourceType);
       // TODO: Currently, user can filter loaded ResearchStudy records on
@@ -260,6 +273,20 @@ export class SelectRecordsPageComponent
         resourceType,
         `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`
       );
+    }
+  }
+
+  /**
+   * Loads the next page of the specified resource type.
+   * @param resourceType - resource type.
+   */
+  loadNextPage(resourceType: string): void {
+    if (resourceType === 'Variable') {
+      this.loadVariables(
+        this.selectRecords.currentState[resourceType].currentPage + 1
+      );
+    } else {
+      this.selectRecords.loadNextPage(resourceType);
     }
   }
 }
