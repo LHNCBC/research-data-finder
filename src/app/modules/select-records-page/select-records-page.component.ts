@@ -21,7 +21,7 @@ import { ResourceTableComponent } from '../resource-table/resource-table.compone
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
-import { getPluralFormOfRecordName } from '../../shared/utils';
+import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
@@ -175,6 +175,9 @@ export class SelectRecordsPageComponent
       this.selectRecords.resetState('Variable');
       this.clearSelectedRecords('Variable');
     }
+    this.liveAnnouncer.announce(
+      'Added selected variables to the cart area below.'
+    );
   }
 
   /**
@@ -190,7 +193,11 @@ export class SelectRecordsPageComponent
       this.clearSelectedRecords('Variable');
     }
     this.liveAnnouncer.announce(
-      'Added selected variables to the cart area below.'
+      `Removed ${
+        this.cart.isGroup(listItem)
+          ? 'group of ' + getPluralFormOfRecordName(resourceType)
+          : getRecordName(resourceType)
+      } from the cart.`
     );
   }
 
