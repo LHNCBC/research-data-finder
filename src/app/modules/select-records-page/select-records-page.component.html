@@ -32,6 +32,7 @@
                           context="select"
                           [sort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
+                          checkboxTooltipText="Select this study to add it to the cart"
                           [resourceType]="resourceType"></app-resource-table>
       <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState[resourceType]"
                           #variableTable
@@ -45,6 +46,7 @@
                           context="select"
                           [sort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
+                          checkboxTooltipText="Select this variable to add it to the cart"
                           [resourceType]="resourceType">
         <ng-template #prefix>
           <div class="v-box">
@@ -74,8 +76,8 @@
       </div>
       <app-cart [resourceType]="resourceType"
                 [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'select') | async"
-                [records]="cart.getRecords(resourceType)"
-                (removeRecord)="removeRecordFromCart($event.resourceType, $event.resource)">
+                [listItems]="cart.getListItems(resourceType)"
+                (removeRecord)="removeRecordFromCart($event.resourceType, $event.listItem)">
       </app-cart>
     </div>
   </mat-tab>
