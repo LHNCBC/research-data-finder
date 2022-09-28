@@ -61,6 +61,9 @@ export class FhirServerSelectComponent
   listSelectionsObserver: (eventData: any) => void;
   // Reference to the <input> element
   @ViewChild('input') input: ElementRef<HTMLInputElement>;
+  // Flag to prevent 'focusin' callback in case of the SMART on FHIR checkbox,
+  // click, which would otherwise cause hide the checkbox after unchecking it.
+  preventFocusFlag = false;
 
   currentValue = '';
   get value(): string {
@@ -126,7 +129,7 @@ export class FhirServerSelectComponent
    */
   @HostListener('focusin')
   onFocusin(): void {
-    if (!this.focused) {
+    if (!this.preventFocusFlag && !this.focused) {
       this.focused = true;
       this.stateChanges.next();
     }
@@ -155,10 +158,15 @@ export class FhirServerSelectComponent
    * Handles a click on the control's container to maintain the focused state.
    */
   onContainerClick(event: MouseEvent): void {
+    // Do not focus serviceBaseUrl input if SMART on FHIR checkbox is being clicked.
     if (
       document.getElementById('smartOnFhir')?.contains(event.target as Node)
     ) {
-      // Do not focus serviceBaseUrl input if SMART on FHIR checkbox is being clicked.
+      this.preventFocusFlag = true;
+      // Set the flag back in next Macrotask queue.
+      setTimeout(() => {
+        this.preventFocusFlag = false;
+      }, 0);
       return;
     }
     if (!this.focused) {
