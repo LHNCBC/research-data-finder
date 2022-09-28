@@ -21,6 +21,8 @@ import Patient = fhir.Patient;
 import pkg from '../../../../package.json';
 import { findLast } from 'lodash-es';
 import { getUrlParam } from '../../shared/utils';
+import { BrowseRecordsPageComponent } from '../browse-records-page/browse-records-page.component';
+import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -78,7 +80,8 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     public columnDescriptions: ColumnDescriptionsService,
     public fhirBackend: FhirBackendService,
     public cohort: CohortService,
-    public pullData: PullDataService
+    public pullData: PullDataService,
+    public selectRecord: SelectRecordsService
   ) {
     this.stepDescriptions[Step.SETTINGS] = {
       label: 'Settings',
