@@ -807,8 +807,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * Returns a sort message.
    */
   getSortMessage(): string {
+    const sortingColumnDescription = this.columnDescriptionsService
+      .getAvailableColumns(this.resourceType, this.context)
+      .find((c) => c.element === this.sort.active);
     return this.sort?.active
-      ? `The data was sorted by ${this.sort.active} in ${
+      ? `The data was sorted by ${sortingColumnDescription.displayName} in ${
           // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
           this.sort.direction === 'desc' ? 'ascending' : 'descending'
         } order.`
