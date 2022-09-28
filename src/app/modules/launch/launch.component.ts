@@ -14,7 +14,7 @@ export class LaunchComponent implements OnInit {
     FHIR.oauth2
       .authorize({
         redirectUri: `/?server=${fhirServerUrl}&isSmart=true`,
-        client_id: 'my_web_app', // hard coded client_id to work with SMART on FHIR starter server
+        client_id: 'nlm-research-data-finder',
         scope: 'openid fhirUser patient/*.read',
         iss: fhirServerUrl
       })
