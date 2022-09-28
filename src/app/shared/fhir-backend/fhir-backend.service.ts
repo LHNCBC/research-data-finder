@@ -47,27 +47,38 @@ const RESOURCES_REQUIRING_AUTHORIZATION = 'Observation|ResearchSubject';
   providedIn: 'root'
 })
 export class FhirBackendService implements HttpBackend {
+  // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   // tslint:disable-next-line:variable-name
   private _serviceBaseUrl = '';
-  // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
     if (this.serviceBaseUrl !== url) {
-      this.smartConnectionSuccess = false;
-      this.fhirService.setSmartConnection(null);
       this._serviceBaseUrl = url;
-      if (this.isSmartOnFhir) {
-        this.initialized.next(ConnectionStatus.Pending);
-        // Navigate to 'launch' page to authorize a SMART on FHIR connection.
-        this.router.navigate(['/launch', { iss: url }]);
-      } else {
-        this.initialized.next(ConnectionStatus.Disconnect);
-        this.initialized.next(ConnectionStatus.Pending);
-        this.initializeFhirBatchQuery(url);
-      }
+      this.initialized.next(ConnectionStatus.Disconnect);
+      this.initialized.next(ConnectionStatus.Pending);
+      this.isSmartOnFhir = false;
+      this.initializeFhirBatchQuery(url);
     }
   }
   get serviceBaseUrl(): string {
     return this._serviceBaseUrl;
+  }
+
+  // Checkbox value of whether to use a SMART on FHIR client.
+  // tslint:disable-next-line:variable-name
+  private _isSmartOnFhir = false;
+  set isSmartOnFhir(value: boolean) {
+    if (value) {
+      this.initialized.next(ConnectionStatus.Pending);
+      this._isSmartOnFhir = true;
+      // Navigate to 'launch' page to authorize a SMART on FHIR connection.
+      this.router.navigate(['/launch', { iss: this._serviceBaseUrl }]);
+    } else {
+      this.fhirService.setSmartConnection(null);
+      this._isSmartOnFhir = false;
+    }
+  }
+  get isSmartOnFhir(): boolean {
+    return this._isSmartOnFhir;
   }
 
   // Maximum number of requests that can be combined
@@ -143,8 +154,8 @@ export class FhirBackendService implements HttpBackend {
   // Whether to cache requests to the FHIR server
   private isCacheEnabled = true;
 
-  // Checkbox value of whether to use a SMART on FHIR client.
-  public isSmartOnFhir = false;
+  // Whether to show a checkbox of SMART on FHIR connection.
+  public isSmartOnFhirEnabled = false;
   // Whether a SMART on FHIR connection has been successfully established.
   public smartConnectionSuccess = false;
 
@@ -162,6 +173,23 @@ export class FhirBackendService implements HttpBackend {
   private isAuthorizationRequiredForUrl(url: string): boolean {
     const regEx = new RegExp(`/(${RESOURCES_REQUIRING_AUTHORIZATION})`);
     return this.isDbgap(url) && regEx.test(url);
+  }
+
+  /**
+   * Checks whether SMART on FHIR connection is available for current base url.
+   */
+  checkSmartOnFhirEnabled(): void {
+    this.fhirClient
+      .getWithCache('.well-known/smart-configuration', {
+        combine: false,
+        retryCount: 1
+      })
+      .then(() => {
+        this.isSmartOnFhirEnabled = true;
+      })
+      .catch(() => {
+        this.isSmartOnFhirEnabled = false;
+      });
   }
 
   /**
@@ -214,33 +242,38 @@ export class FhirBackendService implements HttpBackend {
     );
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
-    this.fhirClient.initialize(serviceBaseUrl).then(
-      () => {
-        // Load definitions of search parameters and columns from CSV file
-        this.settings.loadCsvDefinitions().subscribe(
-          (resourceDefinitions) => {
-            this.currentDefinitions = { resources: resourceDefinitions };
-            this.fhirClient.setMaxRequestsPerBatch(
-              this.settings.get('maxRequestsPerBatch')
-            );
-            this.fhirClient.setMaxActiveRequests(
-              this.settings.get('maxActiveRequests')
-            );
-            this.initialized.next(ConnectionStatus.Ready);
-          },
-          (err) => {
-            if (!(err instanceof HttpErrorResponse)) {
-              // Show exceptions from loadCsvDefinitions in console
-              console.error(err.message);
+    this.fhirClient
+      .initialize(serviceBaseUrl)
+      .then(
+        () => {
+          // Load definitions of search parameters and columns from CSV file
+          this.settings.loadCsvDefinitions().subscribe(
+            (resourceDefinitions) => {
+              this.currentDefinitions = { resources: resourceDefinitions };
+              this.fhirClient.setMaxRequestsPerBatch(
+                this.settings.get('maxRequestsPerBatch')
+              );
+              this.fhirClient.setMaxActiveRequests(
+                this.settings.get('maxActiveRequests')
+              );
+              this.initialized.next(ConnectionStatus.Ready);
+            },
+            (err) => {
+              if (!(err instanceof HttpErrorResponse)) {
+                // Show exceptions from loadCsvDefinitions in console
+                console.error(err.message);
+              }
+              this.initialized.next(ConnectionStatus.Error);
             }
-            this.initialized.next(ConnectionStatus.Error);
-          }
-        );
-      },
-      () => {
-        this.initialized.next(ConnectionStatus.Error);
-      }
-    );
+          );
+        },
+        () => {
+          this.initialized.next(ConnectionStatus.Error);
+        }
+      )
+      .finally(() => {
+        this.checkSmartOnFhirEnabled();
+      });
   }
 
   /**
