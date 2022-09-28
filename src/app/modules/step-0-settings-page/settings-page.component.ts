@@ -59,9 +59,6 @@ export class SettingsPageComponent {
           window.history.pushState({}, '', setUrlParam('server', server));
         }
       });
-    if (this.fhirBackend.isSmartOnFhir) {
-      this.fhirBackend.initializeSmartOnFhirConnection();
-    }
   }
 
   /**

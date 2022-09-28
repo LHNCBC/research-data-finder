@@ -48,11 +48,8 @@ const RESOURCES_REQUIRING_AUTHORIZATION = 'Observation|ResearchSubject';
 })
 export class FhirBackendService implements HttpBackend {
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
-  // tslint:disable-next-line:variable-name
-  private _serviceBaseUrl = '';
   set serviceBaseUrl(url: string) {
     if (this.serviceBaseUrl !== url) {
-      this._serviceBaseUrl = url;
       this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
       this.isSmartOnFhir = false;
@@ -60,7 +57,7 @@ export class FhirBackendService implements HttpBackend {
     }
   }
   get serviceBaseUrl(): string {
-    return this._serviceBaseUrl;
+    return this.fhirClient.getServiceBaseUrl();
   }
 
   // Checkbox value of whether to use a SMART on FHIR client.
@@ -71,7 +68,7 @@ export class FhirBackendService implements HttpBackend {
       this.initialized.next(ConnectionStatus.Pending);
       this._isSmartOnFhir = true;
       // Navigate to 'launch' page to authorize a SMART on FHIR connection.
-      this.router.navigate(['/launch', { iss: this._serviceBaseUrl }]);
+      this.router.navigate(['/launch', { iss: this.serviceBaseUrl }]);
     } else {
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
@@ -135,12 +132,11 @@ export class FhirBackendService implements HttpBackend {
     private fhirService: FhirService,
     private router: Router
   ) {
-    this.isSmartOnFhir = getUrlParam('isSmart') === 'true';
+    this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const queryServer = getUrlParam('server');
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
-    this._serviceBaseUrl = queryServer || defaultServer;
     this.fhirClient = new FhirBatchQuery({
-      serviceBaseUrl: this._serviceBaseUrl
+      serviceBaseUrl: queryServer || defaultServer
     });
     this.currentDefinitions$ = this.initialized.pipe(
       filter((status) => status === ConnectionStatus.Ready),
@@ -177,6 +173,8 @@ export class FhirBackendService implements HttpBackend {
 
   /**
    * Checks whether SMART on FHIR connection is available for current base url.
+   * Initializes the SMART connection if it's available and this.isSmartOnFhir is
+   * already marked as true.
    */
   checkSmartOnFhirEnabled(): void {
     this.fhirClient
@@ -189,6 +187,11 @@ export class FhirBackendService implements HttpBackend {
       })
       .catch(() => {
         this.isSmartOnFhirEnabled = false;
+      })
+      .finally(() => {
+        if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
+          this.initializeSmartOnFhirConnection();
+        }
       });
   }
 
