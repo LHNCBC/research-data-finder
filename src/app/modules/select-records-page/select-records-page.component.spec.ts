@@ -25,6 +25,20 @@ describe('SelectRecordsPageComponent', () => {
   let fixture: ComponentFixture<SelectRecordsPageComponent>;
   let mockHttp: HttpTestingController;
   let loader: HarnessLoader;
+  const statuses = [
+    'candidate',
+    'eligible',
+    'follow-up',
+    'ineligible',
+    'not-registered',
+    'off-study',
+    'on-study',
+    'on-study-intervention',
+    'on-study-observation',
+    'pending-on-study',
+    'potential-candidate',
+    'screening,withdrawn'
+  ];
 
   beforeEach(async () => {
     await configureTestingModule(
@@ -61,7 +75,11 @@ describe('SelectRecordsPageComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     mockHttp
-      .expectOne('$fhir/ResearchStudy?_count=50&_sort=title')
+      .expectOne(
+        `$fhir/ResearchStudy?_count=50&_has:ResearchSubject:study:status=${statuses.join(
+          ','
+        )}&_sort=title`
+      )
       .flush(researchStudies);
     await expectNumberOfRecords(2);
   }

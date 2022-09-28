@@ -12,6 +12,7 @@ import { ResourceTableModule } from '../resource-table/resource-table.module';
 import { CartModule } from '../cart/cart.module';
 import { SearchParameterGroupModule } from '../search-parameter-group/search-parameter-group.module';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRadioModule } from '@angular/material/radio';
 
 @NgModule({
   declarations: [SelectRecordsPageComponent],
@@ -29,7 +30,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     CartModule,
     SearchParameterGroupModule,
     MatCheckboxModule,
-    FormsModule
+    FormsModule,
+    MatRadioModule
   ]
 })
 export class SelectRecordsPageModule {}
