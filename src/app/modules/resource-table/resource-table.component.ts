@@ -633,7 +633,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const header = columnDescriptions
       .map((columnDescription) => columnDescription.displayName)
       .join(',');
-    const rows = this.dataSource.data.map((row) =>
+    const rowsToDownload = this.enableFiltering
+      ? this.dataSource.filteredData
+      : this.dataSource.data;
+    const rows = rowsToDownload.map((row) =>
       columnDescriptions
         .map((columnDescription) => {
           const cellText = row.cells[columnDescription.element];

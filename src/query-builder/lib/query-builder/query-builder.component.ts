@@ -5,8 +5,13 @@
 import {
   AbstractControl,
   ControlValueAccessor,
-  NG_VALUE_ACCESSOR,
+  FormControl,
+  FormControlDirective,
+  FormControlName,
+  FormGroupDirective,
   NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  NgControl,
   ValidationErrors,
   Validator
 } from '@angular/forms';
@@ -14,21 +19,26 @@ import { QueryOperatorDirective } from './query-operator.directive';
 import { QueryFieldDirective } from './query-field.directive';
 import { QueryEntityDirective } from './query-entity.directive';
 import { QuerySwitchGroupDirective } from './query-switch-group.directive';
-import { QuerySwitchGroupPrefixDirective } from './query-switch-group-prefix.directive';
-import { QueryTreeContainerSuffixDirective } from './query-tree-container-suffix.directive';
+import {
+  QuerySwitchGroupPrefixDirective
+} from './query-switch-group-prefix.directive';
+import {
+  QueryTreeContainerSuffixDirective
+} from './query-tree-container-suffix.directive';
 import { QueryButtonGroupDirective } from './query-button-group.directive';
 import { QueryInputDirective } from './query-input.directive';
 import { QueryRemoveButtonDirective } from './query-remove-button.directive';
 import { QueryEmptyWarningDirective } from './query-empty-warning.directive';
 import { QueryArrowIconDirective } from './query-arrow-icon.directive';
 import {
+  ArrowIconContext,
   ButtonGroupContext,
+  EmptyWarningContext,
   Entity,
-  Field,
-  SwitchGroupContext,
-  GeneralContext,
   EntityContext,
+  Field,
   FieldContext,
+  GeneralContext,
   InputContext,
   LocalRuleMeta,
   OperatorContext,
@@ -36,25 +46,26 @@ import {
   QueryBuilderClassNames,
   QueryBuilderConfig,
   RemoveButtonContext,
-  ArrowIconContext,
   Rule,
   RuleSet,
-  EmptyWarningContext,
+  SwitchGroupContext,
 } from './query-builder.interfaces';
 import {
   ChangeDetectorRef,
   Component,
   ContentChild,
   ContentChildren,
+  ElementRef,
   forwardRef,
+  HostBinding,
+  InjectFlags,
+  Injector,
   Input,
   OnChanges,
   QueryList,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
-  ElementRef,
-  HostBinding
+  ViewChild
 } from '@angular/core';
 
 export const CONTROL_VALUE_ACCESSOR: any = {
@@ -182,7 +193,10 @@ export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, V
     return this.data?.rules?.length === 1;
   }
 
-  constructor(private changeDetectorRef: ChangeDetectorRef) { }
+  constructor(
+    private changeDetectorRef: ChangeDetectorRef,
+    private injector: Injector
+  ) {}
 
   // ----------OnChanges Implementation----------
 
@@ -205,9 +219,27 @@ export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, V
         this.entities = null;
       }
       this.operatorsCache = {};
+      this.updateValidity();
     } else {
       throw new Error(`Expected 'config' must be a valid object, got ${type} instead.`);
     }
+  }
+
+  /**
+   * Updates the validation status of the FormControl assigned to the component.
+   * Needed when changing this.config after changing the value in the FormControl.
+   */
+  updateValidity(): void {
+    // tslint:disable-next-line:no-bitwise
+    const ngControl = this.injector.get(NgControl, null, InjectFlags.Self | InjectFlags.Optional);
+    let formControl: FormControl;
+    if (ngControl instanceof FormControlName) {
+      formControl = this.injector.get(FormGroupDirective)
+        .getControl(ngControl);
+    } else if (ngControl instanceof FormControlDirective) {
+      formControl = ngControl.form;
+    }
+    formControl?.updateValueAndValidity();
   }
 
   // ----------Validator Implementation----------

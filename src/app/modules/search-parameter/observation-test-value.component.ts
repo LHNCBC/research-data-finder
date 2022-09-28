@@ -37,6 +37,7 @@ export class ObservationTestValueComponent
   @Input() datatype: string;
   @Input() observationCodes: string[] = [];
   @Input() loincCodes: string[] = [];
+  @Input() required = true;
   selectedDatatype = 'Quantity';
   testValueComparator = 'Quantity - ';
   form = new FormGroup({
@@ -95,6 +96,11 @@ export class ObservationTestValueComponent
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.datatype) {
       this.selectedDatatype = this.datatype || 'Quantity';
+    }
+    if (changes.required) {
+      this.form
+        .get('testValue')
+        .setValidators(this.required ? Validators.required : null);
     }
   }
 
