@@ -155,6 +155,10 @@ export class FhirServerSelectComponent
    * Handles a click on the control's container to maintain the focused state.
    */
   onContainerClick(event: MouseEvent): void {
+    if (document.getElementById('smartOnFhir').contains(event.target as Node)) {
+      // Do not focus serviceBaseUrl input if SMART on FHIR checkbox is being clicked.
+      return;
+    }
     if (!this.focused) {
       this.input.nativeElement.focus();
     }
