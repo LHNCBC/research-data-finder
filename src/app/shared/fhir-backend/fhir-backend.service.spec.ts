@@ -146,7 +146,7 @@ describe('FhirBackendService', () => {
   });
 
   it('should use FhirService if SMART on FHIR', (done) => {
-    service.isSmartOnFhir = true;
+    service.smartConnectionSuccess = true;
     const fhirService = TestBed.inject(FhirService);
     const fhirClient = jasmine.createSpyObj('FhirClient', ['request']);
     const responseFromFhirClient = {
