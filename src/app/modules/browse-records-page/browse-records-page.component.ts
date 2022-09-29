@@ -19,6 +19,7 @@ import { SelectRecordsService } from '../../shared/select-records/select-records
 import { Sort } from '@angular/material/sort';
 import { getPluralFormOfRecordName } from '../../shared/utils';
 import { ResourceTableParentComponent } from '../resource-table-parent.component';
+import { omit } from 'lodash-es';
 
 /**
  * Component for browsing public data (ResearchStudies and Variables).
@@ -32,14 +33,10 @@ export class BrowseRecordsPageComponent
   extends ResourceTableParentComponent
   implements OnInit, AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
+  @ViewChild('resourceTable') resourceTable: ResourceTableComponent;
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
   hasLoinc = false;
   recTypeLoinc = false;
-
-  // Map a resource type to a tab name
-  resourceType2TabName = {
-    ResearchStudy: 'Study'
-  };
 
   // The sort state for each resource.
   sort: { [resourceType: string]: Sort } = {
@@ -219,12 +216,17 @@ export class BrowseRecordsPageComponent
       this.loadVariables();
     } else {
       const sortParam = this.getSortParam(resourceType);
-      // TODO: Currently, user can filter loaded ResearchStudy records on
-      //       the client-side only.
+      const filterValues = this.resourceTable?.filtersForm.value || {};
+      const params = {};
+      if (filterValues.title) {
+        params['title:contains'] = filterValues.title;
+      }
       this.selectRecords.loadFirstPage(
         resourceType,
-        `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`
+        `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`,
+        params
       );
+      this.resourceTable?.setClientFilter(omit(filterValues, 'title'));
     }
   }
 

@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.15] - 2022-09-29
+### Changed
+- Added server-side study filtering for the title column.
+
 ## [5.0.14] - 2022-09-29
 ### Fixed
 - No variables after selecting studies.

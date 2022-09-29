@@ -136,9 +136,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             this.scrollViewport.scrollToIndex(0);
             this.filterChanged.next(value);
           } else {
-            this.dataSource.filter = { ...value } as string;
-            // setTimeout is needed to update the table after this.dataSource changes
-            setTimeout(() => this.onScroll());
+            this.setClientFilter({ ...value });
           }
         })
     );
@@ -791,5 +789,15 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           this.sort.direction === 'desc' ? 'ascending' : 'descending'
         } order.`
       : '';
+  }
+
+  /**
+   * Sets client-side filter values
+   * @param value - filter values
+   */
+  setClientFilter(value: any): void {
+    this.dataSource.filter = { ...value } as string;
+    // setTimeout is needed to update the table after this.dataSource changes
+    setTimeout(() => this.onScroll());
   }
 }
