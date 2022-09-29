@@ -30,7 +30,8 @@ describe('BrowseRecordsPageComponent', () => {
       {
         features: {
           hasResearchStudy: true
-        }
+        },
+        serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
       }
     );
     mockHttp = TestBed.inject(HttpTestingController);

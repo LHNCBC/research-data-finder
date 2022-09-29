@@ -33,6 +33,7 @@ export async function configureTestingModule(
   options: {
     definitions?: any;
     features?: any;
+    serverUrl?: string;
   } = {}
 ): Promise<void> {
   moduleDef.imports = (moduleDef.imports || []).concat(
@@ -52,7 +53,7 @@ export async function configureTestingModule(
 
   // Mock service base URL to apply default settings
   spyOnProperty(fhirBackend, 'serviceBaseUrl').and.returnValue(
-    'someDefaultURL'
+    options.serverUrl || 'someDefaultURL'
   );
 
   const settingsService = TestBed.inject(SettingsService);
