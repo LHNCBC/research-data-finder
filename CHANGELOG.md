@@ -3,20 +3,29 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.0.14] - 2022-09-20
+## [5.0.15] - 2022-09-29
 ### Changed
 Columns in the table of variables:
 - Added a column with the LOINC common name to the table of variables.
 - Renamed column "Variable Name" to "Variable Display Text" in the table of
   variables.
 
-## [5.0.13] - 2022-09-20
+## [5.0.14] - 2022-09-28
 ### Fixed
 - Loss of focus on resource table header cell when sorting table.
 
-## [5.0.12] - 2022-09-13
+## [5.0.13] - 2022-09-28
 ### Added
-- Option to limit the ResearchStudy resources to ones the user has access.
+- Option to limit the ResearchStudy resources to ones the user can access.
+### Fixed
+- The validation status of the Query Builder component was not updated when
+  its configuration was changed. Therefore, the search for patients could not be
+  started without changing the criteria.
+
+## [5.0.12] - 2022-09-27
+### Added
+- Button to download the Research Study or Variable tables into .csv
+  files.
 
 ## [5.0.11] - 2022-09-12
 ### Added

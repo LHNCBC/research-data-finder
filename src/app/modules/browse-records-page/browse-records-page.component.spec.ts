@@ -20,20 +20,6 @@ describe('BrowseRecordsPageComponent', () => {
   let fixture: ComponentFixture<BrowseRecordsPageComponent>;
   let mockHttp: HttpTestingController;
   let loader: HarnessLoader;
-  const statuses = [
-    'candidate',
-    'eligible',
-    'follow-up',
-    'ineligible',
-    'not-registered',
-    'off-study',
-    'on-study',
-    'on-study-intervention',
-    'on-study-observation',
-    'pending-on-study',
-    'potential-candidate',
-    'screening,withdrawn'
-  ];
 
   beforeEach(async () => {
     await configureTestingModule(
@@ -44,7 +30,8 @@ describe('BrowseRecordsPageComponent', () => {
       {
         features: {
           hasResearchStudy: true
-        }
+        },
+        serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
       }
     );
     mockHttp = TestBed.inject(HttpTestingController);
@@ -70,11 +57,7 @@ describe('BrowseRecordsPageComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     mockHttp
-      .expectOne(
-        `$fhir/ResearchStudy?_count=50&_has:ResearchSubject:study:status=${statuses.join(
-          ','
-        )}&_sort=title`
-      )
+      .expectOne('$fhir/ResearchStudy?_count=50&_sort=title')
       .flush(researchStudies);
   }
 

@@ -3,9 +3,7 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  QueryList,
-  ViewChild,
-  ViewChildren
+  ViewChild
 } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import {
@@ -13,15 +11,16 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { filter, map, startWith } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
-import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { Observable, Subscription } from 'rxjs';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
+import { ResourceTableParentComponent } from '../resource-table-parent.component';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
-import { getPluralFormOfRecordName } from '../../shared/utils';
+import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
@@ -42,10 +41,8 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
   ]
 })
 export class SelectRecordsPageComponent
+  extends ResourceTableParentComponent
   implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
-  @ViewChildren(ResourceTableComponent)
-  tables: QueryList<ResourceTableComponent>;
   subscriptions: Subscription[] = [];
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
   maxPatientsNumber = new FormControl('100', Validators.required);
@@ -53,8 +50,6 @@ export class SelectRecordsPageComponent
   showOnlyStudiesWithSubjects = true;
   recTypeLoinc = false;
 
-  // Array of visible resource type names
-  visibleResourceTypes: string[];
   // Map a resource type to a tab name
   resourceType2TabName = {
     ResearchStudy: 'Study'
@@ -73,6 +68,9 @@ export class SelectRecordsPageComponent
       direction: 'desc'
     }
   };
+  // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
+  // when the active tab changes
+  currentResourceType$: Observable<string>;
 
   constructor(
     public fhirBackend: FhirBackendService,
@@ -81,6 +79,7 @@ export class SelectRecordsPageComponent
     private liveAnnouncer: LiveAnnouncer,
     public cart: CartService
   ) {
+    super();
     selectRecords.resetAll();
 
     this.subscriptions.push(
@@ -104,46 +103,35 @@ export class SelectRecordsPageComponent
   }
 
   ngAfterViewInit(): void {
+    this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
+      startWith(this.getCurrentResourceType()),
+      map(() => {
+        // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
+        // displaying an empty table when the active tab is changed.
+        // This event runs _changeListener in ViewportRuler which run checkViewportSize
+        // in CdkVirtualScrollViewport.
+        // See code for details:
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
+        if (typeof Event === 'function') {
+          // fire resize event for modern browsers
+          window.dispatchEvent(new Event('resize'));
+        } else {
+          // for IE and other old browsers
+          // causes deprecation warning on modern browsers
+          const evt = window.document.createEvent('UIEvents');
+          // @ts-ignore
+          evt.initUIEvent('resize', true, false, window, 0);
+          window.dispatchEvent(evt);
+        }
+        return this.getCurrentResourceType();
+      })
+    );
     setTimeout(() => {
-      this.subscriptions.push(
-        this.tabGroup.selectedTabChange
-          .pipe(
-            startWith(this.getCurrentResourceType()),
-            map(() => {
-              // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
-              // displaying an empty table when the active tab is changed.
-              // This event runs _changeListener in ViewportRuler which run checkViewportSize
-              // in CdkVirtualScrollViewport.
-              // See code for details:
-              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
-              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
-              if (typeof Event === 'function') {
-                // fire resize event for modern browsers
-                window.dispatchEvent(new Event('resize'));
-              } else {
-                // for IE and other old browsers
-                // causes deprecation warning on modern browsers
-                const evt = window.document.createEvent('UIEvents');
-                // @ts-ignore
-                evt.initUIEvent('resize', true, false, window, 0);
-                window.dispatchEvent(evt);
-              }
-              return this.getCurrentResourceType();
-            })
-          )
-          .subscribe()
-      );
-
+      this.subscriptions.push(this.currentResourceType$.subscribe());
       const resourceType = this.visibleResourceTypes[0];
       this.loadFirstPage(resourceType);
     });
-  }
-
-  /**
-   * Returns resourceType for the selected tab
-   */
-  getCurrentResourceType(): string {
-    return this.visibleResourceTypes[this.tabGroup.selectedIndex];
   }
 
   /**
@@ -175,6 +163,9 @@ export class SelectRecordsPageComponent
       this.selectRecords.resetState('Variable');
       this.clearSelectedRecords('Variable');
     }
+    this.liveAnnouncer.announce(
+      'Added selected variables to the cart area below.'
+    );
   }
 
   /**
@@ -190,7 +181,11 @@ export class SelectRecordsPageComponent
       this.clearSelectedRecords('Variable');
     }
     this.liveAnnouncer.announce(
-      'Added selected variables to the cart area below.'
+      `Removed ${
+        this.cart.isGroup(listItem)
+          ? 'group of ' + getPluralFormOfRecordName(resourceType)
+          : getRecordName(resourceType)
+      } from the cart.`
     );
   }
 
