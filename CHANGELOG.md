@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.13] - 2022-09-29
+### Added
+- Option to launch a SMART on FHIR connection.
+
 ## [5.0.12] - 2022-09-27
 ### Added
 - Button to download the Research Study or Variable tables into .csv
