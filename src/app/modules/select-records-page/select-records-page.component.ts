@@ -80,13 +80,12 @@ export class SelectRecordsPageComponent
     public cart: CartService
   ) {
     super();
-    selectRecords.resetAll();
 
     this.subscriptions.push(
       fhirBackend.initialized
         .pipe(filter((status) => status === ConnectionStatus.Ready))
         .subscribe(() => {
-          this.cart.reset();
+          selectRecords.resetAll();
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
             ? ['ResearchStudy', 'Variable']
             : ['Observation'];

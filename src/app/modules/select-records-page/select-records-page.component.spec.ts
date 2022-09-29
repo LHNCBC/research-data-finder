@@ -169,7 +169,7 @@ describe('SelectRecordsPageComponent', () => {
     expect(studyCart.listItems.length).toEqual(1);
     expect(studyCart.listItems[0].id).toEqual('phs001603.v1.p1');
 
-    await loadVariables('study_id:(phs001603.v1.p1)');
+    await loadVariables('study_id:(phs001603.v1.p1*)');
 
     await selectTab('Studies');
     const removeButton = await loader.getHarness(

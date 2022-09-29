@@ -67,12 +67,12 @@ export class BrowseRecordsPageComponent
     public selectRecords: SelectRecordsService
   ) {
     super();
-    selectRecords.resetAll();
 
     this.subscriptions.push(
       fhirBackend.initialized
         .pipe(map((status) => status === ConnectionStatus.Ready))
         .subscribe((connected) => {
+          selectRecords.resetAll();
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
             ? ['ResearchStudy', 'Variable']
             : ['Observation'];

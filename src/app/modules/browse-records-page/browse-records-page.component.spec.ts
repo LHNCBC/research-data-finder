@@ -118,7 +118,7 @@ describe('BrowseRecordsPageComponent', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === 'study_id:(phs001603.v1.p1)'
+          req.params.get('q') === 'study_id:(phs001603.v1.p1*)'
         );
       })
       .flush(variables);
