@@ -336,7 +336,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.liveAnnoncer.announce(
           `The ${this.resourceType} resources loading process has finished. ` +
             `${this.resources.length} rows loaded. ` +
-            this.getSortMessage()
+            this.getSortMessage(),
+          'assertive'
         );
         this.progressBarPosition$ = null;
       }
@@ -395,20 +396,28 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
     // Update resource table columns
     if (changes['columnDescriptions'] && this.columnDescriptions) {
+      const scrollViewport = this.scrollViewport?.elementRef.nativeElement;
+
       this.columns.length = 0;
       if (this.enableSelection || this.context === 'browse') {
         this.columns.push('select');
       }
 
-      this.setTableColumns();
+      this.setTableColumns(
+        !!scrollViewport?.querySelector(
+          '.cdk-keyboard-focused .mat-sort-header-container'
+        )
+      );
     }
   }
 
   /**
    * Set material table columns from column descriptions.
    * Set up filter form and table filtering logic if client filtering is enabled.
+   * @param isSortHeaderFocused - is there focus on the column header and should
+   *  it be maintained after redrawing the table header.
    */
-  setTableColumns(): void {
+  setTableColumns(isSortHeaderFocused: boolean): void {
     this.columns = this.columns.concat(
       this.columnDescriptions.map((c) => c.element)
     );
@@ -444,6 +453,19 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         strategy.stickyChange.next(
           strategy.viewport.getOffsetToRenderedContentStart()
         );
+      }
+      if (isSortHeaderFocused) {
+        const scrollViewport = this.scrollViewport.elementRef.nativeElement;
+        const toFocus =
+          // Focus on the sorted column header
+          scrollViewport.querySelector<HTMLElement>(
+            `.mat-column-${this.sort.active} .mat-sort-header-container`
+          ) ||
+          // otherwise (if the sorted column is hidden) on the first column header
+          scrollViewport.querySelector<HTMLElement>(
+            `.mat-sort-header-container`
+          );
+        toFocus?.focus();
       }
     });
   }
@@ -783,12 +805,20 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * Returns a sort message.
    */
   getSortMessage(): string {
-    return this.sort?.active
-      ? `The data was sorted by ${this.sort.active} in ${
-          // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-          this.sort.direction === 'desc' ? 'ascending' : 'descending'
-        } order.`
-      : '';
+    let message = '';
+    if (this.sort?.active) {
+      const sortingColumnDescription = this.columnDescriptionsService
+        .getAvailableColumns(this.resourceType, this.context)
+        .find((c) => c.element === this.sort.active);
+      message = `The data was sorted by ${
+        sortingColumnDescription.displayName
+      } in ${
+        // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+        this.sort.direction === 'desc' ? 'ascending' : 'descending'
+      } order.`;
+    }
+
+    return message;
   }
 
   /**
