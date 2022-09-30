@@ -5,7 +5,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 
 ## [5.0.15] - 2022-09-29
 ### Changed
-- Added server-side study filtering for the title column.
+- Added server-side study filtering for the title column of the ResearchStudy table.
 
 ## [5.0.14] - 2022-09-29
 ### Fixed
