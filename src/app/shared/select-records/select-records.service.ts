@@ -39,6 +39,7 @@ export class SelectRecordsService {
   resetAll(): void {
     this.currentState = {};
     this.resourceStream = {};
+    this.cart.reset();
   }
 
   /**
@@ -171,7 +172,7 @@ export class SelectRecordsService {
 
     const url = `https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search`;
 
-    const studyIds = selectedResearchStudies.map((r) => r.id /* + '*'*/);
+    const studyIds = selectedResearchStudies.map((r) => r.id + '*');
 
     const query = [];
     if (studyIds.length) {
@@ -179,7 +180,7 @@ export class SelectRecordsService {
     }
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        query.push(`${dataFields[key]}:${value}`);
+        query.push(`${dataFields[key]}:(${value})`);
       }
     });
 
