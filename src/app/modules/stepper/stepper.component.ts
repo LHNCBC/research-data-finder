@@ -20,7 +20,9 @@ import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import pkg from '../../../../package.json';
 import { findLast } from 'lodash-es';
 import { getUrlParam } from '../../shared/utils';
+import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import Patient = fhir.Patient;
+import { SelectAnActionComponent } from '../select-an-action/select-an-action.component';
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -55,6 +57,8 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
   public viewCohortComponent: ViewCohortPageComponent;
   @ViewChild(PullDataPageComponent)
   public pullDataPageComponent: PullDataPageComponent;
+  @ViewChild(SelectAnActionComponent)
+  public selectAnActionComponent: SelectAnActionComponent;
 
   allowChangeCreateCohortMode = false;
 
@@ -78,7 +82,8 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     public columnDescriptions: ColumnDescriptionsService,
     public fhirBackend: FhirBackendService,
     public cohort: CohortService,
-    public pullData: PullDataService
+    public pullData: PullDataService,
+    public rasToken: RasTokenService
   ) {
     this.stepDescriptions[Step.SETTINGS] = {
       label: 'Settings',
@@ -132,9 +137,23 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
           this.fhirBackend.serviceBaseUrl.startsWith(
             'https://dbgap-api.ncbi.nlm.nih.gov'
           );
-        this.cohort.createCohortMode = this.allowChangeCreateCohortMode
-          ? CreateCohortMode.UNSELECTED
-          : CreateCohortMode.SEARCH;
+        if (!this.allowChangeCreateCohortMode) {
+          this.cohort.createCohortMode = CreateCohortMode.SEARCH;
+        } else {
+          if (!this.rasToken.rasTokenValidated) {
+            this.cohort.createCohortMode = CreateCohortMode.UNSELECTED;
+          } else {
+            const selectedCreateCohortMode = sessionStorage.getItem(
+              'selectedCreateCohortMode'
+            ) as CreateCohortMode;
+            setTimeout(() => {
+              this.stepper.selectedIndex = Step.SELECT_AN_ACTION;
+              this.selectAnActionComponent.createCohortMode.setValue(
+                selectedCreateCohortMode
+              );
+            }, 0);
+          }
+        }
       }
     });
   }
@@ -322,9 +341,12 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    */
   onSelectAnActionNext(createCohortModeValue: CreateCohortMode): void {
     if (
-      createCohortModeValue === CreateCohortMode.BROWSE ||
-      createCohortModeValue === CreateCohortMode.SEARCH
+      [CreateCohortMode.BROWSE, CreateCohortMode.SEARCH].includes(
+        createCohortModeValue
+      ) &&
+      !this.rasToken.rasTokenValidated
     ) {
+      sessionStorage.setItem('selectedCreateCohortMode', createCohortModeValue);
       window.location.href = `${window.location.origin}/dbgap-login-portal`;
     } else {
       this.stepper.next();
