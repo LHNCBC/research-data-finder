@@ -136,9 +136,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             this.scrollViewport.scrollToIndex(0);
             this.filterChanged.next(value);
           } else {
-            this.dataSource.filter = { ...value } as string;
-            // setTimeout is needed to update the table after this.dataSource changes
-            setTimeout(() => this.onScroll());
+            this.setClientFilter({ ...value });
           }
         })
     );
@@ -807,14 +805,29 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * Returns a sort message.
    */
   getSortMessage(): string {
-    const sortingColumnDescription = this.columnDescriptionsService
-      .getAvailableColumns(this.resourceType, this.context)
-      .find((c) => c.element === this.sort.active);
-    return this.sort?.active
-      ? `The data was sorted by ${sortingColumnDescription.displayName} in ${
-          // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-          this.sort.direction === 'desc' ? 'ascending' : 'descending'
-        } order.`
-      : '';
+    let message = '';
+    if (this.sort?.active) {
+      const sortingColumnDescription = this.columnDescriptionsService
+        .getAvailableColumns(this.resourceType, this.context)
+        .find((c) => c.element === this.sort.active);
+      message = `The data was sorted by ${
+        sortingColumnDescription.displayName
+      } in ${
+        // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+        this.sort.direction === 'desc' ? 'ascending' : 'descending'
+      } order.`;
+    }
+
+    return message;
+  }
+
+  /**
+   * Sets client-side filter values
+   * @param value - filter values
+   */
+  setClientFilter(value: any): void {
+    this.dataSource.filter = { ...value } as string;
+    // setTimeout is needed to update the table after this.dataSource changes
+    setTimeout(() => this.onScroll());
   }
 }
