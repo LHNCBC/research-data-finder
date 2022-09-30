@@ -143,6 +143,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
           if (!this.rasToken.rasTokenValidated) {
             this.cohort.createCohortMode = CreateCohortMode.UNSELECTED;
           } else {
+            // If it came from '/request-redirect-token-callback' and RAS token
+            // has been validated, go back to Select An Action step and restore
+            // user's selection before contacting RAS.
             const selectedCreateCohortMode = sessionStorage.getItem(
               'selectedCreateCohortMode'
             ) as CreateCohortMode;
@@ -346,7 +349,10 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       ) &&
       !this.rasToken.rasTokenValidated
     ) {
+      // Store user's selection so it can be restored after successful RAS connection.
       sessionStorage.setItem('selectedCreateCohortMode', createCohortModeValue);
+      // Contact rdf-server for RAS login. '/dbgap-login-portal' is proxy forwarded
+      // to rdf-server (see src/proxy.conf.json).
       window.location.href = `${window.location.origin}/dbgap-login-portal`;
     } else {
       this.stepper.next();

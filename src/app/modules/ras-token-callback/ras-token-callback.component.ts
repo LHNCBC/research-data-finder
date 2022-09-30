@@ -14,6 +14,7 @@ export class RasTokenCallbackComponent implements OnInit {
     private fhirBackend: FhirBackendService
   ) {}
   ngOnInit(): void {
+    // TODO: actually validate RAS token in RasTokenService.
     this.rasToken.rasTokenValidated = true;
     this.fhirBackend.serviceBaseUrl =
       'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1';
