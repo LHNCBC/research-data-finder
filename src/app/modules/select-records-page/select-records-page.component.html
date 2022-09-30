@@ -22,7 +22,9 @@
         Select variables to add to the cart. The list of variables is limited to studies added to the cart.</p>
 
       <app-resource-table *ngIf="resourceType !== 'Variable' && selectRecords.currentState[resourceType]"
+                          #resourceTable
                           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'select') | async"
+                          (filterChanged)="loadFirstPage(resourceType)"
                           [enableFiltering]="true" [enableSelection]="true"
                           [loading]="selectRecords.currentState[resourceType].loading"
                           [resources]="selectRecords.resourceStream[resourceType] | async"
