@@ -1,15 +1,14 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
-import { StepperModule } from './modules/stepper/stepper.module';
-import { SharedModule } from './shared/shared.module';
 import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
   MatFormFieldDefaultOptions
 } from '@angular/material/form-field';
-import { HttpClientModule } from '@angular/common/http';
 import { SettingsService } from './shared/settings-service/settings.service';
-import { MatMenuModule } from '@angular/material/menu';
+import { AppRoutingModule } from './app-routing.module';
+import { HomeModule } from './modules/home/home.module';
+import { RasTokenCallbackModule } from './modules/ras-token-callback/ras-token-callback.module';
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
@@ -27,10 +26,9 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
   declarations: [AppComponent],
   imports: [
     BrowserModule,
-    SharedModule,
-    HttpClientModule,
-    StepperModule,
-    MatMenuModule
+    AppRoutingModule,
+    HomeModule,
+    RasTokenCallbackModule
   ],
   providers: [
     {
