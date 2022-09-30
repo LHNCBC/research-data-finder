@@ -3,9 +3,7 @@ import {
   Component,
   OnDestroy,
   OnInit,
-  QueryList,
-  ViewChild,
-  ViewChildren
+  ViewChild
 } from '@angular/core';
 import {
   ConnectionStatus,
@@ -13,13 +11,15 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { map, startWith } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
-import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
 import { getPluralFormOfRecordName } from '../../shared/utils';
+import { ResourceTableParentComponent } from '../resource-table-parent.component';
+import { omit } from 'lodash-es';
 
 /**
  * Component for browsing public data (ResearchStudies and Variables).
@@ -30,21 +30,13 @@ import { getPluralFormOfRecordName } from '../../shared/utils';
   styleUrls: ['./browse-records-page.component.less']
 })
 export class BrowseRecordsPageComponent
+  extends ResourceTableParentComponent
   implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
-  @ViewChildren(ResourceTableComponent)
-  tables: QueryList<ResourceTableComponent>;
   subscriptions: Subscription[] = [];
+  @ViewChild('resourceTable') resourceTable: ResourceTableComponent;
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
   hasLoinc = false;
   recTypeLoinc = false;
-
-  // Array of visible resource type names
-  visibleResourceTypes: string[];
-  // Map a resource type to a tab name
-  resourceType2TabName = {
-    ResearchStudy: 'Study'
-  };
 
   // The sort state for each resource.
   sort: { [resourceType: string]: Sort } = {
@@ -71,12 +63,13 @@ export class BrowseRecordsPageComponent
     public columnDescriptions: ColumnDescriptionsService,
     public selectRecords: SelectRecordsService
   ) {
-    selectRecords.resetAll();
+    super();
 
     this.subscriptions.push(
       fhirBackend.initialized
         .pipe(map((status) => status === ConnectionStatus.Ready))
         .subscribe((connected) => {
+          selectRecords.resetAll();
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
             ? ['ResearchStudy', 'Variable']
             : ['Observation'];
@@ -104,46 +97,35 @@ export class BrowseRecordsPageComponent
   }
 
   ngAfterViewInit(): void {
+    this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
+      startWith(this.getCurrentResourceType()),
+      map(() => {
+        // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
+        // displaying an empty table when the active tab is changed.
+        // This event runs _changeListener in ViewportRuler which run checkViewportSize
+        // in CdkVirtualScrollViewport.
+        // See code for details:
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
+        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
+        if (typeof Event === 'function') {
+          // fire resize event for modern browsers
+          window.dispatchEvent(new Event('resize'));
+        } else {
+          // for IE and other old browsers
+          // causes deprecation warning on modern browsers
+          const evt = window.document.createEvent('UIEvents');
+          // @ts-ignore
+          evt.initUIEvent('resize', true, false, window, 0);
+          window.dispatchEvent(evt);
+        }
+        return this.getCurrentResourceType();
+      })
+    );
     setTimeout(() => {
-      this.subscriptions.push(
-        this.tabGroup.selectedTabChange
-          .pipe(
-            startWith(this.getCurrentResourceType()),
-            map(() => {
-              // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
-              // displaying an empty table when the active tab is changed.
-              // This event runs _changeListener in ViewportRuler which run checkViewportSize
-              // in CdkVirtualScrollViewport.
-              // See code for details:
-              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
-              // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
-              if (typeof Event === 'function') {
-                // fire resize event for modern browsers
-                window.dispatchEvent(new Event('resize'));
-              } else {
-                // for IE and other old browsers
-                // causes deprecation warning on modern browsers
-                const evt = window.document.createEvent('UIEvents');
-                // @ts-ignore
-                evt.initUIEvent('resize', true, false, window, 0);
-                window.dispatchEvent(evt);
-              }
-              return this.getCurrentResourceType();
-            })
-          )
-          .subscribe()
-      );
-
+      this.subscriptions.push(this.currentResourceType$.subscribe());
       const resourceType = this.visibleResourceTypes[0];
       this.loadFirstPage(resourceType);
     });
-  }
-
-  /**
-   * Returns resourceType for the selected tab
-   */
-  getCurrentResourceType(): string {
-    return this.visibleResourceTypes[this.tabGroup.selectedIndex];
   }
 
   /**
@@ -234,12 +216,17 @@ export class BrowseRecordsPageComponent
       this.loadVariables();
     } else {
       const sortParam = this.getSortParam(resourceType);
-      // TODO: Currently, user can filter loaded ResearchStudy records on
-      //       the client-side only.
+      const filterValues = this.resourceTable?.filtersForm.value || {};
+      const params = {};
+      if (filterValues.title) {
+        params['title:contains'] = filterValues.title;
+      }
       this.selectRecords.loadFirstPage(
         resourceType,
-        `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`
+        `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`,
+        params
       );
+      this.resourceTable?.setClientFilter(omit(filterValues, 'title'));
     }
   }
 

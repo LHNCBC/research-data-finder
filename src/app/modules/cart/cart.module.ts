@@ -8,6 +8,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SearchParameterModule } from '../search-parameter/search-parameter.module';
 import { EllipsisTextModule } from '../../shared/ellipsis-text/ellipsis-text.module';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 
 @NgModule({
   declarations: [CartComponent],
@@ -21,7 +24,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     SearchParameterModule,
     ReactiveFormsModule,
     EllipsisTextModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatCheckboxModule,
+    MatTooltipModule,
+    MatMenuModule
   ]
 })
 export class CartModule {}

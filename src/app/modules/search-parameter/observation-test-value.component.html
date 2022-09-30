@@ -42,6 +42,7 @@
             searchParameter="value-concept">
         </app-autocomplete-parameter-value>
         <input *ngSwitchCase="'Quantity'" type="number" step="any" matInput formControlName="testValue"
+               autocomplete="off"
                placeholder="enter number value">
         <input *ngSwitchDefault type="text" matInput formControlName="testValue"
                placeholder="enter string value">

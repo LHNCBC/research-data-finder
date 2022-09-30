@@ -20,8 +20,10 @@ import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import pkg from '../../../../package.json';
 import { findLast } from 'lodash-es';
 import { getUrlParam } from '../../shared/utils';
-import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import Patient = fhir.Patient;
+import { BrowseRecordsPageComponent } from '../browse-records-page/browse-records-page.component';
+import { SelectRecordsService } from '../../shared/select-records/select-records.service';
+import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { SelectAnActionComponent } from '../select-an-action/select-an-action.component';
 
 // Ordered list of steps (should be the same as in the template)
@@ -83,6 +85,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     public fhirBackend: FhirBackendService,
     public cohort: CohortService,
     public pullData: PullDataService,
+    public selectRecord: SelectRecordsService,
     public rasToken: RasTokenService
   ) {
     this.stepDescriptions[Step.SETTINGS] = {

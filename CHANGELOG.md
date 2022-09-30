@@ -3,6 +3,40 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.16] - 2022-09-29
+### Fixed
+- Loss of focus on resource table header cell when sorting table.
+
+## [5.0.15] - 2022-09-29
+### Changed
+- Added server-side study filtering for the title column of the ResearchStudy table.
+
+## [5.0.14] - 2022-09-29
+### Fixed
+- No variables after selecting studies.
+- Adding studies to the cart affected the list of studies when browsing public
+  data.
+
+## [5.0.13] - 2022-09-28
+### Added
+- Option to limit the ResearchStudy resources to ones the user can access.
+### Fixed
+- The validation status of the Query Builder component was not updated when
+  its configuration was changed. Therefore, the search for patients could not be
+  started without changing the criteria.
+
+## [5.0.12] - 2022-09-27
+### Added
+- Button to download the Research Study or Variable tables into .csv
+  files.
+
+## [5.0.11] - 2022-09-12
+### Added
+- Grouping/ungrouping variables in the cart.
+### Fixed
+- Pressing the Tab key on the keyboard while the resource table filter button
+  had focus was ignored.
+
 ## [5.0.10] - 2022-09-01
 ### Added
 - Constraints for variables in the cart.

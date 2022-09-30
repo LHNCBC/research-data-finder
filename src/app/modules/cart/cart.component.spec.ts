@@ -7,7 +7,7 @@ import { CartModule } from './cart.module';
 import Resource = fhir.Resource;
 
 @Component({
-  template: `<app-cart [resourceType]="resourceType" [records]="records">
+  template: `<app-cart [resourceType]="resourceType" [listItems]="records">
   </app-cart>`
 })
 class TestHostComponent {
