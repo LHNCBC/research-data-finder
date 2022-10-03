@@ -46,8 +46,7 @@ export class FhirServerSelectComponent
       url: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
     },
     {
-      description:
-        'https://launch.smarthealthit.org/v/r4/sim/eyJoIjoiMSIsImoiOiIxIn0/fhir',
+      description: 'https://r4.smarthealthit.org Provider Standalone Launch',
       url:
         'https://launch.smarthealthit.org/v/r4/sim/eyJoIjoiMSIsImoiOiIxIn0/fhir'
     }

@@ -15,12 +15,13 @@ export class LaunchComponent implements OnInit {
       .authorize({
         redirectUri: `/?server=${fhirServerUrl}&isSmart=true`,
         client_id: 'nlm-research-data-finder',
-        scope: 'openid fhirUser patient/*.read',
+        scope: 'openid profile patient/*.read',
         iss: fhirServerUrl
       })
-      .catch(() => {
+      .catch((e) => {
+        console.log(e);
         this.router.navigate(['/'], {
-          queryParams: { server: fhirServerUrl, isSmart: true }
+          queryParams: { server: fhirServerUrl, isSmart: false }
         });
       });
   }
