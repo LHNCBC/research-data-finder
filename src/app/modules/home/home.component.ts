@@ -1,6 +1,7 @@
 import { AfterViewInit, Component } from '@angular/core';
 import pkg from '../../../../package.json';
 import { getUrlParam, setUrlParam } from '../../shared/utils';
+import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 
 @Component({
   selector: 'app-home',
@@ -11,7 +12,7 @@ export class HomeComponent implements AfterViewInit {
   version = pkg.version;
   isAlpha: boolean;
 
-  constructor() {
+  constructor(public rasToken: RasTokenService) {
     this.isAlpha = getUrlParam('alpha-version') === 'enable';
   }
 
@@ -27,6 +28,10 @@ export class HomeComponent implements AfterViewInit {
       'alpha-version',
       this.isAlpha ? 'disable' : 'enable'
     );
+  }
+
+  onLogout(): void {
+    this.rasToken.rasTokenValidated = false;
   }
 
   ngAfterViewInit(): void {
