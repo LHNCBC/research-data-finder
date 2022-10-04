@@ -352,6 +352,10 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       ) &&
       !this.rasToken.rasTokenValidated
     ) {
+      sessionStorage.setItem(
+        'dbGapRasLoginServer',
+        this.fhirBackend.serviceBaseUrl
+      );
       // Store user's selection so it can be restored after successful RAS connection.
       sessionStorage.setItem('selectedCreateCohortMode', createCohortModeValue);
       // Contact rdf-server for RAS login. '/dbgap-login-portal' is proxy forwarded

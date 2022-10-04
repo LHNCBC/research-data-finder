@@ -139,8 +139,14 @@ export function getFocusableChildren(element: HTMLElement): HTMLElement[] {
  * @param name - parameter name
  */
 export function getUrlParam(name): string {
+  if (window.URLSearchParams !== undefined) {
+    const params = new URLSearchParams(window.location.search);
+    return params.has(name) ? decodeURIComponent(params.get(name)) : null;
+  }
+
+  // IE does not support URLSearchParams
   const queryMatch = window.location.search.match(
-    new RegExp(`[?&]${escapeStringForRegExp(name)}=([^?&]+)`, 'i')
+    new RegExp(`[?&]${escapeStringForRegExp(name)}=([^&]+)`, 'i')
   );
   return queryMatch && queryMatch.length
     ? decodeURIComponent(queryMatch[1])

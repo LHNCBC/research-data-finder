@@ -16,12 +16,13 @@ export class RasTokenCallbackComponent implements OnInit {
   ngOnInit(): void {
     // TODO: actually validate RAS token in RasTokenService.
     this.rasToken.rasTokenValidated = true;
-    this.fhirBackend.serviceBaseUrl =
-      'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1';
+    this.fhirBackend.serviceBaseUrl = sessionStorage.getItem(
+      'dbGapRasLoginServer'
+    );
     this.router.navigate(['/'], {
       queryParams: {
         'alpha-version': 'enable',
-        server: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+        server: this.fhirBackend.serviceBaseUrl
       }
     });
   }
