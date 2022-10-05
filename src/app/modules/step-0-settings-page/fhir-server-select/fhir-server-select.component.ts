@@ -19,6 +19,7 @@ import { AbstractControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import Def from 'autocomplete-lhc';
 import { FhirBackendService } from '../../../shared/fhir-backend/fhir-backend.service';
+import { setUrlParam } from '../../../shared/utils';
 
 @Component({
   selector: 'app-fhir-server-select',
@@ -255,5 +256,17 @@ export class FhirServerSelectComponent
     if (this.acInstance) {
       this.acInstance.setFieldVal(value);
     }
+  }
+
+  /**
+   * When user checks/unchecks the SMART on FHIR option.
+   * @param checked boolean value of the checkbox
+   */
+  onSmartOnFhirClick(checked: boolean): void {
+    if (!checked) {
+      // Update url query params after user unchecks SMART on FHIR checkbox.
+      window.history.pushState({}, '', setUrlParam('isSmart', 'false'));
+    }
+    this.fhirBackend.isSmartOnFhir = checked;
   }
 }
