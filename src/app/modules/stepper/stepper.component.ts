@@ -30,7 +30,7 @@ import { SelectAnActionComponent } from '../select-an-action/select-an-action.co
 // The main purpose of this is to determine the name of the previous or next
 // visible step before the template is rendered so that the
 // "NG0100: ExpressionChangedAfterItHasBeenCheckedError" error does not occur.
-enum Step {
+export enum Step {
   SETTINGS,
   SELECT_AN_ACTION,
   SELECT_RESEARCH_STUDIES,

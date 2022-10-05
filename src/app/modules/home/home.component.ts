@@ -1,7 +1,8 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import pkg from '../../../../package.json';
 import { getUrlParam, setUrlParam } from '../../shared/utils';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
+import { StepperComponent, Step } from '../stepper/stepper.component';
 
 @Component({
   selector: 'app-home',
@@ -11,6 +12,7 @@ import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 export class HomeComponent implements AfterViewInit {
   version = pkg.version;
   isAlpha: boolean;
+  @ViewChild(StepperComponent) stepperComponent: StepperComponent;
 
   constructor(public rasToken: RasTokenService) {
     this.isAlpha = getUrlParam('alpha-version') === 'enable';
@@ -32,6 +34,9 @@ export class HomeComponent implements AfterViewInit {
 
   onLogout(): void {
     this.rasToken.rasTokenValidated = false;
+    sessionStorage.removeItem('selectedCreateCohortMode');
+    sessionStorage.removeItem('dbGapRasLoginServer');
+    this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
   }
 
   ngAfterViewInit(): void {
