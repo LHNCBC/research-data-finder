@@ -137,9 +137,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       } else if (status === ConnectionStatus.Ready) {
         this.allowChangeCreateCohortMode =
           getUrlParam('alpha-version') === 'enable' &&
-          this.fhirBackend.serviceBaseUrl.startsWith(
-            'https://dbgap-api.ncbi.nlm.nih.gov'
-          );
+          this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl);
         if (!this.allowChangeCreateCohortMode) {
           this.cohort.createCohortMode = CreateCohortMode.SEARCH;
         } else {
@@ -157,6 +155,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
               this.selectAnActionComponent.createCohortMode.setValue(
                 selectedCreateCohortMode
               );
+              setTimeout(() => {
+                this.stepper.next();
+              }, 0);
             }, 0);
           }
         }
