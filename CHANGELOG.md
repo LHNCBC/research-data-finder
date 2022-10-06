@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.1.0] - 2022-10-06
+### Added
+- Basic RAS flow without actually talking to dbGaP login portal.
+
 ## [5.0.16] - 2022-09-29
 ### Fixed
 - Loss of focus on resource table header cell when sorting table.
