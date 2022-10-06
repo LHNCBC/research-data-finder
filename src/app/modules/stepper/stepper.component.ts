@@ -40,6 +40,7 @@ export enum Step {
   VIEW_COHORT,
   PULL_DATA_FOR_THE_COHORT
 }
+
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
  */

@@ -34,8 +34,7 @@ export class HomeComponent implements AfterViewInit {
 
   onLogout(): void {
     this.rasToken.rasTokenValidated = false;
-    sessionStorage.removeItem('selectedCreateCohortMode');
-    sessionStorage.removeItem('dbGapRasLoginServer');
+    sessionStorage.clear();
     this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
   }
 
