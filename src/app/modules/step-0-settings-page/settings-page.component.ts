@@ -56,7 +56,11 @@ export class SettingsPageComponent {
         const server = this.settingsFormGroup.get('serviceBaseUrl').value;
         if (!this.fhirBackend.isSmartOnFhir) {
           // Update url query params after valid server change
-          window.history.pushState({}, '', setUrlParam('server', server));
+          window.history.pushState(
+            {},
+            '',
+            setUrlParam('isSmart', 'false', setUrlParam('server', server))
+          );
         }
       });
   }

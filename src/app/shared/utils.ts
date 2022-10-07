@@ -148,13 +148,15 @@ export function getUrlParam(name): string {
 }
 
 /**
- * Returns a new URL from the current URL, adding a new parameter or
+ * Returns a new URL from originalUrl, adding a new parameter or
  * updating an existing one.
+ * Will use window.location.href if originalUrl is omitted.
  * @param name - parameter name
  * @param value - parameter value
+ * @param originalUrl old URL string
  */
-export function setUrlParam(name, value): string {
-  const urlParts = window.location.href
+export function setUrlParam(name, value, originalUrl = ''): string {
+  const urlParts = (originalUrl || window.location.href)
     .split(/[?&]/)
     .filter((paramStr) => !paramStr.startsWith(name + '='));
   return (
