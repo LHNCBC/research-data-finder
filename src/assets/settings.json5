@@ -85,8 +85,17 @@
             },
             {
               // See src/app/types/column.description.ts for details
-              displayName: "Variable name",
+              displayName: "Variable Display Text",
               element: "display_name",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "LOINC long common name",
+              element: "long_common_name",
               displayByDefault: true,
               types: [
                 "string"
@@ -178,8 +187,17 @@
             },
             {
               // See src/app/types/column.description.ts for details
-              displayName: "Variable name",
+              displayName: "Variable Display Text",
               element: "display_name",
+              displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              // See src/app/types/column.description.ts for details
+              displayName: "LOINC long common name",
+              element: "long_common_name",
               displayByDefault: true,
               types: [
                 "string"
