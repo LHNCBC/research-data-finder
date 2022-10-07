@@ -94,8 +94,8 @@
             },
             {
               // See src/app/types/column.description.ts for details
-              displayName: "LOINC common name",
-              element: "loinc_common_name",
+              displayName: "LOINC long common name",
+              element: "long_common_name",
               displayByDefault: true,
               types: [
                 "string"
@@ -196,8 +196,8 @@
             },
             {
               // See src/app/types/column.description.ts for details
-              displayName: "LOINC common name",
-              element: "loinc_common_name",
+              displayName: "LOINC long common name",
+              element: "long_common_name",
               displayByDefault: true,
               types: [
                 "string"

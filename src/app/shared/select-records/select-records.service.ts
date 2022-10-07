@@ -166,7 +166,7 @@ export class SelectRecordsService {
     const dataFields = {
       id: 'uid',
       display_name: 'display_name',
-      loinc_common_name: 'loinc.LONG_COMMON_NAME',
+      long_common_name: 'loinc.LONG_COMMON_NAME',
       loinc_num: 'loinc_num',
       study_id: 'study_id',
       study_name: 'study_name',
