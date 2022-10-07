@@ -4,13 +4,14 @@
 import { Injectable } from '@angular/core';
 import {
   HttpBackend,
+  HttpClient,
   HttpErrorResponse,
   HttpEvent,
   HttpRequest,
   HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
-import { BehaviorSubject, Observable, Observer } from 'rxjs';
+import { BehaviorSubject, Observable, Observer, Subscription } from 'rxjs';
 import { FhirBatchQuery } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
@@ -147,6 +148,7 @@ export class FhirBackendService implements HttpBackend {
       filter((status) => status === ConnectionStatus.Ready),
       map(() => this.getCurrentDefinitions())
     );
+    this.http = new HttpClient(this);
   }
   // Whether the connection to server is initialized.
   initialized = new BehaviorSubject(ConnectionStatus.Pending);
@@ -170,6 +172,12 @@ export class FhirBackendService implements HttpBackend {
   // Definitions of columns, search params, value sets for current FHIR version
   private currentDefinitions: any;
 
+  // Subscription of the '/.well-known/smart-configuration' endpoint check.
+  private smartOnFhirEnabledSubscription: Subscription;
+
+  // Can't be injected inside HttpBackend.
+  private http: HttpClient;
+
   // Whether an authorization tag should be added to the url.
   private isAuthorizationRequiredForUrl(url: string): boolean {
     const regEx = new RegExp(`/(${RESOURCES_REQUIRING_AUTHORIZATION})`);
@@ -181,23 +189,24 @@ export class FhirBackendService implements HttpBackend {
    * Initializes the SMART connection if it's available and this.isSmartOnFhir is
    * already marked as true.
    */
-  checkSmartOnFhirEnabled(): void {
-    this.fhirClient
-      .getWithCache('.well-known/smart-configuration', {
-        combine: false,
-        retryCount: 1
-      })
-      .then(() => {
-        this.isSmartOnFhirEnabled = true;
-      })
-      .catch(() => {
-        this.isSmartOnFhirEnabled = false;
-      })
-      .finally(() => {
-        if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
-          this.initializeSmartOnFhirConnection();
+  checkSmartOnFhirEnabled(url): void {
+    this.smartOnFhirEnabledSubscription?.unsubscribe();
+    this.smartOnFhirEnabledSubscription = this.http
+      .get(`${url}/.well-known/smart-configuration`)
+      .subscribe(
+        () => {
+          this.isSmartOnFhirEnabled = true;
+        },
+        () => {
+          this.isSmartOnFhirEnabled = false;
+        },
+        () => {
+          // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
+          if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
+            this.initializeSmartOnFhirConnection();
+          }
         }
-      });
+      );
   }
 
   /**
@@ -280,7 +289,7 @@ export class FhirBackendService implements HttpBackend {
         }
       )
       .finally(() => {
-        this.checkSmartOnFhirEnabled();
+        this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
       });
   }
 

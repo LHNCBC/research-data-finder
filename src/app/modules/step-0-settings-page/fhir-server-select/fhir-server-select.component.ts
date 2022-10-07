@@ -64,6 +64,8 @@ export class FhirServerSelectComponent
   // Flag to prevent 'focusin' callback in case of the SMART on FHIR checkbox,
   // click, which would otherwise cause hide the checkbox after unchecking it.
   preventFocusFlag = false;
+  // Timer for checking SMART on FHIR availability for current server URL being typed.
+  inputTimeout = null;
 
   currentValue = '';
   get value(): string {
@@ -193,6 +195,14 @@ export class FhirServerSelectComponent
    */
   ngAfterViewInit(): void {
     this.setupAutocomplete();
+    // After a delay of half second, check whether to show SMART on FHIR checkbox
+    // for the current server URL in the input field.
+    document.getElementById(this.inputId).addEventListener('input', (event) => {
+      clearTimeout(this.inputTimeout);
+      this.inputTimeout = setTimeout(() => {
+        this.fhirBackend.checkSmartOnFhirEnabled(event.target['value']);
+      }, 500);
+    });
   }
 
   /**
