@@ -21,8 +21,9 @@ import Patient = fhir.Patient;
 import pkg from '../../../../package.json';
 import { findLast } from 'lodash-es';
 import { getUrlParam } from '../../shared/utils';
-import { BrowseRecordsPageComponent } from '../browse-records-page/browse-records-page.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
+import { SelectRecordsPageComponent } from '../select-records-page/select-records-page.component';
+import { SelectAnActionComponent } from '../select-an-action/select-an-action.component';
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -49,10 +50,15 @@ enum Step {
 export class StepperComponent implements AfterViewInit, OnDestroy {
   @ViewChild('stepper') public stepper: MatStepper;
   @ViewChild('defineCohortStep') public defineCohortStep: MatStep;
+  @ViewChild('selectRecordsStep') public selectRecordsStep: MatStep;
   @ViewChild(SelectAnAreaOfInterestComponent)
   public selectAreaOfInterestComponent: SelectAnAreaOfInterestComponent;
+  @ViewChild(SelectAnActionComponent)
+  public selectAnActionComponent: SelectAnActionComponent;
   @ViewChild(DefineCohortPageComponent)
   public defineCohortComponent: DefineCohortPageComponent;
+  @ViewChild(SelectRecordsPageComponent)
+  public selectRecordsComponent: SelectRecordsPageComponent;
   @ViewChild(ViewCohortPageComponent)
   public viewCohortComponent: ViewCohortPageComponent;
   @ViewChild(PullDataPageComponent)
@@ -138,6 +144,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
         this.cohort.createCohortMode = this.allowChangeCreateCohortMode
           ? CreateCohortMode.UNSELECTED
           : CreateCohortMode.SEARCH;
+        this.selectAnActionComponent?.createCohortMode.setValue(
+          this.cohort.createCohortMode
+        );
       }
     });
   }
@@ -179,7 +188,13 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
         this.defineCohortComponent.showErrors();
       }
     } else {
-      // TODO:
+      this.selectRecordsStep.completed = !this.selectRecordsComponent.hasErrors();
+      if (this.selectRecordsStep.completed) {
+        this.selectRecordsComponent.searchForPatients();
+        this.stepper.next();
+      } else {
+        this.selectRecordsComponent.showErrors();
+      }
     }
   }
 

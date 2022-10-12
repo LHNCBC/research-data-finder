@@ -25,6 +25,7 @@ import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { escapeStringForRegExp } from '../../shared/utils';
+import { SearchParameter } from '../../types/search.parameter';
 
 /**
  * Component for managing search parameters of a resource type
@@ -51,6 +52,8 @@ export class SearchParameterGroupComponent
   @ViewChildren(SearchParameterComponent)
   searchParameterComponents: QueryList<SearchParameterComponent>;
   parameterList = new FormArray([]);
+  selectedSearchParameterNames: string[];
+  maxNumberOfSearchParameters = 0;
   resourceType: FormControl = new FormControl('');
   resourceTypes: string[] = [];
   filteredResourceTypes: Observable<string[]>;
@@ -68,7 +71,8 @@ export class SearchParameterGroupComponent
     private liveAnnoncer: LiveAnnouncer
   ) {
     super();
-    this.parameterList.valueChanges.subscribe(() => {
+    this.parameterList.valueChanges.subscribe((value) => {
+      this.selectedSearchParameterNames = value.map((item) => item.element);
       this.onChange(this.value);
     });
   }
@@ -90,6 +94,7 @@ export class SearchParameterGroupComponent
         const match = this.resourceTypes.find((rt) => rt === value);
         if (match) {
           this.resourceType.disable({ emitEvent: false });
+          this.updateMaxNumberOfSearchParameters();
           this.liveAnnoncer.announce(`Selected record type ${value}.`);
         }
       });
@@ -105,6 +110,7 @@ export class SearchParameterGroupComponent
             })
           );
         }
+        this.updateMaxNumberOfSearchParameters();
       } else if (status === ConnectionStatus.Disconnect) {
         // Clear search parameters on server change
         this.parameterList.clear();
@@ -146,6 +152,13 @@ export class SearchParameterGroupComponent
   }
 
   /**
+   * Returns search parameter values.
+   */
+  getSearchParamValues(): SearchParameter[] {
+    return this.searchParameterComponents.map((p) => p.value);
+  }
+
+  /**
    * Get and group search conditions for a resource type.
    */
   getConditions(): SearchCondition {
@@ -178,5 +191,16 @@ export class SearchParameterGroupComponent
    */
   focusResourceTypeInput(): void {
     this.resourceTypeInput.nativeElement.focus();
+  }
+
+  /**
+   * Updates the maximum number of search parameters, which must match
+   * the possible number of search parameters, since search parameters should
+   * not be repeated.
+   */
+  updateMaxNumberOfSearchParameters(): void {
+    this.maxNumberOfSearchParameters = this.fhirBackend.getCurrentDefinitions().resources[
+      this.resourceType.value
+    ].searchParameters.length;
   }
 }

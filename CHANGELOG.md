@@ -3,6 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.0.18] - 2022-10-12
+### Added
+- Search for patients by records in the cart.
+- Using the UCUM data from fhirpath.js to display a list of eligible units for
+  variables of type Quantity.
+### Fixed
+- Incorrect stepper state after selecting an action and switching to another
+  dbGap server.
+- Bug that could cause the patient search to end unexpectedly without any
+  notification.
+
 ## [5.0.17] - 2022-09-30
 ### Changed
 Columns in the table of variables:

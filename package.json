@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "5.0.17",
+  "version": "5.0.18",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",

@@ -192,7 +192,10 @@ export class CohortService {
 
         // If the found resource isn't a Patient (when no criteria for Patients),
         // replace it with a Patient
-        if (resources[0].resourceType !== PATIENT_RESOURCE_TYPE) {
+        if (
+          resources.length &&
+          resources[0].resourceType !== PATIENT_RESOURCE_TYPE
+        ) {
           return this.http
             .get<Bundle>(`$fhir/${PATIENT_RESOURCE_TYPE}`, {
               params: {
@@ -233,7 +236,10 @@ export class CohortService {
       // Stop emitting resources when the maximum number is reached
       // takeWhile((patients) => patients.length < maxPatientCount),
       // Complete observable on error
-      catchError(() => EMPTY),
+      catchError((e) => {
+        console.error(e);
+        return EMPTY;
+      }),
       finalize(() => {
         currentState.loading = false;
       }),

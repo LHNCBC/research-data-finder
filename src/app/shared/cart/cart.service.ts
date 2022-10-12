@@ -4,6 +4,9 @@ import Resource = fhir.Resource;
 import { HttpClient } from '@angular/common/http';
 import Bundle = fhir.Bundle;
 import { ObservationTestValue } from '../../modules/search-parameter/observation-test-value.component';
+import fhirpath from 'fhirpath';
+import { sortBy } from 'lodash-es';
+import { AutocompleteOption } from '../../modules/autocomplete/autocomplete.component';
 
 // List item, this can be a record or a group (array) of records
 export type ListItem = Resource | Resource[];
@@ -29,16 +32,17 @@ export class CartService {
 
   public logicalOperator: {
     [resourceType: string]: 'and' | 'or';
-  } = {
-    ResearchStudy: 'and',
-    Variable: 'and'
-  };
+  } = {};
 
   public variableData: {
     [uid: string]: {
       datatype: string;
       value?: ObservationTestValue;
     };
+  } = {};
+
+  public variableUnits: {
+    [uid: string]: AutocompleteOption[];
   } = {};
 
   private selectionChanged: {
@@ -92,14 +96,29 @@ export class CartService {
                       };
 
                       if (datatype === 'Quantity') {
-                        const testValueUnit = observation[prop].unit;
-                        if (testValueUnit) {
+                        const unitCode = observation[prop].code || '';
+                        this.variableUnits[id] = [];
+
+                        if (unitCode) {
+                          let isFromList = false;
+                          // TODO: ucumUtils is not added to index.d.ts of fhirpath.js
+                          const unitList = (fhirpath as any).ucumUtils
+                            .commensurablesList(unitCode)[0]
+                            .map((i) => {
+                              if (i.csCode_ === unitCode) {
+                                isFromList = true;
+                              }
+                              return { name: i.name_, value: i.csCode_ };
+                            });
+                          this.variableUnits[id] = isFromList
+                            ? sortBy(unitList, 'name')
+                            : [];
                           this.variableData[id].value = {
                             observationDataType: datatype,
                             testValuePrefix: '',
                             testValueModifier: '',
                             testValue: '',
-                            testValueUnit
+                            testValueUnit: unitCode
                           };
                         }
                       }
@@ -242,6 +261,12 @@ export class CartService {
    */
   reset(): void {
     this.itemsByResourceType = {};
+    this.logicalOperator = {
+      ResearchStudy: 'and',
+      Variable: 'and'
+    };
+    this.variableData = {};
+    this.variableUnits = {};
   }
 
   /**
@@ -333,5 +358,17 @@ export class CartService {
 
     itemsToUngroup.clear();
     this.getCartChangedSubject(resourceType).next(items);
+  }
+
+  /**
+   * Updates the values of a group of variables with the value of the first variable.
+   * @param varGroup - group of variables
+   */
+  updateVariableGroupValues(varGroup: any): void {
+    for (let i = 1; i < varGroup.length; i++) {
+      this.variableData[varGroup[i].id].value = {
+        ...this.variableData[varGroup[0].id].value
+      };
+    }
   }
 }

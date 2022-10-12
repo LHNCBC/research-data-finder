@@ -68,7 +68,8 @@
     </div>
   </mat-step>
 
-  <mat-step [label]="getLabel(Step.SELECT_RECORDS)"
+  <mat-step #selectRecordsStep
+            [label]="getLabel(Step.SELECT_RECORDS)"
             *ngIf="isVisible(Step.SELECT_RECORDS)">
     <div class="v-box">
       <app-select-records-page #selectRecordsPageComponent></app-select-records-page>
@@ -79,9 +80,10 @@
           Select an action
         </button>
         <div class='spacer'></div>
-        <button mat-stroked-button (click)='hiddenFileInput3.click()'>
+        <button mat-stroked-button (click)='hiddenFileInput3.click()'
+                style="color: blue;">
           <mat-icon svgIcon='upload'></mat-icon>
-          Load cohort and criteria
+          [TODO: Load cohort and criteria]
         </button>
         <input type='file' #hiddenFileInput3 style='display: none;' (change)='loadCohort($event)'>
         <div class="spacer"></div>
@@ -89,9 +91,8 @@
          button as the "next button" in e2e tests. To do this, the mat-stepper-next
          class has been added. MatStepperNextHarness uses this class. -->
         <button mat-stroked-button color="primary" class="mat-stepper-next"
-                style="color: blue;"
                 (click)="searchForPatients()">
-          [TODO: Search for Patients]<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
+          Search for Patients<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>
     </div>
