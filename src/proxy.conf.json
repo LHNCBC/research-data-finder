@@ -1,0 +1,10 @@
+{
+  "/dbgap-login-portal": {
+    "target": "http://localhost:8110",
+    "secure": false,
+    "pathRewrite": {
+      "^/dbgap-login-portal": "/login"
+    },
+    "logLevel": "debug"
+  }
+}
