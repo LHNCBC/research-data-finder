@@ -19,7 +19,7 @@ export class LaunchComponent implements OnInit {
         iss: fhirServerUrl
       })
       .catch((e) => {
-        console.log(e);
+        console.error(e);
         this.router.navigate(['/'], {
           queryParams: { server: fhirServerUrl, isSmart: false }
         });

@@ -303,7 +303,8 @@ export class FhirBackendService implements HttpBackend {
   handle(request: HttpRequest<any>): Observable<HttpEvent<any>> {
     if (
       !serviceBaseUrlRegExp.test(request.url) &&
-      !request.url.startsWith(this.serviceBaseUrl)
+      (!request.url.startsWith(this.serviceBaseUrl) ||
+        request.url.endsWith('/.well-known/smart-configuration'))
     ) {
       // If it is not a request to the FHIR server,
       // pass the request to the default Angular backend.
