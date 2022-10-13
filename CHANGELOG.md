@@ -3,9 +3,16 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.1.0] - 2022-10-06
+## [5.1.0] - 2022-10-13
 ### Added
 - Basic RAS flow without actually talking to dbGaP login portal.
+
+## [5.0.17] - 2022-09-30
+### Changed
+Columns in the table of variables:
+- Added a column with the LOINC long common name to the table of variables.
+- Renamed column "Variable Name" to "Variable Display Text" in the table of
+  variables.
 
 ## [5.0.16] - 2022-09-29
 ### Fixed
