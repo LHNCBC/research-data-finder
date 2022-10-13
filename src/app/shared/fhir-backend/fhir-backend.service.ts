@@ -76,6 +76,7 @@ export class FhirBackendService implements HttpBackend {
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
+      this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
       this.initializeFhirBatchQuery(this.serviceBaseUrl);
     }

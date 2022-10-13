@@ -4,6 +4,7 @@ import { getUrlParam, setUrlParam } from '../../shared/utils';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { StepperComponent, Step } from '../stepper/stepper.component';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 
 @Component({
   selector: 'app-home',
@@ -15,7 +16,10 @@ export class HomeComponent implements AfterViewInit {
   isAlpha: boolean;
   @ViewChild(StepperComponent) stepperComponent: StepperComponent;
 
-  constructor(public rasToken: RasTokenService) {
+  constructor(
+    public rasToken: RasTokenService,
+    public fhirBackend: FhirBackendService
+  ) {
     this.isAlpha = getUrlParam('alpha-version') === 'enable';
   }
 
@@ -33,13 +37,17 @@ export class HomeComponent implements AfterViewInit {
     );
   }
 
-  onLogout(): void {
+  onRasLogout(): void {
     this.rasToken.rasTokenValidated = false;
     sessionStorage.clear();
     this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
     this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
       CreateCohortMode.UNSELECTED
     );
+  }
+
+  onSmartLogout(): void {
+    this.fhirBackend.isSmartOnFhir = false;
   }
 
   ngAfterViewInit(): void {
