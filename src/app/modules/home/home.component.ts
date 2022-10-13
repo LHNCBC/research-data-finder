@@ -1,6 +1,9 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import pkg from '../../../../package.json';
 import { getUrlParam, setUrlParam } from '../../shared/utils';
+import { RasTokenService } from '../../shared/ras-token/ras-token.service';
+import { StepperComponent, Step } from '../stepper/stepper.component';
+import { CreateCohortMode } from '../../shared/cohort/cohort.service';
 
 @Component({
   selector: 'app-home',
@@ -10,8 +13,9 @@ import { getUrlParam, setUrlParam } from '../../shared/utils';
 export class HomeComponent implements AfterViewInit {
   version = pkg.version;
   isAlpha: boolean;
+  @ViewChild(StepperComponent) stepperComponent: StepperComponent;
 
-  constructor() {
+  constructor(public rasToken: RasTokenService) {
     this.isAlpha = getUrlParam('alpha-version') === 'enable';
   }
 
@@ -26,6 +30,15 @@ export class HomeComponent implements AfterViewInit {
     window.location.href = setUrlParam(
       'alpha-version',
       this.isAlpha ? 'disable' : 'enable'
+    );
+  }
+
+  onLogout(): void {
+    this.rasToken.rasTokenValidated = false;
+    sessionStorage.clear();
+    this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
+    this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
+      CreateCohortMode.UNSELECTED
     );
   }
 

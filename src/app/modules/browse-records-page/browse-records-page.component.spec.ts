@@ -31,7 +31,8 @@ describe('BrowseRecordsPageComponent', () => {
       {
         features: {
           hasResearchStudy: true
-        }
+        },
+        serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
       }
     );
     mockHttp = TestBed.inject(HttpTestingController);
@@ -119,7 +120,7 @@ describe('BrowseRecordsPageComponent', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === 'study_id:(phs001603.v1.p1)'
+          req.params.get('q') === 'study_id:(phs001603.v1.p1*)'
         );
       })
       .flush(variables);

@@ -28,7 +28,7 @@
         </button>
         <div class='spacer'></div>
         <button mat-stroked-button color="primary"
-                matStepperNext
+                (click)="onSelectAnActionNext(selectAnActionComponent.createCohortMode.value)"
                 type="button"
                 [disabled]="selectAnActionComponent.createCohortMode.value === CreateCohortMode.UNSELECTED">
           Next<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>

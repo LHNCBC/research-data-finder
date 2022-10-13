@@ -8,6 +8,7 @@ import {
 import { SettingsService } from './shared/settings-service/settings.service';
 import { AppRoutingModule } from './app-routing.module';
 import { HomeModule } from './modules/home/home.module';
+import { RasTokenCallbackModule } from './modules/ras-token-callback/ras-token-callback.module';
 import { LaunchModule } from './modules/launch/launch.module';
 
 const appearance: MatFormFieldDefaultOptions = {
@@ -24,7 +25,13 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, AppRoutingModule, HomeModule, LaunchModule],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    HomeModule,
+    RasTokenCallbackModule,
+    LaunchModule
+  ],
   providers: [
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,

@@ -13,10 +13,11 @@
                                   [matMenuTriggerFor]="menu">{{version + (isAlpha ? ' (alpha)' : '') }}</a></div>
     <mat-menu #menu="matMenu">
       <button mat-menu-item
-              (click)="openChangelog()">View changelog</button>
+              (click)="openChangelog()">View change log</button>
       <button mat-menu-item
               (click)="switchVersion()">Switch to the {{isAlpha ? 'stable' : 'alpha' }} version</button>
     </mat-menu>
+    <div id="logout" *ngIf="rasToken.rasTokenValidated" matTooltip="Log out from DbGap" (click)="onLogout()">Log out</div>
   </div>
 </div>
 <!-- end page header -->

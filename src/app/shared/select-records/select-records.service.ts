@@ -39,6 +39,7 @@ export class SelectRecordsService {
   resetAll(): void {
     this.currentState = {};
     this.resourceStream = {};
+    this.cart.reset();
   }
 
   /**
@@ -67,22 +68,28 @@ export class SelectRecordsService {
    * Loads the first page of resources of specified resource type.
    * @param resourceType - resource type
    * @param url - request URL.
+   * @param params - parameter values.
    */
-  loadFirstPage(resourceType: string, url: string): void {
+  loadFirstPage(
+    resourceType: string,
+    url: string,
+    params: { [name: string]: any }
+  ): void {
     this.currentState[resourceType] = {
       loading: true,
       resources: [],
       nextBundleUrl: url
     };
 
-    this.loadNextPage(resourceType);
+    this.loadNextPage(resourceType, params);
   }
 
   /**
    * Loads the next page of resources of specified resource type.
    * @param resourceType - resource type
+   * @param params - parameter values.
    */
-  loadNextPage(resourceType): void {
+  loadNextPage(resourceType, params?: { [name: string]: any }): void {
     const currentState = this.currentState[resourceType];
     if (!currentState.nextBundleUrl) {
       return;
@@ -91,7 +98,7 @@ export class SelectRecordsService {
     delete currentState.nextBundleUrl;
 
     currentState.loading = true;
-    this.resourceStream[resourceType] = this.http.get(url).pipe(
+    this.resourceStream[resourceType] = this.http.get(url, { params }).pipe(
       map((data: Bundle) => {
         currentState.resources = currentState.resources.concat(
           data.entry?.map((item) => item.resource) || []
@@ -159,6 +166,7 @@ export class SelectRecordsService {
     const dataFields = {
       id: 'uid',
       display_name: 'display_name',
+      long_common_name: 'loinc.LONG_COMMON_NAME',
       loinc_num: 'loinc_num',
       study_id: 'study_id',
       study_name: 'study_name',
@@ -171,7 +179,7 @@ export class SelectRecordsService {
 
     const url = `https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search`;
 
-    const studyIds = selectedResearchStudies.map((r) => r.id /* + '*'*/);
+    const studyIds = selectedResearchStudies.map((r) => r.id + '*');
 
     const query = [];
     if (studyIds.length) {
@@ -179,7 +187,7 @@ export class SelectRecordsService {
     }
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        query.push(`${dataFields[key]}:${value}`);
+        query.push(`${dataFields[key]}:(${value})`);
       }
     });
 

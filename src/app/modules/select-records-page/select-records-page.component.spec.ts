@@ -26,6 +26,20 @@ describe('SelectRecordsPageComponent', () => {
   let fixture: ComponentFixture<SelectRecordsPageComponent>;
   let mockHttp: HttpTestingController;
   let loader: HarnessLoader;
+  const statuses = [
+    'candidate',
+    'eligible',
+    'follow-up',
+    'ineligible',
+    'not-registered',
+    'off-study',
+    'on-study',
+    'on-study-intervention',
+    'on-study-observation',
+    'pending-on-study',
+    'potential-candidate',
+    'screening,withdrawn'
+  ];
 
   beforeEach(async () => {
     await configureTestingModule(
@@ -36,7 +50,8 @@ describe('SelectRecordsPageComponent', () => {
       {
         features: {
           hasResearchStudy: true
-        }
+        },
+        serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
       }
     );
     mockHttp = TestBed.inject(HttpTestingController);
@@ -62,7 +77,11 @@ describe('SelectRecordsPageComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     mockHttp
-      .expectOne('$fhir/ResearchStudy?_count=50&_sort=title')
+      .expectOne(
+        `$fhir/ResearchStudy?_count=50&_has:ResearchSubject:study:status=${statuses.join(
+          ','
+        )}&_sort=title`
+      )
       .flush(researchStudies);
     await expectNumberOfRecords(2);
   }
@@ -152,7 +171,7 @@ describe('SelectRecordsPageComponent', () => {
     expect(studyCart.listItems.length).toEqual(1);
     expect(studyCart.listItems[0].id).toEqual('phs001603.v1.p1');
 
-    await loadVariables('study_id:(phs001603.v1.p1)');
+    await loadVariables('study_id:(phs001603.v1.p1*)');
 
     await selectTab('Studies');
     const removeButton = await loader.getHarness(

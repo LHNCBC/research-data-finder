@@ -24,6 +24,7 @@ import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { omit } from 'lodash-es';
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -44,15 +45,12 @@ export class SelectRecordsPageComponent
   extends ResourceTableParentComponent
   implements OnInit, AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
+  @ViewChild('resourceTable') resourceTable: ResourceTableComponent;
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
   maxPatientsNumber = new FormControl('100', Validators.required);
   hasLoinc = false;
+  showOnlyStudiesWithSubjects = true;
   recTypeLoinc = false;
-
-  // Map a resource type to a tab name
-  resourceType2TabName = {
-    ResearchStudy: 'Study'
-  };
 
   // The sort state for each resource.
   sort: { [resourceType: string]: Sort } = {
@@ -79,13 +77,12 @@ export class SelectRecordsPageComponent
     public cart: CartService
   ) {
     super();
-    selectRecords.resetAll();
 
     this.subscriptions.push(
       fhirBackend.initialized
         .pipe(filter((status) => status === ConnectionStatus.Ready))
         .subscribe(() => {
-          this.cart.reset();
+          selectRecords.resetAll();
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
             ? ['ResearchStudy', 'Variable']
             : ['Observation'];
@@ -267,12 +264,27 @@ export class SelectRecordsPageComponent
       this.loadVariables();
     } else {
       const sortParam = this.getSortParam(resourceType);
-      // TODO: Currently, user can filter loaded ResearchStudy records on
-      //       the client-side only.
+      const filterValues = this.resourceTable?.filtersForm.value || {};
+      const params = {};
+      if (filterValues.title) {
+        params['title:contains'] = filterValues.title;
+      }
+      const hasStatuses = this.showOnlyStudiesWithSubjects
+        ? '&_has:ResearchSubject:study:status=' +
+          Object.keys(
+            this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
+              'ResearchSubject.status'
+            ]
+          ).join(',')
+        : '';
       this.selectRecords.loadFirstPage(
         resourceType,
-        `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`
+        `$fhir/${resourceType}?_count=50${hasStatuses}${
+          sortParam ? '&' + sortParam : ''
+        }`,
+        params
       );
+      this.resourceTable?.setClientFilter(omit(filterValues, 'title'));
     }
   }
 

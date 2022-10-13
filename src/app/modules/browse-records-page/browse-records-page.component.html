@@ -14,7 +14,9 @@
   <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfRecordName(resourceType)">
     <div class="v-box tab-content">
       <app-resource-table *ngIf="resourceType !== 'Variable' && selectRecords.currentState[resourceType]"
+                          #resourceTable
                           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'browse') | async"
+                          (filterChanged)="loadFirstPage(resourceType)"
                           [enableFiltering]="true" [enableSelection]="true"
                           [loading]="selectRecords.currentState[resourceType].loading"
                           [resources]="selectRecords.resourceStream[resourceType] | async"
