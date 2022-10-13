@@ -3,6 +3,7 @@ import pkg from '../../../../package.json';
 import { getUrlParam, setUrlParam } from '../../shared/utils';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { StepperComponent, Step } from '../stepper/stepper.component';
+import { CreateCohortMode } from '../../shared/cohort/cohort.service';
 
 @Component({
   selector: 'app-home',
@@ -36,6 +37,9 @@ export class HomeComponent implements AfterViewInit {
     this.rasToken.rasTokenValidated = false;
     sessionStorage.clear();
     this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
+    this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
+      CreateCohortMode.UNSELECTED
+    );
   }
 
   ngAfterViewInit(): void {
