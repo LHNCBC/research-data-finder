@@ -21,6 +21,7 @@ import { find } from 'lodash-es';
 import { filter, map } from 'rxjs/operators';
 import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -137,7 +138,8 @@ export class FhirBackendService implements HttpBackend {
   constructor(
     private defaultBackend: HttpXhrBackend,
     private fhirService: FhirService,
-    private router: Router
+    private router: Router,
+    private liveAnnoncer: LiveAnnouncer
   ) {
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const queryServer = getUrlParam('server');
@@ -197,6 +199,10 @@ export class FhirBackendService implements HttpBackend {
       .subscribe(
         () => {
           this.isSmartOnFhirEnabled = true;
+          this.liveAnnoncer.clear();
+          this.liveAnnoncer.announce(
+            'A new checkbox for SMART on FHIR launch appeared.'
+          );
         },
         () => {
           this.isSmartOnFhirEnabled = false;
@@ -221,6 +227,7 @@ export class FhirBackendService implements HttpBackend {
       this.fhirService.requestSmartConnection((success) => {
         if (success) {
           this.smartConnectionSuccess = true;
+          this.liveAnnoncer.announce('SMART on FHIR connection succeeded.');
           // Load definitions of search parameters and columns from CSV file
           this.settings.loadCsvDefinitions().subscribe(
             (resourceDefinitions) => {
