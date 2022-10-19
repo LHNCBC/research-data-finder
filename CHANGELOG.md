@@ -13,6 +13,8 @@ This project follows [Semantic Versioning](http://semver.org/).
   dbGap server.
 - Bug that could cause the patient search to end unexpectedly without any
   notification.
+- Optimized patient search by combining ORed code criteria for Observation and
+  eliminating unnecessary queries for ANDed criteria.
 
 ## [5.0.17] - 2022-09-30
 ### Changed

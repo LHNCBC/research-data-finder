@@ -23,7 +23,20 @@
 
 .switch-group {
   margin-bottom: 10px;
+  position: relative;
   mat-radio-group {
+    white-space: nowrap;
+    :after {
+      content: "";
+      left: 18px;
+      border-color: #619ed7;
+      border-style: solid;
+      width: 22px;
+      height: calc(50% - 15px);
+      position: absolute;
+      border-width: 0 0 0 1px;
+      top: calc(50% + 15px);
+    }
     mat-radio-button {
       ::ng-deep .mat-radio-container,
       ::ng-deep .mat-radio-label-content {
@@ -124,10 +137,10 @@
       border-color: #619ed7;
       border-style: solid;
       width: 22px;
-      height: calc(100% + 15px);
+      height: calc(100% + 10px);
       position: absolute;
       border-width: 0 0 0 1px;
-      top: -15px;
+      top: -10px;
     }
   }
 }

@@ -111,7 +111,7 @@ describe('BrowseRecordsPageComponent', () => {
     await selectTab('Studies');
     // Select first study
     fixture.debugElement
-      .query(By.css('mat-tab-body:first-child mat-checkbox label'))
+      .queryAll(By.css('mat-tab-body:first-child mat-checkbox label'))[1]
       .nativeElement.click();
     await selectTab('Variables');
     mockHttp
@@ -119,7 +119,7 @@ describe('BrowseRecordsPageComponent', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === 'study_id:(phs001603.v1.p1*)'
+          req.params.get('q') === 'study_id:(phs002409*)'
         );
       })
       .flush(variables);

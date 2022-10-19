@@ -38,7 +38,7 @@ import {
   OBSERVATION_VALUE,
   QueryParamsService
 } from '../query-params/query-params.service';
-import { uniqBy } from 'lodash-es';
+import { uniqBy, cloneDeep } from 'lodash-es';
 import { getNextPageUrl } from '../utils';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
@@ -164,9 +164,7 @@ export class CohortService {
       return this.search(
         maxPatientCount,
         criteria,
-        this.isOnlyOneBlockWithPatientCriteria(criteria)
-          ? maxPatientCount
-          : this.getPageSize(),
+        maxPatientCount,
         currentState
       );
     }).pipe(
@@ -330,7 +328,19 @@ export class CohortService {
                         this.check(resource, {
                           ...newCriteria,
                           rules: restRules
-                        }).pipe(startWith(null as Resource))
+                        }).pipe(
+                          startWith(null as Resource),
+                          catchError((err) => {
+                            // If the resource criteria are combined by the AND
+                            // operator and one of the queries returns nothing,
+                            // "check()" throws "null" to terminate queries
+                            if (err === null) {
+                              return of(null);
+                            }
+                            // Pass through unexpected errors
+                            throw err;
+                          })
+                        )
                       )
                     )
                   : of([])
@@ -371,11 +381,12 @@ export class CohortService {
     criteria: Criteria | ResourceTypeCriteria
   ): Observable<Resource> {
     const patientId = this.getPatientIdFromResource(resource);
+    let observable;
 
     if ('resourceType' in criteria) {
       // If the resource criteria are combined by the OR operator, we split them
       // into separate ones. ANDed criteria will be sent in one request.
-      return from(
+      observable = from(
         criteria.condition === 'or'
           ? criteria.rules.map((rule) => [rule])
           : [criteria.rules]
@@ -429,39 +440,34 @@ export class CohortService {
                 : resource;
             })
           );
-        }),
-        // If the resource criteria are combined by the OR operator, we will
-        // take the first matched resource:
-        filter((r) => r !== null),
-        take(1)
-      );
-    } else if (criteria.condition === 'or') {
-      return from(criteria.rules).pipe(
-        concatMap((rule) => this.check(resource, rule)),
-        filter((r) => r !== null),
-        take(1)
+        })
       );
     } else {
-      if (criteria.rules.length > 1) {
-        return forkJoin(
-          criteria.rules.map((rule) =>
-            this.check(resource, rule).pipe(startWith(null as Resource))
-          )
-        ).pipe(
-          map((resources) => {
-            if (resources.indexOf(null) !== -1) {
-              return null;
-            }
-            const pat = resources.find(
-              (r) => r.resourceType === PATIENT_RESOURCE_TYPE
-            );
-            return pat || resource;
-          })
-        );
-      } else {
-        return this.check(resource, criteria.rules[0]);
-      }
+      observable = from(criteria.rules).pipe(
+        concatMap((rule) => this.check(resource, rule))
+      );
     }
+
+    // If the resource criteria are combined by the OR operator, we will
+    // take the first matched resource. If the resource criteria are combined
+    // by the AND operator and one of the queries returns nothing, we throw
+    // "null" to terminate queries, this must be handled at the site of the
+    // "check()" call.
+    observable = observable.pipe(
+      filter((r) => {
+        if (criteria.condition === 'or') {
+          return r !== null;
+        } else if (r === null) {
+          throw null;
+        } else {
+          return true;
+        }
+      })
+    );
+    if (criteria.condition === 'or') {
+      observable = observable.pipe(take(1));
+    }
+    return observable;
   }
 
   /**
@@ -471,6 +477,7 @@ export class CohortService {
    *    (ANDed with other) Patients criteria, otherwise adds the root criteria
    *    for the selected ResearchStudies
    *  - combine code and value criteria for Observation
+   *  - combine ORed code criteria for Observation
    */
   prepareCriteria(
     criteria: Criteria | ResourceTypeCriteria,
@@ -568,9 +575,7 @@ export class CohortService {
         }
       }
 
-      if (!rules) {
-        rules = criteria.rules.concat();
-      }
+      rules = cloneDeep(rules || criteria.rules);
 
       // We need a copy of the object in order not to visualize our changes
       return {
@@ -581,11 +586,37 @@ export class CohortService {
         rules
       };
     } else {
-      // Remove empty subgroups so we don't have to consider them in the search algorithm
+      // Combined ORed code criteria for Observation
+      let obsCodeCriterion;
+
       const rules = criteria.rules.reduce((result, rule) => {
         const preparedRule = this.prepareCriteria(rule);
+        // Skip empty subgroups, so we don't have to consider them in the search algorithm
         if (preparedRule) {
-          result.push(preparedRule);
+          // Combine ORed code criteria for Observation
+          if (
+            criteria.condition === 'or' &&
+            'resourceType' in preparedRule &&
+            preparedRule.rules.length === 1 &&
+            preparedRule.rules[0].field.selectedObservationCodes.coding.length >
+              0 &&
+            !preparedRule.rules[0].field.value &&
+            preparedRule.rules[0].field.value !== false
+          ) {
+            if (obsCodeCriterion) {
+              obsCodeCriterion.rules[0].field.selectedObservationCodes.coding.push(
+                ...preparedRule.rules[0].field.selectedObservationCodes.coding
+              );
+              obsCodeCriterion.rules[0].field.selectedObservationCodes.items.push(
+                ...preparedRule.rules[0].field.selectedObservationCodes.items
+              );
+            } else {
+              obsCodeCriterion = preparedRule;
+              result.push(obsCodeCriterion);
+            }
+          } else {
+            result.push(preparedRule);
+          }
         }
         return result;
       }, []);
@@ -702,31 +733,6 @@ export class CohortService {
       );
     }
     return false;
-  }
-
-  /**
-   * Returns true if the specified criteria has only one resource type criteria
-   * block with Patient criteria.
-   */
-  isOnlyOneBlockWithPatientCriteria(
-    criteria: Criteria | ResourceTypeCriteria
-  ): boolean {
-    if ('resourceType' in criteria) {
-      return criteria.resourceType === PATIENT_RESOURCE_TYPE;
-    } else {
-      const oneResourceCriteria =
-        criteria.rules.length === 1 && 'resourceType' in criteria.rules[0]
-          ? criteria.rules[0]
-          : false;
-      return (
-        oneResourceCriteria &&
-        (oneResourceCriteria.resourceType === PATIENT_RESOURCE_TYPE ||
-          this.canUseHas(
-            oneResourceCriteria.resourceType,
-            oneResourceCriteria.rules
-          ))
-      );
-    }
   }
 
   /**
@@ -946,21 +952,6 @@ export class CohortService {
       ]
     ).join(',');
     return `&_has:ResearchSubject:study:status=${statuses}`;
-  }
-
-  /**
-   * Returns optimal page size for requesting resources.
-   */
-  getPageSize(): number {
-    // The value (maxRequestsPerBatch*maxActiveRequests*2) is the "optimal" page
-    // size to get resources for filtering/mapping. This value should be so
-    // minimal as not to load a lot of unnecessary data, but sufficient to allow
-    // parallel loading of data to speed up the process.
-    return (
-      this.fhirBackend.maxRequestsPerBatch *
-      this.fhirBackend.maxActiveRequests *
-      2
-    );
   }
 
   /**
