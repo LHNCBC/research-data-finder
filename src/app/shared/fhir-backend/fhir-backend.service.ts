@@ -11,7 +11,7 @@ import {
   HttpXhrBackend
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
-import { FhirBatchQuery } from './fhir-batch-query';
+import { FhirBatchQuery, HTTP_ABORT } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam } from '../utils';
@@ -172,8 +172,10 @@ export class FhirBackendService implements HttpBackend {
           }
         );
       },
-      () => {
-        this.initialized.next(ConnectionStatus.Error);
+      (err) => {
+        if (err.status !== HTTP_ABORT) {
+          this.initialized.next(ConnectionStatus.Error);
+        }
       }
     );
   }

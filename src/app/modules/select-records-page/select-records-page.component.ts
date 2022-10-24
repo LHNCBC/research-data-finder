@@ -95,7 +95,7 @@ export class SelectRecordsPageComponent
           selectRecords.resetAll();
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
             ? ['ResearchStudy', 'Variable']
-            : ['Observation'];
+            : [];
         })
     );
   }

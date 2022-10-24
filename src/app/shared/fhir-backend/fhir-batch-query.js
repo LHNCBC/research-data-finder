@@ -126,6 +126,8 @@ export class FhirBatchQuery {
       this._msBetweenRequests = 0;
     }
 
+    const currentServiceBaseUrl = this._serviceBaseUrl;
+
     if (this._initializationPromise) {
       return this._initializationPromise;
     }
@@ -135,6 +137,12 @@ export class FhirBatchQuery {
         // Query to extract the consent group that must be included as _security param in particular queries.
         this.getWithCache('ResearchSubject', this.getCommonInitRequestOptions())
       ]).then(([researchSubject]) => {
+        if (currentServiceBaseUrl !== this._serviceBaseUrl) {
+          return Promise.reject({
+            status: HTTP_ABORT,
+            error: 'Outdated response to initialization request.'
+          });
+        }
         if (
           researchSubject &&
           researchSubject.status === 'rejected' &&
@@ -160,6 +168,7 @@ export class FhirBatchQuery {
    * @returns {Promise<void>}
    */
   makeInitializationCalls(withSecurityTag = false) {
+    const currentServiceBaseUrl = this._serviceBaseUrl;
     const securityParam = withSecurityTag
       ? `&_security=${this._features.consentGroup}`
       : '';
@@ -216,6 +225,12 @@ export class FhirBatchQuery {
         interpretation,
         batch
       ]) => {
+        if (currentServiceBaseUrl !== this._serviceBaseUrl) {
+          return Promise.reject({
+            status: HTTP_ABORT,
+            error: 'Outdated response to initialization request.'
+          });
+        }
         if (metadata.status === 'fulfilled') {
           const fhirVersion = metadata.value.data.fhirVersion;
           this._versionName = getVersionNameByNumber(fhirVersion);
