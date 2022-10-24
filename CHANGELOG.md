@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.0.18] - 2022-10-12
+## [5.1.1] - 2022-10-14
 ### Added
 - Search for patients by records in the cart.
 - Using the UCUM data from fhirpath.js to display a list of eligible units for
@@ -15,6 +15,10 @@ This project follows [Semantic Versioning](http://semver.org/).
   notification.
 - Optimized patient search by combining ORed code criteria for Observation and
   eliminating unnecessary queries for ANDed criteria.
+
+## [5.1.0] - 2022-10-13
+### Added
+- Basic RAS flow without actually talking to dbGaP login portal.
 
 ## [5.0.17] - 2022-09-30
 ### Changed

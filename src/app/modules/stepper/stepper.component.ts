@@ -17,11 +17,12 @@ import {
   CreateCohortMode
 } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
-import Patient = fhir.Patient;
 import pkg from '../../../../package.json';
 import { findLast } from 'lodash-es';
 import { getUrlParam } from '../../shared/utils';
+import Patient = fhir.Patient;
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
+import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { SelectRecordsPageComponent } from '../select-records-page/select-records-page.component';
 import { SelectAnActionComponent } from '../select-an-action/select-an-action.component';
 
@@ -29,7 +30,7 @@ import { SelectAnActionComponent } from '../select-an-action/select-an-action.co
 // The main purpose of this is to determine the name of the previous or next
 // visible step before the template is rendered so that the
 // "NG0100: ExpressionChangedAfterItHasBeenCheckedError" error does not occur.
-enum Step {
+export enum Step {
   SETTINGS,
   SELECT_AN_ACTION,
   SELECT_RESEARCH_STUDIES,
@@ -39,6 +40,7 @@ enum Step {
   VIEW_COHORT,
   PULL_DATA_FOR_THE_COHORT
 }
+
 /**
  * The main component provides a wizard-like workflow by dividing content into logical steps.
  */
@@ -87,7 +89,8 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     public fhirBackend: FhirBackendService,
     public cohort: CohortService,
     public pullData: PullDataService,
-    public selectRecord: SelectRecordsService
+    public selectRecord: SelectRecordsService,
+    public rasToken: RasTokenService
   ) {
     this.stepDescriptions[Step.SETTINGS] = {
       label: 'Settings',
@@ -138,15 +141,30 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       } else if (status === ConnectionStatus.Ready) {
         this.allowChangeCreateCohortMode =
           getUrlParam('alpha-version') === 'enable' &&
-          this.fhirBackend.serviceBaseUrl.startsWith(
-            'https://dbgap-api.ncbi.nlm.nih.gov'
-          );
-        this.cohort.createCohortMode = this.allowChangeCreateCohortMode
-          ? CreateCohortMode.UNSELECTED
-          : CreateCohortMode.SEARCH;
-        this.selectAnActionComponent?.createCohortMode.setValue(
-          this.cohort.createCohortMode
-        );
+          this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl);
+        if (!this.allowChangeCreateCohortMode) {
+          this.cohort.createCohortMode = CreateCohortMode.SEARCH;
+        } else {
+          if (!this.rasToken.rasTokenValidated) {
+            this.cohort.createCohortMode = CreateCohortMode.UNSELECTED;
+          } else {
+            // If it came from '/request-redirect-token-callback' and RAS token
+            // has been validated, go back to Select An Action step and restore
+            // user's selection before contacting RAS.
+            const selectedCreateCohortMode = sessionStorage.getItem(
+              'selectedCreateCohortMode'
+            ) as CreateCohortMode;
+            setTimeout(() => {
+              this.stepper.selectedIndex = Step.SELECT_AN_ACTION;
+              this.selectAnActionComponent.createCohortMode.setValue(
+                selectedCreateCohortMode
+              );
+              setTimeout(() => {
+                this.stepper.next();
+              }, 0);
+            }, 0);
+          }
+        }
       }
     });
   }
@@ -333,5 +351,29 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    */
   isVisible(step: Step): boolean {
     return this.stepDescriptions[step].isVisible();
+  }
+
+  /**
+   * Contact ref-server for dbGap login, if required.
+   */
+  onSelectAnActionNext(createCohortModeValue: CreateCohortMode): void {
+    if (
+      [CreateCohortMode.BROWSE, CreateCohortMode.SEARCH].includes(
+        createCohortModeValue
+      ) &&
+      !this.rasToken.rasTokenValidated
+    ) {
+      sessionStorage.setItem(
+        'dbGapRasLoginServer',
+        this.fhirBackend.serviceBaseUrl
+      );
+      // Store user's selection so it can be restored after successful RAS connection.
+      sessionStorage.setItem('selectedCreateCohortMode', createCohortModeValue);
+      // Contact rdf-server for RAS login. '/dbgap-login-portal' is proxy forwarded
+      // to rdf-server (see src/proxy.conf.json).
+      window.location.href = `${window.location.origin}/dbgap-login-portal`;
+    } else {
+      this.stepper.next();
+    }
   }
 }

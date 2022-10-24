@@ -55,10 +55,10 @@ const EVIDENCE_VARIABLE_RESOURCE_TYPE = 'EvidenceVariable';
 const OBSERVATION_RESOURCE_TYPE = 'Observation';
 
 export enum CreateCohortMode {
-  UNSELECTED,
-  NO_COHORT,
-  BROWSE,
-  SEARCH
+  UNSELECTED = 'UNSELECTED',
+  NO_COHORT = 'NO_COHORT',
+  BROWSE = 'BROWSE',
+  SEARCH = 'SEARCH'
 }
 
 interface CohortState {
