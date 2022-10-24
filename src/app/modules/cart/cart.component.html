@@ -21,7 +21,7 @@
             <mat-radio-button value="or">OR</mat-radio-button>
           </mat-radio-group>
           <div class="spacer" *ngIf="isTree() && listItems.length > 1"></div>
-          <label class="info">
+          <label class="info" *ngIf="isTree()">
             <span class="info-icon" aria-hidden="true"></span>
             AND = Patients will be added to the cohort if they meet all criteria in the cart; OR = Patients will be added if they meet any of the criteria.
           </label>
