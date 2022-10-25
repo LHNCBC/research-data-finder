@@ -1,7 +1,7 @@
 import definitionsIndex from '../definitions/index.json';
-import { Cache } from './cache';
 
-let commonRequestCache = new Cache(); // An instance of Cache class used to cache responses
+// An object used to cache responses to HTTP requests
+import queryResponseCache from './query-response-cache';
 
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
 export const HTTP_ABORT = 0;
@@ -241,7 +241,7 @@ export class FhirBatchQuery {
           }
         } else {
           // If initialization fails, do not cache initialization responses
-          commonRequestCache.clearByCacheName(this.getInitCacheName());
+          queryResponseCache.clearByCacheName(this.getInitCacheName());
           return Promise.reject({
             error:
               "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
@@ -355,7 +355,7 @@ export class FhirBatchQuery {
   }
 
   static clearCache() {
-    commonRequestCache.clearAll();
+    queryResponseCache.clearAll();
   }
 
   /**
@@ -741,7 +741,7 @@ export class FhirBatchQuery {
 
     return new Promise((resolve, reject) => {
       const fullUrl = this.getFullUrl(url);
-      commonRequestCache.get(fullUrl, options).then((cachedResponse) => {
+      queryResponseCache.get(fullUrl, options).then((cachedResponse) => {
         if (cachedResponse) {
           console.log('Using cached data');
           if (cachedResponse.status >= 200 && cachedResponse.status < 300) {
@@ -752,13 +752,13 @@ export class FhirBatchQuery {
         } else {
           this.get(fullUrl, options).then(
             (response) => {
-              commonRequestCache.add(fullUrl, response, options).then(() => {
+              queryResponseCache.add(fullUrl, response, options).then(() => {
                 resolve(response);
               });
             },
             (error) => {
               (options.cacheErrors
-                ? commonRequestCache.add(fullUrl, error, options)
+                ? queryResponseCache.add(fullUrl, error, options)
                 : Promise.resolve()
               ).then(() => {
                 reject(error);

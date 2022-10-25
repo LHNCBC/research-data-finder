@@ -1,9 +1,9 @@
 /**
- * A class that encapsulates interaction with the request cache.
+ * A class that encapsulates interaction with the query response cache.
  */
-export class Cache {
-  // Temporary cache that will disappear when the page is reloaded
-  static temporaryCache = {};
+class QueryResponseCache {
+  // Temporary cache that will disappear when the page is reloaded.
+  temporaryCache = {};
 
   /**
    * Stores the response data for a URL in the persistent or temporary cache.
@@ -13,8 +13,8 @@ export class Cache {
    * @param {string} [options.cacheName] - cache name for persistent data storage
    *   between sessions, if not specified, saves response data in the temporary
    *   cache that will disappear when the page is reloaded.
-   * @param {number} [options.expirationTime] - expiration time for a cached
-   *   response in seconds.
+   * @param {number} [options.expirationTime] - the number of seconds the new
+   *   entry can be in the cache before expiring.
    * @returns Promise<void>
    */
   add(url, responseData, options) {
@@ -30,7 +30,7 @@ export class Cache {
         .open(options.cacheName)
         .then((c) => c.put(url, new Response(JSON.stringify(responseData))));
     } else {
-      Cache.temporaryCache[url] = responseData;
+      this.temporaryCache[url] = responseData;
       return Promise.resolve();
     }
   }
@@ -40,7 +40,7 @@ export class Cache {
    * @param {string} url - URL
    * @param {Object} [options] - additional options:
    * @param {string} [options.cacheName] - cache name for persistent data storage
-   *   between sessions, if not specified, saves response data in the temporary
+   *   between sessions, if not specified, gets response data from the temporary
    *   cache that will disappear when the page is reloaded.
    * @returns {Promise<{data: any, status: number}|undefined>}
    */
@@ -51,13 +51,15 @@ export class Cache {
             .match(url)
             .then((response) => response?.json())
             .then((responseData) => {
-              return Cache.isExpired(responseData)
+              return QueryResponseCache.isExpired(responseData)
                 ? cache.delete(url).then(() => undefined)
                 : responseData;
             });
         })
-      : Promise.resolve(Cache.temporaryCache[url]).then((responseData) => {
-          return Cache.isExpired(responseData) ? undefined : responseData;
+      : Promise.resolve(this.temporaryCache[url]).then((responseData) => {
+          return QueryResponseCache.isExpired(responseData)
+            ? undefined
+            : responseData;
         });
   }
 
@@ -88,7 +90,7 @@ export class Cache {
    * Clears temporary cache data.
    */
   clearTemporaryCache() {
-    Cache.temporaryCache = {};
+    this.temporaryCache = {};
   }
 
   /**
@@ -114,3 +116,5 @@ export class Cache {
     return this.clearPersistentCache();
   }
 }
+
+export default new QueryResponseCache();
