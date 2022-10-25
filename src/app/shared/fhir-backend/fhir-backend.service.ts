@@ -18,7 +18,7 @@ import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
 import { find } from 'lodash-es';
-import { filter, map } from 'rxjs/operators';
+import { filter, finalize, map } from 'rxjs/operators';
 import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
@@ -181,6 +181,12 @@ export class FhirBackendService implements HttpBackend {
   // Can't be injected inside HttpBackend.
   private http: HttpClient;
 
+  // Stores connection status set in initializeFhirBatchQuery(), instead of
+  // emitting it right away to this.initialized subject. It will be emitted
+  // after checkSmartOnFhirEnabled() is done, or values will be emitted from
+  // initializeSmartOnFhirConnection() instead if SMART on FHIR should connect.
+  private tmpConnectionStatus: ConnectionStatus;
+
   // Whether an authorization tag should be added to the url.
   private isAuthorizationRequiredForUrl(url: string): boolean {
     const regEx = new RegExp(`/(${RESOURCES_REQUIRING_AUTHORIZATION})`);
@@ -196,6 +202,17 @@ export class FhirBackendService implements HttpBackend {
     this.smartOnFhirEnabledSubscription?.unsubscribe();
     this.smartOnFhirEnabledSubscription = this.http
       .get(`${url}/.well-known/smart-configuration`)
+      .pipe(
+        finalize(() => {
+          // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
+          if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
+            this.initializeSmartOnFhirConnection();
+          } else {
+            // Otherwise, emit the connection status from initializeFhirBatchQuery().
+            this.initialized.next(this.tmpConnectionStatus);
+          }
+        })
+      )
       .subscribe(
         () => {
           this.isSmartOnFhirEnabled = true;
@@ -206,12 +223,6 @@ export class FhirBackendService implements HttpBackend {
         },
         () => {
           this.isSmartOnFhirEnabled = false;
-        },
-        () => {
-          // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
-          if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
-            this.initializeSmartOnFhirConnection();
-          }
         }
       );
   }
@@ -267,38 +278,36 @@ export class FhirBackendService implements HttpBackend {
     );
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
-    this.fhirClient
-      .initialize(serviceBaseUrl)
-      .then(
-        () => {
-          // Load definitions of search parameters and columns from CSV file
-          this.settings.loadCsvDefinitions().subscribe(
-            (resourceDefinitions) => {
-              this.currentDefinitions = { resources: resourceDefinitions };
-              this.fhirClient.setMaxRequestsPerBatch(
-                this.settings.get('maxRequestsPerBatch')
-              );
-              this.fhirClient.setMaxActiveRequests(
-                this.settings.get('maxActiveRequests')
-              );
-              this.initialized.next(ConnectionStatus.Ready);
-            },
-            (err) => {
-              if (!(err instanceof HttpErrorResponse)) {
-                // Show exceptions from loadCsvDefinitions in console
-                console.error(err.message);
-              }
-              this.initialized.next(ConnectionStatus.Error);
+    this.fhirClient.initialize(serviceBaseUrl).then(
+      () => {
+        // Load definitions of search parameters and columns from CSV file
+        this.settings.loadCsvDefinitions().subscribe(
+          (resourceDefinitions) => {
+            this.currentDefinitions = { resources: resourceDefinitions };
+            this.fhirClient.setMaxRequestsPerBatch(
+              this.settings.get('maxRequestsPerBatch')
+            );
+            this.fhirClient.setMaxActiveRequests(
+              this.settings.get('maxActiveRequests')
+            );
+            this.tmpConnectionStatus = ConnectionStatus.Ready;
+            this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
+          },
+          (err) => {
+            if (!(err instanceof HttpErrorResponse)) {
+              // Show exceptions from loadCsvDefinitions in console
+              console.error(err.message);
             }
-          );
-        },
-        () => {
-          this.initialized.next(ConnectionStatus.Error);
-        }
-      )
-      .finally(() => {
+            this.tmpConnectionStatus = ConnectionStatus.Error;
+            this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
+          }
+        );
+      },
+      () => {
+        this.tmpConnectionStatus = ConnectionStatus.Error;
         this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
-      });
+      }
+    );
   }
 
   /**
