@@ -23,7 +23,8 @@ export class RasTokenCallbackComponent implements OnInit {
     const encodedTstToken = getUrlParam('tst-token');
     this.http
       .get(
-        `${window.location.protocol}//${window.location.hostname}:8110/tst-return/?tst-token=${encodedTstToken}`
+        `${window.location.protocol}//${window.location.hostname}:8110/tst-return/?tst-token=${encodedTstToken}`,
+        { withCredentials: true }
       )
       .subscribe(
         (data) => {
