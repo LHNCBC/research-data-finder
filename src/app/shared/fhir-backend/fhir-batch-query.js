@@ -722,8 +722,8 @@ export class FhirBatchQuery {
    * @param {null|string} [options.cacheName] - if specified, then sets the name
    *   for the cache in "window.caches", otherwise a javascript variable is
    *   used as a temporary cache.
-   * @param {number} [options.expirationTime] - expiration time for a cached
-   *   response in seconds.
+   * @param {number} [options.expirationTime] - the number of seconds the new
+   *   entry can be in the cache before expiring.
    * @param {boolean} [options.cacheErrors] - whether to cache error responses,
    *   false by default.
    * @return {Promise} resolves/rejects with Object {status, data}, where
