@@ -1,9 +1,9 @@
 {
-  "/dbgap-login-portal": {
+  "/rdf-server": {
     "target": "http://localhost:8110",
     "secure": false,
     "pathRewrite": {
-      "^/dbgap-login-portal": "/login"
+      "^/rdf-server": ""
     },
     "logLevel": "debug"
   }
