@@ -356,7 +356,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       !this.rasToken.rasTokenValidated
     ) {
       sessionStorage.setItem(
-        'dbGapRasLoginServer',
+        'dbgapRasLoginServer',
         this.fhirBackend.serviceBaseUrl
       );
       // Store user's selection so it can be restored after successful RAS connection.

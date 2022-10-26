@@ -31,8 +31,9 @@ export class RasTokenCallbackComponent implements OnInit {
           console.log(data);
           this.error = null;
           this.rasToken.rasTokenValidated = true;
+          sessionStorage.setItem('dbgapTstToken', data['message']['tst']);
           this.fhirBackend.serviceBaseUrl = sessionStorage.getItem(
-            'dbGapRasLoginServer'
+            'dbgapRasLoginServer'
           );
           this.router.navigate(['/'], {
             queryParams: {
