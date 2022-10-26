@@ -1,0 +1,70 @@
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 10,
+  "link": [
+    {
+      "relation": "next",
+      "url": "https://someDefaultURL/next-observations-by-code-phv00492025.v1.p1.json"
+    }
+  ],
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "492025-3635505-0",
+        "code": {
+          "coding": [
+            {
+              "code": "phv00492025.v1.p1",
+              "display": "age_onset"
+            },
+            {
+              "system": "https://loinc.org/",
+              "code": "11368-8",
+              "display": "Illness or injury onset date and time"
+            },
+            {
+              "system": "https://loinc.org/",
+              "code": "63909-6",
+              "display": "Pre-existing condition Y PhenX"
+            },
+            {
+              "system": "https://loinc.org/",
+              "code": "64198-5",
+              "display": "Asthma start age PhenX"
+            },
+            {
+              "code": "PX070801270200",
+              "display": "Asthma Year"
+            },
+            {
+              "code": "PX090901140400",
+              "display": "Asthma Start Age"
+            },
+            {
+              "code": "PX161301010403",
+              "display": "Asthma Date Of Onset Year"
+            },
+            {
+              "code": "PX161602010403",
+              "display": "Asthma Date Of Onset Year"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/3635505"
+        },
+        "valueQuantity": {
+          "value": 4,
+          "unit": "years",
+          "system": "http://unitsofmeasure.org",
+          "code": "a"
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 3,
+  "link": [
+    {
+      "relation": "next",
+      "url": "https://someDefaultURL/next-observations-by-code-phv00492021.v1.p1.json"
+    }
+  ],
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "492021-3635299-0",
+        "code": {
+          "coding": [
+            {
+              "code": "phv00492021.v1.p1",
+              "display": "case_control"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/3635299"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "2",
+              "display": "case"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    }
+  ]
+}
