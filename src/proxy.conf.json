@@ -1,6 +1,6 @@
 {
   "/rdf-server": {
-    "target": "http://localhost:8110",
+    "target": "http://localhost:8111",
     "secure": false,
     "pathRewrite": {
       "^/rdf-server": ""
