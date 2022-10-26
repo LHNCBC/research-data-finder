@@ -51,6 +51,7 @@
           },
           "configurations": {
             "production": {
+              "baseHref": "/fhir/research-data-finder/",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
