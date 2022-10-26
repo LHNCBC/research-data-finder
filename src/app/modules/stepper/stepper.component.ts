@@ -361,7 +361,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
       );
       // Store user's selection so it can be restored after successful RAS connection.
       sessionStorage.setItem('selectedCreateCohortMode', createCohortModeValue);
-      // Contact rdf-server for RAS login. '/dbgap-login-portal' is proxy forwarded
+      // Contact rdf-server for RAS login. '/rdf-server' queries are proxy forwarded
       // to rdf-server (see src/proxy.conf.json).
       window.location.href = `${window.location.origin}/rdf-server/login`;
     } else {
