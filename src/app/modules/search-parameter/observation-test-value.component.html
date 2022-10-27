@@ -51,11 +51,20 @@
 
     <mat-form-field *ngIf="typeDescriptions[selectedDatatype].unit" class="unit">
       <mat-label>Test value unit</mat-label>
-      <app-observation-test-value-units
-          formControlName="testValueUnit"
-          [loincCodes]="loincCodes"
-          placeholder="unit code">
-      </app-observation-test-value-units>
+      <ng-container [ngSwitch]="unitList?.length > 0 ? 1 : unitList?.length === 0 ? 2 : 3">
+        <app-autocomplete
+            *ngSwitchCase="1"
+            [matchListValue]="false"
+            [options]="unitList"
+            formControlName="testValueUnit"></app-autocomplete>
+        <input matInput type="text" readonly *ngSwitchCase="2" value="{{form.get('testValueUnit').value || 'Unknown unit'}}">
+        <app-observation-test-value-units
+            *ngSwitchDefault
+            formControlName="testValueUnit"
+            [loincCodes]="loincCodes"
+            placeholder="unit code">
+        </app-observation-test-value-units>
+      </ng-container>
     </mat-form-field>
   </div>
 </form>
