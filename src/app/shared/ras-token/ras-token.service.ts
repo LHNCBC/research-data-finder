@@ -8,4 +8,11 @@ import { Injectable } from '@angular/core';
 })
 export class RasTokenService {
   public rasTokenValidated = false;
+
+  constructor() {
+    // If user is logged in and refreshes the page, we keep the login state.
+    if (sessionStorage.getItem('dbgapTstToken')) {
+      this.rasTokenValidated = true;
+    }
+  }
 }
