@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.1.3] - 2022-10-28
+### Changed
+- Added caching of response to a query for the full list of ResearchStudies.
+
 ## [5.1.2] - 2022-10-24
 ### Changed
 - Added caching of responses to initialization requests when selecting the FHIR
