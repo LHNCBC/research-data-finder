@@ -20,20 +20,16 @@
       <p class="info" *ngIf="resourceType === 'Variable'">
         <span class="info-icon" aria-hidden="true"></span>
         Select variables to add to the cart. The list of variables is limited to studies added to the cart.</p>
-
-      <app-resource-table *ngIf="resourceType !== 'Variable' && selectRecords.currentState[resourceType]"
+      <app-resource-table *ngIf="resourceType === 'ResearchStudy' && selectRecords.currentState[resourceType]"
                           #resourceTable
                           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'select') | async"
-                          (filterChanged)="loadFirstPage(resourceType)"
                           [enableFiltering]="true" [enableSelection]="true"
                           [loading]="selectRecords.currentState[resourceType].loading"
                           [resources]="selectRecords.resourceStream[resourceType] | async"
-                          (loadNextPage)="loadNextPage(resourceType)"
                           (selectionChange)="onSelectionChange(resourceType)"
                           [selectAny]="true"
                           context="select"
                           [sort]="sort[resourceType]"
-                          (sortChanged)="onSortChanged(resourceType, $event)"
                           checkboxTooltipText="Select this study to add it to the cart"
                           [resourceType]="resourceType">
         <ng-template #prefix>
@@ -47,6 +43,48 @@
             </mat-radio-group>
             <div class="spacer"></div>
           </div>
+        </ng-template>
+        <ng-template #buttonPrefix *ngIf="!showOnlyStudiesWithSubjects">
+          <button mat-mini-fab
+                  class="reload-btn"
+                  color="basic"
+                  type="button" mat-icon-button
+                  *ngIf="resourceTable.context === 'browse' || resourceTable.context==='select'"
+                  (click)="reloadFromServer(resourceType)"
+                  matTooltip="Reload records from server">
+            <mat-icon svgIcon="refresh"></mat-icon>
+          </button>
+        </ng-template>
+        <ng-template #header>
+          <mat-accordion>
+            <mat-expansion-panel hideToggle #panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
+                    <span>Selected {{
+                      resourceTable.selectedResources.selected.length
+                      }} out of {{
+                      resourceTable.dataSource.data.length
+                      }} {{
+                      getPluralFormOfRecordName(resourceType)
+                      }}.</span>
+                </mat-panel-title>
+                <mat-panel-description *ngIf="(selectRecords.currentState[resourceType].isCached | async) !== null">
+                  <span *ngIf="resourceTable.loading; else loadedTemplate">
+                    <span>Loading studies {{
+                      (selectRecords.currentState[resourceType].isCached | async)
+                        ? 'from cache ...'
+                        : 'from server...' + (showOnlyStudiesWithSubjects ? '' : ' It may take a long time.')
+                      }}</span>
+                  </span>
+                  <ng-template #loadedTemplate>
+                    Data loaded from server on {{
+                    selectRecords.currentState[resourceType].loadTime | date: 'short'
+                    }}
+                  </ng-template>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+            </mat-expansion-panel>
+          </mat-accordion>
         </ng-template>
       </app-resource-table>
       <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState[resourceType]"

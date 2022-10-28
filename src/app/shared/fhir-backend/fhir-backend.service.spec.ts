@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { FhirBackendService } from './fhir-backend.service';
+import { CACHE_NAME, FhirBackendService } from './fhir-backend.service';
 import { FhirBackendModule } from './fhir-backend.module';
 import { FhirBatchQuery } from './fhir-batch-query';
 import {
   HttpClient,
   HttpClientModule,
+  HttpContext,
   HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
@@ -109,7 +110,8 @@ describe('FhirBackendService', () => {
       expect(FhirBatchQuery.prototype.getWithCache).toHaveBeenCalledWith(
         service.serviceBaseUrl + '/some_related_url',
         {
-          combine: true
+          combine: true,
+          cacheName: ''
         }
       );
       done();
@@ -122,7 +124,8 @@ describe('FhirBackendService', () => {
       expect(FhirBatchQuery.prototype.getWithCache).toHaveBeenCalledWith(
         service.serviceBaseUrl + '?some_params',
         {
-          combine: false
+          combine: false,
+          cacheName: ''
         }
       );
       done();
@@ -141,5 +144,23 @@ describe('FhirBackendService', () => {
       );
       done();
     });
+  });
+
+  it('should pass cacheName with serverBaseUrl as suffix', (done) => {
+    httpClient
+      .get('$fhir/some_related_url', {
+        context: new HttpContext().set(CACHE_NAME, 'some-cache-name')
+      })
+      .subscribe((response) => {
+        expect(response).toBe(responseFromFhirBatchQueryCache.data);
+        expect(FhirBatchQuery.prototype.getWithCache).toHaveBeenCalledWith(
+          service.serviceBaseUrl + '/some_related_url',
+          {
+            combine: true,
+            cacheName: 'some-cache-name-https://lforms-fhir.nlm.nih.gov/baseR4'
+          }
+        );
+        done();
+      });
   });
 });

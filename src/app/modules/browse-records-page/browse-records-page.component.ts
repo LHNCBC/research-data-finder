@@ -6,6 +6,7 @@ import {
   ViewChild
 } from '@angular/core';
 import {
+  CACHE_NAME,
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
@@ -19,7 +20,7 @@ import { SelectRecordsService } from '../../shared/select-records/select-records
 import { Sort } from '@angular/material/sort';
 import { getPluralFormOfRecordName } from '../../shared/utils';
 import { ResourceTableParentComponent } from '../resource-table-parent.component';
-import { omit } from 'lodash-es';
+import { HttpContext } from '@angular/common/http';
 
 /**
  * Component for browsing public data (ResearchStudies and Variables).
@@ -195,19 +196,6 @@ export class BrowseRecordsPageComponent
   }
 
   /**
-   * Returns the URL parameter for sorting.
-   * @param resourceType - resource type.
-   */
-  getSortParam(resourceType: string): string {
-    const sort = this.sort[resourceType];
-    if (!sort) {
-      return '';
-    }
-    // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-    return `_sort=${sort.direction === 'asc' ? '-' : ''}${sort.active}`;
-  }
-
-  /**
    * Loads the first page of the specified resource type.
    * @param resourceType - resource type.
    */
@@ -215,18 +203,29 @@ export class BrowseRecordsPageComponent
     if (resourceType === 'Variable') {
       this.loadVariables();
     } else {
-      const sortParam = this.getSortParam(resourceType);
-      const filterValues = this.resourceTable?.filtersForm.value || {};
-      const params = {};
-      if (filterValues.title) {
-        params['title:contains'] = filterValues.title;
-      }
+      const cacheName = 'studies';
       this.selectRecords.loadFirstPage(
         resourceType,
-        `$fhir/${resourceType}?_count=50${sortParam ? '&' + sortParam : ''}`,
-        params
+        `$fhir/${resourceType}?_count=3000`,
+        {
+          context: new HttpContext().set(CACHE_NAME, cacheName)
+        }
       );
-      this.resourceTable?.setClientFilter(omit(filterValues, 'title'));
+    }
+  }
+
+  /**
+   * Reloads records of the specified resource type from server.
+   * @param resourceType - resource type.
+   */
+  reloadFromServer(resourceType: string): void {
+    if (resourceType === 'Variable') {
+      this.loadFirstPage(resourceType);
+    } else {
+      const cacheName = 'studies';
+      this.fhirBackend.clearCacheByName(cacheName).then(() => {
+        this.loadFirstPage(resourceType);
+      });
     }
   }
 

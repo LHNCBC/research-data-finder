@@ -64,6 +64,27 @@ class QueryResponseCache {
   }
 
   /**
+   * Whether cached response data exists for the URL and has not expired.
+   * @param {string} url - URL
+   * @param {string} [cacheName] - cache name for persistent data storage
+   *   between sessions, if not specified, gets response data from the temporary
+   *   cache that will disappear when the page is reloaded.
+   * @returns {Promise<boolean>}
+   */
+  hasNotExpiredData(url, cacheName) {
+    return (cacheName
+      ? caches
+          .open(cacheName)
+          .then((cache) =>
+            cache.match(url).then((response) => response?.json())
+          )
+      : Promise.resolve(this.temporaryCache[url])
+    ).then((responseData) => {
+      return !!responseData && !QueryResponseCache.isExpired(responseData);
+    });
+  }
+
+  /**
    * Returns true if cached data is expired
    * @param responseData - cached data response data
    * @returns {boolean}

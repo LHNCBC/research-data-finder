@@ -57,7 +57,7 @@ describe('BrowseRecordsPageComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     mockHttp
-      .expectOne('$fhir/ResearchStudy?_count=50&_sort=title')
+      .expectOne('$fhir/ResearchStudy?_count=3000')
       .flush(researchStudies);
   }
 

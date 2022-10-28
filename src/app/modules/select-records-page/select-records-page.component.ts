@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import {
+  CACHE_NAME,
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
@@ -24,10 +25,10 @@ import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { omit } from 'lodash-es';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
+import { HttpContext } from '@angular/common/http';
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -253,19 +254,6 @@ export class SelectRecordsPageComponent
   }
 
   /**
-   * Returns the URL parameter for sorting.
-   * @param resourceType - resource type.
-   */
-  getSortParam(resourceType: string): string {
-    const sort = this.sort[resourceType];
-    if (!sort) {
-      return '';
-    }
-    // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-    return `_sort=${sort.direction === 'asc' ? '-' : ''}${sort.active}`;
-  }
-
-  /**
    * Loads the first page of the specified resource type.
    * @param resourceType - resource type.
    */
@@ -273,12 +261,7 @@ export class SelectRecordsPageComponent
     if (resourceType === 'Variable') {
       this.loadVariables();
     } else {
-      const sortParam = this.getSortParam(resourceType);
-      const filterValues = this.resourceTable?.filtersForm.value || {};
-      const params = {};
-      if (filterValues.title) {
-        params['title:contains'] = filterValues.title;
-      }
+      const cacheName = this.showOnlyStudiesWithSubjects ? '' : 'studies';
       const hasStatuses = this.showOnlyStudiesWithSubjects
         ? '&_has:ResearchSubject:study:status=' +
           Object.keys(
@@ -289,12 +272,26 @@ export class SelectRecordsPageComponent
         : '';
       this.selectRecords.loadFirstPage(
         resourceType,
-        `$fhir/${resourceType}?_count=50${hasStatuses}${
-          sortParam ? '&' + sortParam : ''
-        }`,
-        params
+        `$fhir/${resourceType}?_count=3000${hasStatuses}`,
+        {
+          context: new HttpContext().set(CACHE_NAME, cacheName)
+        }
       );
-      this.resourceTable?.setClientFilter(omit(filterValues, 'title'));
+    }
+  }
+
+  /**
+   * Reloads records of the specified resource type from server.
+   * @param resourceType - resource type.
+   */
+  reloadFromServer(resourceType: string): void {
+    if (resourceType === 'Variable') {
+      this.loadFirstPage(resourceType);
+    } else {
+      const cacheName = this.showOnlyStudiesWithSubjects ? '' : 'studies';
+      this.fhirBackend.clearCacheByName(cacheName).then(() => {
+        this.loadFirstPage(resourceType);
+      });
     }
   }
 
