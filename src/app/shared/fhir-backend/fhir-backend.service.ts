@@ -397,6 +397,12 @@ export class FhirBackendService implements HttpBackend {
                 );
                 observer.complete();
               },
+              // In case of failure due to expired TST token sent to dbGaP, we should
+              // probably log out and user can log back in.
+              // According to Eric, dbGaP query will return a 400. Hopefully it should
+              // come with some error message indicating the expired TST token so we can
+              // distinguish this case with others, but we'll have to wait until it's
+              // implemented in dbGaP.
               ({ status, error }) =>
                 observer.error(
                   new HttpErrorResponse({
