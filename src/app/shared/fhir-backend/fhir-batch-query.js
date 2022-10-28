@@ -532,6 +532,13 @@ export class FhirBatchQuery {
         oReq.setRequestHeader('Content-Type', contentType);
       }
 
+      if (this._isDbgap && method === 'GET') {
+        const token = sessionStorage.getItem('dbgapTstToken');
+        if (token) {
+          oReq.setRequestHeader('Authorization', 'Bearer ' + token);
+        }
+      }
+
       oReq.send(body);
       this._activeReq.push(oReq);
     });
