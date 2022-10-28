@@ -346,10 +346,11 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Contact ref-server for dbGap login, if required.
+   * Contact rdf-server for dbGap login, if required.
    */
   onSelectAnActionNext(createCohortModeValue: CreateCohortMode): void {
     if (
+      this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl) &&
       [CreateCohortMode.BROWSE, CreateCohortMode.SEARCH].includes(
         createCohortModeValue
       ) &&
