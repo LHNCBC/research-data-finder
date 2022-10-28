@@ -396,4 +396,11 @@ export class FhirBackendService implements HttpBackend {
     const urlPattern = this.settings.getDbgapUrlPattern();
     return new RegExp(urlPattern).test(url);
   }
+
+  /**
+   * Clears cache data.
+   */
+  clearCache(): void {
+    FhirBatchQuery.clearCache();
+  }
 }
