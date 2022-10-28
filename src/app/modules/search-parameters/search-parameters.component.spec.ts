@@ -7,6 +7,7 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { configureTestingModule } from 'src/test/helpers';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('SearchParametersComponent', () => {
   let component: SearchParametersComponent;
@@ -16,7 +17,7 @@ describe('SearchParametersComponent', () => {
   beforeEach(async () => {
     await configureTestingModule({
       declarations: [SearchParametersComponent],
-      imports: [SearchParametersModule],
+      imports: [SearchParametersModule, RouterTestingModule],
       providers: [ErrorManager]
     });
     fhirBackend = TestBed.inject(FhirBackendService);

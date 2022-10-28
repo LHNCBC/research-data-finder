@@ -4,3 +4,7 @@
     class="mat-input-element"
     #input
     [placeholder]="shouldLabelFloat ? placeholder : ''">
+<mat-checkbox id="smartOnFhir" *ngIf="fhirBackend.isSmartOnFhirEnabled"
+              [ngModel]="fhirBackend.isSmartOnFhir" (change)="onSmartOnFhirClick($event.checked)">
+  connect with SMART on FHIR
+</mat-checkbox>

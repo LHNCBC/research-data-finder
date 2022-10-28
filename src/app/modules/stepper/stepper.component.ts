@@ -138,6 +138,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     this.subscription = this.fhirBackend.initialized.subscribe((status) => {
       if (status === ConnectionStatus.Disconnect) {
         this.stepper.steps.forEach((s) => s.reset());
+        this.stepper.selectedIndex = Step.SETTINGS;
       } else if (status === ConnectionStatus.Ready) {
         this.allowChangeCreateCohortMode =
           getUrlParam('alpha-version') === 'enable' &&

@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.1.2] - 2022-10-27
+### Added
+- Option to launch a SMART on FHIR connection.
+
 ## [5.1.1] - 2022-10-14
 ### Added
 - Search for patients by records in the cart.
