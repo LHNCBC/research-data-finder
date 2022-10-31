@@ -1,0 +1,39 @@
+{
+  "resourceType": "Bundle",
+  "id": "07c62a30-6008-42d6-8631-c5515e507b15",
+  "meta": {
+    "lastUpdated": "2022-10-14T17:19:23.334-04:00"
+  },
+  "type": "searchset",
+  "total": 7,
+  "link": [
+    {
+      "relation": "next",
+      "url": "https://someDefaultURL/next-observations-by-code-phv00492024.v1.p1.json"
+    }
+  ],
+  "entry": [ {
+    "resource": {
+      "resourceType": "Observation",
+      "id": "492024-3635379-0",
+      "code": {
+        "coding": [ {
+          "code": "phv00492024.v1.p1",
+          "display": "age_baseline"
+        } ]
+      },
+      "subject": {
+        "reference": "Patient/3635379"
+      },
+      "valueQuantity": {
+        "value": 9.1,
+        "unit": "years",
+        "system": "http://unitsofmeasure.org",
+        "code": "a"
+      }
+    },
+    "search": {
+      "mode": "match"
+    }
+  } ]
+}

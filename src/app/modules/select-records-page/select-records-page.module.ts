@@ -13,6 +13,7 @@ import { CartModule } from '../cart/cart.module';
 import { SearchParameterGroupModule } from '../search-parameter-group/search-parameter-group.module';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
+import { FormControlCollectorModule } from '../../shared/error-manager/form-control-collector.module';
 
 @NgModule({
   declarations: [SelectRecordsPageComponent],
@@ -31,7 +32,8 @@ import { MatRadioModule } from '@angular/material/radio';
     SearchParameterGroupModule,
     MatCheckboxModule,
     FormsModule,
-    MatRadioModule
+    MatRadioModule,
+    FormControlCollectorModule
   ]
 })
 export class SelectRecordsPageModule {}

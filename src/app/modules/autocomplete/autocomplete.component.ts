@@ -4,6 +4,7 @@ import {
   ElementRef,
   HostListener,
   Input,
+  OnDestroy,
   Optional,
   Self,
   ViewChild
@@ -14,6 +15,7 @@ import { AbstractControl, FormControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import Def from 'autocomplete-lhc';
+import { find } from 'lodash-es';
 
 /**
  * Autocomplete option can have display name, value and description.
@@ -44,7 +46,7 @@ export type AutocompleteOption =
 })
 export class AutocompleteComponent
   extends BaseControlValueAccessor<string>
-  implements AfterViewInit, MatFormFieldControl<string> {
+  implements AfterViewInit, MatFormFieldControl<string>, OnDestroy {
   get value(): string {
     return this.currentData;
   }
@@ -107,10 +109,13 @@ export class AutocompleteComponent
   @Input() options: AutocompleteOption[] = [];
   @Input() placeholder = '';
   @Input() isRecordType = false;
+  @Input() matchListValue = true;
 
   ngControl: NgControl = null;
   // Autocompleter instance
   acInstance: any;
+  // Callback to handle changes
+  listSelectionsObserver: (eventData: any) => void;
   inputId = AutocompleteComponent.idPrefix + ++AutocompleteComponent.idIndex;
   currentData = '';
   // Reference to the <input> element
@@ -163,6 +168,31 @@ export class AutocompleteComponent
   }
 
   /**
+   * Performs cleanup when a component instance is destroyed.
+   */
+  ngOnDestroy(): void {
+    if (this.acInstance) {
+      this.acInstance.destroy();
+      Def.Autocompleter.Event.removeCallback(
+        this.inputId,
+        'LIST_SEL',
+        this.listSelectionsObserver
+      );
+      this.acInstance = null;
+    }
+  }
+
+  /**
+   * Updates the text in the input field.
+   */
+  updateInputFieldText(): void {
+    const option = find(this.options, { value: this.currentData });
+    this.acInstance.setFieldToListValue(
+      option ? option.name : this.currentData
+    );
+  }
+
+  /**
    * Set up Autocomplete prefetch options.
    */
   setupAutocomplete(): void {
@@ -171,21 +201,23 @@ export class AutocompleteComponent
       this.options.map((o) => AutocompleteComponent.getOptionText(o)),
       {
         codes: this.options.map((o) => AutocompleteComponent.getOptionValue(o)),
-        matchListValue: true,
+        matchListValue: this.matchListValue,
         formattedListItems: this.options.map((o) =>
           AutocompleteComponent.getOptionDesc(o)
         )
       }
     );
-    this.acInstance.setFieldToListValue(this.currentData);
+    this.updateInputFieldText();
+    this.listSelectionsObserver = (eventData) => {
+      const { final_val, on_list, item_code } = eventData;
+      if (!final_val || on_list || !this.matchListValue) {
+        this.currentData = item_code || final_val;
+        this.onChange(this.currentData);
+      }
+    };
     Def.Autocompleter.Event.observeListSelections(
       this.inputId,
-      ({ final_val, on_list }) => {
-        if (on_list) {
-          this.currentData = final_val;
-          this.onChange(final_val);
-        }
-      }
+      this.listSelectionsObserver
     );
   }
 
@@ -197,7 +229,7 @@ export class AutocompleteComponent
   writeValue(value: string): void {
     this.currentData = value || '';
     if (this.acInstance) {
-      this.acInstance.setFieldToListValue(this.currentData);
+      this.updateInputFieldText();
     }
   }
 

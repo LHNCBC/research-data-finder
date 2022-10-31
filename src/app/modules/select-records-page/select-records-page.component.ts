@@ -25,6 +25,9 @@ import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { omit } from 'lodash-es';
+import { CohortService } from '../../shared/cohort/cohort.service';
+import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
+import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -47,7 +50,12 @@ export class SelectRecordsPageComponent
   subscriptions: Subscription[] = [];
   @ViewChild('resourceTable') resourceTable: ResourceTableComponent;
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
-  maxPatientsNumber = new FormControl('100', Validators.required);
+  @ViewChild('additionalCriteria')
+  additionalCriteria: SearchParameterGroupComponent;
+  maxPatientsNumber = new FormControl(
+    this.cohort.maxPatientCount,
+    Validators.required
+  );
   hasLoinc = false;
   showOnlyStudiesWithSubjects = true;
   recTypeLoinc = false;
@@ -74,6 +82,8 @@ export class SelectRecordsPageComponent
     public columnDescriptions: ColumnDescriptionsService,
     public selectRecords: SelectRecordsService,
     private liveAnnouncer: LiveAnnouncer,
+    private errorManager: ErrorManager,
+    public cohort: CohortService,
     public cart: CartService
   ) {
     super();
@@ -300,5 +310,114 @@ export class SelectRecordsPageComponent
     } else {
       this.selectRecords.loadNextPage(resourceType);
     }
+  }
+
+  /**
+   * Checks for errors
+   */
+  hasErrors(): boolean {
+    return this.errorManager.errors !== null;
+  }
+
+  /**
+   * Shows errors for existing formControls
+   */
+  showErrors(): void {
+    this.errorManager.showErrors();
+  }
+
+  /**
+   * Converts a variable list item or a group of list items from the cart into criteria
+   * for searching patients.
+   * @param item - a list item of the cart of variables.
+   */
+  convertListItemToCriteria(
+    item: any /*ListItem*/
+  ): Criteria | ResourceTypeCriteria {
+    if (Array.isArray(item)) {
+      return {
+        condition: 'or',
+        rules: item.map((i) => this.convertListItemToCriteria(i))
+      };
+    } else {
+      return {
+        condition: 'and',
+        rules: [
+          {
+            field: {
+              element: 'code text',
+              value: '',
+              selectedObservationCodes: {
+                coding: [
+                  {
+                    code: item.id,
+                    system: ''
+                  }
+                ],
+                datatype: this.cart.getVariableType(item),
+                // TODO: get from loaded variable?
+                items: [item.display_name]
+              }
+            }
+          },
+          ...(this.cart.variableData[item.id].value &&
+          this.cart.variableData[item.id].value.testValue !== null &&
+          this.cart.variableData[item.id].value.testValue !== ''
+            ? [
+                {
+                  field: {
+                    element: 'observation value',
+                    value: this.cart.variableData[item.id].value
+                  }
+                }
+              ]
+            : [])
+        ],
+        resourceType: 'Observation'
+      };
+    }
+  }
+
+  /**
+   * Searches for a list of Patient resources that match the records in the cart.
+   */
+  searchForPatients(): void {
+    const additionalCriteria: ResourceTypeCriteria = {
+      condition: 'and',
+      resourceType: 'Patient',
+      rules: this.additionalCriteria
+        .getSearchParamValues()
+        .map((v) => ({ field: v }))
+    };
+
+    const variableCriteria: Criteria = {
+      condition: this.cart.logicalOperator['Variable'],
+      rules:
+        this.cart
+          .getListItems('Variable')
+          ?.map((i) => this.convertListItemToCriteria(i)) || []
+    };
+
+    const criteria: Criteria = additionalCriteria.rules.length
+      ? variableCriteria.condition === 'and'
+        ? {
+            condition: 'and',
+            rules: variableCriteria.rules.concat(additionalCriteria)
+          }
+        : {
+            condition: 'and',
+            rules: [additionalCriteria, variableCriteria]
+          }
+      : variableCriteria;
+
+    this.cohort.searchForPatients(
+      criteria,
+      this.maxPatientsNumber.value,
+      this.cart.getListItems('Variable')?.length
+        ? null
+        : []
+            .concat(...(this.cart.getListItems('ResearchStudy') || []))
+            .map((r) => r.id)
+    );
   }
 }
