@@ -25,7 +25,6 @@ import { SelectRecordsService } from '../../shared/select-records/select-records
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { SelectRecordsPageComponent } from '../select-records-page/select-records-page.component';
 import { SelectAnActionComponent } from '../select-an-action/select-an-action.component';
-import { environment } from '../../../environments/environment';
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -84,6 +83,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     // Visibility condition
     isVisible: () => boolean;
   }> = [];
+
+  // Temporarily disable RAS until it's approved.
+  enableRas = false;
 
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
@@ -360,8 +362,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    */
   onSelectAnActionNext(createCohortModeValue: CreateCohortMode): void {
     if (
-      // Temporarily disable RAS flow until it's complete and approved.
-      !environment.production &&
+      this.enableRas &&
       [CreateCohortMode.BROWSE, CreateCohortMode.SEARCH].includes(
         createCohortModeValue
       ) &&
