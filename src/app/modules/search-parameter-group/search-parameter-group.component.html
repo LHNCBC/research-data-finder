@@ -19,10 +19,14 @@
           (click)='removeParameter(item)'>
     <mat-icon svgIcon='clear'></mat-icon>
   </button>
-  <app-search-parameter [formControl]='item' [resourceType]='resourceType.value' [isPullData]='!allowAddRemoveButtons'></app-search-parameter>
+  <app-search-parameter
+      [formControl]="item"
+      [selectedSearchParameterNames]="selectedSearchParameterNames"
+      [resourceType]="resourceType.value"
+      [isPullData]="!allowAddRemoveButtons"></app-search-parameter>
 </div>
 
-<button *ngIf='allowAddRemoveButtons && resourceType.disabled'
+<button *ngIf="allowAddRemoveButtons && resourceType.disabled && maxNumberOfSearchParameters > parameterList.controls.length"
         id='addSearchCriterion'
         type='button'
         (click)='addParameter()'

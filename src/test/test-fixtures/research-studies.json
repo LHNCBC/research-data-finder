@@ -2,49 +2,18 @@
   "resourceType": "Bundle",
   "type": "searchset",
   "total": 2,
-  "link": [],
   "entry": [
     {
       "resource": {
         "resourceType": "ResearchStudy",
-        "id": "phs001603.v1.p1",
-        "title": "TOPMed: CHS Integrative Genomics and Environmental Research of Asthma (IGERA)",
+        "id": "phs002410",
+        "title": "FHIR Test Study BETA",
         "status": "completed",
         "category": [
           {
             "coding": [
               {
-                "display": "Case-Control"
-              }
-            ],
-            "text": "Case-Control"
-          }
-        ],
-        "focus": [
-          {
-            "coding": [
-              {
-                "display": "Asthma"
-              }
-            ],
-            "text": "Asthma"
-          }
-        ]
-      },
-      "search": {
-        "mode": "match"
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "ResearchStudy",
-        "id": "phs000007.v32.p13",
-        "title": "Framingham Cohort",
-        "status": "completed",
-        "category": [
-          {
-            "coding": [
-              {
+                "code": "Prospective Longitudinal Cohort",
                 "display": "Prospective Longitudinal Cohort"
               }
             ],
@@ -55,12 +24,56 @@
           {
             "coding": [
               {
-                "display": "Cardiovascular Diseases"
+                "code": "D006333",
+                "display": "Heart Failure"
               }
             ],
-            "text": "Cardiovascular Diseases"
+            "text": "Heart Failure"
           }
-        ]
+        ],
+        "sponsor": {
+          "reference": "Organization/NLM",
+          "type": "Organization",
+          "display": "National Library of Medicine"
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ResearchStudy",
+        "id": "phs002409",
+        "title": "FHIR Test Study&#x27;s ALPHA",
+        "status": "completed",
+        "category": [
+          {
+            "coding": [
+              {
+                "code": "Case-Control",
+                "display": "Case-Control"
+              }
+            ],
+            "text": "Case-Control"
+          }
+        ],
+        "focus": [
+          {
+            "coding": [
+              {
+                "code": "D001249",
+                "display": "Asthma"
+              }
+            ],
+            "text": "Asthma"
+          }
+        ],
+        "sponsor": {
+          "reference": "Organization/NLM",
+          "type": "Organization",
+          "display": "National Library of Medicine"
+        }
       },
       "search": {
         "mode": "match"

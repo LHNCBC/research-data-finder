@@ -10,6 +10,7 @@ import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
+import { AutocompleteOption } from '../autocomplete/autocomplete.component';
 
 /**
  * data type used for this control
@@ -37,6 +38,7 @@ export class ObservationTestValueComponent
   @Input() datatype: string;
   @Input() observationCodes: string[] = [];
   @Input() loincCodes: string[] = [];
+  @Input() unitList: AutocompleteOption[];
   @Input() required = true;
   selectedDatatype = 'Quantity';
   testValueComparator = 'Quantity - ';

@@ -102,8 +102,24 @@ export async function configureTestingModule(
 export function verifyOutstandingRequests(
   mockHttp: HttpTestingController
 ): void {
+  const outstandingRequests = [];
   mockHttp
-    .match((request: HttpRequest<any>) => /assets\/.*\.svg/.test(request.url))
+    .match((request: HttpRequest<any>) => {
+      const isSvg = /assets\/.*\.svg/.test(request.url);
+      if (!isSvg) {
+        outstandingRequests.push(request.urlWithParams);
+      }
+      return isSvg;
+    })
     .forEach((testReq) => !testReq.cancelled && testReq.flush('<svg></svg>'));
-  mockHttp.verify();
+
+  // Instead of using `mockHttp.verify();` we use custom handling of outstanding
+  // requests to show full URLs:
+  if (outstandingRequests.length) {
+    throw new Error(
+      `Expected no open requests, found ${
+        outstandingRequests.length
+      }: ${outstandingRequests.join(', ')}`
+    );
+  }
 }

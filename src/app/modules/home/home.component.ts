@@ -47,6 +47,7 @@ export class HomeComponent implements AfterViewInit {
   }
 
   onSmartLogout(): void {
+    window.history.pushState({}, '', setUrlParam('isSmart', 'false'));
     this.fhirBackend.isSmartOnFhir = false;
   }
 

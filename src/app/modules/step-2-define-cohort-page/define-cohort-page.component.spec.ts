@@ -174,7 +174,7 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=120&_elements=subject&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100`
+        `$fhir/Observation?_count=20&_elements=subject&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100`
       )
       .flush(tenObservationBundle);
 
@@ -200,7 +200,6 @@ describe('DefineCohortComponent', () => {
 
   it('should load Patients by Observation and Patient criteria', (done) => {
     component.defineCohortForm.get('maxNumberOfPatients').setValue(20);
-    spyOn(cohort, 'getPageSize').and.returnValue(10);
     component.patientParams.queryCtrl.setValue({
       condition: 'and',
       rules: [
@@ -280,7 +279,7 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=10&_elements=subject&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100`
+        `$fhir/Observation?_count=20&_elements=subject&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100`
       )
       .flush({
         ...tenObservationBundle,
@@ -308,7 +307,6 @@ describe('DefineCohortComponent', () => {
 
   it('should load Patients by Observation and ResearchStudy criteria', (done) => {
     component.defineCohortForm.get('maxNumberOfPatients').setValue(20);
-    spyOn(cohort, 'getPageSize').and.returnValue(10);
     component.patientParams.queryCtrl.setValue({
       condition: 'and',
       rules: [
@@ -390,7 +388,7 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=10&_elements=subject&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100%7C%7Ccm`
+        `$fhir/Observation?_count=20&_elements=subject&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100%7C%7Ccm`
       )
       .flush(tenObservationBundle);
 
@@ -486,7 +484,6 @@ describe('DefineCohortComponent', () => {
 
   it('should load Patients by EvidenceVariable criteria', (done) => {
     component.defineCohortForm.get('maxNumberOfPatients').setValue(20);
-    spyOn(cohort, 'getPageSize').and.returnValue(10);
     component.patientParams.queryCtrl.setValue({
       condition: 'and',
       rules: [
@@ -516,7 +513,7 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/Observation?_count=10&_elements=subject&evidencevariable=someDefaultURL/EvidenceVariable/phv00492039`
+        `$fhir/Observation?_count=20&_elements=subject&evidencevariable=someDefaultURL/EvidenceVariable/phv00492039`
       )
       .flush({
         entry: [

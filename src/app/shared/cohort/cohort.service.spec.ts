@@ -78,7 +78,7 @@ describe('CohortService', () => {
 
     mockHttp
       .expectOne(
-        '$fhir/Observation?_count=120&_elements=subject&code-value-string:contains=http%3A%2F%2Floinc.org%7C9317-9%24a'
+        '$fhir/Observation?_count=20&_elements=subject&code-value-string:contains=http%3A%2F%2Floinc.org%7C9317-9%24a'
       )
       .flush(tenObservationBundle);
 
