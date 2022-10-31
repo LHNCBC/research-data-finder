@@ -532,7 +532,7 @@ export class FhirBatchQuery {
         oReq.setRequestHeader('Content-Type', contentType);
       }
 
-      if (this._isDbgap && method === 'GET') {
+      if (this._isDbgap) {
         const token = sessionStorage.getItem('dbgapTstToken');
         if (token) {
           oReq.setRequestHeader('Authorization', 'Bearer ' + token);
