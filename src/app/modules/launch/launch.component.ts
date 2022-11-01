@@ -13,7 +13,7 @@ export class LaunchComponent implements OnInit {
     const fhirServerUrl = this.route.snapshot.paramMap.get('iss');
     FHIR.oauth2
       .authorize({
-        redirectUri: `/?server=${fhirServerUrl}&isSmart=true`,
+        redirectUri: `/fhir/research-data-finder/?server=${fhirServerUrl}&isSmart=true`,
         client_id: 'nlm-research-data-finder',
         scope: 'openid profile patient/*.read',
         iss: fhirServerUrl
