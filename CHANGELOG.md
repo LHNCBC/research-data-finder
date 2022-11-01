@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.1.3] - 2022-11-01
+### Added
+- Integration with dbGaP power user portal to allow user to login/logout.
+
 ## [5.1.2] - 2022-10-27
 ### Added
 - Option to launch a SMART on FHIR connection.
