@@ -104,7 +104,7 @@ export class SelectRecordsService {
         // Remove below block once the dbGaP query is ready.
         if (
           url.includes('_has:ResearchSubject:study:status') &&
-          data.entry.length === 1
+          data.entry?.length === 1
         ) {
           const study2410 = {
             fullUrl:

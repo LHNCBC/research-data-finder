@@ -207,9 +207,10 @@ export class FhirBackendService implements HttpBackend {
           // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
           if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
             this.initializeSmartOnFhirConnection();
-          } else {
-            // Otherwise, emit the connection status from initializeFhirBatchQuery().
+          } else if (this.tmpConnectionStatus) {
+            // Otherwise, if it's invoked from initializeFhirBatchQuery(), emit the connection status.
             this.initialized.next(this.tmpConnectionStatus);
+            this.tmpConnectionStatus = null;
           }
         })
       )
