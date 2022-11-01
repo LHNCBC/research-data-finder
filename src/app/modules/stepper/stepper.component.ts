@@ -151,7 +151,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
             !this.rasToken.isRasCallbackNavigation
           ) {
             this.cohort.createCohortMode = CreateCohortMode.UNSELECTED;
-            this.selectAnActionComponent.createCohortMode.setValue(
+            this.selectAnActionComponent?.createCohortMode.setValue(
               CreateCohortMode.UNSELECTED
             );
           } else {
