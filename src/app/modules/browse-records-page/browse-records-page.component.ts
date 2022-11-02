@@ -1,16 +1,10 @@
-import {
-  AfterViewInit,
-  Component,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import {
   CACHE_NAME,
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { map, startWith } from 'rxjs/operators';
+import { filter, map, startWith } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
@@ -32,12 +26,13 @@ import { HttpContext } from '@angular/common/http';
 })
 export class BrowseRecordsPageComponent
   extends ResourceTableParentComponent
-  implements OnInit, AfterViewInit, OnDestroy {
+  implements AfterViewInit, OnDestroy {
   subscriptions: Subscription[] = [];
   @ViewChild('resourceTable') resourceTable: ResourceTableComponent;
   @ViewChild('variableTable') variableTable: ResourceTableComponent;
   hasLoinc = false;
   recTypeLoinc = false;
+  showOnlyStudiesWithSubjects = false;
 
   // The sort state for each resource.
   sort: { [resourceType: string]: Sort } = {
@@ -53,8 +48,6 @@ export class BrowseRecordsPageComponent
     }
   };
 
-  // Array of not visible resource type names
-  unselectedResourceTypes: string[];
   // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
   // when the active tab changes
   currentResourceType$: Observable<string>;
@@ -68,20 +61,12 @@ export class BrowseRecordsPageComponent
 
     this.subscriptions.push(
       fhirBackend.initialized
-        .pipe(map((status) => status === ConnectionStatus.Ready))
-        .subscribe((connected) => {
+        .pipe(filter((status) => status === ConnectionStatus.Ready))
+        .subscribe(() => {
           selectRecords.resetAll();
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
             ? ['ResearchStudy', 'Variable']
             : [];
-          this.unselectedResourceTypes = [];
-          if (connected) {
-            const resources = fhirBackend.getCurrentDefinitions().resources;
-            this.unselectedResourceTypes = Object.keys(resources).filter(
-              (resourceType) =>
-                this.visibleResourceTypes.indexOf(resourceType) === -1
-            );
-          }
         })
     );
   }
@@ -90,8 +75,6 @@ export class BrowseRecordsPageComponent
    * Returns plural form of resource type name.
    */
   getPluralFormOfRecordName = getPluralFormOfRecordName;
-
-  ngOnInit(): void {}
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
@@ -155,13 +138,14 @@ export class BrowseRecordsPageComponent
   }
 
   /**
-   * Returns selected ResearchStudies.
+   * Returns selected records of the specified resource type.
+   * @param resourceType - resource type
    */
-  getSelectedResearchStudies(): Resource[] {
-    const researchStudyTable = this.tables.find(
-      (table) => table.resourceType === 'ResearchStudy'
+  getSelectedRecords(resourceType: string): Resource[] {
+    const resourceTable = this.tables?.find(
+      (table) => table.resourceType === resourceType
     );
-    return researchStudyTable?.selectedResources.selected || [];
+    return resourceTable?.selectedResources.selected || [];
   }
 
   /**
@@ -180,14 +164,18 @@ export class BrowseRecordsPageComponent
    */
   loadVariables(pageNumber = 0): void {
     this.selectRecords.loadVariables(
-      this.getSelectedResearchStudies(),
+      this.getSelectedRecords('ResearchStudy'),
       this.recTypeLoinc
         ? {
             rec_type: 'loinc'
           }
-        : {
+        : this.hasLoinc
+        ? {
             rec_type: 'dbgv',
             has_loinc: this.hasLoinc
+          }
+        : {
+            rec_type: 'dbgv'
           },
       this.variableTable?.filtersForm.value || {},
       this.sort['Variable'],
@@ -222,7 +210,7 @@ export class BrowseRecordsPageComponent
     if (resourceType === 'Variable') {
       this.loadFirstPage(resourceType);
     } else {
-      const cacheName = 'studies';
+      const cacheName = this.showOnlyStudiesWithSubjects ? '' : 'studies';
       this.fhirBackend.clearCacheByName(cacheName).then(() => {
         this.loadFirstPage(resourceType);
       });

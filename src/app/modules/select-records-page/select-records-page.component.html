@@ -26,7 +26,6 @@
                           [enableFiltering]="true" [enableSelection]="true"
                           [loading]="selectRecords.currentState[resourceType].loading"
                           [resources]="selectRecords.resourceStream[resourceType] | async"
-                          (selectionChange)="onSelectionChange(resourceType)"
                           [selectAny]="true"
                           context="select"
                           [sort]="sort[resourceType]"
@@ -49,7 +48,6 @@
                   class="reload-btn"
                   color="basic"
                   type="button" mat-icon-button
-                  *ngIf="resourceTable.context === 'browse' || resourceTable.context==='select'"
                   (click)="reloadFromServer(resourceType)"
                   matTooltip="Reload records from server">
             <mat-icon svgIcon="refresh"></mat-icon>
@@ -73,7 +71,7 @@
                     <span>Loading studies {{
                       (selectRecords.currentState[resourceType].isCached | async)
                         ? 'from cache ...'
-                        : 'from server...' + (showOnlyStudiesWithSubjects ? '' : ' It may take a long time.')
+                        : 'from server' + (showOnlyStudiesWithSubjects ? '...' : '. It may take a long time...')
                       }}</span>
                   </span>
                   <ng-template #loadedTemplate>
