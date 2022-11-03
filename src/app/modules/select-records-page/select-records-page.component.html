@@ -71,7 +71,7 @@
                     <span>Loading studies {{
                       (selectRecords.currentState[resourceType].isCached | async)
                         ? 'from cache ...'
-                        : 'from server' + (showOnlyStudiesWithSubjects ? '...' : '. It may take a long time...')
+                        : 'from server' + (showOnlyStudiesWithSubjects ? '...' : '. It may take a minute or two...')
                       }}</span>
                   </span>
                   <ng-template #loadedTemplate>
