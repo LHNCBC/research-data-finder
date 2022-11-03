@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FhirServerSelectComponent } from './fhir-server-select.component';
+import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientModule } from '@angular/common/http';
 
 describe('FhirServerSelectComponent', () => {
   let component: FhirServerSelectComponent;
@@ -8,9 +10,9 @@ describe('FhirServerSelectComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ FhirServerSelectComponent ]
-    })
-    .compileComponents();
+      declarations: [FhirServerSelectComponent],
+      imports: [RouterTestingModule, HttpClientModule]
+    }).compileComponents();
   });
 
   beforeEach(() => {

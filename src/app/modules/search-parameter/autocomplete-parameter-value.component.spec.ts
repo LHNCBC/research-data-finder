@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterTestingModule } from '@angular/router/testing';
 
 @Component({
   template: ` <mat-form-field class="flex">
@@ -49,7 +50,8 @@ describe('AutoCompleteTestValueComponent', () => {
         MatFormFieldModule,
         SharedModule,
         MatProgressSpinnerModule,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        RouterTestingModule
       ]
     }).compileComponents();
   });

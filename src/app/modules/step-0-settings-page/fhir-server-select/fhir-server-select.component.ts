@@ -18,6 +18,8 @@ import { BaseControlValueAccessor } from '../../base-control-value-accessor';
 import { AbstractControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import Def from 'autocomplete-lhc';
+import { FhirBackendService } from '../../../shared/fhir-backend/fhir-backend.service';
+import { setUrlParam } from '../../../shared/utils';
 
 @Component({
   selector: 'app-fhir-server-select',
@@ -43,6 +45,11 @@ export class FhirServerSelectComponent
     {
       description: 'dbGap (https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1)',
       url: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+    },
+    {
+      description: 'https://r4.smarthealthit.org Provider Standalone Launch',
+      url:
+        'https://launch.smarthealthit.org/v/r4/sim/eyJoIjoiMSIsImoiOiIxIn0/fhir'
     }
   ];
 
@@ -50,8 +57,15 @@ export class FhirServerSelectComponent
 
   // Autocompleter instance
   acInstance: Def.Autocompleter.Prefetch;
+  // Callback to handle changes
+  listSelectionsObserver: (eventData: any) => void;
   // Reference to the <input> element
   @ViewChild('input') input: ElementRef<HTMLInputElement>;
+  // Flag to prevent 'focusin' callback in case of the SMART on FHIR checkbox,
+  // click, which would otherwise cause hide the checkbox after unchecking it.
+  preventFocusFlag = false;
+  // Timer for checking SMART on FHIR availability for current server URL being typed.
+  inputTimeout = null;
 
   currentValue = '';
   get value(): string {
@@ -117,7 +131,7 @@ export class FhirServerSelectComponent
    */
   @HostListener('focusin')
   onFocusin(): void {
-    if (!this.focused) {
+    if (!this.preventFocusFlag && !this.focused) {
       this.focused = true;
       this.stateChanges.next();
     }
@@ -146,6 +160,17 @@ export class FhirServerSelectComponent
    * Handles a click on the control's container to maintain the focused state.
    */
   onContainerClick(event: MouseEvent): void {
+    // Do not focus serviceBaseUrl input if SMART on FHIR checkbox is being clicked.
+    if (
+      document.getElementById('smartOnFhir')?.contains(event.target as Node)
+    ) {
+      this.preventFocusFlag = true;
+      // Set the flag back in next Macrotask queue.
+      setTimeout(() => {
+        this.preventFocusFlag = false;
+      }, 0);
+      return;
+    }
     if (!this.focused) {
       this.input.nativeElement.focus();
     }
@@ -153,7 +178,8 @@ export class FhirServerSelectComponent
 
   constructor(
     @Optional() @Self() public ngControl: NgControl,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    public fhirBackend: FhirBackendService
   ) {
     super();
     if (ngControl != null) {
@@ -169,6 +195,14 @@ export class FhirServerSelectComponent
    */
   ngAfterViewInit(): void {
     this.setupAutocomplete();
+    // After a delay of half second, check whether to show SMART on FHIR checkbox
+    // for the current server URL in the input field.
+    document.getElementById(this.inputId).addEventListener('input', (event) => {
+      clearTimeout(this.inputTimeout);
+      this.inputTimeout = setTimeout(() => {
+        this.fhirBackend.checkSmartOnFhirEnabled(event.target['value']);
+      }, 500);
+    });
   }
 
   /**
@@ -178,6 +212,12 @@ export class FhirServerSelectComponent
     this.stateChanges.complete();
     if (this.acInstance) {
       this.acInstance.destroy();
+      Def.Autocompleter.Event.removeCallback(
+        this.inputId,
+        'LIST_SEL',
+        this.listSelectionsObserver
+      );
+      this.acInstance = null;
     }
   }
 
@@ -192,13 +232,17 @@ export class FhirServerSelectComponent
       { codes: this.options.map((o) => o.url) }
     );
     this.acInstance.setFieldVal(this.currentValue);
-    Def.Autocompleter.Event.observeListSelections(testInputId, (eventData) => {
+    this.listSelectionsObserver = (eventData) => {
       if (eventData.item_code) {
         this.acInstance.setFieldVal(eventData.item_code);
       } else {
         this.updateCurrentValue();
       }
-    });
+    };
+    Def.Autocompleter.Event.observeListSelections(
+      testInputId,
+      this.listSelectionsObserver
+    );
   }
 
   /**
@@ -222,5 +266,17 @@ export class FhirServerSelectComponent
     if (this.acInstance) {
       this.acInstance.setFieldVal(value);
     }
+  }
+
+  /**
+   * When user checks/unchecks the SMART on FHIR option.
+   * @param checked boolean value of the checkbox
+   */
+  onSmartOnFhirClick(checked: boolean): void {
+    if (!checked) {
+      // Update url query params after user unchecks SMART on FHIR checkbox.
+      window.history.pushState({}, '', setUrlParam('isSmart', 'false'));
+    }
+    this.fhirBackend.isSmartOnFhir = checked;
   }
 }

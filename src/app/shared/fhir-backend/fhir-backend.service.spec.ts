@@ -10,6 +10,8 @@ import {
 } from '@angular/common/http';
 import { of } from 'rxjs';
 import { SettingsService } from '../settings-service/settings.service';
+import { RouterTestingModule } from '@angular/router/testing';
+import { FhirService } from '../fhir-service/fhir.service';
 
 describe('FhirBackendService', () => {
   let service: FhirBackendService;
@@ -36,7 +38,7 @@ describe('FhirBackendService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [FhirBackendModule, HttpClientModule]
+      imports: [FhirBackendModule, HttpClientModule, RouterTestingModule]
     });
     spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
     spyOn(FhirBatchQuery.prototype, 'get').and.resolveTo(
@@ -139,6 +141,24 @@ describe('FhirBackendService', () => {
           combine: true
         }
       );
+      done();
+    });
+  });
+
+  it('should use FhirService if SMART on FHIR', (done) => {
+    service.smartConnectionSuccess = true;
+    const fhirService = TestBed.inject(FhirService);
+    const fhirClient = jasmine.createSpyObj('FhirClient', ['request']);
+    const responseFromFhirClient = {
+      entries: [],
+      total: 0
+    };
+    fhirClient.request.and.resolveTo(responseFromFhirClient);
+    spyOn(fhirService, 'getSmartConnection').and.returnValue(fhirClient);
+    httpClient.get('$fhir/some_related_url').subscribe((response) => {
+      expect(response).toBe(responseFromFhirClient);
+      expect(defaultHttpXhrBackend.handle).not.toHaveBeenCalled();
+      expect(fhirClient.request).toHaveBeenCalledWith('/some_related_url');
       done();
     });
   });

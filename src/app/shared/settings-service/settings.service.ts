@@ -39,7 +39,9 @@ export class SettingsService {
         tap((config) => {
           this.config = json5.parse(config);
           this.fhirBackend.settings = this;
-          this.fhirBackend.initializeFhirBatchQuery();
+          if (!this.fhirBackend.smartConnectionSuccess) {
+            this.fhirBackend.initializeFhirBatchQuery();
+          }
         })
       );
   }

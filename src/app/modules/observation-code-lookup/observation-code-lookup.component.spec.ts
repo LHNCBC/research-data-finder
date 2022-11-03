@@ -10,6 +10,7 @@ import { FhirBatchQuery } from '../../shared/fhir-backend/fhir-batch-query';
 import observations from './test-fixtures/observations.json';
 import observationsDuplicateDisplay from './test-fixtures/observations_duplicate_display.json';
 import metadata from './test-fixtures/metadata.json';
+import { RouterTestingModule } from '@angular/router/testing';
 
 @Component({
   template: ` <mat-form-field class="flex">
@@ -119,7 +120,8 @@ describe('ObservationCodeLookupComponent', () => {
             ReactiveFormsModule,
             MatFormFieldModule,
             ObservationCodeLookupModule,
-            SharedModule
+            SharedModule,
+            RouterTestingModule
           ]
         }).compileComponents();
       });

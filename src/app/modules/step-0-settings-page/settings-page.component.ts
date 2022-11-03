@@ -54,8 +54,14 @@ export class SettingsPageComponent {
       .statusChanges.pipe(filter((s) => s === 'VALID'))
       .subscribe(() => {
         const server = this.settingsFormGroup.get('serviceBaseUrl').value;
-        // Update url query params after valid server change
-        window.history.pushState({}, '', setUrlParam('server', server));
+        if (!this.fhirBackend.isSmartOnFhir) {
+          // Update url query params after valid server change
+          window.history.pushState(
+            {},
+            '',
+            setUrlParam('isSmart', 'false', setUrlParam('server', server))
+          );
+        }
       });
   }
 
@@ -85,13 +91,19 @@ export class SettingsPageComponent {
       filter((status) => status !== ConnectionStatus.Pending),
       take(1),
       map((status) => {
-        this.settingsFormGroup
-          .get('maxRequestsPerBatch')
-          .setValue(this.fhirBackend.maxRequestsPerBatch);
-        this.settingsFormGroup
-          .get('maxActiveRequests')
-          .setValue(this.fhirBackend.maxActiveRequests);
-        return status === ConnectionStatus.Ready ? null : { wrongUrl: true };
+        if (!this.fhirBackend.isSmartOnFhir) {
+          this.settingsFormGroup
+            .get('maxRequestsPerBatch')
+            .setValue(this.fhirBackend.maxRequestsPerBatch);
+          this.settingsFormGroup
+            .get('maxActiveRequests')
+            .setValue(this.fhirBackend.maxActiveRequests);
+        }
+        return status !== ConnectionStatus.Error
+          ? null
+          : this.fhirBackend.isSmartOnFhir
+          ? { smartConnectionFailure: true }
+          : { wrongUrl: true };
       })
     );
   }

@@ -23,6 +23,7 @@ import { SettingsService } from '../../shared/settings-service/settings.service'
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
@@ -45,7 +46,8 @@ describe('PullDataForCohortComponent', () => {
         PullDataPageModule,
         SharedModule,
         HttpClientTestingModule,
-        MatIconTestingModule
+        MatIconTestingModule,
+        RouterTestingModule
       ]
     }).compileComponents();
     spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
