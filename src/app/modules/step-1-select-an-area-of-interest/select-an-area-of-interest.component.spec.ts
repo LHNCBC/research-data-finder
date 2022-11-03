@@ -9,6 +9,7 @@ import { ColumnDescriptionsService } from '../../shared/column-descriptions/colu
 import { MatCheckbox } from '@angular/material/checkbox';
 import { configureTestingModule } from '../../../test/helpers';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('SelectAnAreaOfInterestComponent', () => {
   let component: SelectAnAreaOfInterestComponent;
@@ -25,7 +26,7 @@ describe('SelectAnAreaOfInterestComponent', () => {
           MockComponent(MatCheckbox),
           MockComponent(ResourceTableComponent)
         ],
-        imports: [ReactiveFormsModule],
+        imports: [ReactiveFormsModule, RouterTestingModule],
         providers: [
           {
             provide: ColumnDescriptionsService,

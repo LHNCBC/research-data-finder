@@ -3,6 +3,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { DatesFromToComponent } from './dates-from-to.component';
 import { SearchParameterModule } from './search-parameter.module';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('DatesFromToComponent', () => {
   let component: DatesFromToComponent;
@@ -11,7 +12,7 @@ describe('DatesFromToComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [DatesFromToComponent],
-      imports: [SearchParameterModule, SharedModule],
+      imports: [SearchParameterModule, SharedModule, RouterTestingModule],
       providers: [ErrorManager]
     }).compileComponents();
   });

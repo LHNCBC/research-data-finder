@@ -28,6 +28,7 @@ import { MatRadioButtonHarness } from '@angular/material/radio/testing';
 import tenPatientBundle from '../step-2-define-cohort-page/test-fixtures/patients-10.json';
 import { MatMenuHarness } from '@angular/material/menu/testing';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('SelectRecordsPageComponent', () => {
   let component: SelectRecordsPageComponent;
@@ -60,7 +61,7 @@ describe('SelectRecordsPageComponent', () => {
     await configureTestingModule(
       {
         declarations: [SelectRecordsPageComponent],
-        imports: [SelectRecordsPageModule]
+        imports: [SelectRecordsPageModule, RouterTestingModule]
       },
       {
         features: {

@@ -17,7 +17,8 @@
       <button mat-menu-item
               (click)="switchVersion()">Switch to the {{isAlpha ? 'stable' : 'alpha' }} version</button>
     </mat-menu>
-    <div id="logout" *ngIf="rasToken.rasTokenValidated" matTooltip="Log out from DbGap" (click)="onLogout()">Log out</div>
+    <div class="logout" *ngIf="rasToken.rasTokenValidated" matTooltip="Log out from dbGaP" (click)="onRasLogout()">Log out</div>
+    <div class="logout" *ngIf="fhirBackend.smartConnectionSuccess" matTooltip="Log out from SMART on FHIR" (click)="onSmartLogout()">Log out</div>
   </div>
 </div>
 <!-- end page header -->

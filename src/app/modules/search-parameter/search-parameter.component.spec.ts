@@ -14,6 +14,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { AutocompleteModule } from '../autocomplete/autocomplete.module';
+import { RouterTestingModule } from '@angular/router/testing';
 
 class Page {
   private fixture: ComponentFixture<SearchParameterComponent>;
@@ -48,7 +49,8 @@ describe('SearchParameterComponent', () => {
           MatAutocompleteModule,
           MatInputModule,
           NoopAnimationsModule,
-          AutocompleteModule
+          AutocompleteModule,
+          RouterTestingModule
         ]
       },
       {

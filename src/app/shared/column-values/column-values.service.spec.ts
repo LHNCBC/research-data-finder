@@ -9,6 +9,7 @@ import {
 } from '../fhir-backend/fhir-backend.service';
 import { SettingsService } from '../settings-service/settings.service';
 import { filter, take } from 'rxjs/operators';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('ColumnValuesService', () => {
   let service: ColumnValuesService;
@@ -18,7 +19,7 @@ describe('ColumnValuesService', () => {
     spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
     spyOn(FhirBatchQuery.prototype, 'getVersionName').and.returnValue('R4');
     TestBed.configureTestingModule({
-      imports: [FhirBackendModule]
+      imports: [FhirBackendModule, RouterTestingModule]
     });
     fhirBackend = TestBed.inject(FhirBackendService);
     const settingsService = TestBed.inject(SettingsService);

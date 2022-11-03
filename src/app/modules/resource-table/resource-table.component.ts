@@ -206,7 +206,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Output() loadNextPage = new EventEmitter();
   // A number that identifies a timer to periodically load the next page.
   // This is necessary to avoid expiration of the link to the next page.
-  loadNextPageTimer: number;
+  loadNextPageTimer: any;
   // Interval in milliseconds to force the next page to load
   keepAliveTimeout = 120000;
   @Output() filterChanged = new EventEmitter();

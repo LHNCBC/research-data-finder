@@ -5,20 +5,24 @@ import { Injectable } from '@angular/core';
 import {
   HttpBackend,
   HttpContextToken,
+  HttpClient,
   HttpErrorResponse,
   HttpEvent,
   HttpRequest,
   HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
-import { BehaviorSubject, Observable, Observer } from 'rxjs';
+import { BehaviorSubject, Observable, Observer, Subscription } from 'rxjs';
 import { FhirBatchQuery, HTTP_ABORT } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
 import { find } from 'lodash-es';
-import { filter, map } from 'rxjs/operators';
+import { filter, finalize, map } from 'rxjs/operators';
+import { FhirService } from '../fhir-service/fhir.service';
+import { Router } from '@angular/router';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -62,11 +66,36 @@ export class FhirBackendService implements HttpBackend {
     if (this.serviceBaseUrl !== url) {
       this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
+      this.smartConnectionSuccess = false;
+      this.fhirService.setSmartConnection(null);
+      this._isSmartOnFhir = false;
       this.initializeFhirBatchQuery(url);
     }
   }
   get serviceBaseUrl(): string {
     return this.fhirClient.getServiceBaseUrl();
+  }
+
+  // Checkbox value of whether to use a SMART on FHIR client.
+  // tslint:disable-next-line:variable-name
+  private _isSmartOnFhir = false;
+  set isSmartOnFhir(value: boolean) {
+    if (value) {
+      this.initialized.next(ConnectionStatus.Pending);
+      this._isSmartOnFhir = true;
+      // Navigate to 'launch' page to authorize a SMART on FHIR connection.
+      this.router.navigate(['/launch', { iss: this.serviceBaseUrl }]);
+    } else {
+      this.smartConnectionSuccess = false;
+      this.fhirService.setSmartConnection(null);
+      this._isSmartOnFhir = false;
+      this.initialized.next(ConnectionStatus.Disconnect);
+      this.initialized.next(ConnectionStatus.Pending);
+      this.initializeFhirBatchQuery(this.serviceBaseUrl);
+    }
+  }
+  get isSmartOnFhir(): boolean {
+    return this._isSmartOnFhir;
   }
 
   // Maximum number of requests that can be combined
@@ -115,8 +144,16 @@ export class FhirBackendService implements HttpBackend {
    * Creates and initializes an instance of FhirBackendService
    * @param defaultBackend - default Angular final HttpHandler which uses
    *   XMLHttpRequest to send requests to a backend server.
+   * @param fhirService a service which holds the SMART on FHIR connection client
+   * @param router Angular router
    */
-  constructor(private defaultBackend: HttpXhrBackend) {
+  constructor(
+    private defaultBackend: HttpXhrBackend,
+    private fhirService: FhirService,
+    private router: Router,
+    private liveAnnoncer: LiveAnnouncer
+  ) {
+    this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const queryServer = getUrlParam('server');
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
     this.fhirClient = new FhirBatchQuery({
@@ -126,6 +163,7 @@ export class FhirBackendService implements HttpBackend {
       filter((status) => status === ConnectionStatus.Ready),
       map(() => this.getCurrentDefinitions())
     );
+    this.http = new HttpClient(this);
   }
   // Whether the connection to server is initialized.
   initialized = new BehaviorSubject(ConnectionStatus.Pending);
@@ -133,6 +171,11 @@ export class FhirBackendService implements HttpBackend {
 
   // Whether to cache requests to the FHIR server
   private isCacheEnabled = true;
+
+  // Whether to show a checkbox of SMART on FHIR connection.
+  public isSmartOnFhirEnabled = false;
+  // Whether a SMART on FHIR connection has been successfully established.
+  public smartConnectionSuccess = false;
 
   // Javascript client from the old version of Research Data Finder
   // for FHIR with the ability to automatically combine requests in a batch .
@@ -144,10 +187,96 @@ export class FhirBackendService implements HttpBackend {
   // Definitions of columns, search params, value sets for current FHIR version
   private currentDefinitions: any;
 
+  // Subscription of the '/.well-known/smart-configuration' endpoint check.
+  private smartOnFhirEnabledSubscription: Subscription;
+
+  // Can't be injected inside HttpBackend.
+  private http: HttpClient;
+
+  // Stores connection status set in initializeFhirBatchQuery(), instead of
+  // emitting it right away to this.initialized subject. It will be emitted
+  // after checkSmartOnFhirEnabled() is done, or values will be emitted from
+  // initializeSmartOnFhirConnection() instead if SMART on FHIR should connect.
+  private tmpConnectionStatus: ConnectionStatus;
+
   // Whether an authorization tag should be added to the url.
   private isAuthorizationRequiredForUrl(url: string): boolean {
     const regEx = new RegExp(`/(${RESOURCES_REQUIRING_AUTHORIZATION})`);
     return this.isDbgap(url) && regEx.test(url);
+  }
+
+  /**
+   * Checks whether SMART on FHIR connection is available for current base url.
+   * Initializes the SMART connection if it's available and this.isSmartOnFhir is
+   * already marked as true.
+   */
+  checkSmartOnFhirEnabled(url): void {
+    this.smartOnFhirEnabledSubscription?.unsubscribe();
+    this.smartOnFhirEnabledSubscription = this.http
+      .get(`${url}/.well-known/smart-configuration`)
+      .pipe(
+        finalize(() => {
+          // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
+          if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
+            this.initializeSmartOnFhirConnection();
+          } else {
+            // Otherwise, emit the connection status from initializeFhirBatchQuery().
+            this.initialized.next(this.tmpConnectionStatus);
+          }
+        })
+      )
+      .subscribe(
+        () => {
+          this.isSmartOnFhirEnabled = true;
+          this.liveAnnoncer.clear();
+          this.liveAnnoncer.announce(
+            'A new checkbox for SMART on FHIR launch appeared.'
+          );
+        },
+        () => {
+          this.isSmartOnFhirEnabled = false;
+        }
+      );
+  }
+
+  /**
+   * Establish a SMART on FHIR connection.
+   */
+  initializeSmartOnFhirConnection(): void {
+    if (
+      !this.fhirService.getSmartConnection() &&
+      !this.fhirService.smartConnectionInProgress()
+    ) {
+      this.fhirService.requestSmartConnection((success) => {
+        if (success) {
+          this.smartConnectionSuccess = true;
+          this.liveAnnoncer.announce('SMART on FHIR connection succeeded.');
+          // Load definitions of search parameters and columns from CSV file
+          this.settings.loadCsvDefinitions().subscribe(
+            (resourceDefinitions) => {
+              this.currentDefinitions = { resources: resourceDefinitions };
+              this.fhirClient.setMaxRequestsPerBatch(
+                this.settings.get('maxRequestsPerBatch')
+              );
+              this.fhirClient.setMaxActiveRequests(
+                this.settings.get('maxActiveRequests')
+              );
+              this.initialized.next(ConnectionStatus.Ready);
+            },
+            (err) => {
+              if (!(err instanceof HttpErrorResponse)) {
+                // Show exceptions from loadCsvDefinitions in console
+                console.error(err.message);
+              }
+              this.initialized.next(ConnectionStatus.Error);
+            }
+          );
+        } else {
+          this.smartConnectionSuccess = false;
+          this.initialized.next(ConnectionStatus.Error);
+        }
+      });
+    }
   }
 
   /**
@@ -173,20 +302,23 @@ export class FhirBackendService implements HttpBackend {
             this.fhirClient.setMaxActiveRequests(
               this.settings.get('maxActiveRequests')
             );
-            this.initialized.next(ConnectionStatus.Ready);
+            this.tmpConnectionStatus = ConnectionStatus.Ready;
+            this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
           },
           (err) => {
             if (!(err instanceof HttpErrorResponse)) {
               // Show exceptions from loadCsvDefinitions in console
               console.error(err.message);
             }
-            this.initialized.next(ConnectionStatus.Error);
+            this.tmpConnectionStatus = ConnectionStatus.Error;
+            this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
           }
         );
       },
       (err) => {
         if (err.status !== HTTP_ABORT) {
-          this.initialized.next(ConnectionStatus.Error);
+          this.tmpConnectionStatus = ConnectionStatus.Error;
+          this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
         }
       }
     );
@@ -247,72 +379,102 @@ export class FhirBackendService implements HttpBackend {
   handle(request: HttpRequest<any>): Observable<HttpEvent<any>> {
     if (
       !serviceBaseUrlRegExp.test(request.url) &&
-      !request.url.startsWith(this.serviceBaseUrl)
+      (!request.url.startsWith(this.serviceBaseUrl) ||
+        request.url.endsWith('/.well-known/smart-configuration'))
     ) {
       // If it is not a request to the FHIR server,
       // pass the request to the default Angular backend.
       return this.defaultBackend.handle(request);
     }
 
-    const serviceBaseUrlWithEndpoint = new RegExp(
-      '^' + escapeStringForRegExp(this.serviceBaseUrl) + '\\/[^?]+'
-    );
-    const cacheName = request.context.get(CACHE_NAME);
-    const newRequest = request.clone({
-      url: this.prepareRequestUrl(request.url)
-    });
+    if (this.smartConnectionSuccess) {
+      // Use the FHIR client in fhirService for queries.
+      const newUrl = request.url.replace(serviceBaseUrlRegExp, '');
+      return new Observable<HttpResponse<any>>(
+        (observer: Observer<HttpResponse<any>>) => {
+          this.fhirService
+            .getSmartConnection()
+            .request(newUrl)
+            .then(
+              (res) => {
+                observer.next(
+                  new HttpResponse<any>({
+                    body: res
+                  })
+                );
+                observer.complete();
+              },
+              (res) =>
+                observer.error(
+                  new HttpErrorResponse({
+                    error: res.error
+                  })
+                )
+            );
+        }
+      );
+    } else {
+      // not a SMART on FHIR connection
+      const serviceBaseUrlWithEndpoint = new RegExp(
+        '^' + escapeStringForRegExp(this.serviceBaseUrl) + '\\/[^?]+'
+      );
+      const cacheName = request.context.get(CACHE_NAME);
+      const newRequest = request.clone({
+        url: this.prepareRequestUrl(request.url)
+      });
 
-    if (request.method !== 'GET') {
-      // If it is not a GET request to the FHIR server,
-      // pass the request to the default Angular backend.
-      return this.defaultBackend.handle(newRequest);
-    }
+      if (request.method !== 'GET') {
+        // If it is not a GET request to the FHIR server,
+        // pass the request to the default Angular backend.
+        return this.defaultBackend.handle(newRequest);
+      }
 
-    const fullUrl = newRequest.urlWithParams;
+      const fullUrl = newRequest.urlWithParams;
 
-    // Otherwise, use the FhirBatchQuery from the old version of
-    // Research Data Finder to handle the HTTP request.
-    return new Observable<HttpResponse<any>>(
-      (observer: Observer<HttpResponse<any>>) => {
-        this.fhirClient.initialize().then(() => {
-          // Requests to the FHIR server without endpoint cannot be combined
-          // into a batch request
-          const combine =
-            this.fhirClient.getFeatures().batch &&
-            serviceBaseUrlWithEndpoint.test(newRequest.url);
-          const promise = this.isCacheEnabled
-            ? this.fhirClient.getWithCache(fullUrl, {
+      // Otherwise, use the FhirBatchQuery from the old version of
+      // Research Data Finder to handle the HTTP request.
+      return new Observable<HttpResponse<any>>(
+        (observer: Observer<HttpResponse<any>>) => {
+          this.fhirClient.initialize().then(() => {
+            // Requests to the FHIR server without endpoint cannot be combined
+            // into a batch request
+            const combine =
+              this.fhirClient.getFeatures().batch &&
+              serviceBaseUrlWithEndpoint.test(newRequest.url);
+            const promise = this.isCacheEnabled
+              ? this.fhirClient.getWithCache(fullUrl, {
                 combine,
                 cacheName: cacheName
                   ? cacheName + '-' + this.serviceBaseUrl
                   : ''
               })
-            : this.fhirClient.get(fullUrl, { combine });
+              : this.fhirClient.get(fullUrl, {combine});
 
-          promise.then(
-            ({ status, data, _cacheInfo_ }) => {
-              request.context.set(CACHE_INFO, _cacheInfo_);
-              observer.next(
-                new HttpResponse<any>({
-                  status,
-                  body: data,
-                  url: fullUrl
-                })
-              );
-              observer.complete();
-            },
-            ({ status, error }) =>
-              observer.error(
-                new HttpErrorResponse({
-                  status,
-                  error,
-                  url: fullUrl
-                })
-              )
-          );
-        });
-      }
-    );
+            promise.then(
+              ({status, data, _cacheInfo_}) => {
+                request.context.set(CACHE_INFO, _cacheInfo_);
+                observer.next(
+                  new HttpResponse<any>({
+                    status,
+                    body: data,
+                    url: fullUrl
+                  })
+                );
+                observer.complete();
+              },
+              ({status, error}) =>
+                observer.error(
+                  new HttpErrorResponse({
+                    status,
+                    error,
+                    url: fullUrl
+                  })
+                )
+            );
+          });
+        }
+      );
+    }
   }
 
   /**
@@ -331,7 +493,7 @@ export class FhirBackendService implements HttpBackend {
       return this.currentDefinitions;
     }
 
-    const versionName = this.currentVersion;
+    const versionName = this.currentVersion || 'R4';
     const definitions = definitionsIndex.configByVersionName[versionName];
 
     // Initialize common definitions

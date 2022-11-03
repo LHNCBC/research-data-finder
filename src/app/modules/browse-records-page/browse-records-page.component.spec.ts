@@ -14,6 +14,7 @@ import variables from 'src/test/test-fixtures/variables-4.json';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('BrowseRecordsPageComponent', () => {
   let component: BrowseRecordsPageComponent;
@@ -25,7 +26,7 @@ describe('BrowseRecordsPageComponent', () => {
     await configureTestingModule(
       {
         declarations: [BrowseRecordsPageComponent],
-        imports: [BrowseRecordsPageModule]
+        imports: [BrowseRecordsPageModule, RouterTestingModule]
       },
       {
         features: {

@@ -2,13 +2,16 @@ import { TestBed } from '@angular/core/testing';
 import { SettingsService } from './settings.service';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import { FhirBackendModule } from '../fhir-backend/fhir-backend.module';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('SettingsService', () => {
   let service: SettingsService;
   let fhirBackendService: FhirBackendService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [FhirBackendModule] });
+    TestBed.configureTestingModule({
+      imports: [FhirBackendModule, RouterTestingModule]
+    });
     fhirBackendService = TestBed.inject(FhirBackendService);
     service = TestBed.inject(SettingsService);
   });

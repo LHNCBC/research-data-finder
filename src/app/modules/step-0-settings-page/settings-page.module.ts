@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { SettingsPageComponent } from './settings-page.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FhirServerSelectComponent } from './fhir-server-select/fhir-server-select.component';
 import { MatButtonModule } from '@angular/material/button';
+import { AppRoutingModule } from '../../app-routing.module';
 
 @NgModule({
   declarations: [SettingsPageComponent, FhirServerSelectComponent],
@@ -23,7 +24,9 @@ import { MatButtonModule } from '@angular/material/button';
     MatCheckboxModule,
     MatExpansionModule,
     MatProgressSpinnerModule,
-    MatButtonModule
+    MatButtonModule,
+    AppRoutingModule,
+    FormsModule
   ]
 })
 export class SettingsPageModule {}

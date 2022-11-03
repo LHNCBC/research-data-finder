@@ -84,6 +84,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     isVisible: () => boolean;
   }> = [];
 
+  // Temporarily disable RAS until it's approved.
+  enableRas = false;
+
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
     public fhirBackend: FhirBackendService,
@@ -138,6 +141,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     this.subscription = this.fhirBackend.initialized.subscribe((status) => {
       if (status === ConnectionStatus.Disconnect) {
         this.stepper.steps.forEach((s) => s.reset());
+        this.stepper.selectedIndex = Step.SETTINGS;
       } else if (status === ConnectionStatus.Ready) {
         this.allowChangeCreateCohortMode =
           getUrlParam('alpha-version') === 'enable' &&
@@ -358,6 +362,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    */
   onSelectAnActionNext(createCohortModeValue: CreateCohortMode): void {
     if (
+      this.enableRas &&
       [CreateCohortMode.BROWSE, CreateCohortMode.SEARCH].includes(
         createCohortModeValue
       ) &&
