@@ -5,7 +5,6 @@ import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { StepperComponent, Step } from '../stepper/stepper.component';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
-import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-home',
@@ -19,8 +18,7 @@ export class HomeComponent implements AfterViewInit {
 
   constructor(
     public rasToken: RasTokenService,
-    public fhirBackend: FhirBackendService,
-    private http: HttpClient
+    public fhirBackend: FhirBackendService
   ) {
     this.isAlpha = getUrlParam('alpha-version') === 'enable';
   }
@@ -40,16 +38,12 @@ export class HomeComponent implements AfterViewInit {
   }
 
   onRasLogout(): void {
-    this.http
-      .get(`${window.location.origin}/rdf-server/logout`)
-      .subscribe(() => {
-        this.rasToken.rasTokenValidated = false;
-        sessionStorage.clear();
-        this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
-        this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
-          CreateCohortMode.UNSELECTED
-        );
-      });
+    this.rasToken.logout().then(() => {
+      this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
+      this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
+        CreateCohortMode.UNSELECTED
+      );
+    });
   }
 
   onSmartLogout(): void {

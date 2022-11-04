@@ -7,18 +7,32 @@
     <span id=tagline>An <a
       href="https://github.com/lhncbc/fhir-obs-viewer">open source</a> viewer
          for FHIR Observations from the National Library of Medicine</span>
-    <div id="version">Version: <a target="_blank"
-                                  tabIndex="0"
-                                  (keyup.enter)="$event.currentTarget.click()"
-                                  [matMenuTriggerFor]="menu">{{version + (isAlpha ? ' (alpha)' : '') }}</a></div>
-    <mat-menu #menu="matMenu">
-      <button mat-menu-item
-              (click)="openChangelog()">View change log</button>
-      <button mat-menu-item
-              (click)="switchVersion()">Switch to the {{isAlpha ? 'stable' : 'alpha' }} version</button>
-    </mat-menu>
-    <div class="logout" *ngIf="rasToken.rasTokenValidated" matTooltip="Log out from dbGaP" (click)="onRasLogout()">Log out</div>
-    <div class="logout" *ngIf="fhirBackend.smartConnectionSuccess" matTooltip="Log out from SMART on FHIR" (click)="onSmartLogout()">Log out</div>
+    <div class="h-box buttons">
+      <div class="logout"
+           tabIndex="0"
+           *ngIf="rasToken.rasTokenValidated"
+           matTooltip="Log out from dbGaP"
+           role="link"
+           aria-label="Log out from dbGaP"
+           (click)="onRasLogout()">Log out</div>
+      <div class="logout"
+           tabIndex="0"
+           *ngIf="fhirBackend.smartConnectionSuccess"
+           matTooltip="Log out from SMART on FHIR"
+           role="link"
+           aria-label="Log out from SMART on FHIR"
+           (click)="onSmartLogout()">Log out</div>
+      <div id="version">Version: <a target="_blank"
+                                    tabIndex="0"
+                                    (keyup.enter)="$event.currentTarget.click()"
+                                    [matMenuTriggerFor]="menu">{{version + (isAlpha ? ' (alpha)' : '') }}</a></div>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item
+                (click)="openChangelog()">View change log</button>
+        <button mat-menu-item
+                (click)="switchVersion()">Switch to the {{isAlpha ? 'stable' : 'alpha' }} version</button>
+      </mat-menu>
+    </div>
   </div>
 </div>
 <!-- end page header -->

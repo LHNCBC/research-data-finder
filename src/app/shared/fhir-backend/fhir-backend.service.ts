@@ -1,7 +1,7 @@
 /**
  * This file contains a service used to handle HTTP requests to the FHIR server.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import {
   HttpBackend,
   HttpClient,
@@ -15,13 +15,14 @@ import { BehaviorSubject, Observable, Observer, Subscription } from 'rxjs';
 import { FhirBatchQuery } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
-import { escapeStringForRegExp, getUrlParam } from '../utils';
+import { escapeStringForRegExp, getUrlParam, setUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
 import { find } from 'lodash-es';
 import { filter, finalize, map } from 'rxjs/operators';
 import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { RasTokenService } from '../ras-token/ras-token.service';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -57,7 +58,14 @@ export class FhirBackendService implements HttpBackend {
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
-      this.initializeFhirBatchQuery(url);
+      // Logging out of RAS when changing server
+      (url !== sessionStorage.getItem('dbgapRasLoginServer')
+          // Access to RasTokenService via injector to avoid circular dependency
+        ? this.injector.get(RasTokenService).logout()
+        : Promise.resolve()
+      ).then(() => {
+        this.initializeFhirBatchQuery(url);
+      });
     }
   }
   get serviceBaseUrl(): string {
@@ -72,7 +80,22 @@ export class FhirBackendService implements HttpBackend {
       this.initialized.next(ConnectionStatus.Pending);
       this._isSmartOnFhir = true;
       // Navigate to 'launch' page to authorize a SMART on FHIR connection.
-      this.router.navigate(['/launch', { iss: this.serviceBaseUrl }]);
+      this.router.navigate(
+        [
+          '/launch',
+          {
+            iss: this.serviceBaseUrl,
+            redirectUri: setUrlParam(
+              'isSmart',
+              true,
+              window.location.pathname + window.location.search
+            )
+          }
+        ],
+        {
+          skipLocationChange: true
+        }
+      );
     } else {
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
@@ -134,11 +157,16 @@ export class FhirBackendService implements HttpBackend {
    *   XMLHttpRequest to send requests to a backend server.
    * @param fhirService a service which holds the SMART on FHIR connection client
    * @param router Angular router
+   * @param injector an Angular injector, which is responsible for creating
+   *   service instances and injecting them into classes
+   * @param liveAnnoncer a service is used to announce messages for screen-reader
+   *   users using an aria-live region.
    */
   constructor(
     private defaultBackend: HttpXhrBackend,
     private fhirService: FhirService,
     private router: Router,
+    private injector: Injector,
     private liveAnnoncer: LiveAnnouncer
   ) {
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
