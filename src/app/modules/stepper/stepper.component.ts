@@ -84,6 +84,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     isVisible: () => boolean;
   }> = [];
 
+  // Temporarily disable RAS until it's approved.
+  enableRas = false;
+
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
     public fhirBackend: FhirBackendService,
@@ -366,6 +369,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    */
   onSelectAnActionNext(createCohortModeValue: CreateCohortMode): void {
     if (
+      this.enableRas &&
       this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl) &&
       [CreateCohortMode.BROWSE, CreateCohortMode.SEARCH].includes(
         createCohortModeValue
