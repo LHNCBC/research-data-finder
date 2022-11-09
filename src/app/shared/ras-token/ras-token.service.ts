@@ -39,6 +39,7 @@ export class RasTokenService {
 
   /**
    * Logs out of RAS.
+   * @return a promise that resolves when the logout request has completed.
    */
   logout(): Promise<void> {
     return this.rasTokenValidated
