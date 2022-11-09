@@ -9,13 +9,8 @@ class QueryResponseCache {
   // case the persistent cache is not available.
   fakeWindowCaches = {};
 
-  /**
-   * Whether "window.caches" is supported.
-   * @return {boolean}
-   */
-  isCachesSupported() {
-    return 'caches' in window;
-  }
+  // Whether "window.caches" is supported.
+  isCachesSupported = !!window.caches;
 
   /**
    * Stores the response data for a URL in the persistent or temporary cache.
@@ -38,7 +33,7 @@ class QueryResponseCache {
       }
     };
     if (options.cacheName) {
-      if (this.isCachesSupported()) {
+      if (this.isCachesSupported) {
         return caches
           .open(options.cacheName)
           .then((c) => c.put(url, new Response(JSON.stringify(responseData))));
@@ -66,7 +61,7 @@ class QueryResponseCache {
   get(url, options) {
     let tempCachePromise;
     if (options.cacheName) {
-      if (this.isCachesSupported()) {
+      if (this.isCachesSupported) {
         return caches.open(options.cacheName).then((cache) => {
           return cache
             .match(url)
@@ -107,7 +102,7 @@ class QueryResponseCache {
    */
   hasNotExpiredData(url, cacheName) {
     return (cacheName
-      ? this.isCachesSupported()
+      ? this.isCachesSupported
         ? caches
             .open(cacheName)
             .then((cache) =>
@@ -141,7 +136,7 @@ class QueryResponseCache {
    *   object is found and deleted, and false otherwise.
    */
   clearByCacheName(cacheName) {
-    if (this.isCachesSupported()) {
+    if (this.isCachesSupported) {
       return caches.delete(cacheName);
     }
     const isExist = !!this.fakeWindowCaches[cacheName];
@@ -163,7 +158,7 @@ class QueryResponseCache {
    * @returns {Promise<void>}
    */
   clearPersistentCache() {
-    return (this.isCachesSupported()
+    return (this.isCachesSupported
       ? caches.keys()
       : Promise.resolve(Object.keys(this.fakeWindowCaches))
     ).then((cacheNames) =>
