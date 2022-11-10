@@ -51,8 +51,8 @@
                   <span *ngIf="resourceTable.loading; else loadedTemplate">
                     <span>Loading studies {{
                       (selectRecords.currentState[resourceType].isCached | async)
-                        ? 'from cache ...'
-                        : 'from server. It may take a minute or two...'
+                        ? 'from the cache ...'
+                        : 'from the server. It may take a minute or two...'
                       }}</span>
                   </span>
                   <ng-template #loadedTemplate>
