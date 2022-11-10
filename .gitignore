@@ -2,7 +2,6 @@
 
 # compiled output
 /public
-/fhir/research-data-finder
 /tmp
 /out-tsc
 # Only exists if Bazel was run
