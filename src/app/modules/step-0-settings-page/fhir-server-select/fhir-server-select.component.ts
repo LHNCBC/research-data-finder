@@ -20,6 +20,7 @@ import { Subject } from 'rxjs';
 import Def from 'autocomplete-lhc';
 import { FhirBackendService } from '../../../shared/fhir-backend/fhir-backend.service';
 import { setUrlParam } from '../../../shared/utils';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 @Component({
   selector: 'app-fhir-server-select',
@@ -179,7 +180,8 @@ export class FhirServerSelectComponent
   constructor(
     @Optional() @Self() public ngControl: NgControl,
     private elementRef: ElementRef,
-    public fhirBackend: FhirBackendService
+    public fhirBackend: FhirBackendService,
+    private liveAnnoncer: LiveAnnouncer
   ) {
     super();
     if (ngControl != null) {
@@ -200,7 +202,16 @@ export class FhirServerSelectComponent
     document.getElementById(this.inputId).addEventListener('input', (event) => {
       clearTimeout(this.inputTimeout);
       this.inputTimeout = setTimeout(() => {
-        this.fhirBackend.checkSmartOnFhirEnabled(event.target['value']);
+        this.fhirBackend
+          .checkSmartOnFhirEnabled(event.target['value'])
+          .then((isSmartOnFhirEnabled) => {
+            if (isSmartOnFhirEnabled) {
+              this.liveAnnoncer.clear();
+              this.liveAnnoncer.announce(
+                'A new checkbox for SMART on FHIR launch appeared.'
+              );
+            }
+          });
       }, 500);
     });
   }

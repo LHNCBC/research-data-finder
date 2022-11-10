@@ -11,14 +11,14 @@ import {
   HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
-import { BehaviorSubject, Observable, Observer, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Observer, of } from 'rxjs';
 import { FhirBatchQuery } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam, setUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
 import { find } from 'lodash-es';
-import { filter, finalize, map } from 'rxjs/operators';
+import { catchError, filter, finalize, map } from 'rxjs/operators';
 import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
@@ -60,8 +60,8 @@ export class FhirBackendService implements HttpBackend {
       this._isSmartOnFhir = false;
       // Logging out of RAS when changing server
       (url !== sessionStorage.getItem('dbgapRasLoginServer')
-          // Access to RasTokenService via injector to avoid circular dependency
-        ? this.injector.get(RasTokenService).logout()
+        ? // Access to RasTokenService via injector to avoid circular dependency
+          this.injector.get(RasTokenService).logout()
         : Promise.resolve()
       ).then(() => {
         this.initializeFhirBatchQuery(url);
@@ -203,9 +203,6 @@ export class FhirBackendService implements HttpBackend {
   // Definitions of columns, search params, value sets for current FHIR version
   private currentDefinitions: any;
 
-  // Subscription of the '/.well-known/smart-configuration' endpoint check.
-  private smartOnFhirEnabledSubscription: Subscription;
-
   // Can't be injected inside HttpBackend.
   private http: HttpClient;
 
@@ -226,11 +223,18 @@ export class FhirBackendService implements HttpBackend {
    * Initializes the SMART connection if it's available and this.isSmartOnFhir is
    * already marked as true.
    */
-  checkSmartOnFhirEnabled(url): void {
-    this.smartOnFhirEnabledSubscription?.unsubscribe();
-    this.smartOnFhirEnabledSubscription = this.http
+  checkSmartOnFhirEnabled(url): Promise<boolean> {
+    return this.http
       .get(`${url}/.well-known/smart-configuration`)
       .pipe(
+        map(() => {
+          this.isSmartOnFhirEnabled = true;
+          return true;
+        }),
+        catchError(() => {
+          this.isSmartOnFhirEnabled = false;
+          return of(false);
+        }),
         finalize(() => {
           // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
           if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
@@ -242,18 +246,7 @@ export class FhirBackendService implements HttpBackend {
           }
         })
       )
-      .subscribe(
-        () => {
-          this.isSmartOnFhirEnabled = true;
-          this.liveAnnoncer.clear();
-          this.liveAnnoncer.announce(
-            'A new checkbox for SMART on FHIR launch appeared.'
-          );
-        },
-        () => {
-          this.isSmartOnFhirEnabled = false;
-        }
-      );
+      .toPromise();
   }
 
   /**
