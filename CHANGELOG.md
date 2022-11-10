@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.2.0] - 2022-11-10
+### Changed
+- Removed Patient.deceased from dbGaP fields.
+
 ## [5.1.2] - 2022-10-27
 ### Added
 - Option to launch a SMART on FHIR connection.

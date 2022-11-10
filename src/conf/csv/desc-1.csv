@@ -67,8 +67,6 @@ Observation,,,,,,,
 Patient,,,,,,,
 ,communication,column,Communication,hide,BackboneElement,,"A language which may be used to communicate with the patient about his or her health"
 ,contact,column,Contact,hide,BackboneElement,,"A contact party (e.g. guardian, partner, friend) for the patient"
-,deceased,"search parameter",deceased,show,boolean,,"This patient has been marked as deceased, or as a death date entered"
-,deceased[x],column,Deceased,show,"boolean,dateTime",,"Indicates if the individual is deceased or not"
 ,gender,column,Gender,show,code,,"male | female | other | unknown"
 ,gender,"search parameter",gender,show,code,,"Gender of the patient"
 ,generalPractitioner,column,"General Practitioner",hide,Reference,,"Patient's nominated primary care provider"
