@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.1.3] - 2022-11-14
+### Fixed
+- Narrator read "The field's value does not match any items in the list." when
+  the page loads.
+
 ## [5.1.2] - 2022-10-27
 ### Added
 - Option to launch a SMART on FHIR connection.
