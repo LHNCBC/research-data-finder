@@ -8,6 +8,11 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Narrator read "The field's value does not match any items in the list." when
   the page loads.
 
+## [5.1.3] - 2022-10-28
+### Changed
+- Added caching of responses to initialization requests when selecting the FHIR
+  server.
+
 ## [5.1.2] - 2022-10-27
 ### Added
 - Option to launch a SMART on FHIR connection.
