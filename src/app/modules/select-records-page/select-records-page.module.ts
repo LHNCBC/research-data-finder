@@ -14,6 +14,8 @@ import { SearchParameterGroupModule } from '../search-parameter-group/search-par
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { FormControlCollectorModule } from '../../shared/error-manager/form-control-collector.module';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @NgModule({
   declarations: [SelectRecordsPageComponent],
@@ -33,7 +35,9 @@ import { FormControlCollectorModule } from '../../shared/error-manager/form-cont
     MatCheckboxModule,
     FormsModule,
     MatRadioModule,
-    FormControlCollectorModule
+    FormControlCollectorModule,
+    MatExpansionModule,
+    MatTooltipModule
   ]
 })
 export class SelectRecordsPageModule {}

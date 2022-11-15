@@ -241,7 +241,7 @@ export class FhirBatchQuery {
           }
         } else {
           // If initialization fails, do not cache initialization responses
-          queryResponseCache.clearByCacheName(this.getInitCacheName());
+          this.clearCacheByName(this.getInitCacheName());
           return Promise.reject({
             error:
               "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
@@ -768,6 +768,28 @@ export class FhirBatchQuery {
         }
       });
     });
+  }
+
+  /**
+   * Whether cached response data exists for the URL and has not expired.
+   * @param {string} url - URL
+   * @param {string} [cacheName] - cache name for persistent data storage
+   *   between sessions, if not specified, gets response data from the temporary
+   *   cache that will disappear when the page is reloaded.
+   * @returns {Promise<boolean>}
+   */
+  isCached(url, cacheName) {
+    return queryResponseCache.hasNotExpiredData(url, cacheName);
+  }
+
+  /**
+   * Clears persistent cache data by cache name.
+   * @param {string} cacheName - cache name for persistent data storage between
+   *   sessions.
+   * @returns {Promise<boolean>}
+   */
+  clearCacheByName(cacheName) {
+    return queryResponseCache.clearByCacheName(cacheName);
   }
 
   /**

@@ -3,10 +3,14 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [5.1.4] - 2022-11-14
+## [5.1.5] - 2022-11-14
 ### Fixed
 - Narrator read "The field's value does not match any items in the list." when
   the page loads.
+
+## [5.1.4] - 2022-10-31
+### Changed
+- Added caching of response to a query for the full list of ResearchStudies.
 
 ## [5.1.3] - 2022-10-28
 ### Changed
