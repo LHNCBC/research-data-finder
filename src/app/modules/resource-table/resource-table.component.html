@@ -1,5 +1,5 @@
 <ng-container *ngIf="prefixTemplate as template">
-  <ng-container *ngTemplateOutlet="template; context: prefixContext"></ng-container>
+  <ng-container *ngTemplateOutlet="template; context: templateContext"></ng-container>
 </ng-container>
 
 <mat-progress-bar
@@ -7,36 +7,45 @@
     [mode]="(progressBarPosition$ | async) > 0 ? 'determinate' : 'indeterminate'"
     [value]="progressBarPosition$ | async">
 </mat-progress-bar>
-<mat-accordion>
-  <mat-expansion-panel hideToggle #panel>
-    <mat-expansion-panel-header (click)="!loadingStatistics.length && panel.toggle()">
-      <mat-panel-title>
+<ng-container *ngIf="headerTemplate as template; else defaultTitle">
+  <ng-container *ngTemplateOutlet="template; context: templateContext"></ng-container>
+</ng-container>
+<ng-template #defaultTitle>
+  <mat-accordion>
+    <mat-expansion-panel hideToggle #panel>
+      <mat-expansion-panel-header (click)="!loadingStatistics.length && panel.toggle()">
+        <mat-panel-title>
         <span *ngIf="resourceType === 'Patient' && !loading; else countTemplate">
           Cohort of&nbsp;{{dataSource.data.length}} {{resourceType}} resources
         </span>
-        <ng-template #countTemplate>
-          <span>{{countMessage}}</span>
-        </ng-template>
-      </mat-panel-title>
-      <mat-panel-description>
-        <span *ngIf="loading; else loadedTemplate">
-          <span>{{loadingMessage}}</span>
-        </span>
-        <ng-template #loadedTemplate>
-          Data loaded on {{loadedDateTime | date: 'short'}} in {{loadTime}} seconds
-          <span *ngIf="loadingStatistics?.length">&nbsp;(click to view/hide details)</span>
-        </ng-template>
-      </mat-panel-description>
-    </mat-expansion-panel-header>
-    <table *ngIf="loadingStatistics?.length" id="loadingStatistics">
-      <tr *ngFor="let row of loadingStatistics">
-        <td *ngFor="let item of row">{{item}}</td>
-      </tr>
-    </table>
-  </mat-expansion-panel>
-</mat-accordion>
+          <ng-template #countTemplate>
+            <span>{{countMessage}}</span>
+          </ng-template>
+        </mat-panel-title>
+        <mat-panel-description>
+          <span *ngIf="loading; else loadedTemplate">
+            <span>{{loadingMessage}}</span>
+          </span>
+          <ng-template #loadedTemplate>
+            Data loaded on {{loadedDateTime | date: 'short'}} in {{loadTime}} seconds
+            <span *ngIf="loadingStatistics?.length">&nbsp;(click to view/hide details)</span>
+          </ng-template>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <table *ngIf="loadingStatistics?.length" id="loadingStatistics">
+        <tr *ngFor="let row of loadingStatistics">
+          <td *ngFor="let item of row">{{item}}</td>
+        </tr>
+      </table>
+    </mat-expansion-panel>
+  </mat-accordion>
+</ng-template>
 
 <div class="container" *ngIf="this.dataSource.data.length > 0 || context === 'browse' || context === 'select'">
+  <ng-container *ngIf="buttonPrefixTemplate as template">
+    <ng-container *ngTemplateOutlet="template; context: templateContext"></ng-container>
+  </ng-container>
+
   <button mat-mini-fab
           class="configure-btn"
           color="basic"

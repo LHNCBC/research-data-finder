@@ -43,7 +43,7 @@ export class FhirServerSelectComponent
       url: 'https://lforms-fhir.nlm.nih.gov/baseR4'
     },
     {
-      description: 'dbGap (https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1)',
+      description: 'dbGap',
       url: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
     },
     {
@@ -228,16 +228,17 @@ export class FhirServerSelectComponent
     const testInputId = this.inputId;
     this.acInstance = new Def.Autocompleter.Prefetch(
       testInputId,
-      this.options.map((o) => o.description),
-      { codes: this.options.map((o) => o.url) }
-    );
-    this.acInstance.setFieldVal(this.currentValue);
-    this.listSelectionsObserver = (eventData) => {
-      if (eventData.item_code) {
-        this.acInstance.setFieldVal(eventData.item_code);
-      } else {
-        this.updateCurrentValue();
+      this.options.map((o) => o.url),
+      {
+        formattedListItems: this.options.map(
+          (o) =>
+            ` <span style="color: rgba(0, 0, 0, 0.38);"> — ${o.description}</span>`
+        )
       }
+    );
+    this.acInstance.setFieldVal(this.currentValue, false);
+    this.listSelectionsObserver = () => {
+      this.updateCurrentValue();
     };
     Def.Autocompleter.Event.observeListSelections(
       testInputId,
@@ -264,7 +265,7 @@ export class FhirServerSelectComponent
   writeValue(value: string): void {
     this.currentValue = value;
     if (this.acInstance) {
-      this.acInstance.setFieldVal(value);
+      this.acInstance.setFieldVal(value, false);
     }
   }
 
