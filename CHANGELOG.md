@@ -8,6 +8,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Integration with dbGaP power user portal to allow user to login/logout.
 ### Fixed
 - Do not cache responses to aborted requests.
+- Caching of requests which check whether SMART on FHIR connection is available.
 
 ## [5.2.0] - 2022-11-15
 ### Changed
