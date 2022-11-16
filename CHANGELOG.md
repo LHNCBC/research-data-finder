@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.2.0] - 2022-11-15
+### Changed
+- Removed Patient.deceased from dbGaP fields.
+
 ## [5.1.5] - 2022-11-14
 ### Fixed
 - Narrator read "The field's value does not match any items in the list." when
