@@ -1,18 +1,28 @@
 import { Injectable } from '@angular/core';
 import Resource = fhir.Resource;
-import { Observable } from 'rxjs';
+import { from, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import Bundle = fhir.Bundle;
 import { catchError, map, startWith, switchMap } from 'rxjs/operators';
 import { getNextPageUrl } from '../utils';
 import { Sort } from '@angular/material/sort';
 import { CartService } from '../cart/cart.service';
+import { HttpOptions } from '../../types/http-options';
+import {
+  CACHE_INFO,
+  CACHE_NAME,
+  FhirBackendService
+} from '../fhir-backend/fhir-backend.service';
 
 interface SelectRecordState {
   // Indicates that data is loading
   loading: boolean;
   // Array of loaded resources
   resources: Resource[];
+  // Whether result is cached
+  isCached?: Observable<boolean>;
+  // Time when the data was received from the server
+  loadTime?: Date;
   // Next page URL for regular FHIR resources
   nextBundleUrl?: string;
   // Page number for CTSS variables
@@ -28,7 +38,11 @@ interface SelectRecordState {
   providedIn: 'root'
 })
 export class SelectRecordsService {
-  constructor(private http: HttpClient, private cart: CartService) {}
+  constructor(
+    private http: HttpClient,
+    private cart: CartService,
+    private fhirBackend: FhirBackendService
+  ) {}
 
   currentState: { [resourceType: string]: SelectRecordState } = {};
   resourceStream: { [resourceType: string]: Observable<Resource[]> } = {};
@@ -68,28 +82,24 @@ export class SelectRecordsService {
    * Loads the first page of resources of specified resource type.
    * @param resourceType - resource type
    * @param url - request URL.
-   * @param params - parameter values.
+   * @param options - the HTTP options to send with the request.
    */
-  loadFirstPage(
-    resourceType: string,
-    url: string,
-    params: { [name: string]: any }
-  ): void {
+  loadFirstPage(resourceType: string, url: string, options: HttpOptions): void {
     this.currentState[resourceType] = {
       loading: true,
       resources: [],
       nextBundleUrl: url
     };
 
-    this.loadNextPage(resourceType, params);
+    this.loadNextPage(resourceType, options);
   }
 
   /**
    * Loads the next page of resources of specified resource type.
    * @param resourceType - resource type
-   * @param params - parameter values.
+   * @param options - the HTTP options to send with the request.
    */
-  loadNextPage(resourceType, params?: { [name: string]: any }): void {
+  loadNextPage(resourceType, options?: HttpOptions): void {
     const currentState = this.currentState[resourceType];
     if (!currentState.nextBundleUrl) {
       return;
@@ -98,8 +108,15 @@ export class SelectRecordsService {
     delete currentState.nextBundleUrl;
 
     currentState.loading = true;
-    this.resourceStream[resourceType] = this.http.get(url, { params }).pipe(
+    currentState.isCached = from(
+      this.fhirBackend.isCached(url, options.context?.get(CACHE_NAME))
+    );
+    this.resourceStream[resourceType] = this.http.get(url, options).pipe(
       map((data: Bundle) => {
+        const cacheInfo = options.context.get(CACHE_INFO);
+        currentState.loadTime = cacheInfo
+          ? new Date(cacheInfo.timestamp)
+          : new Date();
         // Temporary hack just to show study 2410 for user to select.
         // Remove below block once the dbGaP query is ready.
         if (
@@ -291,7 +308,8 @@ export class SelectRecordsService {
             )
           )
         )
-      )
+      ),
+      startWith([])
     );
   }
 

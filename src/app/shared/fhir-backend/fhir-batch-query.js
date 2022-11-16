@@ -1,6 +1,7 @@
 import definitionsIndex from '../definitions/index.json';
 
-let commonRequestCache = {}; // Map from url to result JSON
+// An object used to cache responses to HTTP requests
+import queryResponseCache from './query-response-cache';
 
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
 export const HTTP_ABORT = 0;
@@ -88,6 +89,30 @@ export class FhirBatchQuery {
   }
 
   /**
+   * Returns the name of the persistent cache for initial queries of public
+   * data and server capability checks.
+   * @returns {string}
+   */
+  getInitCacheName() {
+    return 'init-' + this._serviceBaseUrl;
+  }
+
+  /**
+   * Returns common options for initialization requests
+   * @returns {Object}
+   */
+  getCommonInitRequestOptions() {
+    return {
+      combine: false,
+      retryCount: 2,
+      cacheName: this.getInitCacheName(),
+      // Initialization requests are cached for a day:
+      expirationTime: 24 * 60 * 60,
+      cacheErrors: true
+    };
+  }
+
+  /**
    * Initialize/reinitialize FhirBatchQuery instance.
    * @param {string} [newServiceBaseUrl] - new FHIR REST API Service Base URL
    *                 (https://www.hl7.org/fhir/http.html#root)
@@ -101,32 +126,35 @@ export class FhirBatchQuery {
       this._msBetweenRequests = 0;
     }
 
+    const currentServiceBaseUrl = this._serviceBaseUrl;
+
     if (this._initializationPromise) {
       return this._initializationPromise;
     }
     this._features = {};
     if (this._isDbgap) {
-      this._initializationPromise = new Promise((resolve, _) => {
-        Promise.allSettled([
-          // Query to extract the consent group that must be included as _security param in particular queries.
-          this.getWithCache('ResearchSubject', {
-            combine: false,
-            retryCount: 2
-          })
-        ]).then(([researchSubject]) => {
-          if (
-            researchSubject &&
-            researchSubject.status === 'rejected' &&
-            /Deny access to all but these consent groups: (.*) -- codes from last denial/.test(
-              researchSubject.reason.error
-            )
-          ) {
-            this._features.consentGroup = RegExp.$1.replace(', ', ',');
-            this.makeInitializationCalls(resolve, true);
-          } else {
-            this.makeInitializationCalls(resolve);
-          }
-        });
+      this._initializationPromise = Promise.allSettled([
+        // Query to extract the consent group that must be included as _security param in particular queries.
+        this.getWithCache('ResearchSubject', this.getCommonInitRequestOptions())
+      ]).then(([researchSubject]) => {
+        if (currentServiceBaseUrl !== this._serviceBaseUrl) {
+          return Promise.reject({
+            status: HTTP_ABORT,
+            error: 'Outdated response to initialization request.'
+          });
+        }
+        if (
+          researchSubject &&
+          researchSubject.status === 'rejected' &&
+          /Deny access to all but these consent groups: (.*) -- codes from last denial/.test(
+            researchSubject.reason.error
+          )
+        ) {
+          this._features.consentGroup = RegExp.$1.replace(', ', ',');
+          return this.makeInitializationCalls(true);
+        } else {
+          return this.makeInitializationCalls();
+        }
       });
     } else {
       this._initializationPromise = this.makeInitializationCalls();
@@ -136,44 +164,42 @@ export class FhirBatchQuery {
 
   /**
    * Makes multiple queries to server and determine values in _feature property.
-   * @param resolve function to resolve initialization promise when all queries have returned
    * @param withSecurityTag whether to add _security search parameter in applicable queries
+   * @returns {Promise<void>}
    */
-  makeInitializationCalls(resolve = () => {}, withSecurityTag = false) {
+  makeInitializationCalls(withSecurityTag = false) {
+    const currentServiceBaseUrl = this._serviceBaseUrl;
     const securityParam = withSecurityTag
       ? `&_security=${this._features.consentGroup}`
       : '';
+    // Common options for initialization requests
+    const options = this.getCommonInitRequestOptions();
+
     // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
     const initializationRequests = [
       // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-      this.getWithCache('metadata', { combine: false, retryCount: 2 }),
+      this.getWithCache('metadata', options),
       // Check if sorting Observations by date is supported
       this.getWithCache(
         `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
-        {
-          combine: false,
-          retryCount: 2
-        }
+        options
       ),
       // Check if sorting Observations by age-at-event is supported
       this.getWithCache(
         `Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`,
-        { combine: false, retryCount: 2 }
+        options
       ),
       // Check if operation $lastn on Observation is supported
       this.getWithCache(
         `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
-        { combine: false, retryCount: 2 }
+        options
       ),
       // Check if server has Research Study data
-      this.getWithCache('ResearchStudy?_elements=id&_count=1', {
-        combine: false,
-        retryCount: 2
-      }),
+      this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
       // Check if interpretation search parameter is supported
       this.getWithCache(
         `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
-        { combine: false, retryCount: 2 }
+        options
       ),
       // Check if batch request is supported
       this._request({
@@ -199,6 +225,12 @@ export class FhirBatchQuery {
         interpretation,
         batch
       ]) => {
+        if (currentServiceBaseUrl !== this._serviceBaseUrl) {
+          return Promise.reject({
+            status: HTTP_ABORT,
+            error: 'Outdated response to initialization request.'
+          });
+        }
         if (metadata.status === 'fulfilled') {
           const fhirVersion = metadata.value.data.fhirVersion;
           this._versionName = getVersionNameByNumber(fhirVersion);
@@ -208,6 +240,8 @@ export class FhirBatchQuery {
             });
           }
         } else {
+          // If initialization fails, do not cache initialization responses
+          this.clearCacheByName(this.getInitCacheName());
           return Promise.reject({
             error:
               "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
@@ -233,8 +267,6 @@ export class FhirBatchQuery {
             interpretation.value.data.entry.length > 0,
           batch: batch.status === 'fulfilled'
         });
-        console.log(this._features);
-        resolve();
       }
     );
   }
@@ -323,7 +355,7 @@ export class FhirBatchQuery {
   }
 
   static clearCache() {
-    commonRequestCache = {};
+    queryResponseCache.clearAll();
   }
 
   /**
@@ -689,60 +721,82 @@ export class FhirBatchQuery {
   /**
    * Like "get", but uses a cache if the URL has been requested before.
    * @param {string} url - the URL whose data is to be retrieved.
-   * @param {Object} options - additional options
-   * @param {boolean} options.combine - whether to combine requests in a batch,
-   *                  true by default
-   * @param {number|boolean} options.retryCount - maximum number of retries
-   *                  or false to use _giveUpTimeout
+   * @param {Object} [options] - additional options:
+   * @param {boolean} [options.combine] - whether to combine requests in a batch,
+   *                  true by default.
+   * @param {number|boolean} [options.retryCount] - maximum number of retries
+   *                  or false to use _giveUpTimeout, false by default.
+   * @param {null|string} [options.cacheName] - if specified, then sets the name
+   *   for the cache in "window.caches", otherwise a javascript variable is
+   *   used as a temporary cache.
+   * @param {number} [options.expirationTime] - the number of seconds the new
+   *   entry can be in the cache before expiring.
+   * @param {boolean} [options.cacheErrors] - whether to cache error responses,
+   *   false by default.
    * @return {Promise} resolves/rejects with Object {status, data}, where
-   *                   status is HTTP status number,
-   *                   data is Object constructed from a JSON response
+   *   status is HTTP status number, data is Object constructed from a JSON
+   *   response.
    */
-  getWithCache(url, options = { combine: true, retryCount: false }) {
+  getWithCache(url, options = {}) {
+    options = {
+      combine: true,
+      retryCount: false,
+      cacheName: null,
+      cacheErrors: false,
+      ...options
+    };
+
     return new Promise((resolve, reject) => {
-      const fullUrl = this.getFullUrl(url),
-        cachedReq = commonRequestCache[fullUrl];
-      if (cachedReq) {
-        console.log('Using cached data');
-        resolve(cachedReq);
-      } else {
-        this.get(fullUrl, options).then((result) => {
-          commonRequestCache[fullUrl] = result;
-          resolve(result);
-        }, reject);
-      }
+      const fullUrl = this.getFullUrl(url);
+      queryResponseCache.get(fullUrl, options).then((cachedResponse) => {
+        if (cachedResponse) {
+          console.log('Using cached data');
+          if (cachedResponse.status >= 200 && cachedResponse.status < 300) {
+            resolve(cachedResponse);
+          } else {
+            reject(cachedResponse);
+          }
+        } else {
+          this.get(fullUrl, options).then(
+            (response) => {
+              queryResponseCache.add(fullUrl, response, options).then(() => {
+                resolve(response);
+              });
+            },
+            (error) => {
+              (options.cacheErrors
+                ? queryResponseCache.add(fullUrl, error, options)
+                : Promise.resolve()
+              ).then(() => {
+                reject(error);
+              });
+            }
+          );
+        }
+      });
     });
   }
 
   /**
-   * Makes search request for specified URL.
-   * @param {string} url
-   * @return {Promise} resolves/rejects with Object {status, data}, where
-   *                   status is HTTP status number,
-   *                   data is Object constructed from a JSON response
+   * Whether cached response data exists for the URL and has not expired.
+   * @param {string} url - URL
+   * @param {string} [cacheName] - cache name for persistent data storage
+   *   between sessions, if not specified, gets response data from the temporary
+   *   cache that will disappear when the page is reloaded.
+   * @returns {Promise<boolean>}
    */
-  searchWithCache(url) {
-    return new Promise((resolve, reject) => {
-      const [_url, params] = this.getFullUrl(url).split('?'),
-        newUrl = `${_url}/_search`,
-        cacheKey = `${newUrl}?${params}`,
-        cachedReq = commonRequestCache[cacheKey];
-      if (cachedReq) {
-        console.log('Using cached data');
-        resolve(cachedReq);
-      } else {
-        // Can't batch POST-requests with a "Content-Type: application/x-www-form-urlencoded"
-        this._request({
-          method: 'POST',
-          url: newUrl,
-          body: params,
-          contentType: 'application/x-www-form-urlencoded'
-        }).then((result) => {
-          commonRequestCache[cacheKey] = result;
-          resolve(result);
-        }, reject);
-      }
-    });
+  isCached(url, cacheName) {
+    return queryResponseCache.hasNotExpiredData(url, cacheName);
+  }
+
+  /**
+   * Clears persistent cache data by cache name.
+   * @param {string} cacheName - cache name for persistent data storage between
+   *   sessions.
+   * @returns {Promise<boolean>}
+   */
+  clearCacheByName(cacheName) {
+    return queryResponseCache.clearByCacheName(cacheName);
   }
 
   /**
