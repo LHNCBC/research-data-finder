@@ -200,19 +200,7 @@ export class FhirServerSelectComponent
     // After a delay of half second, check whether to show SMART on FHIR checkbox
     // for the current server URL in the input field.
     document.getElementById(this.inputId).addEventListener('input', (event) => {
-      clearTimeout(this.inputTimeout);
-      this.inputTimeout = setTimeout(() => {
-        this.fhirBackend
-          .checkSmartOnFhirEnabled(event.target['value'])
-          .then((isSmartOnFhirEnabled) => {
-            if (isSmartOnFhirEnabled) {
-              this.liveAnnoncer.clear();
-              this.liveAnnoncer.announce(
-                'A new checkbox for SMART on FHIR launch appeared.'
-              );
-            }
-          });
-      }, 500);
+      this.checkSmartOnFhirEnabled(event.target['value']);
     });
   }
 
@@ -248,7 +236,13 @@ export class FhirServerSelectComponent
       }
     );
     this.acInstance.setFieldVal(this.currentValue, false);
-    this.listSelectionsObserver = () => {
+    this.listSelectionsObserver = (eventData) => {
+      if (
+        eventData.input_method === 'clicked' ||
+        eventData.input_method === 'arrows'
+      ) {
+        this.checkSmartOnFhirEnabled(eventData.final_val);
+      }
       this.updateCurrentValue();
     };
     Def.Autocompleter.Event.observeListSelections(
@@ -278,6 +272,34 @@ export class FhirServerSelectComponent
     if (this.acInstance) {
       this.acInstance.setFieldVal(value, false);
     }
+  }
+
+  /**
+   * Checks whether SMART on FHIR connection is available for a URL.
+   * Announces the appearance or disappearance of a checkbox for SMART on FHIR
+   * launch.
+   * @param url - FHIR REST API Service Base URL.
+   */
+  checkSmartOnFhirEnabled(url: string): void {
+    clearTimeout(this.inputTimeout);
+    const wasSmartOnFhirEnabled = this.fhirBackend.isSmartOnFhirEnabled;
+    this.inputTimeout = setTimeout(() => {
+      this.fhirBackend
+        .checkSmartOnFhirEnabled(url)
+        .then((isSmartOnFhirEnabled) => {
+          if (
+            this.input.nativeElement.value === url &&
+            wasSmartOnFhirEnabled !== isSmartOnFhirEnabled
+          ) {
+            this.liveAnnoncer.clear();
+            this.liveAnnoncer.announce(
+              isSmartOnFhirEnabled
+                ? 'A new checkbox for SMART on FHIR launch appeared.'
+                : 'The checkbox for SMART on FHIR launch disappeared.'
+            );
+          }
+        });
+    }, 500);
   }
 
   /**
