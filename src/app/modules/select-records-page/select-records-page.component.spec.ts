@@ -95,9 +95,9 @@ describe('SelectRecordsPageComponent', () => {
     fixture.detectChanges();
     mockHttp
       .expectOne(
-        `$fhir/ResearchStudy?_count=50&_has:ResearchSubject:study:status=${statuses.join(
+        `$fhir/ResearchStudy?_count=3000&_has:ResearchSubject:study:status=${statuses.join(
           ','
-        )}&_sort=title`
+        )}`
       )
       .flush(researchStudies);
     await expectNumberOfRecords(2);

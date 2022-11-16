@@ -4,6 +4,7 @@
 import { Injectable } from '@angular/core';
 import {
   HttpBackend,
+  HttpContextToken,
   HttpClient,
   HttpErrorResponse,
   HttpEvent,
@@ -34,6 +35,17 @@ export enum ConnectionStatus {
   Error,
   Disconnect
 }
+
+// Token to store cacheName in the context of an HTTP request.
+// See https://angular.io/api/common/http/HttpContext
+export const CACHE_NAME = new HttpContextToken<string>(() => '');
+
+// Token to store cache info in the context of an HTTP request.
+// See https://angular.io/api/common/http/HttpContext
+export const CACHE_INFO = new HttpContextToken<{
+  timestamp: number;
+  expirationTime: number;
+}>(() => null);
 
 // A list of resources in dbGap that must have _security params passed along when querying.
 const RESOURCES_REQUIRING_AUTHORIZATION = 'Observation|ResearchSubject';
@@ -313,6 +325,51 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
+   * Prepares the request URL by replacing "$fhir" with serviceBaseURL and
+   * adding additional required parameters.
+   * @param url - request URL
+   */
+  prepareRequestUrl(url: string): string {
+    const newUrl = url.replace(serviceBaseUrlRegExp, this.serviceBaseUrl);
+    // Until authentication is in place for dbGaP, we need to include the
+    // consent groups as values for _security.
+    // Observation and ResearchSubject queries will be sent with _security params.
+    return this.features.consentGroup &&
+      this.isAuthorizationRequiredForUrl(newUrl)
+      ? this.fhirClient.addParamToUrl(
+          newUrl,
+          '_security',
+          this.features.consentGroup
+        )
+      : newUrl;
+  }
+
+  /**
+   * Whether cached response data exists for the URL and has not expired.
+   * @param url - URL
+   * @param cacheName - cache name for persistent data storage
+   *   between sessions, if not specified, gets response data from the temporary
+   *   cache that will disappear when the page is reloaded.
+   */
+  isCached(url: string, cacheName: string): Promise<boolean> {
+    return this.fhirClient.isCached(
+      this.prepareRequestUrl(url),
+      cacheName ? cacheName + '-' + this.serviceBaseUrl : ''
+    );
+  }
+
+  /**
+   * Clears persistent cache data by cache name.
+   * @param cacheName - cache name for persistent data storage between
+   *   sessions.
+   */
+  clearCacheByName(cacheName: string): Promise<void> {
+    return this.fhirClient.clearCacheByName(
+      cacheName + '-' + this.serviceBaseUrl
+    );
+  }
+
+  /**
    * Handles HTTP requests.
    * All requests which matched to serviceBaseUrlRegExp treated as requests
    * to the current FHIR server. GET requests to the FHIR server could be
@@ -358,15 +415,12 @@ export class FhirBackendService implements HttpBackend {
       );
     } else {
       // not a SMART on FHIR connection
-      const newUrl = request.url.replace(
-        serviceBaseUrlRegExp,
-        this.serviceBaseUrl
-      );
       const serviceBaseUrlWithEndpoint = new RegExp(
         '^' + escapeStringForRegExp(this.serviceBaseUrl) + '\\/[^?]+'
       );
+      const cacheName = request.context.get(CACHE_NAME);
       const newRequest = request.clone({
-        url: newUrl
+        url: this.prepareRequestUrl(request.url)
       });
 
       if (request.method !== 'GET') {
@@ -375,18 +429,7 @@ export class FhirBackendService implements HttpBackend {
         return this.defaultBackend.handle(newRequest);
       }
 
-      // Until authentication is in place for dbGaP, we need to include the
-      // consent groups as values for _security.
-      // Observation and ResearchSubject queries will be sent with _security params.
-      const fullUrl =
-        this.features.consentGroup &&
-        this.isAuthorizationRequiredForUrl(newRequest.url)
-          ? this.fhirClient.addParamToUrl(
-              newRequest.urlWithParams,
-              '_security',
-              this.features.consentGroup
-            )
-          : newRequest.urlWithParams;
+      const fullUrl = newRequest.urlWithParams;
 
       // Otherwise, use the FhirBatchQuery from the old version of
       // Research Data Finder to handle the HTTP request.
@@ -395,17 +438,21 @@ export class FhirBackendService implements HttpBackend {
           this.fhirClient.initialize().then(() => {
             // Requests to the FHIR server without endpoint cannot be combined
             // into a batch request
-            const options = {
-              combine:
-                this.fhirClient.getFeatures().batch &&
-                serviceBaseUrlWithEndpoint.test(newUrl)
-            };
+            const combine =
+              this.fhirClient.getFeatures().batch &&
+              serviceBaseUrlWithEndpoint.test(newRequest.url);
             const promise = this.isCacheEnabled
-              ? this.fhirClient.getWithCache(fullUrl, options)
-              : this.fhirClient.get(fullUrl, options);
+              ? this.fhirClient.getWithCache(fullUrl, {
+                combine,
+                cacheName: cacheName
+                  ? cacheName + '-' + this.serviceBaseUrl
+                  : ''
+              })
+              : this.fhirClient.get(fullUrl, {combine});
 
             promise.then(
-              ({ status, data }) => {
+              ({status, data, _cacheInfo_}) => {
+                request.context.set(CACHE_INFO, _cacheInfo_);
                 observer.next(
                   new HttpResponse<any>({
                     status,
@@ -415,7 +462,7 @@ export class FhirBackendService implements HttpBackend {
                 );
                 observer.complete();
               },
-              ({ status, error }) =>
+              ({status, error}) =>
                 observer.error(
                   new HttpErrorResponse({
                     status,

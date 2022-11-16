@@ -151,6 +151,9 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
         } else {
           if (!this.rasToken.rasTokenValidated) {
             this.cohort.createCohortMode = CreateCohortMode.UNSELECTED;
+            this.selectAnActionComponent?.createCohortMode.setValue(
+              CreateCohortMode.UNSELECTED
+            );
           } else {
             // If it came from '/request-redirect-token-callback' and RAS token
             // has been validated, go back to Select An Action step and restore
