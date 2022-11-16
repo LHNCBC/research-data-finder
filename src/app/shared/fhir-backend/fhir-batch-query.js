@@ -763,12 +763,12 @@ export class FhirBatchQuery {
                 resolve(response);
               });
             },
-            (error) => {
-              (options.cacheErrors
-                ? queryResponseCache.add(fullUrl, error, options)
+            (errorResponse) => {
+              (options.cacheErrors && errorResponse.status !== HTTP_ABORT
+                ? queryResponseCache.add(fullUrl, errorResponse, options)
                 : Promise.resolve()
               ).then(() => {
-                reject(error);
+                reject(errorResponse);
               });
             }
           );

@@ -6,6 +6,8 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [5.2.1] - 2022-11-16
 ### Added
 - Integration with dbGaP power user portal to allow user to login/logout.
+### Fixed
+- Do not cache responses to aborted requests.
 
 ## [5.2.0] - 2022-11-15
 ### Changed
