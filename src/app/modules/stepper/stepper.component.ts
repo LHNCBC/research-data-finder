@@ -25,6 +25,7 @@ import { SelectRecordsService } from '../../shared/select-records/select-records
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { SelectRecordsPageComponent } from '../select-records-page/select-records-page.component';
 import { SelectAnActionComponent } from '../select-an-action/select-an-action.component';
+import { SettingsPageComponent } from '../step-0-settings-page/settings-page.component';
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -51,6 +52,8 @@ export enum Step {
 })
 export class StepperComponent implements AfterViewInit, OnDestroy {
   @ViewChild('stepper') public stepper: MatStepper;
+  @ViewChild('settings') public settingsPageComponent: SettingsPageComponent;
+  @ViewChild('settingsStep') public settingsStep: MatStep;
   @ViewChild('defineCohortStep') public defineCohortStep: MatStep;
   @ViewChild('selectRecordsStep') public selectRecordsStep: MatStep;
   @ViewChild(SelectAnAreaOfInterestComponent)
@@ -140,8 +143,16 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
 
     this.subscription = this.fhirBackend.initialized.subscribe((status) => {
       if (status === ConnectionStatus.Disconnect) {
-        this.stepper.steps.forEach((s) => s.reset());
-        this.stepper.selectedIndex = Step.SETTINGS;
+        this.stepper.reset();
+        // A workaround for the bug which is described here:
+        // https://github.com/angular/components/issues/13736
+        // The problem is with [completed] input parameter which is ignored
+        // after reset(), because the actual completed value is set directly here:
+        // https://github.com/angular/components/blob/12.2.x/src/cdk/stepper/stepper.ts#L217
+        // Another way is not to use [completed]="expression" in our template at
+        // all and always set this value directly. But this requires significant
+        // changes. So I decided to do it only here:
+        this.settingsStep.completed = this.settingsPageComponent.settingsFormGroup.valid;
       } else if (status === ConnectionStatus.Ready) {
         this.allowChangeCreateCohortMode =
           getUrlParam('alpha-version') === 'enable' &&

@@ -9,6 +9,8 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Do not cache responses to aborted requests.
 - Caching of requests which check whether SMART on FHIR connection is available.
+- A bug due to which the stepper could not progress past the first step after
+  logout from SMART on FHIR without changing the server URL.
 
 ## [5.2.0] - 2022-11-15
 ### Changed
