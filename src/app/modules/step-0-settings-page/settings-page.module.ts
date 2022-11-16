@@ -9,6 +9,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FhirServerSelectComponent } from './fhir-server-select/fhir-server-select.component';
+import { MatButtonModule } from '@angular/material/button';
 import { AppRoutingModule } from '../../app-routing.module';
 
 @NgModule({
@@ -23,6 +24,7 @@ import { AppRoutingModule } from '../../app-routing.module';
     MatCheckboxModule,
     MatExpansionModule,
     MatProgressSpinnerModule,
+    MatButtonModule,
     AppRoutingModule,
     FormsModule
   ]

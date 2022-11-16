@@ -72,7 +72,7 @@ export class BrowseRecordsPageComponent
           selectRecords.resetAll();
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
             ? ['ResearchStudy', 'Variable']
-            : ['Observation'];
+            : [];
           this.unselectedResourceTypes = [];
           if (connected) {
             const resources = fhirBackend.getCurrentDefinitions().resources;

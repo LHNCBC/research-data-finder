@@ -12,7 +12,7 @@ import {
   HttpXhrBackend
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer, Subscription } from 'rxjs';
-import { FhirBatchQuery } from './fhir-batch-query';
+import { FhirBatchQuery, HTTP_ABORT } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam } from '../utils';
@@ -303,9 +303,11 @@ export class FhirBackendService implements HttpBackend {
           }
         );
       },
-      () => {
-        this.tmpConnectionStatus = ConnectionStatus.Error;
-        this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
+      (err) => {
+        if (err.status !== HTTP_ABORT) {
+          this.tmpConnectionStatus = ConnectionStatus.Error;
+          this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
+        }
       }
     );
   }
@@ -555,5 +557,12 @@ export class FhirBackendService implements HttpBackend {
   isDbgap(url): boolean {
     const urlPattern = this.settings.getDbgapUrlPattern();
     return new RegExp(urlPattern).test(url);
+  }
+
+  /**
+   * Clears cache data.
+   */
+  clearCache(): void {
+    FhirBatchQuery.clearCache();
   }
 }
