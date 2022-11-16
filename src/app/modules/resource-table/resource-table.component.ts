@@ -175,7 +175,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   @ContentChild('prefix') prefixTemplate: TemplateRef<any>;
-  get prefixContext(): any {
+  @ContentChild('buttonPrefix') buttonPrefixTemplate: TemplateRef<any>;
+  @ContentChild('header') headerTemplate: TemplateRef<any>;
+  get templateContext(): any {
     return {};
   }
   @ViewChild('panel') panel: MatExpansionPanel;
@@ -363,9 +365,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }, {} as TableCells)
       }));
 
+      if (!this.sortChanged.observers.length) {
+        this.clientSort(newRows);
+      }
+
       if (this.enableFiltering) {
         // Move selectable studies to the beginning of table.
-        this.dataSource.data = [...newRows].sort((a: TableRow, b: TableRow) => {
+        this.dataSource.data = newRows.sort((a: TableRow, b: TableRow) => {
           if (
             !this.myStudyIds.includes(a.resource.id) &&
             this.myStudyIds.includes(b.resource.id)
@@ -381,7 +387,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           return 0;
         });
       } else {
-        this.dataSource.data = [...newRows];
+        this.dataSource.data = newRows;
       }
       if (columnsWithDataChanged) {
         this.columnDescriptionsService.setColumnsWithData(
@@ -399,7 +405,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const scrollViewport = this.scrollViewport?.elementRef.nativeElement;
 
       this.columns.length = 0;
-      if (this.enableSelection || this.context === 'browse') {
+      if (this.enableSelection) {
         this.columns.push('select');
       }
 
@@ -605,22 +611,37 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.sortChanged.emit(sort);
       return;
     }
+    // Table will re-render only after data reference changed.
+    this.dataSource.data = this.clientSort(this.dataSource.data.slice());
+    this.liveAnnoncer.announce(this.getSortMessage());
+  }
+
+  /**
+   * Sorts array of table rows in place and returns a reference to the same array.
+   * @param data - array of table rows.
+   */
+  clientSort(data: TableRow[]): TableRow[] {
+    if (!this.sort) {
+      return data;
+    }
+
     // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-    const isAsc = sort.direction === 'desc';
-    const sortingColumnDescription = this.columnDescriptions.find(
-      (c) => c.element === sort.active
+    const isAsc = this.sort.direction === 'desc';
+    const allColumns = this.columnDescriptionsService.getAvailableColumns(
+      this.resourceType,
+      this.context
+    );
+    const sortingColumnDescription = allColumns.find(
+      (c) => c.element === this.sort.active
     );
     const filterType = this.getFilterType(sortingColumnDescription);
-    this.dataSource.data.sort((a: TableRow, b: TableRow) => {
+    return data.sort((a: TableRow, b: TableRow) => {
       const cellValueA = a.cells[sortingColumnDescription.element];
       const cellValueB = b.cells[sortingColumnDescription.element];
       return filterType === FilterType.Number
         ? (+cellValueA - +cellValueB) * (isAsc ? 1 : -1)
         : cellValueA.localeCompare(cellValueB) * (isAsc ? 1 : -1);
     });
-    // Table will re-render only after data reference changed.
-    this.dataSource.data = this.dataSource.data.slice();
-    this.liveAnnoncer.announce(this.getSortMessage());
   }
 
   /**

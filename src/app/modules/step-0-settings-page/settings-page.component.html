@@ -72,8 +72,12 @@
         </div>
 
         <div class="spacer"></div>
-        <mat-checkbox formControlName="cacheDisabled"
-                      (change)="updateFhirBackendSetting('cacheEnabled', !$event.checked)">Disable caching of HTTP requests to the FHIR server</mat-checkbox>
+        <div class="h-box center-items">
+          <mat-checkbox formControlName="cacheDisabled"
+                        (change)="updateFhirBackendSetting('cacheEnabled', !$event.checked)">Disable caching of HTTP requests to the FHIR server</mat-checkbox>
+          <div class="spacer"></div>
+          <button mat-stroked-button (click)="fhirBackend.clearCache()">Clear cache data</button>
+        </div>
       </div>
     </ng-template>
   </mat-expansion-panel>
