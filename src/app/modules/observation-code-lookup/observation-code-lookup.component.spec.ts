@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObservationCodeLookupComponent } from './observation-code-lookup.component';
 import { ObservationCodeLookupModule } from './observation-code-lookup.module';
 import { Component, ViewChild } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
@@ -25,7 +25,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 class TestHostComponent {
   @ViewChild(ObservationCodeLookupComponent)
   component: ObservationCodeLookupComponent;
-  selectedObservationCodes = new FormControl({
+  selectedObservationCodes = new UntypedFormControl({
     coding: [{ code: '3137-7', system: 'http://loinc.org' }],
     items: ['Height cm'],
     datatype: 'Quantity'

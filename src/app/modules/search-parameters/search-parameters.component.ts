@@ -5,7 +5,7 @@ import {
   ViewChild,
   OnDestroy
 } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
@@ -69,7 +69,7 @@ export class SearchParametersComponent
   switchRadioGroupMap = new Map<RuleSet, string>();
   @ViewChild(QueryBuilderComponent)
   queryBuilderComponent: QueryBuilderComponent;
-  public queryCtrl: FormControl = new FormControl({});
+  public queryCtrl: UntypedFormControl = new UntypedFormControl({});
   public queryBuilderConfig: QueryBuilderConfig = { fields: {} };
   resourceTypes$: Observable<AutocompleteOption[]>;
   selectedSearchParameterNamesMap = new Map<ResourceTypeCriteria, string[]>();

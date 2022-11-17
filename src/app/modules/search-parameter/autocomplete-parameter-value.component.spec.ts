@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AutocompleteParameterValueComponent } from './autocomplete-parameter-value.component';
 import { Component, ViewChild } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
@@ -26,7 +26,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 class TestHostComponent {
   @ViewChild(AutocompleteParameterValueComponent)
   component: AutocompleteParameterValueComponent;
-  selectedCodes = new FormControl({
+  selectedCodes = new UntypedFormControl({
     codes: [{ code: 'PHY' }, { code: 'PHR' }],
     items: ['Physician', 'Pharmacy']
   });

@@ -14,7 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnDescription } from '../../types/column.description';
@@ -40,7 +40,7 @@ class SelectAnAreaOfInterestComponentStub {
 })
 // tslint:disable-next-line:component-class-suffix
 class SelectAnActionComponentStub {
-  createCohortMode = new FormControl(CreateCohortMode.UNSELECTED);
+  createCohortMode = new UntypedFormControl(CreateCohortMode.UNSELECTED);
 }
 
 @Component({
@@ -49,7 +49,7 @@ class SelectAnActionComponentStub {
 })
 // tslint:disable-next-line:component-class-suffix
 class SettingsPageComponentStub {
-  settingsFormGroup = new FormBuilder().group({});
+  settingsFormGroup = new UntypedFormBuilder().group({});
 }
 
 @Component({
@@ -58,11 +58,11 @@ class SettingsPageComponentStub {
 })
 // tslint:disable-next-line:component-class-suffix
 class DefineCohortPageComponentStub {
-  defineCohortForm = new FormBuilder().group({
+  defineCohortForm = new UntypedFormBuilder().group({
     maxNumberOfPatients: ['100', Validators.required]
   });
   patientStream = new Subject<any>();
-  @Input() formControl: FormControl;
+  @Input() formControl: UntypedFormControl;
 }
 
 describe('StepperComponent', () => {

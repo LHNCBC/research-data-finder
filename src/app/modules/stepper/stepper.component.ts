@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { MatStep, MatStepper } from '@angular/material/stepper';
 import {
   ConnectionStatus,
@@ -71,7 +71,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
 
   allowChangeCreateCohortMode = false;
 
-  defineCohort: FormControl = new FormControl();
+  defineCohort: UntypedFormControl = new UntypedFormControl();
   subscription: Subscription;
   CreateCohortMode = CreateCohortMode;
   // Publish enum for template

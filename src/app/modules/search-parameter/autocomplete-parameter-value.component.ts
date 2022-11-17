@@ -10,7 +10,7 @@ import {
   Self,
   ViewChild
 } from '@angular/core';
-import { AbstractControl, FormControl, NgControl } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
@@ -80,7 +80,7 @@ export class AutocompleteParameterValueComponent
    * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
    */
   get errorState(): boolean {
-    const formControl = this.ngControl?.control as FormControl;
+    const formControl = this.ngControl?.control as UntypedFormControl;
     return (
       this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
       (formControl && this.errorStateMatcher.isErrorState(formControl, null))

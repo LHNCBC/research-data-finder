@@ -14,7 +14,7 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { Observable } from 'rxjs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
@@ -49,7 +49,7 @@ export class PullDataPageComponent
   currentResourceType$: Observable<string>;
 
   // Form controls of 'per patient' input
-  perPatientFormControls: { [resourceType: string]: FormControl } = {};
+  perPatientFormControls: { [resourceType: string]: UntypedFormControl } = {};
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -75,7 +75,7 @@ export class PullDataPageComponent
             .map((r) => r[0]);
         }
         this.perPatientFormControls = {
-          Observation: new FormControl(1, [
+          Observation: new UntypedFormControl(1, [
             Validators.required,
             Validators.min(1)
           ])
@@ -85,7 +85,7 @@ export class PullDataPageComponent
           // Due to optimization, we cannot control the number of ResearchStudies
           // per Patient. Luckily it doesn't make much sense.
           if (r !== 'ResearchStudy' && r !== 'Patient') {
-            this.perPatientFormControls[r] = new FormControl(defaultCount, [
+            this.perPatientFormControls[r] = new UntypedFormControl(defaultCount, [
               Validators.required,
               Validators.min(1)
             ]);

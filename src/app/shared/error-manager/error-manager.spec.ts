@@ -1,10 +1,10 @@
 import { ErrorManager } from './error-manager.service';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 
 describe('ErrorManager', () => {
   let service: ErrorManager;
-  const validControl = new FormControl('');
-  const invalidControl = new FormControl('', Validators.required);
+  const validControl = new UntypedFormControl('');
+  const invalidControl = new UntypedFormControl('', Validators.required);
 
   beforeEach(() => {
     service = new ErrorManager(null);

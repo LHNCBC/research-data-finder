@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import {
   CACHE_NAME,
   FhirBackendService
@@ -38,7 +38,7 @@ export class SelectRecordsPageComponent
   implements AfterViewInit, OnDestroy {
   @ViewChild('additionalCriteria')
   additionalCriteria: SearchParameterGroupComponent;
-  maxPatientsNumber = new FormControl(
+  maxPatientsNumber = new UntypedFormControl(
     this.cohort.maxPatientCount,
     Validators.required
   );
@@ -110,7 +110,7 @@ export class SelectRecordsPageComponent
     const resourceTable = this.tables?.find(
       (table) => table.resourceType === resourceType
     );
-    return resourceTable?.selectedResources.clear();
+    resourceTable?.selectedResources.clear();
   }
 
   /**

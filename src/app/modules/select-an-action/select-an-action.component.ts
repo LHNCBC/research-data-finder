@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { Subscription } from 'rxjs';
@@ -34,7 +34,7 @@ export class SelectAnActionComponent implements OnInit, OnDestroy {
   }
 
   subscriptions: Subscription[] = [];
-  createCohortMode = new FormControl(CreateCohortMode.UNSELECTED);
+  createCohortMode = new UntypedFormControl(CreateCohortMode.UNSELECTED);
   CreateCohortMode = CreateCohortMode;
 
   ngOnInit(): void {}

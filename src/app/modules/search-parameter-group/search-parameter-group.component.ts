@@ -7,7 +7,7 @@ import {
   ViewChild,
   ElementRef
 } from '@angular/core';
-import { AbstractControl, FormArray, FormControl } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
@@ -51,10 +51,10 @@ export class SearchParameterGroupComponent
   @ViewChild('resourceTypeInput') resourceTypeInput: ElementRef;
   @ViewChildren(SearchParameterComponent)
   searchParameterComponents: QueryList<SearchParameterComponent>;
-  parameterList = new FormArray([]);
+  parameterList = new UntypedFormArray([]);
   selectedSearchParameterNames: string[];
   maxNumberOfSearchParameters = 0;
-  resourceType: FormControl = new FormControl('');
+  resourceType: UntypedFormControl = new UntypedFormControl('');
   resourceTypes: string[] = [];
   filteredResourceTypes: Observable<string[]>;
 
@@ -105,7 +105,7 @@ export class SearchParameterGroupComponent
         this.resourceTypes = Object.keys(definitions.resources);
         if (this.inputResourceType === 'Observation') {
           this.parameterList.push(
-            new FormControl({
+            new UntypedFormControl({
               element: 'code text'
             })
           );
@@ -122,7 +122,7 @@ export class SearchParameterGroupComponent
    * Add new search parameter to search parameter list
    */
   public addParameter(): void {
-    this.parameterList.push(new FormControl({}));
+    this.parameterList.push(new UntypedFormControl({}));
     this.liveAnnoncer.announce('A new line of search criterion is added.');
     // Focus the input control of the newly added search parameter line.
     setTimeout(() => {
@@ -147,7 +147,7 @@ export class SearchParameterGroupComponent
     this.resourceType.setValue(value?.resourceType);
     this.parameterList.clear();
     value?.parameters?.forEach((v) =>
-      this.parameterList.push(new FormControl(v))
+      this.parameterList.push(new UntypedFormControl(v))
     );
   }
 

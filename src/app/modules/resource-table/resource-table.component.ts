@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ColumnDescription } from '../../types/column.description';
 import { distinctUntilChanged, filter, sample, tap } from 'rxjs/operators';
 import { escapeStringForRegExp } from '../../shared/utils';
@@ -216,7 +216,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   columnsWithData: { [element: string]: boolean } = {};
   selectedResources = new SelectionModel<Resource>(true, []);
   @Output() selectionChange = this.selectedResources.changed;
-  filtersForm: FormGroup = new FormBuilder().group({});
+  filtersForm: UntypedFormGroup = new UntypedFormBuilder().group({});
   dataSource = new TableVirtualScrollDataSource<TableRow>([]);
   loadTime = 0;
   startTime: number;
@@ -437,7 +437,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       // Add controls for added columns
       this.columns.forEach((column) => {
         if (!this.filtersForm.contains(column)) {
-          this.filtersForm.addControl(column, new FormControl(''), {
+          this.filtersForm.addControl(column, new UntypedFormControl(''), {
             emitEvent: false
           });
         }
