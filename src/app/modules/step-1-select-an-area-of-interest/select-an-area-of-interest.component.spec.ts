@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SelectAnAreaOfInterestComponent } from './select-an-area-of-interest.component';
-import { MockComponent } from 'ng-mocks';
+import { MockComponent, MockDirective } from 'ng-mocks';
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { of } from 'rxjs';
@@ -21,7 +21,7 @@ describe('SelectAnAreaOfInterestComponent', () => {
       {
         declarations: [
           SelectAnAreaOfInterestComponent,
-          MockComponent(MatRadioGroup),
+          MockDirective(MatRadioGroup),
           MockComponent(MatRadioButton),
           MockComponent(MatCheckbox),
           MockComponent(ResourceTableComponent)
