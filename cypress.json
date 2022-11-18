@@ -6,5 +6,5 @@
   "pluginsFile": "test/cypress/plugins/index.ts",
   "fixturesFolder": "test/cypress/fixtures",
   "downloadsFolder": "test/cypress/downloads",
-  "baseUrl": "http://localhost:8100"
+  "baseUrl": "http://localhost:8100/fhir/research-data-finder"
 }
