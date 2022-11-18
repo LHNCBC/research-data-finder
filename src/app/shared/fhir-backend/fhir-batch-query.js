@@ -564,6 +564,13 @@ export class FhirBatchQuery {
         oReq.setRequestHeader('Content-Type', contentType);
       }
 
+      if (this._isDbgap) {
+        const token = sessionStorage.getItem('dbgapTstToken');
+        if (token) {
+          oReq.setRequestHeader('Authorization', 'Bearer ' + token);
+        }
+      }
+
       oReq.send(body);
       this._activeReq.push(oReq);
     });
@@ -756,12 +763,12 @@ export class FhirBatchQuery {
                 resolve(response);
               });
             },
-            (error) => {
-              (options.cacheErrors
-                ? queryResponseCache.add(fullUrl, error, options)
+            (errorResponse) => {
+              (options.cacheErrors && errorResponse.status !== HTTP_ABORT
+                ? queryResponseCache.add(fullUrl, errorResponse, options)
                 : Promise.resolve()
               ).then(() => {
-                reject(error);
+                reject(errorResponse);
               });
             }
           );

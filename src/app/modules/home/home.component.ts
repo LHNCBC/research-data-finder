@@ -5,6 +5,7 @@ import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { StepperComponent, Step } from '../stepper/stepper.component';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 @Component({
   selector: 'app-home',
@@ -18,7 +19,8 @@ export class HomeComponent implements AfterViewInit {
 
   constructor(
     public rasToken: RasTokenService,
-    public fhirBackend: FhirBackendService
+    public fhirBackend: FhirBackendService,
+    private liveAnnoncer: LiveAnnouncer
   ) {
     this.isAlpha = getUrlParam('alpha-version') === 'enable';
   }
@@ -38,17 +40,19 @@ export class HomeComponent implements AfterViewInit {
   }
 
   onRasLogout(): void {
-    this.rasToken.rasTokenValidated = false;
-    sessionStorage.clear();
-    this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
-    this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
-      CreateCohortMode.UNSELECTED
-    );
+    this.rasToken.logout().then(() => {
+      this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
+      this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
+        CreateCohortMode.UNSELECTED
+      );
+      this.liveAnnoncer.announce('Logged out. Returning to settings page.');
+    });
   }
 
   onSmartLogout(): void {
     window.history.pushState({}, '', setUrlParam('isSmart', 'false'));
     this.fhirBackend.isSmartOnFhir = false;
+    this.liveAnnoncer.announce('Logged out from SMART on FHIR connection.');
   }
 
   ngAfterViewInit(): void {

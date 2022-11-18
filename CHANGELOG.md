@@ -3,6 +3,15 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.2.1] - 2022-11-16
+### Added
+- Integration with dbGaP power user portal to allow user to login/logout.
+### Fixed
+- Do not cache responses to aborted requests.
+- Caching of requests which check whether SMART on FHIR connection is available.
+- A bug due to which the stepper could not progress past the first step after
+  logout from SMART on FHIR without changing the server URL.
+
 ## [5.2.0] - 2022-11-15
 ### Changed
 - Removed Patient.deceased from dbGaP fields.

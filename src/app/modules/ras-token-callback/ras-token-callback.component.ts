@@ -31,14 +31,14 @@ export class RasTokenCallbackComponent implements OnInit {
           console.log(data);
           this.error = null;
           this.rasToken.rasTokenValidated = true;
+          this.rasToken.isRasCallbackNavigation = true;
           sessionStorage.setItem('dbgapTstToken', data['message']['tst']);
-          this.fhirBackend.serviceBaseUrl = sessionStorage.getItem(
-            'dbgapRasLoginServer'
-          );
+          const server = sessionStorage.getItem('dbgapRasLoginServer');
+          this.fhirBackend.serviceBaseUrl = server;
           this.router.navigate(['/'], {
             queryParams: {
               'alpha-version': 'enable',
-              server: this.fhirBackend.serviceBaseUrl
+              server
             }
           });
         },
