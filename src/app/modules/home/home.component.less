@@ -56,26 +56,24 @@
 #siteName {
   font-size: 300%;
 }
-#version {
-  float: right;
-  padding-right: 1em;
-  font-weight: bold;
-  cursor: pointer;
-}
 
 @keyframes logout {
   from {background-color: yellow;}
   to {background-color: initial;}
 }
-.logout {
+.buttons {
   float: right;
-  padding-left: 1em;
-  padding-right: 1em;
-  font-weight: bold;
-  cursor: pointer;
-  color: blue;
-  animation-name: logout;
-  animation-duration: 8s;
+  > div {
+    padding-right: 1em;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .logout {
+    padding-left: 1em;
+    color: blue;
+    animation-name: logout;
+    animation-duration: 8s;
+  }
 }
 /* End of styles for the header */
 

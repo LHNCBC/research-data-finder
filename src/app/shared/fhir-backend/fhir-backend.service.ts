@@ -1,28 +1,28 @@
 /**
  * This file contains a service used to handle HTTP requests to the FHIR server.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import {
   HttpBackend,
   HttpContextToken,
-  HttpClient,
   HttpErrorResponse,
   HttpEvent,
   HttpRequest,
   HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
-import { BehaviorSubject, Observable, Observer, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Observer } from 'rxjs';
 import { FhirBatchQuery, HTTP_ABORT } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
-import { escapeStringForRegExp, getUrlParam } from '../utils';
+import { escapeStringForRegExp, getUrlParam, setUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
 import { find } from 'lodash-es';
-import { filter, finalize, map } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { RasTokenService } from '../ras-token/ras-token.service';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -69,7 +69,14 @@ export class FhirBackendService implements HttpBackend {
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
-      this.initializeFhirBatchQuery(url);
+      // Logging out of RAS when changing server
+      (url !== sessionStorage.getItem('dbgapRasLoginServer')
+        ? // Access to RasTokenService via injector to avoid circular dependency
+          this.injector.get(RasTokenService).logout()
+        : Promise.resolve()
+      ).then(() => {
+        this.initializeFhirBatchQuery(url);
+      });
     }
   }
   get serviceBaseUrl(): string {
@@ -84,7 +91,22 @@ export class FhirBackendService implements HttpBackend {
       this.initialized.next(ConnectionStatus.Pending);
       this._isSmartOnFhir = true;
       // Navigate to 'launch' page to authorize a SMART on FHIR connection.
-      this.router.navigate(['/launch', { iss: this.serviceBaseUrl }]);
+      this.router.navigate(
+        [
+          '/launch',
+          {
+            iss: this.serviceBaseUrl,
+            redirectUri: setUrlParam(
+              'isSmart',
+              true,
+              window.location.pathname + window.location.search
+            )
+          }
+        ],
+        {
+          skipLocationChange: true
+        }
+      );
     } else {
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
@@ -146,11 +168,16 @@ export class FhirBackendService implements HttpBackend {
    *   XMLHttpRequest to send requests to a backend server.
    * @param fhirService a service which holds the SMART on FHIR connection client
    * @param router Angular router
+   * @param injector an Angular injector, which is responsible for creating
+   *   service instances and injecting them into classes
+   * @param liveAnnoncer a service is used to announce messages for screen-reader
+   *   users using an aria-live region.
    */
   constructor(
     private defaultBackend: HttpXhrBackend,
     private fhirService: FhirService,
     private router: Router,
+    private injector: Injector,
     private liveAnnoncer: LiveAnnouncer
   ) {
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
@@ -163,7 +190,6 @@ export class FhirBackendService implements HttpBackend {
       filter((status) => status === ConnectionStatus.Ready),
       map(() => this.getCurrentDefinitions())
     );
-    this.http = new HttpClient(this);
   }
   // Whether the connection to server is initialized.
   initialized = new BehaviorSubject(ConnectionStatus.Pending);
@@ -187,12 +213,6 @@ export class FhirBackendService implements HttpBackend {
   // Definitions of columns, search params, value sets for current FHIR version
   private currentDefinitions: any;
 
-  // Subscription of the '/.well-known/smart-configuration' endpoint check.
-  private smartOnFhirEnabledSubscription: Subscription;
-
-  // Can't be injected inside HttpBackend.
-  private http: HttpClient;
-
   // Stores connection status set in initializeFhirBatchQuery(), instead of
   // emitting it right away to this.initialized subject. It will be emitted
   // after checkSmartOnFhirEnabled() is done, or values will be emitted from
@@ -209,34 +229,32 @@ export class FhirBackendService implements HttpBackend {
    * Checks whether SMART on FHIR connection is available for current base url.
    * Initializes the SMART connection if it's available and this.isSmartOnFhir is
    * already marked as true.
+   * @param url - FHIR REST API Service Base URL.
    */
-  checkSmartOnFhirEnabled(url): void {
-    this.smartOnFhirEnabledSubscription?.unsubscribe();
-    this.smartOnFhirEnabledSubscription = this.http
-      .get(`${url}/.well-known/smart-configuration`)
-      .pipe(
-        finalize(() => {
-          // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
-          if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
-            this.initializeSmartOnFhirConnection();
-          } else {
-            // Otherwise, emit the connection status from initializeFhirBatchQuery().
-            this.initialized.next(this.tmpConnectionStatus);
-          }
-        })
-      )
-      .subscribe(
-        () => {
-          this.isSmartOnFhirEnabled = true;
-          this.liveAnnoncer.clear();
-          this.liveAnnoncer.announce(
-            'A new checkbox for SMART on FHIR launch appeared.'
-          );
-        },
-        () => {
-          this.isSmartOnFhirEnabled = false;
+  checkSmartOnFhirEnabled(url: string): Promise<boolean> {
+    return this.fhirClient
+      .getWithCache(`${url}/.well-known/smart-configuration`, {
+        combine: false,
+        cacheErrors: true
+      })
+      .then(() => {
+        this.isSmartOnFhirEnabled = true;
+        return true;
+      })
+      .catch(() => {
+        this.isSmartOnFhirEnabled = false;
+        return false;
+      })
+      .finally(() => {
+        // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
+        if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
+          this.initializeSmartOnFhirConnection();
+        } else if (this.tmpConnectionStatus) {
+          // Otherwise, if it's invoked from initializeFhirBatchQuery(), emit the connection status.
+          this.initialized.next(this.tmpConnectionStatus);
+          this.tmpConnectionStatus = null;
         }
-      );
+      });
   }
 
   /**
@@ -379,8 +397,7 @@ export class FhirBackendService implements HttpBackend {
   handle(request: HttpRequest<any>): Observable<HttpEvent<any>> {
     if (
       !serviceBaseUrlRegExp.test(request.url) &&
-      (!request.url.startsWith(this.serviceBaseUrl) ||
-        request.url.endsWith('/.well-known/smart-configuration'))
+      !request.url.startsWith(this.serviceBaseUrl)
     ) {
       // If it is not a request to the FHIR server,
       // pass the request to the default Angular backend.
@@ -443,15 +460,15 @@ export class FhirBackendService implements HttpBackend {
               serviceBaseUrlWithEndpoint.test(newRequest.url);
             const promise = this.isCacheEnabled
               ? this.fhirClient.getWithCache(fullUrl, {
-                combine,
-                cacheName: cacheName
-                  ? cacheName + '-' + this.serviceBaseUrl
-                  : ''
-              })
-              : this.fhirClient.get(fullUrl, {combine});
+                  combine,
+                  cacheName: cacheName
+                    ? cacheName + '-' + this.serviceBaseUrl
+                    : ''
+                })
+              : this.fhirClient.get(fullUrl, { combine });
 
             promise.then(
-              ({status, data, _cacheInfo_}) => {
+              ({ status, data, _cacheInfo_ }) => {
                 request.context.set(CACHE_INFO, _cacheInfo_);
                 observer.next(
                   new HttpResponse<any>({
@@ -462,7 +479,13 @@ export class FhirBackendService implements HttpBackend {
                 );
                 observer.complete();
               },
-              ({status, error}) =>
+              // In case of failure due to expired TST token sent to dbGaP, we should
+              // probably log out and user can log back in.
+              // According to Eric, dbGaP query will return a 400. Hopefully it should
+              // come with some error message indicating the expired TST token so we can
+              // distinguish this case with others, but we'll have to wait until it's
+              // implemented in dbGaP.
+              ({ status, error }) =>
                 observer.error(
                   new HttpErrorResponse({
                     status,

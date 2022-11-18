@@ -17,6 +17,7 @@
         "build": {
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
+            "baseHref": "/fhir/research-data-finder/",
             "outputPath": "public",
             "index": "src/index.html",
             "main": "src/main.ts",
