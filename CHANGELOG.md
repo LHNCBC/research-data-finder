@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [5.3.0] - 2022-11-17
+### Changed
+- Upgrade Angular to Version 14.
+
 ## [5.2.1] - 2022-11-16
 ### Added
 - Integration with dbGaP power user portal to allow user to login/logout.
