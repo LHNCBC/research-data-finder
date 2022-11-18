@@ -14,7 +14,7 @@ $outline-dedupe: 0;
 
 // Applies a floating label above the form field control itself.
 // See source code here:
-// https://github.com/angular/components/blob/13.3.x/src/material/form-field/_form-field-outline-theme.scss
+// https://github.com/angular/components/blob/14.2.x/src/material/form-field/_form-field-outline-theme.scss
 @mixin _label-floating($font-scale, $infix-padding, $infix-margin-top) {
   transform: translateY(-$infix-margin-top - $infix-padding + $outline-dedupe) scale($font-scale);
   width: math.div(100%, $font-scale) + $outline-dedupe;
@@ -25,7 +25,7 @@ $outline-dedupe: 0;
 // To make form fields more compact we should override "mat-form-field-outline-typography" mixin
 // to change local variable "$infix-padding" value
 // See source code here:
-// https://github.com/angular/components/blob/13.3.x/src/material/form-field/_form-field-outline-theme.scss
+// https://github.com/angular/components/blob/14.2.x/src/material/form-field/_form-field-outline-theme.scss
 @mixin outline-typography($config-or-theme) {
   $config: typography.private-typography-to-2014-config(
                   theming.get-typography-config($config-or-theme));
