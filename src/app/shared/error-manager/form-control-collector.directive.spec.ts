@@ -1,6 +1,6 @@
 import { FormControlCollectorDirective } from './form-control-collector.directive';
 import {
-  FormControl,
+  UntypedFormControl,
   FormControlDirective,
   FormControlName,
   NgModel
@@ -8,7 +8,7 @@ import {
 import { ErrorManager } from './error-manager.service';
 
 describe('FormControlCollectorDirective', () => {
-  let formControl: FormControl;
+  let formControl: UntypedFormControl;
   let formControlDirective: FormControlDirective;
   let formControlName: FormControlName;
   let ngModel: NgModel;
@@ -16,7 +16,7 @@ describe('FormControlCollectorDirective', () => {
   let directive: FormControlCollectorDirective;
 
   beforeAll(() => {
-    formControl = new FormControl('');
+    formControl = new UntypedFormControl('');
     formControlDirective = {
       control: formControl
     } as FormControlDirective;

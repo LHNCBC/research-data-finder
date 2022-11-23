@@ -6,7 +6,7 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 import { Component, ViewChild } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -26,7 +26,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 class TestHostComponent {
   @ViewChild(ObservationTestValueUnitComponent)
   component: ObservationTestValueUnitComponent;
-  testValueUnit = new FormControl('');
+  testValueUnit = new UntypedFormControl('');
   loincCodes = ['3137-7', '8303-0'];
 }
 

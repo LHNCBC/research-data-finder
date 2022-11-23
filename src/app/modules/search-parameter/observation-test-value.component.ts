@@ -5,7 +5,7 @@ import {
   OnInit,
   SimpleChanges
 } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
@@ -42,11 +42,11 @@ export class ObservationTestValueComponent
   @Input() required = true;
   selectedDatatype = 'Quantity';
   testValueComparator = 'Quantity - ';
-  form = new FormGroup({
-    testValuePrefix: new FormControl(''),
-    testValueModifier: new FormControl(''),
-    testValue: new FormControl('', Validators.required),
-    testValueUnit: new FormControl('')
+  form = new UntypedFormGroup({
+    testValuePrefix: new UntypedFormControl(''),
+    testValueModifier: new UntypedFormControl(''),
+    testValue: new UntypedFormControl('', Validators.required),
+    testValueUnit: new UntypedFormControl('')
   });
   // Mapping for supported value[x] properties of Observation
   readonly typeDescriptions = {

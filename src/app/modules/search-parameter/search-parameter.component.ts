@@ -6,7 +6,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { SearchParameter } from 'src/app/types/search.parameter';
 import {
   BaseControlValueAccessor,
@@ -54,20 +54,20 @@ export class SearchParameterComponent
 
   selectedResourceType: any;
 
-  parameterName: FormControl = new FormControl('', Validators.required);
+  parameterName: UntypedFormControl = new UntypedFormControl('', Validators.required);
   parameters: any[] = [];
   parameterOptions: AutocompleteOption[] = [];
   selectedParameter: any;
   currentValue = null;
 
-  parameterValue: FormControl = new FormControl('', (control) =>
+  parameterValue: UntypedFormControl = new UntypedFormControl('', (control) =>
     this.isPullData || this.selectedObservationCodes?.value?.datatype
       ? null
       : Validators.required(control)
   );
   parameterValues: any[];
 
-  selectedObservationCodes: FormControl = new FormControl(null, () =>
+  selectedObservationCodes: UntypedFormControl = new UntypedFormControl(null, () =>
     this.isPullData || this.selectedObservationCodes?.value?.datatype
       ? null
       : { required: true }

@@ -3,7 +3,6 @@
  * This loader fills result object with data from "search-parameters.json" from https://www.hl7.org/fhir/downloads.html
  * Also uses "profiles-types.json", "profiles-resources.json", "valuesets.json" and "v3-codesystems.json" from the same directory.
  */
-const { getOptions } = require('loader-utils');
 const fs = require('fs');
 
 /**
@@ -494,7 +493,7 @@ function getSearchParametersConfig(
 
 module.exports = function loader(source) {
   const index = JSON.parse(source);
-  const { resourceTypes, additionalExpressions } = getOptions(this);
+  const { resourceTypes, additionalExpressions } = this.getOptions();
 
   index.configByVersionName = Object.values(
     index.versionNameByVersionNumberRegex

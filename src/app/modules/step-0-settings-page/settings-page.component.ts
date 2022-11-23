@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   ValidationErrors,
   Validators
 } from '@angular/forms';
@@ -23,18 +23,18 @@ import { setUrlParam } from '../../shared/utils';
   styleUrls: ['./settings-page.component.less']
 })
 export class SettingsPageComponent {
-  settingsFormGroup: FormGroup;
+  settingsFormGroup: UntypedFormGroup;
   isWaitingForConnection: Observable<boolean>;
 
   constructor(
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     public fhirBackend: FhirBackendService
   ) {
     this.isWaitingForConnection = fhirBackend.initialized.pipe(
       map((status) => status === ConnectionStatus.Pending)
     );
     this.settingsFormGroup = this.formBuilder.group({
-      serviceBaseUrl: new FormControl(this.fhirBackend.serviceBaseUrl, {
+      serviceBaseUrl: new UntypedFormControl(this.fhirBackend.serviceBaseUrl, {
         validators: Validators.required,
         asyncValidators: this.serviceBaseUrlValidator.bind(this)
       }),
@@ -81,7 +81,7 @@ export class SettingsPageComponent {
    * @param control - FormControl instance associated with the input field
    */
   serviceBaseUrlValidator(
-    control: FormControl
+    control: UntypedFormControl
   ): Observable<ValidationErrors | null> {
     // Update serverBaseUrl (ignore trailing backslashes)
     this.fhirBackend.serviceBaseUrl = control.value.replace(/\/+$/, '');

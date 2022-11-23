@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -23,7 +23,7 @@ export enum SelectOptions {
 export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
   // Publish enum for template
   SelectOptions = SelectOptions;
-  option = new FormControl(SelectOptions.showOnlyStudiesWithSubjects);
+  option = new UntypedFormControl(SelectOptions.showOnlyStudiesWithSubjects);
   subscription: Subscription;
   researchStudyStream: Observable<Resource[]>;
   showTable = false;

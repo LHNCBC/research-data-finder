@@ -16,7 +16,7 @@ import Def from 'autocomplete-lhc';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { AbstractControl, FormControl, NgControl } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
 import { EMPTY, forkJoin, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
@@ -122,7 +122,7 @@ export class ObservationCodeLookupComponent
    * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
    */
   get errorState(): boolean {
-    const formControl = this.ngControl?.control as FormControl;
+    const formControl = this.ngControl?.control as UntypedFormControl;
     return (
       this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
       (formControl && this.errorStateMatcher.isErrorState(formControl, null))

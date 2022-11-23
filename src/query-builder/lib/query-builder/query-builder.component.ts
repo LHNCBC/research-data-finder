@@ -5,7 +5,7 @@
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormControl,
+  UntypedFormControl,
   FormControlDirective,
   FormControlName,
   FormGroupDirective,
@@ -232,7 +232,7 @@ export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, V
   updateValidity(): void {
     // tslint:disable-next-line:no-bitwise
     const ngControl = this.injector.get(NgControl, null, InjectFlags.Self | InjectFlags.Optional);
-    let formControl: FormControl;
+    let formControl: UntypedFormControl;
     if (ngControl instanceof FormControlName) {
       formControl = this.injector.get(FormGroupDirective)
         .getControl(ngControl);

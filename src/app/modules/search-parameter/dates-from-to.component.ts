@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { FormControl, ValidationErrors } from '@angular/forms';
+import { UntypedFormControl, ValidationErrors } from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
@@ -35,12 +35,12 @@ export class DatesFromToComponent
   // Default value to be used when user creates a second date range criterion.
   static defaultValue: DatesFromTo = { from: null, to: null };
 
-  from: FormControl = new FormControl('', () => {
+  from: UntypedFormControl = new UntypedFormControl('', () => {
     const errors = this.validate();
     this.to?.setErrors(errors);
     return errors;
   });
-  to: FormControl = new FormControl('', () => {
+  to: UntypedFormControl = new UntypedFormControl('', () => {
     const errors = this.validate();
     this.from?.setErrors(errors);
     return errors;

@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   ValidationErrors,
   Validators
 } from '@angular/forms';
@@ -33,12 +33,12 @@ import { CohortService } from '../../shared/cohort/cohort.service';
 export class DefineCohortPageComponent
   extends BaseControlValueAccessorAndValidator<any>
   implements OnInit {
-  defineCohortForm: FormGroup;
+  defineCohortForm: UntypedFormGroup;
 
   @ViewChild('patientParams') patientParams: SearchParametersComponent;
 
   constructor(
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private errorManager: ErrorManager,
     public cohort: CohortService
   ) {
@@ -54,7 +54,7 @@ export class DefineCohortPageComponent
     });
   }
 
-  validate({ value }: FormControl): ValidationErrors | null {
+  validate({ value }: UntypedFormControl): ValidationErrors | null {
     return this.defineCohortForm.get('maxNumberOfPatients').errors;
   }
 

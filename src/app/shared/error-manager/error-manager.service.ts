@@ -1,7 +1,7 @@
 import { ErrorStateMatcher } from '@angular/material/core';
 import {
   FormArray,
-  FormControl,
+  UntypedFormControl,
   FormGroupDirective,
   NgForm,
   ValidationErrors
@@ -20,13 +20,13 @@ export class ErrorManager implements ErrorStateMatcher {
     }
   }
   // Array of controls for which errors should be displayed
-  controlToShowErrors: FormControl[] = [];
+  controlToShowErrors: UntypedFormControl[] = [];
   // Array of all controls
-  allControls: FormControl[] = [];
+  allControls: UntypedFormControl[] = [];
 
   // Determines the visibility of an error
   isErrorState(
-    control: FormControl | null,
+    control: UntypedFormControl | null,
     form: FormGroupDirective | NgForm | null
   ): boolean {
     const showError = this.controlToShowErrors.indexOf(control) !== -1;
@@ -36,14 +36,14 @@ export class ErrorManager implements ErrorStateMatcher {
   /**
    * Adds a new formControl
    */
-  addControl(control: FormControl): void {
+  addControl(control: UntypedFormControl): void {
     this.allControls.push(control);
   }
 
   /**
    * Removes formControl
    */
-  removeControl(control: FormControl): void {
+  removeControl(control: UntypedFormControl): void {
     const index = this.allControls.indexOf(control);
     this.allControls.splice(index, 1);
     if (index < this.controlToShowErrors.length) {

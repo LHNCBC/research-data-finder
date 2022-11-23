@@ -1,6 +1,6 @@
 import {
   ControlValueAccessor,
-  FormControl,
+  UntypedFormControl,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -89,5 +89,5 @@ export function createControlValueAccessorAndValidatorProviders(
 export abstract class BaseControlValueAccessorAndValidator<T>
   extends BaseControlValueAccessor<T>
   implements Validator {
-  abstract validate({ value }: FormControl): ValidationErrors | null;
+  abstract validate({ value }: UntypedFormControl): ValidationErrors | null;
 }

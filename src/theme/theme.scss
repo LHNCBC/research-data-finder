@@ -1,4 +1,5 @@
-@use '~@angular/material' as mat;
+@use '@angular/material' as mat;
+@use 'sass:math';
 @use '../../node_modules/@angular/material/core/theming/theming';
 @use '../../node_modules/@angular/material/core/style/private';
 @use '../../node_modules/@angular/material/core/typography/typography';
@@ -12,9 +13,11 @@
 $outline-dedupe: 0;
 
 // Applies a floating label above the form field control itself.
+// See source code here:
+// https://github.com/angular/components/blob/14.2.x/src/material/form-field/_form-field-outline-theme.scss
 @mixin _label-floating($font-scale, $infix-padding, $infix-margin-top) {
   transform: translateY(-$infix-margin-top - $infix-padding + $outline-dedupe) scale($font-scale);
-  width: private.private-div(100%, $font-scale) + $outline-dedupe;
+  width: math.div(100%, $font-scale) + $outline-dedupe;
 
   $outline-dedupe: $outline-dedupe + 0.00001 !global;
 }
@@ -22,10 +25,10 @@ $outline-dedupe: 0;
 // To make form fields more compact we should override "mat-form-field-outline-typography" mixin
 // to change local variable "$infix-padding" value
 // See source code here:
-// https://github.com/angular/components/blob/12.2.3/src/material/form-field/_form-field-outline-theme.scss
+// https://github.com/angular/components/blob/14.2.x/src/material/form-field/_form-field-outline-theme.scss
 @mixin outline-typography($config-or-theme) {
   $config: typography.private-typography-to-2014-config(
-      theming.get-typography-config($config-or-theme));
+                  theming.get-typography-config($config-or-theme));
   // The unit-less line-height from the font config.
   $line-height: typography-utils.line-height($config, input);
   // The amount to scale the font for the floating label and subscript.
@@ -33,12 +36,13 @@ $outline-dedupe: 0;
   // The padding above and below the infix.
   $infix-padding: $form-field-infix-padding;
   // The margin applied to the form-field-infix to reserve space for the floating label.
-  $infix-margin-top: $subscript-font-scale * typography-utils.private-coerce-unitless-to-em($line-height);
+  $infix-margin-top:
+          $subscript-font-scale * typography-utils.private-coerce-unitless-to-em($line-height);
   // The space between the bottom of the .mat-form-field-flex area and the subscript wrapper.
   // Mocks show half of the text size, but this margin is applied to an element with the subscript
   // text font size, so we need to divide by the scale factor to make it half of the original text
   // size.
-  $subscript-margin-top: private.private-div(0.5em, $subscript-font-scale);
+  $subscript-margin-top: math.div(0.5em, $subscript-font-scale);
   // The padding applied to the form-field-wrapper to reserve space for the subscript, since it's
   // absolutely positioned. This is a combination of the subscript's margin and line-height, but we
   // need to multiply by the subscript font scale factor since the wrapper has a larger font size.
@@ -60,8 +64,8 @@ $outline-dedupe: 0;
       &.mat-form-field-should-float .mat-form-field-label,
       .mat-input-server:focus + .mat-form-field-label-wrapper .mat-form-field-label {
         @include _label-floating(
-            $subscript-font-scale, $infix-padding + $outline-appearance-label-offset,
-            $infix-margin-top);
+                        $subscript-font-scale, $infix-padding + $outline-appearance-label-offset,
+                        $infix-margin-top);
       }
 
       // Server-side rendered matInput with a label attribute but label not shown
@@ -69,8 +73,8 @@ $outline-dedupe: 0;
       .mat-input-server[label]:not(:label-shown) + .mat-form-field-label-wrapper
       .mat-form-field-label {
         @include _label-floating(
-            $subscript-font-scale, $infix-padding + $outline-appearance-label-offset,
-            $infix-margin-top);
+                        $subscript-font-scale, $infix-padding + $outline-appearance-label-offset,
+                        $infix-margin-top);
       }
     }
   }
