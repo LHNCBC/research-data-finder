@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.0.1] - 2022-11-22
+### Changed
+- Removed the manual show of study 2410.
+
 ## [6.0.0] - 2022-11-17
 ### Changed
 - Upgrade Angular to Version 14. Removed support for IE11.
