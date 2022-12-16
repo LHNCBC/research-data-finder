@@ -178,7 +178,7 @@ export class FhirBatchQuery {
     // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
     const initializationRequests = [
       // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-      this.getWithCache('metadata', options),
+      this.getWithCache('metadata?_elements=fhirVersion', options),
       // Check if sorting Observations by date is supported
       this.getWithCache(
         `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,

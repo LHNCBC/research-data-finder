@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.0.2] - 2022-12-07
+### Changed
+- Updated website header and footer and logo.
+### Fixed
+- Removed downloading the full CapabilityStatement with /metadata.
+
 ## [6.0.1] - 2022-11-22
 ### Changed
 - Removed the manual show of study 2410.

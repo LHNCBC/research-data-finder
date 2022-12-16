@@ -63,7 +63,7 @@ describe('ObservationCodeLookupComponent', () => {
             });
           } else if (/\$lastn\?/.test(url) || /Observation/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: observations });
-          } else if (/metadata$/.test(url)) {
+          } else if (/metadata/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: metadata });
           } else if (/ResearchStudy/.test(url)) {
             return Promise.reject({ status: HTTP_ERROR, error: 'error' });
@@ -94,7 +94,7 @@ describe('ObservationCodeLookupComponent', () => {
             });
           } else if (/Observation/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: observations });
-          } else if (/metadata$/.test(url)) {
+          } else if (/metadata/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: metadata });
           } else if (/ResearchStudy/.test(url)) {
             return Promise.reject({ status: HTTP_ERROR, error: 'error' });
