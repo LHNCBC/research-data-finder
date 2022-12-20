@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.0.3] - 2022-12-20
+### Fixed
+- Duplication of Observations when pulling data for a cohort.
+
 ## [6.0.2] - 2022-12-07
 ### Changed
 - Updated website header and footer and logo.

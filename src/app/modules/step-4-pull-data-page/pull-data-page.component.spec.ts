@@ -32,10 +32,18 @@ describe('PullDataForCohortComponent', () => {
   let mockHttp: HttpTestingController;
   let cohort: CohortService;
   let pullData: PullDataService;
+
   const emptyParameterGroup = {
     hasErrors: () => false,
     getConditions: () => ({
       criteria: ''
+    })
+  } as SearchParameterGroupComponent;
+
+  const filledParameterGroup = {
+    hasErrors: () => false,
+    getConditions: () => ({
+      criteria: '&combo-code=system1%2F%7Ccode1,system2%2F%7Ccode2'
     })
   } as SearchParameterGroupComponent;
 
@@ -154,6 +162,55 @@ describe('PullDataForCohortComponent', () => {
       .toPromise()
       .then((resources) => {
         expect(resources.length).toBe(4);
+      });
+  });
+
+  it('should skip duplicate when loading Observations for a cohort of Patients', async () => {
+    const testData = [
+      {
+        patient: {id: 'pat-106'},
+        observations: {
+          ...observationsForPat106,
+          entry: observationsForPat106.entry.slice(0, 1)
+        }
+      },
+      {
+        patient: {id: 'pat-232'},
+        observations: {
+          ...observationsForPat232,
+          entry: observationsForPat232.entry.slice(0, 1)
+        }
+      },
+      {
+        patient: {id: 'pat-269'},
+        observations: {
+          ...observationsForPat269,
+          entry: observationsForPat269.entry.slice(0, 1)
+        }
+      }
+    ];
+    cohort.currentState.patients = testData.map((item) => item.patient);
+
+    component.loadResources('Observation', filledParameterGroup);
+    testData.forEach((item) => {
+      const patientId = item.patient.id;
+      mockHttp
+        .expectOne(
+          `$fhir/Observation?subject=Patient/${patientId}&_sort=-date&_count=1&combo-code=system1%2F%7Ccode1`
+        )
+        .flush(item.observations);
+      mockHttp
+        .expectOne(
+          `$fhir/Observation?subject=Patient/${patientId}&_sort=-date&_count=1&combo-code=system2%2F%7Ccode2`
+        )
+        .flush(item.observations);
+    });
+
+    await pullData.resourceStream['Observation']
+      .pipe(last())
+      .toPromise()
+      .then((resources) => {
+        expect(resources.length).toBe(3);
       });
   });
 
