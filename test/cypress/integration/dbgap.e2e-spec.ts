@@ -21,7 +21,7 @@ describe('Research Data Finder (dbGap)', () => {
     cy.visit('/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1')
       // Waiting for application initialization
       .wait(1000)
-      .get('.overlay', { timeout: 30000 })
+      .get('.init-spinner-container', { timeout: 30000 })
       .should('not.exist')
       // Initialize common page objects (harnesses)
       .then(() => getHarness(MatStepperHarness))

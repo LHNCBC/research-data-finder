@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.0.4] - 2022-12-21
+### Fixed
+- Issues with initialization spinner:
+  - there were no announcements for the screen reader,
+  - didn't block keyboard input.
+
 ## [6.0.3] - 2022-12-20
 ### Fixed
 - Duplication of Observations when pulling data for a cohort.

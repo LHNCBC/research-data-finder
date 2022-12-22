@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormControl,
@@ -10,9 +10,14 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
 import { setUrlParam } from '../../shared/utils';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { InitializeSpinnerComponent } from './initialize-spinner/initialize-spinner.component';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
+
+const TIMEOUT_FOR_INIT_ANNOUNCEMENT = 1000;
 
 /**
  * Settings page component for defining general parameters such as FHIR REST API Service Base URL.
@@ -22,17 +27,31 @@ import { setUrlParam } from '../../shared/utils';
   templateUrl: './settings-page.component.html',
   styleUrls: ['./settings-page.component.less']
 })
-export class SettingsPageComponent {
+export class SettingsPageComponent implements OnDestroy {
   settingsFormGroup: UntypedFormGroup;
-  isWaitingForConnection: Observable<boolean>;
+  subscriptions: Subscription[] = [];
+  initSpinnerDialog: MatDialogRef<InitializeSpinnerComponent>;
+  initAnnounceTimer = null;
 
   constructor(
     private formBuilder: UntypedFormBuilder,
-    public fhirBackend: FhirBackendService
+    public fhirBackend: FhirBackendService,
+    private dialog: MatDialog,
+    private liveAnnouncer: LiveAnnouncer
   ) {
-    this.isWaitingForConnection = fhirBackend.initialized.pipe(
-      map((status) => status === ConnectionStatus.Pending)
+    // Show initialization spinner when connection to server is in pending state
+    this.subscriptions.push(
+      fhirBackend.initialized
+        .pipe(map((status) => status === ConnectionStatus.Pending))
+        .subscribe((show) => {
+          if (show) {
+            this.showInitSpinner();
+          } else {
+            this.hideInitSpinner();
+          }
+        })
     );
+
     this.settingsFormGroup = this.formBuilder.group({
       serviceBaseUrl: new UntypedFormControl(this.fhirBackend.serviceBaseUrl, {
         validators: Validators.required,
@@ -63,6 +82,56 @@ export class SettingsPageComponent {
           );
         }
       });
+  }
+
+  /**
+   * Shows initialization spinner.
+   */
+  showInitSpinner(): void {
+    if (!this.initSpinnerDialog) {
+      this.initAnnounceTimer = setTimeout(() => {
+        this.liveAnnouncer.announce(
+          'Please wait - initializing data for the selected server.'
+        );
+      }, TIMEOUT_FOR_INIT_ANNOUNCEMENT);
+
+      window.addEventListener('keydown', this.blockTabKey);
+      this.initSpinnerDialog = this.dialog.open(InitializeSpinnerComponent, {
+        panelClass: 'init-spinner-container',
+        disableClose: true,
+        ariaModal: true
+      });
+    }
+  }
+
+  /**
+   * Hides initialization spinner.
+   */
+  hideInitSpinner(): void {
+    if (this.initSpinnerDialog) {
+      window.removeEventListener('keydown', this.blockTabKey);
+      clearTimeout(this.initAnnounceTimer);
+      this.liveAnnouncer.announce('Initialization complete.', 'assertive');
+      this.initSpinnerDialog.close();
+      this.initSpinnerDialog = null;
+    }
+  }
+
+  /**
+   * Disables the Tab key.
+   * Angular Material has an issue with focus trapping in a modal dialog:
+   * Users can focus on the browser address string using mouse and after that
+   * move focus to an element outside the dialog using the TAB key. This is bad
+   * for the initialization spinner. The easiest way to avoid this is to disable
+   * the Tab key for a while. The right way is to fix this behavior for modal
+   * dialogs in AngularMaterial
+   * (See https://material.angular.io/cdk/a11y/overview#focustrap).
+   * @param event - keyboard event
+   */
+  blockTabKey(event: KeyboardEvent): void {
+    if (event.key === 'Tab') {
+      event.preventDefault();
+    }
   }
 
   /**
@@ -106,5 +175,12 @@ export class SettingsPageComponent {
           : { wrongUrl: true };
       })
     );
+  }
+
+  /**
+   * Performs cleanup when a component instance is destroyed.
+   */
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 }

@@ -11,9 +11,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FhirServerSelectComponent } from './fhir-server-select/fhir-server-select.component';
 import { MatButtonModule } from '@angular/material/button';
 import { AppRoutingModule } from '../../app-routing.module';
+import { InitializeSpinnerComponent } from './initialize-spinner/initialize-spinner.component';
 
 @NgModule({
-  declarations: [SettingsPageComponent, FhirServerSelectComponent],
+  declarations: [
+    SettingsPageComponent,
+    FhirServerSelectComponent,
+    InitializeSpinnerComponent
+  ],
   exports: [SettingsPageComponent],
   imports: [
     CommonModule,
