@@ -8,7 +8,7 @@ import { CODETEXT } from '../query-params/query-params.service';
 import { CohortService } from '../cohort/cohort.service';
 import { concatMap, finalize, map } from 'rxjs/operators';
 import { from, Observable } from 'rxjs';
-import { chunk } from 'lodash-es';
+import { chunk, differenceBy } from 'lodash-es';
 import Patient = fhir.Patient;
 import Resource = fhir.Resource;
 import Bundle = fhir.Bundle;
@@ -311,27 +311,32 @@ export class PullDataService {
               patientData
             })) || [];
 
-          if (resourceType === 'Observation' && !observationCodes.length) {
-            res = res.filter((obs: Observation & PatientMixin) => {
-              const patientRef = obs.subject.reference;
-              const codeStr = this.columnValues.getCodeableConceptAsText(
-                obs.code
-              );
-              const codeToCount =
-                patientToCodeToCount[patientRef] ||
-                (patientToCodeToCount[patientRef] = {});
+          if (resourceType === 'Observation') {
+            if (!observationCodes.length) {
+              res = res.filter((obs: Observation & PatientMixin) => {
+                const patientRef = obs.subject.reference;
+                const codeStr = this.columnValues.getCodeableConceptAsText(
+                  obs.code
+                );
+                const codeToCount =
+                  patientToCodeToCount[patientRef] ||
+                  (patientToCodeToCount[patientRef] = {});
 
-              // For now skip Observations without a code in the first coding.
-              if (codeStr) {
-                const codeCount =
-                  codeToCount[codeStr] || (codeToCount[codeStr] = 0);
-                if (codeCount < perPatientCount) {
-                  ++codeToCount[codeStr];
-                  return true;
+                // For now skip Observations without a code in the first coding.
+                if (codeStr) {
+                  const codeCount =
+                    codeToCount[codeStr] || (codeToCount[codeStr] = 0);
+                  if (codeCount < perPatientCount) {
+                    ++codeToCount[codeStr];
+                    return true;
+                  }
                 }
-              }
-              return false;
-            });
+                return false;
+              });
+            } else {
+              // Exclude duplicate observations
+              res = differenceBy(res, currentState.resources, i => i.id);
+            }
           }
 
           currentState.resources.push(...res);
