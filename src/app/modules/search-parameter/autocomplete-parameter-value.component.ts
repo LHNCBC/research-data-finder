@@ -116,7 +116,7 @@ export class AutocompleteParameterValueComponent
     private elementRef: ElementRef,
     private errorStateMatcher: ErrorStateMatcher,
     private httpClient: HttpClient,
-    private liveAnnoncer: LiveAnnouncer,
+    private liveAnnouncer: LiveAnnouncer,
     private fhirBackend: FhirBackendService,
     private researchStudy: ResearchStudyService
   ) {
@@ -402,7 +402,7 @@ export class AutocompleteParameterValueComponent
                         // field and click the 'See more items' link.
                         return this.httpClient.get(nextPageUrl);
                       }
-                      this.liveAnnoncer.announce('New items added to list.');
+                      this.liveAnnouncer.announce('New items added to list.');
                       // Update list before calling server for next query.
                       resolve({
                         resourceType: 'ValueSet',
@@ -428,7 +428,7 @@ export class AutocompleteParameterValueComponent
                         contains.length = count;
                       }
                       this.loading = false;
-                      this.liveAnnoncer.announce('Finished loading list.');
+                      this.liveAnnouncer.announce('Finished loading list.');
                       resolve({
                         resourceType: 'ValueSet',
                         expansion: {
@@ -510,7 +510,7 @@ export class AutocompleteParameterValueComponent
                     )
                   );
                   this.loading = false;
-                  this.liveAnnoncer.announce('Finished loading list.');
+                  this.liveAnnouncer.announce('Finished loading list.');
                   resolve({
                     resourceType: 'ValueSet',
                     expansion: {
@@ -573,7 +573,7 @@ export class AutocompleteParameterValueComponent
                     );
                     const nextPageUrl = getNextPageUrl(response);
                     if (nextPageUrl && contains.length < count) {
-                      this.liveAnnoncer.announce('New items added to list.');
+                      this.liveAnnouncer.announce('New items added to list.');
                       // Update list before calling server for next query.
                       resolve({
                         resourceType: 'ValueSet',
@@ -599,7 +599,7 @@ export class AutocompleteParameterValueComponent
                         contains.length = count;
                       }
                       this.loading = false;
-                      this.liveAnnoncer.announce('Finished loading list.');
+                      this.liveAnnouncer.announce('Finished loading list.');
                       resolve({
                         resourceType: 'ValueSet',
                         expansion: {

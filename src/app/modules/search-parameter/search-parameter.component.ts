@@ -105,7 +105,7 @@ export class SearchParameterComponent
   constructor(
     private fhirBackend: FhirBackendService,
     private queryParams: QueryParamsService,
-    private liveAnnoncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer
   ) {
     super();
   }
@@ -125,7 +125,7 @@ export class SearchParameterComponent
         this.parameterValue.setValue(
           this.selectedParameter.type === 'boolean' ? 'true' : ''
         );
-        this.liveAnnoncer.announce(
+        this.liveAnnouncer.announce(
           `Selected ${value}. One or more new fields have appeared.`
         );
         if (this.nonRequiredBindingList) {
@@ -175,7 +175,7 @@ export class SearchParameterComponent
       (changes.observationDataType.currentValue || '') !==
         (changes.observationDataType.previousValue || '')
     ) {
-      this.liveAnnoncer.announce(
+      this.liveAnnouncer.announce(
         'The fields for variable value have updated in response to the change to the variable name.'
       );
     }

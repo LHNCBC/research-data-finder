@@ -68,7 +68,7 @@ export class SearchParameterGroupComponent
   constructor(
     private fhirBackend: FhirBackendService,
     private errorManager: ErrorManager,
-    private liveAnnoncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer
   ) {
     super();
     this.parameterList.valueChanges.subscribe((value) => {
@@ -95,7 +95,7 @@ export class SearchParameterGroupComponent
         if (match) {
           this.resourceType.disable({ emitEvent: false });
           this.updateMaxNumberOfSearchParameters();
-          this.liveAnnoncer.announce(`Selected record type ${value}.`);
+          this.liveAnnouncer.announce(`Selected record type ${value}.`);
         }
       });
     }
@@ -123,7 +123,7 @@ export class SearchParameterGroupComponent
    */
   public addParameter(): void {
     this.parameterList.push(new UntypedFormControl({}));
-    this.liveAnnoncer.announce('A new line of search criterion is added.');
+    this.liveAnnouncer.announce('A new line of search criterion is added.');
     // Focus the input control of the newly added search parameter line.
     setTimeout(() => {
       this.searchParameterComponents.last.focusSearchParamNameInput();

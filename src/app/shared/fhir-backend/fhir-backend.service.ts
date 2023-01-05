@@ -170,7 +170,7 @@ export class FhirBackendService implements HttpBackend {
    * @param router Angular router
    * @param injector an Angular injector, which is responsible for creating
    *   service instances and injecting them into classes
-   * @param liveAnnoncer a service is used to announce messages for screen-reader
+   * @param liveAnnouncer a service is used to announce messages for screen-reader
    *   users using an aria-live region.
    */
   constructor(
@@ -178,7 +178,7 @@ export class FhirBackendService implements HttpBackend {
     private fhirService: FhirService,
     private router: Router,
     private injector: Injector,
-    private liveAnnoncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer
   ) {
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const queryServer = getUrlParam('server');
@@ -235,7 +235,8 @@ export class FhirBackendService implements HttpBackend {
     return this.fhirClient
       .getWithCache(`${url}/.well-known/smart-configuration`, {
         combine: false,
-        cacheErrors: true
+        cacheErrors: true,
+        retryCount: 2
       })
       .then(() => {
         this.isSmartOnFhirEnabled = true;
@@ -268,7 +269,7 @@ export class FhirBackendService implements HttpBackend {
       this.fhirService.requestSmartConnection((success) => {
         if (success) {
           this.smartConnectionSuccess = true;
-          this.liveAnnoncer.announce('SMART on FHIR connection succeeded.');
+          this.liveAnnouncer.announce('SMART on FHIR connection succeeded.');
           // Load definitions of search parameters and columns from CSV file
           this.settings.loadCsvDefinitions().subscribe(
             (resourceDefinitions) => {
@@ -292,6 +293,7 @@ export class FhirBackendService implements HttpBackend {
         } else {
           this.smartConnectionSuccess = false;
           this.initialized.next(ConnectionStatus.Error);
+          this.liveAnnouncer.announce('SMART on FHIR connection failed.');
         }
       });
     }

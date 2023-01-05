@@ -181,7 +181,7 @@ export class FhirServerSelectComponent
     @Optional() @Self() public ngControl: NgControl,
     private elementRef: ElementRef,
     public fhirBackend: FhirBackendService,
-    private liveAnnoncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer
   ) {
     super();
     if (ngControl != null) {
@@ -291,8 +291,7 @@ export class FhirServerSelectComponent
             this.input.nativeElement.value === url &&
             wasSmartOnFhirEnabled !== isSmartOnFhirEnabled
           ) {
-            this.liveAnnoncer.clear();
-            this.liveAnnoncer.announce(
+            this.liveAnnouncer.announce(
               isSmartOnFhirEnabled
                 ? 'A new checkbox for SMART on FHIR launch appeared.'
                 : 'The checkbox for SMART on FHIR launch disappeared.'
@@ -312,5 +311,6 @@ export class FhirServerSelectComponent
       window.history.pushState({}, '', setUrlParam('isSmart', 'false'));
     }
     this.fhirBackend.isSmartOnFhir = checked;
+    this.onChange(this.value);
   }
 }

@@ -80,7 +80,7 @@ export class SearchParametersComponent
 
   constructor(
     private fhirBackend: FhirBackendService,
-    private liveAnnoncer: LiveAnnouncer,
+    private liveAnnouncer: LiveAnnouncer,
     private cohort: CohortService
   ) {
     super();
@@ -111,7 +111,7 @@ export class SearchParametersComponent
               message +=
                 ' The AND operator is used to combine criteria for the resource type.';
             }
-            this.liveAnnoncer.announce(message);
+            this.liveAnnouncer.announce(message);
 
             // Focus the input control of the newly added search parameter line.
             this.searchParameterComponents.changes
@@ -134,7 +134,7 @@ export class SearchParametersComponent
             if (parent.rules.length === 2) {
               message += OPERATOR_ADDING_MESSAGE;
             }
-            this.liveAnnoncer.announce(message);
+            this.liveAnnouncer.announce(message);
 
             // Focus the newly added add resource type button.
             this.addResourceTypeBtns.changes
@@ -256,7 +256,7 @@ export class SearchParametersComponent
     if (ruleset.rules.length === 2) {
       message += OPERATOR_ADDING_MESSAGE;
     }
-    this.liveAnnoncer.announce(message);
+    this.liveAnnouncer.announce(message);
 
     // Focus the input control of the newly added resource type line.
     this.resourceTypeComponents.changes

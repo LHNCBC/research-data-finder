@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { InitializeSpinnerComponent } from './initialize-spinner.component';
+import { InitializeSpinnerModule } from './initialize-spinner.module';
 
 describe('InitializeSpinnerComponent', () => {
   let component: InitializeSpinnerComponent;
@@ -8,7 +9,8 @@ describe('InitializeSpinnerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [InitializeSpinnerComponent]
+      declarations: [InitializeSpinnerComponent],
+      imports: [InitializeSpinnerModule]
     }).compileComponents();
 
     fixture = TestBed.createComponent(InitializeSpinnerComponent);

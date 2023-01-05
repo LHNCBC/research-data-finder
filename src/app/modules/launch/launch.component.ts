@@ -1,13 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import FHIR from 'fhirclient';
 import { ActivatedRoute, Router } from '@angular/router';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
 
 @Component({
   selector: 'app-launch',
   templateUrl: './launch.component.html'
 })
 export class LaunchComponent implements OnInit {
-  constructor(private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private fhirBackend: FhirBackendService
+  ) {}
 
   ngOnInit(): void {
     const fhirServerUrl = this.route.snapshot.paramMap.get('iss');
@@ -21,6 +29,7 @@ export class LaunchComponent implements OnInit {
       })
       .catch((e) => {
         console.error(e);
+        this.fhirBackend.initialized.next(ConnectionStatus.Error);
         this.router.navigate(['/'], {
           queryParams: { server: fhirServerUrl, isSmart: false }
         });

@@ -140,7 +140,13 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
           this.cohort.createCohortMode
         )
     };
+  }
 
+  /**
+   * A lifecycle hook that is called after Angular has fully initialized
+   * a component's view.
+   */
+  ngAfterViewInit(): void {
     this.subscription = this.fhirBackend.initialized.subscribe((status) => {
       if (status === ConnectionStatus.Disconnect) {
         this.stepper.reset();
@@ -189,13 +195,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
         }
       }
     });
-  }
 
-  /**
-   * A lifecycle hook that is called after Angular has fully initialized
-   * a component's view.
-   */
-  ngAfterViewInit(): void {
     if (this.defineCohortStep) {
       this.defineCohortStep.completed = false;
     }
