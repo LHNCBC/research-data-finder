@@ -42,6 +42,9 @@ export class RasTokenService {
    * @return a promise that resolves when the logout request has completed.
    */
   logout(): Promise<void> {
+    // Remove the session variable to avoid duplicate logout requests
+    sessionStorage.removeItem('dbgapRasLoginServer');
+
     return this.rasTokenValidated
       ? this.http
           .get(`${window.location.origin}/rdf-server/logout`)

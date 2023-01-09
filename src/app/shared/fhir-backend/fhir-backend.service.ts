@@ -63,6 +63,10 @@ const RESOURCES_REQUIRING_AUTHORIZATION = 'Observation|ResearchSubject';
 export class FhirBackendService implements HttpBackend {
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
+    const dbgapRasLoginServer = sessionStorage.getItem('dbgapRasLoginServer');
+    const isRasLogoutNeeded =
+      dbgapRasLoginServer && url !== dbgapRasLoginServer;
+
     if (this.serviceBaseUrl !== url) {
       this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
@@ -70,13 +74,22 @@ export class FhirBackendService implements HttpBackend {
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
       // Logging out of RAS when changing server
-      (url !== sessionStorage.getItem('dbgapRasLoginServer')
+      (isRasLogoutNeeded
         ? // Access to RasTokenService via injector to avoid circular dependency
           this.injector.get(RasTokenService).logout()
         : Promise.resolve()
       ).then(() => {
         this.initializeFhirBatchQuery(url);
       });
+    } else if (isRasLogoutNeeded) {
+      // Logging out of RAS when changing the "server" URL parameter
+      this.injector
+        // Access to RasTokenService via injector to avoid circular dependency
+        .get(RasTokenService)
+        .logout()
+        .then(() => {
+          this.initializeFhirBatchQuery(url);
+        });
     }
   }
   get serviceBaseUrl(): string {
