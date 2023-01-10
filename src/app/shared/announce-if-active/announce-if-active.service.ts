@@ -33,7 +33,7 @@ export class AnnounceIfActiveService {
    */
   clear(): void {
     if (this.parentStepper.selected === this.parentStep) {
-      return this.liveAnnouncer.clear();
+      this.liveAnnouncer.clear();
     }
   }
 }
