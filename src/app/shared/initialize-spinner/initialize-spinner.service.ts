@@ -51,7 +51,7 @@ export class InitializeSpinnerService {
         ariaModal: true
       });
       this.liveAnnouncer.announce(
-        'Please wait - initializing data for the selected server.'
+        'Please wait. Initializing data for the selected server.'
       );
     }
   }

@@ -34,6 +34,6 @@ export class OwnLiveAnnouncerService {
    * through the page landmarks.
    */
   clear(): void {
-    // Impossible with Def.ScreenReaderLog
+    this.screenReaderLog.logElement_.innerHTML = '';
   }
 }
