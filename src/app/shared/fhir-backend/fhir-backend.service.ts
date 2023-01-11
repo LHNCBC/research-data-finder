@@ -64,7 +64,6 @@ export class FhirBackendService implements HttpBackend {
   // FHIR REST API Service Base URL (https://www.hl7.org/fhir/http.html#root)
   set serviceBaseUrl(url: string) {
     if (this.serviceBaseUrl !== url) {
-      this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
@@ -111,7 +110,6 @@ export class FhirBackendService implements HttpBackend {
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
-      this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
       this.initializeFhirBatchQuery(this.serviceBaseUrl);
     }

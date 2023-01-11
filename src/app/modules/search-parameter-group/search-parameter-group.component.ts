@@ -1,13 +1,17 @@
 import {
   Component,
+  ElementRef,
   Input,
-  ViewChildren,
-  QueryList,
   OnInit,
+  QueryList,
   ViewChild,
-  ElementRef
+  ViewChildren
 } from '@angular/core';
-import { AbstractControl, UntypedFormArray, UntypedFormControl } from '@angular/forms';
+import {
+  AbstractControl,
+  UntypedFormArray,
+  UntypedFormControl
+} from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
@@ -111,7 +115,10 @@ export class SearchParameterGroupComponent
           );
         }
         this.updateMaxNumberOfSearchParameters();
-      } else if (status === ConnectionStatus.Disconnect) {
+      } else if (
+        status === ConnectionStatus.Disconnect ||
+        status === ConnectionStatus.Pending
+      ) {
         // Clear search parameters on server change
         this.parameterList.clear();
       }

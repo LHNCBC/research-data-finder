@@ -5,6 +5,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 @Component({
   selector: 'app-launch',
@@ -14,7 +15,8 @@ export class LaunchComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private fhirBackend: FhirBackendService
+    private fhirBackend: FhirBackendService,
+    private liveAnnouncer: LiveAnnouncer
   ) {}
 
   ngOnInit(): void {
@@ -30,6 +32,7 @@ export class LaunchComponent implements OnInit {
       .catch((e) => {
         console.error(e);
         this.fhirBackend.initialized.next(ConnectionStatus.Error);
+        this.liveAnnouncer.announce('SMART on FHIR connection failed.');
         this.router.navigate(['/'], {
           queryParams: { server: fhirServerUrl, isSmart: false }
         });
