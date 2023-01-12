@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.0.6] - 2022-01-12
+### Changed
+- Added a column with the LOINC short name to the table of variables.
+### Fixed
+- Search for variables by display name: to find synonyms, the search was
+  extended by additionally searching the long and short LOINC names.
+
 ## [6.0.5] - 2022-01-09
 ### Fixed
 - Editing the "server" URL parameter did not result in a logout from RAS.

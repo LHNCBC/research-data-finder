@@ -185,7 +185,8 @@ export class SelectRecordsService {
     const dataFields = {
       id: 'uid',
       display_name: 'display_name',
-      long_common_name: 'loinc.LONG_COMMON_NAME',
+      loinc_long_name: 'loinc.LONG_COMMON_NAME',
+      loinc_short_name: 'loinc.SHORTNAME',
       loinc_num: 'loinc_num',
       study_id: 'study_id',
       study_name: 'study_name',
@@ -206,7 +207,16 @@ export class SelectRecordsService {
     }
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
-        query.push(`${dataFields[key]}:(${value})`);
+        if (key === 'display_name') {
+          // Name for display is currently the LOINC short name or dbGap description.
+          // To find synonyms, we extended the display name search by additionally
+          // searching the long and short LOINC names.
+          query.push(
+            `(${dataFields[key]}:(${value}) OR loinc.SHORTNAME:(${value}) OR loinc.LONG_COMMON_NAME:(${value}))`
+          );
+        } else {
+          query.push(`${dataFields[key]}:(${value})`);
+        }
       }
     });
 

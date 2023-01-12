@@ -72,10 +72,10 @@
 
       contextColumns: {
         // Custom definition of the "Variable" table columns
+        // See src/app/types/column.description.ts for details
         "browse": {
           "Variable": [
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Id",
               element: "id",
               displayByDefault: false,
@@ -84,7 +84,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Variable Display Text",
               element: "display_name",
               displayByDefault: true,
@@ -93,10 +92,17 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "LOINC long common name",
-              element: "long_common_name",
+              element: "loinc_long_name",
               displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              displayName: "LOINC short name",
+              element: "loinc_short_name",
+              displayByDefault: false,
               types: [
                 "string"
               ]
@@ -110,7 +116,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Study ID",
               element: "study_id",
               displayByDefault: false,
@@ -119,7 +124,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Study",
               element: "study_name",
               displayByDefault: true,
@@ -128,7 +132,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Dataset ID",
               element: "dataset_id",
               displayByDefault: false,
@@ -137,7 +140,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Dataset",
               element: "dataset_name",
               displayByDefault: true,
@@ -146,7 +148,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "LOINC class",
               element: "class",
               displayByDefault: true,
@@ -155,7 +156,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Type",
               element: "type",
               displayByDefault: true,
@@ -164,7 +164,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Unit",
               element: "unit",
               displayByDefault: true,
@@ -177,7 +176,6 @@
         "select": {
           "Variable": [
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Id",
               element: "id",
               displayByDefault: false,
@@ -186,7 +184,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Variable Display Text",
               element: "display_name",
               displayByDefault: true,
@@ -195,10 +192,17 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "LOINC long common name",
-              element: "long_common_name",
+              element: "loinc_long_name",
               displayByDefault: true,
+              types: [
+                "string"
+              ]
+            },
+            {
+              displayName: "LOINC short name",
+              element: "loinc_short_name",
+              displayByDefault: false,
               types: [
                 "string"
               ]
@@ -212,7 +216,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Study ID",
               element: "study_id",
               displayByDefault: false,
@@ -221,7 +224,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Study",
               element: "study_name",
               displayByDefault: true,
@@ -230,7 +232,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Dataset ID",
               element: "dataset_id",
               displayByDefault: false,
@@ -239,7 +240,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Dataset",
               element: "dataset_name",
               displayByDefault: true,
@@ -248,7 +248,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "LOINC class",
               element: "class",
               displayByDefault: true,
@@ -257,7 +256,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Type",
               element: "type",
               displayByDefault: true,
@@ -266,7 +264,6 @@
               ]
             },
             {
-              // See src/app/types/column.description.ts for details
               displayName: "Unit",
               element: "unit",
               displayByDefault: true,
