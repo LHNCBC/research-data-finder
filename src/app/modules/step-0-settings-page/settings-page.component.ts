@@ -24,15 +24,11 @@ import { setUrlParam } from '../../shared/utils';
 })
 export class SettingsPageComponent {
   settingsFormGroup: UntypedFormGroup;
-  isWaitingForConnection: Observable<boolean>;
 
   constructor(
     private formBuilder: UntypedFormBuilder,
     public fhirBackend: FhirBackendService
   ) {
-    this.isWaitingForConnection = fhirBackend.initialized.pipe(
-      map((status) => status === ConnectionStatus.Pending)
-    );
     this.settingsFormGroup = this.formBuilder.group({
       serviceBaseUrl: new UntypedFormControl(this.fhirBackend.serviceBaseUrl, {
         validators: Validators.required,
@@ -107,4 +103,5 @@ export class SettingsPageComponent {
       })
     );
   }
+
 }

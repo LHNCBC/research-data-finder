@@ -10,6 +10,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { HomeModule } from './modules/home/home.module';
 import { RasTokenCallbackModule } from './modules/ras-token-callback/ras-token-callback.module';
 import { LaunchModule } from './modules/launch/launch.module';
+import { InitializeSpinnerModule } from './shared/initialize-spinner/initialize-spinner.module';
+import { AnnouncerModule } from './shared/announcer/announcer.module';
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
@@ -27,10 +29,12 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
   declarations: [AppComponent],
   imports: [
     BrowserModule,
+    AnnouncerModule,
     AppRoutingModule,
     HomeModule,
     RasTokenCallbackModule,
-    LaunchModule
+    LaunchModule,
+    InitializeSpinnerModule
   ],
   providers: [
     {

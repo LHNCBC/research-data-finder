@@ -67,7 +67,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     public columnDescriptionsService: ColumnDescriptionsService,
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
-    private liveAnnoncer: LiveAnnouncer,
+    private liveAnnouncer: LiveAnnouncer,
     private dialog: CustomDialog
   ) {
     this.subscriptions.push(
@@ -314,7 +314,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['loading']) {
       if (this.loading) {
         this.columnsWithData = {};
-        this.liveAnnoncer.announce(
+        this.liveAnnouncer.announce(
           `The ${this.resourceType} resources loading process has started`
         );
         this.startTime = Date.now();
@@ -327,7 +327,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             // A pause while announcing the progress bar position is needed
             // to avoid a large number of announcements.
             if (++i % 4 === 0) {
-              this.liveAnnoncer.announce(`${progressValue}% loaded`);
+              this.liveAnnouncer.announce(`${progressValue}% loaded`);
             }
           })
         );
@@ -335,7 +335,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.loadedDateTime = Date.now();
         this.loadTime =
           Math.round((this.loadedDateTime - this.startTime) / 100) / 10;
-        this.liveAnnoncer.announce(
+        this.liveAnnouncer.announce(
           `The ${this.resourceType} resources loading process has finished. ` +
             `${this.resources.length} rows loaded. ` +
             this.getSortMessage(),
@@ -613,7 +613,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     }
     // Table will re-render only after data reference changed.
     this.dataSource.data = this.clientSort(this.dataSource.data.slice());
-    this.liveAnnoncer.announce(this.getSortMessage());
+    this.liveAnnouncer.announce(this.getSortMessage());
   }
 
   /**
@@ -804,7 +804,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     tooltip.toggle();
-    this.liveAnnoncer.announce(tooltip.message);
+    this.liveAnnouncer.announce(tooltip.message);
   }
 
   /**

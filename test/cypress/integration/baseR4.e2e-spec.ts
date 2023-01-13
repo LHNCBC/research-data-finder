@@ -18,8 +18,9 @@ describe('Research Data Finder (baseR4)', () => {
 
   before(() => {
     cy.visit('/?server=https://lforms-fhir.nlm.nih.gov/baseR4')
-      .wait(1000)
-      .get('.overlay', { timeout: 30000 })
+      .get('.init-spinner-container')
+      .should('exist')
+      .get('.init-spinner-container', { timeout: 30000 })
       .should('not.exist');
 
     // Initialize common page objects (harnesses)

@@ -10,23 +10,17 @@
   <mat-form-field>
     <mat-label>FHIR server</mat-label>
     <app-fhir-server-select placeholder="URL" formControlName="serviceBaseUrl"></app-fhir-server-select>
-    <div class="overlay" *ngIf="isWaitingForConnection | async">
-      <div class="center">
-        <mat-spinner [diameter]="50"></mat-spinner>
-        <p>Initializing ...</p>
-      </div>
-    </div>
     <mat-hint *ngIf="fhirBackend.smartConnectionSuccess" align="end">
       SMART on FHIR connection succeeded.
     </mat-hint>
-    <mat-hint align="start" *ngIf="(isWaitingForConnection | async) === false">
+    <mat-hint align="start" *ngIf="!settingsFormGroup.controls['serviceBaseUrl'].errors">
       See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
       details.
     </mat-hint>
     <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('smartConnectionFailure')">
       SMART on FHIR connection failed.
     </mat-error>
-    <mat-error>
+    <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('wrongUrl')">
       Please, specify valid FHIR server URL.
       See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
       details.

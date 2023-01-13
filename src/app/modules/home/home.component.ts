@@ -20,7 +20,7 @@ export class HomeComponent implements AfterViewInit {
   constructor(
     public rasToken: RasTokenService,
     public fhirBackend: FhirBackendService,
-    private liveAnnoncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer
   ) {
     this.isAlpha = getUrlParam('alpha-version') === 'enable';
   }
@@ -45,14 +45,14 @@ export class HomeComponent implements AfterViewInit {
       this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
         CreateCohortMode.UNSELECTED
       );
-      this.liveAnnoncer.announce('Logged out. Returning to settings page.');
+      this.liveAnnouncer.announce('Logged out. Returning to settings page.');
     });
   }
 
   onSmartLogout(): void {
     window.history.pushState({}, '', setUrlParam('isSmart', 'false'));
     this.fhirBackend.isSmartOnFhir = false;
-    this.liveAnnoncer.announce('Logged out from SMART on FHIR connection.');
+    this.liveAnnouncer.announce('Logged out from SMART on FHIR connection.');
   }
 
   ngAfterViewInit(): void {
