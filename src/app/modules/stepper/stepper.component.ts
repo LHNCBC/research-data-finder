@@ -20,12 +20,12 @@ import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import pkg from '../../../../package.json';
 import { findLast } from 'lodash-es';
 import { getUrlParam } from '../../shared/utils';
-import Patient = fhir.Patient;
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { SelectRecordsPageComponent } from '../select-records-page/select-records-page.component';
 import { SelectAnActionComponent } from '../select-an-action/select-an-action.component';
 import { SettingsPageComponent } from '../step-0-settings-page/settings-page.component';
+import Patient = fhir.Patient;
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -148,7 +148,10 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
    */
   ngAfterViewInit(): void {
     this.subscription = this.fhirBackend.initialized.subscribe((status) => {
-      if (status === ConnectionStatus.Disconnect) {
+      if (
+        status === ConnectionStatus.Disconnect ||
+        status === ConnectionStatus.Pending
+      ) {
         this.stepper.reset();
         // A workaround for the bug which is described here:
         // https://github.com/angular/components/issues/13736

@@ -15,6 +15,9 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Editing the "server" URL parameter did not result in a logout from RAS.
 
 ## [6.0.4] - 2022-12-21
+### Changed
+- Replaced calls to LiveAnnouncer with calls to Def.ScreenReaderLog from
+  autocomplete-lhc.
 ### Fixed
 - Issues with initialization spinner:
   - there were no announcements for the screen reader,

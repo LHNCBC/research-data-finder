@@ -68,7 +68,6 @@ export class FhirBackendService implements HttpBackend {
       dbgapRasLoginServer && url !== dbgapRasLoginServer;
 
     if (this.serviceBaseUrl !== url) {
-      this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
@@ -124,7 +123,6 @@ export class FhirBackendService implements HttpBackend {
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
-      this.initialized.next(ConnectionStatus.Disconnect);
       this.initialized.next(ConnectionStatus.Pending);
       this.initializeFhirBatchQuery(this.serviceBaseUrl);
     }
