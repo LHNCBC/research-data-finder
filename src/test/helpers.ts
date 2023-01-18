@@ -34,6 +34,8 @@ export async function configureTestingModule(
     definitions?: any;
     features?: any;
     serverUrl?: string;
+    isSmartOnFhirEnabled?: boolean;
+    skipInitApp?: boolean;
   } = {}
 ): Promise<void> {
   moduleDef.imports = (moduleDef.imports || []).concat(
@@ -42,6 +44,18 @@ export async function configureTestingModule(
   );
   await TestBed.configureTestingModule(moduleDef).compileComponents();
   spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
+  const spySmartConfiguration = spyOn(
+    FhirBatchQuery.prototype,
+    'getWithCache'
+  ).withArgs(
+    jasmine.stringMatching(/\/\.well-known\/smart-configuration/),
+    jasmine.any(Object)
+  );
+  if (options.isSmartOnFhirEnabled) {
+    spySmartConfiguration.and.resolveTo(null);
+  } else {
+    spySmartConfiguration.and.rejectWith(null);
+  }
   const fhirBackend = TestBed.inject(FhirBackendService);
   spyOnProperty(fhirBackend, 'currentVersion').and.returnValue('R4');
   spyOnProperty(fhirBackend, 'features').and.returnValue({
@@ -58,7 +72,9 @@ export async function configureTestingModule(
 
   const settingsService = TestBed.inject(SettingsService);
   const mockHttp = TestBed.inject(HttpTestingController);
-  settingsService.loadJsonConfig().subscribe();
+  if (!options.skipInitApp) {
+    settingsService.loadJsonConfig().subscribe();
+  }
 
   // Pass-through for settings file
   mockHttp

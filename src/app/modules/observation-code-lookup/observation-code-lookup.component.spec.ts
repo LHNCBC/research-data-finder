@@ -10,7 +10,6 @@ import { FhirBatchQuery } from '../../shared/fhir-backend/fhir-batch-query';
 import observations from './test-fixtures/observations.json';
 import observationsDuplicateDisplay from './test-fixtures/observations_duplicate_display.json';
 import metadata from './test-fixtures/metadata.json';
-import { RouterTestingModule } from '@angular/router/testing';
 
 @Component({
   template: ` <mat-form-field class="flex">
@@ -53,6 +52,9 @@ describe('ObservationCodeLookupComponent', () => {
     {
       description: 'when "lastn" operation is supported',
       beforeEachFn: () => {
+        spyOn(FhirBatchQuery.prototype, '_request')
+          .withArgs(jasmine.objectContaining({ method: 'POST' }))
+          .and.rejectWith({ status: 404 });
         spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
           const HTTP_OK = 200;
           const HTTP_ERROR = 404;
@@ -65,7 +67,10 @@ describe('ObservationCodeLookupComponent', () => {
             return Promise.resolve({ status: HTTP_OK, data: observations });
           } else if (/metadata/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: metadata });
-          } else if (/ResearchStudy/.test(url)) {
+          } else if (
+            /ResearchStudy/.test(url) ||
+            /\/\.well-known\/smart-configuration/.test(url)
+          ) {
             return Promise.reject({ status: HTTP_ERROR, error: 'error' });
           } else if (/ResearchSubject/.test(url)) {
             return Promise.reject({
@@ -82,6 +87,9 @@ describe('ObservationCodeLookupComponent', () => {
     {
       description: 'when "lastn" operation is not supported',
       beforeEachFn: () => {
+        spyOn(FhirBatchQuery.prototype, '_request')
+          .withArgs(jasmine.objectContaining({ method: 'POST' }))
+          .and.rejectWith({ status: 404 });
         spyOn(FhirBatchQuery.prototype, 'getWithCache').and.callFake((url) => {
           const HTTP_OK = 200;
           const HTTP_ERROR = 404;
@@ -96,7 +104,10 @@ describe('ObservationCodeLookupComponent', () => {
             return Promise.resolve({ status: HTTP_OK, data: observations });
           } else if (/metadata/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: metadata });
-          } else if (/ResearchStudy/.test(url)) {
+          } else if (
+            /ResearchStudy/.test(url) ||
+            /\/\.well-known\/smart-configuration/.test(url)
+          ) {
             return Promise.reject({ status: HTTP_ERROR, error: 'error' });
           } else if (/ResearchSubject/.test(url)) {
             return Promise.reject({
@@ -120,8 +131,7 @@ describe('ObservationCodeLookupComponent', () => {
             ReactiveFormsModule,
             MatFormFieldModule,
             ObservationCodeLookupModule,
-            SharedModule,
-            RouterTestingModule
+            SharedModule
           ]
         }).compileComponents();
       });

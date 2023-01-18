@@ -15,6 +15,7 @@ import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
 import { RouterTestingModule } from '@angular/router/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 describe('BrowseRecordsPageComponent', () => {
   let component: BrowseRecordsPageComponent;
@@ -60,6 +61,7 @@ describe('BrowseRecordsPageComponent', () => {
     mockHttp
       .expectOne('$fhir/ResearchStudy?_count=3000')
       .flush(researchStudies);
+    await expectNumberOfRecords(2);
   }
 
   /**
@@ -77,6 +79,18 @@ describe('BrowseRecordsPageComponent', () => {
   }
 
   /**
+   * Creates an expectation for the number of records on the current tab.
+   * @param n - number of expected records
+   */
+  async function expectNumberOfRecords(n: number): Promise<void> {
+    const tabGroup = await loader.getHarness(MatTabGroupHarness);
+    const currentTab = await tabGroup.getSelectedTab();
+    const table = await currentTab.getHarness(MatTableHarness);
+    const rows = await table.getRows();
+    expect(rows.length).toBe(n);
+  }
+
+  /**
    * Go to variables tab and load variables.
    */
   async function loadVariables(): Promise<void> {
@@ -91,6 +105,7 @@ describe('BrowseRecordsPageComponent', () => {
         );
       })
       .flush(variables);
+    await expectNumberOfRecords(4);
   }
 
   it('should create', () => {
@@ -124,5 +139,6 @@ describe('BrowseRecordsPageComponent', () => {
         );
       })
       .flush(variables);
+    await expectNumberOfRecords(4);
   });
 });

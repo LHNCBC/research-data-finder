@@ -8,6 +8,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Added a column with the LOINC short name to the table of variables.
 ### Fixed
 - Added search for synonyms when searching for variables by display name.
+- Removed access to the FHIR server from unit tests.
 
 ## [6.0.5] - 2022-01-09
 ### Fixed

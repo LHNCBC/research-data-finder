@@ -11,7 +11,6 @@ import {
 } from '@angular/common/http';
 import { of } from 'rxjs';
 import { SettingsService } from '../settings-service/settings.service';
-import { RouterTestingModule } from '@angular/router/testing';
 import { FhirService } from '../fhir-service/fhir.service';
 
 describe('FhirBackendService', () => {
@@ -39,7 +38,7 @@ describe('FhirBackendService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [FhirBackendModule, HttpClientModule, RouterTestingModule]
+      imports: [FhirBackendModule, HttpClientModule]
     });
     spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
     spyOn(FhirBatchQuery.prototype, 'get').and.resolveTo(

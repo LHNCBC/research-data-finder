@@ -8,22 +8,18 @@ import observationsForPat269 from './test-fixtures/obs-pat-269.json';
 import encountersForSmart880378 from './test-fixtures/encounter-smart-880378.json';
 import researchStudies from 'src/test/test-fixtures/research-studies.json';
 import { chunk } from 'lodash-es';
-import {
-  ConnectionStatus,
-  FhirBackendService
-} from '../../shared/fhir-backend/fhir-backend.service';
-import { FhirBatchQuery } from '../../shared/fhir-backend/fhir-batch-query';
-import { filter, last, take } from 'rxjs/operators';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import { last } from 'rxjs/operators';
 import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { SettingsService } from '../../shared/settings-service/settings.service';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import { RouterTestingModule } from '@angular/router/testing';
+import { configureTestingModule } from '../../../test/helpers';
 
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
@@ -48,67 +44,27 @@ describe('PullDataForCohortComponent', () => {
   } as SearchParameterGroupComponent;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [PullDataPageComponent],
-      imports: [
-        PullDataPageModule,
-        SharedModule,
-        HttpClientTestingModule,
-        MatIconTestingModule,
-        RouterTestingModule
-      ]
-    }).compileComponents();
-    spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
+    await configureTestingModule(
+      {
+        declarations: [PullDataPageComponent],
+        imports: [
+          PullDataPageModule,
+          SharedModule,
+          HttpClientTestingModule,
+          MatIconTestingModule,
+          RouterTestingModule
+        ]
+      },
+      { serverUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4' }
+    );
     fhirBackend = TestBed.inject(FhirBackendService);
     cohort = TestBed.inject(CohortService);
     pullData = TestBed.inject(PullDataService);
-    spyOnProperty(fhirBackend, 'currentVersion').and.returnValue('R4');
-    spyOnProperty(fhirBackend, 'features').and.returnValue({
-      lastnLookup: true,
-      sortObservationsByDate: true,
-      sortObservationsByAgeAtEvent: false
-    });
-
-    // Mock service base URL to apply default settings
-    spyOnProperty(fhirBackend, 'serviceBaseUrl').and.returnValue(
-      'https://lforms-fhir.nlm.nih.gov/baseR4'
-    );
-
-    const settingsService = TestBed.inject(SettingsService);
     mockHttp = TestBed.inject(HttpTestingController);
-    settingsService.loadJsonConfig().subscribe();
-
-    // Pass-through for settings file
-    mockHttp
-      .expectOne(`assets/settings.json5`)
-      .flush(await fetch('assets/settings.json5').then((r) => r.text()));
 
     fixture = TestBed.createComponent(PullDataPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  });
-
-  beforeEach(async () => {
-    // Pass-through for CSV files
-    const request = mockHttp.expectOne((req) => {
-      if (req.url.startsWith('conf/csv')) {
-        fetch(req.url)
-          .then((r) => r.text())
-          .then((responseText) => {
-            request.flush(responseText);
-          });
-        return true;
-      }
-      return false;
-    });
-
-    // Wait for initialization
-    await fhirBackend.initialized
-      .pipe(
-        filter((status) => status === ConnectionStatus.Ready),
-        take(1)
-      )
-      .toPromise();
   });
 
   afterEach(() => {
@@ -168,21 +124,21 @@ describe('PullDataForCohortComponent', () => {
   it('should skip duplicate when loading Observations for a cohort of Patients', async () => {
     const testData = [
       {
-        patient: {id: 'pat-106'},
+        patient: { id: 'pat-106' },
         observations: {
           ...observationsForPat106,
           entry: observationsForPat106.entry.slice(0, 1)
         }
       },
       {
-        patient: {id: 'pat-232'},
+        patient: { id: 'pat-232' },
         observations: {
           ...observationsForPat232,
           entry: observationsForPat232.entry.slice(0, 1)
         }
       },
       {
-        patient: {id: 'pat-269'},
+        patient: { id: 'pat-269' },
         observations: {
           ...observationsForPat269,
           entry: observationsForPat269.entry.slice(0, 1)

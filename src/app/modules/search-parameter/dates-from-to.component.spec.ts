@@ -1,20 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SharedModule } from '../../shared/shared.module';
 import { DatesFromToComponent } from './dates-from-to.component';
 import { SearchParameterModule } from './search-parameter.module';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
-import { RouterTestingModule } from '@angular/router/testing';
+import { configureTestingModule } from '../../../test/helpers';
 
 describe('DatesFromToComponent', () => {
   let component: DatesFromToComponent;
   let fixture: ComponentFixture<DatesFromToComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
+    await configureTestingModule({
       declarations: [DatesFromToComponent],
-      imports: [SearchParameterModule, SharedModule, RouterTestingModule],
+      imports: [SearchParameterModule],
       providers: [ErrorManager]
-    }).compileComponents();
+    });
   });
 
   beforeEach(() => {
