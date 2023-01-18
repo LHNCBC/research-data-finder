@@ -7,8 +7,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Changed
 - Added a column with the LOINC short name to the table of variables.
 ### Fixed
-- Search for variables by display name: to find synonyms, the search was
-  extended by additionally searching the long and short LOINC names.
+- Added search for synonyms when searching for variables by display name.
 
 ## [6.0.5] - 2022-01-09
 ### Fixed
