@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { SettingsService } from './settings.service';
-import { configureTestingModule } from '../../../test/helpers';
+import { configureTestingModule } from 'src/test/helpers';
 import { HttpTestingController } from '@angular/common/http/testing';
 
 describe('SettingsService', () => {

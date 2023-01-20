@@ -8,7 +8,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
-import { configureTestingModule } from '../../../test/helpers';
+import { configureTestingModule } from 'src/test/helpers';
 
 @Component({
   template: ` <mat-form-field class="flex">

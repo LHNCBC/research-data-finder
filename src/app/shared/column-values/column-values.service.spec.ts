@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { ColumnValuesService } from './column-values.service';
-import { configureTestingModule } from '../../../test/helpers';
+import { configureTestingModule } from 'src/test/helpers';
 
 describe('ColumnValuesService', () => {
   let service: ColumnValuesService;

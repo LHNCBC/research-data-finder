@@ -7,7 +7,7 @@ import { of } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { MatCheckbox } from '@angular/material/checkbox';
-import { configureTestingModule } from '../../../test/helpers';
+import { configureTestingModule } from 'src/test/helpers';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 

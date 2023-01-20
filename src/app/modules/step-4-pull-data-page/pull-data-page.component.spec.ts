@@ -19,7 +19,7 @@ import { SearchParameterGroupComponent } from '../search-parameter-group/search-
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import { RouterTestingModule } from '@angular/router/testing';
-import { configureTestingModule } from '../../../test/helpers';
+import { configureTestingModule } from 'src/test/helpers';
 
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;

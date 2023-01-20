@@ -9,7 +9,7 @@ import variableList from 'src/test/test-fixtures/variable-list.json';
 import {
   configureTestingModule,
   verifyOutstandingRequests
-} from '../../../test/helpers';
+} from 'src/test/helpers';
 import { SharedModule } from '../shared.module';
 import { RouterTestingModule } from '@angular/router/testing';
 

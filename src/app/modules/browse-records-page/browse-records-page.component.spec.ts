@@ -6,11 +6,12 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import {
   configureTestingModule,
   verifyOutstandingRequests
-} from '../../../test/helpers';
+} from 'src/test/helpers';
 import { BrowseRecordsPageModule } from './browse-records-page.module';
 import { HttpTestingController } from '@angular/common/http/testing';
 import researchStudies from 'src/test/test-fixtures/research-studies.json';
-import variables from 'src/test/test-fixtures/variables-4.json';
+import threeVariables from 'src/test/test-fixtures/variables-3.json';
+import fourVariables from 'src/test/test-fixtures/variables-4.json';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
@@ -104,7 +105,7 @@ describe('BrowseRecordsPageComponent', () => {
           req.params.get('q') === ''
         );
       })
-      .flush(variables);
+      .flush(fourVariables);
     await expectNumberOfRecords(4);
   }
 
@@ -138,7 +139,7 @@ describe('BrowseRecordsPageComponent', () => {
           req.params.get('q') === 'study_id:(phs002409*)'
         );
       })
-      .flush(variables);
-    await expectNumberOfRecords(4);
+      .flush(threeVariables);
+    await expectNumberOfRecords(3);
   });
 });

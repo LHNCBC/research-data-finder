@@ -6,7 +6,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import {
   configureTestingModule,
   verifyOutstandingRequests
-} from '../../../test/helpers';
+} from 'src/test/helpers';
 import { SelectRecordsPageModule } from './select-records-page.module';
 import { HttpTestingController } from '@angular/common/http/testing';
 import researchStudies from 'src/test/test-fixtures/research-studies.json';
