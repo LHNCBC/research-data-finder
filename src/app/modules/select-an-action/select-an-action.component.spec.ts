@@ -6,7 +6,7 @@ import {
 } from '@angular/core/testing';
 
 import { SelectAnActionComponent } from './select-an-action.component';
-import { configureTestingModule } from '../../../test/helpers';
+import { configureTestingModule } from 'src/test/helpers';
 import { SelectAnActionModule } from './select-an-action.module';
 import {
   CohortService,

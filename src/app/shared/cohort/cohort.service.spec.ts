@@ -10,7 +10,7 @@ import {
   HttpClientTestingModule
 } from '@angular/common/http/testing';
 import { Criteria } from '../../types/search-parameters';
-import { configureTestingModule } from '../../../test/helpers';
+import { configureTestingModule } from 'src/test/helpers';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CohortService', () => {

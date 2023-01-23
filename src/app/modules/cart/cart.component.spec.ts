@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CartComponent } from './cart.component';
-import { configureTestingModule } from '../../../test/helpers';
+import { configureTestingModule } from 'src/test/helpers';
 import { Component, ViewChild } from '@angular/core';
 import { CartModule } from './cart.module';
 import Resource = fhir.Resource;

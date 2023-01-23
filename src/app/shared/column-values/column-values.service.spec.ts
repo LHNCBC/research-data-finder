@@ -1,36 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 
-import { FhirBatchQuery } from '../fhir-backend/fhir-batch-query';
 import { ColumnValuesService } from './column-values.service';
-import { FhirBackendModule } from '../fhir-backend/fhir-backend.module';
-import {
-  ConnectionStatus,
-  FhirBackendService
-} from '../fhir-backend/fhir-backend.service';
-import { SettingsService } from '../settings-service/settings.service';
-import { filter, take } from 'rxjs/operators';
-import { RouterTestingModule } from '@angular/router/testing';
+import { configureTestingModule } from 'src/test/helpers';
 
 describe('ColumnValuesService', () => {
   let service: ColumnValuesService;
-  let fhirBackend: FhirBackendService;
 
   beforeEach(async () => {
-    spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
-    spyOn(FhirBatchQuery.prototype, 'getVersionName').and.returnValue('R4');
-    TestBed.configureTestingModule({
-      imports: [FhirBackendModule, RouterTestingModule]
-    });
-    fhirBackend = TestBed.inject(FhirBackendService);
-    const settingsService = TestBed.inject(SettingsService);
-    settingsService.loadJsonConfig().subscribe();
+    await configureTestingModule({});
     service = TestBed.inject(ColumnValuesService);
-    await fhirBackend.initialized
-      .pipe(
-        filter((status) => status === ConnectionStatus.Ready),
-        take(1)
-      )
-      .toPromise();
   });
 
   it('should be created', () => {
@@ -231,12 +209,20 @@ describe('ColumnValuesService', () => {
       ).toEqual([result, result]);
     });
   });
+});
+
+describe('ColumnValuesService', () => {
+  let service: ColumnValuesService;
+
+  beforeEach(async () => {
+    await configureTestingModule(
+      {},
+      { serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1' }
+    );
+    service = TestBed.inject(ColumnValuesService);
+  });
 
   it('should use preferredCodeSystem correctly', async () => {
-    spyOnProperty(fhirBackend, 'serviceBaseUrl').and.returnValue(
-      'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
-    );
-
     expect(
       service.valueToStrings(
         [

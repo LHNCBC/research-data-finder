@@ -8,6 +8,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
+import { configureTestingModule } from 'src/test/helpers';
 
 @Component({
   template: ` <mat-form-field class="flex">
@@ -42,7 +43,7 @@ describe('AutoCompleteTestValueComponent', () => {
   let component: AutocompleteParameterValueComponent;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
+    await configureTestingModule({
       declarations: [TestHostComponent, AutocompleteParameterValueComponent],
       imports: [
         CommonModule,
@@ -53,7 +54,7 @@ describe('AutoCompleteTestValueComponent', () => {
         NoopAnimationsModule,
         RouterTestingModule
       ]
-    }).compileComponents();
+    });
   });
 
   beforeEach(async () => {

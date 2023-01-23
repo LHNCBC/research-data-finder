@@ -14,7 +14,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
+import {
+  UntypedFormBuilder,
+  UntypedFormControl,
+  Validators
+} from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnDescription } from '../../types/column.description';

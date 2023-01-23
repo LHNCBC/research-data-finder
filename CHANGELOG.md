@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.0.6] - 2022-01-12
+### Changed
+- Added a column with the LOINC short name to the table of variables.
+### Fixed
+- Added search for synonyms when searching for variables by display name.
+- Removed access to the FHIR server from unit tests.
+
 ## [6.0.5] - 2022-01-09
 ### Fixed
 - Editing the "server" URL parameter did not result in a logout from RAS.

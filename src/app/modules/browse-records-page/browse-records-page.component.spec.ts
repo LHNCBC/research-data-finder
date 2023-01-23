@@ -6,15 +6,17 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import {
   configureTestingModule,
   verifyOutstandingRequests
-} from '../../../test/helpers';
+} from 'src/test/helpers';
 import { BrowseRecordsPageModule } from './browse-records-page.module';
 import { HttpTestingController } from '@angular/common/http/testing';
 import researchStudies from 'src/test/test-fixtures/research-studies.json';
-import variables from 'src/test/test-fixtures/variables-4.json';
+import threeVariables from 'src/test/test-fixtures/variables-3.json';
+import fourVariables from 'src/test/test-fixtures/variables-4.json';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
 import { RouterTestingModule } from '@angular/router/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 describe('BrowseRecordsPageComponent', () => {
   let component: BrowseRecordsPageComponent;
@@ -60,6 +62,7 @@ describe('BrowseRecordsPageComponent', () => {
     mockHttp
       .expectOne('$fhir/ResearchStudy?_count=3000')
       .flush(researchStudies);
+    await expectNumberOfRecords(2);
   }
 
   /**
@@ -77,6 +80,18 @@ describe('BrowseRecordsPageComponent', () => {
   }
 
   /**
+   * Creates an expectation for the number of records on the current tab.
+   * @param n - number of expected records
+   */
+  async function expectNumberOfRecords(n: number): Promise<void> {
+    const tabGroup = await loader.getHarness(MatTabGroupHarness);
+    const currentTab = await tabGroup.getSelectedTab();
+    const table = await currentTab.getHarness(MatTableHarness);
+    const rows = await table.getRows();
+    expect(rows.length).toBe(n);
+  }
+
+  /**
    * Go to variables tab and load variables.
    */
   async function loadVariables(): Promise<void> {
@@ -90,7 +105,8 @@ describe('BrowseRecordsPageComponent', () => {
           req.params.get('q') === ''
         );
       })
-      .flush(variables);
+      .flush(fourVariables);
+    await expectNumberOfRecords(4);
   }
 
   it('should create', () => {
@@ -123,6 +139,7 @@ describe('BrowseRecordsPageComponent', () => {
           req.params.get('q') === 'study_id:(phs002409*)'
         );
       })
-      .flush(variables);
+      .flush(threeVariables);
+    await expectNumberOfRecords(3);
   });
 });
