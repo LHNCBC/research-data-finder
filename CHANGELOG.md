@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.0.7] - 2022-01-26
+## [6.0.8] - 2022-01-26
 ### Added
 - An input field for the maximum number of recent Observations per Patient
   to check when no code is specified in the criteria.
