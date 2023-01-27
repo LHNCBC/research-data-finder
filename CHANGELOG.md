@@ -8,6 +8,10 @@ This project follows [Semantic Versioning](http://semver.org/).
 - An input field for the maximum number of recent Observations per Patient
   to check when no code is specified in the criteria.
 
+## [6.0.7] - 2022-01-26
+### Changed
+- Temporarily enable RAS with a URL parameter until RAS goes live.
+
 ## [6.0.6] - 2022-01-12
 ### Changed
 - Added a column with the LOINC short name to the table of variables.
