@@ -38,7 +38,6 @@ export class RasTokenCallbackComponent implements OnInit {
           this.router.navigate(['/'], {
             queryParams: {
               'alpha-version': 'enable',
-              ras: 'enable',
               server
             }
           });
