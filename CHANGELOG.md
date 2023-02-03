@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.0.8] - 2022-02-02
+### Changed
+- Enabled use of RAS for dbGap by default.
+
 ## [6.0.7] - 2022-01-26
 ### Changed
 - Temporarily enable RAS with a URL parameter until RAS goes live.
