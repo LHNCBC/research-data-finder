@@ -38,9 +38,7 @@ export class PullDataService {
     private http: HttpClient,
     private columnValues: ColumnValuesService
   ) {
-    cohort.criteria$.subscribe(() => {
-      this.resourceStream = {};
-    });
+    cohort.criteria$.subscribe(() => this.reset());
   }
 
   currentState: { [resourceType: string]: PullDataState } = {};
@@ -106,6 +104,14 @@ export class PullDataService {
     }
 
     return codeFieldValues;
+  }
+
+  /**
+   * Resets all loaded data.
+   */
+  reset(): void {
+    this.currentState = {};
+    this.resourceStream = {};
   }
 
   /**

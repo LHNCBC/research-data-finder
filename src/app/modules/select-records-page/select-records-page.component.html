@@ -4,7 +4,7 @@
   Records added to the cart will be used to build a cohort of patients.</p>
 <p class="info" style="color: blue" *ngIf="!fhirBackend.serviceBaseUrl.startsWith('https://dbgap-api.ncbi.nlm.nih.gov')">
   <span class="info-icon" aria-hidden="true"></span>
-  [TODO: Don't know what to show for non dbGap servers. So, for now, we just display the observation table.]
+  [TODO: Add Variable tab.]
 </p>
 <mat-form-field class="number-field">
   <mat-label>Maximum number of patients</mat-label>
@@ -56,7 +56,10 @@
         <ng-template #header>
           <mat-accordion>
             <mat-expansion-panel hideToggle #panel>
-              <mat-expansion-panel-header>
+              <mat-expansion-panel-header
+                  (click)="panel.toggle()"
+                  (keydown.enter)="panel.toggle()"
+                  (keydown.space)="panel.toggle()">
                 <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
                     <span>Selected {{
                       resourceTable.selectedResources.selected.length

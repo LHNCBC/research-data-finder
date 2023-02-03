@@ -13,6 +13,8 @@ import {
   CACHE_NAME,
   FhirBackendService
 } from '../fhir-backend/fhir-backend.service';
+import { PullDataService } from '../pull-data/pull-data.service';
+import { CohortService } from '../cohort/cohort.service';
 
 interface SelectRecordState {
   // Indicates that data is loading
@@ -41,6 +43,8 @@ export class SelectRecordsService {
   constructor(
     private http: HttpClient,
     private cart: CartService,
+    private pullData: PullDataService,
+    private cohort: CohortService,
     private fhirBackend: FhirBackendService
   ) {}
 
@@ -54,6 +58,8 @@ export class SelectRecordsService {
     this.currentState = {};
     this.resourceStream = {};
     this.cart.reset();
+    this.cohort.resetCriteria();
+    this.pullData.reset();
   }
 
   /**

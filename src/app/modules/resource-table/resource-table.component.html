@@ -13,7 +13,10 @@
 <ng-template #defaultTitle>
   <mat-accordion>
     <mat-expansion-panel hideToggle #panel>
-      <mat-expansion-panel-header (click)="!loadingStatistics.length && panel.toggle()">
+      <mat-expansion-panel-header
+          (click)="!loadingStatistics.length && panel.toggle()"
+          (keydown.enter)="!loadingStatistics.length && panel.toggle()"
+          (keydown.space)="!loadingStatistics.length && panel.toggle()">
         <mat-panel-title>
         <span *ngIf="resourceType === 'Patient' && !loading; else countTemplate">
           Cohort of&nbsp;{{dataSource.data.length}} {{resourceType}} resources

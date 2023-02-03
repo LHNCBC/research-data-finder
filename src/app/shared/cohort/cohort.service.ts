@@ -72,6 +72,14 @@ interface CohortState {
   numberOfProcessingResources$: BehaviorSubject<number>;
 }
 
+// Empty cohort state
+const emptyState: CohortState = {
+  loading: false,
+  patients: [],
+  processedPatientIds: {},
+  numberOfProcessingResources$: null
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -94,12 +102,7 @@ export class CohortService {
   // Maximum number of patients
   maxPatientCount = 100;
 
-  currentState: CohortState = {
-    loading: false,
-    patients: [],
-    processedPatientIds: {},
-    numberOfProcessingResources$: null
-  };
+  currentState: CohortState = { ...emptyState };
 
   // A matrix of loading info that will be displayed with View Cohort resource table.
   loadingStatistics: (string | number)[][] = [];
@@ -120,6 +123,10 @@ export class CohortService {
       condition: 'and',
       rules: []
     };
+    // Clear patient list when resetting criteria
+    this.currentState = { ...emptyState };
+    this.patientStream = of([]);
+
     this.setCriteria(defaultCriteria);
     return defaultCriteria;
   }

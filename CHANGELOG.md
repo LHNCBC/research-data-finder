@@ -3,6 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.1.0] - 2022-02-02
+### Added
+- Ability to create a cohort of patients by browsing and selecting records
+  for non-dbGap FHIR servers.
+### Fixed
+- An issue where the switching between FHIR servers was not followed by clearing
+  loaded data.
+- An issue where the switching to the "View cohort" step was allowed without
+  searching for patients.
+- An exception when trying to pull data for an empty patient cohort.
+
 ## [6.0.8] - 2022-01-26
 ### Added
 - An input field for the maximum number of recent Observations per Patient

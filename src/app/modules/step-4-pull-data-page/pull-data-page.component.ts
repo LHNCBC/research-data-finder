@@ -20,6 +20,7 @@ import { getPluralFormOfResourceType } from '../../shared/utils';
 import { ResourceTableParentComponent } from '../resource-table-parent.component';
 import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { CohortService } from '../../shared/cohort/cohort.service';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -65,6 +66,7 @@ export class PullDataPageComponent
   constructor(
     private fhirBackend: FhirBackendService,
     public columnDescriptions: ColumnDescriptionsService,
+    public cohort: CohortService,
     public pullData: PullDataService,
     private liveAnnouncer: LiveAnnouncer
   ) {

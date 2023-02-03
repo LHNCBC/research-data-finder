@@ -65,7 +65,10 @@ export class BrowseRecordsPageComponent
         .subscribe(() => {
           selectRecords.resetAll();
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
-            ? ['ResearchStudy', 'Variable']
+            ? this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl)
+              ? ['ResearchStudy', 'Variable']
+              : // TODO: Add Variables tab for other FHIR servers
+                ['ResearchStudy']
             : [];
         })
     );
