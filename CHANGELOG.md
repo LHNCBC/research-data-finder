@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.1.0] - 2022-02-13
+### Changed
+- Added aborting of HTTP requests if we no longer need a response to them.
+
 ## [6.0.9] - 2022-02-06
 ### Changed
 - Temporarily disabled the use of the _security URL parameter.

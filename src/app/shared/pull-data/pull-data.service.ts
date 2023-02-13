@@ -6,8 +6,8 @@ import { SelectedObservationCodes } from '../../types/selected-observation-codes
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import { CODETEXT } from '../query-params/query-params.service';
 import { CohortService } from '../cohort/cohort.service';
-import { concatMap, finalize, map } from 'rxjs/operators';
-import { from, Observable } from 'rxjs';
+import { concatMap, finalize, map, startWith, tap } from 'rxjs/operators';
+import { forkJoin, Observable, of } from 'rxjs';
 import { chunk, differenceBy } from 'lodash-es';
 import Patient = fhir.Patient;
 import Resource = fhir.Resource;
@@ -16,8 +16,9 @@ import Observation = fhir.Observation;
 import { HttpClient } from '@angular/common/http';
 import { ColumnValuesService } from '../column-values/column-values.service';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import BundleEntry = fhir.BundleEntry;
 
-type PatientMixin = { patientData: Patient };
+type PatientMixin = { patientData?: Patient };
 
 interface PullDataState {
   // Indicates that data is loading
@@ -127,6 +128,8 @@ export class PullDataService {
     };
     this.currentState[resourceType] = currentState;
 
+    // For pulling EV, we first pull Observations and then retrieve EVs
+    // by looking at Observation extensions.
     const resourceTypeParam =
       resourceType === 'EvidenceVariable' ? 'Observation' : resourceType;
     const observationCodes = [];
@@ -153,7 +156,8 @@ export class PullDataService {
     // in one query. We don't use this optimization for other resource types
     // because we need to limit the number of resources per Patient.
     const numberOfPatientsInRequest = resourceType === 'Patient' ? 10 : 1;
-    const observable = from(
+
+    this.resourceStream[resourceType] = forkJoin(
       [].concat(
         ...chunk(
           this.cohort.currentState.patients,
@@ -175,177 +179,128 @@ export class PullDataService {
               .join(',')}`;
           }
 
-          const prepareResponseData = (bundle) => {
-            // Update progress indicator
-            currentState.progressValue +=
-              (numberOfPatientsInRequest * 100) /
-              (this.cohort.currentState.patients.length *
-                (observationCodes.length || 1));
-
-            return {
-              bundle,
-              patientData: patients.length === 1 ? patients[0] : null
-            };
-          };
+          let requests;
 
           if (observationCodes.length) {
             // Create separate requests for each Observation code
-            return observationCodes.map((code) => {
-              return (
-                this.http
-                  .get(
-                    `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${perPatientCount}&combo-code=${code}`
-                  )
-                  // toPromise needed to immediately execute query, this allows batch requests
-                  .toPromise()
-                  .then(prepareResponseData)
+            requests = observationCodes.map((code) => {
+              return this.http.get(
+                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${perPatientCount}&combo-code=${code}`
               );
             });
-          }
-
-          const countParam =
-            resourceTypeParam === 'Observation'
-              ? // When no code is specified in criteria and we loaded last 1000 Observations.
-                '&_count=1000'
-              : `&_count=${perPatientCount}`;
-          return (
-            this.http
-              .get(
+          } else {
+            const countParam =
+              resourceTypeParam === 'Observation'
+                ? // When no code is specified in criteria and we loaded last 1000 Observations.
+                  '&_count=1000'
+                : `&_count=${perPatientCount}`;
+            requests = [
+              this.http.get(
                 `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}${countParam}`
               )
-              // toPromise needed to immediately execute FhirBackendService.handle, this allows batch requests
-              .toPromise()
-              .then(prepareResponseData)
+            ];
+          }
+
+          return requests.map((req) =>
+            req.pipe(
+              concatMap((bundle: Bundle) => {
+                if (resourceType === 'EvidenceVariable') {
+                  // Load EvidenceVariables
+                  const evRequests =
+                    bundle?.entry
+                      ?.map((entry) => {
+                        const patientRef = (entry.resource as Observation)
+                          .subject.reference;
+                        // For debug, we can replace EVs with other resources:
+                        // const evUrl = `$fhir/Patient?_id=${patientRef}`;
+                        const evUrl = entry.resource['extension']?.find(
+                          (x) =>
+                            x.url ===
+                            'http://hl7.org/fhir/StructureDefinition/workflow-instantiatesUri'
+                        )?.valueUri;
+                        if (!evUrl) {
+                          return null;
+                        }
+                        const evCount =
+                          patientEvCount[patientRef] ||
+                          (patientEvCount[patientRef] = 0);
+                        if (evCount >= perPatientCount) {
+                          return null;
+                        }
+                        ++patientEvCount[patientRef];
+                        return this.http.get(evUrl);
+                      })
+                      .filter((p) => p) || [];
+                  if (evRequests.length) {
+                    return forkJoin(evRequests).pipe(
+                      map((evResponses: Resource[]) => {
+                        return {
+                          entry: evResponses.map((ev) => ({ resource: ev }))
+                        };
+                      })
+                    );
+                  }
+                  return of({
+                    entry: []
+                  });
+                } else if (resourceType === 'Observation') {
+                  if (!observationCodes.length) {
+                    return of({
+                      entry: bundle?.entry?.filter((entry: BundleEntry) => {
+                        const obs = entry.resource as Observation;
+                        const patientRef = obs.subject.reference;
+                        const codeStr = this.columnValues.getCodeableConceptAsText(
+                          obs.code
+                        );
+                        const codeToCount =
+                          patientToCodeToCount[patientRef] ||
+                          (patientToCodeToCount[patientRef] = {});
+
+                        // For now skip Observations without a code in the first coding.
+                        if (codeStr) {
+                          const codeCount =
+                            codeToCount[codeStr] || (codeToCount[codeStr] = 0);
+                          if (codeCount < perPatientCount) {
+                            ++codeToCount[codeStr];
+                            return true;
+                          }
+                        }
+                        return false;
+                      })
+                    });
+                  } else {
+                    // Exclude duplicate observations.
+                    return of({
+                      entry: differenceBy(
+                        bundle?.entry,
+                        currentState.resources,
+                        (i) => i.resource?.id || i.id
+                      )
+                    });
+                  }
+                }
+
+                return of(bundle);
+              }),
+              map(this.prepareResponseData(patients, currentState)),
+              tap(
+                this.updateProgressIndicator(
+                  currentState,
+                  numberOfPatientsInRequest,
+                  observationCodes
+                )
+              )
+            )
           );
         })
       )
     ).pipe(
-      concatMap(
-        (bundlePromise: Promise<{ bundle: Bundle; patientData: Patient }>) => {
-          return from(bundlePromise);
-          // TODO: Currently we load only 1000 resources per Patient.
-          //       (In the previous version of Research Data Finder,
-          //       we only loaded the first page with the default size)
-          //       Uncommenting the below code will allow loading all resources,
-          //       but this could take time.
-          /*.pipe(
-              // Modifying the Observable to load the following pages sequentially
-              expand((response: Bundle) => {
-                const nextPageUrl = getNextPageUrl(response);
-                if (nextPageUrl) {
-                  return from(this.http.get(nextPageUrl).toPromise());
-                } else {
-                  // Emit a complete notification
-                  return EMPTY;
-                }
-              })
-            )*/
-        }
-      )
-    );
-
-    let resourceStream: Observable<Resource[]>;
-    // For pulling EV, we first pull Observations and then retrieve EVs asynchronously by looking at
-    // Observation extensions.
-    if (resourceType === 'EvidenceVariable') {
-      resourceStream = observable.pipe(
-        concatMap(({ bundle, patientData }) => {
-          return (
-            bundle?.entry
-              ?.map((entry) => {
-                const patientRef = (entry.resource as Observation).subject
-                  .reference;
-                const evUrl = entry.resource['extension']?.find(
-                  (x) =>
-                    x.url ===
-                    'http://hl7.org/fhir/StructureDefinition/workflow-instantiatesUri'
-                )?.valueUri;
-                if (!evUrl) {
-                  return null;
-                }
-                const evCount =
-                  patientEvCount[patientRef] ||
-                  (patientEvCount[patientRef] = 0);
-                if (evCount >= perPatientCount) {
-                  return null;
-                }
-                ++patientEvCount[patientRef];
-                return this.http
-                  .get(evUrl)
-                  .toPromise()
-                  .then((evBundle: Resource) => {
-                    return {
-                      resource: evBundle,
-                      patientData
-                    };
-                  });
-              })
-              ?.filter((p) => p) || []
-          );
-        }),
-        concatMap(
-          (
-            bundlePromise: Promise<{
-              resource: Resource;
-              patientData: Patient;
-            }>
-          ) => {
-            return from(bundlePromise);
-          }
-        ),
-        map(({ resource, patientData }) => {
-          currentState.resources.push({
-            ...resource,
-            patientData
-          });
-          return [...currentState.resources];
-        })
-      );
-    } else {
-      resourceStream = observable.pipe(
-        // Generate a sequence of resources
-        map(({ bundle, patientData }) => {
-          let res: (Resource & PatientMixin)[] =
-            bundle?.entry?.map((entry) => ({
-              ...entry.resource,
-              patientData
-            })) || [];
-
-          if (resourceType === 'Observation') {
-            if (!observationCodes.length) {
-              res = res.filter((obs: Observation & PatientMixin) => {
-                const patientRef = obs.subject.reference;
-                const codeStr = this.columnValues.getCodeableConceptAsText(
-                  obs.code
-                );
-                const codeToCount =
-                  patientToCodeToCount[patientRef] ||
-                  (patientToCodeToCount[patientRef] = {});
-
-                // For now skip Observations without a code in the first coding.
-                if (codeStr) {
-                  const codeCount =
-                    codeToCount[codeStr] || (codeToCount[codeStr] = 0);
-                  if (codeCount < perPatientCount) {
-                    ++codeToCount[codeStr];
-                    return true;
-                  }
-                }
-                return false;
-              });
-            } else {
-              // Exclude duplicate observations
-              res = differenceBy(res, currentState.resources, i => i.id);
-            }
-          }
-
-          currentState.resources.push(...res);
-          return [...currentState.resources];
-        })
-      );
-    }
-
-    this.resourceStream[resourceType] = resourceStream.pipe(
+      startWith([]),
+      map((resources) => {
+        // Reassign currentState.resources in correct order
+        currentState.resources = [].concat(...resources);
+        return currentState.resources;
+      }),
       finalize(() => {
         currentState.progressValue = 100;
         currentState.loading = false;
@@ -360,5 +315,45 @@ export class PullDataService {
       this.currentState[resourceType]?.progressValue === 100 &&
       this.currentState[resourceType]?.resources.length > 0
     );
+  }
+
+  /**
+   * Extracts resources from the resource bundle and adds Patient info.
+   * @param patients - patients if we are pulling patients, or one patient if we
+   *   are pulling other resources.
+   * @param currentState - the current state of pulling data.
+   */
+  prepareResponseData(
+    patients: Patient[],
+    currentState: PullDataState
+  ): (bundle: Bundle) => (Resource & PatientMixin)[] {
+    return (bundle: Bundle) => {
+      const res =
+        bundle?.entry?.map((entry) => ({
+          ...entry.resource,
+          ...(patients.length === 1 ? { patientData: patients[0] } : {})
+        })) || [];
+      currentState.resources.push(...res);
+      return res;
+    };
+  }
+
+  /**
+   * Updates progress indicator.
+   * @param currentState - the current state of pulling data.
+   * @param numberOfPatientsInRequest - number of patients in each request.
+   * @param observationCodes - selected observation codes.
+   */
+  updateProgressIndicator(
+    currentState: PullDataState,
+    numberOfPatientsInRequest: number,
+    observationCodes: string[]
+  ): () => void {
+    return () => {
+      currentState.progressValue +=
+        (numberOfPatientsInRequest * 100) /
+        (this.cohort.currentState.patients.length *
+          (observationCodes.length || 1));
+    };
   }
 }

@@ -112,6 +112,7 @@ describe('FhirBackendService', () => {
         service.serviceBaseUrl + '/some_related_url',
         {
           combine: true,
+          signal: jasmine.any(AbortSignal),
           cacheName: ''
         }
       );
@@ -126,6 +127,7 @@ describe('FhirBackendService', () => {
         service.serviceBaseUrl + '?some_params',
         {
           combine: false,
+          signal: jasmine.any(AbortSignal),
           cacheName: ''
         }
       );
@@ -140,6 +142,7 @@ describe('FhirBackendService', () => {
       expect(FhirBatchQuery.prototype.get).toHaveBeenCalledWith(
         service.serviceBaseUrl + '/some_related_url',
         {
+          signal: jasmine.any(AbortSignal),
           combine: true
         }
       );
@@ -158,6 +161,7 @@ describe('FhirBackendService', () => {
           service.serviceBaseUrl + '/some_related_url',
           {
             combine: true,
+            signal: jasmine.any(AbortSignal),
             cacheName: 'some-cache-name-https://lforms-fhir.nlm.nih.gov/baseR4'
           }
         );
@@ -178,7 +182,10 @@ describe('FhirBackendService', () => {
     httpClient.get('$fhir/some_related_url').subscribe((response) => {
       expect(response).toBe(responseFromFhirClient);
       expect(defaultHttpXhrBackend.handle).not.toHaveBeenCalled();
-      expect(fhirClient.request).toHaveBeenCalledWith('/some_related_url');
+      expect(fhirClient.request).toHaveBeenCalledWith({
+        url: '/some_related_url',
+        signal: jasmine.any(AbortSignal)
+      });
       done();
     });
   });
