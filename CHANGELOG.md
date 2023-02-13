@@ -3,10 +3,18 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.0.8] - 2022-01-26
+## [6.0.10] - 2022-02-13
 ### Added
 - An input field for the maximum number of recent Observations per Patient
   to check when no code is specified in the criteria.
+
+## [6.0.9] - 2022-02-06
+### Changed
+- Temporarily disabled the use of the _security URL parameter.
+
+## [6.0.8] - 2022-02-02
+### Changed
+- Enabled use of RAS for dbGap by default.
 
 ## [6.0.7] - 2022-01-26
 ### Changed

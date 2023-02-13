@@ -126,39 +126,39 @@ export class FhirBatchQuery {
       this._msBetweenRequests = 0;
     }
 
-    const currentServiceBaseUrl = this._serviceBaseUrl;
+    // const currentServiceBaseUrl = this._serviceBaseUrl;
 
     if (this._initializationPromise) {
       return this._initializationPromise;
     }
     this._features = {};
-    if (this._isDbgap) {
-      this._initializationPromise = Promise.allSettled([
-        // Query to extract the consent group that must be included as _security param in particular queries.
-        this.getWithCache('ResearchSubject', this.getCommonInitRequestOptions())
-      ]).then(([researchSubject]) => {
-        if (currentServiceBaseUrl !== this._serviceBaseUrl) {
-          return Promise.reject({
-            status: HTTP_ABORT,
-            error: 'Outdated response to initialization request.'
-          });
-        }
-        if (
-          researchSubject &&
-          researchSubject.status === 'rejected' &&
-          /Deny access to all but these consent groups: (.*) -- codes from last denial/.test(
-            researchSubject.reason.error
-          )
-        ) {
-          this._features.consentGroup = RegExp.$1.replace(', ', ',');
-          return this.makeInitializationCalls(true);
-        } else {
-          return this.makeInitializationCalls();
-        }
-      });
-    } else {
-      this._initializationPromise = this.makeInitializationCalls();
-    }
+    // if (this._isDbgap) {
+    //   this._initializationPromise = Promise.allSettled([
+    //     // Query to extract the consent group that must be included as _security param in particular queries.
+    //     this.getWithCache('ResearchSubject', this.getCommonInitRequestOptions())
+    //   ]).then(([researchSubject]) => {
+    //     if (currentServiceBaseUrl !== this._serviceBaseUrl) {
+    //       return Promise.reject({
+    //         status: HTTP_ABORT,
+    //         error: 'Outdated response to initialization request.'
+    //       });
+    //     }
+    //     if (
+    //       researchSubject &&
+    //       researchSubject.status === 'rejected' &&
+    //       /Deny access to all but these consent groups: (.*) -- codes from last denial/.test(
+    //         researchSubject.reason.error
+    //       )
+    //     ) {
+    //       this._features.consentGroup = RegExp.$1.replace(', ', ',');
+    //       return this.makeInitializationCalls(true);
+    //     } else {
+    //       return this.makeInitializationCalls();
+    //     }
+    //   });
+    // } else {
+    this._initializationPromise = this.makeInitializationCalls();
+    // }
     return this._initializationPromise;
   }
 
