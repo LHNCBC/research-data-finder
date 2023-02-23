@@ -50,7 +50,7 @@ describe('PullDataForCohortComponent', () => {
    * @param resources - value emitted by observable
    * @param amount - expected amount of resources
    */
-  function isResourcesLoaded(
+  function expectResourcesToBeLoaded(
     resourceType: string,
     resources: Resource[],
     amount: number
@@ -137,7 +137,7 @@ describe('PullDataForCohortComponent', () => {
     });
     // Should load 4 of 5 Observations from test fixtures (one Observation per Patient per test)
     await resourcePromise.then((resources) => {
-      isResourcesLoaded('Observation', resources, 4);
+      expectResourcesToBeLoaded('Observation', resources, 4);
     });
   });
 
@@ -186,7 +186,7 @@ describe('PullDataForCohortComponent', () => {
     });
 
     await resourcePromise.then((resources) => {
-      isResourcesLoaded('Observation', resources, 3);
+      expectResourcesToBeLoaded('Observation', resources, 3);
     });
   });
 
@@ -217,7 +217,7 @@ describe('PullDataForCohortComponent', () => {
     });
     // Should load 2 resources from test fixtures (2 encounters per Patient)
     await resourcePromise.then((resources) => {
-      isResourcesLoaded('Encounter', resources, 2);
+      expectResourcesToBeLoaded('Encounter', resources, 2);
     });
   });
 
@@ -244,7 +244,7 @@ describe('PullDataForCohortComponent', () => {
     });
     // Should load all (non-unique) resources from test fixtures
     await resourcePromise.then((resources) => {
-      isResourcesLoaded('ResearchStudy', resources, 60);
+      expectResourcesToBeLoaded('ResearchStudy', resources, 60);
     });
   });
 
@@ -296,7 +296,7 @@ describe('PullDataForCohortComponent', () => {
         });
     });
     await resourcePromise.then((resources) => {
-      isResourcesLoaded('EvidenceVariable', resources, 1);
+      expectResourcesToBeLoaded('EvidenceVariable', resources, 1);
     });
   });
 });

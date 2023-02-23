@@ -608,7 +608,7 @@ export class FhirBatchQuery {
           if (requests.length === 0) {
             requests.push(req);
           } else {
-            requests.unshift(req);
+            this._pending.unshift(req);
           }
           break;
         } else {

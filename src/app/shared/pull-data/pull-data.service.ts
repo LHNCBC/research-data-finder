@@ -205,79 +205,19 @@ export class PullDataService {
             req.pipe(
               concatMap((bundle: Bundle) => {
                 if (resourceType === 'EvidenceVariable') {
-                  // Load EvidenceVariables
-                  const evRequests =
-                    bundle?.entry
-                      ?.map((entry) => {
-                        const patientRef = (entry.resource as Observation)
-                          .subject.reference;
-                        // For debug, we can replace EVs with other resources:
-                        // const evUrl = `$fhir/Patient?_id=${patientRef}`;
-                        const evUrl = entry.resource['extension']?.find(
-                          (x) =>
-                            x.url ===
-                            'http://hl7.org/fhir/StructureDefinition/workflow-instantiatesUri'
-                        )?.valueUri;
-                        if (!evUrl) {
-                          return null;
-                        }
-                        const evCount =
-                          patientEvCount[patientRef] ||
-                          (patientEvCount[patientRef] = 0);
-                        if (evCount >= perPatientCount) {
-                          return null;
-                        }
-                        ++patientEvCount[patientRef];
-                        return this.http.get(evUrl);
-                      })
-                      .filter((p) => p) || [];
-                  if (evRequests.length) {
-                    return forkJoin(evRequests).pipe(
-                      map((evResponses: Resource[]) => {
-                        return {
-                          entry: evResponses.map((ev) => ({ resource: ev }))
-                        };
-                      })
-                    );
-                  }
-                  return of({
-                    entry: []
-                  });
+                  return this.loadEvidenceVariables(
+                    bundle,
+                    patientEvCount,
+                    perPatientCount
+                  );
                 } else if (resourceType === 'Observation') {
-                  if (!observationCodes.length) {
-                    return of({
-                      entry: bundle?.entry?.filter((entry: BundleEntry) => {
-                        const obs = entry.resource as Observation;
-                        const patientRef = obs.subject.reference;
-                        const codeStr = this.columnValues.getCodeableConceptAsText(
-                          obs.code
-                        );
-                        const codeToCount =
-                          patientToCodeToCount[patientRef] ||
-                          (patientToCodeToCount[patientRef] = {});
-
-                        // For now skip Observations without a code in the first coding.
-                        if (codeStr) {
-                          const codeCount =
-                            codeToCount[codeStr] || (codeToCount[codeStr] = 0);
-                          if (codeCount < perPatientCount) {
-                            ++codeToCount[codeStr];
-                            return true;
-                          }
-                        }
-                        return false;
-                      })
-                    });
-                  } else {
-                    // Exclude duplicate observations.
-                    return of({
-                      entry: differenceBy(
-                        bundle?.entry,
-                        currentState.resources,
-                        (i) => i.resource?.id || i.id
-                      )
-                    });
-                  }
+                  return this.processObservations(
+                    observationCodes,
+                    bundle,
+                    patientToCodeToCount,
+                    perPatientCount,
+                    currentState
+                  );
                 }
 
                 return of(bundle);
@@ -308,7 +248,11 @@ export class PullDataService {
     );
   }
 
-  // Loading is complete and there is data in the table
+  /**
+   * Checks if the loading is complete and there is data in the table
+   * for the specified resource type.
+   * @param resourceType - resource type
+   */
   getHasLoadedData(resourceType: string): boolean {
     return (
       this.resourceStream[resourceType] &&
@@ -318,10 +262,114 @@ export class PullDataService {
   }
 
   /**
-   * Extracts resources from the resource bundle and adds Patient info.
+   * Loads EvidenceVariables for a bundle of Observations.
+   * @param bundle - bundle of Observations.
+   * @param patientEvCount - mapping patients to the number of loaded variables.
+   * @param perPatientCount - maximum resources per patient.
+   * @return observable bundle of EvidenceVariables.
+   */
+  loadEvidenceVariables(
+    bundle: Bundle,
+    patientEvCount: { [patientRef: string]: number },
+    perPatientCount: number
+  ): Observable<Bundle> {
+    const evRequests =
+      bundle?.entry
+        ?.map((entry) => {
+          const patientRef = (entry.resource as Observation).subject.reference;
+          // For debugging, we can replace EVs with other resources:
+          // const evUrl = `$fhir/Patient?_id=${patientRef}`;
+          const evUrl = entry.resource['extension']?.find(
+            (x) =>
+              x.url ===
+              'http://hl7.org/fhir/StructureDefinition/workflow-instantiatesUri'
+          )?.valueUri;
+          if (!evUrl) {
+            return null;
+          }
+          const evCount =
+            patientEvCount[patientRef] || (patientEvCount[patientRef] = 0);
+          if (evCount >= perPatientCount) {
+            return null;
+          }
+          ++patientEvCount[patientRef];
+          return this.http.get(evUrl);
+        })
+        .filter((p) => p) || [];
+
+    return evRequests.length
+      ? forkJoin(evRequests).pipe(
+          map((evResponses: Resource[]) => {
+            return {
+              entry: evResponses.map((ev) => ({ resource: ev }))
+            } as Bundle;
+          })
+        )
+      : of({
+          entry: []
+        } as Bundle);
+  }
+
+  /**
+   * Processes a bundle of Observations:
+   * - limits the amount of resources per patient
+   * - excludes duplicates
+   * @param observationCodes - list of selected observation codes.
+   * @param bundle - bundle of Observations.
+   * @param patientToCodeToCount - mapping patients and observation codes to
+   *   the number of observations.
+   * @param perPatientCount - maximum resources per patient.
+   * @param currentState - the current state of pulling data.
+   * @return observable bundle of Observations.
+   */
+  processObservations(
+    observationCodes: string[],
+    bundle: Bundle,
+    patientToCodeToCount: { [patientRef: string]: { [code: string]: number } },
+    perPatientCount: number,
+    currentState: PullDataState
+  ): Observable<Bundle> {
+    return !observationCodes.length
+      ? of({
+          entry: bundle?.entry?.filter((entry: BundleEntry) => {
+            const obs = entry.resource as Observation;
+            const patientRef = obs.subject.reference;
+            const codeStr = this.columnValues.getCodeableConceptAsText(
+              obs.code
+            );
+            const codeToCount =
+              patientToCodeToCount[patientRef] ||
+              (patientToCodeToCount[patientRef] = {});
+
+            // For now skip Observations without a code in the first coding.
+            if (codeStr) {
+              const codeCount =
+                codeToCount[codeStr] || (codeToCount[codeStr] = 0);
+              if (codeCount < perPatientCount) {
+                ++codeToCount[codeStr];
+                return true;
+              }
+            }
+            return false;
+          })
+        } as Bundle)
+      : // Exclude duplicate observations.
+        of({
+          entry: differenceBy(
+            bundle?.entry,
+            currentState.resources,
+            (i) => i.resource?.id || i.id
+          )
+        } as Bundle);
+  }
+
+  /**
+   * Returns a function which extracts resources from the resource bundle and
+   * adds Patient info.
    * @param patients - patients if we are pulling patients, or one patient if we
    *   are pulling other resources.
    * @param currentState - the current state of pulling data.
+   * @return a function
    */
   prepareResponseData(
     patients: Patient[],
@@ -339,10 +387,11 @@ export class PullDataService {
   }
 
   /**
-   * Updates progress indicator.
+   * Returns a function which updates progress indicator.
    * @param currentState - the current state of pulling data.
    * @param numberOfPatientsInRequest - number of patients in each request.
    * @param observationCodes - selected observation codes.
+   * @return a function
    */
   updateProgressIndicator(
     currentState: PullDataState,
