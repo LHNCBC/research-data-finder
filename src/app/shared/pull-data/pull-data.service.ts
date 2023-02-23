@@ -114,11 +114,14 @@ export class PullDataService {
    * @param perPatientCount - numbers of resources to show per patient
    *   (for Observation resource type - per patient per test)
    * @param criteria - additional url parameter string
+   * @param maxObservationToCheck - number of recent Observations per Patient to
+   *   load when no code is specified in the criteria.
    */
   loadResources(
     resourceType: string,
     perPatientCount: number,
-    criteria: string
+    criteria: string,
+    maxObservationToCheck: number = 1000
   ): void {
     const currentState: PullDataState = {
       loading: true,
@@ -205,8 +208,9 @@ export class PullDataService {
 
           const countParam =
             resourceTypeParam === 'Observation'
-              ? // When no code is specified in criteria and we loaded last 1000 Observations.
-                '&_count=1000'
+              ? // When no code is specified in the criteria, we load the
+                // maxObservationToCheck of recent Observations.
+                `&_count=${maxObservationToCheck}`
               : `&_count=${perPatientCount}`;
           return (
             this.http
@@ -335,7 +339,7 @@ export class PullDataService {
               });
             } else {
               // Exclude duplicate observations
-              res = differenceBy(res, currentState.resources, i => i.id);
+              res = differenceBy(res, currentState.resources, (i) => i.id);
             }
           }
 

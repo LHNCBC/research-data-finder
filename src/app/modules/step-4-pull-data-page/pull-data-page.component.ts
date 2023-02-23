@@ -3,23 +3,23 @@ import {
   Component,
   Input,
   OnChanges,
-  QueryList,
-  SimpleChanges,
-  ViewChildren
+  SimpleChanges
 } from '@angular/core';
-import { map, startWith, take } from 'rxjs/operators';
+import { map, startWith } from 'rxjs/operators';
 import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { Observable } from 'rxjs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import { UntypedFormControl, Validators } from '@angular/forms';
+import { FormControl, UntypedFormControl, Validators } from '@angular/forms';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import { getPluralFormOfResourceType } from '../../shared/utils';
 import { ResourceTableParentComponent } from '../resource-table-parent.component';
+import { SearchParameterGroup } from '../../types/search-parameter-group';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -32,10 +32,9 @@ import { ResourceTableParentComponent } from '../resource-table-parent.component
 export class PullDataPageComponent
   extends ResourceTableParentComponent
   implements OnChanges, AfterViewInit {
-  @ViewChildren(SearchParameterGroupComponent)
-  parameterGroups: QueryList<SearchParameterGroupComponent>;
   // Default observation codes for the "Pull data for the cohort" step
-  @Input() defaultObservationCodes: SelectedObservationCodes;
+  @Input()
+  defaultObservationCodes: SelectedObservationCodes;
 
   // Array of visible resource type names
   visibleResourceTypes: string[];
@@ -50,11 +49,24 @@ export class PullDataPageComponent
 
   // Form controls of 'per patient' input
   perPatientFormControls: { [resourceType: string]: UntypedFormControl } = {};
+  // Number of recent Observations per Patient to load when no code is specified
+  // in the criteria.
+  maxObservationToCheck = new FormControl<number>(1000, [
+    Validators.required,
+    Validators.min(1)
+  ]);
+  // Whether any Observation code is added to the Observation criteria
+  isObsCodesSelected = false;
+  // Form controls of SearchParameterGroupComponents
+  parameterGroups: {
+    [resourceType: string]: FormControl<SearchParameterGroup>;
+  } = {};
 
   constructor(
     private fhirBackend: FhirBackendService,
     public columnDescriptions: ColumnDescriptionsService,
-    public pullData: PullDataService
+    public pullData: PullDataService,
+    private liveAnnouncer: LiveAnnouncer
   ) {
     super();
     fhirBackend.initialized
@@ -74,22 +86,48 @@ export class PullDataPageComponent
             )
             .map((r) => r[0]);
         }
-        this.perPatientFormControls = {
-          Observation: new UntypedFormControl(1, [
-            Validators.required,
-            Validators.min(1)
-          ])
-        };
-        this.unselectedResourceTypes.forEach((r) => {
-          const defaultCount = r === 'EvidenceVariable' ? 1 : 1000;
-          // Due to optimization, we cannot control the number of ResearchStudies
-          // per Patient. Luckily it doesn't make much sense.
-          if (r !== 'ResearchStudy' && r !== 'Patient') {
-            this.perPatientFormControls[r] = new UntypedFormControl(defaultCount, [
-              Validators.required,
-              Validators.min(1)
-            ]);
+
+        []
+          .concat(this.visibleResourceTypes, this.unselectedResourceTypes)
+          .forEach((resourceType) => {
+            // Due to optimization, we cannot control the number of ResearchStudies
+            // per Patient. Luckily it doesn't make much sense.
+            if (
+              resourceType !== 'ResearchStudy' &&
+              resourceType !== 'Patient'
+            ) {
+              const defaultCount =
+                resourceType === 'EvidenceVariable' ||
+                resourceType === 'Observation'
+                  ? 1
+                  : 1000;
+              this.perPatientFormControls[
+                resourceType
+              ] = new UntypedFormControl(defaultCount, [
+                Validators.required,
+                Validators.min(1)
+              ]);
+            }
+            this.parameterGroups[
+              resourceType
+            ] = new FormControl<SearchParameterGroup>({
+              resourceType,
+              parameters: []
+            });
+          });
+
+        this.isObsCodesSelected = false;
+        this.parameterGroups.Observation.valueChanges.subscribe((value) => {
+          const isObsCodesSelected =
+            value.parameters[0]?.selectedObservationCodes?.items.length > 0;
+          if (isObsCodesSelected !== this.isObsCodesSelected) {
+            this.liveAnnouncer.announce(
+              isObsCodesSelected
+                ? 'The input field for the maximum number of recent Observations per Patient to check has disappeared.'
+                : 'A new input field for the maximum number of recent Observations per Patient to check has appeared above.'
+            );
           }
+          this.isObsCodesSelected = isObsCodesSelected;
         });
       });
   }
@@ -138,15 +176,16 @@ export class PullDataPageComponent
    */
   private updateObservationCodesWithDefaults(): void {
     if (this.defaultObservationCodes) {
-      const observationParameterGroup = this.parameterGroups.find(
-        (parameterGroup) => parameterGroup.inputResourceType === 'Observation'
-      );
-      if (observationParameterGroup) {
-        observationParameterGroup.parameterList.controls[0].setValue({
-          element: 'code text',
-          selectedObservationCodes: this.defaultObservationCodes
-        });
-      }
+      this.isObsCodesSelected = this.defaultObservationCodes.items.length > 0;
+      this.parameterGroups['Observation'].setValue({
+        resourceType: 'Observation',
+        parameters: [
+          {
+            element: 'code text',
+            selectedObservationCodes: this.defaultObservationCodes
+          }
+        ]
+      });
     }
   }
 
@@ -172,9 +211,7 @@ export class PullDataPageComponent
     this.tabGroup.selectedIndex = this.visibleResourceTypes.length - 1;
     if (resourceType === 'Observation') {
       // Update the default observation codes for the newly created Observation tab.
-      this.parameterGroups.changes.pipe(take(1)).subscribe(() => {
-        setTimeout(() => this.updateObservationCodesWithDefaults());
-      });
+      this.updateObservationCodesWithDefaults();
     }
   }
 
@@ -224,7 +261,25 @@ export class PullDataPageComponent
     this.pullData.loadResources(
       resourceType,
       this.perPatientFormControls[resourceType]?.value || 1000,
-      parameterGroup.getConditions().criteria
+      // TODO: simplify by using observationParameterGroup
+      parameterGroup.getConditions().criteria,
+      this.maxObservationToCheck.value
+    );
+  }
+
+  /**
+   * Check if the input controls on the tab for the specified resource type have
+   * valid values.
+   * @param resourceType - resource type
+   */
+  isValidTab(resourceType: string): boolean {
+    return (
+      (!this.perPatientFormControls[resourceType] ||
+        this.perPatientFormControls[resourceType].valid) &&
+      (resourceType !== 'Observation' ||
+        this.parameterGroups['Observation'].value.parameters[0]
+          ?.selectedObservationCodes.items.length > 0 ||
+        this.maxObservationToCheck.valid)
     );
   }
 }
