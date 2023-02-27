@@ -27,22 +27,32 @@
 <mat-tab-group dynamicHeight class="mat-elevation-z1">
   <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfResourceType(resourceType)">
     <div class="v-box tab-content">
-      <mat-form-field class="number-field" *ngIf="perPatientFormControls[resourceType]">
-        <mat-label>Limit per patient<span *ngIf='resourceType === "Observation"'>&nbsp;per test</span></mat-label>
-        <input matInput [formControl]="perPatientFormControls[resourceType]" type="number" min="1">
-      </mat-form-field>
-
-<!--      <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams></app-search-parameter-group>-->
+      <div class="h-box">
+        <mat-form-field class="number-field" *ngIf="perPatientFormControls[resourceType]">
+          <mat-label>Limit per patient<span *ngIf='resourceType === "Observation"'>&nbsp;per test</span></mat-label>
+          <input matInput [formControl]="perPatientFormControls[resourceType]" type="number" min="1">
+        </mat-form-field>
+        <mat-form-field class="number-field max-recent-observations"
+                        *ngIf="resourceType === 'Observation' && !isObsCodesSelected">
+          <mat-label>Max recent Observations per Patient to check</mat-label>
+          <input matInput [formControl]="maxObservationToCheck" type="number" min="1">
+        </mat-form-field>
+      </div>
 
       <div class="h-box for-selected-codes">
         <button mat-stroked-button
-                [disabled]="perPatientFormControls[resourceType]?.invalid"
+                [disabled]="!isValidTab(resourceType)"
                 [attr.aria-label]='showCodeSelection(resourceType) ? "Load " + getPluralFormOfResourceType(resourceType) + ", optionally limited to the selected codes in the following field" : "Load" + getPluralFormOfResourceType(resourceType)'
                 (click)="loadResources(resourceType, resourceParams)">
           <mat-icon svgIcon="refresh"></mat-icon>Load {{getPluralFormOfResourceType(resourceType)}}
         </button>
         <span *ngIf='showCodeSelection(resourceType)'>For selected codes:</span>
-        <app-search-parameter-group [inputResourceType]='resourceType' #resourceParams [allowAddRemoveButtons]="false"></app-search-parameter-group>
+        <app-search-parameter-group
+            [inputResourceType]='resourceType'
+            #resourceParams
+            [allowAddRemoveButtons]="false"
+            [formControl]="parameterGroups[resourceType]">
+        </app-search-parameter-group>
       </div>
       <div class="spacer"></div>
       <app-resource-table *ngIf="pullData.resourceStream[resourceType]"

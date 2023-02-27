@@ -8,7 +8,6 @@ import observationsForPat269 from './test-fixtures/obs-pat-269.json';
 import encountersForSmart880378 from './test-fixtures/encounter-smart-880378.json';
 import researchStudies from 'src/test/test-fixtures/research-studies.json';
 import { chunk } from 'lodash-es';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { last } from 'rxjs/operators';
 import {
   HttpClientTestingModule,
@@ -25,7 +24,6 @@ import Resource = fhir.Resource;
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
   let fixture: ComponentFixture<PullDataPageComponent>;
-  let fhirBackend: FhirBackendService;
   let mockHttp: HttpTestingController;
   let cohort: CohortService;
   let pullData: PullDataService;
@@ -77,7 +75,6 @@ describe('PullDataForCohortComponent', () => {
       },
       { serverUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4' }
     );
-    fhirBackend = TestBed.inject(FhirBackendService);
     cohort = TestBed.inject(CohortService);
     pullData = TestBed.inject(PullDataService);
     mockHttp = TestBed.inject(HttpTestingController);
@@ -221,33 +218,6 @@ describe('PullDataForCohortComponent', () => {
     });
   });
 
-  it('should load all (non-unique) ResearchStudies', async () => {
-    const arrayOfPatients = Array.from({ length: 30 }, (_, index) => ({
-      id: 'smart-' + index
-    }));
-    cohort.currentState.patients = arrayOfPatients;
-
-    component.addTab('ResearchStudy');
-    fixture.detectChanges();
-    component.loadResources('ResearchStudy', emptyParameterGroup);
-    const resourcePromise = pullData.resourceStream['ResearchStudy']
-      .pipe(last())
-      .toPromise();
-    chunk(arrayOfPatients, 1).forEach((patients) => {
-      mockHttp
-        .expectOne(
-          `$fhir/ResearchStudy?_has:ResearchSubject:study:individual=${patients
-            .map((patient) => patient.id)
-            .join(',')}&_count=1000`
-        )
-        .flush(researchStudies);
-    });
-    // Should load all (non-unique) resources from test fixtures
-    await resourcePromise.then((resources) => {
-      expectResourcesToBeLoaded('ResearchStudy', resources, 60);
-    });
-  });
-
   it('should add/remove Patient tab', async () => {
     fixture.detectChanges();
     component.addTab('Patient');
@@ -297,6 +267,73 @@ describe('PullDataForCohortComponent', () => {
     });
     await resourcePromise.then((resources) => {
       expectResourcesToBeLoaded('EvidenceVariable', resources, 1);
+    });
+  });
+});
+
+describe('PullDataForCohortComponent', () => {
+  let component: PullDataPageComponent;
+  let fixture: ComponentFixture<PullDataPageComponent>;
+  let mockHttp: HttpTestingController;
+  let cohort: CohortService;
+  let pullData: PullDataService;
+
+  const emptyParameterGroup = {
+    hasErrors: () => false,
+    getConditions: () => ({
+      criteria: ''
+    })
+  } as SearchParameterGroupComponent;
+
+  beforeEach(async () => {
+    await configureTestingModule({
+      declarations: [PullDataPageComponent],
+      imports: [
+        PullDataPageModule,
+        SharedModule,
+        HttpClientTestingModule,
+        MatIconTestingModule,
+        RouterTestingModule
+      ]
+    });
+    cohort = TestBed.inject(CohortService);
+    pullData = TestBed.inject(PullDataService);
+    mockHttp = TestBed.inject(HttpTestingController);
+
+    fixture = TestBed.createComponent(PullDataPageComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    // Verify that no unmatched requests are outstanding
+    mockHttp.verify();
+  });
+
+  it('should load all (non-unique) ResearchStudies', async () => {
+    const arrayOfPatients = Array.from({ length: 30 }, (_, index) => ({
+      id: 'smart-' + index
+    }));
+    cohort.currentState.patients = arrayOfPatients;
+
+    component.addTab('ResearchStudy');
+    fixture.detectChanges();
+    component.loadResources('ResearchStudy', emptyParameterGroup);
+    const resourcePromise = pullData.resourceStream['ResearchStudy']
+      .pipe(last())
+      .toPromise();
+    chunk(arrayOfPatients, 1).forEach((patients) => {
+      mockHttp
+        .expectOne(
+          `$fhir/ResearchStudy?_has:ResearchSubject:study:individual=${patients
+            .map((patient) => patient.id)
+            .join(',')}&_count=1000`
+        )
+        .flush(researchStudies);
+    });
+    // Should load all (non-unique) resources from test fixtures
+    await resourcePromise.then((resources) => {
+      expectResourcesToBeLoaded('ResearchStudy', resources, 60);
     });
   });
 });
