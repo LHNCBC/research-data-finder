@@ -21,6 +21,25 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { configureTestingModule } from 'src/test/helpers';
 import Resource = fhir.Resource;
 
+/**
+ * Checks if resources are loaded correctly.
+ * @param pullData - an instance of PullDataService
+ * @param resourceType - resource type
+ * @param resources - value emitted by observable
+ * @param amount - expected amount of resources
+ */
+function expectResourcesToBeLoaded(
+  pullData: PullDataService,
+  resourceType: string,
+  resources: Resource[],
+  amount: number
+): void {
+  [resources, pullData.currentState[resourceType].resources].forEach((res) => {
+    expect(res.length).toBe(amount);
+    expect(res[0].resourceType).toBe(resourceType);
+  });
+}
+
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
   let fixture: ComponentFixture<PullDataPageComponent>;
@@ -41,25 +60,6 @@ describe('PullDataForCohortComponent', () => {
       criteria: '&combo-code=system1%2F%7Ccode1,system2%2F%7Ccode2'
     })
   } as SearchParameterGroupComponent;
-
-  /**
-   * Checks if resources are loaded correctly.
-   * @param resourceType - resource type
-   * @param resources - value emitted by observable
-   * @param amount - expected amount of resources
-   */
-  function expectResourcesToBeLoaded(
-    resourceType: string,
-    resources: Resource[],
-    amount: number
-  ): void {
-    [resources, pullData.currentState[resourceType].resources].forEach(
-      (res) => {
-        expect(res.length).toBe(amount);
-        expect(res[0].resourceType).toBe(resourceType);
-      }
-    );
-  }
 
   beforeEach(async () => {
     await configureTestingModule(
@@ -134,7 +134,7 @@ describe('PullDataForCohortComponent', () => {
     });
     // Should load 4 of 5 Observations from test fixtures (one Observation per Patient per test)
     await resourcePromise.then((resources) => {
-      expectResourcesToBeLoaded('Observation', resources, 4);
+      expectResourcesToBeLoaded(pullData, 'Observation', resources, 4);
     });
   });
 
@@ -183,7 +183,7 @@ describe('PullDataForCohortComponent', () => {
     });
 
     await resourcePromise.then((resources) => {
-      expectResourcesToBeLoaded('Observation', resources, 3);
+      expectResourcesToBeLoaded(pullData, 'Observation', resources, 3);
     });
   });
 
@@ -214,7 +214,7 @@ describe('PullDataForCohortComponent', () => {
     });
     // Should load 2 resources from test fixtures (2 encounters per Patient)
     await resourcePromise.then((resources) => {
-      expectResourcesToBeLoaded('Encounter', resources, 2);
+      expectResourcesToBeLoaded(pullData, 'Encounter', resources, 2);
     });
   });
 
@@ -266,7 +266,7 @@ describe('PullDataForCohortComponent', () => {
         });
     });
     await resourcePromise.then((resources) => {
-      expectResourcesToBeLoaded('EvidenceVariable', resources, 1);
+      expectResourcesToBeLoaded(pullData, 'EvidenceVariable', resources, 1);
     });
   });
 });
@@ -333,7 +333,7 @@ describe('PullDataForCohortComponent', () => {
     });
     // Should load all (non-unique) resources from test fixtures
     await resourcePromise.then((resources) => {
-      expectResourcesToBeLoaded('ResearchStudy', resources, 60);
+      expectResourcesToBeLoaded(pullData, 'ResearchStudy', resources, 60);
     });
   });
 });
