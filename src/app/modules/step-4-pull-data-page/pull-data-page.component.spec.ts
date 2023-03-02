@@ -19,6 +19,26 @@ import { CohortService } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import { RouterTestingModule } from '@angular/router/testing';
 import { configureTestingModule } from 'src/test/helpers';
+import Resource = fhir.Resource;
+
+/**
+ * Checks if resources are loaded correctly.
+ * @param pullData - an instance of PullDataService
+ * @param resourceType - resource type
+ * @param resources - value emitted by observable
+ * @param amount - expected amount of resources
+ */
+function expectResourcesToBeLoaded(
+  pullData: PullDataService,
+  resourceType: string,
+  resources: Resource[],
+  amount: number
+): void {
+  [resources, pullData.currentState[resourceType].resources].forEach((res) => {
+    expect(res.length).toBe(amount);
+    expect(res[0].resourceType).toBe(resourceType);
+  });
+}
 
 describe('PullDataForCohortComponent', () => {
   let component: PullDataPageComponent;
@@ -101,6 +121,9 @@ describe('PullDataForCohortComponent', () => {
     cohort.currentState.patients = testData.map((item) => item.patient);
 
     component.loadResources('Observation', emptyParameterGroup);
+    const resourcePromise = pullData.resourceStream['Observation']
+      .pipe(last())
+      .toPromise();
     testData.forEach((item) => {
       const patientId = item.patient.id;
       mockHttp
@@ -110,12 +133,9 @@ describe('PullDataForCohortComponent', () => {
         .flush(item.observations);
     });
     // Should load 4 of 5 Observations from test fixtures (one Observation per Patient per test)
-    await pullData.resourceStream['Observation']
-      .pipe(last())
-      .toPromise()
-      .then((resources) => {
-        expect(resources.length).toBe(4);
-      });
+    await resourcePromise.then((resources) => {
+      expectResourcesToBeLoaded(pullData, 'Observation', resources, 4);
+    });
   });
 
   it('should skip duplicate when loading Observations for a cohort of Patients', async () => {
@@ -145,6 +165,9 @@ describe('PullDataForCohortComponent', () => {
     cohort.currentState.patients = testData.map((item) => item.patient);
 
     component.loadResources('Observation', filledParameterGroup);
+    const resourcePromise = pullData.resourceStream['Observation']
+      .pipe(last())
+      .toPromise();
     testData.forEach((item) => {
       const patientId = item.patient.id;
       mockHttp
@@ -159,12 +182,9 @@ describe('PullDataForCohortComponent', () => {
         .flush(item.observations);
     });
 
-    await pullData.resourceStream['Observation']
-      .pipe(last())
-      .toPromise()
-      .then((resources) => {
-        expect(resources.length).toBe(3);
-      });
+    await resourcePromise.then((resources) => {
+      expectResourcesToBeLoaded(pullData, 'Observation', resources, 3);
+    });
   });
 
   it('should load Encounters with correct numbers per patient', async () => {
@@ -181,6 +201,9 @@ describe('PullDataForCohortComponent', () => {
       encountersPerPatient
     );
     component.loadResources('Encounter', emptyParameterGroup);
+    const resourcePromise = pullData.resourceStream['Encounter']
+      .pipe(last())
+      .toPromise();
     testData.forEach((item) => {
       const patientId = item.patient.id;
       mockHttp
@@ -190,12 +213,9 @@ describe('PullDataForCohortComponent', () => {
         .flush(item.encounters);
     });
     // Should load 2 resources from test fixtures (2 encounters per Patient)
-    await pullData.resourceStream['Encounter']
-      .pipe(last())
-      .toPromise()
-      .then((resources) => {
-        expect(resources.length).toBe(2);
-      });
+    await resourcePromise.then((resources) => {
+      expectResourcesToBeLoaded(pullData, 'Encounter', resources, 2);
+    });
   });
 
   it('should add/remove Patient tab', async () => {
@@ -221,6 +241,9 @@ describe('PullDataForCohortComponent', () => {
     fixture.detectChanges();
     component.perPatientFormControls['EvidenceVariable'].setValue(1000);
     component.loadResources('EvidenceVariable', emptyParameterGroup);
+    const resourcePromise = pullData.resourceStream['EvidenceVariable']
+      .pipe(last())
+      .toPromise();
     testData.forEach((item) => {
       const patientId = item.patient.id;
       mockHttp
@@ -242,12 +265,9 @@ describe('PullDataForCohortComponent', () => {
           description: 'Home exposure to smoke prior to trial enrollment'
         });
     });
-    await pullData.resourceStream['EvidenceVariable']
-      .pipe(last())
-      .toPromise()
-      .then((resources) => {
-        expect(resources.length).toBe(1);
-      });
+    await resourcePromise.then((resources) => {
+      expectResourcesToBeLoaded(pullData, 'EvidenceVariable', resources, 1);
+    });
   });
 });
 
@@ -299,6 +319,9 @@ describe('PullDataForCohortComponent', () => {
     component.addTab('ResearchStudy');
     fixture.detectChanges();
     component.loadResources('ResearchStudy', emptyParameterGroup);
+    const resourcePromise = pullData.resourceStream['ResearchStudy']
+      .pipe(last())
+      .toPromise();
     chunk(arrayOfPatients, 1).forEach((patients) => {
       mockHttp
         .expectOne(
@@ -309,11 +332,8 @@ describe('PullDataForCohortComponent', () => {
         .flush(researchStudies);
     });
     // Should load all (non-unique) resources from test fixtures
-    await pullData.resourceStream['ResearchStudy']
-      .pipe(last())
-      .toPromise()
-      .then((resources) => {
-        expect(resources.length).toBe(60);
-      });
+    await resourcePromise.then((resources) => {
+      expectResourcesToBeLoaded(pullData, 'ResearchStudy', resources, 60);
+    });
   });
 });

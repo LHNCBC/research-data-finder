@@ -417,6 +417,14 @@ export class FhirBackendService implements HttpBackend {
       return this.defaultBackend.handle(request);
     }
 
+    // A controller object that allows aborting of the HTTP request.
+    // See https://developer.mozilla.org/en-US/docs/Web/API/AbortController
+    const abortController = new AbortController();
+    // A signal object that allows aborting of the HTTP request via
+    // the AbortController object.
+    // See https://developer.mozilla.org/en-US/docs/Web/API/AbortController
+    const signal = abortController.signal;
+
     if (this.smartConnectionSuccess) {
       // Use the FHIR client in fhirService for queries.
       const newUrl = request.url.replace(serviceBaseUrlRegExp, '');
@@ -424,7 +432,7 @@ export class FhirBackendService implements HttpBackend {
         (observer: Observer<HttpResponse<any>>) => {
           this.fhirService
             .getSmartConnection()
-            .request(newUrl)
+            .request({ url: newUrl, signal })
             .then(
               (res) => {
                 observer.next(
@@ -441,6 +449,11 @@ export class FhirBackendService implements HttpBackend {
                   })
                 )
             );
+          // This is the return from the Observable function, which is the
+          // request cancellation handler.
+          return () => {
+            abortController.abort();
+          };
         }
       );
     } else {
@@ -474,11 +487,12 @@ export class FhirBackendService implements HttpBackend {
             const promise = this.isCacheEnabled
               ? this.fhirClient.getWithCache(fullUrl, {
                   combine,
+                  signal,
                   cacheName: cacheName
                     ? cacheName + '-' + this.serviceBaseUrl
                     : ''
                 })
-              : this.fhirClient.get(fullUrl, { combine });
+              : this.fhirClient.get(fullUrl, { combine, signal });
 
             promise.then(
               ({ status, data, _cacheInfo_ }) => {
@@ -508,6 +522,11 @@ export class FhirBackendService implements HttpBackend {
                 )
             );
           });
+          // This is the return from the Observable function, which is the
+          // request cancellation handler.
+          return () => {
+            abortController.abort();
+          };
         }
       );
     }
