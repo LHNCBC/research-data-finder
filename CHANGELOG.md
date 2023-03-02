@@ -7,6 +7,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Changed
 - Hid an unnecessary option to view the full list of research studies from
   the select records step.
+- Added aborting of HTTP requests if we no longer need a response to them.
 
 ## [6.0.10] - 2022-02-13
 ### Added
