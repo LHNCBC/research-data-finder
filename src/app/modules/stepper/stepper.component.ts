@@ -102,8 +102,8 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     isVisible: () => boolean;
   }> = [];
 
-  // Temporarily enable RAS with a URL parameter until RAS goes live.
-  enableRas = getUrlParam('ras') === 'enable';
+  // Enable RAS if it is not disabled via the URL parameter
+  enableRas = getUrlParam('ras') !== 'disable';
 
   constructor(
     public columnDescriptions: ColumnDescriptionsService,

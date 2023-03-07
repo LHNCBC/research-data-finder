@@ -5,8 +5,6 @@ import queryResponseCache from './query-response-cache';
 
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
 export const HTTP_ABORT = 0;
-// The value of property status in the rejection object when waiting for a response is timed out
-export const HTTP_TIMEOUT = -1;
 
 // Rate limiting interval - the time interval in milliseconds for which a limited number of requests can be specified
 const RATE_LIMIT_INTERVAL = 1000;
@@ -126,39 +124,39 @@ export class FhirBatchQuery {
       this._msBetweenRequests = 0;
     }
 
-    const currentServiceBaseUrl = this._serviceBaseUrl;
+    // const currentServiceBaseUrl = this._serviceBaseUrl;
 
     if (this._initializationPromise) {
       return this._initializationPromise;
     }
     this._features = {};
-    if (this._isDbgap) {
-      this._initializationPromise = Promise.allSettled([
-        // Query to extract the consent group that must be included as _security param in particular queries.
-        this.getWithCache('ResearchSubject', this.getCommonInitRequestOptions())
-      ]).then(([researchSubject]) => {
-        if (currentServiceBaseUrl !== this._serviceBaseUrl) {
-          return Promise.reject({
-            status: HTTP_ABORT,
-            error: 'Outdated response to initialization request.'
-          });
-        }
-        if (
-          researchSubject &&
-          researchSubject.status === 'rejected' &&
-          /Deny access to all but these consent groups: (.*) -- codes from last denial/.test(
-            researchSubject.reason.error
-          )
-        ) {
-          this._features.consentGroup = RegExp.$1.replace(', ', ',');
-          return this.makeInitializationCalls(true);
-        } else {
-          return this.makeInitializationCalls();
-        }
-      });
-    } else {
-      this._initializationPromise = this.makeInitializationCalls();
-    }
+    // if (this._isDbgap) {
+    //   this._initializationPromise = Promise.allSettled([
+    //     // Query to extract the consent group that must be included as _security param in particular queries.
+    //     this.getWithCache('ResearchSubject', this.getCommonInitRequestOptions())
+    //   ]).then(([researchSubject]) => {
+    //     if (currentServiceBaseUrl !== this._serviceBaseUrl) {
+    //       return Promise.reject({
+    //         status: HTTP_ABORT,
+    //         error: 'Outdated response to initialization request.'
+    //       });
+    //     }
+    //     if (
+    //       researchSubject &&
+    //       researchSubject.status === 'rejected' &&
+    //       /Deny access to all but these consent groups: (.*) -- codes from last denial/.test(
+    //         researchSubject.reason.error
+    //       )
+    //     ) {
+    //       this._features.consentGroup = RegExp.$1.replace(', ', ',');
+    //       return this.makeInitializationCalls(true);
+    //     } else {
+    //       return this.makeInitializationCalls();
+    //     }
+    //   });
+    // } else {
+    this._initializationPromise = this.makeInitializationCalls();
+    // }
     return this._initializationPromise;
   }
 
@@ -362,18 +360,22 @@ export class FhirBatchQuery {
    * Gets the response content from a URL.
    * @param {string} url - the URL whose data is to be retrieved.
    * @param {boolean} combine - whether to combine requests in a batch
+   * @param {AbortSignal} [signal] - a signal object that allows aborting of
+   *   the HTTP request via an AbortController object.
+   *   See https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
    * @param {number|boolean} retryCount - maximum number of retries or false
    *                   to use _giveUpTimeout
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  get(url, { combine = true, retryCount = false } = {}) {
+  get(url, { combine = true, retryCount = false, signal = null } = {}) {
     return new Promise((resolve, reject) => {
       const fullUrl = this.getFullUrl(url);
       this._pending.push({
         url: fullUrl,
         combine,
+        signal,
         retryCount,
         resolve,
         reject
@@ -463,6 +465,9 @@ export class FhirBatchQuery {
    * @param {string} settings.url - request URL
    * @param {string} settings.body - request body if method === 'POST'
    * @param {boolean} settings.combine - whether to combine requests in a batch
+   * @param {AbortSignal} [settings.signal] - a signal object that allows aborting of
+   *   the HTTP request via an AbortController object.
+   *   See https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
    * @param {number|boolean} settings.retryCount - maximum number of retries or false to use _giveUpTimeout
    * @param {string} settings.contentType - Content-Type request header value
    * @param {string} settings.logPrefix - prefix for console log messages
@@ -473,6 +478,7 @@ export class FhirBatchQuery {
     url,
     body = undefined,
     combine = true,
+    signal = null,
     retryCount = false,
     contentType = 'application/fhir+json',
     logPrefix = ''
@@ -483,8 +489,14 @@ export class FhirBatchQuery {
       const oReq = new XMLHttpRequest(),
         startAjaxTime = new Date();
 
+      function abortRequest() {
+        oReq.abort();
+      }
+      signal?.addEventListener('abort', abortRequest);
+
       oReq.onreadystatechange = () => {
         if (oReq.readyState === 4) {
+          signal?.removeEventListener('abort', abortRequest);
           this.guessMsBetweenRequests(oReq);
           const currentRequestIndex = this._activeReq.indexOf(oReq);
           if (currentRequestIndex !== -1) {
@@ -505,7 +517,7 @@ export class FhirBatchQuery {
             resolve({ status, data: JSON.parse(oReq.responseText) });
           } else if (
             // When the preflight request returns HTTP-429, the real request is aborted
-            (status === 429 || status === HTTP_ABORT) &&
+            (status === 429 || (status === HTTP_ABORT && !signal?.aborted)) &&
             (typeof retryCount !== 'number' || --retryCount > 0) &&
             Date.now() - this._lastSuccessTime < this._giveUpTimeout
           ) {
@@ -519,6 +531,7 @@ export class FhirBatchQuery {
               url,
               body,
               combine,
+              signal,
               retryCount,
               contentType,
               logPrefix,
@@ -532,8 +545,8 @@ export class FhirBatchQuery {
             return;
           } else if (status === HTTP_ABORT) {
             reject({
-              status: HTTP_TIMEOUT,
-              error: 'Server response timed out.'
+              status: HTTP_ABORT,
+              error: 'Abort'
             });
           } else {
             let error;
@@ -584,20 +597,22 @@ export class FhirBatchQuery {
   getNextRequestsToPerform() {
     let requests = [];
 
-    if (this._pending.length) {
-      if (
-        this._pending[0].method === 'POST' ||
-        this._pending[0].combine === false
-      ) {
-        requests.push(this._pending.shift());
+    while (this._pending.length && this._maxPerBatch > requests.length) {
+      const req = this._pending.shift();
+      if (req.signal?.aborted) {
+        // If the request was aborted before sending, just reject
+        // the corresponding promise:
+        req.reject({ status: HTTP_ABORT, error: 'Abort' });
       } else {
-        while (
-          this._pending.length &&
-          this._maxPerBatch > requests.length &&
-          this._pending[0].method !== 'POST' &&
-          this._pending[0].combine === true
-        ) {
-          requests.push(this._pending.shift());
+        if (req.method === 'POST' || req.combine === false) {
+          if (requests.length === 0) {
+            requests.push(req);
+          } else {
+            this._pending.unshift(req);
+          }
+          break;
+        } else {
+          requests.push(req);
         }
       }
     }
@@ -628,30 +643,53 @@ export class FhirBatchQuery {
     const requests = this.getNextRequestsToPerform();
 
     if (requests.length > 1) {
+      // A controller object that allows aborting of the batch request if all
+      // requests are aborted
+      const abortController = new AbortController();
+      const signal = abortController.signal;
+      // Uncancelled request counter
+      let activeReqCount = requests.length;
+
       const body = JSON.stringify({
         resourceType: 'Bundle',
         type: 'batch',
-        entry: requests.map(({ url }) => ({
-          request: {
-            method: 'GET',
-            url: this.getRelativeUrl(url)
-          }
-        }))
+        entry: requests.map(({ url, signal }) => {
+          // Track the number of uncanceled requests and abort the batch request
+          // if all requests are aborted
+          signal.addEventListener('abort', () => {
+            if (--activeReqCount === 0) {
+              abortController.abort();
+            }
+          });
+
+          return {
+            request: {
+              method: 'GET',
+              url: this.getRelativeUrl(url)
+            }
+          };
+        })
       });
 
       this._request({
         method: 'POST',
         url: this._serviceBaseUrl,
         body,
+        signal,
         logPrefix: 'Batch'
       }).then(
         ({ data }) => {
-          requests.forEach(({ resolve, reject }, index) => {
+          requests.forEach(({ resolve, reject, signal }, index) => {
             // See Batch/Transaction response description here:
             // https://www.hl7.org/fhir/http.html#transaction-response
             const entry = data.entry[index];
             const status = parseInt(entry.response.status);
-            if (this.isOK(status)) {
+            // TODO: Not sure if we need to abort the request if we already have
+            //   the response. The response will not be cached in this case.
+            //   But perhaps it is better not to cache responses that we don't need.
+            if (signal?.aborted) {
+              reject({ status: HTTP_ABORT, error: 'Abort' });
+            } else if (this.isOK(status)) {
               resolve({ status, data: entry.resource || {} });
             } else {
               reject({
@@ -663,10 +701,16 @@ export class FhirBatchQuery {
         },
         ({ status, error }) => {
           // If the batch request fails, show an error only for the first
-          // request in the batch:
-          requests[0].reject({ status, error });
-          for (let i = 1; i < requests.length; ++i) {
-            requests[i].reject({ status: HTTP_ABORT, error: 'Abort' });
+          // non-aborted request in the batch, following requests are marked
+          // as aborted:
+          let batchErrorReturned = false;
+          for (let i = 0; i < requests.length; ++i) {
+            if (batchErrorReturned || requests[i].signal?.aborted) {
+              requests[i].reject({ status: HTTP_ABORT, error: 'Abort' });
+            } else {
+              batchErrorReturned = true;
+              requests[i].reject({ status, error });
+            }
           }
         }
       );
@@ -724,6 +768,9 @@ export class FhirBatchQuery {
    * @param {Object} [options] - additional options:
    * @param {boolean} [options.combine] - whether to combine requests in a batch,
    *                  true by default.
+   * @param {AbortSignal} [options.signal] - a signal object that allows aborting of
+   *   the HTTP request via an AbortController object.
+   *   See https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
    * @param {number|boolean} [options.retryCount] - maximum number of retries
    *                  or false to use _giveUpTimeout, false by default.
    * @param {null|string} [options.cacheName] - if specified, then sets the name

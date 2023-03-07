@@ -31,6 +31,7 @@
                           [sort]="sort[resourceType]"
                           checkboxTooltipText="Select this study to add it to the cart"
                           [resourceType]="resourceType">
+<!--
         <ng-template #prefix>
           <div class="v-box">
             <mat-radio-group aria-label="Select an option" class="h-box"
@@ -43,6 +44,7 @@
             <div class="spacer"></div>
           </div>
         </ng-template>
+-->
         <ng-template #buttonPrefix *ngIf="!showOnlyStudiesWithSubjects">
           <button mat-mini-fab
                   class="reload-btn"
