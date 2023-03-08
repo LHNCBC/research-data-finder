@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.1.1] - 2022-03-08
+### Changed
+- Updated to Node.js 18.
+
 ## [6.1.0] - 2022-02-23
 ### Changed
 - Hid an unnecessary option to view the full list of research studies from

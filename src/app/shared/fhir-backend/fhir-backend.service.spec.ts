@@ -74,8 +74,8 @@ describe('FhirBackendService', () => {
     expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith('');
   });
 
-  it('should add interpretation search parameter', async (done) => {
-    await service.initializeFhirBatchQuery();
+  it('should add interpretation search parameter', (done) => {
+    service.initializeFhirBatchQuery();
     service.currentDefinitions$.subscribe((definitions) => {
       expect(
         definitions.resources.Observation.searchParameters.some(
