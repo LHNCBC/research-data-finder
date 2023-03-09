@@ -14,6 +14,10 @@ This project follows [Semantic Versioning](http://semver.org/).
   searching for patients.
 - An exception when trying to pull data for an empty patient cohort.
 
+## [6.1.1] - 2022-03-08
+### Changed
+- Updated to Node.js 18.
+
 ## [6.1.0] - 2022-02-23
 ### Changed
 - Hid an unnecessary option to view the full list of research studies from
