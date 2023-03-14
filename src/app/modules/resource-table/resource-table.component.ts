@@ -15,7 +15,11 @@ import {
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import {
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup
+} from '@angular/forms';
 import { ColumnDescription } from '../../types/column.description';
 import { distinctUntilChanged, filter, sample, tap } from 'rxjs/operators';
 import { escapeStringForRegExp } from '../../shared/utils';
@@ -187,7 +191,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   // To enable server-side filtering, define a "(filterChanged)" handler.
   @Input() enableFiltering = false;
   @Input() enableSelection = false;
+  // The resource type for the rows
   @Input() resourceType;
+  // The "resource type" for display columns, e.g. observations can be treated as variables
+  @Input() resourceTypeColumns;
   @Input() context = '';
   @Input() resources: Resource[];
   @Input() loading: boolean;
@@ -348,7 +355,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     // Update resource table rows
     if (changes['resources'] && changes['resources'].currentValue) {
       const allColumns = this.columnDescriptionsService.getAvailableColumns(
-        this.resourceType,
+        this.resourceTypeColumns || this.resourceType,
         this.context
       );
       let columnsWithDataChanged = false;
@@ -391,7 +398,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       }
       if (columnsWithDataChanged) {
         this.columnDescriptionsService.setColumnsWithData(
-          this.resourceType,
+          this.resourceTypeColumns || this.resourceType,
           this.context,
           Object.keys(this.columnsWithData)
         );
@@ -725,14 +732,14 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       content: ResourceTableFilterComponent,
       origin: event.target,
       data: {
-        value: this.filtersForm.get(column.element).value,
+        value: this.filtersForm.controls[column.element].value,
         filterType,
         options
       }
     });
 
     dialogRef.afterClosed$.subscribe((value) => {
-      this.filtersForm.get(column.element).setValue(value);
+      this.filtersForm.controls[column.element].setValue(value);
     });
   }
 
@@ -741,8 +748,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   hasFilter(column: string): boolean {
     return (
-      this.filtersForm.get(column).value &&
-      this.filtersForm.get(column).value.length
+      this.filtersForm.controls[column].value &&
+      this.filtersForm.controls[column].value.length
     );
   }
 

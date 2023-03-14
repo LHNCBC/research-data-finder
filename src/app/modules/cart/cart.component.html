@@ -44,7 +44,7 @@
           </div>
           <div class="list-toolbar list-toolbar__icon" role="columnheader"></div>
           <div class="cell cell-{{resourceType}}-{{column.element}}" *ngFor="let column of columnDescriptions" role="columnheader">{{column.displayName}}</div>
-          <div class="cell cell-Variable-constraint" *ngIf="resourceType === 'Variable'" role="columnheader">Value constraint</div>
+          <div class="cell cell-Variable-constraint" *ngIf="resourceType === 'Variable' || resourceType === 'Observation'" role="columnheader">Value constraint</div>
         </div>
       </div>
       <div class="v-box list-body" role="rowgroup">
@@ -77,7 +77,7 @@
                      *ngFor="let column of columnDescriptions" role="cell">
                 <app-ellipsis-text>{{ getCellText(listItem, column.element) }}</app-ellipsis-text>
               </div>
-              <ng-container *ngIf="resourceType === 'Variable'" [ngSwitch]="!cart.getVariableType(listItem)">
+              <ng-container *ngIf="resourceTypeColumns === 'Variable'" [ngSwitch]="!cart.getVariableType(listItem)">
                 <div class="cell cell-Variable-constraint h-box" *ngSwitchCase="true" role="cell">
                   <label>Loading...</label> <mat-spinner [diameter]="23"></mat-spinner>
                 </div>

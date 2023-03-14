@@ -1,6 +1,7 @@
 {
   "versionNameByVersionNumberRegex": {
-    "^4\\.0\\.": "R4"
+    "^4\\.0\\.": "R4",
+    "^5\\.0\\.": "R5"
   },
   "configByVersionName": {}
 }

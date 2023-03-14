@@ -69,7 +69,7 @@
           </mat-accordion>
         </ng-template>
       </app-resource-table>
-      <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState[resourceType]"
+      <app-resource-table *ngIf="(resourceType === 'Variable' || resourceType === 'Observation') && selectRecords.currentState[resourceType]"
                           #variableTable
                           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'browse') | async"
                           (filterChanged)="loadFirstPage(resourceType)"

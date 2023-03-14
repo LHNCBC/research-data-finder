@@ -1,10 +1,16 @@
 import { Injectable } from '@angular/core';
 import Resource = fhir.Resource;
-import { from, Observable } from 'rxjs';
+import { from, Observable, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import Bundle = fhir.Bundle;
-import { catchError, map, startWith, switchMap } from 'rxjs/operators';
-import { getNextPageUrl } from '../utils';
+import {
+  catchError,
+  concatMap,
+  map,
+  startWith,
+  switchMap
+} from 'rxjs/operators';
+import { getNextPageUrl, modifyStringForSynonyms } from '../utils';
 import { Sort } from '@angular/material/sort';
 import { CartService } from '../cart/cart.service';
 import { HttpOptions } from '../../types/http-options';
@@ -15,6 +21,10 @@ import {
 } from '../fhir-backend/fhir-backend.service';
 import { PullDataService } from '../pull-data/pull-data.service';
 import { CohortService } from '../cohort/cohort.service';
+import Observation = fhir.Observation;
+import { ObservationCodeLookupComponent } from '../../modules/observation-code-lookup/observation-code-lookup.component';
+import BundleEntry = fhir.BundleEntry;
+import { uniq } from 'lodash-es';
 
 interface SelectRecordState {
   // Indicates that data is loading
@@ -115,11 +125,11 @@ export class SelectRecordsService {
 
     currentState.loading = true;
     currentState.isCached = from(
-      this.fhirBackend.isCached(url, options.context?.get(CACHE_NAME))
+      this.fhirBackend.isCached(url, options?.context?.get(CACHE_NAME))
     );
     this.resourceStream[resourceType] = this.http.get(url, options).pipe(
       map((data: Bundle) => {
-        const cacheInfo = options.context.get(CACHE_INFO);
+        const cacheInfo = options?.context?.get(CACHE_INFO);
         currentState.loadTime = cacheInfo
           ? new Date(cacheInfo.timestamp)
           : new Date();
@@ -132,7 +142,8 @@ export class SelectRecordsService {
         return currentState.resources;
       }),
       catchError((error) => {
-        currentState.nextBundleUrl = url;
+        // Do not retry after an error
+        currentState.nextBundleUrl = null;
         throw error;
       }),
       switchMap((resources: Resource[]) =>
@@ -292,6 +303,179 @@ export class SelectRecordsService {
     return (
       !this.currentState[resourceType]?.loading &&
       this.currentState[resourceType]?.resources.length > 0
+    );
+  }
+
+  /**
+   * Loads Observations for selected research studies.
+   * @param selectedResearchStudies - array of selected research studies.
+   * @param params - http parameters
+   * @param filters - filter values
+   * @param sort - the current sort state
+   * @param reset - whether to reset already loaded data
+   */
+  loadObservations(
+    selectedResearchStudies: Resource[],
+    params: {
+      [param: string]: any;
+    },
+    filters: any,
+    sort: Sort,
+    reset = true
+  ): void {
+    const resourceType = 'Observation';
+    let currentState;
+    if (reset) {
+      currentState = {
+        loading: true,
+        resources: [],
+        totalRecords: 0
+      };
+      this.currentState[resourceType] = currentState;
+    } else {
+      currentState = this.currentState[resourceType];
+      if (currentState?.loading || !currentState.nextBundleUrl) {
+        return;
+      }
+      currentState.loading = true;
+    }
+    const processedCodes = {};
+    (currentState.resources as Observation[]).forEach((obs) =>
+      obs.code.coding.map((coding) => (processedCodes[coding.code] = true))
+    );
+
+    // Load all ResearchSubjects and filter Observations by subject/individual
+    const study = selectedResearchStudies
+      .map((s) => 'ResearchStudy/' + s.id)
+      .join(',');
+    const patientRefs = study
+      ? this.http
+          // TODO: add paging? or 5000 is enough?
+          .get(`$fhir/ResearchSubject?_count=5000`, {
+            params: {
+              study
+            }
+          })
+          .pipe(
+            map((subjectBundle: Bundle) => {
+              // only unique references
+              return uniq(
+                subjectBundle.entry?.map(
+                  (entry: BundleEntry) =>
+                    (entry.resource as any)[this.fhirBackend.subjectParamName]
+                      .reference
+                ) || []
+              );
+            })
+          )
+      : of([]);
+
+    this.resourceStream[resourceType] = patientRefs.pipe(
+      concatMap((references) => {
+        // For debug:
+        // console.log(
+        //   '>>> Number of unique Patient references:',
+        //   references.length
+        // );
+
+        // When we use lastn we get only 499 Variables.
+        // const lastnLookup =
+        //   this.fhirBackend.features.lastnLookup && !references.length;
+        const lastnLookup = false;
+        const url = lastnLookup
+          ? reset
+            ? '$fhir/Observation/$lastn?max=1'
+            : currentState.nextBundleUrl
+          : '$fhir/Observation';
+
+        const reqParams =
+          lastnLookup && !reset
+            ? {}
+            : {
+                _elements: 'code,value,category,component',
+                // TODO: Currently, we can't link Observations to ResearchStudies
+                //   through a search parameter. That may be possible in R5. See:
+                //   https://build.fhir.org/extension-workflow-researchstudy.html
+                //   https://chat.fhir.org/#narrow/stream/179166-implementers/topic/Link.20ObservationDefinition.20to.20ResearchStudy.3F/near/316394306
+                // TODO: Unable to use chaining & reverse chaining at the same time:
+                // ...(selectedResearchStudies.length
+                //   ? {
+                //       'patient:_has:ResearchSubject:individual:study': selectedResearchStudies
+                //         .map((r) => r.id)
+                //         .join(',')
+                //     }
+                //   : {}),
+                ...(references.length ? { patient: references.join(',') } : {}),
+                ...(filters.code
+                  ? {
+                      'code:text': modifyStringForSynonyms(
+                        ObservationCodeLookupComponent.wordSynonymsLookup,
+                        filters.code
+                      )
+                    }
+                  : {}),
+                ...(filters.category
+                  ? {
+                      'category:text': modifyStringForSynonyms(
+                        ObservationCodeLookupComponent.wordSynonymsLookup,
+                        filters.category
+                      )
+                    }
+                  : {}),
+                ...(sort
+                  ? {
+                      _sort:
+                        // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+                        (sort.direction === 'asc' ? '-' : '') +
+                        ({ 'effective[x]': 'date' }[sort.active] || sort.active)
+                    }
+                  : {}),
+                ...(Object.keys(processedCodes).length
+                  ? { 'code:not': Object.keys(processedCodes).join(',') }
+                  : {}),
+                _count: 1000
+              };
+        return this.http.get(url, { params: reqParams });
+      }),
+      map((data: Bundle) => {
+        const codes = {};
+        currentState.resources = currentState.resources.concat(
+          data.entry
+            ?.map((item) => item.resource as Observation)
+            .filter((obs) => {
+              return (
+                obs.code.coding.filter((coding) => {
+                  if (codes[coding.code]) {
+                    return false;
+                  }
+                  codes[coding.code] = true;
+                  return true;
+                }).length > 0
+              );
+            }) || []
+        );
+
+        currentState.nextBundleUrl = getNextPageUrl(data);
+        currentState.loading = false;
+        return currentState.resources;
+      }),
+      catchError((error) => {
+        // Do not retry
+        currentState.nextBundleUrl = null;
+        throw error;
+      }),
+      switchMap((resources: Resource[]) =>
+        // Exclude records added to the cart from the list
+        this.cart.getCartChanged(resourceType).pipe(
+          startWith(resources),
+          map(() =>
+            resources.filter(
+              (resource) => !this.cart.hasRecord(resourceType, resource)
+            )
+          )
+        )
+      )
+      // startWith(currentState.resources)
     );
   }
 }

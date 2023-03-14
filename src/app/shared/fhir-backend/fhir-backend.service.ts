@@ -17,7 +17,7 @@ import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam, setUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
-import { find } from 'lodash-es';
+import { find, cloneDeep } from 'lodash-es';
 import { filter, map } from 'rxjs/operators';
 import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
@@ -171,6 +171,13 @@ export class FhirBackendService implements HttpBackend {
   // Version name e.g. "R4"
   get currentVersion(): string {
     return this.fhirClient.getVersionName();
+  }
+
+  /**
+   * The name of the patient reference search parameter for the ResearchSubject.
+   */
+  get subjectParamName(): string {
+    return this.currentVersion === 'R5' ? 'subject' : 'individual';
   }
 
   /**
@@ -549,7 +556,35 @@ export class FhirBackendService implements HttpBackend {
     }
 
     const versionName = this.currentVersion || 'R4';
-    const definitions = definitionsIndex.configByVersionName[versionName];
+    let definitions = definitionsIndex.configByVersionName[versionName];
+    // TODO: temporary manual creation of R5 definitions from R4 with overriding
+    //       some of the definitions
+    if (!definitions && this.currentVersion === 'R5') {
+      definitions = definitionsIndex.configByVersionName[
+        versionName
+      ] = cloneDeep(definitionsIndex.configByVersionName['R4']);
+      definitions.valueSets[
+        'http://hl7.org/fhir/ValueSet/research-subject-status|4.0.1'
+      ] = [
+        // See http://hl7.org/fhir/5.0.0-draft-final/valueset-publication-status.html
+        {
+          code: 'draft',
+          display: 'Draft'
+        },
+        {
+          code: 'active',
+          display: 'Active'
+        },
+        {
+          code: 'retired',
+          display: 'Retired'
+        },
+        {
+          code: 'unknown',
+          display: 'Unknown'
+        }
+      ];
+    }
 
     // Initialize common definitions
     if (!definitions.initialized) {

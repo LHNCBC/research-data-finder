@@ -371,9 +371,20 @@ export class FhirBatchQuery {
    */
   get(url, { combine = true, retryCount = false, signal = null } = {}) {
     return new Promise((resolve, reject) => {
-      const fullUrl = this.getFullUrl(url);
+      let fullUrl = this.getFullUrl(url);
+      let body, contentType, method;
+      // Maximum URL length is 2048, but we can add some parameters later (in the _request function).
+      if (fullUrl.length > 1900) {
+        contentType = 'application/x-www-form-urlencoded';
+        method = 'POST';
+        [fullUrl, body] = fullUrl.split('?');
+        fullUrl += '/_search';
+      }
       this._pending.push({
         url: fullUrl,
+        body,
+        contentType,
+        method,
         combine,
         signal,
         retryCount,
@@ -566,9 +577,7 @@ export class FhirBatchQuery {
         sendUrl = this.addParamToUrl(sendUrl, 'api_key', this._apiKey);
       }
 
-      if (method === 'GET') {
-        sendUrl = this.addParamToUrl(sendUrl, '_format', 'json');
-      }
+      sendUrl = this.addParamToUrl(sendUrl, '_format', 'json');
 
       oReq.open(method, sendUrl);
       oReq.timeout = this._giveUpTimeout;

@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.3.0] - 2022-03-14
+### Added
+- Variables tab for non-dbGap FHIR servers.
+
 ## [6.2.0] - 2022-03-07
 ### Added
 - Ability to create a cohort of patients by browsing and selecting records
