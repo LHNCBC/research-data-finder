@@ -6,6 +6,7 @@ import Bundle = fhir.Bundle;
 import {
   catchError,
   concatMap,
+  finalize,
   map,
   startWith,
   switchMap
@@ -138,13 +139,15 @@ export class SelectRecordsService {
           data.entry?.map((item) => item.resource) || []
         );
         currentState.nextBundleUrl = getNextPageUrl(data);
-        currentState.loading = false;
         return currentState.resources;
       }),
-      catchError((error) => {
+      catchError(() => {
         // Do not retry after an error
         currentState.nextBundleUrl = null;
-        throw error;
+        return of(currentState.resources);
+      }),
+      finalize(() => {
+        currentState.loading = false;
       }),
       switchMap((resources: Resource[]) =>
         // Exclude records added to the cart from the list
@@ -277,13 +280,14 @@ export class SelectRecordsService {
               currentState.resources.push(res);
             });
           }
-          currentState.loading = false;
           currentState.currentPage = pageNumber;
           return currentState.resources;
         }),
-        catchError((error) => {
+        catchError(() => {
+          return of(currentState.resources);
+        }),
+        finalize(() => {
           currentState.loading = false;
-          throw error;
         }),
         switchMap((resources: Resource[]) =>
           this.cart.getCartChanged(resourceType).pipe(
@@ -414,20 +418,17 @@ export class SelectRecordsService {
                       )
                     }
                   : {}),
+                ...(filters.loinc_num
+                  ? {
+                      code: filters.loinc_num
+                    }
+                  : {}),
                 ...(filters.category
                   ? {
                       'category:text': modifyStringForSynonyms(
                         ObservationCodeLookupComponent.wordSynonymsLookup,
                         filters.category
                       )
-                    }
-                  : {}),
-                ...(sort
-                  ? {
-                      _sort:
-                        // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-                        (sort.direction === 'asc' ? '-' : '') +
-                        ({ 'effective[x]': 'date' }[sort.active] || sort.active)
                     }
                   : {}),
                 ...(Object.keys(processedCodes).length
@@ -456,13 +457,15 @@ export class SelectRecordsService {
         );
 
         currentState.nextBundleUrl = getNextPageUrl(data);
-        currentState.loading = false;
         return currentState.resources;
       }),
       catchError((error) => {
-        // Do not retry
+        // Do not retry after an error
         currentState.nextBundleUrl = null;
-        throw error;
+        return of(currentState.resources);
+      }),
+      finalize(() => {
+        currentState.loading = false;
       }),
       switchMap((resources: Resource[]) =>
         // Exclude records added to the cart from the list

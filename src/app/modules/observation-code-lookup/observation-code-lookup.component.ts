@@ -17,7 +17,7 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
-import { EMPTY, forkJoin, Subject, Subscription } from 'rxjs';
+import { EMPTY, forkJoin, of, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
 import {
@@ -279,7 +279,7 @@ export class ObservationCodeLookupComponent
                     catchError((error) => {
                       this.loading = false;
                       reject(error);
-                      throw error;
+                      return of(contains);
                     })
                   );
 
@@ -330,7 +330,7 @@ export class ObservationCodeLookupComponent
                     catchError((error) => {
                       this.loading = false;
                       reject(error);
-                      throw error;
+                      return of(contains);
                     })
                   );
 

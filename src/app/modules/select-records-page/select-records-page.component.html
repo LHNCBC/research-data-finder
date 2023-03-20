@@ -98,6 +98,7 @@
                           context="select"
                           [sort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
+                          [forceClientSort]="resourceType === 'Observation'"
                           checkboxTooltipText="Select this variable to add it to the cart"
                           [resourceType]="resourceType"
                           resourceTypeColumns="Variable">

@@ -14,7 +14,7 @@ import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { EMPTY, Subject, Subscription } from 'rxjs';
+import { EMPTY, of, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { escapeStringForRegExp, getNextPageUrl } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
@@ -443,7 +443,7 @@ export class AutocompleteParameterValueComponent
                   catchError((error) => {
                     this.loading = false;
                     reject(error);
-                    throw error;
+                    return of(contains);
                   })
                 );
 
@@ -499,7 +499,7 @@ export class AutocompleteParameterValueComponent
                   catchError((error) => {
                     this.loading = false;
                     reject(error);
-                    throw error;
+                    return of(contains);
                   })
                 )
                 .subscribe((response) => {
@@ -614,7 +614,7 @@ export class AutocompleteParameterValueComponent
                   catchError((error) => {
                     this.loading = false;
                     reject(error);
-                    throw error;
+                    return of(contains);
                   })
                 );
 

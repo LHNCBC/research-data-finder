@@ -218,6 +218,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   keepAliveTimeout = 120000;
   @Output() filterChanged = new EventEmitter();
   @Output() sortChanged = new EventEmitter();
+  // Whether we need to force sorting on the client side and ignore the `(sortChanged)` handler
+  @Input() forceClientSort = false;
   @Input() sort: Sort;
   columns: string[] = [];
   columnsWithData: { [element: string]: boolean } = {};
@@ -372,7 +374,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }, {} as TableCells)
       }));
 
-      if (!this.sortChanged.observers.length) {
+      if (this.forceClientSort || !this.sortChanged.observers.length) {
         this.clientSort(newRows);
       }
 
@@ -613,8 +615,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (!sort.active || sort.direction === '') {
       return;
     }
-    if (this.sortChanged.observers.length) {
-      this.scrollViewport.scrollToIndex(0);
+    this.scrollViewport.scrollToIndex(0);
+    if (!this.forceClientSort && this.sortChanged.observers.length) {
       this.sortChanged.emit(sort);
       return;
     }
@@ -635,7 +637,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
     const isAsc = this.sort.direction === 'desc';
     const allColumns = this.columnDescriptionsService.getAvailableColumns(
-      this.resourceType,
+      this.resourceTypeColumns || this.resourceType,
       this.context
     );
     const sortingColumnDescription = allColumns.find(
@@ -797,7 +799,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param column - column description
    */
   isSortable(column: ColumnDescription): boolean {
-    return this.sortChanged.observers.length ? !column.expression : true;
+    return !this.forceClientSort && this.sortChanged.observers.length
+      ? !column.expression
+      : true;
   }
 
   /**
@@ -836,7 +840,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     let message = '';
     if (this.sort?.active) {
       const sortingColumnDescription = this.columnDescriptionsService
-        .getAvailableColumns(this.resourceType, this.context)
+        .getAvailableColumns(
+          this.resourceTypeColumns || this.resourceType,
+          this.context
+        )
         .find((c) => c.element === this.sort.active);
       message = `The data was sorted by ${
         sortingColumnDescription.displayName

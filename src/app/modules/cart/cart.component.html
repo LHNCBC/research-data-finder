@@ -12,16 +12,16 @@
     <div class="spacer" *ngIf="resourceType === 'ResearchStudy'"></div>
     <div class="v-box list" [class.list--tree-view]="isTree()" [class.single-top-item]="listItems.length === 1" role="table">
       <div class="v-box list-header" role="rowgroup">
-        <div class="h-box switch-group" *ngIf="resourceType === 'Variable'">
+        <div class="h-box switch-group" *ngIf="isTree()">
           <mat-radio-group
-              *ngIf="isTree() && listItems.length > 1"
+              *ngIf="listItems.length > 1"
               [(ngModel)]="cart.logicalOperator[resourceType]"
               aria-label="Select an operator to combine criteria">
             <mat-radio-button value="and">AND</mat-radio-button>
             <mat-radio-button value="or">OR</mat-radio-button>
           </mat-radio-group>
-          <div class="spacer" *ngIf="isTree() && listItems.length > 1"></div>
-          <label class="info" *ngIf="isTree()">
+          <div class="spacer" *ngIf="listItems.length > 1"></div>
+          <label class="info">
             <span class="info-icon" aria-hidden="true"></span>
             AND = Patients will be added to the cohort if they meet all criteria in the cart; OR = Patients will be added if they meet any of the criteria.
           </label>

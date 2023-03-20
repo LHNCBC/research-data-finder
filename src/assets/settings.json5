@@ -34,6 +34,15 @@
             ]
           },
           {
+            displayName: "LOINC code",
+            element: "loinc_num",
+            expression: "code.coding.where(system.contains('loinc.org')).code",
+            displayByDefault: true,
+            types: [
+              "string"
+            ]
+          },
+          {
             displayName: "Category",
             element: "category",
             displayByDefault: true,

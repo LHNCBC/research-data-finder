@@ -555,15 +555,13 @@ export class FhirBackendService implements HttpBackend {
       return this.currentDefinitions;
     }
 
-    const versionName = this.currentVersion || 'R4';
-    let definitions = definitionsIndex.configByVersionName[versionName];
     // TODO: temporary manual creation of R5 definitions from R4 with overriding
     //       some of the definitions
-    if (!definitions && this.currentVersion === 'R5') {
-      definitions = definitionsIndex.configByVersionName[
-        versionName
-      ] = cloneDeep(definitionsIndex.configByVersionName['R4']);
-      definitions.valueSets[
+    if (!definitionsIndex.configByVersionName['R5']) {
+      definitionsIndex.configByVersionName['R5'] = cloneDeep(
+        definitionsIndex.configByVersionName['R4']
+      );
+      definitionsIndex.configByVersionName['R5'].valueSets[
         'http://hl7.org/fhir/ValueSet/research-subject-status|4.0.1'
       ] = [
         // See http://hl7.org/fhir/5.0.0-draft-final/valueset-publication-status.html
@@ -585,6 +583,9 @@ export class FhirBackendService implements HttpBackend {
         }
       ];
     }
+
+    const versionName = this.currentVersion || 'R4';
+    let definitions = definitionsIndex.configByVersionName[versionName];
 
     // Initialize common definitions
     if (!definitions.initialized) {
