@@ -49,8 +49,8 @@ export class SettingsPageComponent {
       .get('serviceBaseUrl')
       .statusChanges.pipe(filter((s) => s === 'VALID'))
       .subscribe(() => {
-        const server = this.settingsFormGroup.get('serviceBaseUrl').value;
         if (!this.fhirBackend.isSmartOnFhir) {
+          const server = this.settingsFormGroup.get('serviceBaseUrl').value;
           // Update url query params after valid server change
           window.history.pushState(
             {},
@@ -103,5 +103,4 @@ export class SettingsPageComponent {
       })
     );
   }
-
 }

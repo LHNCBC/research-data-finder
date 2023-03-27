@@ -242,8 +242,10 @@ export class FhirServerSelectComponent
         eventData.input_method === 'arrows'
       ) {
         this.checkSmartOnFhirEnabled(eventData.final_val);
+        // Focus out of the server select control.
+        // This will trigger 'focusout' event on host element.
+        this.input.nativeElement.blur();
       }
-      this.updateCurrentValue();
     };
     Def.Autocompleter.Event.observeListSelections(
       testInputId,
