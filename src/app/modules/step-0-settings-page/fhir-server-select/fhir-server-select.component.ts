@@ -65,6 +65,10 @@ export class FhirServerSelectComponent
   // Flag to prevent 'focusin' callback in case of the SMART on FHIR checkbox,
   // click, which would otherwise cause hide the checkbox after unchecking it.
   preventFocusFlag = false;
+  // Flag to hide server list. User selects a server from the list, focus will come
+  // back to this control after new server initialization. At this time, this flag
+  // is used to hide the server list.
+  hideListFlag = false;
   // Timer for checking SMART on FHIR availability for current server URL being typed.
   inputTimeout = null;
 
@@ -135,6 +139,10 @@ export class FhirServerSelectComponent
     if (!this.preventFocusFlag && !this.focused) {
       this.focused = true;
       this.stateChanges.next();
+      if (this.hideListFlag) {
+        this.acInstance?.hideList();
+        this.hideListFlag = false;
+      }
     }
   }
 
@@ -242,9 +250,8 @@ export class FhirServerSelectComponent
         eventData.input_method === 'arrows'
       ) {
         this.checkSmartOnFhirEnabled(eventData.final_val);
-        // Focus out of the server select control.
-        // This will trigger 'focusout' event on host element.
-        this.input.nativeElement.blur();
+        this.hideListFlag = true;
+        this.updateCurrentValue();
       }
     };
     Def.Autocompleter.Event.observeListSelections(

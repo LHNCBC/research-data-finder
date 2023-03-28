@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.1.3] - 2022-03-27
+## [6.1.3] - 2023-03-28
 ### Fixed
 - Close the server select list after selection.
 
