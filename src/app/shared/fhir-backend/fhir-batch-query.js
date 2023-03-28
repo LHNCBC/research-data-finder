@@ -373,8 +373,11 @@ export class FhirBatchQuery {
     return new Promise((resolve, reject) => {
       let fullUrl = this.getFullUrl(url);
       let body, contentType, method;
-      // Maximum URL length is 2048, but we can add some parameters later (in the _request function).
-      if (fullUrl.length > 1900) {
+      // Maximum URL length is 2048, but we can add some parameters later
+      // (in the "_request" function).
+      // '.../$lastn/_search' is not a valid operation. We can wrap it in
+      // a batch request instead (see "_postPending" function).
+      if (fullUrl.length > 1900 && fullUrl.indexOf('/$lastn') === -1) {
         contentType = 'application/x-www-form-urlencoded';
         method = 'POST';
         [fullUrl, body] = fullUrl.split('?');
@@ -651,7 +654,14 @@ export class FhirBatchQuery {
 
     const requests = this.getNextRequestsToPerform();
 
-    if (requests.length > 1) {
+    if (
+      requests.length > 1 ||
+      // If we have only one request, but its URL is too long, we can wrap it in
+      // a batch query.
+      // Maximum URL length is 2048, but we can add some parameters later
+      // (in the "_request" function).
+      (requests.length === 1 && requests[0].url.length > 1900)
+    ) {
       // A controller object that allows aborting of the batch request if all
       // requests are aborted
       const abortController = new AbortController();

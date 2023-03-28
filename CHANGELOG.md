@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.5.0] - 2023-03-28
+### Changed
+- The list for selecting codes in the "pull data for cohort" step is limited to
+  those codes that exist for the patient cohort.
+
 ## [6.4.0] - 2023-03-24
 ### Changed
 - Cart UI changes:
