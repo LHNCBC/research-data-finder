@@ -7,6 +7,10 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Close the server select list after selection.
 
+## [6.1.2] - 2023-03-28
+### Fixed
+- Issue with browser back button after RAS login.
+
 ## [6.1.1] - 2022-03-08
 ### Changed
 - Updated to Node.js 18.
