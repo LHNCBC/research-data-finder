@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.1.2] - 2022-03-24
+## [6.1.2] - 2023-03-28
 ### Fixed
 - Issue with browser back button after RAS login.
 
