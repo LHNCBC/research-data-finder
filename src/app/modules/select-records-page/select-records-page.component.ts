@@ -78,7 +78,7 @@ export class SelectRecordsPageComponent
       this.clearSelectedRecords('Variable');
     }
     this.liveAnnouncer.announce(
-      'Added selected variables to the cart area below.'
+      'Added selected variables to the cart area above.'
     );
   }
 
