@@ -242,7 +242,7 @@ export class SelectRecordsPageComponent
               }
             }
           },
-          ...(this.cart.variableData[item.id].value &&
+          ...(this.cart.variableData[item.id]?.value &&
           this.cart.variableData[item.id].value.testValue !== null &&
           this.cart.variableData[item.id].value.testValue !== ''
             ? [
