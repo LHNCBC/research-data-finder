@@ -11,7 +11,11 @@ import {
   startWith,
   switchMap
 } from 'rxjs/operators';
-import { getNextPageUrl, modifyStringForSynonyms } from '../utils';
+import {
+  escapeStringForRegExp,
+  getNextPageUrl,
+  modifyStringForSynonyms
+} from '../utils';
 import { Sort } from '@angular/material/sort';
 import { CartService } from '../cart/cart.service';
 import { HttpOptions } from '../../types/http-options';
@@ -374,6 +378,33 @@ export class SelectRecordsService {
           )
       : of([]);
 
+    const filterParams = {
+      ...(filters.code
+        ? {
+            'code:text': modifyStringForSynonyms(
+              ObservationCodeLookupComponent.wordSynonymsLookup,
+              filters.code
+            )
+          }
+        : {}),
+      ...(filters.code_value
+        ? {
+            code: filters.code_value
+          }
+        : {}),
+      ...(filters.category
+        ? {
+            'category:text': modifyStringForSynonyms(
+              ObservationCodeLookupComponent.wordSynonymsLookup,
+              filters.category
+            )
+          }
+        : {}),
+      ...(Object.keys(processedCodes).length
+        ? { 'code:not': Object.keys(processedCodes).join(',') }
+        : {})
+    };
+
     this.resourceStream[resourceType] = patientRefs.pipe(
       concatMap((references) => {
         // For debug:
@@ -396,7 +427,7 @@ export class SelectRecordsService {
           lastnLookup && !reset
             ? {}
             : {
-                _elements: 'code,value,category,component',
+                _elements: 'code,value,category',
                 // TODO: Currently, we can't link Observations to ResearchStudies
                 //   through a search parameter. That may be possible in R5. See:
                 //   https://build.fhir.org/extension-workflow-researchstudy.html
@@ -410,50 +441,52 @@ export class SelectRecordsService {
                 //     }
                 //   : {}),
                 ...(references.length ? { patient: references.join(',') } : {}),
-                ...(filters.code
-                  ? {
-                      'code:text': modifyStringForSynonyms(
-                        ObservationCodeLookupComponent.wordSynonymsLookup,
-                        filters.code
-                      )
-                    }
-                  : {}),
-                ...(filters.loinc_num
-                  ? {
-                      code: filters.loinc_num
-                    }
-                  : {}),
-                ...(filters.category
-                  ? {
-                      'category:text': modifyStringForSynonyms(
-                        ObservationCodeLookupComponent.wordSynonymsLookup,
-                        filters.category
-                      )
-                    }
-                  : {}),
-                ...(Object.keys(processedCodes).length
-                  ? { 'code:not': Object.keys(processedCodes).join(',') }
-                  : {}),
+                ...filterParams,
                 _count: 1000
               };
         return this.http.get(url, { params: reqParams });
       }),
       map((data: Bundle) => {
         const codes = {};
+        const reCodeText = filterParams['code:text']
+          ? new RegExp(
+              '(' +
+                filterParams['code:text']
+                  .split(',')
+                  .map((str) => escapeStringForRegExp(str))
+                  .join('|') +
+                ')',
+              'i'
+            )
+          : null;
         currentState.resources = currentState.resources.concat(
-          data.entry
-            ?.map((item) => item.resource as Observation)
-            .filter((obs) => {
-              return (
-                obs.code.coding.filter((coding) => {
-                  if (codes[coding.code]) {
+          ...data.entry?.map((item) => {
+            const obs = item.resource as Observation;
+            return (
+              obs.code.coding
+                .filter((coding) => {
+                  // Exclude duplicate codes and codes that don't match filters
+                  if (
+                    codes[coding.code] ||
+                    (filterParams.code && coding.code !== filterParams.code) ||
+                    (reCodeText && !reCodeText.test(coding.display))
+                  ) {
                     return false;
                   }
                   codes[coding.code] = true;
                   return true;
-                }).length > 0
-              );
-            }) || []
+                })
+                // Create a variable record for each code
+                .map((coding) => ({
+                  ...obs,
+                  // Replace observation ID with code, this ID is used for identify variable in cart
+                  id: coding.code,
+                  code: {
+                    coding: [coding]
+                  }
+                }))
+            );
+          })
         );
 
         currentState.nextBundleUrl = getNextPageUrl(data);

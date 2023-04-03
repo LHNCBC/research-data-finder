@@ -237,7 +237,9 @@ export class SelectRecordsPageComponent
                 datatype: this.cart.getVariableType(item),
                 // TODO: get from loaded variable?
                 items: [
-                  item.display_name || item.code.text || item.coding[0].display
+                  item.display_name ||
+                    item.code.text ||
+                    item.code.coding[0].display
                 ]
               }
             }
