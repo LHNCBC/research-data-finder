@@ -459,6 +459,14 @@ export class SelectRecordsService {
               'i'
             )
           : null;
+        const allowedCodes = filterParams.code
+          ?.trim()
+          .split(/\s*,\s*/)
+          .filter((code) => code)
+          .reduce((acc, code) => {
+            acc[code.trim()] = true;
+            return acc;
+          }, {});
         currentState.resources = currentState.resources.concat(
           ...data.entry?.map((item) => {
             const obs = item.resource as Observation;
@@ -466,15 +474,14 @@ export class SelectRecordsService {
               obs.code.coding
                 .filter((coding) => {
                   // Exclude duplicate codes and codes that don't match filters
-                  if (
-                    codes[coding.code] ||
-                    (filterParams.code && coding.code !== filterParams.code) ||
-                    (reCodeText && !reCodeText.test(coding.display))
-                  ) {
-                    return false;
+                  const suitableCode =
+                    !codes[coding.code] &&
+                    (!allowedCodes?.length || allowedCodes[coding.code]) &&
+                    (!reCodeText || reCodeText.test(coding.display));
+                  if (suitableCode) {
+                    codes[coding.code] = true;
                   }
-                  codes[coding.code] = true;
-                  return true;
+                  return suitableCode;
                 })
                 // Create a variable record for each code
                 .map((coding) => ({
