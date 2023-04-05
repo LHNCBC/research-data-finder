@@ -3,9 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.1.3] - 2023-03-31
+## [6.1.4] - 2023-04-05
 ### Changed
 - Show message inside table when no record matches filter.
+
+## [6.1.3] - 2023-03-28
+### Fixed
+- Close the server select list after selection.
 
 ## [6.1.2] - 2023-03-28
 ### Fixed
