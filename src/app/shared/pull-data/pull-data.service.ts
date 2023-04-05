@@ -175,9 +175,9 @@ export class PullDataService {
           let linkToPatient;
 
           if (resourceType === 'ResearchStudy') {
-            linkToPatient = `_has:ResearchSubject:study:individual=${patients
-              .map((patient) => patient.id)
-              .join(',')}`;
+            linkToPatient = `_has:ResearchSubject:study:${
+              this.fhirBackend.subjectParamName
+            }=${patients.map((patient) => patient.id).join(',')}`;
           } else if (resourceType === 'Patient') {
             linkToPatient = `_id=${patients
               .map((patient) => patient.id)
@@ -205,8 +205,7 @@ export class PullDataService {
                   `&_count=${maxObservationToCheck}`
                 : `&_count=${perPatientCount}`;
             requests = [
-              this.http
-                .get(
+              this.http.get(
                 `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}${countParam}`
               )
             ];
