@@ -1,3 +1,7 @@
+/**
+ * The file contains a service for loading and processing records in
+ * the "Select records" and "Browse public data" steps.
+ */
 import { Injectable } from '@angular/core';
 import Resource = fhir.Resource;
 import { forkJoin, from, Observable, of, pipe, UnaryFunction } from 'rxjs';
@@ -316,14 +320,14 @@ export class SelectRecordsService {
   }
 
   /**
-   * Loads Observations for selected research studies.
+   * Loads a list of variables for selected research studies from observations.
    * @param selectedResearchStudies - array of selected research studies.
    * @param params - http parameters
    * @param filters - filter values
    * @param sort - the current sort state
    * @param reset - whether to reset already loaded data
    */
-  loadObservations(
+  loadVariablesFromObservations(
     selectedResearchStudies: Resource[],
     params: {
       [param: string]: any;
@@ -419,13 +423,15 @@ export class SelectRecordsService {
                   .map((s) => 'ResearchStudy/' + s.id)
                   .join(',')
               }
-            : {
+            : this.fhirBackend.features.hasResearchStudy
+            ? {
                 '_has:ResearchSubject:subject:status': Object.keys(
                   this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
                     'ResearchSubject.status'
                   ]
                 ).join(',')
               }
+            : null
         ),
         this.convertObservationToVariableRecords(currentState, obsFilterParams),
         catchError(() => {
@@ -477,7 +483,7 @@ export class SelectRecordsService {
           if (isNew) {
             currentState.processedObservationCodes.add(codeAndSystem);
             requests.push(
-              this.fhirBackend.features.hasResearchStudy
+              patientFilters
                 ? this.http
                     .get('$fhir/Patient', {
                       params: {
