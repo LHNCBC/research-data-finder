@@ -15,7 +15,11 @@ import {
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import {
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup
+} from '@angular/forms';
 import { ColumnDescription } from '../../types/column.description';
 import { distinctUntilChanged, filter, sample, tap } from 'rxjs/operators';
 import { escapeStringForRegExp } from '../../shared/utils';
@@ -744,6 +748,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       this.filtersForm.get(column).value &&
       this.filtersForm.get(column).value.length
     );
+  }
+
+  /**
+   * Whether the table has any filter criteria entered.
+   */
+  hasFilters(): boolean {
+    return Object.values(this.filtersForm.value).some((v) => !!v);
   }
 
   /**
