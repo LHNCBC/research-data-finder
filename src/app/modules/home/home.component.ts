@@ -32,7 +32,18 @@ export class HomeComponent implements AfterViewInit {
       'noopener noreferrer'
     );
   }
+
   switchVersion(): void {
+    if (this.rasToken.rasTokenValidated) {
+      this.rasToken.logout().then(() => {
+        this.setVersionUrlParam();
+      });
+    } else {
+      this.setVersionUrlParam();
+    }
+  }
+
+  private setVersionUrlParam(): void {
     window.location.href = setUrlParam(
       'alpha-version',
       this.isAlpha ? 'disable' : 'enable'
