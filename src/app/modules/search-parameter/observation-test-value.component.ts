@@ -124,7 +124,7 @@ export class ObservationTestValueComponent
 
   ngOnInit(): void {
     this.form.get('testValuePrefix').valueChanges.subscribe((value) => {
-      this.updateSecondLineVisibility(value);
+      this.resetSecondLine();
     });
     this.form.valueChanges.subscribe(() => {
       this.formValue = this.form.getRawValue();
@@ -203,19 +203,17 @@ export class ObservationTestValueComponent
     this.selectedDatatype = value;
     this.form.get('testValue').setValue('');
     this.form.get('testValueUnit').setValue('');
-    this.updateSecondLineVisibility(value);
+    this.resetSecondLine();
   }
 
   /**
-   * Update the visibility of the second line of range input.
-   * Hide the second line if applicable.
+   * Hide the second line.
    * The method is called when the comparator control in the first line is updated.
-   * @param prefix value of the prefix control in the first line
    */
-  updateSecondLineVisibility(prefix: string): void {
-    if (!this.rangeComparatorOptions[prefix]) {
-      this.hasSecondLine = false;
-    }
+  resetSecondLine(): void {
+    this.form.get('testValuePrefix2').setValue('');
+    this.form.get('testValue2').setValue('');
+    this.hasSecondLine = false;
   }
 
   /**
