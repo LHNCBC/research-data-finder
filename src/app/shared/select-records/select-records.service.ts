@@ -379,11 +379,17 @@ export class SelectRecordsService {
         : {}),
       ...(currentState.processedObservationCodes.size
         ? {
-            // Pass each code as a separate "code:not" parameter, which is
-            // currently causing performance issues on the R4 server.
-            'code:not': Array.from<string>(
-              currentState.processedObservationCodes.keys()
-            )
+            'code:not': this.fhirBackend.features.hasNotModifierIssue
+              ? // Pass a single "code:not" parameter, which is currently working
+                // correctly on the HAPI FHIR server.
+                Array.from<string>(
+                  currentState.processedObservationCodes.keys()
+                ).join(',')
+              : // Pass each code as a separate "code:not" parameter, which is
+                // currently causing performance issues on the HAPI FHIR server.
+                Array.from<string>(
+                  currentState.processedObservationCodes.keys()
+                )
           }
         : {})
     };

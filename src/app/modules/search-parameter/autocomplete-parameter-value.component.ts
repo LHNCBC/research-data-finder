@@ -412,9 +412,14 @@ export class AutocompleteParameterValueComponent
                         }
                       });
                       const newParams = { ...params };
-                      newParams[`${this.searchParameter}:not`] = Object.keys(
-                        processedCodes
-                      ).join(',');
+                      newParams[`${this.searchParameter}:not`] = this
+                        .fhirBackend.features.hasNotModifierIssue
+                        ? // Pass a single ":not" parameter, which is currently working
+                          // correctly on the HAPI FHIR server.
+                          Object.keys(processedCodes).join(',')
+                        : // Pass each code as a separate ":not" parameter, which is
+                          // currently causing performance issues on the HAPI FHIR server.
+                          Object.keys(processedCodes);
                       return this.httpClient.get(url, {
                         params: newParams
                       });
@@ -583,9 +588,14 @@ export class AutocompleteParameterValueComponent
                         }
                       });
                       const newParams = { ...params };
-                      newParams['_id:not'] = Object.keys(processedCodes).join(
-                        ','
-                      );
+                      newParams['_id:not'] = this.fhirBackend.features
+                        .hasNotModifierIssue
+                        ? // Pass a single "_id:not" parameter, which is currently working
+                          // correctly on the HAPI FHIR server.
+                          Object.keys(processedCodes).join(',')
+                        : // Pass each code as a separate "_id:not" parameter, which is
+                          // currently causing performance issues on the HAPI FHIR server.
+                          Object.keys(processedCodes);
                       return this.httpClient.get(url, {
                         params: newParams
                       });

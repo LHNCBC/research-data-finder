@@ -306,7 +306,14 @@ export class ObservationCodeLookupComponent
                           return this.httpClient.get(url, {
                             params: {
                               ...params,
-                              'code:not': Object.keys(processedCodes).join(',')
+                              'code:not': this.fhirBackend.features
+                                .hasNotModifierIssue
+                                ? // Pass a single "code:not" parameter, which is currently working
+                                  // correctly on the HAPI FHIR server.
+                                  Object.keys(processedCodes).join(',')
+                                : // Pass each code as a separate "code:not" parameter, which is
+                                  // currently causing performance issues on the HAPI FHIR server.
+                                  Object.keys(processedCodes)
                             }
                           });
                         }
