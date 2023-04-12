@@ -1,5 +1,10 @@
 <form [formGroup]="form">
   <div class="test-value">
+    <button type='button' mat-icon-button aria-label='Add the other end of the range'
+            *ngIf="showAddLineButton"
+            (click)='addLine()'>
+      <mat-icon svgIcon='add'></mat-icon>
+    </button>
     <mat-form-field *ngIf="!datatype" class="comparator">
       <mat-label>Comparator</mat-label>
       <mat-select [(ngModel)]="testValueComparator" [ngModelOptions]="{standalone: true}">
@@ -48,7 +53,6 @@
                placeholder="enter string value">
       </ng-container>
     </mat-form-field>
-
     <mat-form-field *ngIf="typeDescriptions[selectedDatatype].unit" class="unit">
       <mat-label>Test value unit</mat-label>
       <ng-container [ngSwitch]="unitList?.length > 0 ? 1 : unitList?.length === 0 ? 2 : 3">
@@ -65,6 +69,26 @@
             placeholder="unit code">
         </app-observation-test-value-units>
       </ng-container>
+    </mat-form-field>
+  </div>
+
+  <div class="test-value" *ngIf="hasSecondLine">
+    <button type='button' mat-icon-button aria-label='Remove this end of the range'
+            (click)='removeLine()'>
+      <mat-icon svgIcon='clear'></mat-icon>
+    </button>
+    <mat-form-field class="comparator">
+      <mat-label>Comparator</mat-label>
+      <mat-select>
+        <mat-option *ngFor="let option of rangeComparatorOptions[prefixControlValue]"
+                    [value]="option[1]">{{option[0]}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="value">
+      <mat-label>Test value</mat-label>
+        <input type="number" step="any" matInput
+               autocomplete="off"
+               placeholder="enter number value">
     </mat-form-field>
   </div>
 </form>

@@ -5,7 +5,11 @@ import {
   OnInit,
   SimpleChanges
 } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
@@ -42,6 +46,8 @@ export class ObservationTestValueComponent
   @Input() required = true;
   selectedDatatype = 'Quantity';
   testValueComparator = 'Quantity - ';
+  hasSecondLine = false;
+  formValue = undefined;
   form = new UntypedFormGroup({
     testValuePrefix: new UntypedFormControl(''),
     testValueModifier: new UntypedFormControl(''),
@@ -75,23 +81,58 @@ export class ObservationTestValueComponent
       unit: false
     }
   };
+  readonly rangeComparatorOptions = {
+    gt: [
+      ['<', 'lt'],
+      ['<=', 'le']
+    ],
+    ge: [
+      ['<', 'lt'],
+      ['<=', 'le']
+    ],
+    lt: [
+      ['>', 'gt'],
+      ['>=', 'ge']
+    ],
+    le: [
+      ['>', 'gt'],
+      ['>=', 'ge']
+    ]
+  };
+
+  /**
+   * Prefix value, e.g. 'lt','le'.
+   */
+  get prefixControlValue(): string {
+    return this.formValue.testValuePrefix;
+  }
+
+  /**
+   * Whether to show the button to add a second line.
+   * The button show be shown if the options selected in the first line comparator
+   * control is '>', '>=', '<' or '<='.
+   */
+  get showAddLineButton(): boolean {
+    return this.rangeComparatorOptions[this.prefixControlValue] !== undefined;
+  }
 
   ngOnInit(): void {
     this.form.valueChanges.subscribe(() => {
-      const formValue = this.form.getRawValue();
+      this.formValue = this.form.getRawValue();
       if (!this.datatype) {
         // In case of "Variable Value" without "Variable Name", move value from 'testValueComparator' to construct the right query.
-        formValue.testValuePrefix =
+        this.formValue.testValuePrefix =
           (this.selectedDatatype === 'Quantity' &&
             this.testValueComparator.substr(11)) ||
           '';
-        formValue.testValueModifier =
+        this.formValue.testValueModifier =
           (this.selectedDatatype === 'String' &&
             this.testValueComparator.substr(9)) ||
           '';
       }
-      formValue.observationDataType = this.datatype || this.selectedDatatype;
-      this.onChange(formValue);
+      this.formValue.observationDataType =
+        this.datatype || this.selectedDatatype;
+      this.onChange(this.formValue);
     });
   }
 
@@ -148,5 +189,19 @@ export class ObservationTestValueComponent
     this.selectedDatatype = value;
     this.form.get('testValue').setValue('');
     this.form.get('testValueUnit').setValue('');
+  }
+
+  /**
+   * Add a second line for the other end of the range constraint.
+   */
+  addLine(): void {
+    this.hasSecondLine = true;
+  }
+
+  /**
+   * Remove the second line of controls.
+   */
+  removeLine(): void {
+    this.hasSecondLine = false;
   }
 }

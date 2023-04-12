@@ -2,6 +2,23 @@
   display: flex;
   flex-direction: row;
   align-items: flex-start;
+
+  & .mat-icon-button:not(:hover) mat-icon {
+    opacity: .4;
+  }
+
+  & button {
+    margin-top: 0.4em;
+  }
+
+  & ~ button,
+  & ~ .search-parameter-row {
+    margin-top: 6px;
+  }
+
+  ::ng-deep .mat-form-field-subscript-wrapper {
+    display: none;
+  }
 }
 
 mat-form-field {
