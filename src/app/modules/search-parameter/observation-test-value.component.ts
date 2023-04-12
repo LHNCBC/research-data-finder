@@ -116,10 +116,16 @@ export class ObservationTestValueComponent
    * control is '>', '>=', '<' or '<='.
    */
   get showAddLineButton(): boolean {
-    return this.rangeComparatorOptions[this.prefixControlValue] !== undefined;
+    return (
+      !this.hasSecondLine &&
+      this.rangeComparatorOptions[this.prefixControlValue] !== undefined
+    );
   }
 
   ngOnInit(): void {
+    this.form.get('testValuePrefix').valueChanges.subscribe((value) => {
+      this.updateSecondLineVisibility(value);
+    });
     this.form.valueChanges.subscribe(() => {
       this.formValue = this.form.getRawValue();
       if (!this.datatype) {
@@ -197,6 +203,19 @@ export class ObservationTestValueComponent
     this.selectedDatatype = value;
     this.form.get('testValue').setValue('');
     this.form.get('testValueUnit').setValue('');
+    this.updateSecondLineVisibility(value);
+  }
+
+  /**
+   * Update the visibility of the second line of range input.
+   * Hide the second line if applicable.
+   * The method is called when the comparator control in the first line is updated.
+   * @param prefix value of the prefix control in the first line
+   */
+  updateSecondLineVisibility(prefix: string): void {
+    if (!this.rangeComparatorOptions[prefix]) {
+      this.hasSecondLine = false;
+    }
   }
 
   /**

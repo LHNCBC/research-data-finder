@@ -1,7 +1,7 @@
 <form [formGroup]="form">
   <div class="test-value">
     <button type='button' mat-icon-button aria-label='Add the other end of the range'
-            *ngIf="showAddLineButton"
+            *ngIf="showAddLineButton" matTooltip="Add the other end of the range"
             (click)='addLine()'>
       <mat-icon svgIcon='add'></mat-icon>
     </button>
@@ -74,6 +74,7 @@
 
   <div class="test-value" *ngIf="hasSecondLine">
     <button type='button' mat-icon-button aria-label='Remove this end of the range'
+            matTooltip="Remove this end of the range"
             (click)='removeLine()'>
       <mat-icon svgIcon='clear'></mat-icon>
     </button>
