@@ -79,7 +79,7 @@
     </button>
     <mat-form-field class="comparator">
       <mat-label>Comparator</mat-label>
-      <mat-select>
+      <mat-select formControlName="testValuePrefix2">
         <mat-option *ngFor="let option of rangeComparatorOptions[prefixControlValue]"
                     [value]="option[1]">{{option[0]}}</mat-option>
       </mat-select>
@@ -87,6 +87,7 @@
     <mat-form-field class="value">
       <mat-label>Test value</mat-label>
         <input type="number" step="any" matInput
+               formControlName="testValue2"
                autocomplete="off"
                placeholder="enter number value">
     </mat-form-field>

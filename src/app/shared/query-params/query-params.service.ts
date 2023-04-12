@@ -181,8 +181,11 @@ export class QueryParamsService {
       value.value.observationDataType,
       value.value
     );
+    const testValueCriteria2 = this.getCompositeTestValueCriteria2(value.value);
     return testValueCriteria
-      ? `&${valueParamName}${modifier}=${testValueCriteria}`
+      ? testValueCriteria2
+        ? `&${valueParamName}${modifier}=${testValueCriteria}&${valueParamName}=${testValueCriteria2}`
+        : `&${valueParamName}${modifier}=${testValueCriteria}`
       : '';
   }
 
@@ -200,6 +203,24 @@ export class QueryParamsService {
     const testValue =
       value.testValue !== undefined && value.testValue !== null // preserve "0" in query if user type "0" in numeric test value
         ? escapeFhirSearchParameter(value.testValue.toString())
+        : '';
+    const unit = value.testValueUnit;
+    return testValue.trim()
+      ? `${prefix}${encodeURIComponent(
+          testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
+        )}`
+      : '';
+  }
+
+  /**
+   * Get criteria string for composite test value controls in the second line
+   * Format: prefix + value + unit
+   */
+  private getCompositeTestValueCriteria2(value: any): string {
+    const prefix = value.testValuePrefix2;
+    const testValue =
+      value.testValue2 !== undefined && value.testValue2 !== null // preserve "0" in query if user type "0" in numeric test value
+        ? escapeFhirSearchParameter(value.testValue2.toString())
         : '';
     const unit = value.testValueUnit;
     return testValue.trim()

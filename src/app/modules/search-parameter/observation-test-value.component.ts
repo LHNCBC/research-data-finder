@@ -52,7 +52,9 @@ export class ObservationTestValueComponent
     testValuePrefix: new UntypedFormControl(''),
     testValueModifier: new UntypedFormControl(''),
     testValue: new UntypedFormControl('', Validators.required),
-    testValueUnit: new UntypedFormControl('')
+    testValueUnit: new UntypedFormControl(''),
+    testValuePrefix2: new UntypedFormControl(''),
+    testValue2: new UntypedFormControl('')
   });
   // Mapping for supported value[x] properties of Observation
   readonly typeDescriptions = {
@@ -81,6 +83,7 @@ export class ObservationTestValueComponent
       unit: false
     }
   };
+  // Mapping for range comparators
   readonly rangeComparatorOptions = {
     gt: [
       ['<', 'lt'],
@@ -109,7 +112,7 @@ export class ObservationTestValueComponent
 
   /**
    * Whether to show the button to add a second line.
-   * The button show be shown if the options selected in the first line comparator
+   * The button should be shown if the options selected in the first line comparator
    * control is '>', '>=', '<' or '<='.
    */
   get showAddLineButton(): boolean {
@@ -129,6 +132,11 @@ export class ObservationTestValueComponent
           (this.selectedDatatype === 'String' &&
             this.testValueComparator.substr(9)) ||
           '';
+      }
+      if (!this.hasSecondLine) {
+        // In case of adding and removing the second line, reset second line control values.
+        this.formValue.testValuePrefix2 = '';
+        this.formValue.testValue2 = '';
       }
       this.formValue.observationDataType =
         this.datatype || this.selectedDatatype;
