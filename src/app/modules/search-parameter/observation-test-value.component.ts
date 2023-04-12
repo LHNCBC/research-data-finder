@@ -25,6 +25,8 @@ export interface ObservationTestValue {
   testValueModifier: string;
   testValue: number | string;
   testValueUnit: string;
+  testValuePrefix2?: string;
+  testValue2?: number | string;
 }
 
 /**
@@ -170,7 +172,9 @@ export class ObservationTestValueComponent
         testValuePrefix: '',
         testValueModifier: '',
         testValue: '',
-        testValueUnit: ''
+        testValueUnit: '',
+        testValuePrefix2: '',
+        testValue2: ''
       }
     );
     if (
@@ -193,6 +197,10 @@ export class ObservationTestValueComponent
       } else if (this.selectedDatatype === 'String') {
         this.testValueComparator = `${this.selectedDatatype} - ${value.testValueModifier}`;
       }
+    }
+    if (value.testValuePrefix2 || value.testValue2) {
+      // Show the second line if the controls have value.
+      this.hasSecondLine = true;
     }
   }
 
