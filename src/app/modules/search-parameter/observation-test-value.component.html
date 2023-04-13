@@ -1,9 +1,9 @@
 <form [formGroup]="form">
   <div class="test-value">
-    <button type='button' mat-icon-button aria-label='Add the other end of the range'
+    <button type="button" mat-icon-button aria-label="Add the other end of the range"
             *ngIf="showAddLineButton" matTooltip="Add the other end of the range"
-            (click)='addLine()'>
-      <mat-icon svgIcon='add'></mat-icon>
+            (click)="addLine()">
+      <mat-icon svgIcon="add"></mat-icon>
     </button>
     <mat-form-field *ngIf="!datatype" class="comparator">
       <mat-label>Comparator</mat-label>
@@ -38,13 +38,13 @@
       <mat-label>Test value</mat-label>
       <ng-container [ngSwitch]="selectedDatatype">
         <app-autocomplete-parameter-value
-            *ngSwitchCase="'CodeableConcept'"
-            formControlName="testValue" placeholder="Select one or more"
-            resourceType="Observation"
-            [observationCodes]="observationCodes"
-            columnName="value"
-            expression="value"
-            searchParameter="value-concept">
+          *ngSwitchCase="'CodeableConcept'"
+          formControlName="testValue" placeholder="Select one or more"
+          resourceType="Observation"
+          [observationCodes]="observationCodes"
+          columnName="value"
+          expression="value"
+          searchParameter="value-concept">
         </app-autocomplete-parameter-value>
         <input *ngSwitchCase="'Quantity'" type="number" step="any" matInput formControlName="testValue"
                autocomplete="off"
@@ -57,26 +57,27 @@
       <mat-label>Test value unit</mat-label>
       <ng-container [ngSwitch]="unitList?.length > 0 ? 1 : unitList?.length === 0 ? 2 : 3">
         <app-autocomplete
-            *ngSwitchCase="1"
-            [matchListValue]="false"
-            [options]="unitList"
-            formControlName="testValueUnit"></app-autocomplete>
-        <input matInput type="text" readonly *ngSwitchCase="2" value="{{form.get('testValueUnit').value || 'Unknown unit'}}">
+          *ngSwitchCase="1"
+          [matchListValue]="false"
+          [options]="unitList"
+          formControlName="testValueUnit"></app-autocomplete>
+        <input matInput type="text" readonly *ngSwitchCase="2"
+               value="{{form.get('testValueUnit').value || 'Unknown unit'}}">
         <app-observation-test-value-units
-            *ngSwitchDefault
-            formControlName="testValueUnit"
-            [loincCodes]="loincCodes"
-            placeholder="unit code">
+          *ngSwitchDefault
+          formControlName="testValueUnit"
+          [loincCodes]="loincCodes"
+          placeholder="unit code">
         </app-observation-test-value-units>
       </ng-container>
     </mat-form-field>
   </div>
 
   <div class="test-value" *ngIf="hasSecondLine">
-    <button type='button' mat-icon-button aria-label='Remove this end of the range'
+    <button type="button" mat-icon-button aria-label="Remove this end of the range"
             matTooltip="Remove this end of the range"
-            (click)='resetSecondLine()'>
-      <mat-icon svgIcon='clear'></mat-icon>
+            (click)="resetSecondLine()">
+      <mat-icon svgIcon="clear"></mat-icon>
     </button>
     <mat-form-field class="comparator">
       <mat-label>Comparator</mat-label>
@@ -87,10 +88,10 @@
     </mat-form-field>
     <mat-form-field class="value">
       <mat-label>Test value</mat-label>
-        <input type="number" step="any" matInput
-               formControlName="testValue2"
-               autocomplete="off"
-               placeholder="enter number value">
+      <input type="number" step="any" matInput
+             formControlName="testValue2"
+             autocomplete="off"
+             placeholder="enter number value">
     </mat-form-field>
   </div>
 </form>
