@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.5.1] - 2023-04-13
+### Added
+- Ability to add the other end of the range in a second line for Observation
+  variable constraints, if the selected comparator in the first line is '>',
+  '>=', '<' or '<='.
+
 ## [6.5.0] - 2023-03-28
 ### Changed
 - The list for selecting codes in the "pull data for cohort" step is limited to
