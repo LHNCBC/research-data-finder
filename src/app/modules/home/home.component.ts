@@ -32,7 +32,27 @@ export class HomeComponent implements AfterViewInit {
       'noopener noreferrer'
     );
   }
+
+  /**
+   * Switch between 'alpha' and stable versions of the app.
+   * Log out of RAS if it was logged in when switching.
+   */
   switchVersion(): void {
+    if (this.rasToken.rasTokenValidated) {
+      this.rasToken.logout().then(() => {
+        this.setVersionUrlParam();
+      });
+    } else {
+      this.setVersionUrlParam();
+    }
+  }
+
+  /**
+   * Update the url 'alpha-version' parameter.
+   * Called when switching alpha version on/off.
+   * @private
+   */
+  private setVersionUrlParam(): void {
     window.location.href = setUrlParam(
       'alpha-version',
       this.isAlpha ? 'disable' : 'enable'
