@@ -193,7 +193,7 @@ export class ObservationTestValueComponent
         this.testValueComparator = `${this.selectedDatatype} - ${value.testValueModifier}`;
       }
     }
-    if (value.testValuePrefix2 || value.testValue2) {
+    if (value?.testValuePrefix2 || value?.testValue2) {
       // Show the second line if the controls have value.
       this.hasSecondLine = true;
     }
