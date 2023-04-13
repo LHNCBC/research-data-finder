@@ -125,7 +125,7 @@ export class ObservationTestValueComponent
   }
 
   ngOnInit(): void {
-    this.form.get('testValuePrefix').valueChanges.subscribe((value) => {
+    this.form.get('testValuePrefix').valueChanges.subscribe(() => {
       this.resetSecondLine();
     });
     this.form.valueChanges.subscribe(() => {
@@ -140,11 +140,6 @@ export class ObservationTestValueComponent
           (this.selectedDatatype === 'String' &&
             this.testValueComparator.substr(9)) ||
           '';
-      }
-      if (!this.hasSecondLine) {
-        // In case of adding and removing the second line, reset second line control values.
-        this.formValue.testValuePrefix2 = '';
-        this.formValue.testValue2 = '';
       }
       this.formValue.observationDataType =
         this.datatype || this.selectedDatatype;
@@ -216,7 +211,8 @@ export class ObservationTestValueComponent
 
   /**
    * Hide the second line.
-   * The method is called when the comparator control in the first line is updated.
+   * The method is called when the comparator control in the first line is updated,
+   * or when user clicks the 'remove' button on the second line.
    */
   resetSecondLine(): void {
     this.form.get('testValuePrefix2').setValue('');
@@ -229,12 +225,5 @@ export class ObservationTestValueComponent
    */
   addLine(): void {
     this.hasSecondLine = true;
-  }
-
-  /**
-   * Remove the second line of controls.
-   */
-  removeLine(): void {
-    this.hasSecondLine = false;
   }
 }
