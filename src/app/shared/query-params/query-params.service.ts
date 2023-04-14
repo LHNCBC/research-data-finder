@@ -221,6 +221,7 @@ export class QueryParamsService {
   /**
    * Get criteria string for composite test value controls in the second line
    * Format: prefix + value + unit
+   * @return encoded url segment. If value in testValue2 is empty, return ''.
    */
   private getCompositeTestValueCriteria2(value: any): string {
     const prefix = value.testValuePrefix2;

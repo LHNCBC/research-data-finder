@@ -93,15 +93,7 @@ export class ObservationTestValueComponent
       ['<', 'lt'],
       ['<=', 'le']
     ],
-    ge: [
-      ['<', 'lt'],
-      ['<=', 'le']
-    ],
     lt: [
-      ['>', 'gt'],
-      ['>=', 'ge']
-    ],
-    le: [
       ['>', 'gt'],
       ['>=', 'ge']
     ]
@@ -116,6 +108,8 @@ export class ObservationTestValueComponent
 
   constructor(private liveAnnouncer: LiveAnnouncer) {
     super();
+    this.rangeComparatorOptions['ge'] = this.rangeComparatorOptions.gt;
+    this.rangeComparatorOptions['le'] = this.rangeComparatorOptions.lt;
   }
 
   ngOnInit(): void {

@@ -44,9 +44,9 @@
         </app-autocomplete-parameter-value>
         <input *ngSwitchCase="'Quantity'" type="number" step="any" matInput formControlName="testValue"
                autocomplete="off"
-               placeholder="enter number value">
+               placeholder="Enter number value">
         <input *ngSwitchDefault type="text" matInput formControlName="testValue"
-               placeholder="enter string value">
+               placeholder="Enter string value">
       </ng-container>
     </mat-form-field>
     <mat-form-field *ngIf="typeDescriptions[selectedDatatype].unit" class="unit">
@@ -92,7 +92,7 @@
       <input type="number" step="any" matInput
              formControlName="testValue2"
              autocomplete="off"
-             placeholder="enter number value">
+             placeholder="Enter number value">
     </mat-form-field>
   </div>
 </form>
