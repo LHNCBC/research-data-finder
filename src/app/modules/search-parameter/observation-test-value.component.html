@@ -1,13 +1,9 @@
 <form [formGroup]="form">
   <div class="test-value">
-    <button type="button" mat-icon-button aria-label="Add the other end of the range"
-            *ngIf="showAddLineButton" matTooltip="Add the other end of the range"
-            (click)="addLine()">
-      <mat-icon svgIcon="add"></mat-icon>
-    </button>
     <mat-form-field *ngIf="!datatype" class="comparator">
       <mat-label>Comparator</mat-label>
-      <mat-select [(ngModel)]="testValueComparator" [ngModelOptions]="{standalone: true}">
+      <mat-select [ngModel]="testValueComparator" [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="onComplexComparatorChange($event)">
         <mat-optgroup label="numeric comparators">
           <mat-option *ngFor="let option of typeDescriptions.Quantity.searchValPrefixes"
                       (click)="setSelectedDatatype('Quantity')"
@@ -71,12 +67,17 @@
         </app-observation-test-value-units>
       </ng-container>
     </mat-form-field>
+    <button type="button" mat-icon-button aria-label="Add the other end of the range"
+            *ngIf="showAddLineButton" matTooltip="Add the other end of the range"
+            (click)="addLine()">
+      <mat-icon svgIcon="add"></mat-icon>
+    </button>
   </div>
 
   <div class="test-value" *ngIf="hasSecondLine">
     <button type="button" mat-icon-button aria-label="Remove this end of the range"
             matTooltip="Remove this end of the range"
-            (click)="resetSecondLine()">
+            (click)="resetSecondLine(); checkToShowAddButton(prefixControlValue)">
       <mat-icon svgIcon="clear"></mat-icon>
     </button>
     <mat-form-field class="comparator">

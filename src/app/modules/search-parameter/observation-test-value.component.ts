@@ -15,6 +15,7 @@ import {
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 import { AutocompleteOption } from '../autocomplete/autocomplete.component';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * data type used for this control
@@ -48,6 +49,7 @@ export class ObservationTestValueComponent
   @Input() required = true;
   selectedDatatype = 'Quantity';
   testValueComparator = 'Quantity - ';
+  showAddLineButton = false;
   hasSecondLine = false;
   formValue = undefined;
   form = new UntypedFormGroup({
@@ -112,21 +114,14 @@ export class ObservationTestValueComponent
     return this.formValue.testValuePrefix;
   }
 
-  /**
-   * Whether to show the button to add a second line.
-   * The button should be shown if the options selected in the first line comparator
-   * control is '>', '>=', '<' or '<='.
-   */
-  get showAddLineButton(): boolean {
-    return (
-      !this.hasSecondLine &&
-      this.rangeComparatorOptions[this.prefixControlValue] !== undefined
-    );
+  constructor(private liveAnnouncer: LiveAnnouncer) {
+    super();
   }
 
   ngOnInit(): void {
-    this.form.get('testValuePrefix').valueChanges.subscribe(() => {
+    this.form.get('testValuePrefix').valueChanges.subscribe((value: string) => {
       this.resetSecondLine();
+      this.checkToShowAddButton(value);
     });
     this.form.valueChanges.subscribe(() => {
       this.formValue = this.form.getRawValue();
@@ -197,6 +192,16 @@ export class ObservationTestValueComponent
       // Show the second line if the controls have value.
       this.hasSecondLine = true;
     }
+    this.checkToShowAddButton(value?.testValuePrefix, false);
+  }
+
+  /**
+   * ngModelChange event for the standalone 'testValueComparator' control
+   * @param value e.g. 'Quantity - gt'
+   */
+  onComplexComparatorChange(value: string): void {
+    this.testValueComparator = value;
+    this.checkToShowAddButton(value.slice(-2));
   }
 
   /**
@@ -224,6 +229,26 @@ export class ObservationTestValueComponent
    * Add a second line for the other end of the range constraint.
    */
   addLine(): void {
+    this.showAddLineButton = false;
     this.hasSecondLine = true;
+    this.liveAnnouncer.announce('A new line has appeared.');
+  }
+
+  /**
+   * Announce the addition of the 'add new line' button, if applicable.
+   * @param value new value of the comparator, derivedu from Prefix control or testValueComparator control
+   * @param announce whether to announce the new button, default to true
+   * The button should be shown if the options selected in the first line comparator
+   * control is '>', '>=', '<' or '<='.
+   */
+  checkToShowAddButton(value: string, announce = true): void {
+    const oldValue = this.showAddLineButton;
+    this.showAddLineButton =
+      !this.hasSecondLine && this.rangeComparatorOptions[value] !== undefined;
+    if (announce && this.showAddLineButton && !oldValue) {
+      this.liveAnnouncer.announce(
+        'A new button for adding a second line has appeared.'
+      );
+    }
   }
 }
