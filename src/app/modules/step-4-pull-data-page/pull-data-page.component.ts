@@ -3,6 +3,7 @@ import {
   Component,
   Input,
   OnChanges,
+  OnDestroy,
   SimpleChanges
 } from '@angular/core';
 import { map, startWith } from 'rxjs/operators';
@@ -10,7 +11,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { FormControl, UntypedFormControl, Validators } from '@angular/forms';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
@@ -32,7 +33,7 @@ import { CohortService } from '../../shared/cohort/cohort.service';
 })
 export class PullDataPageComponent
   extends ResourceTableParentComponent
-  implements OnChanges, AfterViewInit {
+  implements OnChanges, AfterViewInit, OnDestroy {
   // Default observation codes for the "Pull data for the cohort" step
   @Input()
   defaultObservationCodes: SelectedObservationCodes;
@@ -43,6 +44,8 @@ export class PullDataPageComponent
   unselectedResourceTypes: string[];
   // Array of resource type names that has "code text" search parameter
   codeTextResourceTypes: string[] = [];
+  // Subscription to the loading process
+  loadSubscription: Subscription;
 
   // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
   // when the active tab changes
@@ -166,6 +169,10 @@ export class PullDataPageComponent
     );
   }
 
+  ngOnDestroy(): void {
+    this.loadSubscription?.unsubscribe();
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.defaultObservationCodes) {
       this.updateObservationCodesWithDefaults();
@@ -260,13 +267,17 @@ export class PullDataPageComponent
       parameterGroup.showErrors();
       return;
     }
-    this.pullData.loadResources(
-      resourceType,
-      this.perPatientFormControls[resourceType]?.value || 1000,
-      // TODO: simplify by using observationParameterGroup
-      parameterGroup.getConditions().criteria,
-      this.maxObservationToCheck.value
-    );
+    this.loadSubscription?.unsubscribe();
+
+    this.loadSubscription = this.pullData
+      .loadResources(
+        resourceType,
+        this.perPatientFormControls[resourceType]?.value || 1000,
+        // TODO: simplify by using observationParameterGroup
+        parameterGroup.getConditions().criteria,
+        this.maxObservationToCheck.value
+      )
+      .subscribe();
   }
 
   /**

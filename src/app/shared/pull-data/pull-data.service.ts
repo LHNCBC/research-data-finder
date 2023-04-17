@@ -129,7 +129,7 @@ export class PullDataService {
     perPatientCount: number,
     criteria: string,
     maxObservationToCheck: number = 1000
-  ): void {
+  ): Observable<Resource[]> {
     const currentState: PullDataState = {
       loading: true,
       resources: [],
@@ -256,6 +256,8 @@ export class PullDataService {
         currentState.loading = false;
       })
     );
+
+    return this.resourceStream[resourceType];
   }
 
   /**
@@ -391,7 +393,7 @@ export class PullDataService {
           ...entry.resource,
           ...(patients.length === 1 ? { patientData: patients[0] } : {})
         })) || [];
-      currentState.resources.push(...res);
+      currentState.resources = currentState.resources.concat(res);
       return res;
     };
   }
