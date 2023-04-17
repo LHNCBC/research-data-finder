@@ -95,11 +95,15 @@ export class SettingsPageComponent {
             .get('maxActiveRequests')
             .setValue(this.fhirBackend.maxActiveRequests);
         }
-        return status !== ConnectionStatus.Error
-          ? null
-          : this.fhirBackend.isSmartOnFhir
-          ? { smartConnectionFailure: true }
-          : { wrongUrl: true };
+        if (status === ConnectionStatus.Error) {
+          return this.fhirBackend.isSmartOnFhir
+            ? { smartConnectionFailure: true }
+            : { wrongUrl: true };
+        } else if (status === ConnectionStatus.UnsupportedVersion) {
+          return { unsupportedVersion: true };
+        } else {
+          return null;
+        }
       })
     );
   }

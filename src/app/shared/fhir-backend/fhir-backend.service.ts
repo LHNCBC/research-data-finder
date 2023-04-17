@@ -33,6 +33,7 @@ export enum ConnectionStatus {
   Pending = 0,
   Ready,
   Error,
+  UnsupportedVersion,
   Disconnect
 }
 
@@ -348,7 +349,11 @@ export class FhirBackendService implements HttpBackend {
       },
       (err) => {
         if (err.status !== HTTP_ABORT) {
-          this.tmpConnectionStatus = ConnectionStatus.Error;
+          this.tmpConnectionStatus = err.error.startsWith(
+            'Unsupported FHIR version'
+          )
+            ? ConnectionStatus.UnsupportedVersion
+            : ConnectionStatus.Error;
           this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
         }
       }
