@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.1.5] - 2023-04-17
+### Changed
+- Show proper error message for unsupported FHIR version.
+
 ## [6.1.4] - 2023-04-05
 ### Changed
 - Show message inside table when no record matches filter.
