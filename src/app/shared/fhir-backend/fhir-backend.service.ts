@@ -199,20 +199,19 @@ export class FhirBackendService implements HttpBackend {
     private liveAnnouncer: LiveAnnouncer
   ) {
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
+    const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
     // This check is necessary because we are loading the entire application
     // with /request-redirect-token-callback, which causes FhirBackend to
     // initialize with the default server (because the server parameter is
     // missing from the URL search string). The better solution would be to use
     // lazy loading of the modules.
-    const loginServer = /\/request-redirect-token-callback\/?\?/.test(
+    const serviceBaseUrl = /\/request-redirect-token-callback\/?\?/.test(
       window.location.href
     )
       ? sessionStorage.getItem('dbgapRasLoginServer')
-      : '';
-    const queryServer = getUrlParam('server');
-    const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
+      : getUrlParam('server') || defaultServer;
     this.fhirClient = new FhirBatchQuery({
-      serviceBaseUrl: loginServer || queryServer || defaultServer
+      serviceBaseUrl
     });
     this.currentDefinitions$ = this.initialized.pipe(
       filter((status) => status === ConnectionStatus.Ready),
