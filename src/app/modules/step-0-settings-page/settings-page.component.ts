@@ -77,6 +77,7 @@ export class SettingsPageComponent {
   /**
    * Updates and validates the server base URL
    * @param control - FormControl instance associated with the input field
+   * @returns validation error for service base URL, or null if valid
    */
   serviceBaseUrlValidator(
     control: UntypedFormControl
