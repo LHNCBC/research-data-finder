@@ -250,7 +250,6 @@ export class FhirServerSelectComponent
         eventData.input_method === 'arrows'
       ) {
         this.checkSmartOnFhirEnabled(eventData.final_val);
-        this.hideListFlag = true;
         this.updateCurrentValue();
       }
     };
@@ -267,6 +266,10 @@ export class FhirServerSelectComponent
   updateCurrentValue(): void {
     const inputFieldValue = this.input.nativeElement.value;
     if (this.currentValue !== inputFieldValue) {
+      // InitializeSpinnerService will open a 'Initializing ...' dialog when the system tries
+      // to initialize the new server, setting the focus back here after dialog is closed.
+      // Set this flag so the server list won't open when focus comes back.
+      this.hideListFlag = true;
       this.currentValue = inputFieldValue;
       this.onChange(this.value);
     }

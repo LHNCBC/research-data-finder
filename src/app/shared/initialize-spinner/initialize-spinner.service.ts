@@ -48,7 +48,12 @@ export class InitializeSpinnerService {
       this.initSpinnerDialog = this.dialog.open(InitializeSpinnerComponent, {
         panelClass: 'init-spinner-container',
         disableClose: true,
-        ariaModal: true
+        ariaModal: true,
+        restoreFocus: false
+      });
+      this.initSpinnerDialog.afterClosed().subscribe(() => {
+        // Restore focus to the server input after server initialization.
+        document.getElementById('serverBaseUrl').focus();
       });
       this.liveAnnouncer.announce(
         'Please wait. Initializing data for the selected server.'
