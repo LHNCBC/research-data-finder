@@ -69,9 +69,6 @@ export class InitializeSpinnerService {
       window.removeEventListener('keydown', this.blockTabKey);
       clearTimeout(this.initAnnounceTimer);
       this.initSpinnerDialog.close();
-      if (this.fhirBackend.initialized.value === ConnectionStatus.Ready) {
-        this.liveAnnouncer.announce('Initialization complete.');
-      }
       this.initSpinnerDialog = null;
     }
   }
