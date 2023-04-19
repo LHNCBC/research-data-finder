@@ -26,7 +26,7 @@ export class FhirBatchQuery {
     batchTimeout = 20
   }) {
     this._serviceBaseUrl = serviceBaseUrl;
-    this._isDbgap = false;
+    this._authorizationHeader = null;
     this._pending = [];
     this._batchTimeoutId = null;
     this._batchTimeout = batchTimeout;
@@ -58,10 +58,10 @@ export class FhirBatchQuery {
   }
 
   /**
-   * Sets whether the service base url is a dbGap url.
+   * Sets the authorization header value.
    */
-  setIsDbgap(value) {
-    this._isDbgap = value;
+  setAuthorizationHeader(value) {
+    this._authorizationHeader = value;
   }
 
   /**
@@ -214,6 +214,8 @@ export class FhirBatchQuery {
       ),
       // Check if server has Research Study data
       this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
+      // Check if server has Research Subject data
+      this.getWithCache('ResearchSubject?_elements=id&_count=1', options),
       // Check if interpretation search parameter is supported
       this.getWithCache(
         `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
@@ -241,6 +243,7 @@ export class FhirBatchQuery {
         observationsSortedByAgeAtEvent,
         lastnLookup,
         hasResearchStudy,
+        hasResearchSubject,
         interpretation,
         batch,
         hasNotModifierIssue
@@ -281,6 +284,10 @@ export class FhirBatchQuery {
             hasResearchStudy.status === 'fulfilled' &&
             hasResearchStudy.value.data.entry &&
             hasResearchStudy.value.data.entry.length > 0,
+          hasResearchSubject:
+            hasResearchSubject.status === 'fulfilled' &&
+            hasResearchSubject.value.data.entry &&
+            hasResearchSubject.value.data.entry.length > 0,
           interpretation:
             interpretation.status === 'fulfilled' &&
             interpretation.value.data.entry &&
@@ -661,11 +668,8 @@ export class FhirBatchQuery {
         oReq.setRequestHeader('Content-Type', contentType);
       }
 
-      if (this._isDbgap) {
-        const token = sessionStorage.getItem('dbgapTstToken');
-        if (token) {
-          oReq.setRequestHeader('Authorization', 'Bearer ' + token);
-        }
+      if (this._authorizationHeader) {
+        oReq.setRequestHeader('Authorization', this._authorizationHeader);
       }
 
       oReq.send(body);

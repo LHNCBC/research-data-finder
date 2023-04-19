@@ -429,7 +429,8 @@ export class SelectRecordsService {
                   .map((s) => 'ResearchStudy/' + s.id)
                   .join(',')
               }
-            : this.fhirBackend.features.hasResearchStudy
+            : this.fhirBackend.features.hasResearchStudy &&
+              this.fhirBackend.features.hasResearchSubject
             ? {
                 [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:status`]: Object.keys(
                   this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[

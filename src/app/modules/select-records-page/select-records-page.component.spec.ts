@@ -65,7 +65,8 @@ describe('SelectRecordsPageComponent', () => {
       },
       {
         features: {
-          hasResearchStudy: true
+          hasResearchStudy: true,
+          hasResearchSubject: true
         },
         serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
       }

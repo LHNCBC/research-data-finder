@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.3.1] - 2022-04-19
+### Fixed
+- when a SMART on FHIR connection was used, batch processing and query caching
+  didn't work, and initialization requests were issued without authorization.
+- when there are ResearchStudies but no ResearchSubjects, we should not display
+  the study tab and should not use queries for ResearchSubjects
+
 ## [6.3.0] - 2022-03-14
 ### Added
 - Variables tab for non-dbGap FHIR servers.

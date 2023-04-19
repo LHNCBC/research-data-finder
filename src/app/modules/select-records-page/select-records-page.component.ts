@@ -56,6 +56,16 @@ export class SelectRecordsPageComponent
     super(fhirBackend, columnDescriptions, selectRecords);
   }
 
+  /**
+   * Whether form should have the Study tab
+   */
+  hasStudyTab(): boolean {
+    return (
+      this.fhirBackend.features.hasResearchStudy &&
+      this.fhirBackend.features.hasResearchSubject
+    );
+  }
+
   ngOnDestroy(): void {
     super.ngOnDestroy();
   }

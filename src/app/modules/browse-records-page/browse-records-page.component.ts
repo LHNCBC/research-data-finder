@@ -64,7 +64,7 @@ export class BrowseRecordsPageComponent
         .pipe(filter((status) => status === ConnectionStatus.Ready))
         .subscribe(() => {
           selectRecords.resetAll();
-          this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
+          this.visibleResourceTypes = this.hasStudyTab()
             ? this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl)
               ? ['ResearchStudy', 'Variable']
               : // To build Variable list for other FHIR servers we use Observations
@@ -72,6 +72,13 @@ export class BrowseRecordsPageComponent
             : ['Observation'];
         })
     );
+  }
+
+  /**
+   * Whether form should have the Study tab
+   */
+  hasStudyTab(): boolean {
+    return this.fhirBackend.features.hasResearchStudy;
   }
 
   /**
