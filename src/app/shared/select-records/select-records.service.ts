@@ -425,13 +425,13 @@ export class SelectRecordsService {
           // Patient filter parameters used to check an observation code
           selectedResearchStudies.length
             ? {
-                '_has:ResearchSubject:subject:study': selectedResearchStudies
+                [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:study`]: selectedResearchStudies
                   .map((s) => 'ResearchStudy/' + s.id)
                   .join(',')
               }
             : this.fhirBackend.features.hasResearchStudy
             ? {
-                '_has:ResearchSubject:subject:status': Object.keys(
+                [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:status`]: Object.keys(
                   this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
                     'ResearchSubject.status'
                   ]
