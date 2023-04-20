@@ -250,8 +250,8 @@ export class FhirServerSelectComponent
         eventData.input_method === 'arrows'
       ) {
         this.checkSmartOnFhirEnabled(eventData.final_val);
-        this.updateCurrentValue();
       }
+      this.updateCurrentValue();
     };
     Def.Autocompleter.Event.observeListSelections(
       testInputId,
