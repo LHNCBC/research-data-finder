@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.3.2] - 2022-04-21
+### Changed
+- Made the alpha version the default for the dbGap server.
+
 ## [6.3.1] - 2022-04-19
 ### Fixed
 - when a SMART on FHIR connection was used, batch processing and query caching

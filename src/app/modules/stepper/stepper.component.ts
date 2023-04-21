@@ -178,10 +178,7 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
         // changes. So I decided to do it only here:
         this.settingsStep.completed = this.settingsPageComponent.settingsFormGroup.valid;
       } else if (status === ConnectionStatus.Ready) {
-        // TODO: Here we need to allow changing the cohort creation mode only
-        //       when we have Variables.
-        this.allowChangeCreateCohortMode =
-          getUrlParam('alpha-version') === 'enable';
+        this.allowChangeCreateCohortMode = this.fhirBackend.isAlphaVersion;
         if (!this.allowChangeCreateCohortMode) {
           this.cohort.createCohortMode = CreateCohortMode.SEARCH;
         } else {

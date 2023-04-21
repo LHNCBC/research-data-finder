@@ -95,6 +95,21 @@ export class FhirBackendService implements HttpBackend {
     return this.fhirClient.getServiceBaseUrl();
   }
 
+  /**
+   * The value of the URL parameter "alpha-version".
+   * @private
+   */
+  private alphaVersionParam = getUrlParam('alpha-version');
+
+  /**
+   * Whether the alpha version is enabled.
+   */
+  get isAlphaVersion(): boolean {
+    return this.alphaVersionParam
+      ? this.alphaVersionParam === 'enable'
+      : this.isDbgap(this.serviceBaseUrl);
+  }
+
   // Checkbox value of whether to use a SMART on FHIR client.
   // tslint:disable-next-line:variable-name
   private _isSmartOnFhir = false;
