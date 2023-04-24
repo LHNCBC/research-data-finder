@@ -60,7 +60,7 @@
           context="pull-data"
           resourceType="{{resourceType}}"
           [loading]="pullData.currentState[resourceType].loading"
-          [resources]="pullData.resourceStream[resourceType] | async"
+          [resources]="pullData.currentState[resourceType].resources"
           [progressValue]="pullData.currentState[resourceType].progressValue">
       </app-resource-table>
     </div>

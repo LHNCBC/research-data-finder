@@ -1,3 +1,17 @@
+:host {
+  padding: 0 24px 10px;
+}
+
+.cart-header {
+  display: flex;
+  flex-direction: row;
+  padding: 0 24px 10px 24px;
+  border-bottom: solid 1px #eee;
+  align-items: center;
+  margin-left: -24px;
+  margin-right: -24px;
+}
+
 .list {
   max-height: 400px;
   overflow: auto;
@@ -22,7 +36,7 @@
 }
 
 .switch-group {
-  margin-bottom: 10px;
+  margin: 16px 0 10px;
   position: relative;
   mat-radio-group {
     white-space: nowrap;
@@ -289,6 +303,7 @@
   max-width: 150px;
 }
 
+.cell-Observation-code,
 .cell-Variable-display_name {
   min-width: 200px;
   max-width: unset;
@@ -318,6 +333,19 @@
   .list-body & {
     min-height: 38px;
   }
+}
+
+.cell-Observation-code {
+  min-width: 200px;
+  max-width: unset;
+}
+.cell-Observation-valueQuantity\.unit {
+  min-width: 150px;
+  max-width: 150px;
+}
+.cell-Observation-category {
+  min-width: 200px;
+  max-width: 200px;
 }
 
 .list-item .list-item .cell-index-0 {

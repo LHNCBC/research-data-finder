@@ -15,10 +15,17 @@ import {
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SelectionModel } from '@angular/cdk/collections';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import {
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup
+} from '@angular/forms';
 import { ColumnDescription } from '../../types/column.description';
 import { distinctUntilChanged, filter, sample, tap } from 'rxjs/operators';
-import { escapeStringForRegExp } from '../../shared/utils';
+import {
+  escapeStringForRegExp,
+  getPluralFormOfRecordName
+} from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 import { BehaviorSubject, interval, Observable, Subscription } from 'rxjs';
@@ -43,6 +50,7 @@ import { MatExpansionPanel } from '@angular/material/expansion';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { isEqual, pickBy } from 'lodash-es';
+import { saveAs } from 'file-saver';
 
 type TableCells = { [key: string]: string };
 
@@ -177,6 +185,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @ContentChild('prefix') prefixTemplate: TemplateRef<any>;
   @ContentChild('buttonPrefix') buttonPrefixTemplate: TemplateRef<any>;
   @ContentChild('header') headerTemplate: TemplateRef<any>;
+  @ContentChild('rowAction') rowActionTemplate: TemplateRef<any>;
   get templateContext(): any {
     return {};
   }
@@ -187,7 +196,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   // To enable server-side filtering, define a "(filterChanged)" handler.
   @Input() enableFiltering = false;
   @Input() enableSelection = false;
+  // Whether highlighting is used for selected rows
+  @Input() highlightSelection = false;
+  // The resource type for the rows
   @Input() resourceType;
+  // The "resource type" for display columns, e.g. observations can be treated as variables
+  @Input() resourceTypeColumns;
   @Input() context = '';
   @Input() resources: Resource[];
   @Input() loading: boolean;
@@ -211,6 +225,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   keepAliveTimeout = 120000;
   @Output() filterChanged = new EventEmitter();
   @Output() sortChanged = new EventEmitter();
+  // Whether we need to force sorting on the client side and ignore the `(sortChanged)` handler
+  @Input() forceClientSort = false;
   @Input() sort: Sort;
   columns: string[] = [];
   columnsWithData: { [element: string]: boolean } = {};
@@ -348,7 +364,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     // Update resource table rows
     if (changes['resources'] && changes['resources'].currentValue) {
       const allColumns = this.columnDescriptionsService.getAvailableColumns(
-        this.resourceType,
+        this.resourceTypeColumns || this.resourceType,
         this.context
       );
       let columnsWithDataChanged = false;
@@ -365,7 +381,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }, {} as TableCells)
       }));
 
-      if (!this.sortChanged.observers.length) {
+      if (this.forceClientSort || !this.sortChanged.observers.length) {
         this.clientSort(newRows);
       }
 
@@ -391,7 +407,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       }
       if (columnsWithDataChanged) {
         this.columnDescriptionsService.setColumnsWithData(
-          this.resourceType,
+          this.resourceTypeColumns || this.resourceType,
           this.context,
           Object.keys(this.columnsWithData)
         );
@@ -405,6 +421,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const scrollViewport = this.scrollViewport?.elementRef.nativeElement;
 
       this.columns.length = 0;
+      if (this.rowActionTemplate) {
+        this.columns.push('action');
+      }
       if (this.enableSelection) {
         this.columns.push('select');
       }
@@ -464,9 +483,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         const scrollViewport = this.scrollViewport.elementRef.nativeElement;
         const toFocus =
           // Focus on the sorted column header
-          scrollViewport.querySelector<HTMLElement>(
-            `.mat-column-${this.sort.active} .mat-sort-header-container`
-          ) ||
+          (this.sort &&
+            scrollViewport.querySelector<HTMLElement>(
+              `.mat-column-${this.sort.active} .mat-sort-header-container`
+            )) ||
           // otherwise (if the sorted column is hidden) on the first column header
           scrollViewport.querySelector<HTMLElement>(
             `.mat-sort-header-container`
@@ -606,8 +626,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (!sort.active || sort.direction === '') {
       return;
     }
-    if (this.sortChanged.observers.length) {
-      this.scrollViewport.scrollToIndex(0);
+    this.scrollViewport.scrollToIndex(0);
+    if (!this.forceClientSort && this.sortChanged.observers.length) {
       this.sortChanged.emit(sort);
       return;
     }
@@ -628,7 +648,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
     const isAsc = this.sort.direction === 'desc';
     const allColumns = this.columnDescriptionsService.getAvailableColumns(
-      this.resourceType,
+      this.resourceTypeColumns || this.resourceType,
       this.context
     );
     const sortingColumnDescription = allColumns.find(
@@ -725,14 +745,14 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       content: ResourceTableFilterComponent,
       origin: event.target,
       data: {
-        value: this.filtersForm.get(column.element).value,
+        value: this.filtersForm.controls[column.element].value,
         filterType,
         options
       }
     });
 
     dialogRef.afterClosed$.subscribe((value) => {
-      this.filtersForm.get(column.element).setValue(value);
+      this.filtersForm.controls[column.element].setValue(value);
     });
   }
 
@@ -741,8 +761,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   hasFilter(column: string): boolean {
     return (
-      this.filtersForm.get(column).value &&
-      this.filtersForm.get(column).value.length
+      this.filtersForm.controls[column].value &&
+      this.filtersForm.controls[column].value.length
     );
   }
 
@@ -790,7 +810,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param column - column description
    */
   isSortable(column: ColumnDescription): boolean {
-    return this.sortChanged.observers.length ? !column.expression : true;
+    return !this.forceClientSort && this.sortChanged.observers.length
+      ? !column.expression
+      : true;
   }
 
   /**
@@ -829,7 +851,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     let message = '';
     if (this.sort?.active) {
       const sortingColumnDescription = this.columnDescriptionsService
-        .getAvailableColumns(this.resourceType, this.context)
+        .getAvailableColumns(
+          this.resourceTypeColumns || this.resourceType,
+          this.context
+        )
         .find((c) => c.element === this.sort.active);
       message = `The data was sorted by ${
         sortingColumnDescription.displayName
@@ -850,5 +875,59 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     this.dataSource.filter = { ...value } as string;
     // setTimeout is needed to update the table after this.dataSource changes
     setTimeout(() => this.onScroll());
+  }
+
+  /**
+   * Handles the "mousedown" event on a row when "highlightSelection" is true.
+   * @param event - mouse event
+   * @param row - table row
+   */
+  onRowMouseDown(event: MouseEvent, row: TableRow): void {
+    if (!this.highlightSelection) {
+      return;
+    }
+
+    if (!(event.target as HTMLElement).closest('button')) {
+      if (event.ctrlKey) {
+        this.selectedResources.toggle(row.resource);
+      } else if (event.shiftKey) {
+        const from = this.selectedResources.selected[
+          this.selectedResources.selected.length - 1
+        ];
+        if (from) {
+          const fromIndex = this.dataSource.data.findIndex(
+            (r) => r.resource === from
+          );
+          if (fromIndex !== -1) {
+            const toIndex = this.dataSource.data.indexOf(row);
+            const direction = Math.sign(toIndex - fromIndex);
+
+            if (direction !== 0) {
+              for (
+                let i = fromIndex;
+                direction * i <= direction * toIndex;
+                i = i + direction
+              ) {
+                this.selectedResources.select(this.dataSource.data[i].resource);
+              }
+            }
+          }
+        }
+        event.preventDefault();
+      } else {
+        this.selectedResources.clear();
+        this.selectedResources.toggle(row.resource);
+      }
+    }
+  }
+
+  /**
+   * Runs downloading the table row data in CSV format.
+   */
+  downloadCsv() {
+    saveAs(
+      this.getBlob(),
+      getPluralFormOfRecordName(this.resourceType).toLowerCase() + '.csv'
+    );
   }
 }

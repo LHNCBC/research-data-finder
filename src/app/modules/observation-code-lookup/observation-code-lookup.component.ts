@@ -17,7 +17,7 @@ import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.servi
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
-import { EMPTY, forkJoin, Subject, Subscription } from 'rxjs';
+import { EMPTY, forkJoin, of, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
 import {
@@ -279,7 +279,7 @@ export class ObservationCodeLookupComponent
                     catchError((error) => {
                       this.loading = false;
                       reject(error);
-                      throw error;
+                      return of(contains);
                     })
                   );
 
@@ -306,7 +306,14 @@ export class ObservationCodeLookupComponent
                           return this.httpClient.get(url, {
                             params: {
                               ...params,
-                              'code:not': Object.keys(processedCodes).join(',')
+                              'code:not': this.fhirBackend.features
+                                .hasNotModifierIssue
+                                ? // Pass a single "code:not" parameter, which is currently working
+                                  // correctly on the HAPI FHIR server.
+                                  Object.keys(processedCodes).join(',')
+                                : // Pass each code as a separate "code:not" parameter, which is
+                                  // currently causing performance issues on the HAPI FHIR server.
+                                  Object.keys(processedCodes)
                             }
                           });
                         }
@@ -330,7 +337,7 @@ export class ObservationCodeLookupComponent
                     catchError((error) => {
                       this.loading = false;
                       reject(error);
-                      throw error;
+                      return of(contains);
                     })
                   );
 

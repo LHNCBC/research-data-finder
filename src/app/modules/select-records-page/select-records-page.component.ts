@@ -74,10 +74,11 @@ export class SelectRecordsPageComponent
     this.clearSelectedRecords(resourceType);
     if (resourceType === 'ResearchStudy') {
       this.selectRecords.resetState('Variable');
+      this.selectRecords.resetState('Observation');
       this.clearSelectedRecords('Variable');
     }
     this.liveAnnouncer.announce(
-      'Added selected variables to the cart area below.'
+      'Added selected variables to the cart area above.'
     );
   }
 
@@ -91,6 +92,7 @@ export class SelectRecordsPageComponent
     this.cart.removeRecords(resourceType, [listItem]);
     if (resourceType === 'ResearchStudy') {
       this.selectRecords.resetState('Variable');
+      this.selectRecords.resetState('Observation');
       this.clearSelectedRecords('Variable');
     }
     this.liveAnnouncer.announce(
@@ -139,13 +141,29 @@ export class SelectRecordsPageComponent
   }
 
   /**
+   * Loads a list of variables for selected research studies from observations.
+   * @param reset - whether to reset already loaded data
+   */
+  loadVariablesFromObservations(reset = true): void {
+    this.selectRecords.loadVariablesFromObservations(
+      [].concat(...(this.cart.getListItems('ResearchStudy') || [])),
+      {},
+      this.variableTable?.filtersForm.value || {},
+      this.sort['Observation'],
+      reset
+    );
+  }
+
+  /**
    * Loads the first page of the specified resource type.
    * @param resourceType - resource type.
    */
   loadFirstPage(resourceType: string): void {
     if (resourceType === 'Variable') {
       this.loadVariables();
-    } else {
+    } else if (resourceType === 'Observation') {
+      this.loadVariablesFromObservations();
+    } else if (resourceType === 'ResearchStudy') {
       const cacheName = this.showOnlyStudiesWithSubjects ? '' : 'studies';
       const hasStatuses = this.showOnlyStudiesWithSubjects
         ? '&_has:ResearchSubject:study:status=' +
@@ -161,6 +179,12 @@ export class SelectRecordsPageComponent
         {
           context: new HttpContext().set(CACHE_NAME, cacheName)
         }
+      );
+    } else {
+      this.selectRecords.loadFirstPage(
+        resourceType,
+        `$fhir/${resourceType}?_count=100`,
+        {}
       );
     }
   }
@@ -201,19 +225,26 @@ export class SelectRecordsPageComponent
               element: 'code text',
               value: '',
               selectedObservationCodes: {
-                coding: [
-                  {
-                    code: item.id,
-                    system: ''
-                  }
-                ],
+                coding:
+                  item.resourceType === 'Observation'
+                    ? item.code.coding
+                    : [
+                        {
+                          code: item.id,
+                          system: ''
+                        }
+                      ],
                 datatype: this.cart.getVariableType(item),
                 // TODO: get from loaded variable?
-                items: [item.display_name]
+                items: [
+                  item.display_name ||
+                    item.code.text ||
+                    item.code.coding[0].display
+                ]
               }
             }
           },
-          ...(this.cart.variableData[item.id].value &&
+          ...(this.cart.variableData[item.id]?.value &&
           this.cart.variableData[item.id].value.testValue !== null &&
           this.cart.variableData[item.id].value.testValue !== ''
             ? [
@@ -232,6 +263,23 @@ export class SelectRecordsPageComponent
   }
 
   /**
+   * Returns criteria for variables.
+   */
+  getVariableCriteria(): Criteria {
+    const resourceType =
+      this.visibleResourceTypes.indexOf('Observation') === -1
+        ? 'Variable'
+        : 'Observation';
+    return {
+      condition: this.cart.logicalOperator[resourceType],
+      rules:
+        this.cart
+          .getListItems(resourceType)
+          ?.map((i) => this.convertListItemToCriteria(i)) || []
+    };
+  }
+
+  /**
    * Searches for a list of Patient resources that match the records in the cart.
    */
   searchForPatients(): void {
@@ -243,13 +291,7 @@ export class SelectRecordsPageComponent
         .map((v) => ({ field: v }))
     };
 
-    const variableCriteria: Criteria = {
-      condition: this.cart.logicalOperator['Variable'],
-      rules:
-        this.cart
-          .getListItems('Variable')
-          ?.map((i) => this.convertListItemToCriteria(i)) || []
-    };
+    const variableCriteria: Criteria = this.getVariableCriteria();
 
     const criteria: Criteria = additionalCriteria.rules.length
       ? variableCriteria.condition === 'and'
@@ -266,7 +308,7 @@ export class SelectRecordsPageComponent
     this.cohort.searchForPatients(
       criteria,
       this.maxPatientsNumber.value,
-      this.cart.getListItems('Variable')?.length
+      variableCriteria.rules.length
         ? null
         : []
             .concat(...(this.cart.getListItems('ResearchStudy') || []))

@@ -21,6 +21,55 @@
     },
 
     contextColumns: {
+      // Custom definition of the "Variable" table columns
+      // See src/app/types/column.description.ts for details
+      "select": {
+        "Variable": [
+          {
+            displayName: "Variable Display Text",
+            element: "code",
+            displayByDefault: true,
+            types: [
+              "CodeableConcept"
+            ]
+          },
+          {
+            displayName: "Code",
+            element: "code_value",
+            expression: "code.coding.code",
+            displayByDefault: true,
+            types: [
+              "string"
+            ]
+          },
+          {
+            displayName: "Code system",
+            element: "code_system",
+            expression: "code.coding.system",
+            displayByDefault: true,
+            filterable: false,
+            types: [
+              "string"
+            ]
+          },
+          {
+            displayName: "Category",
+            element: "category",
+            displayByDefault: true,
+            types: [
+              "CodeableConcept"
+            ]
+          },
+          {
+            displayName: "Unit",
+            element: "valueQuantity.unit",
+            displayByDefault: true,
+            types: [
+              "string"
+            ]
+          }
+        ],
+      },
       // Columns added to the resource table in the context of pulling data
       "pull-data": {
         "ResearchStudy": [

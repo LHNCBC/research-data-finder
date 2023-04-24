@@ -109,22 +109,29 @@ tr.anchor-row {
   background: #eee;
 }
 
+.highlightable tr {
+  cursor: default;
+}
+
+tr.highlight {
+  background: #eee;
+}
+
 .clear-btn.mat-button-disabled ::ng-deep svg {
   fill: rgba(0, 0, 0, 0.54);
 }
 
-.fullscreen-btn {
+.buttons-container {
   position: absolute;
   top: -50px;
   right: 15px;
   z-index: 100;
-}
+  display: flex;
+  flex-direction: row;
 
-.configure-btn {
-  position: absolute;
-  top: -50px;
-  right: 65px;
-  z-index: 100;
+  & > button {
+    margin-left: 8px;
+  }
 }
 
 :host.fullscreen {

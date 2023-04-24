@@ -37,4 +37,8 @@ export interface ColumnDescription {
    * Boolean value indicating whether this column should be visible by default
    */
   displayByDefault?: boolean;
+  /**
+   * Boolean value indicating whether this column can be filtered (true by default)
+   */
+  filterable?: boolean;
 }

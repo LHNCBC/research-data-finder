@@ -418,7 +418,7 @@ export class CohortService {
           const link =
             (resourceType === PATIENT_RESOURCE_TYPE && `_id=${patientId}`) ||
             (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
-              `_count=1&_has:ResearchSubject:study:individual=Patient/${patientId}`) ||
+              `_count=1&_has:ResearchSubject:study:${this.fhirBackend.subjectParamName}=Patient/${patientId}`) ||
             `_count=1&subject:Patient=${patientId}`;
           const query =
             `$fhir/${resourceType}?${link}${elements}` +
@@ -501,7 +501,7 @@ export class CohortService {
           // The case when an element is not a search parameter is
           // specially taken into account in the function getQueryParam
           // of the service QueryParamsService.
-          element: '_has:ResearchSubject:individual:study',
+          element: `_has:ResearchSubject:${this.fhirBackend.subjectParamName}:study`,
           value: researchStudyIds.join(',')
         }
       };
@@ -846,7 +846,7 @@ export class CohortService {
                   [
                     {
                       field: {
-                        element: '_has:ResearchSubject:individual:study',
+                        element: `_has:ResearchSubject:${this.fhirBackend.subjectParamName}:study`,
                         value: ids.join(',')
                       }
                     }

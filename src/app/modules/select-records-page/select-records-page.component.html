@@ -2,10 +2,6 @@
   <span class="info-icon" aria-hidden="true"></span>
   In this step, you can search, select, and add records to the cart.
   Records added to the cart will be used to build a cohort of patients.</p>
-<p class="info" style="color: blue" *ngIf="!fhirBackend.serviceBaseUrl.startsWith('https://dbgap-api.ncbi.nlm.nih.gov')">
-  <span class="info-icon" aria-hidden="true"></span>
-  [TODO: Add Variable tab.]
-</p>
 <mat-form-field class="number-field">
   <mat-label>Maximum number of patients</mat-label>
   <input matInput [formControl]="maxPatientsNumber" type="number" min="1">
@@ -14,55 +10,77 @@
 <mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
   <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfRecordName(resourceType)">
     <div class="v-box tab-content">
-      <p class="info" *ngIf="resourceType === 'ResearchStudy'">
-        <span class="info-icon" aria-hidden="true"></span>
-        Select studies to add to the cart.</p>
-      <p class="info" *ngIf="resourceType === 'Variable'">
-        <span class="info-icon" aria-hidden="true"></span>
-        Select variables to add to the cart. The list of variables is limited to studies added to the cart.</p>
-      <app-resource-table *ngIf="resourceType === 'ResearchStudy' && selectRecords.currentState[resourceType]"
-                          #resourceTable
-                          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'select') | async"
-                          [enableFiltering]="true" [enableSelection]="true"
-                          [loading]="selectRecords.currentState[resourceType].loading"
-                          [resources]="selectRecords.resourceStream[resourceType] | async"
-                          [selectAny]="true"
-                          context="select"
-                          [sort]="sort[resourceType]"
-                          checkboxTooltipText="Select this study to add it to the cart"
-                          [resourceType]="resourceType">
-<!--
-        <ng-template #prefix>
-          <div class="v-box">
-            <mat-radio-group aria-label="Select an option" class="h-box"
-                             [(ngModel)]="showOnlyStudiesWithSubjects"
-                             (ngModelChange)="loadFirstPage('ResearchStudy')">
-              <mat-radio-button [value]="true">Only show studies to which I have access</mat-radio-button>
-              <div class="spacer"></div>
-              <mat-radio-button [value]="false">Show all research studies</mat-radio-button>
-            </mat-radio-group>
-            <div class="spacer"></div>
-          </div>
-        </ng-template>
--->
-        <ng-template #buttonPrefix *ngIf="!showOnlyStudiesWithSubjects">
-          <button mat-mini-fab
-                  class="reload-btn"
-                  color="basic"
-                  type="button" mat-icon-button
-                  (click)="reloadFromServer(resourceType)"
-                  matTooltip="Reload records from server">
-            <mat-icon svgIcon="refresh"></mat-icon>
-          </button>
-        </ng-template>
-        <ng-template #header>
-          <mat-accordion>
-            <mat-expansion-panel hideToggle #panel>
-              <mat-expansion-panel-header
-                  (click)="panel.toggle()"
-                  (keydown.enter)="panel.toggle()"
-                  (keydown.space)="panel.toggle()">
-                <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
+
+      <ng-container *ngIf="cart.getListItems(resourceType)?.length">
+        <app-cart [resourceType]="resourceType"
+                  [resourceTypeColumns]="resourceType === 'Observation' ? 'Variable' : resourceType"
+                  [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType === 'Observation' ? 'Variable' : resourceType, 'select') | async"
+                  [listItems]="cart.getListItems(resourceType)"
+                  (removeRecord)="removeRecordFromCart($event.resourceType, $event.listItem)">
+        </app-cart>
+        <div class="spacer"></div>
+      </ng-container>
+
+      <ng-container [ngSwitch]="resourceType === 'Observation' ? 'Variable' : resourceType">
+        <ng-container *ngSwitchCase="'ResearchStudy'">
+          <p class="info">
+            <span class="info-icon" aria-hidden="true"></span>
+            Select studies to add to the cart.</p>
+          <app-resource-table *ngIf="selectRecords.currentState[resourceType]"
+                              #resourceTable
+                              [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'select') | async"
+                              [enableFiltering]="true"
+                              [highlightSelection]="true"
+                              [loading]="selectRecords.currentState[resourceType].loading"
+                              [resources]="selectRecords.resourceStream[resourceType] | async"
+                              context="select"
+                              [sort]="sort[resourceType]"
+                              checkboxTooltipText="Select this study to add it to the cart"
+                              [resourceType]="resourceType">
+            <ng-template #rowAction let-row="row">
+              <button color="basic"
+                      type="button" mat-icon-button
+                      (click)="resourceTable.selectedResources.isSelected(row.resource) ? addRecordsToCart(resourceType, resourceTable.selectedResources.selected) : addRecordsToCart(resourceType, [row.resource])"
+                      [matTooltip]="
+                        resourceTable.selectedResources.selected.length > 1
+                         && resourceTable.selectedResources.isSelected(row.resource)
+                          ? 'Add selected records to ' + getPluralFormOfRecordName(resourceType) + ' cart'
+                          : 'Add record to cart'
+                      ">
+                <mat-icon svgIcon="add_shopping_cart_black"></mat-icon>
+              </button>
+            </ng-template>
+            <!--
+                    <ng-template #prefix>
+                      <div class="v-box">
+                        <mat-radio-group aria-label="Select an option" class="h-box"
+                                         [(ngModel)]="showOnlyStudiesWithSubjects"
+                                         (ngModelChange)="loadFirstPage('ResearchStudy')">
+                          <mat-radio-button [value]="true">Only show studies to which I have access</mat-radio-button>
+                          <div class="spacer"></div>
+                          <mat-radio-button [value]="false">Show all research studies</mat-radio-button>
+                        </mat-radio-group>
+                        <div class="spacer"></div>
+                      </div>
+                    </ng-template>
+            -->
+            <ng-template #buttonPrefix *ngIf="!showOnlyStudiesWithSubjects">
+              <button mat-mini-fab
+                      color="basic"
+                      type="button" mat-icon-button
+                      (click)="reloadFromServer(resourceType)"
+                      matTooltip="Reload records from server">
+                <mat-icon svgIcon="refresh"></mat-icon>
+              </button>
+            </ng-template>
+            <ng-template #header>
+              <mat-accordion>
+                <mat-expansion-panel hideToggle #panel>
+                  <mat-expansion-panel-header
+                      (click)="panel.toggle()"
+                      (keydown.enter)="panel.toggle()"
+                      (keydown.space)="panel.toggle()">
+                    <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
                     <span>Selected {{
                       resourceTable.selectedResources.selected.length
                       }} out of {{
@@ -70,71 +88,103 @@
                       }} {{
                       getPluralFormOfRecordName(resourceType)
                       }}.</span>
-                </mat-panel-title>
-                <mat-panel-description *ngIf="(selectRecords.currentState[resourceType].isCached | async) !== null">
+                    </mat-panel-title>
+                    <mat-panel-description *ngIf="(selectRecords.currentState[resourceType].isCached | async) !== null">
                   <span *ngIf="resourceTable.loading; else loadedTemplate">
-                    <span>Loading studies {{
+                    <span>Loading {{getPluralFormOfRecordName(resourceType)}} {{
                       (selectRecords.currentState[resourceType].isCached | async)
                         ? 'from the cache ...'
                         : 'from the server' + (showOnlyStudiesWithSubjects ? '...' : '. It may take a minute or two...')
                       }}</span>
                   </span>
-                  <ng-template #loadedTemplate>
-                    Data loaded from server on {{
-                    selectRecords.currentState[resourceType].loadTime | date: 'short'
-                    }}
-                  </ng-template>
-                </mat-panel-description>
-              </mat-expansion-panel-header>
-            </mat-expansion-panel>
-          </mat-accordion>
-        </ng-template>
-      </app-resource-table>
-      <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState[resourceType]"
-                          #variableTable
-                          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'select') | async"
-                          (filterChanged)="loadFirstPage(resourceType)"
-                          [enableFiltering]="true" [enableSelection]="true"
-                          [loading]="selectRecords.currentState[resourceType].loading"
-                          [resources]="selectRecords.resourceStream[resourceType] | async"
-                          (loadNextPage)="loadNextPage(resourceType)"
-                          [selectAny]="true"
-                          context="select"
-                          [sort]="sort[resourceType]"
-                          (sortChanged)="onSortChanged(resourceType, $event)"
-                          checkboxTooltipText="Select this variable to add it to the cart"
-                          [resourceType]="resourceType">
-        <ng-template #prefix>
-          <div class="v-box">
-            <div class="h-box">
-              <mat-checkbox [(ngModel)]="hasLoinc"
-                            [disabled]="recTypeLoinc"
-                            (change)="loadFirstPage(resourceType)">Show only LOINC-coded variables</mat-checkbox>
-              <div class="spacer"></div>
-              <mat-checkbox [(ngModel)]="recTypeLoinc"
-                            (change)="hasLoinc=true;loadFirstPage(resourceType)">Show one row per LOINC code</mat-checkbox>
-            </div>
-            <div class="spacer"></div>
-          </div>
-        </ng-template>
-      </app-resource-table>
-      <div class="spacer"></div>
-      <div class="h-box">
-        <button mat-stroked-button [disabled]="getSelectedRecords(resourceType).length === 0"
-                (click)="addRecordsToCart(resourceType, getSelectedRecords(resourceType))">
-          <mat-icon svgIcon="keyboard_double_arrow_down_black"></mat-icon>Add selected records to {{getPluralFormOfRecordName(resourceType)}} cart
-        </button>
-        <div class="spacer"></div>
-        <button mat-stroked-button (click)="downloadCsv()"
-                [disabled]="!selectRecords.getHasLoadedData(currentResourceType$ | async)">
-          <mat-icon svgIcon="file_download"></mat-icon>Download (in CSV format)
-        </button>
-      </div>
-      <app-cart [resourceType]="resourceType"
-                [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'select') | async"
-                [listItems]="cart.getListItems(resourceType)"
-                (removeRecord)="removeRecordFromCart($event.resourceType, $event.listItem)">
-      </app-cart>
+                      <ng-template #loadedTemplate>
+                        Data loaded from server on {{
+                        selectRecords.currentState[resourceType].loadTime | date: 'short'
+                        }}
+                      </ng-template>
+                    </mat-panel-description>
+                  </mat-expansion-panel-header>
+                </mat-expansion-panel>
+              </mat-accordion>
+            </ng-template>
+          </app-resource-table>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'Variable'">
+          <p class="info">
+            <span class="info-icon" aria-hidden="true"></span>
+            Select variables to add to the cart. The list of variables is limited to studies added to the cart.</p>
+          <app-resource-table *ngIf="selectRecords.currentState[resourceType]"
+                              #variableTable
+                              [columnDescriptions]="columnDescriptions.getVisibleColumns('Variable', 'select') | async"
+                              (filterChanged)="loadFirstPage(resourceType)"
+                              [enableFiltering]="true"
+                              [loading]="selectRecords.currentState[resourceType].loading"
+                              [resources]="selectRecords.resourceStream[resourceType] | async"
+                              (loadNextPage)="loadNextPage(resourceType)"
+                              [highlightSelection]="true"
+                              context="select"
+                              [sort]="sort[resourceType]"
+                              (sortChanged)="onSortChanged(resourceType, $event)"
+                              [forceClientSort]="resourceType === 'Observation'"
+                              checkboxTooltipText="Select this variable to add it to the cart"
+                              [resourceType]="resourceType"
+                              resourceTypeColumns="Variable">
+            <ng-template #rowAction let-row="row">
+              <button color="basic"
+                      type="button" mat-icon-button
+                      (click)="variableTable.selectedResources.isSelected(row.resource) ? addRecordsToCart(resourceType, variableTable.selectedResources.selected) : addRecordsToCart(resourceType, [row.resource])"
+                      [matTooltip]="
+                        variableTable.selectedResources.selected.length > 1
+                         && variableTable.selectedResources.isSelected(row.resource)
+                          ? 'Add selected records to ' + getPluralFormOfRecordName(resourceType) + ' cart'
+                          : 'Add record to cart'
+                      ">
+                <mat-icon svgIcon="add_shopping_cart_black"></mat-icon>
+              </button>
+            </ng-template>
+            <ng-template #prefix>
+              <div class="v-box" *ngIf="resourceType === 'Variable'">
+                <div class="h-box">
+                  <mat-checkbox [(ngModel)]="hasLoinc"
+                                [disabled]="recTypeLoinc"
+                                (change)="loadFirstPage(resourceType)">Show only LOINC-coded variables</mat-checkbox>
+                  <div class="spacer"></div>
+                  <mat-checkbox [(ngModel)]="recTypeLoinc"
+                                (change)="hasLoinc=true;loadFirstPage(resourceType)">Show one row per LOINC code</mat-checkbox>
+                </div>
+                <div class="spacer"></div>
+              </div>
+            </ng-template>
+            <ng-template #header>
+              <mat-accordion>
+                <mat-expansion-panel hideToggle #panel>
+                  <mat-expansion-panel-header
+                      (click)="panel.toggle()"
+                      (keydown.enter)="panel.toggle()"
+                      (keydown.space)="panel.toggle()">
+                    <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
+                    <span>Selected {{
+                      variableTable.selectedResources.selected.length
+                      }} out of {{
+                      variableTable.dataSource.data.length
+                      }} {{
+                      getPluralFormOfRecordName(resourceType)
+                      }}.</span>
+                    </mat-panel-title>
+                    <mat-panel-description>
+                  <span *ngIf="variableTable.loading">
+                    <span>Loading {{getPluralFormOfRecordName(resourceType)}} ...</span>
+                  </span>
+                    </mat-panel-description>
+                  </mat-expansion-panel-header>
+                </mat-expansion-panel>
+              </mat-accordion>
+            </ng-template>
+          </app-resource-table>
+        </ng-container>
+      </ng-container>
+
     </div>
   </mat-tab>
 
