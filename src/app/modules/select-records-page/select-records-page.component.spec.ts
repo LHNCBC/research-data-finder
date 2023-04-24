@@ -143,7 +143,8 @@ describe('SelectRecordsPageComponent', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === query
+          req.params.get('q') ===
+            (query ? query : 'study_id:(phs002410* OR phs002409*)')
         );
       })
       .flush(query ? threeVariables : fourVariables);

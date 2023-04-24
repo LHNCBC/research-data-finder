@@ -8,7 +8,17 @@
 </mat-form-field>
 
 <mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
-  <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfRecordName(resourceType)">
+  <mat-tab *ngFor="let resourceType of visibleResourceTypes"
+           #tab
+           [disabled]="
+             resourceType === 'Variable'
+             && fhirBackend.isDbgap(fhirBackend.serviceBaseUrl)
+             && (selectRecords.currentState['ResearchStudy']?.loading || !selectRecords.currentState['ResearchStudy']?.resources.length)">
+    <ng-template mat-tab-label>
+      <div [matTooltip]="tab.disabled? 'Disabled until studies are loaded' : ''">{{
+        getPluralFormOfRecordName(resourceType)
+        }}</div>
+    </ng-template>
     <div class="v-box tab-content">
 
       <ng-container *ngIf="cart.getListItems(resourceType)?.length">
