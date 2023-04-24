@@ -183,7 +183,8 @@ export function getPluralFormOfResourceType(resourceType: string): string {
 
 // Map a resource type to a user-friendly record name
 const resourceType2RecordName = {
-  ResearchStudy: 'Study'
+  ResearchStudy: 'Study',
+  Observation: 'Variable'
 };
 /**
  * Returns record name (user friendly name for resource type).

@@ -6,6 +6,7 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { getUrlParam } from '../../shared/utils';
 
 @Component({
   selector: 'app-launch',
@@ -34,7 +35,13 @@ export class LaunchComponent implements OnInit {
         this.fhirBackend.initialized.next(ConnectionStatus.Error);
         this.liveAnnouncer.announce('SMART on FHIR connection failed.');
         this.router.navigate(['/'], {
-          queryParams: { server: fhirServerUrl, isSmart: false }
+          queryParams: {
+            server: fhirServerUrl,
+            isSmart: false,
+            ...(getUrlParam('alpha-version') === 'enable'
+              ? { 'alpha-version': 'enable' }
+              : {})
+          }
         });
       });
   }

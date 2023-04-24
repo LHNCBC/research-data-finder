@@ -7,6 +7,7 @@ import { ObservationTestValue } from '../../modules/search-parameter/observation
 import fhirpath from 'fhirpath';
 import { sortBy } from 'lodash-es';
 import { AutocompleteOption } from '../../modules/autocomplete/autocomplete.component';
+import Observation = fhir.Observation;
 
 // List item, this can be a record or a group (array) of records
 export type ListItem = Resource | Resource[];
@@ -86,45 +87,10 @@ export class CartService {
               .get<Bundle>(`$fhir/Observation?_count=1&combo-code=${id}`)
               .subscribe(
                 (bundle) => {
-                  const observation = bundle.entry?.[0]?.resource;
-                  this.variableData[id] = { datatype: 'empty' };
-                  for (const prop in observation || {}) {
-                    if (prop.startsWith('value')) {
-                      const datatype = prop.substr(5);
-                      this.variableData[id] = {
-                        datatype
-                      };
-
-                      if (datatype === 'Quantity') {
-                        const unitCode = observation[prop].code || '';
-                        this.variableUnits[id] = [];
-
-                        if (unitCode) {
-                          let isFromList = false;
-                          // TODO: ucumUtils is not added to index.d.ts of fhirpath.js
-                          const unitList = (fhirpath as any).ucumUtils
-                            .commensurablesList(unitCode)[0]
-                            .map((i) => {
-                              if (i.csCode_ === unitCode) {
-                                isFromList = true;
-                              }
-                              return { name: i.name_, value: i.csCode_ };
-                            });
-                          this.variableUnits[id] = isFromList
-                            ? sortBy(unitList, 'name')
-                            : [];
-                          this.variableData[id].value = {
-                            observationDataType: datatype,
-                            testValuePrefix: '',
-                            testValueModifier: '',
-                            testValue: '',
-                            testValueUnit: unitCode
-                          };
-                        }
-                      }
-                      break;
-                    }
-                  }
+                  this.initVariableData(
+                    id,
+                    bundle.entry?.[0]?.resource as Observation
+                  );
                 },
                 () => {
                   this.variableData[id] = { datatype: 'error' };
@@ -132,8 +98,60 @@ export class CartService {
               );
           }
         });
+      } else if (resourceType === 'Observation') {
+        newRecords.forEach((record) => {
+          const id = this.getResourceId(record);
+          if (!this.variableData[id]) {
+            this.initVariableData(id, record as Observation);
+          }
+        });
       }
       this.getCartChangedSubject(resourceType).next(items);
+    }
+  }
+
+  /**
+   * Initializes the data of a variable according to the data of an Observation
+   * resource example.
+   * @param id - variable id.
+   * @param observation - Observation resource example.
+   */
+  initVariableData(id: string, observation: Observation): void {
+    this.variableData[id] = { datatype: 'empty' };
+    for (const prop in observation || {}) {
+      if (prop.startsWith('value')) {
+        const datatype = prop.substr(5);
+        this.variableData[id] = {
+          datatype
+        };
+
+        if (datatype === 'Quantity') {
+          const unitCode = observation[prop].code || '';
+          this.variableUnits[id] = [];
+
+          if (unitCode) {
+            let isFromList = false;
+            // TODO: ucumUtils is not added to index.d.ts of fhirpath.js
+            const unitList = (fhirpath as any).ucumUtils
+              .commensurablesList(unitCode)[0]
+              ?.map((i) => {
+                if (i.csCode_ === unitCode) {
+                  isFromList = true;
+                }
+                return { name: i.name_ || i.csCode_, value: i.csCode_ };
+              });
+            this.variableUnits[id] = isFromList ? sortBy(unitList, 'name') : [];
+            this.variableData[id].value = {
+              observationDataType: datatype,
+              testValuePrefix: '',
+              testValueModifier: '',
+              testValue: '',
+              testValueUnit: unitCode
+            };
+          }
+        }
+        break;
+      }
     }
   }
 
@@ -206,6 +224,11 @@ export class CartService {
         )
       );
     }
+    // Only related observations need to be removed, but it is not possible.
+    const observations = this.itemsByResourceType['Observation']?.byId;
+    if (observations?.size) {
+      this.removeRecords('Observation', [...observations.values()]);
+    }
   }
 
   /**
@@ -213,7 +236,7 @@ export class CartService {
    * @param resource - resource
    */
   getResourceId(resource: Resource): string {
-    return (resource as any).identifier?.[0].value || resource.id;
+    return resource.id;
   }
 
   /**
@@ -263,7 +286,8 @@ export class CartService {
     this.itemsByResourceType = {};
     this.logicalOperator = {
       ResearchStudy: 'and',
-      Variable: 'and'
+      Variable: 'and',
+      Observation: 'and'
     };
     this.variableData = {};
     this.variableUnits = {};

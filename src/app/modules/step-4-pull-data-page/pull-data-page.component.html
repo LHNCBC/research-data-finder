@@ -41,7 +41,7 @@
 
       <div class="h-box for-selected-codes">
         <button mat-stroked-button
-                [disabled]="!isValidTab(resourceType)"
+                [disabled]="!isValidTab(resourceType) || !cohort.currentState.patients.length"
                 [attr.aria-label]='showCodeSelection(resourceType) ? "Load " + getPluralFormOfResourceType(resourceType) + ", optionally limited to the selected codes in the following field" : "Load" + getPluralFormOfResourceType(resourceType)'
                 (click)="loadResources(resourceType, resourceParams)">
           <mat-icon svgIcon="refresh"></mat-icon>Load {{getPluralFormOfResourceType(resourceType)}}
@@ -60,7 +60,7 @@
           context="pull-data"
           resourceType="{{resourceType}}"
           [loading]="pullData.currentState[resourceType].loading"
-          [resources]="pullData.resourceStream[resourceType] | async"
+          [resources]="pullData.currentState[resourceType].resources"
           [progressValue]="pullData.currentState[resourceType].progressValue">
       </app-resource-table>
     </div>

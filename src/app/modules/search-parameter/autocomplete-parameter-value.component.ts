@@ -10,11 +10,11 @@ import {
   Self,
   ViewChild
 } from '@angular/core';
-import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
+import { AbstractControl, NgControl, UntypedFormControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { EMPTY, Subject, Subscription } from 'rxjs';
+import { EMPTY, of, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { escapeStringForRegExp, getNextPageUrl } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
@@ -22,13 +22,13 @@ import { AutocompleteParameterValue } from '../../types/autocomplete-parameter-v
 import { HttpClient } from '@angular/common/http';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import * as fhirpath from 'fhirpath';
+import * as fhirPathModelR4 from 'fhirpath/fhir-context/r4';
+import { ResearchStudyService } from '../../shared/research-study/research-study.service';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
 import Resource = fhir.Resource;
-import * as fhirpath from 'fhirpath';
-import * as fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import Coding = fhir.Coding;
-import { ResearchStudyService } from '../../shared/research-study/research-study.service';
 
 /**
  * data type used for this control
@@ -335,119 +335,13 @@ export class AutocompleteParameterValueComponent
    * Set up Autocompleter search options.
    */
   setupAutocompleteSearch(): any {
-    const acInstance = new Def.Autocompleter.Search(this.inputId, null, {
+    return new Def.Autocompleter.Search(this.inputId, null, {
       suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
       fhir: {
         search: (fieldVal, count) => {
           return {
             then: (resolve, reject) => {
-              const url = `$fhir/${this.resourceType}`;
-              const params = {
-                ...(this.observationCodes
-                  ? { 'combo-code': this.observationCodes.join(',') }
-                  : {}),
-                _elements: this.getFhirName()
-              };
-
-              const filterText = fieldVal;
-              if (
-                filterText &&
-                !(
-                  // DocumentReference.contenttype does not support querying codes by ':text'.
-                  // We will return the whole list with ':not=zzz' and filter in client.
-                  (
-                    this.resourceType === 'DocumentReference' &&
-                    this.searchParameter === 'contenttype'
-                  )
-                )
-              ) {
-                params[`${this.searchParameter}:text`] = filterText;
-              } else {
-                params[`${this.searchParameter}:not`] = 'zzz';
-              }
-
-              // Hash of processed codes, used to exclude repeated codes
-              const processedCodes = {};
-              // Array of result items for autocompleter
-              const contains: ValueSetExpansionContains[] = [];
-              // Total amount of items
-              let total = null;
-              // Already selected codes
-              const selectedCodes = acInstance.getSelectedCodes();
-
-              this.loading = true;
-              this.subscription?.unsubscribe();
-
-              const obs = this.httpClient
-                .get(url, {
-                  params
-                })
-                .pipe(
-                  expand((response: Bundle) => {
-                    const newItems = this.getAutocompleteItems(
-                      response,
-                      filterText,
-                      processedCodes,
-                      selectedCodes
-                    );
-                    contains.push(...newItems);
-                    const nextPageUrl = getNextPageUrl(response);
-                    if (nextPageUrl && contains.length < count) {
-                      if (!newItems.length) {
-                        // If the request did not return new items, then we need
-                        // to go to the next page.
-                        // Otherwise, it will be an infinite recursion.
-                        // You can reproduce this problem on https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1
-                        // if you comment next line and enter 'c' in the ResearchStudy.keyword
-                        // field and click the 'See more items' link.
-                        return this.httpClient.get(nextPageUrl);
-                      }
-                      this.liveAnnouncer.announce('New items added to list.');
-                      // Update list before calling server for next query.
-                      resolve({
-                        resourceType: 'ValueSet',
-                        expansion: {
-                          total: Number.isInteger(total) ? total : null,
-                          contains
-                        }
-                      });
-                      const newParams = { ...params };
-                      newParams[`${this.searchParameter}:not`] = Object.keys(
-                        processedCodes
-                      ).join(',');
-                      return this.httpClient.get(url, {
-                        params: newParams
-                      });
-                    } else {
-                      if (!nextPageUrl) {
-                        total = contains.length;
-                      } else if (response.total) {
-                        total = response.total;
-                      }
-                      if (contains.length > count) {
-                        contains.length = count;
-                      }
-                      this.loading = false;
-                      this.liveAnnouncer.announce('Finished loading list.');
-                      resolve({
-                        resourceType: 'ValueSet',
-                        expansion: {
-                          total: Number.isInteger(total) ? total : null,
-                          contains
-                        }
-                      });
-                      // Emit a complete notification
-                      return EMPTY;
-                    }
-                  }),
-                  catchError((error) => {
-                    this.loading = false;
-                    reject(error);
-                    throw error;
-                  })
-                );
-
-              this.subscription = obs.subscribe();
+              this.searchItemsOnFhirServer(fieldVal, count, resolve, reject);
             }
           };
         }
@@ -457,7 +351,132 @@ export class AutocompleteParameterValueComponent
       matchListValue: true,
       showListOnFocusIfEmpty: this.searchParameter !== 'code'
     });
-    return acInstance;
+  }
+
+  /**
+   * Search for autocomplete items on the FHIR server.
+   * @param filterText - filter text
+   * @param count - number of items to be found
+   * @param resolve - success callback
+   * @param reject - error callback
+   */
+  searchItemsOnFhirServer(
+    filterText: string,
+    count: number,
+    resolve: Function,
+    reject: Function
+  ) {
+    const url = `$fhir/${this.resourceType}`;
+    const params = {
+      ...(this.observationCodes
+        ? { 'combo-code': this.observationCodes.join(',') }
+        : {}),
+      _elements: this.getFhirName()
+    };
+
+    if (
+      filterText &&
+      !(
+        // DocumentReference.contenttype does not support querying codes by ':text'.
+        // We will return the whole list with ':not=zzz' and filter in client.
+        (
+          this.resourceType === 'DocumentReference' &&
+          this.searchParameter === 'contenttype'
+        )
+      )
+    ) {
+      params[`${this.searchParameter}:text`] = filterText;
+    } else {
+      params[`${this.searchParameter}:not`] = 'zzz';
+    }
+
+    // Hash of processed codes, used to exclude repeated codes
+    const processedCodes = {};
+    // Array of result items for autocompleter
+    const contains: ValueSetExpansionContains[] = [];
+    // Total amount of items
+    let total = null;
+    // Already selected codes
+    const selectedCodes = this.acInstance.getSelectedCodes();
+
+    this.loading = true;
+    this.subscription?.unsubscribe();
+
+    const obs = this.httpClient
+      .get(url, {
+        params
+      })
+      .pipe(
+        expand((response: Bundle) => {
+          const newItems = this.getAutocompleteItems(
+            response,
+            filterText,
+            processedCodes,
+            selectedCodes
+          );
+          contains.push(...newItems);
+          const nextPageUrl = getNextPageUrl(response);
+          if (nextPageUrl && contains.length < count) {
+            if (!newItems.length) {
+              // If the request did not return new items, then we need
+              // to go to the next page.
+              // Otherwise, it will be an infinite recursion.
+              // You can reproduce this problem on https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1
+              // if you comment next line and enter 'c' in the ResearchStudy.keyword
+              // field and click the 'See more items' link.
+              return this.httpClient.get(nextPageUrl);
+            }
+            this.liveAnnouncer.announce('New items added to list.');
+            // Update list before calling server for next query.
+            resolve({
+              resourceType: 'ValueSet',
+              expansion: {
+                total: Number.isInteger(total) ? total : null,
+                contains
+              }
+            });
+            const newParams = { ...params };
+            newParams[`${this.searchParameter}:not`] = this.fhirBackend.features
+              .hasNotModifierIssue
+              ? // Pass a single ":not" parameter, which is currently working
+                // correctly on the HAPI FHIR server.
+                Object.keys(processedCodes).join(',')
+              : // Pass each code as a separate ":not" parameter, which is
+                // currently causing performance issues on the HAPI FHIR server.
+                Object.keys(processedCodes);
+            return this.httpClient.get(url, {
+              params: newParams
+            });
+          } else {
+            if (!nextPageUrl) {
+              total = contains.length;
+            } else if (response.total) {
+              total = response.total;
+            }
+            if (contains.length > count) {
+              contains.length = count;
+            }
+            this.loading = false;
+            this.liveAnnouncer.announce('Finished loading list.');
+            resolve({
+              resourceType: 'ValueSet',
+              expansion: {
+                total: Number.isInteger(total) ? total : null,
+                contains
+              }
+            });
+            // Emit a complete notification
+            return EMPTY;
+          }
+        }),
+        catchError((error) => {
+          this.loading = false;
+          reject(error);
+          return of(contains);
+        })
+      );
+
+    this.subscription = obs.subscribe();
   }
 
   /**
@@ -499,7 +518,7 @@ export class AutocompleteParameterValueComponent
                   catchError((error) => {
                     this.loading = false;
                     reject(error);
-                    throw error;
+                    return of(contains);
                   })
                 )
                 .subscribe((response) => {
@@ -583,9 +602,14 @@ export class AutocompleteParameterValueComponent
                         }
                       });
                       const newParams = { ...params };
-                      newParams['_id:not'] = Object.keys(processedCodes).join(
-                        ','
-                      );
+                      newParams['_id:not'] = this.fhirBackend.features
+                        .hasNotModifierIssue
+                        ? // Pass a single "_id:not" parameter, which is currently working
+                          // correctly on the HAPI FHIR server.
+                          Object.keys(processedCodes).join(',')
+                        : // Pass each code as a separate "_id:not" parameter, which is
+                          // currently causing performance issues on the HAPI FHIR server.
+                          Object.keys(processedCodes);
                       return this.httpClient.get(url, {
                         params: newParams
                       });
@@ -614,7 +638,7 @@ export class AutocompleteParameterValueComponent
                   catchError((error) => {
                     this.loading = false;
                     reject(error);
-                    throw error;
+                    return of(contains);
                   })
                 );
 

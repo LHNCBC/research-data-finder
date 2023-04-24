@@ -9,6 +9,8 @@ import { DomSanitizer } from '@angular/platform-browser';
  * (Because Material icons font is not supported by IE11)
  */
 const icons = [
+  'add_shopping_cart_black',
+  'shopping_cart_black',
   'keyboard_arrow_right',
   'keyboard_arrow_left',
   'keyboard_double_arrow_down_black',
