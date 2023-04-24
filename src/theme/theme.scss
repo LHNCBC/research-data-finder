@@ -110,3 +110,23 @@ $app-theme: mat.define-light-theme((
 // that you are using.
 @include mat.all-component-themes($app-theme);
 @include outline-typography($app-theme);
+
+// Override some stepper styles
+.mat-tab-group.mat-primary {
+  .mat-tab-label {
+    opacity: 1 !important;
+
+    &.mat-tab-label-active {
+      color: #3f51b5;
+      background-color: rgba(197, 202, 233, 0.3);
+    }
+  }
+
+  .mat-tab-label {
+    background-color: rgba(197, 202, 233, 0.1);
+  }
+
+  .mat-tab-label.cdk-keyboard-focused:not(.mat-tab-disabled) {
+    background-color: rgba(197, 202, 233, 0.5);
+  }
+}

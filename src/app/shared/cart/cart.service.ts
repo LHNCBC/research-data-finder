@@ -134,7 +134,7 @@ export class CartService {
             // TODO: ucumUtils is not added to index.d.ts of fhirpath.js
             const unitList = (fhirpath as any).ucumUtils
               .commensurablesList(unitCode)[0]
-              .map((i) => {
+              ?.map((i) => {
                 if (i.csCode_ === unitCode) {
                   isFromList = true;
                 }

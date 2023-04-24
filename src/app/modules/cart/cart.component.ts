@@ -31,7 +31,8 @@ type ListCells = { [key: string]: string };
 @Component({
   selector: 'app-cart',
   templateUrl: './cart.component.html',
-  styleUrls: ['./cart.component.less']
+  styleUrls: ['./cart.component.less'],
+  host: { class: 'mat-elevation-z4' }
 })
 export class CartComponent implements OnInit, OnChanges {
   constructor(
