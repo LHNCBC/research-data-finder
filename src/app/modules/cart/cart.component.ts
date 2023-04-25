@@ -31,7 +31,8 @@ type ListCells = { [key: string]: string };
 @Component({
   selector: 'app-cart',
   templateUrl: './cart.component.html',
-  styleUrls: ['./cart.component.less']
+  styleUrls: ['./cart.component.less'],
+  host: { class: 'mat-elevation-z4' }
 })
 export class CartComponent implements OnInit, OnChanges {
   constructor(
@@ -53,7 +54,10 @@ export class CartComponent implements OnInit, OnChanges {
     );
   }
 
+  // The resource type for which cart is displayed
   @Input() resourceType: string;
+  // The "resource type" for display columns, e.g. observations can be treated as variables
+  @Input() resourceTypeColumns: string;
   @Input() listItems: ListItem[];
   selectedItems = new Set<ListItem>();
   @Output() removeRecord = new EventEmitter<{
@@ -70,6 +74,11 @@ export class CartComponent implements OnInit, OnChanges {
       this.columnDescriptions = columnDescriptions?.filter(
         // Exclude unnecessary columns
         (c) => c.element !== 'type' && c.element !== 'unit'
+      );
+    } else if (this.resourceType === 'Observation') {
+      this.columnDescriptions = columnDescriptions?.filter(
+        // Exclude unnecessary columns
+        (c) => c.element !== 'valueQuantity.unit'
       );
     } else {
       this.columnDescriptions = columnDescriptions;
@@ -97,7 +106,7 @@ export class CartComponent implements OnInit, OnChanges {
     if (changes.listItems) {
       if (this.listItems) {
         const allColumns = this.columnDescriptionsService.getAvailableColumns(
-          this.resourceType,
+          this.resourceTypeColumns || this.resourceType,
           'select'
         );
         [].concat(...this.listItems).forEach((record: Resource) => {
@@ -235,7 +244,11 @@ export class CartComponent implements OnInit, OnChanges {
   getCellText(listItem: ListItem, element: string): string {
     let result;
     if (Array.isArray(listItem)) {
-      if (element === 'display_name' || element === 'id') {
+      if (
+        element === 'display_name' ||
+        element === 'id' ||
+        element === 'code'
+      ) {
         result =
           '«' +
           listItem.map((i) => this.cells[i.id][element]).join('» or «') +

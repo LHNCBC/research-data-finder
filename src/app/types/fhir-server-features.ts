@@ -1,5 +1,8 @@
 // An object describing the server features
 export interface FhirServerFeatures {
+  // Whether the ":not" search parameter modifier is interpreted incorrectly
+  // (HAPI FHIR server issue)
+  hasNotModifierIssue: boolean;
   // Whether "lastn" operation is available
   // (https://www.hl7.org/fhir/operation-observation-lastn.html)
   lastnLookup: boolean;

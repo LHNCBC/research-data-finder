@@ -47,6 +47,9 @@ function getSearchParametersConfig(
   resourceTypes,
   additionalExpressions
 ) {
+  if (!fs.existsSync(directoryPath)) {
+    return null;
+  }
   const profiles = {
     parameters: JSON.parse(
       fs.readFileSync(directoryPath + '/search-parameters.json').toString()

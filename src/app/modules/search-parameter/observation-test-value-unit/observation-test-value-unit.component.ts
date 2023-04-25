@@ -17,7 +17,7 @@ import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { BaseControlValueAccessor } from '../../base-control-value-accessor';
 import { AbstractControl, NgControl } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 
@@ -270,9 +270,9 @@ export class ObservationTestValueUnitComponent
           }
         )
         .pipe(
-          catchError((error) => {
+          catchError(() => {
             this.numberOfActiveQueries--;
-            throw error;
+            return of([[], [], []]);
           })
         )
         .subscribe((res: Array<any>) => {

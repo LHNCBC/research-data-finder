@@ -9,6 +9,17 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { configureTestingModule } from 'src/test/helpers';
+import { HttpTestingController } from '@angular/common/http/testing';
+
+const imports = [
+  CommonModule,
+  ReactiveFormsModule,
+  MatFormFieldModule,
+  SharedModule,
+  MatProgressSpinnerModule,
+  NoopAnimationsModule,
+  RouterTestingModule
+];
 
 @Component({
   template: ` <mat-form-field class="flex">
@@ -45,15 +56,7 @@ describe('AutoCompleteTestValueComponent', () => {
   beforeEach(async () => {
     await configureTestingModule({
       declarations: [TestHostComponent, AutocompleteParameterValueComponent],
-      imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        SharedModule,
-        MatProgressSpinnerModule,
-        NoopAnimationsModule,
-        RouterTestingModule
-      ]
+      imports
     });
   });
 
@@ -84,5 +87,134 @@ describe('AutoCompleteTestValueComponent', () => {
     el.dispatchEvent(new Event('input'));
     el.dispatchEvent(new Event('blur'));
     expect(el.className.indexOf('invalid') >= 0).toBeTrue();
+  });
+});
+
+const bundleOfObservationsWithCategories = {
+  link: [{ relation: 'next', url: 'nextPageUrl' }],
+  entry: [
+    {
+      resource: {
+        category: [
+          {
+            coding: [
+              {
+                code: 'someCode1',
+                display: 'someValue1'
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      resource: {
+        category: [
+          {
+            coding: [
+              {
+                code: 'someCode2',
+                display: 'someValue2'
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+};
+
+const emptyBundle = {};
+
+describe('AutoCompleteTestValueComponent (when FHIR server has the :not modifier issue)', () => {
+  let fixture: ComponentFixture<TestHostComponent>;
+  let hostComponent: TestHostComponent;
+  let component: AutocompleteParameterValueComponent;
+  let mockHttp: HttpTestingController;
+
+  beforeEach(async () => {
+    await configureTestingModule(
+      {
+        declarations: [TestHostComponent, AutocompleteParameterValueComponent],
+        imports
+      },
+      {
+        features: {
+          hasNotModifierIssue: true
+        }
+      }
+    );
+  });
+
+  beforeEach(async () => {
+    fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    hostComponent = fixture.componentInstance;
+    component = hostComponent.component;
+    mockHttp = TestBed.inject(HttpTestingController);
+  });
+
+  it('should use single code:not', function () {
+    const resolve = jasmine.createSpy();
+    const reject = jasmine.createSpy();
+    component.searchItemsOnFhirServer('someValue', 20, resolve, reject);
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:text=someValue')
+      .flush(bundleOfObservationsWithCategories);
+    mockHttp
+      .expectOne(
+        '$fhir/Observation?_elements=category&category:text=someValue&category:not=someCode1,someCode2'
+      )
+      .flush(emptyBundle);
+    mockHttp.verify();
+    expect(resolve).toHaveBeenCalled();
+    expect(reject).not.toHaveBeenCalled();
+  });
+});
+
+describe("AutoCompleteTestValueComponent (when FHIR server doesn't have the :not modifier issue)", () => {
+  let fixture: ComponentFixture<TestHostComponent>;
+  let hostComponent: TestHostComponent;
+  let component: AutocompleteParameterValueComponent;
+  let mockHttp: HttpTestingController;
+
+  beforeEach(async () => {
+    await configureTestingModule(
+      {
+        declarations: [TestHostComponent, AutocompleteParameterValueComponent],
+        imports
+      },
+      {
+        features: {
+          hasNotModifierIssue: false
+        }
+      }
+    );
+  });
+
+  beforeEach(async () => {
+    fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    hostComponent = fixture.componentInstance;
+    component = hostComponent.component;
+    mockHttp = TestBed.inject(HttpTestingController);
+  });
+
+  it('should use multiple code:not', function () {
+    const resolve = jasmine.createSpy();
+    const reject = jasmine.createSpy();
+
+    component.searchItemsOnFhirServer('someValue', 20, resolve, reject);
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:text=someValue')
+      .flush(bundleOfObservationsWithCategories);
+    mockHttp
+      .expectOne(
+        '$fhir/Observation?_elements=category&category:text=someValue&category:not=someCode1&category:not=someCode2'
+      )
+      .flush(emptyBundle);
+    mockHttp.verify();
+    expect(resolve).toHaveBeenCalled();
+    expect(reject).not.toHaveBeenCalled();
   });
 });
