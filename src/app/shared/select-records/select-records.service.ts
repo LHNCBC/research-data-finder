@@ -5,7 +5,7 @@
 import { Injectable } from '@angular/core';
 import Resource = fhir.Resource;
 import { forkJoin, from, Observable, of, pipe, UnaryFunction } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import Bundle = fhir.Bundle;
 import {
   catchError,
@@ -249,24 +249,30 @@ export class SelectRecordsService {
 
     const uniqDataFields = [...new Set(Object.values(dataFields))];
 
+    const httpParams = new HttpParams({
+      fromObject: {
+        offset: pageNumber * 50,
+        count: 50,
+        df: uniqDataFields.join(','),
+        terms: '',
+        q: query.join(' AND '),
+        ...params,
+        ...(sort
+          ? {
+              of:
+                dataFields[sort.active] +
+                ':' +
+                // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+                (sort.direction === 'asc' ? 'desc' : 'asc')
+            }
+          : {})
+      }
+    });
+
     this.resourceStream[resourceType] = this.http
-      .get(url, {
-        params: {
-          offset: pageNumber * 50,
-          count: 50,
-          df: uniqDataFields.join(','),
-          terms: '',
-          q: query.join(' AND '),
-          ...params,
-          ...(sort
-            ? {
-                of:
-                  dataFields[sort.active] +
-                  ':' +
-                  // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-                  (sort.direction === 'asc' ? 'desc' : 'asc')
-              }
-            : {})
+      .post(url, httpParams.toString(), {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
         }
       })
       .pipe(
