@@ -7,7 +7,7 @@
   : ''
   }}
   <span style="color: blue"
-  *ngIf="!fhirBackend.serviceBaseUrl.startsWith('https://dbgap-api.ncbi.nlm.nih.gov')">[TODO: Don't know what to show for non dbGap servers.]</span>
+  *ngIf="!fhirBackend.isDbgap(fhirBackend.serviceBaseUrl)">[TODO: Don't know what to show for non dbGap servers.]</span>
 </p>
 
 <mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
@@ -26,7 +26,6 @@
                           [resourceType]="resourceType">
         <ng-template #buttonPrefix>
           <button mat-mini-fab
-                  class="reload-btn"
                   color="basic"
                   type="button" mat-icon-button
                   (click)="reloadFromServer(resourceType)"
@@ -37,7 +36,10 @@
         <ng-template #header>
           <mat-accordion>
             <mat-expansion-panel hideToggle #panel>
-              <mat-expansion-panel-header>
+              <mat-expansion-panel-header
+                  (click)="panel.toggle()"
+                  (keydown.enter)="panel.toggle()"
+                  (keydown.space)="panel.toggle()">
                 <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
                     <span>Selected {{
                       resourceTable.selectedResources.selected.length
@@ -66,7 +68,7 @@
           </mat-accordion>
         </ng-template>
       </app-resource-table>
-      <app-resource-table *ngIf="resourceType === 'Variable' && selectRecords.currentState[resourceType]"
+      <app-resource-table *ngIf="(resourceType === 'Variable' || resourceType === 'Observation') && selectRecords.currentState[resourceType]"
                           #variableTable
                           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'browse') | async"
                           (filterChanged)="loadFirstPage(resourceType)"

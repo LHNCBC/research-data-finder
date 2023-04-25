@@ -65,8 +65,11 @@ export class BrowseRecordsPageComponent
         .subscribe(() => {
           selectRecords.resetAll();
           this.visibleResourceTypes = fhirBackend.features.hasResearchStudy
-            ? ['ResearchStudy', 'Variable']
-            : [];
+            ? this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl)
+              ? ['ResearchStudy', 'Variable']
+              : // To build Variable list for other FHIR servers we use Observations
+                ['ResearchStudy', 'Observation']
+            : ['Observation'];
         })
     );
   }
@@ -184,13 +187,29 @@ export class BrowseRecordsPageComponent
   }
 
   /**
+   * Loads a list of variables for selected research studies from observations.
+   * @param reset - whether to reset already loaded data
+   */
+  loadVariablesFromObservations(reset = true): void {
+    this.selectRecords.loadVariablesFromObservations(
+      this.getSelectedRecords('ResearchStudy'),
+      {},
+      this.variableTable?.filtersForm.value || {},
+      this.sort['Observation'],
+      reset
+    );
+  }
+
+  /**
    * Loads the first page of the specified resource type.
    * @param resourceType - resource type.
    */
   loadFirstPage(resourceType: string): void {
     if (resourceType === 'Variable') {
       this.loadVariables();
-    } else {
+    } else if (resourceType === 'Observation') {
+      this.loadVariablesFromObservations();
+    } else if (resourceType === 'ResearchStudy') {
       const cacheName = 'studies';
       this.selectRecords.loadFirstPage(
         resourceType,
@@ -198,6 +217,12 @@ export class BrowseRecordsPageComponent
         {
           context: new HttpContext().set(CACHE_NAME, cacheName)
         }
+      );
+    } else {
+      this.selectRecords.loadFirstPage(
+        resourceType,
+        `$fhir/${resourceType}?_count=100`,
+        {}
       );
     }
   }
@@ -226,6 +251,8 @@ export class BrowseRecordsPageComponent
       this.loadVariables(
         this.selectRecords.currentState[resourceType].currentPage + 1
       );
+    } else if (resourceType === 'Observation') {
+      this.loadVariablesFromObservations(false);
     } else {
       this.selectRecords.loadNextPage(resourceType);
     }

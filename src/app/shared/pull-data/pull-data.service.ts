@@ -39,9 +39,7 @@ export class PullDataService {
     private http: HttpClient,
     private columnValues: ColumnValuesService
   ) {
-    cohort.criteria$.subscribe(() => {
-      this.resourceStream = {};
-    });
+    cohort.criteria$.subscribe(() => this.reset());
   }
 
   currentState: { [resourceType: string]: PullDataState } = {};
@@ -110,6 +108,14 @@ export class PullDataService {
   }
 
   /**
+   * Resets all loaded data.
+   */
+  reset(): void {
+    this.currentState = {};
+    this.resourceStream = {};
+  }
+
+  /**
    * Loads resources of the specified type for a cohort of Patients.
    * @param resourceType - resource type
    * @param perPatientCount - numbers of resources to show per patient
@@ -123,7 +129,7 @@ export class PullDataService {
     perPatientCount: number,
     criteria: string,
     maxObservationToCheck: number = 1000
-  ): void {
+  ): Observable<Resource[]> {
     const currentState: PullDataState = {
       loading: true,
       resources: [],
@@ -169,9 +175,9 @@ export class PullDataService {
           let linkToPatient;
 
           if (resourceType === 'ResearchStudy') {
-            linkToPatient = `_has:ResearchSubject:study:individual=${patients
-              .map((patient) => patient.id)
-              .join(',')}`;
+            linkToPatient = `_has:ResearchSubject:study:${
+              this.fhirBackend.subjectParamName
+            }=${patients.map((patient) => patient.id).join(',')}`;
           } else if (resourceType === 'Patient') {
             linkToPatient = `_id=${patients
               .map((patient) => patient.id)
@@ -199,8 +205,7 @@ export class PullDataService {
                   `&_count=${maxObservationToCheck}`
                 : `&_count=${perPatientCount}`;
             requests = [
-              this.http
-                .get(
+              this.http.get(
                 `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}${countParam}`
               )
             ];
@@ -251,6 +256,8 @@ export class PullDataService {
         currentState.loading = false;
       })
     );
+
+    return this.resourceStream[resourceType];
   }
 
   /**
@@ -386,7 +393,7 @@ export class PullDataService {
           ...entry.resource,
           ...(patients.length === 1 ? { patientData: patients[0] } : {})
         })) || [];
-      currentState.resources.push(...res);
+      currentState.resources = currentState.resources.concat(res);
       return res;
     };
   }

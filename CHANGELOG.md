@@ -3,9 +3,28 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.1.5] - 2023-04-17
+## [6.2.1] - 2023-04-25
 ### Changed
 - Show proper error message for unsupported FHIR version.
+
+## [6.2.0] - 2023-04-24
+### Added
+- Ability to create a cohort of patients by browsing and selecting records
+  for non-dbGap FHIR servers.
+- Variables tab for non-dbGap FHIR servers.
+### Changed
+- Cart UI changes:
+  - Replaced the checkboxes with small "move to cart" buttons.
+  - Moved the cart part of the page above the list of studies/variables
+    and hid it until there is something in the cart.
+  - Revised row range selection.
+  - Moved the download button to the table header.
+### Fixed
+- An issue where the switching between FHIR servers was not followed by clearing
+  loaded data.
+- An issue where the switching to the "View cohort" step was allowed without
+  searching for patients.
+- An exception when trying to pull data for an empty patient cohort.
 
 ## [6.1.4] - 2023-04-05
 ### Changed
@@ -19,41 +38,41 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Issue with browser back button after RAS login.
 
-## [6.1.1] - 2022-03-08
+## [6.1.1] - 2023-03-08
 ### Changed
 - Updated to Node.js 18.
 
-## [6.1.0] - 2022-02-23
+## [6.1.0] - 2023-02-23
 ### Changed
 - Hid an unnecessary option to view the full list of research studies from
   the select records step.
 - Added aborting of HTTP requests if we no longer need a response to them.
 
-## [6.0.10] - 2022-02-13
+## [6.0.10] - 2023-02-13
 ### Added
 - An input field for the maximum number of recent Observations per Patient
   to check when no code is specified in the criteria.
 
-## [6.0.9] - 2022-02-06
+## [6.0.9] - 2023-02-06
 ### Changed
 - Temporarily disabled the use of the _security URL parameter.
 
-## [6.0.8] - 2022-02-02
+## [6.0.8] - 2023-02-02
 ### Changed
 - Enabled use of RAS for dbGap by default.
 
-## [6.0.7] - 2022-01-26
+## [6.0.7] - 2023-01-26
 ### Changed
 - Temporarily enable RAS with a URL parameter until RAS goes live.
 
-## [6.0.6] - 2022-01-12
+## [6.0.6] - 2023-01-12
 ### Changed
 - Added a column with the LOINC short name to the table of variables.
 ### Fixed
 - Added search for synonyms when searching for variables by display name.
 - Removed access to the FHIR server from unit tests.
 
-## [6.0.5] - 2022-01-09
+## [6.0.5] - 2023-01-09
 ### Fixed
 - Editing the "server" URL parameter did not result in a logout from RAS.
 

@@ -54,8 +54,23 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
   @ViewChild('stepper') public stepper: MatStepper;
   @ViewChild('settings') public settingsPageComponent: SettingsPageComponent;
   @ViewChild('settingsStep') public settingsStep: MatStep;
-  @ViewChild('defineCohortStep') public defineCohortStep: MatStep;
-  @ViewChild('selectRecordsStep') public selectRecordsStep: MatStep;
+
+  @ViewChild('defineCohortStep') set _defineCohortStep(step: MatStep) {
+    this.defineCohortStep = step;
+    if (step) {
+      step.completed = false;
+    }
+  }
+  defineCohortStep: MatStep;
+
+  @ViewChild('selectRecordsStep') set _selectRecordsStep(step: MatStep) {
+    this.selectRecordsStep = step;
+    if (step) {
+      step.completed = false;
+    }
+  }
+  selectRecordsStep: MatStep;
+
   @ViewChild(SelectAnAreaOfInterestComponent)
   public selectAreaOfInterestComponent: SelectAnAreaOfInterestComponent;
   @ViewChild(SelectAnActionComponent)
@@ -163,9 +178,10 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
         // changes. So I decided to do it only here:
         this.settingsStep.completed = this.settingsPageComponent.settingsFormGroup.valid;
       } else if (status === ConnectionStatus.Ready) {
+        // TODO: Here we need to allow changing the cohort creation mode only
+        //       when we have Variables.
         this.allowChangeCreateCohortMode =
-          getUrlParam('alpha-version') === 'enable' &&
-          this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl);
+          getUrlParam('alpha-version') === 'enable';
         if (!this.allowChangeCreateCohortMode) {
           this.cohort.createCohortMode = CreateCohortMode.SEARCH;
         } else {
@@ -198,10 +214,6 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
         }
       }
     });
-
-    if (this.defineCohortStep) {
-      this.defineCohortStep.completed = false;
-    }
   }
 
   /**
