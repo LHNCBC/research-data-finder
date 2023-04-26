@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.1] - 2023-04-26
+### Fixed
+- Filter observation codes by search text, while taking into account synonyms.
+
 ## [6.2.0] - 2023-04-24
 ### Added
 - Ability to create a cohort of patients by browsing and selecting records
