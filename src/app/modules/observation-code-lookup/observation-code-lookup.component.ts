@@ -23,7 +23,8 @@ import { catchError, expand, tap } from 'rxjs/operators';
 import {
   getNextPageUrl,
   modifyStringForSynonyms,
-  generateSynonymLookup
+  generateSynonymLookup,
+  escapeStringForRegExp
 } from '../../shared/utils';
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
@@ -232,6 +233,16 @@ export class ObservationCodeLookupComponent
         suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
         fhir: {
           search: (fieldVal, count) => {
+            const fieldValWithSynonyms = modifyStringForSynonyms(
+              ObservationCodeLookupComponent.wordSynonymsLookup,
+              fieldVal
+            );
+            // Construct RegExp /base|basic/i from comma-separated synonym string
+            // 'base,basic', for example.
+            const isMatchToFieldVal = new RegExp(
+              escapeStringForRegExp(fieldValWithSynonyms).replace(/\\,/g, '|'),
+              'i'
+            );
             return {
               then: (resolve, reject) => {
                 const url = this.fhirBackend.features.lastnLookup
@@ -239,10 +250,7 @@ export class ObservationCodeLookupComponent
                   : '$fhir/Observation';
                 const params = {
                   _elements: 'code,value,component',
-                  'code:text': modifyStringForSynonyms(
-                    ObservationCodeLookupComponent.wordSynonymsLookup,
-                    fieldVal
-                  ),
+                  'code:text': fieldValWithSynonyms,
                   _count: '500'
                 };
                 const paramsCode = {
@@ -272,7 +280,8 @@ export class ObservationCodeLookupComponent
                         ...this.getAutocompleteItems(
                           response,
                           processedCodes,
-                          selectedCodes
+                          selectedCodes,
+                          isMatchToFieldVal
                         )
                       );
                     }),
@@ -295,7 +304,8 @@ export class ObservationCodeLookupComponent
                         ...this.getAutocompleteItems(
                           response,
                           processedCodes,
-                          selectedCodes
+                          selectedCodes,
+                          isMatchToFieldVal
                         )
                       );
                       const nextPageUrl = getNextPageUrl(response);
@@ -437,11 +447,14 @@ export class ObservationCodeLookupComponent
    * @param processedCodes - hash of processed codes,
    *   used to exclude repeated codes
    * @param selectedCodes - already selected codes
+   * @param isMatchToFieldVal - RegExp to check if
+   *   a string matches the value of the input field
    */
   getAutocompleteItems(
     bundle: Bundle,
     processedCodes: { [key: string]: boolean },
-    selectedCodes: Array<string>
+    selectedCodes: Array<string>,
+    isMatchToFieldVal: RegExp
   ): ValueSetExpansionContains[] {
     return (bundle.entry || []).reduce((acc, entry) => {
       const observation = entry.resource as Observation;
@@ -461,7 +474,9 @@ export class ObservationCodeLookupComponent
                 (!this.currentData.datatype ||
                   this.currentData.datatype === ANY_DATATYPE ||
                   datatype === this.currentData.datatype) &&
-                selectedCodes.indexOf(coding.code) === -1
+                selectedCodes.indexOf(coding.code) === -1 &&
+                (isMatchToFieldVal.test(coding.code) ||
+                  isMatchToFieldVal.test(coding.display))
               ) {
                 matched = true;
               }
