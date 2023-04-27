@@ -337,19 +337,25 @@ export class FhirBatchQuery {
   }
 
   /**
-   * Adds a parameter to the source URL and returns the new URL.
-   * @param {string} url - source url
+   * Adds a parameter to the source URL, or updates an existing one and returns
+   * the new URL.
+   * @param {string} url source URL
    * @param {string} name - parameter name
    * @param {string} value - parameter value
    * @return {string}
    */
   addParamToUrl(url, name, value) {
-    const param = name + '=' + encodeURIComponent(value);
-    if (url.indexOf('?') === -1) {
-      return url + '?' + param;
-    } else {
-      return url + '&' + param;
-    }
+    const urlParts = url
+      .split(/[?&]/)
+      .filter((paramStr) => !paramStr.startsWith(name + '='));
+    return (
+      urlParts[0] +
+      '?' +
+      urlParts
+        .slice(1)
+        .concat([name + '=' + encodeURIComponent(value)])
+        .join('&')
+    );
   }
 
   static clearCache() {

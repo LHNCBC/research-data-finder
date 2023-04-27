@@ -299,6 +299,16 @@ export class ObservationCodeLookupComponent
                           selectedCodes
                         )
                       );
+                      // Update list immediately.
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(response.total)
+                            ? response.total
+                            : null,
+                          contains
+                        }
+                      });
                     }),
                     catchError((error) => {
                       this.loading = false;
@@ -330,6 +340,16 @@ export class ObservationCodeLookupComponent
                         // for the "code" search parameter.
                         newItems.length
                       ) {
+                        // Update list immediately
+                        resolve({
+                          resourceType: 'ValueSet',
+                          expansion: {
+                            total: Number.isInteger(response.total)
+                              ? response.total
+                              : null,
+                            contains
+                          }
+                        });
                         if (this.fhirBackend.features.lastnLookup) {
                           return this.httpClient.get(nextPageUrl);
                         } else {
