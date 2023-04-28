@@ -582,11 +582,13 @@ export class FhirBatchQuery {
       };
 
       let sendUrl = url;
-      if (this._apiKey) {
+      if (this._apiKey && sendUrl.indexOf('api_key=') === -1) {
         sendUrl = this.addParamToUrl(sendUrl, 'api_key', this._apiKey);
       }
 
-      sendUrl = this.addParamToUrl(sendUrl, '_format', 'json');
+      if (sendUrl.indexOf('_format=json') === -1) {
+        sendUrl = this.addParamToUrl(sendUrl, '_format', 'json');
+      }
 
       oReq.open(method, sendUrl);
       oReq.timeout = this._giveUpTimeout;
