@@ -287,7 +287,6 @@ export class FhirBackendService implements HttpBackend {
       () => {
         this.smartConnectionSuccess = false;
         this.initialized.next(ConnectionStatus.Error);
-        this.liveAnnouncer.announce('SMART on FHIR connection failed.');
         return Promise.reject();
       }
     );

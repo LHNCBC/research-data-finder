@@ -135,9 +135,8 @@ export class FhirServerSelectComponent
     if (!this.preventFocusFlag && !this.focused) {
       this.focused = true;
       this.stateChanges.next();
-      if (this.acInstance?.temporaryHide_) {
-        this.acInstance.hideList();
-        this.acInstance.temporaryHide_ = false;
+      if (this.acInstance?.preventListFromShowing) {
+        this.acInstance.preventListFromShowing = false;
       }
     }
   }
@@ -265,7 +264,7 @@ export class FhirServerSelectComponent
       // InitializeSpinnerService will open a 'Initializing ...' dialog when the system tries
       // to initialize the new server, setting the focus back here after dialog is closed.
       // Set this flag on the autocomplete instance so the server list won't open when focus comes back.
-      this.acInstance.temporaryHide_ = true;
+      this.acInstance.preventListFromShowing = true;
       this.currentValue = inputFieldValue;
       this.onChange(this.value);
     }
