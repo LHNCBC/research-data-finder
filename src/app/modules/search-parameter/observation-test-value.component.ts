@@ -195,6 +195,7 @@ export class ObservationTestValueComponent
    */
   onComplexComparatorChange(value: string): void {
     this.testValueComparator = value;
+    this.resetSecondLine();
     this.checkToShowAddButton(value.slice(-2));
   }
 
@@ -205,7 +206,6 @@ export class ObservationTestValueComponent
     this.selectedDatatype = value;
     this.form.get('testValue').setValue('');
     this.form.get('testValueUnit').setValue('');
-    this.resetSecondLine();
   }
 
   /**
@@ -230,7 +230,7 @@ export class ObservationTestValueComponent
 
   /**
    * Announce the addition of the 'add new line' button, if applicable.
-   * @param value new value of the comparator, derivedu from Prefix control or testValueComparator control
+   * @param value new value of the comparator, derived from Prefix control or testValueComparator control
    * @param announce whether to announce the new button, default to true
    * The button should be shown if the options selected in the first line comparator
    * control is '>', '>=', '<' or '<='.
