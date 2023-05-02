@@ -34,10 +34,20 @@
             ]
           },
           {
-            displayName: "LOINC code",
-            element: "loinc_num",
-            expression: "code.coding.where(system.contains('loinc.org')).code",
+            displayName: "Code",
+            element: "code_value",
+            expression: "code.coding.code",
             displayByDefault: true,
+            types: [
+              "string"
+            ]
+          },
+          {
+            displayName: "Code system",
+            element: "code_system",
+            expression: "code.coding.system",
+            displayByDefault: true,
+            filterable: false,
             types: [
               "string"
             ]

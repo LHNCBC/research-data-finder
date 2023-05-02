@@ -39,7 +39,8 @@ export class RasTokenCallbackComponent implements OnInit {
             queryParams: {
               'alpha-version': 'enable',
               server
-            }
+            },
+            replaceUrl: true
           });
         },
         (err) => {

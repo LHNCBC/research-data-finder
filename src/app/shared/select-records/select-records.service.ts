@@ -1,6 +1,10 @@
+/**
+ * The file contains a service for loading and processing records in
+ * the "Select records" and "Browse public data" steps.
+ */
 import { Injectable } from '@angular/core';
 import Resource = fhir.Resource;
-import { from, Observable, of } from 'rxjs';
+import { forkJoin, from, Observable, of, pipe, UnaryFunction } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import Bundle = fhir.Bundle;
 import {
@@ -11,7 +15,11 @@ import {
   startWith,
   switchMap
 } from 'rxjs/operators';
-import { getNextPageUrl, modifyStringForSynonyms } from '../utils';
+import {
+  escapeStringForRegExp,
+  getNextPageUrl,
+  modifyStringForSynonyms
+} from '../utils';
 import { Sort } from '@angular/material/sort';
 import { CartService } from '../cart/cart.service';
 import { HttpOptions } from '../../types/http-options';
@@ -24,8 +32,6 @@ import { PullDataService } from '../pull-data/pull-data.service';
 import { CohortService } from '../cohort/cohort.service';
 import Observation = fhir.Observation;
 import { ObservationCodeLookupComponent } from '../../modules/observation-code-lookup/observation-code-lookup.component';
-import BundleEntry = fhir.BundleEntry;
-import { uniq } from 'lodash-es';
 
 interface SelectRecordState {
   // Indicates that data is loading
@@ -45,6 +51,9 @@ interface SelectRecordState {
   // The total number of records is used to determine whether the next page
   // of CTSS variables exists
   totalRecords?: number;
+  // A set of processed observation codes when we build a list of variables from
+  // observations
+  processedObservationCodes?: Set<string>;
 }
 
 @Injectable({
@@ -233,7 +242,10 @@ export class SelectRecordsService {
           // searching the long and short LOINC names.
           query.push(`(${dataFields[key]}:(${value}) OR synonyms:(${value}))`);
         } else {
-          query.push(`${dataFields[key]}:(${value})`);
+          // Use wildcard search for below columns so user can filter by typing a prefix.
+          ['id', 'study_id', 'dataset_id', 'type', 'unit'].includes(key)
+            ? query.push(`${dataFields[key]}:(${value}*)`)
+            : query.push(`${dataFields[key]}:(${value})`);
         }
       }
     });
@@ -311,14 +323,14 @@ export class SelectRecordsService {
   }
 
   /**
-   * Loads Observations for selected research studies.
+   * Loads a list of variables for selected research studies from observations.
    * @param selectedResearchStudies - array of selected research studies.
    * @param params - http parameters
    * @param filters - filter values
    * @param sort - the current sort state
    * @param reset - whether to reset already loaded data
    */
-  loadObservations(
+  loadVariablesFromObservations(
     selectedResearchStudies: Resource[],
     params: {
       [param: string]: any;
@@ -333,6 +345,7 @@ export class SelectRecordsService {
       currentState = {
         loading: true,
         resources: [],
+        processedObservationCodes: new Set<string>(),
         totalRecords: 0
       };
       this.currentState[resourceType] = currentState;
@@ -343,142 +356,233 @@ export class SelectRecordsService {
       }
       currentState.loading = true;
     }
-    const processedCodes = {};
-    (currentState.resources as Observation[]).forEach((obs) =>
-      obs.code.coding.map((coding) => (processedCodes[coding.code] = true))
-    );
 
-    // Load all ResearchSubjects and filter Observations by subject/individual
-    const study = selectedResearchStudies
-      .map((s) => 'ResearchStudy/' + s.id)
-      .join(',');
-    const patientRefs = study
-      ? this.http
-          // TODO: add paging? or 5000 is enough?
-          .get(`$fhir/ResearchSubject?_count=5000`, {
-            params: {
-              study
-            }
-          })
-          .pipe(
-            map((subjectBundle: Bundle) => {
-              // only unique references
-              return uniq(
-                subjectBundle.entry?.map(
-                  (entry: BundleEntry) =>
-                    (entry.resource as any)[this.fhirBackend.subjectParamName]
-                      .reference
-                ) || []
-              );
-            })
-          )
-      : of([]);
+    // Observation filter parameters
+    const obsFilterParams = {
+      ...(filters.code
+        ? {
+            'code:text': modifyStringForSynonyms(
+              ObservationCodeLookupComponent.wordSynonymsLookup,
+              filters.code
+            )
+          }
+        : {}),
+      ...(filters.code_value
+        ? {
+            code: filters.code_value
+          }
+        : {}),
+      ...(filters.category
+        ? {
+            'category:text': modifyStringForSynonyms(
+              ObservationCodeLookupComponent.wordSynonymsLookup,
+              filters.category
+            )
+          }
+        : {}),
+      ...(currentState.processedObservationCodes.size
+        ? {
+            'code:not': this.fhirBackend.features.hasNotModifierIssue
+              ? // Pass a single "code:not" parameter, which is currently working
+                // correctly on the HAPI FHIR server.
+                Array.from<string>(
+                  currentState.processedObservationCodes.keys()
+                ).join(',')
+              : // Pass each code as a separate "code:not" parameter, which is
+                // currently causing performance issues on the HAPI FHIR server.
+                Array.from<string>(
+                  currentState.processedObservationCodes.keys()
+                )
+          }
+        : {})
+    };
 
-    this.resourceStream[resourceType] = patientRefs.pipe(
-      concatMap((references) => {
-        // For debug:
-        // console.log(
-        //   '>>> Number of unique Patient references:',
-        //   references.length
-        // );
+    // When we use lastn we get only 499 Variables.
+    // const lastnLookup =
+    //   this.fhirBackend.features.lastnLookup && !references.length;
+    const lastnLookup = false;
+    const url = lastnLookup
+      ? reset
+        ? '$fhir/Observation/$lastn?max=1'
+        : currentState.nextBundleUrl
+      : '$fhir/Observation';
 
-        // When we use lastn we get only 499 Variables.
-        // const lastnLookup =
-        //   this.fhirBackend.features.lastnLookup && !references.length;
-        const lastnLookup = false;
-        const url = lastnLookup
-          ? reset
-            ? '$fhir/Observation/$lastn?max=1'
-            : currentState.nextBundleUrl
-          : '$fhir/Observation';
+    const reqParams =
+      lastnLookup && !reset
+        ? {}
+        : {
+            _elements: 'code,value,category',
+            // TODO: Currently, we can't link Observations to ResearchStudies
+            //   through a search parameter. That may be possible in R5. See:
+            //   https://build.fhir.org/extension-workflow-researchstudy.html
+            //   https://chat.fhir.org/#narrow/stream/179166-implementers/topic/Link.20ObservationDefinition.20to.20ResearchStudy.3F/near/316394306
+            ...obsFilterParams,
+            _count: 50
+          };
 
-        const reqParams =
-          lastnLookup && !reset
-            ? {}
-            : {
-                _elements: 'code,value,category,component',
-                // TODO: Currently, we can't link Observations to ResearchStudies
-                //   through a search parameter. That may be possible in R5. See:
-                //   https://build.fhir.org/extension-workflow-researchstudy.html
-                //   https://chat.fhir.org/#narrow/stream/179166-implementers/topic/Link.20ObservationDefinition.20to.20ResearchStudy.3F/near/316394306
-                // TODO: Unable to use chaining & reverse chaining at the same time:
-                // ...(selectedResearchStudies.length
-                //   ? {
-                //       'patient:_has:ResearchSubject:individual:study': selectedResearchStudies
-                //         .map((r) => r.id)
-                //         .join(',')
-                //     }
-                //   : {}),
-                ...(references.length ? { patient: references.join(',') } : {}),
-                ...(filters.code
-                  ? {
-                      'code:text': modifyStringForSynonyms(
-                        ObservationCodeLookupComponent.wordSynonymsLookup,
-                        filters.code
-                      )
-                    }
-                  : {}),
-                ...(filters.loinc_num
-                  ? {
-                      code: filters.loinc_num
-                    }
-                  : {}),
-                ...(filters.category
-                  ? {
-                      'category:text': modifyStringForSynonyms(
-                        ObservationCodeLookupComponent.wordSynonymsLookup,
-                        filters.category
-                      )
-                    }
-                  : {}),
-                ...(Object.keys(processedCodes).length
-                  ? { 'code:not': Object.keys(processedCodes).join(',') }
-                  : {}),
-                _count: 1000
-              };
-        return this.http.get(url, { params: reqParams });
-      }),
-      map((data: Bundle) => {
-        const codes = {};
-        currentState.resources = currentState.resources.concat(
-          data.entry
-            ?.map((item) => item.resource as Observation)
-            .filter((obs) => {
-              return (
-                obs.code.coding.filter((coding) => {
-                  if (codes[coding.code]) {
-                    return false;
-                  }
-                  codes[coding.code] = true;
-                  return true;
-                }).length > 0
-              );
-            }) || []
-        );
-
-        currentState.nextBundleUrl = getNextPageUrl(data);
-        return currentState.resources;
-      }),
-      catchError((error) => {
-        // Do not retry after an error
-        currentState.nextBundleUrl = null;
-        return of(currentState.resources);
-      }),
-      finalize(() => {
-        currentState.loading = false;
-      }),
-      switchMap((resources: Resource[]) =>
-        // Exclude records added to the cart from the list
-        this.cart.getCartChanged(resourceType).pipe(
-          startWith(resources),
-          map(() =>
-            resources.filter(
-              (resource) => !this.cart.hasRecord(resourceType, resource)
+    this.resourceStream[resourceType] = this.http
+      .get(url, { params: reqParams })
+      .pipe(
+        this.filterObservationsByCode(
+          currentState,
+          // Patient filter parameters used to check an observation code
+          selectedResearchStudies.length
+            ? {
+                [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:study`]: selectedResearchStudies
+                  .map((s) => 'ResearchStudy/' + s.id)
+                  .join(',')
+              }
+            : this.fhirBackend.features.hasResearchStudy
+            ? {
+                [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:status`]: Object.keys(
+                  this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
+                    'ResearchSubject.status'
+                  ]
+                ).join(',')
+              }
+            : null
+        ),
+        this.convertObservationToVariableRecords(currentState, obsFilterParams),
+        catchError(() => {
+          // Do not retry after an error
+          currentState.nextBundleUrl = null;
+          return of(currentState.resources);
+        }),
+        finalize(() => {
+          currentState.loading = false;
+        }),
+        switchMap((resources: Resource[]) =>
+          // Exclude records added to the cart from the list
+          this.cart.getCartChanged(resourceType).pipe(
+            startWith(resources),
+            map(() =>
+              resources.filter(
+                (resource) => !this.cart.hasRecord(resourceType, resource)
+              )
             )
           )
         )
-      )
-      // startWith(currentState.resources)
+        // startWith(currentState.resources)
+      );
+  }
+
+  /**
+   * RxJS operator to filter observations by code:
+   * - excludes observation with repeated codes
+   * - excludes codes that do not exist for patients who meet the specified
+   *   filter criteria
+   * @param currentState - current state
+   * @param patientFilters - patient filters specify criteria for studies
+   */
+  filterObservationsByCode(
+    currentState: SelectRecordState,
+    patientFilters: { [param: string]: string }
+  ): UnaryFunction<Observable<Bundle>, Observable<Observation[]>> {
+    return pipe(
+      concatMap((data: Bundle) => {
+        const checkRequests = data.entry.reduce((requests, entry) => {
+          const obs = entry.resource as Observation;
+          const coding = obs.code.coding?.[0];
+          const codeAndSystem = coding
+            ? coding.system + '|' + coding.code
+            : null;
+          const isNew =
+            codeAndSystem &&
+            !currentState.processedObservationCodes.has(codeAndSystem);
+          if (isNew) {
+            currentState.processedObservationCodes.add(codeAndSystem);
+            requests.push(
+              patientFilters
+                ? this.http
+                    .get('$fhir/Patient', {
+                      params: {
+                        '_has:Observation:subject:code': codeAndSystem,
+                        ...patientFilters,
+                        _elements: 'id',
+                        _count: 1
+                      }
+                    })
+                    .pipe(
+                      map((checkResponse: Bundle) => {
+                        return checkResponse.entry?.length === 1 ? obs : null;
+                      })
+                    )
+                : of(obs)
+            );
+          }
+          return requests;
+        }, []);
+        currentState.nextBundleUrl = getNextPageUrl(data);
+        return forkJoin(checkRequests).pipe(
+          map((observations: Observation[]) =>
+            observations.filter((obs) => !!obs)
+          )
+        );
+      })
+    );
+  }
+
+  /**
+   * RxJS operator to converts an array of observations to an array of variable
+   * records:
+   * - creates a variable record for each code in each observation
+   * - exclude codes that don't match filter parameters
+   * @param currentState - current state
+   * @param obsFilterParams - observation filter parameters
+   */
+  convertObservationToVariableRecords(
+    currentState: SelectRecordState,
+    obsFilterParams: { [param: string]: string | string[] }
+  ): UnaryFunction<Observable<Observation[]>, Observable<Resource[]>> {
+    return pipe(
+      map((observations: Observation[]) => {
+        const reCodeText = obsFilterParams['code:text']
+          ? new RegExp(
+              '(' +
+                (obsFilterParams['code:text'] as string)
+                  .split(',')
+                  .map((str) => escapeStringForRegExp(str))
+                  .join('|') +
+                ')',
+              'i'
+            )
+          : null;
+        const allowedCodes = (obsFilterParams.code as string)
+          ?.trim()
+          .split(/\s*,\s*/)
+          .filter((code) => code)
+          .reduce((acc, code) => {
+            acc.add(code.trim());
+            return acc;
+          }, new Set<string>());
+
+        currentState.resources = currentState.resources.concat(
+          ...observations.map((obs) => {
+            return (
+              obs.code.coding
+                .filter((coding) => {
+                  // Exclude codes that don't match filters
+                  return (
+                    (!allowedCodes?.size || allowedCodes.has(coding.code)) &&
+                    (!reCodeText || reCodeText.test(coding.display))
+                  );
+                })
+                // Create a variable record for each code
+                .map((coding) => ({
+                  ...obs,
+                  // Replace observation ID with code and system, this ID is
+                  // used for identify variable in cart
+                  id: coding.system + '|' + coding.code,
+                  code: {
+                    coding: [coding]
+                  }
+                }))
+            );
+          })
+        );
+
+        return currentState.resources;
+      })
     );
   }
 }

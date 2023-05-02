@@ -187,11 +187,11 @@ export class BrowseRecordsPageComponent
   }
 
   /**
-   * Loads Observation records.
+   * Loads a list of variables for selected research studies from observations.
    * @param reset - whether to reset already loaded data
    */
-  loadObservations(reset = true): void {
-    this.selectRecords.loadObservations(
+  loadVariablesFromObservations(reset = true): void {
+    this.selectRecords.loadVariablesFromObservations(
       this.getSelectedRecords('ResearchStudy'),
       {},
       this.variableTable?.filtersForm.value || {},
@@ -208,7 +208,7 @@ export class BrowseRecordsPageComponent
     if (resourceType === 'Variable') {
       this.loadVariables();
     } else if (resourceType === 'Observation') {
-      this.loadObservations();
+      this.loadVariablesFromObservations();
     } else if (resourceType === 'ResearchStudy') {
       const cacheName = 'studies';
       this.selectRecords.loadFirstPage(
@@ -252,7 +252,7 @@ export class BrowseRecordsPageComponent
         this.selectRecords.currentState[resourceType].currentPage + 1
       );
     } else if (resourceType === 'Observation') {
-      this.loadObservations(false);
+      this.loadVariablesFromObservations(false);
     } else {
       this.selectRecords.loadNextPage(resourceType);
     }

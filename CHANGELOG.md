@@ -3,12 +3,20 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.5.0] - 2023-03-28
+## [6.2.2] - 2023-04-26
 ### Changed
 - The list for selecting codes in the "pull data for cohort" step is limited to
   those codes that exist for the patient cohort.
 
-## [6.4.0] - 2023-03-24
+## [6.2.1] - 2023-04-25
+### Changed
+- Filter certain columns by a prefix in dbGaP Variables table.
+
+## [6.2.0] - 2023-04-24
+### Added
+- Ability to create a cohort of patients by browsing and selecting records
+  for non-dbGap FHIR servers.
+- Variables tab for non-dbGap FHIR servers.
 ### Changed
 - Cart UI changes:
   - Replaced the checkboxes with small "move to cart" buttons.
@@ -16,21 +24,24 @@ This project follows [Semantic Versioning](http://semver.org/).
     and hid it until there is something in the cart.
   - Revised row range selection.
   - Moved the download button to the table header.
-
-## [6.3.0] - 2023-03-14
-### Added
-- Variables tab for non-dbGap FHIR servers.
-
-## [6.2.0] - 2023-03-07
-### Added
-- Ability to create a cohort of patients by browsing and selecting records
-  for non-dbGap FHIR servers.
 ### Fixed
 - An issue where the switching between FHIR servers was not followed by clearing
   loaded data.
 - An issue where the switching to the "View cohort" step was allowed without
   searching for patients.
 - An exception when trying to pull data for an empty patient cohort.
+
+## [6.1.4] - 2023-04-05
+### Changed
+- Show message inside table when no record matches filter.
+
+## [6.1.3] - 2023-03-28
+### Fixed
+- Close the server select list after selection.
+
+## [6.1.2] - 2023-03-28
+### Fixed
+- Issue with browser back button after RAS login.
 
 ## [6.1.1] - 2023-03-08
 ### Changed

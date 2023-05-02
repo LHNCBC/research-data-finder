@@ -43,6 +43,9 @@ export class FhirBatchQuery {
     this._giveUpTimeout = 90 * 1000;
     // NCBI E-utilities API Key
     this._apiKey = '';
+    // The string describes an initialization context which is used to
+    // distinguish between pre-login and post-login initialization requests
+    this.initContext = '';
   }
 
   /**
@@ -92,7 +95,11 @@ export class FhirBatchQuery {
    * @returns {string}
    */
   getInitCacheName() {
-    return 'init-' + this._serviceBaseUrl;
+    return (
+      'init-' +
+      (this.initContext ? this.initContext + '-' : '') +
+      this._serviceBaseUrl
+    );
   }
 
   /**
@@ -114,14 +121,27 @@ export class FhirBatchQuery {
    * Initialize/reinitialize FhirBatchQuery instance.
    * @param {string} [newServiceBaseUrl] - new FHIR REST API Service Base URL
    *                 (https://www.hl7.org/fhir/http.html#root)
+   * @param {string} [context] - string describes an initialization context
+   *  which is used to distinguish between pre-login and post-login
+   *  initialization requests.
    * @return {Promise}
    */
-  initialize(newServiceBaseUrl) {
-    if (newServiceBaseUrl && newServiceBaseUrl !== this._serviceBaseUrl) {
-      this.clearPendingRequests();
+  initialize(newServiceBaseUrl, context = '') {
+    const serverUrlChanged =
+      newServiceBaseUrl && newServiceBaseUrl !== this._serviceBaseUrl;
+
+    if (serverUrlChanged) {
       this._serviceBaseUrl = newServiceBaseUrl;
+    }
+
+    const contextChanged =
+      arguments.length >= 2 && this.initContext !== context;
+
+    if (serverUrlChanged || contextChanged) {
+      this.clearPendingRequests();
       delete this._initializationPromise;
       this._msBetweenRequests = 0;
+      this.initContext = context;
     }
 
     // const currentServiceBaseUrl = this._serviceBaseUrl;
@@ -210,7 +230,8 @@ export class FhirBatchQuery {
         logPrefix: 'Batch',
         combine: false,
         retryCount: 2
-      })
+      }),
+      this.checkNotModifierIssue()
     ];
 
     return Promise.allSettled(initializationRequests).then(
@@ -221,7 +242,8 @@ export class FhirBatchQuery {
         lastnLookup,
         hasResearchStudy,
         interpretation,
-        batch
+        batch,
+        hasNotModifierIssue
       ]) => {
         if (currentServiceBaseUrl !== this._serviceBaseUrl) {
           return Promise.reject({
@@ -263,10 +285,63 @@ export class FhirBatchQuery {
             interpretation.status === 'fulfilled' &&
             interpretation.value.data.entry &&
             interpretation.value.data.entry.length > 0,
-          batch: batch.status === 'fulfilled'
+          batch: batch.status === 'fulfilled',
+          hasNotModifierIssue:
+            hasNotModifierIssue.status === 'fulfilled' &&
+            hasNotModifierIssue.value
         });
       }
     );
+  }
+
+  /**
+   * Checks if the ":not" search parameter modifier is interpreted incorrectly
+   * (HAPI FHIR server issue).
+   * @return {Promise<boolean>}
+   */
+  checkNotModifierIssue() {
+    return this.getWithCache(
+      'Observation?_count=1',
+      this.getCommonInitRequestOptions()
+    ).then((response) => {
+      const obs = response.data.entry?.[0].resource;
+      const firstCode =
+        obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
+      const patientRef = obs?.subject?.reference;
+      return firstCode && patientRef
+        ? this.getWithCache(
+            `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
+            this.getCommonInitRequestOptions()
+          ).then((oneCodeResp) => {
+            const secondCode =
+              oneCodeResp.data.entry?.[0].resource.code.coding?.[0].system +
+              '%7C' +
+              oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
+            return secondCode
+              ? Promise.allSettled([
+                  typeof oneCodeResp.data.total === 'number'
+                    ? Promise.resolve(oneCodeResp)
+                    : this.getWithCache(
+                        `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                        this.getCommonInitRequestOptions()
+                      ),
+                  this.getWithCache(
+                    `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                    this.getCommonInitRequestOptions()
+                  )
+                ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
+                  return summaryOneCodeResp.status === 'fulfilled' &&
+                    summaryTwoCodeResp.status === 'fulfilled'
+                    ? Promise.resolve(
+                        summaryTwoCodeResp.value.data.total <
+                          summaryOneCodeResp.value.data.total
+                      )
+                    : Promise.reject();
+                })
+              : Promise.reject();
+          })
+        : Promise.reject();
+    });
   }
 
   /**

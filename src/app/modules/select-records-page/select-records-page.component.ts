@@ -78,7 +78,7 @@ export class SelectRecordsPageComponent
       this.clearSelectedRecords('Variable');
     }
     this.liveAnnouncer.announce(
-      'Added selected variables to the cart area below.'
+      'Added selected variables to the cart area above.'
     );
   }
 
@@ -141,11 +141,11 @@ export class SelectRecordsPageComponent
   }
 
   /**
-   * Loads Observation records.
+   * Loads a list of variables for selected research studies from observations.
    * @param reset - whether to reset already loaded data
    */
-  loadObservations(reset = true): void {
-    this.selectRecords.loadObservations(
+  loadVariablesFromObservations(reset = true): void {
+    this.selectRecords.loadVariablesFromObservations(
       [].concat(...(this.cart.getListItems('ResearchStudy') || [])),
       {},
       this.variableTable?.filtersForm.value || {},
@@ -162,7 +162,7 @@ export class SelectRecordsPageComponent
     if (resourceType === 'Variable') {
       this.loadVariables();
     } else if (resourceType === 'Observation') {
-      this.loadObservations();
+      this.loadVariablesFromObservations();
     } else if (resourceType === 'ResearchStudy') {
       const cacheName = this.showOnlyStudiesWithSubjects ? '' : 'studies';
       const hasStatuses = this.showOnlyStudiesWithSubjects
@@ -237,12 +237,14 @@ export class SelectRecordsPageComponent
                 datatype: this.cart.getVariableType(item),
                 // TODO: get from loaded variable?
                 items: [
-                  item.display_name || item.code.text || item.coding[0].display
+                  item.display_name ||
+                    item.code.text ||
+                    item.code.coding[0].display
                 ]
               }
             }
           },
-          ...(this.cart.variableData[item.id].value &&
+          ...(this.cart.variableData[item.id]?.value &&
           this.cart.variableData[item.id].value.testValue !== null &&
           this.cart.variableData[item.id].value.testValue !== ''
             ? [

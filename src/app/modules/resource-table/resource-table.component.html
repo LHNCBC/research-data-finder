@@ -142,7 +142,7 @@
                     [matTooltip]='column.description' matTooltipPosition='above'>
               <mat-icon svgIcon='info'></mat-icon>
             </button>
-            <button *ngIf='enableFiltering' aria-label='open filter criteria for this column'
+            <button *ngIf='enableFiltering && column.filterable !== false' aria-label='open filter criteria for this column'
                     title='open filter criteria for this column'
                     (click)='openFilterDialog($event, column)'
                     (keydown.enter)='openFilterDialog($event, column)'
@@ -184,6 +184,13 @@
           <app-ellipsis-text>{{row.cells[column.element]}}</app-ellipsis-text>
         </td>
       </ng-container>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td *ngIf="!loading && hasFilters()" class="mat-cell" [attr.colspan]="columnDescriptions.length + 1">
+          There are no records for the selected filters.
+          <span id="clearFilters" (click)="clearColumnFilters()">Clear all filters</span>
+        </td>
+      </tr>
 
       <!-- TODO: replace with https://github.com/swimlane/ngx-datatable to support IE11 or find another way to support sticky header -->
       <tr mat-header-row *matHeaderRowDef="columns; sticky: true"></tr>

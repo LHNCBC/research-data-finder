@@ -199,10 +199,19 @@ export class FhirBackendService implements HttpBackend {
     private liveAnnouncer: LiveAnnouncer
   ) {
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
-    const queryServer = getUrlParam('server');
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
+    // This check is necessary because we are loading the entire application
+    // with /request-redirect-token-callback, which causes FhirBackend to
+    // initialize with the default server (because the server parameter is
+    // missing from the URL search string). The better solution would be to use
+    // lazy loading of the modules.
+    const serviceBaseUrl = /\/request-redirect-token-callback\/?\?/.test(
+      window.location.href
+    )
+      ? sessionStorage.getItem('dbgapRasLoginServer')
+      : getUrlParam('server') || defaultServer;
     this.fhirClient = new FhirBatchQuery({
-      serviceBaseUrl: queryServer || defaultServer
+      serviceBaseUrl
     });
     this.currentDefinitions$ = this.initialized.pipe(
       filter((status) => status === ConnectionStatus.Ready),
@@ -231,12 +240,6 @@ export class FhirBackendService implements HttpBackend {
   // Definitions of columns, search params, value sets for current FHIR version
   private currentDefinitions: any;
 
-  // Stores connection status set in initializeFhirBatchQuery(), instead of
-  // emitting it right away to this.initialized subject. It will be emitted
-  // after checkSmartOnFhirEnabled() is done, or values will be emitted from
-  // initializeSmartOnFhirConnection() instead if SMART on FHIR should connect.
-  private tmpConnectionStatus: ConnectionStatus;
-
   // Whether an authorization tag should be added to the url.
   private isAuthorizationRequiredForUrl(url: string): boolean {
     const regEx = new RegExp(`/(${RESOURCES_REQUIRING_AUTHORIZATION})`);
@@ -263,103 +266,83 @@ export class FhirBackendService implements HttpBackend {
       .catch(() => {
         this.isSmartOnFhirEnabled = false;
         return false;
-      })
-      .finally(() => {
-        // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
-        if (this.isSmartOnFhirEnabled && this.isSmartOnFhir) {
-          this.initializeSmartOnFhirConnection();
-        } else if (this.tmpConnectionStatus) {
-          // Otherwise, if it's invoked from initializeFhirBatchQuery(), emit the connection status.
-          this.initialized.next(this.tmpConnectionStatus);
-          this.tmpConnectionStatus = null;
-        }
       });
   }
 
   /**
    * Establish a SMART on FHIR connection.
    */
-  initializeSmartOnFhirConnection(): void {
-    if (
-      !this.fhirService.getSmartConnection() &&
-      !this.fhirService.smartConnectionInProgress()
-    ) {
-      this.fhirService.requestSmartConnection((success) => {
-        if (success) {
-          this.smartConnectionSuccess = true;
-          this.liveAnnouncer.announce('SMART on FHIR connection succeeded.');
-          // Load definitions of search parameters and columns from CSV file
-          this.settings.loadCsvDefinitions().subscribe(
-            (resourceDefinitions) => {
-              this.currentDefinitions = { resources: resourceDefinitions };
-              this.fhirClient.setMaxRequestsPerBatch(
-                this.settings.get('maxRequestsPerBatch')
-              );
-              this.fhirClient.setMaxActiveRequests(
-                this.settings.get('maxActiveRequests')
-              );
-              this.initialized.next(ConnectionStatus.Ready);
-            },
-            (err) => {
-              if (!(err instanceof HttpErrorResponse)) {
-                // Show exceptions from loadCsvDefinitions in console
-                console.error(err.message);
-              }
-              this.initialized.next(ConnectionStatus.Error);
-            }
-          );
-        } else {
-          this.smartConnectionSuccess = false;
-          this.initialized.next(ConnectionStatus.Error);
-          this.liveAnnouncer.announce('SMART on FHIR connection failed.');
-        }
-      });
-    }
+  initializeSmartOnFhirConnection(): Promise<void> {
+    return this.fhirService.requestSmartConnection().then(
+      () => {
+        this.smartConnectionSuccess = true;
+        this.liveAnnouncer.announce('SMART on FHIR connection succeeded.');
+        return Promise.resolve();
+      },
+      () => {
+        this.smartConnectionSuccess = false;
+        this.initialized.next(ConnectionStatus.Error);
+        this.liveAnnouncer.announce('SMART on FHIR connection failed.');
+        return Promise.reject();
+      }
+    );
   }
 
   /**
    * Initialize/reinitialize FhirBatchQuery instance
    * @param [serviceBaseUrl] - new FHIR REST API Service Base URL
    */
-  initializeFhirBatchQuery(serviceBaseUrl: string = ''): void {
+  initializeFhirBatchQuery(serviceBaseUrl: string = ''): Promise<void> {
     // Set _isDbgap flag in fhirClient
     this.fhirClient.setIsDbgap(
       this.isDbgap(serviceBaseUrl || this.serviceBaseUrl)
     );
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
-    this.fhirClient.initialize(serviceBaseUrl).then(
-      () => {
-        // Load definitions of search parameters and columns from CSV file
-        this.settings.loadCsvDefinitions().subscribe(
-          (resourceDefinitions) => {
-            this.currentDefinitions = { resources: resourceDefinitions };
-            this.fhirClient.setMaxRequestsPerBatch(
-              this.settings.get('maxRequestsPerBatch')
+    return this.checkSmartOnFhirEnabled(this.serviceBaseUrl)
+      .then(() => {
+        // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
+        return this.isSmartOnFhirEnabled && this.isSmartOnFhir
+          ? this.initializeSmartOnFhirConnection()
+          : Promise.resolve();
+      })
+      .then(() => {
+        const initializeContext =
+          this.injector.get(RasTokenService).rasTokenValidated ||
+          this.smartConnectionSuccess
+            ? 'after-login'
+            : '';
+
+        this.fhirClient.initialize(serviceBaseUrl, initializeContext).then(
+          () => {
+            // Load definitions of search parameters and columns from CSV file
+            this.settings.loadCsvDefinitions().subscribe(
+              (resourceDefinitions) => {
+                this.currentDefinitions = { resources: resourceDefinitions };
+                this.fhirClient.setMaxRequestsPerBatch(
+                  this.settings.get('maxRequestsPerBatch')
+                );
+                this.fhirClient.setMaxActiveRequests(
+                  this.settings.get('maxActiveRequests')
+                );
+                this.initialized.next(ConnectionStatus.Ready);
+              },
+              (err) => {
+                if (!(err instanceof HttpErrorResponse)) {
+                  // Show exceptions from loadCsvDefinitions in console
+                  console.error(err.message);
+                }
+                this.initialized.next(ConnectionStatus.Error);
+              }
             );
-            this.fhirClient.setMaxActiveRequests(
-              this.settings.get('maxActiveRequests')
-            );
-            this.tmpConnectionStatus = ConnectionStatus.Ready;
-            this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
           },
           (err) => {
-            if (!(err instanceof HttpErrorResponse)) {
-              // Show exceptions from loadCsvDefinitions in console
-              console.error(err.message);
+            if (err.status !== HTTP_ABORT) {
+              this.initialized.next(ConnectionStatus.Error);
             }
-            this.tmpConnectionStatus = ConnectionStatus.Error;
-            this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
           }
         );
-      },
-      (err) => {
-        if (err.status !== HTTP_ABORT) {
-          this.tmpConnectionStatus = ConnectionStatus.Error;
-          this.checkSmartOnFhirEnabled(this.serviceBaseUrl);
-        }
-      }
-    );
+      });
   }
 
   /**
@@ -434,7 +417,7 @@ export class FhirBackendService implements HttpBackend {
 
     if (this.smartConnectionSuccess) {
       // Use the FHIR client in fhirService for queries.
-      const newUrl = request.url.replace(serviceBaseUrlRegExp, '');
+      const newUrl = request.urlWithParams.replace(serviceBaseUrlRegExp, '');
       return new Observable<HttpResponse<any>>(
         (observer: Observer<HttpResponse<any>>) => {
           this.fhirService
