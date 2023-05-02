@@ -767,6 +767,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Whether the table has any filter criteria entered.
+   */
+  hasFilters(): boolean {
+    return Object.values(this.filtersForm.value).some((v) => !!v);
+  }
+
+  /**
    * Get filter type for column description.
    */
   getFilterType(column: ColumnDescription): FilterType {

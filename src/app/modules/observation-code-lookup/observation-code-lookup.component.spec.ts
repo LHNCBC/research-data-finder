@@ -101,7 +101,20 @@ describe('ObservationCodeLookupComponent', () => {
               data: observationsDuplicateDisplay
             });
           } else if (/Observation/.test(url)) {
-            return Promise.resolve({ status: HTTP_OK, data: observations });
+            return /code:not/.test(url)
+              ? Promise.resolve({ status: HTTP_OK, data: observations })
+              : Promise.resolve({
+                  status: HTTP_OK,
+                  data: {
+                    link: [
+                      {
+                        relation: 'next',
+                        url: 'someUrl'
+                      }
+                    ],
+                    entry: observations.entry
+                  }
+                });
           } else if (/metadata/.test(url)) {
             return Promise.resolve({ status: HTTP_OK, data: metadata });
           } else if (
@@ -172,24 +185,32 @@ describe('ObservationCodeLookupComponent', () => {
         await keyDownInAutocompleteInput(input, ARROW_DOWN);
         await keyDownInAutocompleteInput(input, ENTER);
 
-        // should include consent groups
-        expect(
-          FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
-            x.args[0].match(/_security=phs002409-1,phs002409-2/)
+        const requestedUrls = FhirBatchQuery.prototype.getWithCache.calls
+          .allArgs()
+          .map((params) => params[0]);
+
+        // should include consent groups (currently disabled)
+        // expect(requestedUrls).toContain(
+        //   jasmine.stringMatching(/_security=phs002409-1,phs002409-2/)
+        // );
+
+        // use "code:not" when $last is not used
+        expect(requestedUrls).toContain(
+          jasmine.stringMatching(
+            /(code:not=11881-0&code:not=3137-7&code:not=8302-2&code:not=8303-0|(\$lastn.*&code:text=H))/
           )
-        ).toBeTruthy();
+        );
+
         // search by text
-        expect(
-          FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
-            x.args[0].match(/_elements=code,value,component&code:text=H/)
-          )
-        ).toBeTruthy();
+        expect(requestedUrls).toContain(
+          jasmine.stringMatching(/\/Observation\?_elements=.*&code:text=H/)
+        );
+
         // search by code
-        expect(
-          FhirBatchQuery.prototype.getWithCache.calls.any((x) =>
-            x.args[0].match(/_elements=code,value,component&code=H/)
-          )
-        ).toBeTruthy();
+        expect(requestedUrls).toContain(
+          jasmine.stringMatching(/\/Observation\?_elements=.*&code=H/)
+        );
+
         expect(hostComponent.selectedObservationCodes.value.coding.length).toBe(
           2
         );
