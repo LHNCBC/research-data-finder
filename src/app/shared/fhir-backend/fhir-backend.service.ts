@@ -517,25 +517,36 @@ export class FhirBackendService implements HttpBackend {
                     url: fullUrl
                   })
                 );
-                if (status >= 400 && status < 500) {
-                  const dialogRef = this.dialog.open(AlertDialogComponent, {
-                    data: {
-                      header: 'Alert',
-                      content:
-                        'Looks like the TST token has expired. You will be redirected to re-login.',
-                      hasCancelButton: true
-                    }
-                  });
-                  dialogRef.afterClosed().subscribe((isOk) => {
-                    if (isOk) {
-                      this.injector
-                        .get(RasTokenService)
-                        .login(
-                          this.serviceBaseUrl,
-                          CreateCohortMode.UNSELECTED
-                        );
-                    }
-                  });
+                if (this.isDbgap(this.serviceBaseUrl)) {
+                  if (status >= 400 && status < 500) {
+                    const dialogRef = this.dialog.open(AlertDialogComponent, {
+                      data: {
+                        header: 'Alert',
+                        content:
+                          'Looks like the TST token has expired. You will be redirected to re-login.',
+                        hasCancelButton: true
+                      }
+                    });
+                    dialogRef.afterClosed().subscribe((isOk) => {
+                      if (isOk) {
+                        this.injector
+                          .get(RasTokenService)
+                          .login(
+                            this.serviceBaseUrl,
+                            CreateCohortMode.UNSELECTED
+                          );
+                      }
+                    });
+                  } else if (status >= 500 && status < 600) {
+                    this.dialog.open(AlertDialogComponent, {
+                      data: {
+                        header: 'Alert',
+                        content:
+                          'We are unable to connect to dbGaP at this time.',
+                        hasCancelButton: false
+                      }
+                    });
+                  }
                 }
               }
             );
