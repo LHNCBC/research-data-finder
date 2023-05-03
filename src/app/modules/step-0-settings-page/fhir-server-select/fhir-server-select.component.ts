@@ -65,10 +65,6 @@ export class FhirServerSelectComponent
   // Flag to prevent 'focusin' callback in case of the SMART on FHIR checkbox,
   // click, which would otherwise cause hide the checkbox after unchecking it.
   preventFocusFlag = false;
-  // Flag to hide server list. User selects a server from the list, focus will come
-  // back to this control after new server initialization. At this time, this flag
-  // is used to hide the server list.
-  hideListFlag = false;
   // Timer for checking SMART on FHIR availability for current server URL being typed.
   inputTimeout = null;
 
@@ -139,9 +135,8 @@ export class FhirServerSelectComponent
     if (!this.preventFocusFlag && !this.focused) {
       this.focused = true;
       this.stateChanges.next();
-      if (this.hideListFlag) {
-        this.acInstance?.hideList();
-        this.hideListFlag = false;
+      if (this.acInstance?.preventListFromShowing) {
+        this.acInstance.preventListFromShowing = false;
       }
     }
   }
@@ -250,9 +245,8 @@ export class FhirServerSelectComponent
         eventData.input_method === 'arrows'
       ) {
         this.checkSmartOnFhirEnabled(eventData.final_val);
-        this.hideListFlag = true;
-        this.updateCurrentValue();
       }
+      this.updateCurrentValue();
     };
     Def.Autocompleter.Event.observeListSelections(
       testInputId,
@@ -267,6 +261,10 @@ export class FhirServerSelectComponent
   updateCurrentValue(): void {
     const inputFieldValue = this.input.nativeElement.value;
     if (this.currentValue !== inputFieldValue) {
+      // InitializeSpinnerService will open a 'Initializing ...' dialog when the system tries
+      // to initialize the new server, setting the focus back here after dialog is closed.
+      // Set this flag on the autocomplete instance so the server list won't open when focus comes back.
+      this.acInstance.preventListFromShowing = true;
       this.currentValue = inputFieldValue;
       this.onChange(this.value);
     }

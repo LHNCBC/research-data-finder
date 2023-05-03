@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.4] - 2023-05-03
+### Changed
+- Show proper error message for unsupported FHIR version.
+
 ## [6.2.3] - 2023-05-02
 ### Added
 - Ability to add the other end of the range in a second line for Observation
