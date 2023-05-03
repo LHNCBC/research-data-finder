@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.5] - 2023-05-03
+### Added
+- Error handling for dbGaP 4xx and 5xx responses.
+
 ## [6.2.4] - 2023-05-03
 ### Changed
 - Show proper error message for unsupported FHIR version.
