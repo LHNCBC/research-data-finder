@@ -3,9 +3,24 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.2.1] - 2023-04-25
+## [6.2.4] - 2023-05-03
 ### Changed
 - Show proper error message for unsupported FHIR version.
+
+## [6.2.3] - 2023-05-02
+### Added
+- Ability to add the other end of the range in a second line for Observation
+  variable constraints, if the selected comparator in the first line is '>',
+  '>=', '<' or '<='.
+
+## [6.2.2] - 2023-04-26
+### Changed
+- The list for selecting codes in the "pull data for cohort" step is limited to
+  those codes that exist for the patient cohort.
+
+## [6.2.1] - 2023-04-25
+### Changed
+- Filter certain columns by a prefix in dbGaP Variables table.
 
 ## [6.2.0] - 2023-04-24
 ### Added
