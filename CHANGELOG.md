@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.5] - 2023-05-05
+### Fixed
+- Filter observation codes by search text, while taking into account synonyms.
+
 ## [6.2.4] - 2023-05-03
 ### Changed
 - Show proper error message for unsupported FHIR version.
