@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.2] - 2023-05-04
+### Added
+- Added study name to the variables table for non-dbGaP servers.
+
 ## [6.2.1] - 2023-04-24
 ### Fixed
 - Limited variables list to user's studies for dbGap servers.

@@ -8,11 +8,15 @@
 </mat-form-field>
 
 <mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
+<!-- TODO:
+       replace "fhirBackend.features.hasResearchStudy" with "hasStudyTab()"
+       when the corresponding pull request is merged
+-->
   <mat-tab *ngFor="let resourceType of visibleResourceTypes"
            #tab
            [disabled]="
-             resourceType === 'Variable'
-             && fhirBackend.isDbgap(fhirBackend.serviceBaseUrl)
+             (resourceType === 'Variable' || resourceType === 'Observation')
+             && fhirBackend.features.hasResearchStudy
              && (selectRecords.currentState['ResearchStudy']?.loading || !selectRecords.currentState['ResearchStudy']?.resources.length)">
     <ng-template mat-tab-label>
       <div [matTooltip]="tab.disabled? 'Disabled until studies are loaded' : ''">{{
