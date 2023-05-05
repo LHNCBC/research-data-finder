@@ -5,6 +5,8 @@ import queryResponseCache from './query-response-cache';
 
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
 export const HTTP_ABORT = 0;
+// The value of property status in the rejection object when the FHIR version is not supported by RDF
+export const UNSUPPORTED_VERSION = -1;
 
 // Rate limiting interval - the time interval in milliseconds for which a limited number of requests can be specified
 const RATE_LIMIT_INTERVAL = 1000;
@@ -256,6 +258,7 @@ export class FhirBatchQuery {
           this._versionName = getVersionNameByNumber(fhirVersion);
           if (!this._versionName) {
             return Promise.reject({
+              status: UNSUPPORTED_VERSION,
               error: 'Unsupported FHIR version: ' + fhirVersion
             });
           }
@@ -412,19 +415,25 @@ export class FhirBatchQuery {
   }
 
   /**
-   * Adds a parameter to the source URL and returns the new URL.
-   * @param {string} url - source url
+   * Adds a parameter to the source URL, or updates an existing one and returns
+   * the new URL.
+   * @param {string} url source URL
    * @param {string} name - parameter name
    * @param {string} value - parameter value
    * @return {string}
    */
   addParamToUrl(url, name, value) {
-    const param = name + '=' + encodeURIComponent(value);
-    if (url.indexOf('?') === -1) {
-      return url + '?' + param;
-    } else {
-      return url + '&' + param;
-    }
+    const urlParts = url
+      .split(/[?&]/)
+      .filter((paramStr) => !paramStr.startsWith(name + '='));
+    return (
+      urlParts[0] +
+      '?' +
+      urlParts
+        .slice(1)
+        .concat([name + '=' + encodeURIComponent(value)])
+        .join('&')
+    );
   }
 
   static clearCache() {
@@ -448,8 +457,11 @@ export class FhirBatchQuery {
     return new Promise((resolve, reject) => {
       let fullUrl = this.getFullUrl(url);
       let body, contentType, method;
-      // Maximum URL length is 2048, but we can add some parameters later (in the _request function).
-      if (fullUrl.length > 1900) {
+      // Maximum URL length is 2048, but we can add some parameters later
+      // (in the "_request" function).
+      // '.../$lastn/_search' is not a valid operation. We can wrap it in
+      // a batch request instead (see "_postPending" function).
+      if (fullUrl.length > 1900 && fullUrl.indexOf('/$lastn') === -1) {
         contentType = 'application/x-www-form-urlencoded';
         method = 'POST';
         [fullUrl, body] = fullUrl.split('?');
@@ -648,11 +660,13 @@ export class FhirBatchQuery {
       };
 
       let sendUrl = url;
-      if (this._apiKey) {
+      if (this._apiKey && sendUrl.indexOf('api_key=') === -1) {
         sendUrl = this.addParamToUrl(sendUrl, 'api_key', this._apiKey);
       }
 
-      sendUrl = this.addParamToUrl(sendUrl, '_format', 'json');
+      if (sendUrl.indexOf('_format=json') === -1) {
+        sendUrl = this.addParamToUrl(sendUrl, '_format', 'json');
+      }
 
       oReq.open(method, sendUrl);
       oReq.timeout = this._giveUpTimeout;
@@ -726,7 +740,14 @@ export class FhirBatchQuery {
 
     const requests = this.getNextRequestsToPerform();
 
-    if (requests.length > 1) {
+    if (
+      requests.length > 1 ||
+      // If we have only one request, but its URL is too long, we can wrap it in
+      // a batch query.
+      // Maximum URL length is 2048, but we can add some parameters later
+      // (in the "_request" function).
+      (requests.length === 1 && requests[0].url.length > 1900)
+    ) {
       // A controller object that allows aborting of the batch request if all
       // requests are aborted
       const abortController = new AbortController();

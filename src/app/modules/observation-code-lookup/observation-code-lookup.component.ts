@@ -31,6 +31,7 @@ import Observation = fhir.Observation;
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import { ErrorStateMatcher } from '@angular/material/core';
 import WORDSYNONYMS from '../../../../word-synonyms.json';
+import { CohortService } from '../../shared/cohort/cohort.service';
 
 // This value should be used as the "datatype" field value for the form control
 // value if we don't have a "variable value" criterion (in the "Pull data for
@@ -120,6 +121,11 @@ export class ObservationCodeLookupComponent
   @Input() placeholder = '';
 
   /**
+   * Whether the component is used in the pull data step.
+   */
+  @Input() isPullData = false;
+
+  /**
    * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
    */
   get errorState(): boolean {
@@ -171,6 +177,7 @@ export class ObservationCodeLookupComponent
     @Optional() @Self() ngControl: NgControl,
     private elementRef: ElementRef,
     private httpClient: HttpClient,
+    public cohort: CohortService,
     private errorStateMatcher: ErrorStateMatcher
   ) {
     super();
@@ -248,13 +255,30 @@ export class ObservationCodeLookupComponent
                 const url = this.fhirBackend.features.lastnLookup
                   ? '$fhir/Observation/$lastn?max=1'
                   : '$fhir/Observation';
+                const _elements = 'subject,code,value,component';
+                const subject = this.isPullData
+                  ? this.fhirBackend.features.lastnLookup
+                    ? // 'subject:Patient' is not a valid parameter for $lastn
+                      {
+                        subject: this.cohort.currentState.patients
+                          .map((patient) => 'Patient/' + patient.id)
+                          .join(',')
+                      }
+                    : {
+                        'subject:Patient': this.cohort.currentState.patients
+                          .map((patient) => patient.id)
+                          .join(',')
+                      }
+                  : {};
                 const params = {
-                  _elements: 'code,value,component',
+                  _elements,
+                  ...subject,
                   'code:text': fieldValWithSynonyms,
                   _count: '500'
                 };
                 const paramsCode = {
-                  _elements: 'code,value,component',
+                  _elements,
+                  ...subject,
                   code: fieldVal,
                   _count: '1'
                 };
@@ -284,6 +308,16 @@ export class ObservationCodeLookupComponent
                           isMatchToFieldVal
                         )
                       );
+                      // Update list immediately.
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total: Number.isInteger(response.total)
+                            ? response.total
+                            : null,
+                          contains
+                        }
+                      });
                     }),
                     catchError((error) => {
                       this.loading = false;
@@ -300,16 +334,32 @@ export class ObservationCodeLookupComponent
                   .pipe(
                     // Modifying the Observable to load the following pages sequentially
                     expand((response: Bundle) => {
-                      contains.push(
-                        ...this.getAutocompleteItems(
-                          response,
-                          processedCodes,
-                          selectedCodes,
-                          isMatchToFieldVal
-                        )
+                      const newItems = this.getAutocompleteItems(
+                        response,
+                        processedCodes,
+                        selectedCodes,
+                        isMatchToFieldVal
                       );
+                      contains.push(...newItems);
                       const nextPageUrl = getNextPageUrl(response);
-                      if (nextPageUrl && contains.length < count) {
+                      if (
+                        nextPageUrl &&
+                        contains.length < count &&
+                        // Checking "newItems.length" eliminates an infinite loop
+                        // in case the server misinterprets the ":not" modifier
+                        // for the "code" search parameter.
+                        newItems.length
+                      ) {
+                        // Update list immediately
+                        resolve({
+                          resourceType: 'ValueSet',
+                          expansion: {
+                            total: Number.isInteger(response.total)
+                              ? response.total
+                              : null,
+                            contains
+                          }
+                        });
                         if (this.fhirBackend.features.lastnLookup) {
                           return this.httpClient.get(nextPageUrl);
                         } else {
