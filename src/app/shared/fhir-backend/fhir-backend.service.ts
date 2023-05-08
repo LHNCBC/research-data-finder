@@ -510,20 +510,16 @@ export class FhirBackendService implements HttpBackend {
                 observer.complete();
               },
               ({ status, error }) => {
-                observer.error(
-                  new HttpErrorResponse({
-                    status,
-                    error,
-                    url: fullUrl
-                  })
-                );
                 if (this.isDbgap(this.serviceBaseUrl)) {
                   if (status >= 400 && status < 500) {
                     const dialogRef = this.dialog.open(AlertDialogComponent, {
                       data: {
-                        header: 'Alert',
+                        header: 'Session Expired',
                         content:
-                          'Looks like the TST token has expired. You will be redirected to re-login.',
+                          'It looks like the session with dbGaP has expired.' +
+                          ' You will be returned to the login page so you can login and select consent groups again.' +
+                          ' Note that after logging in again, your session data will be lost.' +
+                          ' Hit Cancel if there is anything you would like to save first.',
                         hasCancelButton: true
                       }
                     });
@@ -548,6 +544,13 @@ export class FhirBackendService implements HttpBackend {
                     });
                   }
                 }
+                observer.error(
+                  new HttpErrorResponse({
+                    status,
+                    error,
+                    url: fullUrl
+                  })
+                );
               }
             );
           });
