@@ -11,7 +11,7 @@ import {
   HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
-import { BehaviorSubject, Observable, Observer } from 'rxjs';
+import { BehaviorSubject, Observable, Observer, ReplaySubject } from 'rxjs';
 import {
   FhirBatchQuery,
   HTTP_ABORT,
@@ -29,7 +29,6 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { RasTokenService } from '../ras-token/ras-token.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
-import { CreateCohortMode } from '../cohort/cohort.service';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -231,6 +230,9 @@ export class FhirBackendService implements HttpBackend {
   // Whether the connection to server is initialized.
   initialized = new BehaviorSubject(ConnectionStatus.Pending);
   currentDefinitions$: Observable<any>;
+
+  // Emits when dbGaP re-login is triggered (RAS TST token expired).
+  dbgapRelogin$ = new ReplaySubject<void>();
 
   // Whether to cache requests to the FHIR server
   private isCacheEnabled = true;
@@ -517,20 +519,13 @@ export class FhirBackendService implements HttpBackend {
                         header: 'Session Expired',
                         content:
                           'It looks like the session with dbGaP has expired.' +
-                          ' You will be returned to the login page so you can login and select consent groups again.' +
-                          ' Note that after logging in again, your session data will be lost.' +
-                          ' Hit Cancel if there is anything you would like to save first.',
+                          ' You will be returned to the login page so you can login and select consent groups again.',
                         hasCancelButton: true
                       }
                     });
                     dialogRef.afterClosed().subscribe((isOk) => {
                       if (isOk) {
-                        this.injector
-                          .get(RasTokenService)
-                          .login(
-                            this.serviceBaseUrl,
-                            CreateCohortMode.UNSELECTED
-                          );
+                        this.dbgapRelogin$.next();
                       }
                     });
                   } else if (status >= 500 && status < 600) {

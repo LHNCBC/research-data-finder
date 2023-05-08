@@ -1,4 +1,10 @@
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import { MatStep, MatStepper } from '@angular/material/stepper';
 import {
@@ -26,6 +32,7 @@ import { SelectRecordsPageComponent } from '../select-records-page/select-record
 import { SelectAnActionComponent } from '../select-an-action/select-an-action.component';
 import { SettingsPageComponent } from '../step-0-settings-page/settings-page.component';
 import Patient = fhir.Patient;
+import { first } from 'rxjs/operators';
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -50,7 +57,7 @@ export enum Step {
   templateUrl: './stepper.component.html',
   styleUrls: ['./stepper.component.less']
 })
-export class StepperComponent implements AfterViewInit, OnDestroy {
+export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('stepper') public stepper: MatStepper;
   @ViewChild('settings') public settingsPageComponent: SettingsPageComponent;
   @ViewChild('settingsStep') public settingsStep: MatStep;
@@ -157,6 +164,17 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
     };
   }
 
+  ngOnInit() {
+    this.fhirBackend.dbgapRelogin$.pipe(first()).subscribe(() => {
+      this.rasToken.login(
+        this.fhirBackend.serviceBaseUrl,
+        this.selectAnActionComponent.createCohortMode.value,
+        this.stepper.selectedIndex,
+        false
+      );
+    });
+  }
+
   /**
    * A lifecycle hook that is called after Angular has fully initialized
    * a component's view.
@@ -195,25 +213,75 @@ export class StepperComponent implements AfterViewInit, OnDestroy {
             );
           } else {
             this.rasToken.isRasCallbackNavigation = false;
-            // If it came from '/request-redirect-token-callback' and RAS token
-            // has been validated, go back to Select An Action step and restore
-            // user's selection before contacting RAS.
-            const selectedCreateCohortMode = sessionStorage.getItem(
-              'selectedCreateCohortMode'
-            ) as CreateCohortMode;
-            setTimeout(() => {
-              this.stepper.selectedIndex = Step.SELECT_AN_ACTION;
-              this.selectAnActionComponent.createCohortMode.setValue(
-                selectedCreateCohortMode
-              );
-              setTimeout(() => {
-                this.stepper.next();
-              }, 0);
-            }, 0);
+            const previousStepperIndex = Number(
+              sessionStorage.getItem('currentStepperIndex')
+            );
+            if (previousStepperIndex in Step) {
+              const goNextStep =
+                sessionStorage.getItem('goNextStep') === 'true';
+              if (previousStepperIndex === this.stepper.selectedIndex) {
+                this.checkNextStep(goNextStep);
+              } else {
+                setTimeout(() => {
+                  this.stepper.next();
+                  // If it came from '/request-redirect-token-callback' and RAS token
+                  // has been validated, go back to Select An Action step and restore
+                  // user's selection before contacting RAS.
+                  const selectedCreateCohortMode = sessionStorage.getItem(
+                    'selectedCreateCohortMode'
+                  ) as CreateCohortMode;
+                  this.selectAnActionComponent.createCohortMode.setValue(
+                    selectedCreateCohortMode
+                  );
+                  if (previousStepperIndex === this.stepper.selectedIndex) {
+                    this.checkNextStep(goNextStep);
+                  } else {
+                    setTimeout(() => {
+                      this.stepper.next();
+                      // TODO: load search criteria data
+                      if (this.defineCohortStep) {
+                        this.defineCohortStep.completed = true;
+                      }
+                      if (previousStepperIndex === this.stepper.selectedIndex) {
+                        this.checkNextStep(goNextStep);
+                      } else {
+                        setTimeout(() => {
+                          this.stepper.next();
+                          // TODO: load patients data
+                          if (
+                            previousStepperIndex === this.stepper.selectedIndex
+                          ) {
+                            this.checkNextStep(goNextStep);
+                          } else {
+                            setTimeout(() => {
+                              this.stepper.next();
+                              // TODO: load pulled data
+                            }, 0);
+                          }
+                        }, 0);
+                      }
+                    }, 0);
+                  }
+                }, 0);
+              }
+            }
           }
         }
       }
     });
+  }
+
+  /**
+   * If applicable, go to the next step after user's previous step is restored.
+   * @param goNextStep
+   * @private
+   */
+  private checkNextStep(goNextStep: boolean): void {
+    if (goNextStep) {
+      setTimeout(() => {
+        this.stepper.next();
+      }, 0);
+    }
   }
 
   /**
