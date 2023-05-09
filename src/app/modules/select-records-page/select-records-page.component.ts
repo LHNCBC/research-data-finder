@@ -60,10 +60,7 @@ export class SelectRecordsPageComponent
    * Whether form should have the Study tab
    */
   hasStudyTab(): boolean {
-    return (
-      this.fhirBackend.features.hasResearchStudy &&
-      this.fhirBackend.features.hasResearchSubject
-    );
+    return this.fhirBackend.features.hasAvailableStudy;
   }
 
   ngOnDestroy(): void {
