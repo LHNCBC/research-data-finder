@@ -112,6 +112,9 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
   // Enable RAS if it is not disabled via the URL parameter
   enableRas = getUrlParam('ras') !== 'disable';
 
+  // A counter used to navigate to the previous step after RAS login
+  rasStepCountDown = 0;
+
   constructor(
     public columnDescriptions: ColumnDescriptionsService,
     public fhirBackend: FhirBackendService,
@@ -166,6 +169,8 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.fhirBackend.dbgapRelogin$.pipe(first()).subscribe(() => {
+      const savedObject = this.getSavedObject();
+      sessionStorage.setItem('savedObject', JSON.stringify(savedObject));
       this.rasToken.login(
         this.fhirBackend.serviceBaseUrl,
         this.selectAnActionComponent.createCohortMode.value,
@@ -213,57 +218,39 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
             );
           } else {
             this.rasToken.isRasCallbackNavigation = false;
-            const previousStepperIndex = Number(
+            this.rasStepCountDown = Number(
               sessionStorage.getItem('currentStepperIndex')
             );
-            if (previousStepperIndex in Step) {
-              const goNextStep =
-                sessionStorage.getItem('goNextStep') === 'true';
-              if (previousStepperIndex === this.stepper.selectedIndex) {
-                this.checkNextStep(goNextStep);
-              } else {
-                setTimeout(() => {
-                  this.stepper.next();
-                  // If it came from '/request-redirect-token-callback' and RAS token
-                  // has been validated, go back to Select An Action step and restore
-                  // user's selection before contacting RAS.
-                  const selectedCreateCohortMode = sessionStorage.getItem(
-                    'selectedCreateCohortMode'
-                  ) as CreateCohortMode;
-                  this.selectAnActionComponent.createCohortMode.setValue(
-                    selectedCreateCohortMode
-                  );
-                  if (previousStepperIndex === this.stepper.selectedIndex) {
-                    this.checkNextStep(goNextStep);
-                  } else {
-                    setTimeout(() => {
+            const goNextStep = sessionStorage.getItem('goNextStep') === 'true';
+            if (this.rasStepCountDown) {
+              setTimeout(() => {
+                this.stepper.next();
+                this.rasStepCountDown--;
+                // If it came from '/request-redirect-token-callback' and RAS token
+                // has been validated, go back to Select An Action step and restore
+                // user's selection before contacting RAS.
+                const selectedCreateCohortMode = sessionStorage.getItem(
+                  'selectedCreateCohortMode'
+                ) as CreateCohortMode;
+                this.selectAnActionComponent.createCohortMode.setValue(
+                  selectedCreateCohortMode
+                );
+                if (this.rasStepCountDown === 0) {
+                  this.checkNextStep(goNextStep);
+                } else {
+                  setTimeout(() => {
+                    this.stepper.next();
+                    this.rasStepCountDown--;
+                    const savedObject = sessionStorage.getItem('savedObject');
+                    if (savedObject) {
+                      this.loadFromRawCriteria(JSON.parse(savedObject));
+                    }
+                    if (this.rasStepCountDown) {
                       this.stepper.next();
-                      // TODO: load search criteria data
-                      if (this.defineCohortStep) {
-                        this.defineCohortStep.completed = true;
-                      }
-                      if (previousStepperIndex === this.stepper.selectedIndex) {
-                        this.checkNextStep(goNextStep);
-                      } else {
-                        setTimeout(() => {
-                          this.stepper.next();
-                          // TODO: load patients data
-                          if (
-                            previousStepperIndex === this.stepper.selectedIndex
-                          ) {
-                            this.checkNextStep(goNextStep);
-                          } else {
-                            setTimeout(() => {
-                              this.stepper.next();
-                              // TODO: load pulled data
-                            }, 0);
-                          }
-                        }, 0);
-                      }
-                    }, 0);
-                  }
-                }, 0);
-              }
+                    }
+                  }, 0);
+                }
+              }, 0);
             }
           }
         }
@@ -325,23 +312,41 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
    * Save criteria and data into json file for future loading.
    */
   saveCohort(): void {
-    const objectToSave = {
-      version: pkg.version,
-      serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
-      maxPatientCount: this.cohort.maxPatientCount,
-      rawCriteria: this.cohort.criteria,
-      data:
-        this.viewCohortComponent?.resourceTableComponent?.dataSource?.data.map(
-          (i) => i.resource
-        ) ?? [],
-      researchStudies:
-        this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
-    };
+    const objectToSave = this.getSavedObject();
     const blob = new Blob([JSON.stringify(objectToSave, null, 2)], {
       type: 'text/json;charset=utf-8',
       endings: 'native'
     });
     saveAs(blob, `cohort-${objectToSave.data.length}.json`);
+  }
+
+  /**
+   * Get the object to be saved, either to a file or to sessionStorage.
+   */
+  getSavedObject(): any {
+    const result: any = {
+      version: pkg.version,
+      serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
+      maxPatientCount: this.cohort.maxPatientCount,
+      rawCriteria: this.cohort.criteria,
+      researchStudies:
+        this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
+    };
+    // Find which step user is at.
+    const currentStep = Object.keys(Step).find(
+      (s) => this.stepDescriptions[s].label === this.stepper.selected.label
+    );
+    // Save Patient table data if user is at "view cohort" or "pull data" step.
+    if (
+      currentStep === Step.VIEW_COHORT.toString() ||
+      currentStep === Step.PULL_DATA_FOR_THE_COHORT.toString()
+    ) {
+      result.data =
+        this.viewCohortComponent?.resourceTableComponent?.dataSource?.data.map(
+          (i) => i.resource
+        ) ?? [];
+    }
+    return result;
   }
 
   /**
@@ -355,42 +360,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       reader.onload = (loadEvent) => {
         try {
           const blobData = JSON.parse(loadEvent.target.result as string);
-          const {
-            version,
-            serviceBaseUrl,
-            maxPatientCount,
-            rawCriteria,
-            data,
-            researchStudies
-          } = blobData;
-          if (serviceBaseUrl !== this.fhirBackend.serviceBaseUrl) {
-            alert(
-              'Error: Inapplicable data, because it was downloaded from another server.'
-            );
-            return;
-          }
-          // Set max field value.
-          this.defineCohortComponent.defineCohortForm
-            .get('maxNumberOfPatients')
-            .setValue(maxPatientCount);
-          // Update criteria object if the cohort was downloaded from an older version.
-          if (!version) {
-            this.cohort.updateOldFormatCriteria(rawCriteria);
-          }
-          // Set search parameter form values.
-          this.defineCohortComponent.patientParams.queryCtrl.setValue(
-            rawCriteria
-          );
-          this.cohort.criteria$.next(rawCriteria);
-          // Set selected research studies.
-          this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
-            researchStudies
-          );
-          // Set patient table data.
-          this.loadPatientsData(data, fromResearchStudyStep);
-          this.cohort.loadingStatistics = [
-            [`Data loaded from file ${filename}.`]
-          ];
+          this.loadFromRawCriteria(blobData, fromResearchStudyStep, filename);
         } catch (e) {
           alert('Error: ' + e.message);
         }
@@ -398,6 +368,52 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       reader.readAsText(event.target.files[0]);
     }
     event.target.value = '';
+  }
+
+  /**
+   * Load cohort from raw criteria data.
+   */
+  loadFromRawCriteria(
+    rawData: any,
+    fromResearchStudyStep = false,
+    filename = null
+  ): void {
+    const {
+      version,
+      serviceBaseUrl,
+      maxPatientCount,
+      rawCriteria,
+      data,
+      researchStudies
+    } = rawData;
+    if (serviceBaseUrl !== this.fhirBackend.serviceBaseUrl) {
+      alert(
+        'Error: Inapplicable data, because it was downloaded from another server.'
+      );
+      return;
+    }
+    // Set max field value.
+    this.defineCohortComponent.defineCohortForm
+      .get('maxNumberOfPatients')
+      .setValue(maxPatientCount);
+    // Update criteria object if the cohort was downloaded from an older version.
+    if (!version) {
+      this.cohort.updateOldFormatCriteria(rawCriteria);
+    }
+    // Set search parameter form values.
+    this.defineCohortComponent.patientParams.queryCtrl.setValue(rawCriteria);
+    this.cohort.criteria$.next(rawCriteria);
+    // Set selected research studies.
+    this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
+      researchStudies
+    );
+    if (data) {
+      // Set patient table data, if it was saved.
+      this.loadPatientsData(data, fromResearchStudyStep);
+      this.cohort.loadingStatistics = filename
+        ? [[`Data loaded from file ${filename}.`]]
+        : [[`Data reloaded from session storage.`]];
+    }
   }
 
   /**
@@ -412,6 +428,9 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     const patientStream = new Subject<Patient[]>();
     this.cohort.patientStream = patientStream.asObservable();
     this.stepper.next();
+    if (this.rasStepCountDown) {
+      this.rasStepCountDown--;
+    }
     if (fromResearchStudyStep) {
       this.stepper.next();
     }
