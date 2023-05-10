@@ -17,10 +17,6 @@ export interface ColumnDescription {
    */
   types: string[];
   /**
-   * true if max cardinality greater than 1
-   */
-  isArray: boolean;
-  /**
    * Boolean value that determines visibility of the column
    */
   visible: boolean;

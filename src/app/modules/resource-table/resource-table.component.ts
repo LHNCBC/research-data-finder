@@ -607,7 +607,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const output = this.columnValuesService.valueToStrings(
         this.getEvaluator(fullPath)(row),
         type,
-        column.isArray,
         fullPath
       );
 
