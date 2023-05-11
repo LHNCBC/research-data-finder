@@ -29,8 +29,9 @@ import tenPatientBundle from '../step-2-define-cohort-page/test-fixtures/patient
 import { MatMenuHarness } from '@angular/material/menu/testing';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { RouterTestingModule } from '@angular/router/testing';
+import observations from './test-fixtures/observations.json';
 
-describe('SelectRecordsPageComponent', () => {
+describe('SelectRecordsPageComponent (hasAvailableStudy=true)', () => {
   let component: SelectRecordsPageComponent;
   let fixture: ComponentFixture<SelectRecordsPageComponent>;
   let mockHttp: HttpTestingController;
@@ -440,5 +441,80 @@ describe('SelectRecordsPageComponent', () => {
           total: 1
         });
     });
+  });
+});
+
+describe('SelectRecordsPageComponent (hasAvailableStudy=false)', () => {
+  let component: SelectRecordsPageComponent;
+  let fixture: ComponentFixture<SelectRecordsPageComponent>;
+  let mockHttp: HttpTestingController;
+  let loader: HarnessLoader;
+  let cohortService: CohortService;
+  const emptyBundle = {};
+
+  beforeEach(async () => {
+    await configureTestingModule(
+      {
+        declarations: [SelectRecordsPageComponent],
+        imports: [SelectRecordsPageModule, RouterTestingModule]
+      },
+      {
+        features: {
+          hasResearchStudy: true,
+          hasAvailableStudy: false
+        }
+      }
+    );
+    mockHttp = TestBed.inject(HttpTestingController);
+    cohortService = TestBed.inject(CohortService);
+  });
+
+  beforeEach(async () => {
+    fixture = TestBed.createComponent(SelectRecordsPageComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    // Verify that no unmatched requests are outstanding
+    verifyOutstandingRequests(mockHttp);
+  });
+
+  /**
+   * Creates an expectation for the number of records on the current tab.
+   * @param n - number of expected records
+   */
+  async function expectNumberOfRecords(n: number): Promise<void> {
+    const tabGroup = await loader.getHarness(MatTabGroupHarness);
+    const currentTab = await tabGroup.getSelectedTab();
+    const table = await currentTab.getHarness(MatTableHarness);
+    const rows = await table.getRows();
+    expect(rows.length).toBe(n);
+  }
+
+  /**
+   * Load variables.
+   */
+  async function loadVariables(): Promise<void> {
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=code,value,category&_count=50')
+      .flush(observations);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    mockHttp
+      .expectOne(
+        '$fhir/Observation?_elements=code,value,category&code:not=http://loinc.org%7C11881-0&code:not=http://loinc.org%7C3137-7&code:not=http://loinc.org%7C8302-2&code:not=http://loinc.org%7C8303-0&_count=50'
+      )
+      .flush(emptyBundle);
+    await expectNumberOfRecords(4);
+  }
+
+  it('should load variables at the beginning', async () => {
+    expect(component.visibleResourceTypes).toEqual(['Observation']);
+    await loadVariables();
   });
 });
