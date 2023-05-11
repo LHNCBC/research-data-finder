@@ -171,6 +171,14 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fhirBackend.dbgapRelogin$.pipe(first()).subscribe(() => {
       const savedObject = this.getSavedObject();
       sessionStorage.setItem('savedObject', JSON.stringify(savedObject));
+      if (this.getCurrentStep() === Step.PULL_DATA_FOR_THE_COHORT.toString()) {
+        // Save which tabs user has opened and related form controls if in "pull data" step.
+        const pullDataStatus = this.pullDataPageComponent.getReloginStatus();
+        sessionStorage.setItem(
+          'pullDataStatus',
+          JSON.stringify(pullDataStatus)
+        );
+      }
       this.rasToken.login(
         this.fhirBackend.serviceBaseUrl,
         this.selectAnActionComponent.createCohortMode.value,
@@ -246,7 +254,22 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
                       this.loadFromRawCriteria(JSON.parse(savedObject));
                     }
                     if (this.rasStepCountDown) {
-                      this.stepper.next();
+                      setTimeout(() => {
+                        this.stepper.next();
+                        const pullDataStatus = sessionStorage.getItem(
+                          'pullDataStatus'
+                        );
+                        const currentStep = this.getCurrentStep();
+                        if (
+                          currentStep ===
+                            Step.PULL_DATA_FOR_THE_COHORT.toString() &&
+                          pullDataStatus
+                        ) {
+                          this.pullDataPageComponent.restoreLoginStatus(
+                            JSON.parse(pullDataStatus)
+                          );
+                        }
+                      });
                     }
                   }, 0);
                 }
@@ -332,10 +355,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       researchStudies:
         this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
     };
-    // Find which step user is at.
-    const currentStep = Object.keys(Step).find(
-      (s) => this.stepDescriptions[s].label === this.stepper.selected.label
-    );
+    const currentStep = this.getCurrentStep();
     // Save Patient table data if user is at "view cohort" or "pull data" step.
     if (
       currentStep === Step.VIEW_COHORT.toString() ||
@@ -347,6 +367,15 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         ) ?? [];
     }
     return result;
+  }
+
+  /**
+   * Find which step user is at.
+   */
+  getCurrentStep(): string {
+    return Object.keys(Step).find(
+      (s) => this.stepDescriptions[s].label === this.stepper.selected.label
+    );
   }
 
   /**

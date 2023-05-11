@@ -295,4 +295,39 @@ export class PullDataPageComponent
         this.maxObservationToCheck.valid)
     );
   }
+
+  /**
+   * Get an object to be saved into sessionStorage before RAS re-login.
+   */
+  getReloginStatus(): any[] {
+    return this.visibleResourceTypes.map((r) => {
+      return {
+        resourceType: r,
+        perPatientFormControls: this.perPatientFormControls[r]?.value,
+        parameterGroups: this.parameterGroups[r].value
+      };
+    });
+  }
+
+  /**
+   * Restore opened resource tabs and related form controls
+   * @param restoreStatus an object constructed from getReloginStatus() method.
+   */
+  restoreLoginStatus(restoreStatus: any[]): void {
+    let hasObservationTab = false;
+    restoreStatus.forEach((x) => {
+      if (x.resourceType === 'Observation') {
+        hasObservationTab = true;
+      } else {
+        this.addTab(x.resourceType);
+      }
+      this.perPatientFormControls[x.resourceType]?.setValue(
+        x.perPatientFormControls
+      );
+      this.parameterGroups[x.resourceType].setValue(x.parameterGroups);
+    });
+    if (!hasObservationTab) {
+      this.removeTab('Observation');
+    }
+  }
 }
