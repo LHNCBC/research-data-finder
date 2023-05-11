@@ -182,7 +182,7 @@ describe('ResourceTableComponent', () => {
         true
       )
     };
-    for (let i = 1; i < 51; i++) {
+    for (let i = 0; i < 50; i++) {
       resources.push({
         resourceType: component.resourceType,
         id: i.toString(),
@@ -350,8 +350,8 @@ describe('ResourceTableComponent', () => {
     const csvText = (await component.getBlob().text()).split('\n');
     expect(csvText.length).toBe(51);
     expect(csvText[0]).toBe('Id,Value,Unit');
-    for (let i = 1; i < 51; i++) {
-      expect(csvText[i]).toBe([i, i, 'ug/mL'].join(','));
+    for (let i = 0; i < 50; i++) {
+      expect(csvText[i + 1]).toBe([i, i, 'ug/mL'].join(','));
     }
   });
 });

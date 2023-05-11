@@ -693,7 +693,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             (row.resource as Observation).valueQuantity;
           const cellTexts = valueQuantity
             ? // Separate value column into value & unit columns in export
-              [valueQuantity.value || '', valueQuantity.unit || '']
+              [valueQuantity.value ?? '', valueQuantity.unit ?? '']
             : [row.cells[columnDescription.element]];
           return cellTexts
             .map((cellText) => {
