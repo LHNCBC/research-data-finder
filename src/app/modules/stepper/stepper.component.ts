@@ -171,7 +171,8 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     this.fhirBackend.dbgapRelogin$.pipe(first()).subscribe(() => {
       const savedObject = this.getSavedObject();
       sessionStorage.setItem('savedObject', JSON.stringify(savedObject));
-      if (this.getCurrentStep() === Step.PULL_DATA_FOR_THE_COHORT.toString()) {
+      const currentStep = this.getCurrentStep();
+      if (currentStep === Step.PULL_DATA_FOR_THE_COHORT.toString()) {
         // Save which tabs user has opened and related form controls if in "pull data" step.
         const pullDataStatus = this.pullDataPageComponent.getReloginStatus();
         sessionStorage.setItem(
@@ -179,12 +180,27 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
           JSON.stringify(pullDataStatus)
         );
       }
-      this.rasToken.login(
-        this.fhirBackend.serviceBaseUrl,
-        this.selectAnActionComponent.createCohortMode.value,
-        this.stepper.selectedIndex,
-        false
-      );
+      if (
+        currentStep === Step.VIEW_COHORT.toString() &&
+        this.cohort.patient400ErrorFlag
+      ) {
+        // In case of 4xx error while searching for patients, re-login the user to the
+        // previous step and go to "view cohort" step with an actual search for patients.
+        this.cohort.patient400ErrorFlag = false;
+        this.rasToken.login(
+          this.fhirBackend.serviceBaseUrl,
+          this.selectAnActionComponent.createCohortMode.value,
+          this.stepper.selectedIndex - 1,
+          true
+        );
+      } else {
+        this.rasToken.login(
+          this.fhirBackend.serviceBaseUrl,
+          this.selectAnActionComponent.createCohortMode.value,
+          this.stepper.selectedIndex,
+          false
+        );
+      }
     });
   }
 
@@ -253,7 +269,9 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
                     if (savedObject) {
                       this.loadFromRawCriteria(JSON.parse(savedObject));
                     }
-                    if (this.rasStepCountDown) {
+                    if (this.rasStepCountDown === 0) {
+                      this.checkNextStep(goNextStep);
+                    } else {
                       setTimeout(() => {
                         this.stepper.next();
                         const pullDataStatus = sessionStorage.getItem(
@@ -287,10 +305,15 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
    * @private
    */
   private checkNextStep(goNextStep: boolean): void {
-    if (goNextStep) {
-      setTimeout(() => {
-        this.stepper.next();
-      }, 0);
+    if (!goNextStep) {
+      return;
+    }
+    const currentStep = this.getCurrentStep();
+    if (currentStep === Step.DEFINE_COHORT.toString()) {
+      // call searchForPatients() to go to "view cohort" step with an actual search.
+      this.searchForPatients();
+    } else {
+      this.stepper.next();
     }
   }
 
@@ -357,8 +380,10 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     const currentStep = this.getCurrentStep();
     // Save Patient table data if user is at "view cohort" or "pull data" step.
+    // Do not save patients data as empty array if 4xx error happened during patient search.
     if (
-      currentStep === Step.VIEW_COHORT.toString() ||
+      (currentStep === Step.VIEW_COHORT.toString() &&
+        !this.cohort.patient400ErrorFlag) ||
       currentStep === Step.PULL_DATA_FOR_THE_COHORT.toString()
     ) {
       result.data =
