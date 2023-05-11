@@ -301,11 +301,15 @@ export class PullDataPageComponent
    */
   getReloginStatus(): any[] {
     return this.visibleResourceTypes.map((r) => {
-      return {
+      const tabInfo = {
         resourceType: r,
         perPatientFormControls: this.perPatientFormControls[r]?.value,
         parameterGroups: this.parameterGroups[r].value
       };
+      if (r === 'Observation') {
+        tabInfo['maxObservationToCheck'] = this.maxObservationToCheck.value;
+      }
+      return tabInfo;
     });
   }
 
@@ -318,6 +322,7 @@ export class PullDataPageComponent
     restoreStatus.forEach((x) => {
       if (x.resourceType === 'Observation') {
         hasObservationTab = true;
+        this.maxObservationToCheck.setValue(x.maxObservationToCheck);
       } else {
         this.addTab(x.resourceType);
       }
