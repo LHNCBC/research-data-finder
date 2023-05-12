@@ -5,7 +5,8 @@ This project follows [Semantic Versioning](http://semver.org/).
 
 ## [6.2.5] - 2023-05-03
 ### Added
-- Error handling for dbGaP 4xx and 5xx responses.
+- Error handling for dbGaP 4xx and 5xx responses. On 4xx errors, direct user
+  to re-login and restore the system to the step and data afterwards.
 
 ## [6.2.4] - 2023-05-03
 ### Changed
