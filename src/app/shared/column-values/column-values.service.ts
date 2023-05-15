@@ -13,6 +13,7 @@ import Quantity = fhir.Quantity;
 import HumanName = fhir.HumanName;
 import Address = fhir.Address;
 import { SettingsService } from '../settings-service/settings.service';
+import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 
 // Cell value retrieval context
 interface Context {
@@ -29,6 +30,10 @@ export class ColumnValuesService {
   private get definitions(): any {
     return this.fhirBackend.getCurrentDefinitions();
   }
+
+  // Selected Observation codes at "pull data" step, used to display a matching code
+  // in Observation table "Code" column.
+  pullDataObservationCodes: SelectedObservationCodes;
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -176,11 +181,20 @@ export class ColumnValuesService {
       return v.text;
     }
 
-    return coding && coding[0]
-      ? this.getCodingAsText(coding[0], {
-          fullPath: fullPath ? fullPath + '.coding' : ''
-        })
-      : null;
+    if (!coding.length) {
+      return null;
+    }
+
+    // Find a coding that matches this.pullDataObservationCodes, or use the first coding.
+    const codingForText =
+      (this.pullDataObservationCodes?.coding &&
+        coding.find((x) =>
+          this.pullDataObservationCodes.coding?.some((y) => y.code === x.code)
+        )) ||
+      coding[0];
+    return this.getCodingAsText(codingForText, {
+      fullPath: fullPath ? fullPath + '.coding' : ''
+    });
   }
 
   /**
