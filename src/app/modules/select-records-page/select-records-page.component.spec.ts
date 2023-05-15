@@ -31,7 +31,7 @@ import { SearchParameterGroupComponent } from '../search-parameter-group/search-
 import { RouterTestingModule } from '@angular/router/testing';
 import observations from './test-fixtures/observations.json';
 
-describe('SelectRecordsPageComponent (hasAvailableStudy=true)', () => {
+describe('SelectRecordsPageComponent (when there are studies for the user)', () => {
   let component: SelectRecordsPageComponent;
   let fixture: ComponentFixture<SelectRecordsPageComponent>;
   let mockHttp: HttpTestingController;
@@ -444,7 +444,7 @@ describe('SelectRecordsPageComponent (hasAvailableStudy=true)', () => {
   });
 });
 
-describe('SelectRecordsPageComponent (hasAvailableStudy=false)', () => {
+describe('SelectRecordsPageComponent (when there are no studies for the user)', () => {
   let component: SelectRecordsPageComponent;
   let fixture: ComponentFixture<SelectRecordsPageComponent>;
   let mockHttp: HttpTestingController;
@@ -479,7 +479,8 @@ describe('SelectRecordsPageComponent (hasAvailableStudy=false)', () => {
   });
 
   afterEach(() => {
-    // Verify that no unmatched requests are outstanding
+    // Verify that no unmatched requests are outstanding.
+    // For example, there are no requests for research studies.
     verifyOutstandingRequests(mockHttp);
   });
 
@@ -496,9 +497,9 @@ describe('SelectRecordsPageComponent (hasAvailableStudy=false)', () => {
   }
 
   /**
-   * Load variables.
+   * Checks requests to get variables.
    */
-  async function loadVariables(): Promise<void> {
+  async function checkRequestsToGetVariables(): Promise<void> {
     mockHttp
       .expectOne('$fhir/Observation?_elements=code,value,category&_count=50')
       .flush(observations);
@@ -515,6 +516,6 @@ describe('SelectRecordsPageComponent (hasAvailableStudy=false)', () => {
 
   it('should load variables at the beginning', async () => {
     expect(component.visibleResourceTypes).toEqual(['Observation']);
-    await loadVariables();
+    await checkRequestsToGetVariables();
   });
 });
