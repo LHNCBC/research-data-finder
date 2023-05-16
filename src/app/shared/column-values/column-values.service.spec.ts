@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-
 import { ColumnValuesService } from './column-values.service';
 import { configureTestingModule } from 'src/test/helpers';
 
@@ -208,6 +207,69 @@ describe('ColumnValuesService', () => {
         service.valueToStrings([value, value], type, true, fullPath)
       ).toEqual([result, result]);
     });
+  });
+
+  it('should match pullDataObservationCodes if any', async () => {
+    service.pullDataObservationCodes = {
+      coding: [
+        {
+          system: 'system2',
+          code: 'value2'
+        }
+      ],
+      items: ['display2'],
+      datatype: 'CodeableConcept'
+    };
+    expect(
+      service.valueToStrings(
+        [
+          {
+            coding: [
+              {
+                system: 'system1',
+                code: 'value1'
+              },
+              {
+                system: 'system2',
+                code: 'value2'
+              }
+            ]
+          }
+        ],
+        'CodeableConcept',
+        true,
+        'ResearchStudy.condition'
+      )
+    ).toEqual(['value2']);
+  });
+
+  it('should use first coding if no pullDataObservationCodes', async () => {
+    service.pullDataObservationCodes = {
+      coding: [],
+      items: [],
+      datatype: 'CodeableConcept'
+    };
+    expect(
+      service.valueToStrings(
+        [
+          {
+            coding: [
+              {
+                system: 'system1',
+                code: 'value1'
+              },
+              {
+                system: 'system2',
+                code: 'value2'
+              }
+            ]
+          }
+        ],
+        'CodeableConcept',
+        true,
+        'ResearchStudy.condition'
+      )
+    ).toEqual(['value1']);
   });
 });
 
