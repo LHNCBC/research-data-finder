@@ -535,6 +535,7 @@ export class FhirBackendService implements HttpBackend {
                             CreateCohortMode.UNSELECTED
                           );
                       }
+                      this.dialogRef = null;
                     });
                   } else if (status >= 500 && status < 600) {
                     this.dialog.open(AlertDialogComponent, {
