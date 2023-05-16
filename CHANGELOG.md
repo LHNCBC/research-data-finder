@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.6] - 2023-05-16
+### Changed
+- Match Observation table Code column to selected Observation codes,
+  if any, in "pull data" step.
+
 ## [6.2.5] - 2023-05-05
 ### Fixed
 - Filter observation codes by search text, while taking into account synonyms.
