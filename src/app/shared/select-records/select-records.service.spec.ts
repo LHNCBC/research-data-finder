@@ -7,7 +7,7 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { HttpRequest } from '@angular/common/http';
+import { HttpParams, HttpRequest } from '@angular/common/http';
 import variables from 'src/test/test-fixtures/variables-4.json';
 import { verifyOutstandingRequests } from '../../../test/helpers';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
@@ -44,7 +44,7 @@ describe('SelectRecordsService', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') ===
+          new HttpParams({ fromString: req.body }).get('q') ===
             '(display_name:(somename) OR synonyms:(somename))'
         );
       })
@@ -60,7 +60,8 @@ describe('SelectRecordsService', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === 'study_id:(someid*)'
+          new HttpParams({ fromString: req.body }).get('q') ===
+            'study_id:(someid*)'
         );
       })
       .flush(variables);

@@ -17,7 +17,7 @@ import observationsByCodePhv00492022 from 'src/test/test-fixtures/observations-b
 import observationsByCodePhv00492024 from 'src/test/test-fixtures/observations-by-code-phv00492024.v1.p1.json';
 import observationsByCodePhv00492025 from 'src/test/test-fixtures/observations-by-code-phv00492025.v1.p1.json';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
-import { HttpRequest } from '@angular/common/http';
+import { HttpParams, HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
@@ -145,7 +145,8 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === query
+          new HttpParams({ fromString: req.body }).get('q') ===
+            (query ? query : 'study_id:(phs002410* OR phs002409*)')
         );
       })
       .flush(query ? threeVariables : fourVariables);
