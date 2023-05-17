@@ -28,6 +28,9 @@ class Page {
   get filterIcons(): DebugElement[] {
     return this.fixture.debugElement.queryAll(By.css('th button mat-icon'));
   }
+  get clearFiltersLink(): DebugElement {
+    return this.fixture.debugElement.query(By.css('#clearFilters'));
+  }
 }
 
 describe('ResourceTableComponent', () => {
@@ -263,5 +266,17 @@ describe('ResourceTableComponent', () => {
     );
     expect(index50 < index12).toBeTrue();
     expect(index12 < index9).toBeTrue();
+  });
+
+  it('should show message when no records match filter', () => {
+    fillTable(availableColumns);
+    expect(component.filtersForm).not.toBeNull();
+    expect(component.filtersForm.get('id')).not.toBeNull();
+    expect(component.dataSource.filteredData.length).toEqual(50);
+    expect(page.clearFiltersLink).toBeNull();
+    component.filtersForm.get('id').setValue('51');
+    fixture.detectChanges();
+    expect(component.dataSource.filteredData.length).toEqual(0);
+    expect(page.clearFiltersLink).not.toBeNull();
   });
 });

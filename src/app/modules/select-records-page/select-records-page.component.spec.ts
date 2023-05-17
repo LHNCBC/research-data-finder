@@ -22,20 +22,22 @@ import { By } from '@angular/platform-browser';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { CartComponent } from '../cart/cart.component';
-import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { MatRadioButtonHarness } from '@angular/material/radio/testing';
 import tenPatientBundle from '../step-2-define-cohort-page/test-fixtures/patients-10.json';
 import { MatMenuHarness } from '@angular/material/menu/testing';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { RouterTestingModule } from '@angular/router/testing';
+import observations from './test-fixtures/observations.json';
+import { CartService } from '../../shared/cart/cart.service';
 
-describe('SelectRecordsPageComponent', () => {
+describe('SelectRecordsPageComponent (when there are studies for the user)', () => {
   let component: SelectRecordsPageComponent;
   let fixture: ComponentFixture<SelectRecordsPageComponent>;
   let mockHttp: HttpTestingController;
   let loader: HarnessLoader;
   let cohortService: CohortService;
+  let cartService: CartService;
   const code2observations = {
     'phv00492021.v1.p1': observationsByCodePhv00492021,
     'phv00492022.v1.p1': observationsByCodePhv00492022,
@@ -66,13 +68,14 @@ describe('SelectRecordsPageComponent', () => {
       {
         features: {
           hasResearchStudy: true,
-          hasResearchSubject: true
+          hasAvailableStudy: true
         },
         serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
       }
     );
     mockHttp = TestBed.inject(HttpTestingController);
     cohortService = TestBed.inject(CohortService);
+    cartService = TestBed.inject(CartService);
   });
 
   beforeEach(() => {
@@ -149,6 +152,32 @@ describe('SelectRecordsPageComponent', () => {
     await expectNumberOfRecords(query ? 3 : 4);
   }
 
+  /**
+   * Adds the second study from the list to the cart.
+   */
+  async function addSecondStudyToCart(): Promise<void> {
+    // Add the second study to the cart
+    const secondAddButton = (
+      await loader.getAllHarnesses(
+        MatButtonHarness.with({
+          selector:
+            'mat-tab-body:first-child table button:has(mat-icon[svgicon="add_shopping_cart_black"])'
+        })
+      )
+    )[1];
+    await secondAddButton.click();
+
+    const studyCartEl = fixture.debugElement
+      .query(By.css('.mat-tab-body-active'))
+      .query(By.directive(CartComponent));
+    const studyCart = studyCartEl.componentInstance;
+
+    // One study in the cart
+    expect(studyCart.listItems.length).toEqual(1);
+    expect(cartService.getListItems('ResearchStudy').length).toEqual(1);
+    expect(studyCart.listItems[0].id).toEqual('phs002409');
+  }
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
@@ -165,34 +194,9 @@ describe('SelectRecordsPageComponent', () => {
   it('should reload variables when the selected studies changes', async () => {
     await loadStudies();
     await loadVariables();
-
     await selectTab('Studies');
-    const addButton = await loader.getHarness(
-      MatButtonHarness.with({ text: 'Add selected records to Studies cart' })
-    );
-    const studyCartEl = fixture.debugElement
-      .query(By.css('.mat-tab-body-active'))
-      .query(By.directive(CartComponent));
-    const studyCart = studyCartEl.componentInstance;
-    // Select first study
-    const checkBox = (
-      await loader.getAllHarnesses(
-        MatCheckboxHarness.with({
-          selector: 'mat-tab-body:first-child mat-checkbox'
-        })
-      )
-    )[1];
-    await checkBox.check();
-    // No studies in the cart
-    expect(studyCart.listItems.length).toEqual(0);
-    // Add the selected study to the cart
-    await addButton.click();
-    // One study in the cart
-    expect(studyCart.listItems.length).toEqual(1);
-    expect(studyCart.listItems[0].id).toEqual('phs002409');
-
+    await addSecondStudyToCart();
     await loadVariables('study_id:(phs002409*)');
-
     await selectTab('Studies');
     const removeButton = await loader.getHarness(
       MatButtonHarness.with({
@@ -202,36 +206,14 @@ describe('SelectRecordsPageComponent', () => {
     // Remove the study from the cart
     await removeButton.click();
     // No studies in the cart
-    expect(studyCart.listItems.length).toEqual(0);
+    expect(cartService.getListItems('ResearchStudy').length).toEqual(0);
 
     await loadVariables();
   });
 
   it('should search for patients by study in the cart', async () => {
     await loadStudies();
-    const addButton = await loader.getHarness(
-      MatButtonHarness.with({ text: 'Add selected records to Studies cart' })
-    );
-    const studyCartEl = fixture.debugElement
-      .query(By.css('.mat-tab-body-active'))
-      .query(By.directive(CartComponent));
-    const studyCart = studyCartEl.componentInstance;
-    // Select first study
-    const checkBox = (
-      await loader.getAllHarnesses(
-        MatCheckboxHarness.with({
-          selector: 'mat-tab-body:first-child mat-checkbox'
-        })
-      )
-    )[1];
-    await checkBox.check();
-    // No studies in the cart
-    expect(studyCart.listItems.length).toEqual(0);
-    // Add the selected study to the cart
-    await addButton.click();
-    // One study in the cart
-    expect(studyCart.listItems.length).toEqual(1);
-    expect(studyCart.listItems[0].id).toEqual('phs002409');
+    await addSecondStudyToCart();
 
     component.searchForPatients();
     cohortService.patientStream.subscribe();
@@ -250,24 +232,27 @@ describe('SelectRecordsPageComponent', () => {
     component.maxPatientsNumber.setValue(20);
     await loadStudies();
     await loadVariables();
-    const addButton = await loader.getHarness(
-      MatButtonHarness.with({ text: 'Add selected records to Variables cart' })
+
+    // Select all rows (variables) and add them to the cart
+    const rows = fixture.debugElement.nativeElement.querySelectorAll(
+      'mat-tab-body:nth-child(2) table tr:has(button mat-icon[svgicon="add_shopping_cart_black"])'
     );
+    rows[0].dispatchEvent(new MouseEvent('mousedown'));
+    rows[rows.length - 1].dispatchEvent(
+      new MouseEvent('mousedown', { shiftKey: true })
+    );
+    const firstAddButton = await loader.getHarness(
+      MatButtonHarness.with({
+        selector:
+          'mat-tab-body:nth-child(2) table tr[class*="highlight"] button:has(mat-icon[svgicon="add_shopping_cart_black"])'
+      })
+    );
+    await firstAddButton.click();
+
     const variableCartEl = fixture.debugElement
       .query(By.css('.mat-tab-body-active'))
       .query(By.directive(CartComponent));
     const variableCart = variableCartEl.componentInstance;
-    const checkBoxes = await loader.getAllHarnesses(
-      MatCheckboxHarness.with({
-        selector: 'mat-tab-body:nth-child(2) table mat-checkbox'
-      })
-    );
-    expect(checkBoxes.length).toBe(4);
-    for (const item of checkBoxes) {
-      await item.check();
-    }
-
-    await addButton.click();
     expect(variableCart.listItems.length).toEqual(4);
 
     Object.entries(code2observations).forEach(([code, data]) => {
@@ -440,5 +425,81 @@ describe('SelectRecordsPageComponent', () => {
           total: 1
         });
     });
+  });
+});
+
+describe('SelectRecordsPageComponent (when there are no studies for the user)', () => {
+  let component: SelectRecordsPageComponent;
+  let fixture: ComponentFixture<SelectRecordsPageComponent>;
+  let mockHttp: HttpTestingController;
+  let loader: HarnessLoader;
+  let cohortService: CohortService;
+  const emptyBundle = {};
+
+  beforeEach(async () => {
+    await configureTestingModule(
+      {
+        declarations: [SelectRecordsPageComponent],
+        imports: [SelectRecordsPageModule, RouterTestingModule]
+      },
+      {
+        features: {
+          hasResearchStudy: true,
+          hasAvailableStudy: false
+        }
+      }
+    );
+    mockHttp = TestBed.inject(HttpTestingController);
+    cohortService = TestBed.inject(CohortService);
+  });
+
+  beforeEach(async () => {
+    fixture = TestBed.createComponent(SelectRecordsPageComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    // Verify that no unmatched requests are outstanding.
+    // For example, there are no requests for research studies.
+    verifyOutstandingRequests(mockHttp);
+  });
+
+  /**
+   * Creates an expectation for the number of records on the current tab.
+   * @param n - number of expected records
+   */
+  async function expectNumberOfRecords(n: number): Promise<void> {
+    const tabGroup = await loader.getHarness(MatTabGroupHarness);
+    const currentTab = await tabGroup.getSelectedTab();
+    const table = await currentTab.getHarness(MatTableHarness);
+    const rows = await table.getRows();
+    expect(rows.length).toBe(n);
+  }
+
+  /**
+   * Checks requests to get variables.
+   */
+  async function checkRequestsToGetVariables(): Promise<void> {
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=code,value,category&_count=50')
+      .flush(observations);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    mockHttp
+      .expectOne(
+        '$fhir/Observation?_elements=code,value,category&code:not=http://loinc.org%7C11881-0&code:not=http://loinc.org%7C3137-7&code:not=http://loinc.org%7C8302-2&code:not=http://loinc.org%7C8303-0&_count=50'
+      )
+      .flush(emptyBundle);
+    await expectNumberOfRecords(4);
+  }
+
+  it('should load variables at the beginning', async () => {
+    expect(component.visibleResourceTypes).toEqual(['Observation']);
+    await checkRequestsToGetVariables();
   });
 });

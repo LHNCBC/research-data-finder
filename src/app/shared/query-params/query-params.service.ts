@@ -134,18 +134,24 @@ export class QueryParamsService {
         Quantity: 'combo-code-value-quantity',
         String: 'code-value-string'
       }[datatype];
-      const testValueCriteria = this.getCompositeTestValueCriteria(
+      let testValueCriteria = this.getCompositeTestValueCriteria(
         datatype,
         value.value
       );
-      return coding.length
-        ? `&${valueParamName}${modifier}=` +
-            coding
-              .map((code) => this.getCodeSystemQuerySegment(code))
-              .join(',') +
-            encodeURIComponent('$') +
-            testValueCriteria
-        : '';
+      const testValueCriteria2 = this.getCompositeTestValueCriteria2(
+        value.value
+      );
+      if (!coding.length) {
+        return '';
+      }
+      const codingCriteria =
+        `&${valueParamName}${modifier}=` +
+        coding.map((code) => this.getCodeSystemQuerySegment(code)).join(',') +
+        encodeURIComponent('$');
+      if (!testValueCriteria2) {
+        return codingCriteria + testValueCriteria;
+      }
+      return `${codingCriteria}${testValueCriteria}${codingCriteria}${testValueCriteria2}`;
     }
 
     // Otherwise, use only the code criteria
@@ -181,8 +187,11 @@ export class QueryParamsService {
       value.value.observationDataType,
       value.value
     );
+    const testValueCriteria2 = this.getCompositeTestValueCriteria2(value.value);
     return testValueCriteria
-      ? `&${valueParamName}${modifier}=${testValueCriteria}`
+      ? testValueCriteria2
+        ? `&${valueParamName}${modifier}=${testValueCriteria}&${valueParamName}=${testValueCriteria2}`
+        : `&${valueParamName}${modifier}=${testValueCriteria}`
       : '';
   }
 
@@ -200,6 +209,25 @@ export class QueryParamsService {
     const testValue =
       value.testValue !== undefined && value.testValue !== null // preserve "0" in query if user type "0" in numeric test value
         ? escapeFhirSearchParameter(value.testValue.toString())
+        : '';
+    const unit = value.testValueUnit;
+    return testValue.trim()
+      ? `${prefix}${encodeURIComponent(
+          testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
+        )}`
+      : '';
+  }
+
+  /**
+   * Get criteria string for composite test value controls in the second line
+   * Format: prefix + value + unit
+   * @return encoded url segment. If value in testValue2 is empty, return ''.
+   */
+  private getCompositeTestValueCriteria2(value: any): string {
+    const prefix = value.testValuePrefix2;
+    const testValue =
+      value.testValue2 !== undefined && value.testValue2 !== null // preserve "0" in query if user type "0" in numeric test value
+        ? escapeFhirSearchParameter(value.testValue2.toString())
         : '';
     const unit = value.testValueUnit;
     return testValue.trim()

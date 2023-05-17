@@ -12,7 +12,11 @@ import {
   HttpXhrBackend
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer } from 'rxjs';
-import { FhirBatchQuery, HTTP_ABORT } from './fhir-batch-query';
+import {
+  FhirBatchQuery,
+  HTTP_ABORT,
+  UNSUPPORTED_VERSION
+} from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam, setUrlParam } from '../utils';
@@ -33,6 +37,7 @@ export enum ConnectionStatus {
   Pending = 0,
   Ready,
   Error,
+  UnsupportedVersion,
   Disconnect
 }
 
@@ -297,7 +302,6 @@ export class FhirBackendService implements HttpBackend {
       () => {
         this.smartConnectionSuccess = false;
         this.initialized.next(ConnectionStatus.Error);
-        this.liveAnnouncer.announce('SMART on FHIR connection failed.');
         return Promise.reject();
       }
     );
@@ -360,7 +364,11 @@ export class FhirBackendService implements HttpBackend {
           },
           (err) => {
             if (err.status !== HTTP_ABORT) {
-              this.initialized.next(ConnectionStatus.Error);
+              this.initialized.next(
+                err.status === UNSUPPORTED_VERSION
+                  ? ConnectionStatus.UnsupportedVersion
+                  : ConnectionStatus.Error
+              );
             }
           }
         );
