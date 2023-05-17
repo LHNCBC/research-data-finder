@@ -18,6 +18,8 @@ import { TabToSelectModule } from '../../shared/tab-to-select/tab-to-select.modu
 import { MatRadioModule } from '@angular/material/radio';
 import { AutocompleteModule } from '../autocomplete/autocomplete.module';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @NgModule({
   declarations: [
@@ -43,7 +45,9 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     MatRadioModule,
     AutocompleteModule,
     MatCheckboxModule,
-    FormsModule
+    FormsModule,
+    MatIconModule,
+    MatButtonModule
   ]
 })
 export class SearchParameterModule {}

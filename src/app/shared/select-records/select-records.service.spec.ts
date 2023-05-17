@@ -52,6 +52,21 @@ describe('SelectRecordsService', () => {
     expect(service.currentState['Variable'].resources.length).toBe(4);
   });
 
+  it('should search by prefix when filtering by study_id', () => {
+    service.loadVariables([], {}, { study_id: 'someid' }, null, 0);
+    service.resourceStream['Variable'].subscribe(() => {});
+    mockHttp
+      .expectOne((req: HttpRequest<any>) => {
+        return (
+          req.url ===
+            'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
+          req.params.get('q') === 'study_id:(someid*)'
+        );
+      })
+      .flush(variables);
+    expect(service.currentState['Variable'].resources.length).toBe(4);
+  });
+
   describe('loadVariablesFromObservations', () => {
     const emptyBundle = {};
 

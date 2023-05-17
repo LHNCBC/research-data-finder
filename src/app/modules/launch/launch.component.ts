@@ -34,12 +34,13 @@ export class LaunchComponent implements OnInit {
         console.error(e);
         this.fhirBackend.initialized.next(ConnectionStatus.Error);
         this.liveAnnouncer.announce('SMART on FHIR connection failed.');
+        const alphaVersionParamValue = getUrlParam('alpha-version');
         this.router.navigate(['/'], {
           queryParams: {
             server: fhirServerUrl,
             isSmart: false,
-            ...(getUrlParam('alpha-version') === 'enable'
-              ? { 'alpha-version': 'enable' }
+            ...(alphaVersionParamValue
+              ? { 'alpha-version': alphaVersionParamValue }
               : {})
           }
         });
