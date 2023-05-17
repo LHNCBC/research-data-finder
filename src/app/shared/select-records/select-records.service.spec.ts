@@ -124,7 +124,8 @@ describe('SelectRecordsService', () => {
       spyOnProperty(fhirBackend, 'features').and.returnValue({
         ...fhirBackend.features,
         hasNotModifierIssue: true,
-        hasResearchStudy: true
+        hasResearchStudy: true,
+        hasAvailableStudy: true
       });
 
       service.currentState['ResearchStudy'] = {
