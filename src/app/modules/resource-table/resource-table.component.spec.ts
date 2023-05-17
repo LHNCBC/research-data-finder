@@ -47,12 +47,11 @@ describe('ResourceTableComponent', () => {
   for (let i = 1; i < 51; i++) {
     bundle.entry.push({ resource: { id: i.toString() } });
   }
-  const availableColumns: ColumnDescription[] = [
+  const someResourceColumns: ColumnDescription[] = [
     {
       displayName: 'ID',
       element: 'id',
       types: ['string'],
-      isArray: false,
       visible: false,
       displayByDefault: true
     },
@@ -60,7 +59,6 @@ describe('ResourceTableComponent', () => {
       displayName: 'Another column',
       element: 'anotherElement',
       types: ['string'],
-      isArray: false,
       visible: false
     },
     {
@@ -68,9 +66,30 @@ describe('ResourceTableComponent', () => {
       element: 'customElement',
       expression: `extension('http://hl7.org/fhir/StructureDefinition/someExtension').value`,
       types: ['Count'],
-      isArray: false,
       visible: false,
       displayByDefault: true
+    }
+  ];
+
+  const observationColumns: ColumnDescription[] = [
+    {
+      element: 'id',
+      displayName: 'Id',
+      types: ['string'],
+      visible: true
+    },
+    {
+      element: 'value[x]',
+      displayName: 'Value',
+      types: [
+        'Quantity',
+        'CodeableConcept',
+        'string',
+        'boolean',
+        'dateTime',
+        'Period'
+      ],
+      visible: true
     }
   ];
   const hiddenElements = {
@@ -91,20 +110,26 @@ describe('ResourceTableComponent', () => {
   };
 
   spies.HttpClient.get.and.returnValue(of(bundle));
-  spies.ColumnDescriptionsService.getAvailableColumns.and.returnValue(
-    availableColumns
-  );
   spies.SettingsService.get
     .withArgs('hideElementsByDefault')
     .and.returnValue(hiddenElements);
   spies.SettingsService.get.withArgs('listFilterColumns').and.returnValue([]);
 
-  function fillTable(columnDescriptions): void {
+  /**
+   * Fills the resource table with some data of some resource type.
+   * @param visibleColumnDescriptions - visible column descriptions
+   */
+  function fillTableWithSomeResources(
+    visibleColumnDescriptions: ColumnDescription[]
+  ): void {
+    spies.ColumnDescriptionsService.getAvailableColumns.and.returnValue(
+      someResourceColumns
+    );
     component.resourceType = 'SomeResourceType';
     const resources = [];
     component.resources = resources;
     component.columns = [];
-    component.columnDescriptions = columnDescriptions;
+    component.columnDescriptions = visibleColumnDescriptions;
     const changesObj: SimpleChanges = {
       resources: new SimpleChange(null, resources, true),
       columnDescriptions: new SimpleChange(
@@ -128,6 +153,45 @@ describe('ResourceTableComponent', () => {
             }
           }
         ]
+      });
+    }
+    component.ngOnChanges(changesObj);
+    fixture.detectChanges();
+  }
+
+  /**
+   * Fills the resource table with some data of the Observation resource type.
+   * @param visibleColumnDescriptions - visible column descriptions
+   */
+  function fillTableWithObservationResources(
+    visibleColumnDescriptions: ColumnDescription[]
+  ): void {
+    spies.ColumnDescriptionsService.getAvailableColumns.and.returnValue(
+      observationColumns
+    );
+    component.resourceType = 'Observation';
+    const resources = [];
+    component.resources = resources;
+    component.columns = [];
+    component.columnDescriptions = visibleColumnDescriptions;
+    const changesObj: SimpleChanges = {
+      resources: new SimpleChange(null, resources, true),
+      columnDescriptions: new SimpleChange(
+        null,
+        { columnDescriptions: [] },
+        true
+      )
+    };
+    for (let i = 0; i < 50; i++) {
+      resources.push({
+        resourceType: component.resourceType,
+        id: i.toString(),
+        valueQuantity: {
+          value: i,
+          unit: 'ug/mL',
+          system: 'http://unitsofmeasure.org',
+          code: 'ug/mL'
+        }
       });
     }
     component.ngOnChanges(changesObj);
@@ -164,13 +228,13 @@ describe('ResourceTableComponent', () => {
   });
 
   it('should show filter icons', () => {
-    fillTable(availableColumns);
+    fillTableWithSomeResources(someResourceColumns);
     expect(page.filterIcons).not.toBeNull();
     expect(page.filterIcons.length).toEqual(3);
   });
 
   it('should filter', () => {
-    fillTable(availableColumns);
+    fillTableWithSomeResources(someResourceColumns);
     expect(component.filtersForm).not.toBeNull();
     expect(component.filtersForm.get('id')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
@@ -181,7 +245,7 @@ describe('ResourceTableComponent', () => {
 
   it('should hide columns by default according to settings', () => {
     spies.ColumnDescriptionsService.getAvailableColumns.calls.reset();
-    fillTable([]);
+    fillTableWithSomeResources([]);
     expect(component.dataSource.filteredData.length).toEqual(50);
     expect(
       spies.ColumnDescriptionsService.getAvailableColumns
@@ -189,7 +253,7 @@ describe('ResourceTableComponent', () => {
   });
 
   it('should get a cell strings correctly', () => {
-    fillTable(availableColumns);
+    fillTableWithSomeResources(someResourceColumns);
     const rowNumber = 4;
     const cellValues = ['5', 'value-5', '5'];
     for (let i = 0; i < cellValues.length; i++) {
@@ -204,13 +268,13 @@ describe('ResourceTableComponent', () => {
 
   it('should show selectable rows at beginning of table', () => {
     component.myStudyIds = ['30'];
-    fillTable(availableColumns);
+    fillTableWithSomeResources(someResourceColumns);
     const firstRow = component.dataSource.data[0].resource;
     expect(firstRow.id).toEqual('30');
   });
 
   it('should filter number column - greater than', () => {
-    fillTable(availableColumns);
+    fillTableWithSomeResources(someResourceColumns);
     expect(component.filtersForm).not.toBeNull();
     expect(component.filtersForm.get('customElement')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
@@ -220,7 +284,7 @@ describe('ResourceTableComponent', () => {
   });
 
   it('should filter number column - smaller than', () => {
-    fillTable(availableColumns);
+    fillTableWithSomeResources(someResourceColumns);
     expect(component.filtersForm).not.toBeNull();
     expect(component.filtersForm.get('customElement')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
@@ -230,7 +294,7 @@ describe('ResourceTableComponent', () => {
   });
 
   it('should filter number column - range', () => {
-    fillTable(availableColumns);
+    fillTableWithSomeResources(someResourceColumns);
     expect(component.filtersForm).not.toBeNull();
     expect(component.filtersForm.get('customElement')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
@@ -250,7 +314,7 @@ describe('ResourceTableComponent', () => {
   });
 
   it('should sort number column as numbers', () => {
-    fillTable(availableColumns);
+    fillTableWithSomeResources(someResourceColumns);
     component.sortData({
       direction: 'asc',
       active: 'customElement'
@@ -269,7 +333,7 @@ describe('ResourceTableComponent', () => {
   });
 
   it('should show message when no records match filter', () => {
-    fillTable(availableColumns);
+    fillTableWithSomeResources(someResourceColumns);
     expect(component.filtersForm).not.toBeNull();
     expect(component.filtersForm.get('id')).not.toBeNull();
     expect(component.dataSource.filteredData.length).toEqual(50);
@@ -278,5 +342,16 @@ describe('ResourceTableComponent', () => {
     fixture.detectChanges();
     expect(component.dataSource.filteredData.length).toEqual(0);
     expect(page.clearFiltersLink).not.toBeNull();
+  });
+
+  it('should split column of values into columns of values and units in export', async () => {
+    fillTableWithObservationResources(observationColumns);
+    expect(component.dataSource.filteredData.length).toEqual(50);
+    const csvText = (await component.getBlob().text()).split('\n');
+    expect(csvText.length).toBe(51);
+    expect(csvText[0]).toBe('Id,Value,Unit');
+    for (let i = 0; i < 50; i++) {
+      expect(csvText[i + 1]).toBe([i, i, 'ug/mL'].join(','));
+    }
   });
 });

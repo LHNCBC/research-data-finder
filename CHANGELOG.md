@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.10] - 2023-05-05
+### Changed
+- Split column of values into columns of values and units in export.
+
 ## [6.2.9] - 2023-05-05
 ### Added
 - Added study name to the variables table for non-dbGaP servers.
