@@ -60,7 +60,8 @@ describe('SelectRecordsService', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === 'study_id:(someid*)'
+          new HttpParams({ fromString: req.body }).get('q') ===
+            'study_id:(someid*)'
         );
       })
       .flush(variables);
