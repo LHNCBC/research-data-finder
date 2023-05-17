@@ -3,9 +3,36 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.2.4] - 2023-05-02
+## [6.2.10] - 2023-05-05
 ### Changed
 - Split column of values into columns of values and units in export.
+
+## [6.2.9] - 2023-05-05
+### Added
+- Added study name to the variables table for non-dbGaP servers.
+
+## [6.2.8] - 2023-05-05
+### Fixed
+- Limited variables list to user's studies for dbGap servers.
+
+## [6.2.7] - 2022-05-05
+### Changed
+- Made the alpha version the default for the dbGap server.
+
+## [6.2.6] - 2022-05-05
+### Fixed
+- when a SMART on FHIR connection was used, batch processing and query caching
+  didn't work, and initialization requests were issued without authorization.
+- when there are ResearchStudies but no ResearchSubjects, we should not display
+  the study tab and should not use queries for ResearchSubjects
+
+## [6.2.5] - 2023-05-05
+### Fixed
+- Filter observation codes by search text, while taking into account synonyms.
+
+## [6.2.4] - 2023-05-03
+### Changed
+- Show proper error message for unsupported FHIR version.
 
 ## [6.2.3] - 2023-05-02
 ### Added

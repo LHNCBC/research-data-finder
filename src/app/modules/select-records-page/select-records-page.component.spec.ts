@@ -17,7 +17,7 @@ import observationsByCodePhv00492022 from 'src/test/test-fixtures/observations-b
 import observationsByCodePhv00492024 from 'src/test/test-fixtures/observations-by-code-phv00492024.v1.p1.json';
 import observationsByCodePhv00492025 from 'src/test/test-fixtures/observations-by-code-phv00492025.v1.p1.json';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
-import { HttpRequest } from '@angular/common/http';
+import { HttpParams, HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
@@ -28,9 +28,10 @@ import tenPatientBundle from '../step-2-define-cohort-page/test-fixtures/patient
 import { MatMenuHarness } from '@angular/material/menu/testing';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { RouterTestingModule } from '@angular/router/testing';
+import observations from './test-fixtures/observations.json';
 import { CartService } from '../../shared/cart/cart.service';
 
-describe('SelectRecordsPageComponent', () => {
+describe('SelectRecordsPageComponent (when there are studies for the user)', () => {
   let component: SelectRecordsPageComponent;
   let fixture: ComponentFixture<SelectRecordsPageComponent>;
   let mockHttp: HttpTestingController;
@@ -66,7 +67,8 @@ describe('SelectRecordsPageComponent', () => {
       },
       {
         features: {
-          hasResearchStudy: true
+          hasResearchStudy: true,
+          hasAvailableStudy: true
         },
         serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
       }
@@ -143,7 +145,8 @@ describe('SelectRecordsPageComponent', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === query
+          new HttpParams({ fromString: req.body }).get('q') ===
+            (query ? query : 'study_id:(phs002410* OR phs002409*)')
         );
       })
       .flush(query ? threeVariables : fourVariables);
@@ -423,5 +426,81 @@ describe('SelectRecordsPageComponent', () => {
           total: 1
         });
     });
+  });
+});
+
+describe('SelectRecordsPageComponent (when there are no studies for the user)', () => {
+  let component: SelectRecordsPageComponent;
+  let fixture: ComponentFixture<SelectRecordsPageComponent>;
+  let mockHttp: HttpTestingController;
+  let loader: HarnessLoader;
+  let cohortService: CohortService;
+  const emptyBundle = {};
+
+  beforeEach(async () => {
+    await configureTestingModule(
+      {
+        declarations: [SelectRecordsPageComponent],
+        imports: [SelectRecordsPageModule, RouterTestingModule]
+      },
+      {
+        features: {
+          hasResearchStudy: true,
+          hasAvailableStudy: false
+        }
+      }
+    );
+    mockHttp = TestBed.inject(HttpTestingController);
+    cohortService = TestBed.inject(CohortService);
+  });
+
+  beforeEach(async () => {
+    fixture = TestBed.createComponent(SelectRecordsPageComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    // Verify that no unmatched requests are outstanding.
+    // For example, there are no requests for research studies.
+    verifyOutstandingRequests(mockHttp);
+  });
+
+  /**
+   * Creates an expectation for the number of records on the current tab.
+   * @param n - number of expected records
+   */
+  async function expectNumberOfRecords(n: number): Promise<void> {
+    const tabGroup = await loader.getHarness(MatTabGroupHarness);
+    const currentTab = await tabGroup.getSelectedTab();
+    const table = await currentTab.getHarness(MatTableHarness);
+    const rows = await table.getRows();
+    expect(rows.length).toBe(n);
+  }
+
+  /**
+   * Checks requests to get variables.
+   */
+  async function checkRequestsToGetVariables(): Promise<void> {
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=code,value,category&_count=50')
+      .flush(observations);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    mockHttp
+      .expectOne(
+        '$fhir/Observation?_elements=code,value,category&code:not=http://loinc.org%7C11881-0&code:not=http://loinc.org%7C3137-7&code:not=http://loinc.org%7C8302-2&code:not=http://loinc.org%7C8303-0&_count=50'
+      )
+      .flush(emptyBundle);
+    await expectNumberOfRecords(4);
+  }
+
+  it('should load variables at the beginning', async () => {
+    expect(component.visibleResourceTypes).toEqual(['Observation']);
+    await checkRequestsToGetVariables();
   });
 });
