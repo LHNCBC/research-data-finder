@@ -101,7 +101,8 @@ describe('StepperComponent', () => {
           useValue: {
             initialized: new BehaviorSubject(ConnectionStatus.Ready),
             features: { batch: true },
-            disconnect: () => {}
+            disconnect: () => {},
+            isAlphaVersion: false
           }
         },
         {

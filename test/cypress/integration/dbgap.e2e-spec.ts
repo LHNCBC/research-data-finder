@@ -18,7 +18,9 @@ describe('Research Data Finder (dbGap)', () => {
   let pullDataStep: MatStepHarness;
 
   before(() => {
-    cy.visit('/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1')
+    cy.visit(
+      '/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&alpha-version=disable'
+    )
       // Waiting for application initialization
       .get('.init-spinner-container')
       .should('exist')

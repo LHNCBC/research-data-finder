@@ -246,7 +246,10 @@ export class SelectRecordsService {
           // searching the long and short LOINC names.
           query.push(`(${dataFields[key]}:(${value}) OR synonyms:(${value}))`);
         } else {
-          query.push(`${dataFields[key]}:(${value})`);
+          // Use wildcard search for below columns so user can filter by typing a prefix.
+          ['id', 'study_id', 'dataset_id', 'type', 'unit'].includes(key)
+            ? query.push(`${dataFields[key]}:(${value}*)`)
+            : query.push(`${dataFields[key]}:(${value})`);
         }
       }
     });
@@ -448,7 +451,7 @@ export class SelectRecordsService {
                   .join(','),
                 _revinclude: 'ResearchSubject:subject'
               }
-            : this.fhirBackend.features.hasResearchStudy
+            : this.fhirBackend.features.hasAvailableStudy
             ? {
                 [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:status`]: Object.keys(
                   this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[

@@ -59,6 +59,7 @@
     </app-autocomplete-parameter-value>
     <app-observation-code-lookup *ngIf="resourceType === 'Observation'"
       [formControl]="selectedObservationCodes"
+      [isPullData]="isPullData"
       placeholder="Type and select one or more">
     </app-observation-code-lookup>
   </mat-form-field>

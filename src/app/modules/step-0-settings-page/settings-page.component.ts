@@ -13,6 +13,7 @@ import {
 import { Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
 import { setUrlParam } from '../../shared/utils';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * Settings page component for defining general parameters such as FHIR REST API Service Base URL.
@@ -27,7 +28,8 @@ export class SettingsPageComponent {
 
   constructor(
     private formBuilder: UntypedFormBuilder,
-    public fhirBackend: FhirBackendService
+    public fhirBackend: FhirBackendService,
+    private liveAnnouncer: LiveAnnouncer
   ) {
     this.settingsFormGroup = this.formBuilder.group({
       serviceBaseUrl: new UntypedFormControl(this.fhirBackend.serviceBaseUrl, {
@@ -75,6 +77,7 @@ export class SettingsPageComponent {
   /**
    * Updates and validates the server base URL
    * @param control - FormControl instance associated with the input field
+   * @returns validation error for service base URL, or null if valid
    */
   serviceBaseUrlValidator(
     control: UntypedFormControl
@@ -95,11 +98,26 @@ export class SettingsPageComponent {
             .get('maxActiveRequests')
             .setValue(this.fhirBackend.maxActiveRequests);
         }
-        return status !== ConnectionStatus.Error
-          ? null
-          : this.fhirBackend.isSmartOnFhir
-          ? { smartConnectionFailure: true }
-          : { wrongUrl: true };
+        this.liveAnnouncer.clear();
+        if (status === ConnectionStatus.Error) {
+          if (this.fhirBackend.isSmartOnFhir) {
+            this.liveAnnouncer.announce('SMART on FHIR connection failed.');
+            return { smartConnectionFailure: true };
+          } else {
+            this.liveAnnouncer.announce(
+              'Please specify a valid FHIR server URL.'
+            );
+            return { wrongUrl: true };
+          }
+        } else if (status === ConnectionStatus.UnsupportedVersion) {
+          this.liveAnnouncer.announce('Unsupported FHIR version.');
+          return { unsupportedVersion: true };
+        } else {
+          if (status === ConnectionStatus.Ready) {
+            this.liveAnnouncer.announce('Initialization complete.');
+          }
+          return null;
+        }
       })
     );
   }
