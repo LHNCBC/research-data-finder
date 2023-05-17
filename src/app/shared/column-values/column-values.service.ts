@@ -33,7 +33,7 @@ export class ColumnValuesService {
 
   // Selected Observation codes at "pull data" step, used to display a matching code
   // in Observation table "Code" column.
-  pullDataObservationCodes: SelectedObservationCodes;
+  pullDataObservationCodes: Set<string> = new Set([]);
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -187,10 +187,7 @@ export class ColumnValuesService {
 
     // Find a coding that matches this.pullDataObservationCodes, or use the first coding.
     const codingForText =
-      (this.pullDataObservationCodes?.coding &&
-        coding.find((x) =>
-          this.pullDataObservationCodes.coding?.some((y) => y.code === x.code)
-        )) ||
+      coding.find((x) => this.pullDataObservationCodes.has(x.code)) ||
       coding[0];
     return this.getCodingAsText(codingForText, {
       fullPath: fullPath ? fullPath + '.coding' : ''

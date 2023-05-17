@@ -272,7 +272,11 @@ export class PullDataPageComponent
     this.loadSubscription?.unsubscribe();
 
     if (resourceType === 'Observation') {
-      this.columnValues.pullDataObservationCodes = parameterGroup.getSearchParamValues()[0].selectedObservationCodes;
+      const selectedObservationCodes = parameterGroup.getSearchParamValues()[0]
+        .selectedObservationCodes;
+      this.columnValues.pullDataObservationCodes = new Set(
+        selectedObservationCodes.coding?.map((c) => c.code) || []
+      );
     }
 
     this.loadSubscription = this.pullData
