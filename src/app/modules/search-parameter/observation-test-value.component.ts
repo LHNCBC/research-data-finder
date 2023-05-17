@@ -5,12 +5,17 @@ import {
   OnInit,
   SimpleChanges
 } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
 import { AutocompleteOption } from '../autocomplete/autocomplete.component';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * data type used for this control
@@ -21,6 +26,8 @@ export interface ObservationTestValue {
   testValueModifier: string;
   testValue: number | string;
   testValueUnit: string;
+  testValuePrefix2?: string;
+  testValue2?: number | string;
 }
 
 /**
@@ -42,11 +49,16 @@ export class ObservationTestValueComponent
   @Input() required = true;
   selectedDatatype = 'Quantity';
   testValueComparator = 'Quantity - ';
+  showAddLineButton = false;
+  hasSecondLine = false;
+  formValue = undefined;
   form = new UntypedFormGroup({
     testValuePrefix: new UntypedFormControl(''),
     testValueModifier: new UntypedFormControl(''),
     testValue: new UntypedFormControl('', Validators.required),
-    testValueUnit: new UntypedFormControl('')
+    testValueUnit: new UntypedFormControl(''),
+    testValuePrefix2: new UntypedFormControl(''),
+    testValue2: new UntypedFormControl('')
   });
   // Mapping for supported value[x] properties of Observation
   readonly typeDescriptions = {
@@ -75,23 +87,52 @@ export class ObservationTestValueComponent
       unit: false
     }
   };
+  // Mapping for range comparators
+  readonly rangeComparatorOptions = {
+    gt: [
+      ['<', 'lt'],
+      ['<=', 'le']
+    ],
+    lt: [
+      ['>', 'gt'],
+      ['>=', 'ge']
+    ]
+  };
+
+  /**
+   * Prefix value, e.g. 'lt','le'.
+   */
+  get prefixControlValue(): string {
+    return this.formValue.testValuePrefix;
+  }
+
+  constructor(private liveAnnouncer: LiveAnnouncer) {
+    super();
+    this.rangeComparatorOptions['ge'] = this.rangeComparatorOptions.gt;
+    this.rangeComparatorOptions['le'] = this.rangeComparatorOptions.lt;
+  }
 
   ngOnInit(): void {
+    this.form.get('testValuePrefix').valueChanges.subscribe((value: string) => {
+      this.resetSecondLine();
+      this.checkToShowAddButton(value);
+    });
     this.form.valueChanges.subscribe(() => {
-      const formValue = this.form.getRawValue();
+      this.formValue = this.form.getRawValue();
       if (!this.datatype) {
         // In case of "Variable Value" without "Variable Name", move value from 'testValueComparator' to construct the right query.
-        formValue.testValuePrefix =
+        this.formValue.testValuePrefix =
           (this.selectedDatatype === 'Quantity' &&
             this.testValueComparator.substr(11)) ||
           '';
-        formValue.testValueModifier =
+        this.formValue.testValueModifier =
           (this.selectedDatatype === 'String' &&
             this.testValueComparator.substr(9)) ||
           '';
       }
-      formValue.observationDataType = this.datatype || this.selectedDatatype;
-      this.onChange(formValue);
+      this.formValue.observationDataType =
+        this.datatype || this.selectedDatatype;
+      this.onChange(this.formValue);
     });
   }
 
@@ -115,7 +156,9 @@ export class ObservationTestValueComponent
         testValuePrefix: '',
         testValueModifier: '',
         testValue: '',
-        testValueUnit: ''
+        testValueUnit: '',
+        testValuePrefix2: '',
+        testValue2: ''
       }
     );
     if (
@@ -139,6 +182,21 @@ export class ObservationTestValueComponent
         this.testValueComparator = `${this.selectedDatatype} - ${value.testValueModifier}`;
       }
     }
+    if (value?.testValuePrefix2 || value?.testValue2) {
+      // Show the second line if the controls have value.
+      this.hasSecondLine = true;
+    }
+    this.checkToShowAddButton(value?.testValuePrefix, false);
+  }
+
+  /**
+   * ngModelChange event for the standalone 'testValueComparator' control
+   * @param value e.g. 'Quantity - gt'
+   */
+  onComplexComparatorChange(value: string): void {
+    this.testValueComparator = value;
+    this.resetSecondLine();
+    this.checkToShowAddButton(value.slice(-2));
   }
 
   /**
@@ -148,5 +206,43 @@ export class ObservationTestValueComponent
     this.selectedDatatype = value;
     this.form.get('testValue').setValue('');
     this.form.get('testValueUnit').setValue('');
+  }
+
+  /**
+   * Hide the second line.
+   * The method is called when the comparator control in the first line is updated,
+   * or when user clicks the 'remove' button on the second line.
+   */
+  resetSecondLine(): void {
+    this.form.get('testValuePrefix2').setValue('');
+    this.form.get('testValue2').setValue('');
+    this.hasSecondLine = false;
+  }
+
+  /**
+   * Add a second line for the other end of the range constraint.
+   */
+  addLine(): void {
+    this.showAddLineButton = false;
+    this.hasSecondLine = true;
+    this.liveAnnouncer.announce('A new line has appeared.');
+  }
+
+  /**
+   * Announce the addition of the 'add new line' button, if applicable.
+   * @param value new value of the comparator, derived from Prefix control or testValueComparator control
+   * @param announce whether to announce the new button, default to true
+   * The button should be shown if the options selected in the first line comparator
+   * control is '>', '>=', '<' or '<='.
+   */
+  checkToShowAddButton(value: string, announce = true): void {
+    const oldValue = this.showAddLineButton;
+    this.showAddLineButton =
+      !this.hasSecondLine && this.rangeComparatorOptions[value] !== undefined;
+    if (announce && this.showAddLineButton && !oldValue) {
+      this.liveAnnouncer.announce(
+        'A new button for adding a second line has appeared.'
+      );
+    }
   }
 }

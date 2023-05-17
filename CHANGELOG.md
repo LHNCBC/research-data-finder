@@ -3,21 +3,48 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.3.1] - 2022-04-19
+## [6.2.6] - 2022-05-05
 ### Fixed
 - when a SMART on FHIR connection was used, batch processing and query caching
   didn't work, and initialization requests were issued without authorization.
 - when there are ResearchStudies but no ResearchSubjects, we should not display
   the study tab and should not use queries for ResearchSubjects
 
-## [6.3.0] - 2022-03-14
-### Added
-- Variables tab for non-dbGap FHIR servers.
+## [6.2.5] - 2023-05-05
+### Fixed
+- Filter observation codes by search text, while taking into account synonyms.
 
-## [6.2.0] - 2022-03-07
+## [6.2.4] - 2023-05-03
+### Changed
+- Show proper error message for unsupported FHIR version.
+
+## [6.2.3] - 2023-05-02
+### Added
+- Ability to add the other end of the range in a second line for Observation
+  variable constraints, if the selected comparator in the first line is '>',
+  '>=', '<' or '<='.
+
+## [6.2.2] - 2023-04-26
+### Changed
+- The list for selecting codes in the "pull data for cohort" step is limited to
+  those codes that exist for the patient cohort.
+
+## [6.2.1] - 2023-04-25
+### Changed
+- Filter certain columns by a prefix in dbGaP Variables table.
+
+## [6.2.0] - 2023-04-24
 ### Added
 - Ability to create a cohort of patients by browsing and selecting records
   for non-dbGap FHIR servers.
+- Variables tab for non-dbGap FHIR servers.
+### Changed
+- Cart UI changes:
+  - Replaced the checkboxes with small "move to cart" buttons.
+  - Moved the cart part of the page above the list of studies/variables
+    and hid it until there is something in the cart.
+  - Revised row range selection.
+  - Moved the download button to the table header.
 ### Fixed
 - An issue where the switching between FHIR servers was not followed by clearing
   loaded data.
@@ -25,41 +52,53 @@ This project follows [Semantic Versioning](http://semver.org/).
   searching for patients.
 - An exception when trying to pull data for an empty patient cohort.
 
-## [6.1.1] - 2022-03-08
+## [6.1.4] - 2023-04-05
+### Changed
+- Show message inside table when no record matches filter.
+
+## [6.1.3] - 2023-03-28
+### Fixed
+- Close the server select list after selection.
+
+## [6.1.2] - 2023-03-28
+### Fixed
+- Issue with browser back button after RAS login.
+
+## [6.1.1] - 2023-03-08
 ### Changed
 - Updated to Node.js 18.
 
-## [6.1.0] - 2022-02-23
+## [6.1.0] - 2023-02-23
 ### Changed
 - Hid an unnecessary option to view the full list of research studies from
   the select records step.
 - Added aborting of HTTP requests if we no longer need a response to them.
 
-## [6.0.10] - 2022-02-13
+## [6.0.10] - 2023-02-13
 ### Added
 - An input field for the maximum number of recent Observations per Patient
   to check when no code is specified in the criteria.
 
-## [6.0.9] - 2022-02-06
+## [6.0.9] - 2023-02-06
 ### Changed
 - Temporarily disabled the use of the _security URL parameter.
 
-## [6.0.8] - 2022-02-02
+## [6.0.8] - 2023-02-02
 ### Changed
 - Enabled use of RAS for dbGap by default.
 
-## [6.0.7] - 2022-01-26
+## [6.0.7] - 2023-01-26
 ### Changed
 - Temporarily enable RAS with a URL parameter until RAS goes live.
 
-## [6.0.6] - 2022-01-12
+## [6.0.6] - 2023-01-12
 ### Changed
 - Added a column with the LOINC short name to the table of variables.
 ### Fixed
 - Added search for synonyms when searching for variables by display name.
 - Removed access to the FHIR server from unit tests.
 
-## [6.0.5] - 2022-01-09
+## [6.0.5] - 2023-01-09
 ### Fixed
 - Editing the "server" URL parameter did not result in a logout from RAS.
 

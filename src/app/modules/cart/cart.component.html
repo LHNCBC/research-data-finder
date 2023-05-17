@@ -1,15 +1,14 @@
 <div class="v-box">
   <div class="spacer"></div>
-  <div class="h-box" role="heading" aria-level="1">
-    <b>{{pluralFormOfRecordType}} in Cart:</b>
+  <div class="cart-header" role="heading" aria-level="1">
+    <mat-icon svgIcon="shopping_cart_black"></mat-icon>&nbsp;&nbsp;<b>{{pluralFormOfRecordType}} in Cart:</b>
   </div>
-  <div class="spacer"></div>
 
   <ng-container *ngIf="listItems.length > 0; else emptyTemplate">
+    <div class="spacer" *ngIf="resourceType === 'ResearchStudy'"></div>
     <label class="info" *ngIf="resourceType === 'ResearchStudy'">
       <span class="info-icon" aria-hidden="true"></span>
       Patients will be added to the cohort if they participate in one of the studies in the cart.</label>
-    <div class="spacer" *ngIf="resourceType === 'ResearchStudy'"></div>
     <div class="v-box list" [class.list--tree-view]="isTree()" [class.single-top-item]="listItems.length === 1" role="table">
       <div class="v-box list-header" role="rowgroup">
         <div class="h-box switch-group" *ngIf="isTree()">
