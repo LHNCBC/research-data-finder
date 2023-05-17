@@ -32,12 +32,16 @@ import { PullDataService } from '../pull-data/pull-data.service';
 import { CohortService } from '../cohort/cohort.service';
 import Observation = fhir.Observation;
 import { ObservationCodeLookupComponent } from '../../modules/observation-code-lookup/observation-code-lookup.component';
+import ResearchStudy = fhir.ResearchStudy;
+import ResearchSubject = fhir.ResearchSubject;
+
+type ResearchStudyMixin = { studyData?: ResearchStudy[] };
 
 interface SelectRecordState {
   // Indicates that data is loading
   loading: boolean;
   // Array of loaded resources
-  resources: Resource[];
+  resources: (Resource & ResearchStudyMixin)[];
   // Whether result is cached
   isCached?: Observable<boolean>;
   // Time when the data was received from the server
@@ -426,17 +430,26 @@ export class SelectRecordsService {
             _count: 50
           };
 
+    const studies =
+      (this.currentState['ResearchStudy']
+        ?.resources as ResearchStudy[])?.reduce((acc, study) => {
+        acc[study.id] = study;
+        return acc;
+      }, {}) || {};
+
     this.resourceStream[resourceType] = this.http
       .get(url, { params: reqParams })
       .pipe(
         this.filterObservationsByCode(
           currentState,
+          studies,
           // Patient filter parameters used to check an observation code
           selectedResearchStudies.length
             ? {
                 [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:study`]: selectedResearchStudies
                   .map((s) => 'ResearchStudy/' + s.id)
-                  .join(',')
+                  .join(','),
+                _revinclude: 'ResearchSubject:subject'
               }
             : this.fhirBackend.features.hasAvailableStudy
             ? {
@@ -444,7 +457,8 @@ export class SelectRecordsService {
                   this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
                     'ResearchSubject.status'
                   ]
-                ).join(',')
+                ).join(','),
+                _revinclude: 'ResearchSubject:subject'
               }
             : null
         ),
@@ -478,16 +492,21 @@ export class SelectRecordsService {
    * - excludes codes that do not exist for patients who meet the specified
    *   filter criteria
    * @param currentState - current state
+   * @param studies - studies available to the user
    * @param patientFilters - patient filters specify criteria for studies
    */
   filterObservationsByCode(
     currentState: SelectRecordState,
+    studies: { [id: string]: ResearchStudy },
     patientFilters: { [param: string]: string }
   ): UnaryFunction<Observable<Bundle>, Observable<Observation[]>> {
     return pipe(
       concatMap((data: Bundle) => {
         const checkRequests = data.entry.reduce((requests, entry) => {
-          const obs = entry.resource as Observation;
+          const obs: Observation & ResearchStudyMixin = {
+            ...(entry.resource as Observation),
+            studyData: []
+          };
           const coding = obs.code.coding?.[0];
           const codeAndSystem = coding
             ? coding.system + '|' + coding.code
@@ -510,7 +529,19 @@ export class SelectRecordsService {
                     })
                     .pipe(
                       map((checkResponse: Bundle) => {
-                        return checkResponse.entry?.length === 1 ? obs : null;
+                        const entries = checkResponse.entry;
+                        for (let i = 1; i < entries?.length; i++) {
+                          const subject = entries[i]
+                            .resource as ResearchSubject;
+                          const studyId = subject.study?.reference
+                            .split('/')
+                            .pop();
+                          const study = studies[studyId];
+                          if (study) {
+                            obs.studyData.push(study);
+                          }
+                        }
+                        return checkResponse.entry?.length ? obs : null;
                       })
                     )
                 : of(obs)

@@ -71,13 +71,13 @@ describe('SelectRecordsService', () => {
   describe('loadVariablesFromObservations', () => {
     const emptyBundle = {};
 
-    beforeEach(() => {
+    function loadFirstPageOfObservations() {
       service.loadVariablesFromObservations([], {}, {}, null, true);
       service.resourceStream['Observation'].subscribe();
       mockHttp
         .expectOne('$fhir/Observation?_elements=code,value,category&_count=50')
         .flush(observations);
-    });
+    }
 
     afterEach(() => {
       verifyOutstandingRequests(mockHttp);
@@ -88,6 +88,8 @@ describe('SelectRecordsService', () => {
         ...fhirBackend.features,
         hasNotModifierIssue: false
       });
+      loadFirstPageOfObservations();
+
       service.loadVariablesFromObservations([], {}, {}, null, false);
       service.resourceStream['Observation'].subscribe();
       mockHttp
@@ -103,6 +105,8 @@ describe('SelectRecordsService', () => {
         ...fhirBackend.features,
         hasNotModifierIssue: true
       });
+      loadFirstPageOfObservations();
+
       service.loadVariablesFromObservations([], {}, {}, null, false);
       service.resourceStream['Observation'].subscribe();
       mockHttp
@@ -111,6 +115,73 @@ describe('SelectRecordsService', () => {
         )
         .flush(emptyBundle);
       expect(service.currentState['Observation'].resources.length).toBe(4);
+    });
+
+    it('should add study data to variables', () => {
+      spyOn(fhirBackend, 'getCurrentDefinitions').and.returnValue({
+        valueSetMapByPath: { 'ResearchSubject.status': ['someSSubjectStatus'] }
+      });
+      spyOnProperty(fhirBackend, 'features').and.returnValue({
+        ...fhirBackend.features,
+        hasNotModifierIssue: true,
+        hasResearchStudy: true,
+        hasAvailableStudy: true
+      });
+
+      service.currentState['ResearchStudy'] = {
+        loading: false,
+        resources: [{ id: 'study-id-1' }, { id: 'study-id-2' }]
+      };
+
+      loadFirstPageOfObservations();
+
+      const patientWithSubjects = {
+        resourceType: 'Bundle',
+        entry: [
+          {
+            resource: {
+              resourceType: 'Patient',
+              id: 'pat-88189'
+            }
+          },
+          {
+            resource: {
+              resourceType: 'ResearchSubject',
+              study: {
+                reference: 'ResearchStudy/study-id-1'
+              }
+            }
+          },
+          {
+            resource: {
+              resourceType: 'ResearchSubject',
+              study: {
+                reference: 'ResearchStudy/study-id-2'
+              }
+            }
+          }
+        ]
+      };
+      [
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C11881-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C3137-7&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8302-2&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8303-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1'
+      ].forEach((url) => {
+        mockHttp.expectOne(url).flush(patientWithSubjects);
+      });
+
+      service.loadVariablesFromObservations([], {}, {}, null, false);
+      service.resourceStream['Observation'].subscribe();
+      mockHttp
+        .expectOne(
+          '$fhir/Observation?_elements=code,value,category&code:not=http://loinc.org%7C11881-0,http://loinc.org%7C3137-7,http://loinc.org%7C8302-2,http://loinc.org%7C8303-0&_count=50'
+        )
+        .flush(emptyBundle);
+      expect(service.currentState['Observation'].resources.length).toBe(4);
+      service.currentState['Observation'].resources.forEach((obs) => {
+        expect(obs.studyData.length).toBe(2);
+      });
     });
   });
 });

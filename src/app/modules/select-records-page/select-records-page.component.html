@@ -11,8 +11,8 @@
   <mat-tab *ngFor="let resourceType of visibleResourceTypes"
            #tab
            [disabled]="
-             resourceType === 'Variable'
-             && fhirBackend.isDbgap(fhirBackend.serviceBaseUrl)
+             (resourceType === 'Variable' || resourceType === 'Observation')
+             && hasStudyTab()
              && (selectRecords.currentState['ResearchStudy']?.loading || !selectRecords.currentState['ResearchStudy']?.resources.length)">
     <ng-template mat-tab-label>
       <div [matTooltip]="tab.disabled? 'Disabled until studies are loaded' : ''">{{
