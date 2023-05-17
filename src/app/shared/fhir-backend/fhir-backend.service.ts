@@ -27,7 +27,7 @@ import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { RasTokenService } from '../ras-token/ras-token.service';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
 
 // RegExp to modify the URL of requests to the FHIR server.
@@ -251,6 +251,9 @@ export class FhirBackendService implements HttpBackend {
 
   // Definitions of columns, search params, value sets for current FHIR version
   private currentDefinitions: any;
+
+  // MatDialogRef that shows dialog box on dbGaP query errors
+  dialogRef: MatDialogRef<AlertDialogComponent>;
 
   // Whether an authorization tag should be added to the url.
   private isAuthorizationRequiredForUrl(url: string): boolean {
@@ -512,9 +515,9 @@ export class FhirBackendService implements HttpBackend {
                 observer.complete();
               },
               ({ status, error }) => {
-                if (this.isDbgap(this.serviceBaseUrl)) {
+                if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
                   if (status >= 400 && status < 500) {
-                    const dialogRef = this.dialog.open(AlertDialogComponent, {
+                    this.dialogRef = this.dialog.open(AlertDialogComponent, {
                       data: {
                         header: 'Session Expired',
                         content:
@@ -523,10 +526,11 @@ export class FhirBackendService implements HttpBackend {
                         hasCancelButton: true
                       }
                     });
-                    dialogRef.afterClosed().subscribe((isOk) => {
+                    this.dialogRef.afterClosed().subscribe((isOk) => {
                       if (isOk) {
                         this.dbgapRelogin$.next();
                       }
+                      this.dialogRef = null;
                     });
                   } else if (status >= 500 && status < 600) {
                     this.dialog.open(AlertDialogComponent, {
