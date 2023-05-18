@@ -244,6 +244,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
   @HostBinding('class.fullscreen') fullscreen = false;
 
+  // Selected Observation codes at "pull data" step, used to display a matching code
+  // in Observation table "Code" column.
+  @Input() pullDataObservationCodes: Set<string> = null;
+
   /**
    * Whether it's a valid click event in accessibility sense.
    * A mouse click, The ENTER key or the SPACE key.
@@ -601,14 +605,27 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   getCellStrings(row: Resource, column: ColumnDescription): string[] {
     const expression = column.expression || column.element.replace('[x]', '');
     const fullPath = expression ? this.resourceType + '.' + expression : '';
+    const usePullDataObservationCodes =
+      row.resourceType === 'Observation' &&
+      column.element === 'code' &&
+      this.pullDataObservationCodes;
 
     for (const type of column.types) {
-      const output = this.columnValuesService.valueToStrings(
-        this.getEvaluator(fullPath)(row),
-        type,
-        column.isArray,
-        fullPath
-      );
+      const output = usePullDataObservationCodes
+        ? // Pass pullDataObservationCodes only for Observation "Code" column.
+          this.columnValuesService.valueToStrings(
+            this.getEvaluator(fullPath)(row),
+            type,
+            column.isArray,
+            fullPath,
+            this.pullDataObservationCodes
+          )
+        : this.columnValuesService.valueToStrings(
+            this.getEvaluator(fullPath)(row),
+            type,
+            column.isArray,
+            fullPath
+          );
 
       if (output && output.length) {
         return output;

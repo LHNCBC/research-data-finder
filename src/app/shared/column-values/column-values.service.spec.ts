@@ -8,7 +8,6 @@ describe('ColumnValuesService', () => {
   beforeEach(async () => {
     await configureTestingModule({});
     service = TestBed.inject(ColumnValuesService);
-    service.pullDataObservationCodes = new Set([]);
   });
 
   it('should be created', () => {
@@ -211,7 +210,6 @@ describe('ColumnValuesService', () => {
   });
 
   it('should match pullDataObservationCodes if any', async () => {
-    service.pullDataObservationCodes = new Set(['value2']);
     expect(
       service.valueToStrings(
         [
@@ -230,13 +228,13 @@ describe('ColumnValuesService', () => {
         ],
         'CodeableConcept',
         true,
-        'ResearchStudy.condition'
+        'ResearchStudy.condition',
+        new Set(['value2'])
       )
     ).toEqual(['value2']);
   });
 
   it('should use first coding if no pullDataObservationCodes', async () => {
-    service.pullDataObservationCodes = new Set([]);
     expect(
       service.valueToStrings(
         [
@@ -270,7 +268,6 @@ describe('ColumnValuesService', () => {
       { serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1' }
     );
     service = TestBed.inject(ColumnValuesService);
-    service.pullDataObservationCodes = new Set([]);
   });
 
   it('should use preferredCodeSystem correctly', async () => {

@@ -66,6 +66,8 @@ export class PullDataPageComponent
   parameterGroups: {
     [resourceType: string]: FormControl<SearchParameterGroup>;
   } = {};
+  // Selected Observation codes
+  pullDataObservationCodes: Set<string> = null;
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -274,7 +276,7 @@ export class PullDataPageComponent
     if (resourceType === 'Observation') {
       const selectedObservationCodes = parameterGroup.getSearchParamValues()[0]
         .selectedObservationCodes;
-      this.columnValues.pullDataObservationCodes = new Set(
+      this.pullDataObservationCodes = new Set(
         selectedObservationCodes.coding?.map((c) => c.code) || []
       );
     }

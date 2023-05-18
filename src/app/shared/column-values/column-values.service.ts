@@ -21,6 +21,8 @@ interface Context {
   fullPath?: string;
   // Coding system for filtering data in resource cell.
   preferredCodeSystem?: string;
+  // Selected Observation codes at "pull data" step.
+  pullDataObservationCodes?: Set<string>;
 }
 
 @Injectable({
@@ -30,10 +32,6 @@ export class ColumnValuesService {
   private get definitions(): any {
     return this.fhirBackend.getCurrentDefinitions();
   }
-
-  // Selected Observation codes at "pull data" step, used to display a matching code
-  // in Observation table "Code" column.
-  pullDataObservationCodes: Set<string> = new Set([]);
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -47,12 +45,14 @@ export class ColumnValuesService {
    * @param type - type of value
    * @param isArray - true if max cardinality greater than 1
    * @param fullPath - property path to value started with resourceType
+   * @param pullDataObservationCodes selected Observation codes at "pull data" step
    */
   valueToStrings(
     value: Array<any>,
     type: string,
     isArray: boolean = false,
-    fullPath: string
+    fullPath: string,
+    pullDataObservationCodes: Set<string> = null
   ): string[] {
     const singleValueFn = this.getValueFn(type);
 
@@ -70,10 +70,16 @@ export class ColumnValuesService {
           .map((item) =>
             singleValueFn.apply(this, [
               item,
-              {
-                fullPath,
-                preferredCodeSystem
-              }
+              pullDataObservationCodes
+                ? {
+                    fullPath,
+                    preferredCodeSystem,
+                    pullDataObservationCodes
+                  }
+                : {
+                    fullPath,
+                    preferredCodeSystem
+                  }
             ])
           )
           // remove empty strings
@@ -88,7 +94,14 @@ export class ColumnValuesService {
 
       return (
         value
-          .map((item) => singleValueFn.apply(this, [item, { fullPath }]))
+          .map((item) =>
+            singleValueFn.apply(this, [
+              item,
+              pullDataObservationCodes
+                ? { fullPath, pullDataObservationCodes }
+                : { fullPath }
+            ])
+          )
           // remove empty strings
           .filter((item) => item)
       );
@@ -167,6 +180,7 @@ export class ColumnValuesService {
    * @param context - context in which we get the cell value
    * @param context.fullPath - property path to value started with resourceType
    * @param context.preferredCodeSystem - coding system for filtering data in resource cell
+   * @param context.pullDataObservationCodes - selected Observation codes at "pull data" step
    */
   getCodeableConceptAsText(v: CodeableConcept, context: Context = {}): string {
     const { fullPath, preferredCodeSystem } = context;
@@ -185,9 +199,10 @@ export class ColumnValuesService {
       return null;
     }
 
-    // Find a coding that matches this.pullDataObservationCodes, or use the first coding.
+    // Find a coding that matches context.pullDataObservationCodes, or use the first coding.
     const codingForText =
-      coding.find((x) => this.pullDataObservationCodes.has(x.code)) ||
+      (context.pullDataObservationCodes &&
+        coding.find((x) => context.pullDataObservationCodes.has(x.code))) ||
       coding[0];
     return this.getCodingAsText(codingForText, {
       fullPath: fullPath ? fullPath + '.coding' : ''
