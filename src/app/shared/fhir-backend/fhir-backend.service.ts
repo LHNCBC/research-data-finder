@@ -27,6 +27,9 @@ import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { RasTokenService } from '../ras-token/ras-token.service';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
+import { CreateCohortMode } from '../cohort/cohort.service';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -210,13 +213,15 @@ export class FhirBackendService implements HttpBackend {
    *   service instances and injecting them into classes
    * @param liveAnnouncer a service is used to announce messages for screen-reader
    *   users using an aria-live region.
+   * @param dialog MatDialog service from Angular
    */
   constructor(
     private defaultBackend: HttpXhrBackend,
     private fhirService: FhirService,
     private router: Router,
     private injector: Injector,
-    private liveAnnouncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer,
+    private dialog: MatDialog
   ) {
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
@@ -259,6 +264,9 @@ export class FhirBackendService implements HttpBackend {
 
   // Definitions of columns, search params, value sets for current FHIR version
   private currentDefinitions: any;
+
+  // MatDialogRef that shows dialog box on dbGaP query errors
+  dialogRef: MatDialogRef<AlertDialogComponent>;
 
   // Whether an authorization tag should be added to the url.
   private isAuthorizationRequiredForUrl(url: string): boolean {
@@ -493,20 +501,50 @@ export class FhirBackendService implements HttpBackend {
               );
               observer.complete();
             },
-            // In case of failure due to expired TST token sent to dbGaP, we should
-            // probably log out and user can log back in.
-            // According to Eric, dbGaP query will return a 400. Hopefully it should
-            // come with some error message indicating the expired TST token so we can
-            // distinguish this case with others, but we'll have to wait until it's
-            // implemented in dbGaP.
-            ({ status, error }) =>
+            ({ status, error }) => {
+              if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
+                if (status >= 400 && status < 500) {
+                  this.dialogRef = this.dialog.open(AlertDialogComponent, {
+                    data: {
+                      header: 'Session Expired',
+                      content:
+                        'It looks like the session with dbGaP has expired.' +
+                        ' You will be returned to the login page so you can login and select consent groups again.' +
+                        ' Note that after logging in again, your session data will be lost.' +
+                        ' Hit Cancel if there is anything you would like to save first.',
+                      hasCancelButton: true
+                    }
+                  });
+                  this.dialogRef.afterClosed().subscribe((isOk) => {
+                    if (isOk) {
+                      this.injector
+                        .get(RasTokenService)
+                        .login(
+                          this.serviceBaseUrl,
+                          CreateCohortMode.UNSELECTED
+                        );
+                    }
+                    this.dialogRef = null;
+                  });
+                } else if (status >= 500 && status < 600) {
+                  this.dialog.open(AlertDialogComponent, {
+                    data: {
+                      header: 'Alert',
+                      content:
+                        'We are unable to connect to dbGaP at this time.',
+                      hasCancelButton: false
+                    }
+                  });
+                }
+              }
               observer.error(
                 new HttpErrorResponse({
                   status,
                   error,
                   url: fullUrl
                 })
-              )
+              );
+            }
           );
         });
         // This is the return from the Observable function, which is the

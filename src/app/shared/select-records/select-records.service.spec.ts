@@ -11,6 +11,7 @@ import { HttpParams, HttpRequest } from '@angular/common/http';
 import variables from 'src/test/test-fixtures/variables-4.json';
 import { verifyOutstandingRequests } from '../../../test/helpers';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import { MatDialogModule } from '@angular/material/dialog';
 
 describe('SelectRecordsService', () => {
   let service: SelectRecordsService;
@@ -19,7 +20,7 @@ describe('SelectRecordsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [RouterTestingModule, HttpClientTestingModule]
+      imports: [RouterTestingModule, HttpClientTestingModule, MatDialogModule]
     });
     mockHttp = TestBed.inject(HttpTestingController);
     service = TestBed.inject(SelectRecordsService);

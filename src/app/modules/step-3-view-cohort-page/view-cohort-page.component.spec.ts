@@ -9,6 +9,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { RouterTestingModule } from '@angular/router/testing';
+import { MatDialogModule } from '@angular/material/dialog';
 
 describe('ViewCohortComponent', () => {
   let component: ViewCohortPageComponent;
@@ -28,7 +29,8 @@ describe('ViewCohortComponent', () => {
         BrowserAnimationsModule,
         MatExpansionModule,
         HttpClientModule,
-        RouterTestingModule
+        RouterTestingModule,
+        MatDialogModule
       ],
       providers: [
         { provide: HttpClient, useValue: spies[0] },

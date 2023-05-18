@@ -4,6 +4,7 @@ import { FhirBackendModule } from './fhir-backend/fhir-backend.module';
 import { CommonSvgIconsModule } from './common-svg-icons/common-svg-icons.module';
 import { ColumnDescriptionsModule } from './column-descriptions/column-descriptions.module';
 import { CustomDialogModule } from './custom-dialog/custom-dialog.module';
+import { AlertDialogModule } from './alert-dialog/alert-dialog.module';
 
 @NgModule({
   declarations: [],
@@ -12,7 +13,8 @@ import { CustomDialogModule } from './custom-dialog/custom-dialog.module';
     FhirBackendModule,
     CommonSvgIconsModule,
     ColumnDescriptionsModule,
-    CustomDialogModule
+    CustomDialogModule,
+    AlertDialogModule
   ]
 })
 export class SharedModule {}
