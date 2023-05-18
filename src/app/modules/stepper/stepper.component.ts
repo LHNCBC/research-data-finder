@@ -305,13 +305,15 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!goNextStep) {
       return;
     }
-    const currentStep = this.getCurrentStep();
-    if (currentStep === Step.DEFINE_COHORT.toString()) {
-      // call searchForPatients() to go to "view cohort" step with an actual search.
-      this.searchForPatients();
-    } else {
-      this.stepper.next();
-    }
+    setTimeout(() => {
+      const currentStep = this.getCurrentStep();
+      if (currentStep === Step.DEFINE_COHORT.toString()) {
+        // call searchForPatients() to go to "view cohort" step with an actual search.
+        this.searchForPatients();
+      } else {
+        this.stepper.next();
+      }
+    });
   }
 
   /**
