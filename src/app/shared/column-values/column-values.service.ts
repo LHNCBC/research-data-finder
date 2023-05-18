@@ -40,15 +40,9 @@ export class ColumnValuesService {
    * or throws an exception (for unsupported types).
    * @param value - value
    * @param type - type of value
-   * @param isArray - true if max cardinality greater than 1
    * @param fullPath - property path to value started with resourceType
    */
-  valueToStrings(
-    value: Array<any>,
-    type: string,
-    isArray: boolean = false,
-    fullPath: string
-  ): string[] {
+  valueToStrings(value: Array<any>, type: string, fullPath: string): string[] {
     const singleValueFn = this.getValueFn(type);
 
     // If there is a coding with specified "preferredCodeSystem", then the rest

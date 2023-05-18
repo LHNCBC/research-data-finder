@@ -186,25 +186,23 @@ describe('FhirBackendService', () => {
         });
     });
 
-    it('should use FhirService if SMART on FHIR', (done) => {
+    it('should use fhirclient authorization header for FhirBatchQuery', async () => {
       service.smartConnectionSuccess = true;
+      service.isSmartOnFhirEnabled = true;
       const fhirService = TestBed.inject(FhirService);
-      const fhirClient = jasmine.createSpyObj('FhirClient', ['request']);
-      const responseFromFhirClient = {
-        entries: [],
-        total: 0
-      };
-      fhirClient.request.and.resolveTo(responseFromFhirClient);
+      const fhirClient = jasmine.createSpyObj('FhirClient', [
+        'getAuthorizationHeader'
+      ]);
+      const authorizationHeader = 'Bearer some_data';
+      fhirClient.getAuthorizationHeader.and.returnValue(authorizationHeader);
       spyOn(fhirService, 'getSmartConnection').and.returnValue(fhirClient);
-      httpClient.get('$fhir/some_related_url').subscribe((response) => {
-        expect(response).toBe(responseFromFhirClient);
-        expect(defaultHttpXhrBackend.handle).not.toHaveBeenCalled();
-        expect(fhirClient.request).toHaveBeenCalledWith({
-          url: '/some_related_url',
-          signal: jasmine.any(AbortSignal)
-        });
-        done();
-      });
+      spyOn(service, 'checkSmartOnFhirEnabled').and.resolveTo(true);
+      spyOn(FhirBatchQuery.prototype, 'setAuthorizationHeader');
+      await service.initializeFhirBatchQuery();
+      expect(fhirClient.getAuthorizationHeader).toHaveBeenCalledOnceWith();
+      expect(
+        FhirBatchQuery.prototype.setAuthorizationHeader
+      ).toHaveBeenCalledOnceWith(authorizationHeader);
     });
   });
 
