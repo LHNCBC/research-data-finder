@@ -178,8 +178,13 @@
                       variableTable.selectedResources.selected.length
                       }} out of {{
                       variableTable.dataSource.data.length
-                      }} {{
+                      }} loaded {{
                       getPluralFormOfRecordName(resourceType)
+                      }}.</span> <span *ngIf="selectRecords.currentState[resourceType].totalRecords">
+                      Total {{
+                      getPluralFormOfRecordName(resourceType)
+                      }}{{variableTable.hasFilters() ? ' for the selected filters': ''}}: {{
+                      selectRecords.currentState[resourceType].totalRecords
                       }}.</span>
                     </mat-panel-title>
                     <mat-panel-description>

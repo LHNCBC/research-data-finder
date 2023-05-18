@@ -93,6 +93,34 @@
             <div class="spacer"></div>
           </div>
         </ng-template>
+        <ng-template #header>
+          <mat-accordion>
+            <mat-expansion-panel hideToggle #panel>
+              <mat-expansion-panel-header
+                  (click)="panel.toggle()"
+                  (keydown.enter)="panel.toggle()"
+                  (keydown.space)="panel.toggle()">
+                <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
+                    <span>{{
+                      variableTable.dataSource.data.length
+                      }} loaded {{
+                      getPluralFormOfRecordName(resourceType)
+                      }}.</span> <span *ngIf="selectRecords.currentState[resourceType].totalRecords">
+                      Total {{
+                  getPluralFormOfRecordName(resourceType)
+                  }}{{variableTable.hasFilters() ? ' for the selected filters': ''}}: {{
+                  selectRecords.currentState[resourceType].totalRecords
+                  }}.</span>
+                </mat-panel-title>
+                <mat-panel-description>
+                  <span *ngIf="variableTable.loading">
+                    <span>Loading {{getPluralFormOfRecordName(resourceType)}} ...</span>
+                  </span>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </ng-template>
       </app-resource-table>
     </div>
   </mat-tab>
