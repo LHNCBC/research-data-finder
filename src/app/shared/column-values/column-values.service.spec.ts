@@ -199,14 +199,13 @@ describe('ColumnValuesService', () => {
     }
   ].forEach(({ value, type, fullPath, result }) => {
     it(`should convert a value of ${type} to string`, () => {
-      expect(service.valueToStrings([value], type, false, fullPath)).toEqual([
-        result
-      ]);
+      expect(service.valueToStrings([value], type, fullPath)).toEqual([result]);
     });
     it(`should convert an array of ${type} to strings`, () => {
-      expect(
-        service.valueToStrings([value, value], type, true, fullPath)
-      ).toEqual([result, result]);
+      expect(service.valueToStrings([value, value], type, fullPath)).toEqual([
+        result,
+        result
+      ]);
     });
   });
 });
@@ -240,7 +239,6 @@ describe('ColumnValuesService', () => {
           }
         ],
         'CodeableConcept',
-        true,
         'ResearchStudy.condition'
       )
     ).toEqual(['value2']);

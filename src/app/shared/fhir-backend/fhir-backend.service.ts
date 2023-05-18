@@ -102,6 +102,21 @@ export class FhirBackendService implements HttpBackend {
     return this.fhirClient.getServiceBaseUrl();
   }
 
+  /**
+   * The value of the URL parameter "alpha-version".
+   * @private
+   */
+  private alphaVersionParam = getUrlParam('alpha-version');
+
+  /**
+   * Whether the alpha version is enabled.
+   */
+  get isAlphaVersion(): boolean {
+    return this.alphaVersionParam
+      ? this.alphaVersionParam === 'enable'
+      : this.isDbgap(this.serviceBaseUrl);
+  }
+
   // Checkbox value of whether to use a SMART on FHIR client.
   // tslint:disable-next-line:variable-name
   private _isSmartOnFhir = false;
@@ -307,10 +322,6 @@ export class FhirBackendService implements HttpBackend {
    * @param [serviceBaseUrl] - new FHIR REST API Service Base URL
    */
   initializeFhirBatchQuery(serviceBaseUrl: string = ''): Promise<void> {
-    // Set _isDbgap flag in fhirClient
-    this.fhirClient.setIsDbgap(
-      this.isDbgap(serviceBaseUrl || this.serviceBaseUrl)
-    );
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
     return this.checkSmartOnFhirEnabled(this.serviceBaseUrl)
@@ -321,6 +332,17 @@ export class FhirBackendService implements HttpBackend {
           : Promise.resolve();
       })
       .then(() => {
+        // Set authorization header
+        const dbgapTstToken =
+          this.isDbgap(serviceBaseUrl || this.serviceBaseUrl) &&
+          sessionStorage.getItem('dbgapTstToken');
+        const authorizationHeader = dbgapTstToken
+          ? 'Bearer ' + dbgapTstToken
+          : (this.smartConnectionSuccess &&
+              this.fhirService.getSmartConnection().getAuthorizationHeader()) ||
+            null;
+        this.fhirClient.setAuthorizationHeader(authorizationHeader);
+
         const initializeContext =
           this.injector.get(RasTokenService).rasTokenValidated ||
           this.smartConnectionSuccess
@@ -433,74 +455,41 @@ export class FhirBackendService implements HttpBackend {
     // See https://developer.mozilla.org/en-US/docs/Web/API/AbortController
     const signal = abortController.signal;
 
-    if (this.smartConnectionSuccess) {
-      // Use the FHIR client in fhirService for queries.
-      const newUrl = request.urlWithParams.replace(serviceBaseUrlRegExp, '');
-      return new Observable<HttpResponse<any>>(
-        (observer: Observer<HttpResponse<any>>) => {
-          this.fhirService
-            .getSmartConnection()
-            .request({ url: newUrl, signal })
-            .then(
-              (res) => {
-                observer.next(
-                  new HttpResponse<any>({
-                    body: res
-                  })
-                );
-                observer.complete();
-              },
-              (res) =>
-                observer.error(
-                  new HttpErrorResponse({
-                    error: res.error
-                  })
-                )
-            );
-          // This is the return from the Observable function, which is the
-          // request cancellation handler.
-          return () => {
-            abortController.abort();
-          };
-        }
-      );
-    } else {
-      // not a SMART on FHIR connection
-      const serviceBaseUrlWithEndpoint = new RegExp(
-        '^' + escapeStringForRegExp(this.serviceBaseUrl) + '\\/[^?]+'
-      );
-      const cacheName = request.context.get(CACHE_NAME);
-      const newRequest = request.clone({
-        url: this.prepareRequestUrl(request.url)
-      });
+    const serviceBaseUrlWithEndpoint = new RegExp(
+      '^' + escapeStringForRegExp(this.serviceBaseUrl) + '\\/[^?]+'
+    );
+    const cacheName = request.context.get(CACHE_NAME);
+    const newRequest = request.clone({
+      url: this.prepareRequestUrl(request.url)
+    });
 
-      if (request.method !== 'GET') {
-        // If it is not a GET request to the FHIR server,
-        // pass the request to the default Angular backend.
-        return this.defaultBackend.handle(newRequest);
-      }
+    if (request.method !== 'GET') {
+      // If it is not a GET request to the FHIR server,
+      // pass the request to the default Angular backend.
+      return this.defaultBackend.handle(newRequest);
+    }
 
-      const fullUrl = newRequest.urlWithParams;
+    const fullUrl = newRequest.urlWithParams;
 
-      // Otherwise, use the FhirBatchQuery from the old version of
-      // Research Data Finder to handle the HTTP request.
-      return new Observable<HttpResponse<any>>(
-        (observer: Observer<HttpResponse<any>>) => {
-          this.fhirClient.initialize().then(() => {
-            // Requests to the FHIR server without endpoint cannot be combined
-            // into a batch request
-            const combine =
-              this.fhirClient.getFeatures().batch &&
-              serviceBaseUrlWithEndpoint.test(newRequest.url);
-            const promise = this.isCacheEnabled
-              ? this.fhirClient.getWithCache(fullUrl, {
-                  combine,
-                  signal,
-                  cacheName: cacheName
-                    ? cacheName + '-' + this.serviceBaseUrl
-                    : ''
-                })
-              : this.fhirClient.get(fullUrl, { combine, signal });
+    // Otherwise, use the FhirBatchQuery from the old version of
+    // Research Data Finder to handle the HTTP request.
+    return new Observable<HttpResponse<any>>(
+      (observer: Observer<HttpResponse<any>>) => {
+        this.fhirClient.initialize().then(() => {
+          // Requests to the FHIR server without endpoint cannot be combined
+          // into a batch request
+          const combine =
+            this.fhirClient.getFeatures().batch &&
+            serviceBaseUrlWithEndpoint.test(newRequest.url);
+          const promise = this.isCacheEnabled
+            ? this.fhirClient.getWithCache(fullUrl, {
+                combine,
+                signal,
+                cacheName: cacheName
+                  ? cacheName + '-' + this.serviceBaseUrl
+                  : ''
+              })
+            : this.fhirClient.get(fullUrl, { combine, signal });
 
             promise.then(
               ({ status, data, _cacheInfo_ }) => {
@@ -561,7 +550,6 @@ export class FhirBackendService implements HttpBackend {
         }
       );
     }
-  }
 
   /**
    * Disconnect from server (run on destroying the main component)

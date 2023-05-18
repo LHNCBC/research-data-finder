@@ -13,7 +13,7 @@ import researchStudies from 'src/test/test-fixtures/research-studies.json';
 import threeVariables from 'src/test/test-fixtures/variables-3.json';
 import fourVariables from 'src/test/test-fixtures/variables-4.json';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
-import { HttpRequest } from '@angular/common/http';
+import { HttpParams, HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
@@ -102,7 +102,7 @@ describe('BrowseRecordsPageComponent', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === ''
+          new HttpParams({ fromString: req.body }).get('q') === ''
         );
       })
       .flush(fourVariables);
@@ -136,7 +136,8 @@ describe('BrowseRecordsPageComponent', () => {
         return (
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          req.params.get('q') === 'study_id:(phs002409*)'
+          new HttpParams({ fromString: req.body }).get('q') ===
+            'study_id:(phs002409*)'
         );
       })
       .flush(threeVariables);

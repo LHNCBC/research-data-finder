@@ -133,9 +133,7 @@ export function verifyOutstandingRequests(
   // requests to show full URLs:
   if (outstandingRequests.length) {
     throw new Error(
-      `Expected no open requests, found ${
-        outstandingRequests.length
-      }: ${outstandingRequests.join(', ')}`
+      `Expected no open requests, found ${outstandingRequests.length}:\n$  {outstandingRequests.join('\n  ')}`
     );
   }
 }
