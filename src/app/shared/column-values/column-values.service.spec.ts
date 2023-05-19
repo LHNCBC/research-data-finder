@@ -229,9 +229,9 @@ describe('ColumnValuesService', () => {
         'CodeableConcept',
         true,
         'ResearchStudy.condition',
-        new Set(['value2'])
+        new Map([['value2', 'display2']])
       )
-    ).toEqual(['value2']);
+    ).toEqual(['display2']);
   });
 
   it('should use first coding if no pullDataObservationCodes', async () => {

@@ -246,7 +246,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
   // Selected Observation codes at "pull data" step, used to display a matching code
   // in Observation table "Code" column.
-  @Input() pullDataObservationCodes: Set<string> = null;
+  @Input() pullDataObservationCodes: Map<string, string> = null;
 
   /**
    * Whether it's a valid click event in accessibility sense.

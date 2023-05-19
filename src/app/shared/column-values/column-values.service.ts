@@ -21,8 +21,8 @@ interface Context {
   fullPath?: string;
   // Coding system for filtering data in resource cell.
   preferredCodeSystem?: string;
-  // Selected Observation codes at "pull data" step.
-  pullDataObservationCodes?: Set<string>;
+  // A map of selected Observation codes at "pull data" step.
+  pullDataObservationCodes?: Map<string, string>;
 }
 
 @Injectable({
@@ -45,14 +45,14 @@ export class ColumnValuesService {
    * @param type - type of value
    * @param isArray - true if max cardinality greater than 1
    * @param fullPath - property path to value started with resourceType
-   * @param pullDataObservationCodes selected Observation codes at "pull data" step
+   * @param pullDataObservationCodes a map of selected Observation codes at "pull data" step
    */
   valueToStrings(
     value: Array<any>,
     type: string,
     isArray: boolean = false,
     fullPath: string,
-    pullDataObservationCodes: Set<string> = null
+    pullDataObservationCodes: Map<string, string> = undefined
   ): string[] {
     const singleValueFn = this.getValueFn(type);
 
@@ -180,7 +180,7 @@ export class ColumnValuesService {
    * @param context - context in which we get the cell value
    * @param context.fullPath - property path to value started with resourceType
    * @param context.preferredCodeSystem - coding system for filtering data in resource cell
-   * @param context.pullDataObservationCodes - selected Observation codes at "pull data" step
+   * @param context.pullDataObservationCodes - a map of selected Observation codes at "pull data" step
    */
   getCodeableConceptAsText(v: CodeableConcept, context: Context = {}): string {
     const { fullPath, preferredCodeSystem } = context;
@@ -200,11 +200,14 @@ export class ColumnValuesService {
     }
 
     // Find a coding that matches context.pullDataObservationCodes, or use the first coding.
-    const codingForText =
-      (context.pullDataObservationCodes &&
-        coding.find((x) => context.pullDataObservationCodes.has(x.code))) ||
-      coding[0];
-    return this.getCodingAsText(codingForText, {
+    const matchingCoding =
+      context.pullDataObservationCodes &&
+      coding.find((x) => context.pullDataObservationCodes.has(x.code));
+    if (matchingCoding) {
+      return context.pullDataObservationCodes.get(matchingCoding.code);
+    }
+
+    return this.getCodingAsText(coding[0], {
       fullPath: fullPath ? fullPath + '.coding' : ''
     });
   }
