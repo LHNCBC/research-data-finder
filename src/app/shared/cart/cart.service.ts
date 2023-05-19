@@ -283,6 +283,11 @@ export class CartService {
    * Gets cart criteria to be saved for later.
    */
   getCartCriteria(): any {
+    Object.values(this.itemsByResourceType).forEach((listData) => {
+      // Construct 'byIdArray' property to be saved to file or sessionStorage.
+      // The 'byId' property is a Map and will be lost.
+      listData['byIdArray'] = Array.from(listData.byId);
+    });
     return {
       itemsByResourceType: this.itemsByResourceType,
       logicalOperator: this.logicalOperator,
@@ -296,6 +301,10 @@ export class CartService {
    */
   setCartCriteria(data: any): void {
     this.itemsByResourceType = data.itemsByResourceType;
+    Object.values(this.itemsByResourceType).forEach((listData) => {
+      // Restore 'byId' Map property from 'byIdArray'.
+      listData.byId = new Map(listData['byIdArray']);
+    });
     this.logicalOperator = data.logicalOperator;
     this.variableData = data.variableData;
     this.variableUnits = data.variableUnits;
