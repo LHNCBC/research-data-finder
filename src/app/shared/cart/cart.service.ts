@@ -299,6 +299,16 @@ export class CartService {
     this.logicalOperator = data.logicalOperator;
     this.variableData = data.variableData;
     this.variableUnits = data.variableUnits;
+    if (this.itemsByResourceType['ResearchStudy']) {
+      this.getCartChangedSubject('ResearchStudy').next(
+        this.itemsByResourceType['ResearchStudy']
+      );
+    }
+    if (this.itemsByResourceType['Variable']) {
+      this.getCartChangedSubject('Variable').next(
+        this.itemsByResourceType['Variable']
+      );
+    }
   }
 
   /**
