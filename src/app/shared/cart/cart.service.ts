@@ -280,6 +280,28 @@ export class CartService {
   }
 
   /**
+   * Gets cart criteria to be saved for later.
+   */
+  getCartCriteria(): any {
+    return {
+      itemsByResourceType: this.itemsByResourceType,
+      logicalOperator: this.logicalOperator,
+      variableData: this.variableData,
+      variableUnits: this.variableUnits
+    };
+  }
+
+  /**
+   * Sets all selected records and lookups.
+   */
+  setCartCriteria(data: any): void {
+    this.itemsByResourceType = data.itemsByResourceType;
+    this.logicalOperator = data.logicalOperator;
+    this.variableData = data.variableData;
+    this.variableUnits = data.variableUnits;
+  }
+
+  /**
    * Resets all selected records.
    */
   reset(): void {

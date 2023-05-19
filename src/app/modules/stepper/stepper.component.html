@@ -83,10 +83,9 @@
           Select an action
         </button>
         <div class='spacer'></div>
-        <button mat-stroked-button (click)='hiddenFileInput3.click()'
-                style="color: blue;">
+        <button mat-stroked-button (click)='hiddenFileInput3.click()'>
           <mat-icon svgIcon='upload'></mat-icon>
-          [TODO: Load cohort and criteria]
+          Load cohort and criteria
         </button>
         <input type='file' #hiddenFileInput3 style='display: none;' (change)='loadCohort($event)'>
         <div class="spacer"></div>
