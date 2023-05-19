@@ -605,27 +605,22 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   getCellStrings(row: Resource, column: ColumnDescription): string[] {
     const expression = column.expression || column.element.replace('[x]', '');
     const fullPath = expression ? this.resourceType + '.' + expression : '';
-    const usePullDataObservationCodes =
+    // Pass pullDataObservationCodes only for Observation "Code" column.
+    const pullDataObservationCodes =
       row.resourceType === 'Observation' &&
       column.element === 'code' &&
-      this.pullDataObservationCodes;
+      this.pullDataObservationCodes
+        ? this.pullDataObservationCodes
+        : undefined;
 
     for (const type of column.types) {
-      const output = usePullDataObservationCodes
-        ? // Pass pullDataObservationCodes only for Observation "Code" column.
-          this.columnValuesService.valueToStrings(
-            this.getEvaluator(fullPath)(row),
-            type,
-            column.isArray,
-            fullPath,
-            this.pullDataObservationCodes
-          )
-        : this.columnValuesService.valueToStrings(
-            this.getEvaluator(fullPath)(row),
-            type,
-            column.isArray,
-            fullPath
-          );
+      const output = this.columnValuesService.valueToStrings(
+        this.getEvaluator(fullPath)(row),
+        type,
+        column.isArray,
+        fullPath,
+        pullDataObservationCodes
+      );
 
       if (output && output.length) {
         return output;
