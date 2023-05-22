@@ -454,7 +454,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       // Set max field value.
       this.selectRecordsComponent.maxPatientsNumber.setValue(maxPatientCount);
       // Restore resources, controls and lookups in carts.
-      this.cart.setCartCriteria(cartCriteria);
+      this.selectRecordsComponent.setCartCriteria(cartCriteria);
     } else {
       // Set max field value.
       this.defineCohortComponent.defineCohortForm
@@ -497,17 +497,19 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     const patientStream = new Subject<Patient[]>();
     this.cohort.patientStream = patientStream.asObservable();
-    this.stepper.next();
-    if (this.rasStepCountDown) {
-      this.rasStepCountDown--;
-    }
-    if (fromResearchStudyStep) {
-      this.stepper.next();
-    }
     setTimeout(() => {
-      this.cohort.currentState.patients = data;
-      patientStream.next(data);
-      patientStream.complete();
+      this.stepper.next();
+      if (this.rasStepCountDown) {
+        this.rasStepCountDown--;
+      }
+      if (fromResearchStudyStep) {
+        this.stepper.next();
+      }
+      setTimeout(() => {
+        this.cohort.currentState.patients = data;
+        patientStream.next(data);
+        patientStream.complete();
+      });
     });
   }
 

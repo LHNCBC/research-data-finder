@@ -7,7 +7,7 @@
   <input matInput [formControl]="maxPatientsNumber" type="number" min="1">
 </mat-form-field>
 
-<mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
+<mat-tab-group #tabGroup dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
   <mat-tab *ngFor="let resourceType of visibleResourceTypes"
            #tab
            [disabled]="
