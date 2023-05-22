@@ -377,6 +377,8 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       maxPatientCount: this.cohort.maxPatientCount,
       rawCriteria: this.cohort.criteria,
       cartCriteria: this.cart.getCartCriteria(),
+      additionalCriteria: this.selectRecordsComponent?.additionalCriteria
+        ?.value,
       researchStudies:
         this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
     };
@@ -439,6 +441,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       maxPatientCount,
       rawCriteria,
       cartCriteria,
+      additionalCriteria,
       data,
       researchStudies
     } = rawData;
@@ -453,8 +456,11 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     if (isCartApproach) {
       // Set max field value.
       this.selectRecordsComponent.maxPatientsNumber.setValue(maxPatientCount);
-      // Restore resources, controls and lookups in carts.
-      this.selectRecordsComponent.setCartCriteria(cartCriteria);
+      // Restore resources, controls and lookups in carts and in 'Additional Criteria' tab.
+      this.selectRecordsComponent.setCartCriteria(
+        cartCriteria,
+        additionalCriteria
+      );
     } else {
       // Set max field value.
       this.defineCohortComponent.defineCohortForm
@@ -510,7 +516,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         patientStream.next(data);
         patientStream.complete();
       });
-    });
+    }, 100);
   }
 
   /**
