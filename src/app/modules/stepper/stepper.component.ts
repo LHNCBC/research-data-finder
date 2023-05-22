@@ -286,7 +286,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
                             JSON.parse(pullDataStatus)
                           );
                         }
-                      });
+                      }, 200);
                     }
                   }, 0);
                 }
@@ -315,7 +315,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         this.stepper.next();
       }
-    });
+    }, 200);
   }
 
   /**
