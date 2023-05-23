@@ -226,7 +226,6 @@ describe('ColumnValuesService', () => {
           }
         ],
         'CodeableConcept',
-        true,
         'ResearchStudy.condition',
         new Map([['value2', 'display2']])
       )
@@ -251,7 +250,6 @@ describe('ColumnValuesService', () => {
           }
         ],
         'CodeableConcept',
-        true,
         'ResearchStudy.condition'
       )
     ).toEqual(['value1']);
