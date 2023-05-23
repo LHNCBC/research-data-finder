@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.13] - 2023-05-23
+### Fixed
+- Handled cases when a server returns less than the expected number of results.
+
 ## [6.2.12] - 2023-05-23
 ### Changed
 - Match Observation table Code column to selected Observation codes,
