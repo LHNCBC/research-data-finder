@@ -51,6 +51,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { isEqual, pickBy } from 'lodash-es';
 import { saveAs } from 'file-saver';
+import Observation = fhir.Observation;
 
 type TableCells = { [key: string]: string };
 
@@ -243,6 +244,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   compiledExpressions: { [expression: string]: (row: Resource) => any };
 
   @HostBinding('class.fullscreen') fullscreen = false;
+
+  // Selected Observation codes at "pull data" step, used to display a matching code
+  // in Observation table "Code" column.
+  @Input() pullDataObservationCodes: Map<string, string> = null;
 
   /**
    * Whether it's a valid click event in accessibility sense.
@@ -601,13 +606,20 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   getCellStrings(row: Resource, column: ColumnDescription): string[] {
     const expression = column.expression || column.element.replace('[x]', '');
     const fullPath = expression ? this.resourceType + '.' + expression : '';
+    // Pass pullDataObservationCodes only for Observation "Code" column.
+    const pullDataObservationCodes =
+      row.resourceType === 'Observation' &&
+      column.element === 'code' &&
+      this.pullDataObservationCodes
+        ? this.pullDataObservationCodes
+        : undefined;
 
     for (const type of column.types) {
       const output = this.columnValuesService.valueToStrings(
         this.getEvaluator(fullPath)(row),
         type,
-        column.isArray,
-        fullPath
+        fullPath,
+        pullDataObservationCodes
       );
 
       if (output && output.length) {
@@ -670,7 +682,16 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   getBlob(): Blob {
     const columnDescriptions = this.columnDescriptions;
     const header = columnDescriptions
-      .map((columnDescription) => columnDescription.displayName)
+      .map((columnDescription) => {
+        if (
+          this.resourceType === 'Observation' &&
+          columnDescription.element === 'value[x]'
+        ) {
+          // Separate value column into value & unit columns in export
+          return 'Value,Unit';
+        }
+        return columnDescription.displayName;
+      })
       .join(',');
     const rowsToDownload = this.enableFiltering
       ? this.dataSource.filteredData
@@ -678,22 +699,33 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     const rows = rowsToDownload.map((row) =>
       columnDescriptions
         .map((columnDescription) => {
-          const cellText = row.cells[columnDescription.element];
-          if (/["\s,]/.test(cellText)) {
-            // According to RFC-4180 which describes common format for CSV files:
-            // Fields containing line breaks (CRLF), double quotes, and commas
-            // should be enclosed in double-quotes.
-            // If double-quotes are used to enclose fields, then a double-quote
-            // appearing inside a field must be escaped by preceding it with
-            // another double quote.
-            // Also, according to https://en.wikipedia.org/wiki/Comma-separated_values:
-            // In CSV implementations that do trim leading or trailing spaces,
-            // fields with such spaces as meaningful data must be quoted.
-            // Therefore, to avoid any problems, data with any spaces is also quoted.
-            return '"' + cellText.replace(/"/g, '""') + '"';
-          } else {
-            return cellText;
-          }
+          const valueQuantity =
+            this.resourceType === 'Observation' &&
+            columnDescription.element === 'value[x]' &&
+            (row.resource as Observation).valueQuantity;
+          const cellTexts = valueQuantity
+            ? // Separate value column into value & unit columns in export
+              [valueQuantity.value ?? '', valueQuantity.unit ?? '']
+            : [row.cells[columnDescription.element]];
+          return cellTexts
+            .map((cellText) => {
+              if (typeof cellText === 'string' && /["\s,]/.test(cellText)) {
+                // According to RFC-4180 which describes common format for CSV files:
+                // Fields containing line breaks (CRLF), double quotes, and commas
+                // should be enclosed in double-quotes.
+                // If double-quotes are used to enclose fields, then a double-quote
+                // appearing inside a field must be escaped by preceding it with
+                // another double quote.
+                // Also, according to https://en.wikipedia.org/wiki/Comma-separated_values:
+                // In CSV implementations that do trim leading or trailing spaces,
+                // fields with such spaces as meaningful data must be quoted.
+                // Therefore, to avoid any problems, data with any spaces is also quoted.
+                return '"' + cellText.replace(/"/g, '""') + '"';
+              } else {
+                return cellText;
+              }
+            })
+            .join(',');
         })
         .join(',')
     );

@@ -239,6 +239,8 @@ export class FhirServerSelectComponent
       }
     );
     this.acInstance.setFieldVal(this.currentValue, false);
+    // Prevent the server list from showing after page load.
+    this.acInstance.preventListFromShowing = true;
     this.listSelectionsObserver = (eventData) => {
       if (
         eventData.input_method === 'clicked' ||

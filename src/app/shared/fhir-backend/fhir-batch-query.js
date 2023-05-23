@@ -11,6 +11,28 @@ export const UNSUPPORTED_VERSION = -1;
 // Rate limiting interval - the time interval in milliseconds for which a limited number of requests can be specified
 const RATE_LIMIT_INTERVAL = 1000;
 
+// A map from version name to possible research study statuses.
+// They are hardcoded because we don't have access to the specification
+// definitions in this file.
+const researchStudyStatusesByVersion = {
+  R4: [
+    'candidate',
+    'eligible',
+    'follow-up',
+    'ineligible',
+    'not-registered',
+    'off-study',
+    'on-study',
+    'on-study-intervention',
+    'on-study-observation',
+    'pending-on-study',
+    'potential-candidate',
+    'screening',
+    'withdrawn'
+  ].join(','),
+  R5: ['draft', 'active', 'retired', 'unknown'].join(',')
+};
+
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
 export class FhirBatchQuery {
   /**
@@ -28,7 +50,7 @@ export class FhirBatchQuery {
     batchTimeout = 20
   }) {
     this._serviceBaseUrl = serviceBaseUrl;
-    this._isDbgap = false;
+    this._authorizationHeader = null;
     this._pending = [];
     this._batchTimeoutId = null;
     this._batchTimeout = batchTimeout;
@@ -60,10 +82,10 @@ export class FhirBatchQuery {
   }
 
   /**
-   * Sets whether the service base url is a dbGap url.
+   * Sets the authorization header value.
    */
-  setIsDbgap(value) {
-    this._isDbgap = value;
+  setAuthorizationHeader(value) {
+    this._authorizationHeader = value;
   }
 
   /**
@@ -236,65 +258,83 @@ export class FhirBatchQuery {
       this.checkNotModifierIssue()
     ];
 
-    return Promise.allSettled(initializationRequests).then(
-      ([
-        metadata,
-        observationsSortedByDate,
-        observationsSortedByAgeAtEvent,
-        lastnLookup,
-        hasResearchStudy,
-        interpretation,
-        batch,
-        hasNotModifierIssue
-      ]) => {
-        if (currentServiceBaseUrl !== this._serviceBaseUrl) {
-          return Promise.reject({
-            status: HTTP_ABORT,
-            error: 'Outdated response to initialization request.'
-          });
-        }
-        if (metadata.status === 'fulfilled') {
-          const fhirVersion = metadata.value.data.fhirVersion;
-          this._versionName = getVersionNameByNumber(fhirVersion);
-          if (!this._versionName) {
+    return Promise.allSettled(initializationRequests)
+      .then(
+        ([
+          metadata,
+          observationsSortedByDate,
+          observationsSortedByAgeAtEvent,
+          lastnLookup,
+          hasResearchStudy,
+          interpretation,
+          batch,
+          hasNotModifierIssue
+        ]) => {
+          if (currentServiceBaseUrl !== this._serviceBaseUrl) {
             return Promise.reject({
-              status: UNSUPPORTED_VERSION,
-              error: 'Unsupported FHIR version: ' + fhirVersion
+              status: HTTP_ABORT,
+              error: 'Outdated response to initialization request.'
             });
           }
-        } else {
-          // If initialization fails, do not cache initialization responses
-          this.clearCacheByName(this.getInitCacheName());
-          return Promise.reject({
-            error:
-              "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
+          if (metadata.status === 'fulfilled') {
+            const fhirVersion = metadata.value.data.fhirVersion;
+            this._versionName = getVersionNameByNumber(fhirVersion);
+            if (!this._versionName) {
+              return Promise.reject({
+                status: UNSUPPORTED_VERSION,
+                error: 'Unsupported FHIR version: ' + fhirVersion
+              });
+            }
+          } else {
+            // If initialization fails, do not cache initialization responses
+            this.clearCacheByName(this.getInitCacheName());
+            return Promise.reject({
+              error:
+                "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
+            });
+          }
+          Object.assign(this._features, {
+            sortObservationsByDate:
+              observationsSortedByDate.status === 'fulfilled' &&
+              observationsSortedByDate.value.data.entry &&
+              observationsSortedByDate.value.data.entry.length > 0,
+            sortObservationsByAgeAtEvent:
+              observationsSortedByAgeAtEvent.status === 'fulfilled' &&
+              observationsSortedByAgeAtEvent.value.data.entry &&
+              observationsSortedByAgeAtEvent.value.data.entry.length > 0,
+            lastnLookup: lastnLookup.status === 'fulfilled',
+            hasResearchStudy:
+              hasResearchStudy.status === 'fulfilled' &&
+              hasResearchStudy.value.data.entry &&
+              hasResearchStudy.value.data.entry.length > 0,
+            interpretation:
+              interpretation.status === 'fulfilled' &&
+              interpretation.value.data.entry &&
+              interpretation.value.data.entry.length > 0,
+            batch: batch.status === 'fulfilled',
+            hasNotModifierIssue:
+              hasNotModifierIssue.status === 'fulfilled' &&
+              hasNotModifierIssue.value
           });
         }
-        Object.assign(this._features, {
-          sortObservationsByDate:
-            observationsSortedByDate.status === 'fulfilled' &&
-            observationsSortedByDate.value.data.entry &&
-            observationsSortedByDate.value.data.entry.length > 0,
-          sortObservationsByAgeAtEvent:
-            observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-            observationsSortedByAgeAtEvent.value.data.entry &&
-            observationsSortedByAgeAtEvent.value.data.entry.length > 0,
-          lastnLookup: lastnLookup.status === 'fulfilled',
-          hasResearchStudy:
-            hasResearchStudy.status === 'fulfilled' &&
-            hasResearchStudy.value.data.entry &&
-            hasResearchStudy.value.data.entry.length > 0,
-          interpretation:
-            interpretation.status === 'fulfilled' &&
-            interpretation.value.data.entry &&
-            interpretation.value.data.entry.length > 0,
-          batch: batch.status === 'fulfilled',
-          hasNotModifierIssue:
-            hasNotModifierIssue.status === 'fulfilled' &&
-            hasNotModifierIssue.value
-        });
-      }
-    );
+      )
+      .then(() => {
+        // Check if server has at least one Research Study with Research Subjects
+        return this.getWithCache(
+          `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
+            researchStudyStatusesByVersion[this._versionName]
+          }`,
+          options
+        );
+      })
+      .then(
+        ({ data }) => {
+          this._features.hasAvailableStudy = data.entry?.length > 0;
+        },
+        () => {
+          this._features.hasAvailableStudy = false;
+        }
+      );
   }
 
   /**
@@ -675,11 +715,8 @@ export class FhirBatchQuery {
         oReq.setRequestHeader('Content-Type', contentType);
       }
 
-      if (this._isDbgap) {
-        const token = sessionStorage.getItem('dbgapTstToken');
-        if (token) {
-          oReq.setRequestHeader('Authorization', 'Bearer ' + token);
-        }
+      if (this._authorizationHeader) {
+        oReq.setRequestHeader('Authorization', this._authorizationHeader);
       }
 
       oReq.send(body);

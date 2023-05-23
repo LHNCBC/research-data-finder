@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import pkg from '../../../../package.json';
-import { getUrlParam, setUrlParam } from '../../shared/utils';
+import { setUrlParam } from '../../shared/utils';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { StepperComponent, Step } from '../stepper/stepper.component';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
@@ -14,16 +14,13 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 })
 export class HomeComponent implements AfterViewInit {
   version = pkg.version;
-  isAlpha: boolean;
   @ViewChild(StepperComponent) stepperComponent: StepperComponent;
 
   constructor(
     public rasToken: RasTokenService,
     public fhirBackend: FhirBackendService,
     private liveAnnouncer: LiveAnnouncer
-  ) {
-    this.isAlpha = getUrlParam('alpha-version') === 'enable';
-  }
+  ) {}
 
   openChangelog(): void {
     window.open(
@@ -55,7 +52,7 @@ export class HomeComponent implements AfterViewInit {
   private setVersionUrlParam(): void {
     window.location.href = setUrlParam(
       'alpha-version',
-      this.isAlpha ? 'disable' : 'enable'
+      this.fhirBackend.isAlphaVersion ? 'disable' : 'enable'
     );
   }
 
