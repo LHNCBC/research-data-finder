@@ -149,7 +149,6 @@ export class CartComponent implements OnInit, OnChanges {
       const output = this.columnValuesService.valueToStrings(
         this.getEvaluator(fullPath)(row),
         type,
-        column.isArray,
         fullPath
       );
 

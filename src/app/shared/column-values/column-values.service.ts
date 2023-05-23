@@ -43,14 +43,12 @@ export class ColumnValuesService {
    * or throws an exception (for unsupported types).
    * @param value - value
    * @param type - type of value
-   * @param isArray - true if max cardinality greater than 1
    * @param fullPath - property path to value started with resourceType
    * @param pullDataObservationCodes a map of selected Observation codes at "pull data" step
    */
   valueToStrings(
     value: Array<any>,
     type: string,
-    isArray: boolean = false,
     fullPath: string,
     pullDataObservationCodes: Map<string, string> = undefined
   ): string[] {

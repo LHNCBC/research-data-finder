@@ -56,6 +56,13 @@ export class SelectRecordsPageComponent
     super(fhirBackend, columnDescriptions, selectRecords);
   }
 
+  /**
+   * Whether form should have the Study tab
+   */
+  hasStudyTab(): boolean {
+    return this.fhirBackend.features.hasAvailableStudy;
+  }
+
   ngOnDestroy(): void {
     super.ngOnDestroy();
   }
@@ -120,8 +127,13 @@ export class SelectRecordsPageComponent
    * @param pageNumber - page number to load
    */
   loadVariables(pageNumber = 0): void {
+    const studiesInCart = this.cart.getListItems('ResearchStudy');
     this.selectRecords.loadVariables(
-      [].concat(...(this.cart.getListItems('ResearchStudy') || [])),
+      [].concat(
+        ...(studiesInCart?.length
+          ? studiesInCart
+          : this.selectRecords.currentState['ResearchStudy'].resources || [])
+      ),
       this.recTypeLoinc
         ? {
             rec_type: 'loinc'
