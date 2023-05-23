@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.12] - 2023-05-23
+### Changed
+- Match Observation table Code column to selected Observation codes,
+  if any, in "pull data" step.
+
 ## [6.2.11] - 2023-05-18
 ### Added
 - Error handling for dbGaP 4xx and 5xx responses.
