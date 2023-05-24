@@ -87,7 +87,7 @@
           <mat-icon svgIcon='upload'></mat-icon>
           Load cohort and criteria
         </button>
-        <input type='file' #hiddenFileInput3 style='display: none;' (change)='loadCohort($event)'>
+        <input type='file' id="hiddenFileInput3" #hiddenFileInput3 style='display: none;' (change)='loadCohort($event)'>
         <div class="spacer"></div>
         <!-- We can't use the matStepperNext directive, but we need to treat this
          button as the "next button" in e2e tests. To do this, the mat-stepper-next
