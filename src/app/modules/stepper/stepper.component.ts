@@ -244,6 +244,8 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
             );
             const goNextStep = sessionStorage.getItem('goNextStep') === 'true';
             if (this.rasStepCountDown) {
+              // setTimeout to allow selectAnActionComponent to come into existence,
+              // since this.allowChangeCreateCohortMode is just set in this block above.
               setTimeout(() => {
                 this.stepper.next();
                 this.rasStepCountDown--;
@@ -259,6 +261,10 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
                 if (this.rasStepCountDown === 0) {
                   this.checkNextStep(goNextStep);
                 } else {
+                  // setTimeout is needed so this.stepper.next() is only called after
+                  // new steps come into existence as a result of 'createCohortMode' change.
+                  // The stepper have only 2 steps before 'createCohortMode' is set.
+                  // Same in this.checkNextStep();
                   setTimeout(() => {
                     this.stepper.next();
                     this.rasStepCountDown--;
@@ -269,6 +275,9 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
                     if (this.rasStepCountDown === 0) {
                       this.checkNextStep(goNextStep);
                     } else {
+                      // Put below Pull Data step work in the next macrotask queue, lest
+                      // it is called before the stepper is at View Cohort step, since
+                      // this.loadFromRawCriteria() above could involve some asynchronous work.
                       setTimeout(() => {
                         this.stepper.next();
                         const pullDataStatus = sessionStorage.getItem(
