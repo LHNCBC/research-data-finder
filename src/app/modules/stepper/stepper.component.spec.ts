@@ -4,7 +4,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { BehaviorSubject, of, Subject } from 'rxjs';
+import { BehaviorSubject, of, ReplaySubject, Subject } from 'rxjs';
 import { MockComponent } from 'ng-mocks';
 import { SelectColumnsComponent } from '../select-columns/select-columns.component';
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
@@ -102,7 +102,8 @@ describe('StepperComponent', () => {
             initialized: new BehaviorSubject(ConnectionStatus.Ready),
             features: { batch: true },
             disconnect: () => {},
-            isAlphaVersion: false
+            isAlphaVersion: false,
+            dbgapRelogin$: new ReplaySubject()
           }
         },
         {

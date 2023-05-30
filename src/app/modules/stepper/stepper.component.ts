@@ -464,7 +464,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     // Set search parameter form values.
     this.defineCohortComponent.patientParams.queryCtrl.setValue(rawCriteria);
-    this.cohort.criteria$.next(rawCriteria);
+    this.cohort.setCriteria(rawCriteria);
     // Set selected research studies.
     this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
       researchStudies
