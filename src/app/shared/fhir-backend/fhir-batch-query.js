@@ -215,16 +215,17 @@ export class FhirBatchQuery {
       ? `&_security=${this._features.consentGroup}`
       : '';
     // Common options for initialization requests
+    // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
     const options = this.getCommonInitRequestOptions();
 
-    // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
-    const initializationRequests = [
+    // Below initialization requests are always made.
+    const initializationRequests = Promise.allSettled([
       // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-      this.getWithCache('metadata?_elements=fhirVersion', options)
-    ];
-
-    return Promise.allSettled(initializationRequests)
-      .then(([metadata]) => {
+      this.getWithCache('metadata?_elements=fhirVersion', options),
+      // Check if server has Research Study data
+      this.getWithCache('ResearchStudy?_elements=id&_count=1', options)
+    ])
+      .then(([metadata, hasResearchStudy]) => {
         if (currentServiceBaseUrl !== this._serviceBaseUrl) {
           return Promise.reject({
             status: HTTP_ABORT,
@@ -240,6 +241,10 @@ export class FhirBatchQuery {
               error: 'Unsupported FHIR version: ' + fhirVersion
             });
           }
+          this._features.hasResearchStudy =
+            hasResearchStudy.status === 'fulfilled' &&
+            hasResearchStudy.value.data.entry &&
+            hasResearchStudy.value.data.entry.length > 0;
         } else {
           // If initialization fails, do not cache initialization responses
           this.clearCacheByName(this.getInitCacheName());
@@ -250,95 +255,95 @@ export class FhirBatchQuery {
         }
       })
       .then(() => {
-        // On dbGaP server, only do initializationRequests2 requests after login.
-        if (this.initContext === 'dbgap-pre-login') {
-          return;
-        }
-        const initializationRequests2 = [
-          // Check if sorting Observations by date is supported
-          this.getWithCache(
-            `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
-            options
-          ),
-          // Check if sorting Observations by age-at-event is supported
-          this.getWithCache(
-            `Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`,
-            options
-          ),
-          // Check if operation $lastn on Observation is supported
-          this.getWithCache(
-            `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
-            options
-          ),
-          // Check if server has Research Study data
-          this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
-          // Check if interpretation search parameter is supported
-          this.getWithCache(
-            `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
-            options
-          ),
-          // Check if batch request is supported
-          this._request({
-            method: 'POST',
-            url: this._serviceBaseUrl,
-            body: JSON.stringify({
-              resourceType: 'Bundle',
-              type: 'batch'
-            }),
-            logPrefix: 'Batch',
-            combine: false,
-            retryCount: 2
-          }),
-          this.checkNotModifierIssue(),
-          // Check if server has at least one Research Study with Research Subjects
-          this.getWithCache(
-            `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
-              researchStudyStatusesByVersion[this._versionName]
-            }`,
-            options
-          )
-        ];
-        return Promise.allSettled(initializationRequests2).then(
-          ([
-            observationsSortedByDate,
-            observationsSortedByAgeAtEvent,
-            lastnLookup,
-            hasResearchStudy,
-            interpretation,
-            batch,
-            hasNotModifierIssue,
-            hasAvailableStudy
-          ]) => {
-            Object.assign(this._features, {
-              sortObservationsByDate:
-                observationsSortedByDate.status === 'fulfilled' &&
-                observationsSortedByDate.value.data.entry &&
-                observationsSortedByDate.value.data.entry.length > 0,
-              sortObservationsByAgeAtEvent:
-                observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-                observationsSortedByAgeAtEvent.value.data.entry &&
-                observationsSortedByAgeAtEvent.value.data.entry.length > 0,
-              lastnLookup: lastnLookup.status === 'fulfilled',
-              hasResearchStudy:
-                hasResearchStudy.status === 'fulfilled' &&
-                hasResearchStudy.value.data.entry &&
-                hasResearchStudy.value.data.entry.length > 0,
-              interpretation:
-                interpretation.status === 'fulfilled' &&
-                interpretation.value.data.entry &&
-                interpretation.value.data.entry.length > 0,
-              batch: batch.status === 'fulfilled',
-              hasNotModifierIssue:
-                hasNotModifierIssue.status === 'fulfilled' &&
-                hasNotModifierIssue.value,
-              hasAvailableStudy:
-                hasAvailableStudy.status === 'fulfilled' &&
-                hasAvailableStudy.value.data.entry &&
-                hasAvailableStudy.value.data.entry.length > 0
-            });
-          }
+        // Check if server has at least one Research Study with Research Subjects
+        return this.getWithCache(
+          `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
+            researchStudyStatusesByVersion[this._versionName]
+          }`,
+          options
         );
-      });
+      })
+      .then(
+        ({ data }) => {
+          this._features.hasAvailableStudy = data.entry?.length > 0;
+        },
+        () => {
+          this._features.hasAvailableStudy = false;
+        }
+      );
+    // On dbGaP server, only do initializationRequests2 requests after login.
+    if (this.initContext === 'dbgap-pre-login') {
+      return initializationRequests;
+    }
+    // Below initialization requests are not made if it's dbGaP server and user hasn't logged in.
+    const initializationRequests2 = Promise.allSettled([
+      // Check if sorting Observations by date is supported
+      this.getWithCache(
+        `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
+        options
+      ),
+      // Check if sorting Observations by age-at-event is supported
+      this.getWithCache(
+        `Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`,
+        options
+      ),
+      // Check if operation $lastn on Observation is supported
+      this.getWithCache(
+        `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
+        options
+      ),
+      // Check if interpretation search parameter is supported
+      this.getWithCache(
+        `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
+        options
+      ),
+      // Check if batch request is supported
+      this._request({
+        method: 'POST',
+        url: this._serviceBaseUrl,
+        body: JSON.stringify({
+          resourceType: 'Bundle',
+          type: 'batch'
+        }),
+        logPrefix: 'Batch',
+        combine: false,
+        retryCount: 2
+      }),
+      this.checkNotModifierIssue()
+    ]).then(
+      ([
+        observationsSortedByDate,
+        observationsSortedByAgeAtEvent,
+        lastnLookup,
+        interpretation,
+        batch,
+        hasNotModifierIssue
+      ]) => {
+        Object.assign(this._features, {
+          sortObservationsByDate:
+            observationsSortedByDate.status === 'fulfilled' &&
+            observationsSortedByDate.value.data.entry &&
+            observationsSortedByDate.value.data.entry.length > 0,
+          sortObservationsByAgeAtEvent:
+            observationsSortedByAgeAtEvent.status === 'fulfilled' &&
+            observationsSortedByAgeAtEvent.value.data.entry &&
+            observationsSortedByAgeAtEvent.value.data.entry.length > 0,
+          lastnLookup: lastnLookup.status === 'fulfilled',
+          interpretation:
+            interpretation.status === 'fulfilled' &&
+            interpretation.value.data.entry &&
+            interpretation.value.data.entry.length > 0,
+          batch: batch.status === 'fulfilled',
+          hasNotModifierIssue:
+            hasNotModifierIssue.status === 'fulfilled' &&
+            hasNotModifierIssue.value
+        });
+      }
+    );
+    return Promise.allSettled([
+      initializationRequests,
+      initializationRequests2
+    ]);
   }
 
   /**

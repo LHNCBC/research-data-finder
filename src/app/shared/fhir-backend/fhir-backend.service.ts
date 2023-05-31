@@ -346,7 +346,7 @@ export class FhirBackendService implements HttpBackend {
         const initializeContext =
           isRasLoggedIn || this.smartConnectionSuccess
             ? 'after-login'
-            : isDbgap && !isRasLoggedIn
+            : isDbgap && !isRasLoggedIn && this.isAlphaVersion
             ? 'dbgap-pre-login'
             : '';
 
