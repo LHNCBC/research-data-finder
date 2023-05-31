@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.14] - 2023-05-31
+### Fixed
+- Make initialization requests only when necessary. Remove unnecessary
+  requests before login.
+
 ## [6.2.13] - 2023-05-23
 ### Fixed
 - Handled cases when a server returns less than the expected number of results.
