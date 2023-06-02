@@ -16,7 +16,7 @@
              && (selectRecords.currentState['ResearchStudy']?.loading || !selectRecords.currentState['ResearchStudy']?.resources.length)">
     <ng-template mat-tab-label>
       <div [matTooltip]="tab.disabled? 'Disabled until studies are loaded' : ''">{{
-        getPluralFormOfRecordName(resourceType)
+          resourceType | pluralFormOfRecordName
         }}</div>
     </ng-template>
     <div class="v-box tab-content">
@@ -54,7 +54,7 @@
                       [matTooltip]="
                         resourceTable.selectedResources.selected.length > 1
                          && resourceTable.selectedResources.isSelected(row.resource)
-                          ? 'Add selected records to ' + getPluralFormOfRecordName(resourceType) + ' cart'
+                          ? 'Add selected records to the cart'
                           : 'Add record to cart'
                       ">
                 <mat-icon svgIcon="add_shopping_cart_black"></mat-icon>
@@ -92,16 +92,16 @@
                       (keydown.space)="panel.toggle()">
                     <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
                     <span>Selected {{
-                      resourceTable.selectedResources.selected.length
+                        resourceTable.selectedResources.selected.length
                       }} out of {{
-                      resourceTable.dataSource.data.length
+                        resourceTable.dataSource.data.length
                       }} {{
-                      getPluralFormOfRecordName(resourceType)
+                        resourceType | pluralFormOfRecordName | lowercase
                       }}.</span>
                     </mat-panel-title>
                     <mat-panel-description *ngIf="(selectRecords.currentState[resourceType].isCached | async) !== null">
                   <span *ngIf="resourceTable.loading; else loadedTemplate">
-                    <span>Loading {{getPluralFormOfRecordName(resourceType)}} {{
+                    <span>Loading {{resourceType | pluralFormOfRecordName | lowercase}} {{
                       (selectRecords.currentState[resourceType].isCached | async)
                         ? 'from the cache ...'
                         : 'from the server' + (showOnlyStudiesWithSubjects ? '...' : '. It may take a minute or two...')
@@ -147,7 +147,7 @@
                       [matTooltip]="
                         variableTable.selectedResources.selected.length > 1
                          && variableTable.selectedResources.isSelected(row.resource)
-                          ? 'Add selected records to ' + getPluralFormOfRecordName(resourceType) + ' cart'
+                          ? 'Add selected records to the cart'
                           : 'Add record to cart'
                       ">
                 <mat-icon svgIcon="add_shopping_cart_black"></mat-icon>
@@ -175,21 +175,21 @@
                       (keydown.space)="panel.toggle()">
                     <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
                     <span>Selected {{
-                      variableTable.selectedResources.selected.length
+                        variableTable.selectedResources.selected.length
                       }} out of {{
-                      variableTable.dataSource.data.length
+                        variableTable.dataSource.data.length
                       }} loaded {{
-                      getPluralFormOfRecordName(resourceType)
+                        resourceType | pluralFormOfRecordName | lowercase
                       }}.</span> <span *ngIf="selectRecords.currentState[resourceType].totalRecords">
                       Total {{
-                      getPluralFormOfRecordName(resourceType)
+                        resourceType | pluralFormOfRecordName | lowercase
                       }}{{variableTable.hasFilters() ? ' for the selected filters': ''}}: {{
-                      selectRecords.currentState[resourceType].totalRecords
+                        selectRecords.currentState[resourceType].totalRecords
                       }}.</span>
                     </mat-panel-title>
                     <mat-panel-description>
                   <span *ngIf="variableTable.loading">
-                    <span>Loading {{getPluralFormOfRecordName(resourceType)}} ...</span>
+                    <span>Loading {{resourceType | pluralFormOfRecordName | lowercase}} ...</span>
                   </span>
                     </mat-panel-description>
                   </mat-expansion-panel-header>
