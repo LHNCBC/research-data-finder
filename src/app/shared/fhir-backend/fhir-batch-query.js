@@ -243,6 +243,11 @@ export class FhirBatchQuery {
         `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
         options
       ),
+      // Check if :missing modifier is supported
+      this.getWithCache(
+        `Observation?code:missing=false&_elements=id&_count=1${securityParam}`,
+        options
+      ),
       // Check if batch request is supported
       this._request({
         method: 'POST',
@@ -267,6 +272,7 @@ export class FhirBatchQuery {
           lastnLookup,
           hasResearchStudy,
           interpretation,
+          missingModifier,
           batch,
           hasNotModifierIssue
         ]) => {
@@ -311,6 +317,7 @@ export class FhirBatchQuery {
               interpretation.status === 'fulfilled' &&
               interpretation.value.data.entry &&
               interpretation.value.data.entry.length > 0,
+            missingModifier: missingModifier.status === 'fulfilled',
             batch: batch.status === 'fulfilled',
             hasNotModifierIssue:
               hasNotModifierIssue.status === 'fulfilled' &&

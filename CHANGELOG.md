@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.14] - 2023-06-05
+### Fixed
+- Replaced use of ":not=zzz" in autocomplete with ":missing=false" if supported.
+
 ## [6.2.13] - 2023-05-23
 ### Fixed
 - Handled cases when a server returns less than the expected number of results.

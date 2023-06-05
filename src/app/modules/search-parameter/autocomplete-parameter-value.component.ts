@@ -386,8 +386,13 @@ export class AutocompleteParameterValueComponent
       )
     ) {
       params[`${this.searchParameter}:text`] = filterText;
-    } else {
+    } else if (!this.fhirBackend.features.missingModifier) {
+      // if the :missing modifier is not allowed, :not=zzz is used instead
       params[`${this.searchParameter}:not`] = 'zzz';
+    }
+
+    if (this.fhirBackend.features.missingModifier) {
+      params[`${this.searchParameter}:missing`] = false;
     }
 
     // Hash of processed codes, used to exclude repeated codes

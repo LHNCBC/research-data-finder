@@ -16,6 +16,8 @@ export interface FhirServerFeatures {
   hasAvailableStudy: boolean;
   // Whether server supports interpretation search parameter
   interpretation: boolean;
+  // Whether :missing modifier is supported
+  missingModifier: boolean;
   // Whether batching request is supported
   batch: boolean;
   // Item group that must be included as _security param in dbGap queries
