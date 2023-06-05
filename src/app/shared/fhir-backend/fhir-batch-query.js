@@ -218,7 +218,7 @@ export class FhirBatchQuery {
     // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
     const options = this.getCommonInitRequestOptions();
 
-    // Below initialization requests are always made.
+    // Below are initialization requests that are always made.
     const initializationRequests = Promise.allSettled([
       // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
       this.getWithCache('metadata?_elements=fhirVersion', options),
@@ -255,27 +255,29 @@ export class FhirBatchQuery {
         }
       })
       .then(() => {
-        // Check if server has at least one Research Study with Research Subjects
-        return this.getWithCache(
-          `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
-            researchStudyStatusesByVersion[this._versionName]
-          }`,
-          options
-        );
-      })
-      .then(
-        ({ data }) => {
-          this._features.hasAvailableStudy = data.entry?.length > 0;
-        },
-        () => {
-          this._features.hasAvailableStudy = false;
-        }
-      );
+        // Check if server has at least one Research Study with Research Subjects.
+        // No need to make this request if there is no Research Study at all.
+        return this._features.hasResearchStudy
+          ? this.getWithCache(
+              `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
+                researchStudyStatusesByVersion[this._versionName]
+              }`,
+              options
+            ).then(
+              ({ data }) => {
+                this._features.hasAvailableStudy = data.entry?.length > 0;
+              },
+              () => {
+                this._features.hasAvailableStudy = false;
+              }
+            )
+          : Promise.resolve();
+      });
     // On dbGaP server, only do initializationRequests2 requests after login.
     if (this.initContext === 'dbgap-pre-login') {
       return initializationRequests;
     }
-    // Below initialization requests are not made if it's dbGaP server and user hasn't logged in.
+    // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
     const initializationRequests2 = Promise.allSettled([
       // Check if sorting Observations by date is supported
       this.getWithCache(
