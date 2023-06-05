@@ -205,6 +205,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() resourceTypeColumns;
   @Input() context = '';
   @Input() resources: Resource[];
+  @Input() total: number;
   @Input() loading: boolean;
   @Input() set progressValue(value) {
     this.progressValue$.next(Math.round(value));
@@ -353,8 +354,17 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.loadTime =
           Math.round((this.loadedDateTime - this.startTime) / 100) / 10;
         this.liveAnnouncer.announce(
-          `The ${this.resourceType} resources loading process has finished. ` +
-            `${this.resources.length} rows loaded. ` +
+          `The ${
+            this.resourceTypeColumns || this.resourceType
+          } resources loading process has finished. ` +
+            `${this.resources.length} records loaded. ` +
+            (this.total
+              ? 'Total records' +
+                (this.hasFilters() ? ' for the selected filters' : '') +
+                ': ' +
+                this.total +
+                '.'
+              : '') +
             this.getSortMessage(),
           'assertive'
         );

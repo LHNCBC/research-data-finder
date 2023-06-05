@@ -75,6 +75,7 @@
                           [enableFiltering]="true"
                           [loading]="selectRecords.currentState[resourceType].loading"
                           [resources]="selectRecords.resourceStream[resourceType] | async"
+                          [total]="selectRecords.currentState[resourceType].totalRecords"
                           (loadNextPage)="loadNextPage(resourceType)"
                           context="browse"
                           [sort]="sort[resourceType]"
@@ -101,18 +102,17 @@
                   (keydown.enter)="panel.toggle()"
                   (keydown.space)="panel.toggle()">
                 <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
-                    <span>{{
+                    <ng-container>{{
                         variableTable.dataSource.data.length
                       }} {{
                         resourceType | pluralFormOfRecordName | lowercase
-                      }} loaded.</span> <span *ngIf="selectRecords.currentState[resourceType].totalRecords">
-                      Total {{
+                      }} loaded.</ng-container><ng-container *ngIf="selectRecords.currentState[resourceType].totalRecords"> Total {{
                         resourceType | pluralFormOfRecordName | lowercase
                       }}{{
                         variableTable.hasFilters() ? ' for the selected filters': ''
                       }}: {{
                         selectRecords.currentState[resourceType].totalRecords
-                      }}.</span>
+                      }}.</ng-container>
                 </mat-panel-title>
                 <mat-panel-description>
                   <span *ngIf="variableTable.loading">
