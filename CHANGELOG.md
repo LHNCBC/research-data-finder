@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.2.15] - 2023-06-06
+### Fixed
+- Do not retry GET requests aborted by the server.
+
 ## [6.2.14] - 2023-05-31
 ### Fixed
 - Make initialization requests only when necessary. Remove unnecessary
