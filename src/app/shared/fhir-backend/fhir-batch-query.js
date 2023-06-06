@@ -116,25 +116,27 @@ export class FhirBatchQuery {
   /**
    * Returns the name of the persistent cache for initial queries of public
    * data and server capability checks.
+   * @param useInitContext whether to use this.initContext in cache name. Defaults to true.
    * @returns {string}
    */
-  getInitCacheName() {
+  getInitCacheName(useInitContext = true) {
     return (
       'init-' +
-      (this.initContext ? this.initContext + '-' : '') +
+      (useInitContext && this.initContext ? this.initContext + '-' : '') +
       this._serviceBaseUrl
     );
   }
 
   /**
    * Returns common options for initialization requests
+   * @param useInitContext whether to use this.initContext in cache name. Defaults to true.
    * @returns {Object}
    */
-  getCommonInitRequestOptions() {
+  getCommonInitRequestOptions(useInitContext = true) {
     return {
       combine: false,
       retryCount: 2,
-      cacheName: this.getInitCacheName(),
+      cacheName: this.getInitCacheName(useInitContext),
       // Initialization requests are cached for a day:
       expirationTime: 24 * 60 * 60,
       cacheErrors: true
@@ -217,11 +219,16 @@ export class FhirBatchQuery {
     // Common options for initialization requests
     // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
     const options = this.getCommonInitRequestOptions();
+    // useInitContext=false, The request is cached as the same name before and after login, so we don't make the request again after login.
+    const options_noInitContext = this.getCommonInitRequestOptions(false);
 
     // Below are initialization requests that are always made.
     const initializationRequests = Promise.allSettled([
       // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-      this.getWithCache('metadata?_elements=fhirVersion', options),
+      this.getWithCache(
+        'metadata?_elements=fhirVersion',
+        options_noInitContext
+      ),
       // Check if server has Research Study data
       this.getWithCache('ResearchStudy?_elements=id&_count=1', options)
     ])
