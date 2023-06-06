@@ -352,7 +352,12 @@ export class FhirBatchQuery {
     return Promise.allSettled([
       initializationRequests,
       initializationRequests2
-    ]);
+    ]).then(([res1, res2]) => {
+      // Reject the end Promise if the previous Promise was rejected. Otherwise, Promise.allSettled() is always fulfilled.
+      if (res1.status !== 'fulfilled') {
+        return Promise.reject(res1.reason);
+      }
+    });
   }
 
   /**
