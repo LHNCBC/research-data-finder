@@ -331,9 +331,9 @@ export class FhirBackendService implements HttpBackend {
       })
       .then(() => {
         // Set authorization header
+        const isDbgap = this.isDbgap(serviceBaseUrl || this.serviceBaseUrl);
         const dbgapTstToken =
-          this.isDbgap(serviceBaseUrl || this.serviceBaseUrl) &&
-          sessionStorage.getItem('dbgapTstToken');
+          isDbgap && sessionStorage.getItem('dbgapTstToken');
         const authorizationHeader = dbgapTstToken
           ? 'Bearer ' + dbgapTstToken
           : (this.smartConnectionSuccess &&
@@ -341,10 +341,13 @@ export class FhirBackendService implements HttpBackend {
             null;
         this.fhirClient.setAuthorizationHeader(authorizationHeader);
 
+        const isRasLoggedIn = this.injector.get(RasTokenService)
+          .rasTokenValidated;
         const initializeContext =
-          this.injector.get(RasTokenService).rasTokenValidated ||
-          this.smartConnectionSuccess
+          isRasLoggedIn || this.smartConnectionSuccess
             ? 'after-login'
+            : isDbgap && !isRasLoggedIn && this.isAlphaVersion
+            ? 'dbgap-pre-login'
             : '';
 
         this.fhirClient.initialize(serviceBaseUrl, initializeContext).then(
