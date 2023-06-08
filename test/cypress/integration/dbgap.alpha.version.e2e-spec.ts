@@ -6,7 +6,7 @@ import {
 import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
 import { getHarness } from '@jscutlery/cypress-harness';
 
-describe('Research Data Finder (dbGap alpha version)', () => {
+describe('Research Data Finder (dbGap alpha version cart-based approach)', () => {
   // Page objects & harnesses
   // See https://material.angular.io/cdk/test-harnesses/overview for details
   let stepper: MatStepperHarness;

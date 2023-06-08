@@ -288,18 +288,19 @@ export class CartService {
       // The 'byId' property is a Map and will be lost.
       listData['byIdArray'] = Array.from(listData.byId);
     });
-    // Clear the variableData entry if a Variable has been removed.
+    // Make a copy of variableData to clear the entry if a Variable has been removed.
     // It's okay for the system to keep the entry, but we don't want to download
     // it to the cohort file.
-    Object.keys(this.variableData).forEach((k) => {
-      if (!this.itemsByResourceType['Variable'].byId.has(k)) {
-        this.variableData[k] = undefined;
+    const variableData = {};
+    Object.entries(this.variableData).forEach(([k, v]) => {
+      if (this.itemsByResourceType['Variable'].byId.has(k)) {
+        variableData[k] = v;
       }
     });
     return {
       itemsByResourceType: this.itemsByResourceType,
       logicalOperator: this.logicalOperator,
-      variableData: this.variableData,
+      variableData,
       variableUnits: this.variableUnits
     };
   }
