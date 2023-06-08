@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.3.0] - 2023-06-08
+### Added
+- "Browse public data" option for other FHIR servers
+
 ## [6.2.12] - 2023-05-18
 ### Added
 - Showing the total number of variables from CTSS.

@@ -218,7 +218,9 @@ export class ColumnDescriptionsService {
       currentDefinitions.resources[resourceType]?.columnDescriptions || []
     ).concat(
       (context &&
-        this.settings.get(`contextColumns.${context}.${resourceType}`)) ||
+        (context === 'select' || context === 'browse'
+          ? this.settings.get(`contextColumns.select_or_browse.${resourceType}`)
+          : this.settings.get(`contextColumns.${context}.${resourceType}`))) ||
         []
     );
     const visibleColumnNames = this.getVisibleColumnNames(

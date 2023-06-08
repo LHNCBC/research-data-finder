@@ -6,8 +6,6 @@
   ? 'Study selection limits list of variables'
   : ''
   }}
-  <span style="color: blue"
-  *ngIf="!fhirBackend.isDbgap(fhirBackend.serviceBaseUrl)">[TODO: Don't know what to show for non dbGap servers.]</span>
 </p>
 
 <mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
@@ -70,7 +68,7 @@
       </app-resource-table>
       <app-resource-table *ngIf="(resourceType === 'Variable' || resourceType === 'Observation') && selectRecords.currentState[resourceType]"
                           #variableTable
-                          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'browse') | async"
+                          [columnDescriptions]="columnDescriptions.getVisibleColumns('Variable', 'browse') | async"
                           (filterChanged)="loadFirstPage(resourceType)"
                           [enableFiltering]="true"
                           [loading]="selectRecords.currentState[resourceType].loading"
@@ -80,8 +78,10 @@
                           context="browse"
                           [sort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
-                          [resourceType]="resourceType">
-        <ng-template #prefix>
+                          [forceClientSort]="resourceType === 'Observation'"
+                          [resourceType]="resourceType"
+                          resourceTypeColumns="Variable">
+        <ng-template #prefix *ngIf="fhirBackend.isDbgap(fhirBackend.serviceBaseUrl)">
           <div class="v-box">
             <div class="h-box">
               <mat-checkbox [(ngModel)]="hasLoinc"
