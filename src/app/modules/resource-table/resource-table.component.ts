@@ -328,9 +328,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes.loadingStatistics && this.loadingStatistics.length === 0) {
       this.panel?.close();
     }
-    const pluralRecordName = getPluralFormOfRecordName(
-      this.resourceTypeColumns || this.resourceType
-    );
+    const pluralRecordName = getPluralFormOfRecordName(this.resourceType);
     // Handle a change of loading status
     if (changes['loading']) {
       if (this.loading) {
