@@ -328,12 +328,15 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes.loadingStatistics && this.loadingStatistics.length === 0) {
       this.panel?.close();
     }
+    const pluralRecordName = getPluralFormOfRecordName(
+      this.resourceTypeColumns || this.resourceType
+    );
     // Handle a change of loading status
     if (changes['loading']) {
       if (this.loading) {
         this.columnsWithData = {};
         this.liveAnnouncer.announce(
-          `The ${this.resourceType} resources loading process has started`
+          `The ${pluralRecordName} loading process has started`
         );
         this.startTime = Date.now();
         let i = 0;
@@ -354,12 +357,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.loadTime =
           Math.round((this.loadedDateTime - this.startTime) / 100) / 10;
         this.liveAnnouncer.announce(
-          `The ${
-            this.resourceTypeColumns || this.resourceType
-          } resources loading process has finished. ` +
-            `${this.resources.length} records loaded. ` +
+          `The ${pluralRecordName} loading process has finished. ` +
+            `${this.resources.length} ${pluralRecordName} loaded. ` +
             (this.total
-              ? 'Total records' +
+              ? `Total ${pluralRecordName}` +
                 (this.hasFilters() ? ' for the selected filters' : '') +
                 ': ' +
                 this.total +
