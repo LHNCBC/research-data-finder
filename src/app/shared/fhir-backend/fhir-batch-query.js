@@ -238,11 +238,6 @@ export class FhirBatchQuery {
       ),
       // Check if server has Research Study data
       this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
-      // Check if interpretation search parameter is supported
-      this.getWithCache(
-        `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
-        options
-      ),
       // Check if :missing modifier is supported
       this.getWithCache(
         `Observation?code:missing=false&_elements=id&_count=1${securityParam}`,
@@ -271,7 +266,6 @@ export class FhirBatchQuery {
           observationsSortedByAgeAtEvent,
           lastnLookup,
           hasResearchStudy,
-          interpretation,
           missingModifier,
           batch,
           hasNotModifierIssue
@@ -313,10 +307,6 @@ export class FhirBatchQuery {
               hasResearchStudy.status === 'fulfilled' &&
               hasResearchStudy.value.data.entry &&
               hasResearchStudy.value.data.entry.length > 0,
-            interpretation:
-              interpretation.status === 'fulfilled' &&
-              interpretation.value.data.entry &&
-              interpretation.value.data.entry.length > 0,
             missingModifier: missingModifier.status === 'fulfilled',
             batch: batch.status === 'fulfilled',
             hasNotModifierIssue:
@@ -326,22 +316,35 @@ export class FhirBatchQuery {
         }
       )
       .then(() => {
-        // Check if server has at least one Research Study with Research Subjects
-        return this.getWithCache(
-          `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
-            researchStudyStatusesByVersion[this._versionName]
-          }`,
-          options
-        );
+        return Promise.allSettled([
+          // Check if server has at least one Research Study with Research Subjects
+          this.getWithCache(
+            `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
+              researchStudyStatusesByVersion[this._versionName]
+            }`,
+            options
+          ),
+          // Check if interpretation search parameter is supported
+          this.getWithCache(
+            `Observation?interpretation${
+              this._features.missingModifier ? ':missing=false' : ':not=zzz'
+            }&_elements=id&_count=1${securityParam}`,
+            options
+          )
+        ]);
       })
-      .then(
-        ({ data }) => {
-          this._features.hasAvailableStudy = data.entry?.length > 0;
-        },
-        () => {
-          this._features.hasAvailableStudy = false;
-        }
-      );
+      .then(([hasAvailableStudy, interpretation]) => {
+        Object.assign(this._features, {
+          hasAvailableStudy:
+            hasAvailableStudy.status === 'fulfilled' &&
+            hasAvailableStudy.value.data.entry &&
+            hasAvailableStudy.value.data.entry.length > 0,
+          interpretation:
+            interpretation.status === 'fulfilled' &&
+            interpretation.value.data.entry &&
+            interpretation.value.data.entry.length > 0
+        });
+      });
   }
 
   /**
