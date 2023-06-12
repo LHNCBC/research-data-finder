@@ -1,6 +1,7 @@
 {
   "version": "6.2.12",
   "serviceBaseUrl": "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1",
+  "createCohortMode": "BROWSE",
   "maxPatientCount": 100,
   "rawCriteria": {
     "condition": "and",

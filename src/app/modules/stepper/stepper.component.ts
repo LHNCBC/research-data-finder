@@ -386,7 +386,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     const result: any = {
       version: pkg.version,
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
-      createCohortMode: this.selectAnActionComponent.createCohortMode.value,
+      createCohortMode: this.selectAnActionComponent?.createCohortMode.value,
       maxPatientCount: this.cohort.maxPatientCount,
       rawCriteria: this.cohort.criteria,
       cartCriteria: this.cart.getCartCriteria(),
@@ -465,9 +465,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       );
       return;
     }
-    if (
-      createCohortMode !== this.selectAnActionComponent.createCohortMode.value
-    ) {
+    if (this.isCohortModeInvalid(createCohortMode)) {
       alert(
         `Error: Inapplicable data, because it was downloaded from ${createCohortMode} mode.`
       );
@@ -539,6 +537,28 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         patientStream.complete();
       });
     }, 100);
+  }
+
+  /**
+   * Check if the "createCohortMode" from saved file is valid.
+   * @param createCohortMode
+   * @private
+   */
+  private isCohortModeInvalid(createCohortMode: string): boolean {
+    const currentMode = this.selectAnActionComponent?.createCohortMode.value;
+    if (createCohortMode && createCohortMode === currentMode) {
+      return false;
+    }
+    // for stable version without "Select An Action" step
+    if (!createCohortMode && !currentMode) {
+      return false;
+    }
+    // This is for backward compatibility - user could have saved a cohort in
+    // "SEARCH" mode before "createCohortMode" property is introduced in saved file.
+    if (!createCohortMode && currentMode === 'SEARCH') {
+      return false;
+    }
+    return true;
   }
 
   /**
