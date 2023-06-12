@@ -386,6 +386,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     const result: any = {
       version: pkg.version,
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
+      createCohortMode: this.selectAnActionComponent.createCohortMode.value,
       maxPatientCount: this.cohort.maxPatientCount,
       rawCriteria: this.cohort.criteria,
       cartCriteria: this.cart.getCartCriteria(),
@@ -450,6 +451,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     const {
       version,
       serviceBaseUrl,
+      createCohortMode,
       maxPatientCount,
       rawCriteria,
       cartCriteria,
@@ -460,6 +462,14 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     if (serviceBaseUrl !== this.fhirBackend.serviceBaseUrl) {
       alert(
         'Error: Inapplicable data, because it was downloaded from another server.'
+      );
+      return;
+    }
+    if (
+      createCohortMode !== this.selectAnActionComponent.createCohortMode.value
+    ) {
+      alert(
+        `Error: Inapplicable data, because it was downloaded from ${createCohortMode} mode.`
       );
       return;
     }
