@@ -386,7 +386,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     const result: any = {
       version: pkg.version,
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
-      createCohortMode: this.selectAnActionComponent?.createCohortMode.value,
+      isCartCriteria: !!this.selectRecordsComponent,
       maxPatientCount: this.cohort.maxPatientCount,
       rawCriteria: this.cohort.criteria,
       cartCriteria: this.cart.getCartCriteria(),
@@ -451,7 +451,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     const {
       version,
       serviceBaseUrl,
-      createCohortMode,
+      isCartCriteria,
       maxPatientCount,
       rawCriteria,
       cartCriteria,
@@ -465,14 +465,20 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       );
       return;
     }
-    if (this.isCohortModeInvalid(createCohortMode)) {
+    const isCartApproach =
+      this.getCurrentStep() === Step.SELECT_RECORDS.toString();
+    // It means non-cart approach if "isCartCriteria" is undefined or false.
+    // For backward compatibility, user might have saved a cohort without "isCartCriteria" property only in non-cart approach.
+    const isCartCriteriaFromCohort = isCartCriteria === true;
+    if (isCartCriteriaFromCohort !== isCartApproach) {
+      const stepNameFromCohort = isCartCriteriaFromCohort
+        ? this.stepDescriptions[Step.SELECT_RECORDS].label
+        : this.stepDescriptions[Step.DEFINE_COHORT].label;
       alert(
-        `Error: Inapplicable data, because it was downloaded from ${createCohortMode} mode.`
+        `Error: Inapplicable data, because it was downloaded from "${stepNameFromCohort}" step.`
       );
       return;
     }
-    const isCartApproach =
-      this.getCurrentStep() === Step.SELECT_RECORDS.toString();
     if (isCartApproach) {
       // Set max field value.
       this.selectRecordsComponent.maxPatientsNumber.setValue(maxPatientCount);
@@ -537,28 +543,6 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         patientStream.complete();
       });
     }, 100);
-  }
-
-  /**
-   * Check if the "createCohortMode" from saved file is valid.
-   * @param createCohortMode
-   * @private
-   */
-  private isCohortModeInvalid(createCohortMode: string): boolean {
-    const currentMode = this.selectAnActionComponent?.createCohortMode.value;
-    if (createCohortMode && createCohortMode === currentMode) {
-      return false;
-    }
-    // for stable version without "Select An Action" step
-    if (!createCohortMode && !currentMode) {
-      return false;
-    }
-    // This is for backward compatibility - user could have saved a cohort in
-    // "SEARCH" mode before "createCohortMode" property is introduced in saved file.
-    if (!createCohortMode && currentMode === 'SEARCH') {
-      return false;
-    }
-    return true;
   }
 
   /**
