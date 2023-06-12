@@ -475,7 +475,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         ? this.stepDescriptions[Step.SELECT_RECORDS].label
         : this.stepDescriptions[Step.DEFINE_COHORT].label;
       alert(
-        `Error: Inapplicable data, because it was downloaded from "${stepNameFromCohort}" step.`
+        `Error: Inapplicable data, because the data is for the cohort definition in "${stepNameFromCohort}" step.`
       );
       return;
     }
