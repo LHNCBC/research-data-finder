@@ -12,6 +12,20 @@ This project follows [Semantic Versioning](http://semver.org/).
 - On dbGaP 4xx errors, direct user to re-login and restore the 
   step and data afterwards.
 
+## [6.2.14] - 2023-05-31
+### Fixed
+- Make initialization requests only when necessary. Remove unnecessary
+  requests before login.
+
+## [6.2.13] - 2023-05-23
+### Fixed
+- Handled cases when a server returns less than the expected number of results.
+
+## [6.2.12] - 2023-05-23
+### Changed
+- Match Observation table Code column to selected Observation codes,
+  if any, in "pull data" step.
+
 ## [6.2.11] - 2023-05-18
 ### Added
 - Error handling for dbGaP 4xx and 5xx responses.

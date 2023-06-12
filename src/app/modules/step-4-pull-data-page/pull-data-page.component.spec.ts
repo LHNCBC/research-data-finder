@@ -46,14 +46,16 @@ describe('PullDataForCohortComponent', () => {
     hasErrors: () => false,
     getConditions: () => ({
       criteria: ''
-    })
+    }),
+    getSearchParamValues: () => [{ selectedObservationCodes: { coding: [] } }]
   } as SearchParameterGroupComponent;
 
   const filledParameterGroup = {
     hasErrors: () => false,
     getConditions: () => ({
       criteria: '&combo-code=system1%2F%7Ccode1,system2%2F%7Ccode2'
-    })
+    }),
+    getSearchParamValues: () => [{ selectedObservationCodes: { coding: [] } }]
   } as SearchParameterGroupComponent;
 
   beforeEach(async () => {

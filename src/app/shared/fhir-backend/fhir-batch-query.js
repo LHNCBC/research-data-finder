@@ -116,25 +116,27 @@ export class FhirBatchQuery {
   /**
    * Returns the name of the persistent cache for initial queries of public
    * data and server capability checks.
+   * @param useInitContext whether to use this.initContext in cache name. Defaults to true.
    * @returns {string}
    */
-  getInitCacheName() {
+  getInitCacheName(useInitContext = true) {
     return (
       'init-' +
-      (this.initContext ? this.initContext + '-' : '') +
+      (useInitContext && this.initContext ? this.initContext + '-' : '') +
       this._serviceBaseUrl
     );
   }
 
   /**
    * Returns common options for initialization requests
+   * @param useInitContext whether to use this.initContext in cache name. Defaults to true.
    * @returns {Object}
    */
-  getCommonInitRequestOptions() {
+  getCommonInitRequestOptions(useInitContext = true) {
     return {
       combine: false,
       retryCount: 2,
-      cacheName: this.getInitCacheName(),
+      cacheName: this.getInitCacheName(useInitContext),
       // Initialization requests are cached for a day:
       expirationTime: 24 * 60 * 60,
       cacheErrors: true
@@ -215,12 +217,75 @@ export class FhirBatchQuery {
       ? `&_security=${this._features.consentGroup}`
       : '';
     // Common options for initialization requests
-    const options = this.getCommonInitRequestOptions();
-
     // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
-    const initializationRequests = [
+    const options = this.getCommonInitRequestOptions();
+    // useInitContext=false, The request is cached as the same name before and after login, so we don't make the request again after login.
+    const options_noInitContext = this.getCommonInitRequestOptions(false);
+
+    // Below are initialization requests that are always made.
+    const initializationRequests = Promise.allSettled([
       // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-      this.getWithCache('metadata?_elements=fhirVersion', options),
+      this.getWithCache(
+        'metadata?_elements=fhirVersion',
+        options_noInitContext
+      ),
+      // Check if server has Research Study data
+      this.getWithCache('ResearchStudy?_elements=id&_count=1', options)
+    ])
+      .then(([metadata, hasResearchStudy]) => {
+        if (currentServiceBaseUrl !== this._serviceBaseUrl) {
+          return Promise.reject({
+            status: HTTP_ABORT,
+            error: 'Outdated response to initialization request.'
+          });
+        }
+        if (metadata.status === 'fulfilled') {
+          const fhirVersion = metadata.value.data.fhirVersion;
+          this._versionName = getVersionNameByNumber(fhirVersion);
+          if (!this._versionName) {
+            return Promise.reject({
+              status: UNSUPPORTED_VERSION,
+              error: 'Unsupported FHIR version: ' + fhirVersion
+            });
+          }
+          this._features.hasResearchStudy =
+            hasResearchStudy.status === 'fulfilled' &&
+            hasResearchStudy.value.data.entry &&
+            hasResearchStudy.value.data.entry.length > 0;
+        } else {
+          // If initialization fails, do not cache initialization responses
+          this.clearCacheByName(this.getInitCacheName());
+          return Promise.reject({
+            error:
+              "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
+          });
+        }
+      })
+      .then(() => {
+        // Check if server has at least one Research Study with Research Subjects.
+        // No need to make this request if there is no Research Study at all.
+        return this._features.hasResearchStudy
+          ? this.getWithCache(
+              `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
+                researchStudyStatusesByVersion[this._versionName]
+              }`,
+              options
+            ).then(
+              ({ data }) => {
+                this._features.hasAvailableStudy = data.entry?.length > 0;
+              },
+              () => {
+                this._features.hasAvailableStudy = false;
+              }
+            )
+          : Promise.resolve();
+      });
+    // On dbGaP server, only do initializationRequests2 requests after login.
+    if (this.initContext === 'dbgap-pre-login') {
+      return initializationRequests;
+    }
+    // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
+    const initializationRequests2 = Promise.allSettled([
       // Check if sorting Observations by date is supported
       this.getWithCache(
         `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
@@ -236,8 +301,6 @@ export class FhirBatchQuery {
         `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
         options
       ),
-      // Check if server has Research Study data
-      this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
       // Check if interpretation search parameter is supported
       this.getWithCache(
         `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
@@ -256,85 +319,37 @@ export class FhirBatchQuery {
         retryCount: 2
       }),
       this.checkNotModifierIssue()
-    ];
-
-    return Promise.allSettled(initializationRequests)
-      .then(
-        ([
-          metadata,
-          observationsSortedByDate,
-          observationsSortedByAgeAtEvent,
-          lastnLookup,
-          hasResearchStudy,
-          interpretation,
-          batch,
-          hasNotModifierIssue
-        ]) => {
-          if (currentServiceBaseUrl !== this._serviceBaseUrl) {
-            return Promise.reject({
-              status: HTTP_ABORT,
-              error: 'Outdated response to initialization request.'
-            });
-          }
-          if (metadata.status === 'fulfilled') {
-            const fhirVersion = metadata.value.data.fhirVersion;
-            this._versionName = getVersionNameByNumber(fhirVersion);
-            if (!this._versionName) {
-              return Promise.reject({
-                status: UNSUPPORTED_VERSION,
-                error: 'Unsupported FHIR version: ' + fhirVersion
-              });
-            }
-          } else {
-            // If initialization fails, do not cache initialization responses
-            this.clearCacheByName(this.getInitCacheName());
-            return Promise.reject({
-              error:
-                "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
-            });
-          }
-          Object.assign(this._features, {
-            sortObservationsByDate:
-              observationsSortedByDate.status === 'fulfilled' &&
-              observationsSortedByDate.value.data.entry &&
-              observationsSortedByDate.value.data.entry.length > 0,
-            sortObservationsByAgeAtEvent:
-              observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-              observationsSortedByAgeAtEvent.value.data.entry &&
-              observationsSortedByAgeAtEvent.value.data.entry.length > 0,
-            lastnLookup: lastnLookup.status === 'fulfilled',
-            hasResearchStudy:
-              hasResearchStudy.status === 'fulfilled' &&
-              hasResearchStudy.value.data.entry &&
-              hasResearchStudy.value.data.entry.length > 0,
-            interpretation:
-              interpretation.status === 'fulfilled' &&
-              interpretation.value.data.entry &&
-              interpretation.value.data.entry.length > 0,
-            batch: batch.status === 'fulfilled',
-            hasNotModifierIssue:
-              hasNotModifierIssue.status === 'fulfilled' &&
-              hasNotModifierIssue.value
-          });
-        }
-      )
-      .then(() => {
-        // Check if server has at least one Research Study with Research Subjects
-        return this.getWithCache(
-          `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
-            researchStudyStatusesByVersion[this._versionName]
-          }`,
-          options
-        );
-      })
-      .then(
-        ({ data }) => {
-          this._features.hasAvailableStudy = data.entry?.length > 0;
-        },
-        () => {
-          this._features.hasAvailableStudy = false;
-        }
-      );
+    ]).then(
+      ([
+        observationsSortedByDate,
+        observationsSortedByAgeAtEvent,
+        lastnLookup,
+        interpretation,
+        batch,
+        hasNotModifierIssue
+      ]) => {
+        Object.assign(this._features, {
+          sortObservationsByDate:
+            observationsSortedByDate.status === 'fulfilled' &&
+            observationsSortedByDate.value.data.entry &&
+            observationsSortedByDate.value.data.entry.length > 0,
+          sortObservationsByAgeAtEvent:
+            observationsSortedByAgeAtEvent.status === 'fulfilled' &&
+            observationsSortedByAgeAtEvent.value.data.entry &&
+            observationsSortedByAgeAtEvent.value.data.entry.length > 0,
+          lastnLookup: lastnLookup.status === 'fulfilled',
+          interpretation:
+            interpretation.status === 'fulfilled' &&
+            interpretation.value.data.entry &&
+            interpretation.value.data.entry.length > 0,
+          batch: batch.status === 'fulfilled',
+          hasNotModifierIssue:
+            hasNotModifierIssue.status === 'fulfilled' &&
+            hasNotModifierIssue.value
+        });
+      }
+    );
+    return Promise.all([initializationRequests, initializationRequests2]);
   }
 
   /**

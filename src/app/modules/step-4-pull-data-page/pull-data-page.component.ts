@@ -22,6 +22,7 @@ import { ResourceTableParentComponent } from '../resource-table-parent.component
 import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CohortService } from '../../shared/cohort/cohort.service';
+import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -65,13 +66,16 @@ export class PullDataPageComponent
   parameterGroups: {
     [resourceType: string]: FormControl<SearchParameterGroup>;
   } = {};
+  // Selected Observation codes
+  pullDataObservationCodes: Map<string, string> = null;
 
   constructor(
     private fhirBackend: FhirBackendService,
     public columnDescriptions: ColumnDescriptionsService,
     public cohort: CohortService,
     public pullData: PullDataService,
-    private liveAnnouncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer,
+    private columnValues: ColumnValuesService
   ) {
     super();
     fhirBackend.initialized
@@ -268,6 +272,18 @@ export class PullDataPageComponent
       return;
     }
     this.loadSubscription?.unsubscribe();
+
+    if (resourceType === 'Observation') {
+      const selectedObservationCodes = parameterGroup.getSearchParamValues()[0]
+        .selectedObservationCodes;
+      this.pullDataObservationCodes = new Map();
+      selectedObservationCodes.coding?.forEach((c, i) => {
+        this.pullDataObservationCodes.set(
+          c.code,
+          selectedObservationCodes.items[i]
+        );
+      });
+    }
 
     this.loadSubscription = this.pullData
       .loadResources(
