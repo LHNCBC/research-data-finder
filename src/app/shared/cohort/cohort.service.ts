@@ -107,6 +107,9 @@ export class CohortService {
   // A matrix of loading info that will be displayed with View Cohort resource table.
   loadingStatistics: (string | number)[][] = [];
 
+  // A flag indicating a 4xx error has been received during Patient search.
+  patient400ErrorFlag = false;
+
   /**
    * Sets the cohort criteria
    */
@@ -243,6 +246,9 @@ export class CohortService {
       // Complete observable on error
       catchError((e) => {
         console.error(e);
+        if (e.status >= 400 && e.status < 500) {
+          this.patient400ErrorFlag = true;
+        }
         return EMPTY;
       }),
       finalize(() => {
