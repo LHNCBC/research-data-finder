@@ -61,7 +61,8 @@
           resourceType="{{resourceType}}"
           [loading]="pullData.currentState[resourceType].loading"
           [resources]="pullData.currentState[resourceType].resources"
-          [progressValue]="pullData.currentState[resourceType].progressValue">
+          [progressValue]="pullData.currentState[resourceType].progressValue"
+          [pullDataObservationCodes]="pullDataObservationCodes">
       </app-resource-table>
     </div>
   </mat-tab>
