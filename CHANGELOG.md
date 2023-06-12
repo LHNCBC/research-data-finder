@@ -6,8 +6,6 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [6.3.0] - 2023-06-12
 ### Added
 - Save/load/restore cohort with cart data.
-
-## [6.2.12] - 2023-05-18
 ### Changed
 - On dbGaP 4xx errors, direct user to re-login and restore the 
   step and data afterwards.
