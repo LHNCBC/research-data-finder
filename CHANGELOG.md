@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.2.13] - 2023-05-24
+## [6.3.0] - 2023-06-12
 ### Added
 - Save/load/restore cohort with cart data.
 
