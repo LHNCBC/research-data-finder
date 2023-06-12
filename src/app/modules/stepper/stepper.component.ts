@@ -33,6 +33,7 @@ import { SelectAnActionComponent } from '../select-an-action/select-an-action.co
 import { SettingsPageComponent } from '../step-0-settings-page/settings-page.component';
 import Patient = fhir.Patient;
 import { first } from 'rxjs/operators';
+import { CartService } from '../../shared/cart/cart.service';
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -121,7 +122,8 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     public cohort: CohortService,
     public pullData: PullDataService,
     public selectRecord: SelectRecordsService,
-    public rasToken: RasTokenService
+    public rasToken: RasTokenService,
+    private cart: CartService
   ) {
     this.stepDescriptions[Step.SETTINGS] = {
       label: 'Settings',
@@ -293,7 +295,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
                             JSON.parse(pullDataStatus)
                           );
                         }
-                      });
+                      }, 200);
                     }
                   }, 0);
                 }
@@ -316,13 +318,16 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     setTimeout(() => {
       const currentStep = this.getCurrentStep();
-      if (currentStep === Step.DEFINE_COHORT.toString()) {
+      if (
+        currentStep === Step.DEFINE_COHORT.toString() ||
+        currentStep === Step.SELECT_RECORDS.toString()
+      ) {
         // call searchForPatients() to go to "view cohort" step with an actual search.
         this.searchForPatients();
       } else {
         this.stepper.next();
       }
-    });
+    }, 200);
   }
 
   /**
@@ -381,8 +386,12 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     const result: any = {
       version: pkg.version,
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
+      isCartCriteria: !!this.selectRecordsComponent,
       maxPatientCount: this.cohort.maxPatientCount,
       rawCriteria: this.cohort.criteria,
+      cartCriteria: this.cart.getCartCriteria(),
+      additionalCriteria: this.selectRecordsComponent?.additionalCriteria
+        ?.value,
       researchStudies:
         this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
     };
@@ -415,7 +424,6 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
    * Process file and load criteria and patient list data.
    */
   loadCohort(event, fromResearchStudyStep = false): void {
-    // TODO
     if (event.target.files.length === 1) {
       const reader = new FileReader();
       const filename = event.target.files[0].name;
@@ -443,8 +451,11 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     const {
       version,
       serviceBaseUrl,
+      isCartCriteria,
       maxPatientCount,
       rawCriteria,
+      cartCriteria,
+      additionalCriteria,
       data,
       researchStudies
     } = rawData;
@@ -454,24 +465,48 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       );
       return;
     }
-    // Set max field value.
-    this.defineCohortComponent.defineCohortForm
-      .get('maxNumberOfPatients')
-      .setValue(maxPatientCount);
-    // Update criteria object if the cohort was downloaded from an older version.
-    if (!version) {
-      this.cohort.updateOldFormatCriteria(rawCriteria);
+    const isCartApproach =
+      this.getCurrentStep() === Step.SELECT_RECORDS.toString();
+    // It means non-cart approach if "isCartCriteria" is undefined or false.
+    // For backward compatibility, user might have saved a cohort without "isCartCriteria" property only in non-cart approach.
+    const isCartCriteriaFromCohort = isCartCriteria === true;
+    if (isCartCriteriaFromCohort !== isCartApproach) {
+      const stepNameFromCohort = isCartCriteriaFromCohort
+        ? this.stepDescriptions[Step.SELECT_RECORDS].label
+        : this.stepDescriptions[Step.DEFINE_COHORT].label;
+      alert(
+        `Error: Inapplicable data, because the data is for the cohort definition in "${stepNameFromCohort}" step.`
+      );
+      return;
     }
-    // Set search parameter form values.
-    this.defineCohortComponent.patientParams.queryCtrl.setValue(rawCriteria);
-    this.cohort.setCriteria(rawCriteria);
-    // Set selected research studies.
-    this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
-      researchStudies
-    );
+    if (isCartApproach) {
+      // Set max field value.
+      this.selectRecordsComponent.maxPatientsNumber.setValue(maxPatientCount);
+      // Restore resources, controls and lookups in carts and in 'Additional Criteria' tab.
+      this.selectRecordsComponent.setCartCriteria(
+        cartCriteria,
+        additionalCriteria
+      );
+    } else {
+      // Set max field value.
+      this.defineCohortComponent.defineCohortForm
+        .get('maxNumberOfPatients')
+        .setValue(maxPatientCount);
+      // Update criteria object if the cohort was downloaded from an older version.
+      if (!version) {
+        this.cohort.updateOldFormatCriteria(rawCriteria);
+      }
+      // Set search parameter form values.
+      this.defineCohortComponent.patientParams.queryCtrl.setValue(rawCriteria);
+      this.cohort.setCriteria(rawCriteria);
+      // Set selected research studies.
+      this.selectAreaOfInterestComponent?.selectLoadedResearchStudies(
+        researchStudies
+      );
+    }
     if (data) {
       // Set patient table data, if it was saved.
-      this.loadPatientsData(data, fromResearchStudyStep);
+      this.loadPatientsData(data, fromResearchStudyStep, isCartApproach);
       this.cohort.loadingStatistics = filename
         ? [[`Data loaded from file ${filename}.`]]
         : [[`Data reloaded from session storage.`]];
@@ -484,23 +519,30 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private loadPatientsData(
     data: Patient[],
-    fromResearchStudyStep = false
+    fromResearchStudyStep = false,
+    isCartApproach = false
   ): void {
-    this.defineCohortStep.completed = true;
+    if (isCartApproach) {
+      this.selectRecordsStep.completed = true;
+    } else {
+      this.defineCohortStep.completed = true;
+    }
     const patientStream = new Subject<Patient[]>();
     this.cohort.patientStream = patientStream.asObservable();
-    this.stepper.next();
-    if (this.rasStepCountDown) {
-      this.rasStepCountDown--;
-    }
-    if (fromResearchStudyStep) {
-      this.stepper.next();
-    }
     setTimeout(() => {
-      this.cohort.currentState.patients = data;
-      patientStream.next(data);
-      patientStream.complete();
-    });
+      this.stepper.next();
+      if (this.rasStepCountDown) {
+        this.rasStepCountDown--;
+      }
+      if (fromResearchStudyStep) {
+        this.stepper.next();
+      }
+      setTimeout(() => {
+        this.cohort.currentState.patients = data;
+        patientStream.next(data);
+        patientStream.complete();
+      });
+    }, 100);
   }
 
   /**
