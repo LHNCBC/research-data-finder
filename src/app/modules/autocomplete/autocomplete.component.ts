@@ -211,8 +211,11 @@ export class AutocompleteComponent
     this.listSelectionsObserver = (eventData) => {
       const { final_val, on_list, item_code } = eventData;
       if (!final_val || on_list || !this.matchListValue) {
+        const oldData = this.currentData;
         this.currentData = item_code || final_val;
-        this.onChange(this.currentData);
+        if (this.currentData !== oldData) {
+          this.onChange(this.currentData);
+        }
       }
     };
     Def.Autocompleter.Event.observeListSelections(
