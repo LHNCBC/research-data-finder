@@ -12,6 +12,7 @@ import { ResourceTableModule } from '../resource-table/resource-table.module';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { PipesModule } from '../../shared/pipes/pipes.module';
 
 @NgModule({
   declarations: [BrowseRecordsPageComponent],
@@ -29,7 +30,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     FormsModule,
     MatCheckboxModule,
     MatExpansionModule,
-    MatTooltipModule
+    MatTooltipModule,
+    PipesModule
   ]
 })
 export class BrowseRecordsPageModule {}

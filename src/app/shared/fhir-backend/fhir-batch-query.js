@@ -230,9 +230,21 @@ export class FhirBatchQuery {
         options_noInitContext
       ),
       // Check if server has Research Study data
-      this.getWithCache('ResearchStudy?_elements=id&_count=1', options)
+      this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
+      // Check if batch request is supported
+      this._request({
+        method: 'POST',
+        url: this._serviceBaseUrl,
+        body: JSON.stringify({
+          resourceType: 'Bundle',
+          type: 'batch'
+        }),
+        logPrefix: 'Batch',
+        combine: false,
+        retryCount: 2
+      })
     ])
-      .then(([metadata, hasResearchStudy]) => {
+      .then(([metadata, hasResearchStudy, batch]) => {
         if (currentServiceBaseUrl !== this._serviceBaseUrl) {
           return Promise.reject({
             status: HTTP_ABORT,
@@ -252,6 +264,7 @@ export class FhirBatchQuery {
             hasResearchStudy.status === 'fulfilled' &&
             hasResearchStudy.value.data.entry &&
             hasResearchStudy.value.data.entry.length > 0;
+          this._features.batch = batch.status === 'fulfilled';
         } else {
           // If initialization fails, do not cache initialization responses
           this.clearCacheByName(this.getInitCacheName());
@@ -308,18 +321,6 @@ export class FhirBatchQuery {
         `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
         options
       ),
-      // Check if batch request is supported
-      this._request({
-        method: 'POST',
-        url: this._serviceBaseUrl,
-        body: JSON.stringify({
-          resourceType: 'Bundle',
-          type: 'batch'
-        }),
-        logPrefix: 'Batch',
-        combine: false,
-        retryCount: 2
-      }),
       this.checkNotModifierIssue()
     ]).then(
       ([
@@ -327,7 +328,6 @@ export class FhirBatchQuery {
         observationsSortedByAgeAtEvent,
         lastnLookup,
         interpretation,
-        batch,
         hasNotModifierIssue
       ]) => {
         Object.assign(this._features, {
@@ -344,7 +344,6 @@ export class FhirBatchQuery {
             interpretation.status === 'fulfilled' &&
             interpretation.value.data.entry &&
             interpretation.value.data.entry.length > 0,
-          batch: batch.status === 'fulfilled',
           hasNotModifierIssue:
             hasNotModifierIssue.status === 'fulfilled' &&
             hasNotModifierIssue.value

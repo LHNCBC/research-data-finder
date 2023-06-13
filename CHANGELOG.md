@@ -3,9 +3,20 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.2.15] - 2023-06-06
+## [6.3.2] - 2023-06-13
 ### Fixed
 - Do not retry GET requests aborted by the server.
+
+## [6.3.1] - 2023-06-12
+### Added
+- Showing the total number of variables from CTSS.
+
+## [6.3.0] - 2023-06-12
+### Added
+- Save/load/restore cohort with cart data.
+### Changed
+- On dbGaP 4xx errors, direct user to re-login and restore the
+  step and data afterwards.
 
 ## [6.2.14] - 2023-05-31
 ### Fixed

@@ -11,7 +11,7 @@ import {
   HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
-import { BehaviorSubject, Observable, Observer } from 'rxjs';
+import { BehaviorSubject, Observable, Observer, ReplaySubject } from 'rxjs';
 import {
   FhirBatchQuery,
   HTTP_ABORT,
@@ -29,7 +29,6 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { RasTokenService } from '../ras-token/ras-token.service';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
-import { CreateCohortMode } from '../cohort/cohort.service';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -246,6 +245,9 @@ export class FhirBackendService implements HttpBackend {
   // Whether the connection to server is initialized.
   initialized = new BehaviorSubject(ConnectionStatus.Pending);
   currentDefinitions$: Observable<any>;
+
+  // Emits when dbGaP re-login is triggered (RAS TST token expired).
+  dbgapRelogin$ = new ReplaySubject<void>();
 
   // Whether to cache requests to the FHIR server
   private isCacheEnabled = true;
@@ -492,72 +494,65 @@ export class FhirBackendService implements HttpBackend {
               })
             : this.fhirClient.get(fullUrl, { combine, signal });
 
-          promise.then(
-            ({ status, data, _cacheInfo_ }) => {
-              request.context.set(CACHE_INFO, _cacheInfo_);
-              observer.next(
-                new HttpResponse<any>({
-                  status,
-                  body: data,
-                  url: fullUrl
-                })
-              );
-              observer.complete();
-            },
-            ({ status, error }) => {
-              if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
-                if (status >= 400 && status < 500) {
-                  this.dialogRef = this.dialog.open(AlertDialogComponent, {
-                    data: {
-                      header: 'Session Expired',
-                      content:
-                        'It looks like the session with dbGaP has expired.' +
-                        ' You will be returned to the login page so you can login and select consent groups again.' +
-                        ' Note that after logging in again, your session data will be lost.' +
-                        ' Hit Cancel if there is anything you would like to save first.',
-                      hasCancelButton: true
-                    }
-                  });
-                  this.dialogRef.afterClosed().subscribe((isOk) => {
-                    if (isOk) {
-                      this.injector
-                        .get(RasTokenService)
-                        .login(
-                          this.serviceBaseUrl,
-                          CreateCohortMode.UNSELECTED
-                        );
-                    }
-                    this.dialogRef = null;
-                  });
-                } else if (status >= 500 && status < 600) {
-                  this.dialog.open(AlertDialogComponent, {
-                    data: {
-                      header: 'Alert',
-                      content:
-                        'We are unable to connect to dbGaP at this time.',
-                      hasCancelButton: false
-                    }
-                  });
+            promise.then(
+              ({ status, data, _cacheInfo_ }) => {
+                request.context.set(CACHE_INFO, _cacheInfo_);
+                observer.next(
+                  new HttpResponse<any>({
+                    status,
+                    body: data,
+                    url: fullUrl
+                  })
+                );
+                observer.complete();
+              },
+              ({ status, error }) => {
+                if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
+                  if (status >= 400 && status < 500) {
+                    this.dialogRef = this.dialog.open(AlertDialogComponent, {
+                      data: {
+                        header: 'Session Expired',
+                        content:
+                          'It looks like the session with dbGaP has expired.' +
+                          ' You will be returned to the login page so you can login and select consent groups again.',
+                        hasCancelButton: true
+                      }
+                    });
+                    this.dialogRef.afterClosed().subscribe((isOk) => {
+                      if (isOk) {
+                        this.dbgapRelogin$.next();
+                      }
+                      this.dialogRef = null;
+                    });
+                  } else if (status >= 500 && status < 600) {
+                    this.dialog.open(AlertDialogComponent, {
+                      data: {
+                        header: 'Alert',
+                        content:
+                          'We are unable to connect to dbGaP at this time.',
+                        hasCancelButton: false
+                      }
+                    });
+                  }
                 }
+                observer.error(
+                  new HttpErrorResponse({
+                    status,
+                    error,
+                    url: fullUrl
+                  })
+                );
               }
-              observer.error(
-                new HttpErrorResponse({
-                  status,
-                  error,
-                  url: fullUrl
-                })
-              );
-            }
-          );
-        });
-        // This is the return from the Observable function, which is the
-        // request cancellation handler.
-        return () => {
-          abortController.abort();
-        };
-      }
-    );
-  }
+            );
+          });
+          // This is the return from the Observable function, which is the
+          // request cancellation handler.
+          return () => {
+            abortController.abort();
+          };
+        }
+      );
+    }
 
   /**
    * Disconnect from server (run on destroying the main component)
