@@ -16,6 +16,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { FormControlCollectorModule } from '../../shared/error-manager/form-control-collector.module';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { PipesModule } from '../../shared/pipes/pipes.module';
 
 @NgModule({
   declarations: [SelectRecordsPageComponent],
@@ -37,7 +38,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatRadioModule,
     FormControlCollectorModule,
     MatExpansionModule,
-    MatTooltipModule
+    MatTooltipModule,
+    PipesModule
   ]
 })
 export class SelectRecordsPageModule {}
