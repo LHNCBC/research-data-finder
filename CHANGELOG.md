@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.3.2] - 2023-06-13
+### Fixed
+- Do not retry GET requests aborted by the server.
+
 ## [6.3.1] - 2023-06-12
 ### Added
 - Showing the total number of variables from CTSS.

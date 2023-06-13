@@ -268,6 +268,8 @@ export class FhirBatchQuery {
         } else {
           // If initialization fails, do not cache initialization responses
           this.clearCacheByName(this.getInitCacheName());
+          // Abort other initialization requests
+          this.clearPendingRequests();
           return Promise.reject({
             error:
               "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
@@ -657,10 +659,13 @@ export class FhirBatchQuery {
             // if aborted due to clearPendingRequests
             reject({ status: HTTP_ABORT, error: 'Abort' });
           }
+          const responseTime = new Date() - startAjaxTime;
+          // Maximum time for preflight request.
+          const maxTimeForPreflightRequest = 15000;
           console.log(
-            `${logPrefix ? logPrefix + ' ' : ''}AJAX call returned in ${
-              new Date() - startAjaxTime
-            }`
+            `${
+              logPrefix ? logPrefix + ' ' : ''
+            }AJAX call returned in ${responseTime}`
           );
           const status = oReq.status;
 
@@ -668,8 +673,15 @@ export class FhirBatchQuery {
             this._lastSuccessTime = Date.now();
             resolve({ status, data: JSON.parse(oReq.responseText) });
           } else if (
-            // When the preflight request returns HTTP-429, the real request is aborted
-            (status === 429 || (status === HTTP_ABORT && !signal?.aborted)) &&
+            // When the preflight request returns HTTP-429, the real request is
+            // aborted. If the request is aborted after 15 seconds, we can expect
+            // that this is not because the preflight request returned HTTP-429,
+            // but because the server timed out. In this case, we will not try
+            // to resubmit this request.
+            (status === 429 ||
+              (status === HTTP_ABORT &&
+                !signal?.aborted &&
+                responseTime < maxTimeForPreflightRequest)) &&
             (typeof retryCount !== 'number' || --retryCount > 0) &&
             Date.now() - this._lastSuccessTime < this._giveUpTimeout
           ) {
