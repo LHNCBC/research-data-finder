@@ -104,6 +104,18 @@
             ]
           }
         ],
+        "Observation": [
+          {
+            // See src/app/types/column.description.ts for details
+            displayName: "Code",
+            element: "rawCode",
+            expression: "code",
+            displayByDefault: true,
+            types: [
+              "CodeableConcept"
+            ]
+          }
+        ]
       }
     },
   },

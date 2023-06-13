@@ -13,7 +13,6 @@ import Quantity = fhir.Quantity;
 import HumanName = fhir.HumanName;
 import Address = fhir.Address;
 import { SettingsService } from '../settings-service/settings.service';
-import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 
 // Cell value retrieval context
 interface Context {
@@ -23,6 +22,8 @@ interface Context {
   preferredCodeSystem?: string;
   // A map of selected Observation codes at "pull data" step.
   pullDataObservationCodes?: Map<string, string>;
+  // A boolean indicating whether it's the "rawCode" column.
+  isRawCode?: boolean;
 }
 
 @Injectable({
@@ -45,12 +46,14 @@ export class ColumnValuesService {
    * @param type - type of value
    * @param fullPath - property path to value started with resourceType
    * @param pullDataObservationCodes a map of selected Observation codes at "pull data" step
+   * @param isRawCode
    */
   valueToStrings(
     value: Array<any>,
     type: string,
     fullPath: string,
-    pullDataObservationCodes: Map<string, string> = undefined
+    pullDataObservationCodes: Map<string, string> = undefined,
+    isRawCode: boolean = false
   ): string[] {
     const singleValueFn = this.getValueFn(type);
 
@@ -72,11 +75,13 @@ export class ColumnValuesService {
                 ? {
                     fullPath,
                     preferredCodeSystem,
-                    pullDataObservationCodes
+                    pullDataObservationCodes,
+                    isRawCode
                   }
                 : {
                     fullPath,
-                    preferredCodeSystem
+                    preferredCodeSystem,
+                    isRawCode
                   }
             ])
           )
@@ -96,8 +101,8 @@ export class ColumnValuesService {
             singleValueFn.apply(this, [
               item,
               pullDataObservationCodes
-                ? { fullPath, pullDataObservationCodes }
-                : { fullPath }
+                ? { fullPath, pullDataObservationCodes, isRawCode }
+                : { fullPath, isRawCode }
             ])
           )
           // remove empty strings
@@ -179,9 +184,10 @@ export class ColumnValuesService {
    * @param context.fullPath - property path to value started with resourceType
    * @param context.preferredCodeSystem - coding system for filtering data in resource cell
    * @param context.pullDataObservationCodes - a map of selected Observation codes at "pull data" step
+   * @param context.isRawCode - whether it's the "rawCode" column
    */
   getCodeableConceptAsText(v: CodeableConcept, context: Context = {}): string {
-    const { fullPath, preferredCodeSystem } = context;
+    const { fullPath, preferredCodeSystem, isRawCode } = context;
     let coding = v.coding || [];
 
     if (preferredCodeSystem) {
@@ -189,7 +195,7 @@ export class ColumnValuesService {
       if (!coding.length) {
         return '';
       }
-    } else if (v.text) {
+    } else if (!isRawCode && v.text) {
       return v.text;
     }
 
@@ -202,12 +208,16 @@ export class ColumnValuesService {
       context.pullDataObservationCodes &&
       coding.find((x) => context.pullDataObservationCodes.has(x.code));
     if (matchingCoding) {
-      return context.pullDataObservationCodes.get(matchingCoding.code);
+      return isRawCode
+        ? matchingCoding.code
+        : context.pullDataObservationCodes.get(matchingCoding.code);
     }
 
-    return this.getCodingAsText(coding[0], {
-      fullPath: fullPath ? fullPath + '.coding' : ''
-    });
+    return isRawCode
+      ? coding[0].code
+      : this.getCodingAsText(coding[0], {
+          fullPath: fullPath ? fullPath + '.coding' : ''
+        });
   }
 
   /**

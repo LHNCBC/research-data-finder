@@ -628,7 +628,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.getEvaluator(fullPath)(row),
         type,
         fullPath,
-        pullDataObservationCodes
+        pullDataObservationCodes,
+        column.element === 'rawCode'
       );
 
       if (output && output.length) {

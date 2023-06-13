@@ -168,7 +168,7 @@ Observation,,,,,,,
 ,bodySite,column,"Body Site",hide,CodeableConcept,,"Observed body part"
 ,category,column,Category,show,CodeableConcept,,"Classification of  type of observation"
 ,category,"search parameter",category,show,CodeableConcept,,"The classification of the type of observation"
-,code,column,Code,show,CodeableConcept,,"Type of observation (code / type)"
+,code,column,"Variable Name",show,CodeableConcept,,"Type of observation (code / type)"
 ,component,column,Component,hide,BackboneElement,,"Component results"
 ,date,"search parameter",date,show,date,,"Obtained date/time. If the obtained element is a period, a date that falls in the period"
 ,derivedFrom,column,"Derived From",hide,Reference,,"Related measurements the observation is made from"
