@@ -17,6 +17,10 @@
       ],
       ResearchStudy: [
         'contextPatientId'
+      ],
+      Observation: [
+        'code',
+        'rawCode'
       ]
     },
 
