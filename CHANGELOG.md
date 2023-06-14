@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.3.3] - 2023-06-14
+### Changed
+- Renamed "Code" column to "Variable Name" in Observation table.
+### Added
+- A new "Code" column to display raw code in Observation table.
+
 ## [6.3.2] - 2023-06-13
 ### Fixed
 - Do not retry GET requests aborted by the server.
