@@ -216,20 +216,22 @@ describe('ColumnValuesService', () => {
             coding: [
               {
                 system: 'system1',
-                code: 'value1'
+                code: 'value1',
+                display: 'display1'
               },
               {
                 system: 'system2',
-                code: 'value2'
+                code: 'value2',
+                display: 'display2'
               }
             ]
           }
         ],
         'CodeableConcept',
-        'ResearchStudy.condition',
-        new Map([['value2', 'display2']])
+        '',
+        new Map([['value2', 'displayX']])
       )
-    ).toEqual(['display2']);
+    ).toEqual(['displayX']);
   });
 
   it('should use first coding if no pullDataObservationCodes', async () => {
@@ -240,17 +242,46 @@ describe('ColumnValuesService', () => {
             coding: [
               {
                 system: 'system1',
-                code: 'value1'
+                code: 'value1',
+                display: 'display1'
               },
               {
                 system: 'system2',
-                code: 'value2'
+                code: 'value2',
+                display: 'display2'
               }
             ]
           }
         ],
         'CodeableConcept',
-        'ResearchStudy.condition'
+        ''
+      )
+    ).toEqual(['display1']);
+  });
+
+  it('should return code for rawCode column', async () => {
+    expect(
+      service.valueToStrings(
+        [
+          {
+            coding: [
+              {
+                system: 'system1',
+                code: 'value1',
+                display: 'display1'
+              },
+              {
+                system: 'system2',
+                code: 'value2',
+                display: 'display2'
+              }
+            ]
+          }
+        ],
+        'CodeableConcept',
+        '',
+        undefined,
+        true
       )
     ).toEqual(['value1']);
   });
