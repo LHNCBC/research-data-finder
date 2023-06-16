@@ -31,14 +31,25 @@ describe('ColumnValuesService', () => {
       value: {
         coding: [
           {
-            system: 'http://terminology.hl7.org/CodeSystem/condition-clinical',
-            code: 'inactive'
+            code: '2',
+            display: 'case'
           }
         ]
       },
       type: 'CodeableConcept',
-      fullPath: 'Condition.clinicalStatus',
-      result: 'inactive'
+      result: 'case'
+    },
+    {
+      value: {
+        coding: [
+          {
+            code: '2',
+            display: 'case'
+          }
+        ]
+      },
+      type: 'CodeableConceptCode',
+      result: '2'
     },
     {
       value: 'enc-106-565200923',
@@ -259,7 +270,7 @@ describe('ColumnValuesService', () => {
     ).toEqual(['display1']);
   });
 
-  it('should return code for rawCode column', async () => {
+  it('should return code for CodeableConceptCode', async () => {
     expect(
       service.valueToStrings(
         [
@@ -278,10 +289,9 @@ describe('ColumnValuesService', () => {
             ]
           }
         ],
-        'CodeableConcept',
+        'CodeableConceptCode',
         '',
-        undefined,
-        true
+        undefined
       )
     ).toEqual(['value1']);
   });
