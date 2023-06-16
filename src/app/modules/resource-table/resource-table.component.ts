@@ -615,10 +615,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   getCellStrings(row: Resource, column: ColumnDescription): string[] {
     const expression = column.expression || column.element.replace('[x]', '');
     const fullPath = expression ? this.resourceType + '.' + expression : '';
-    // Pass pullDataObservationCodes only for Observation "Code" column.
+    // Pass pullDataObservationCodes only for Observation "Variable Name" or "Code" column.
     const pullDataObservationCodes =
       row.resourceType === 'Observation' &&
-      column.element === 'code' &&
+      (column.element === 'codeText' || column.element === 'code') &&
       this.pullDataObservationCodes
         ? this.pullDataObservationCodes
         : undefined;
@@ -628,8 +628,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.getEvaluator(fullPath)(row),
         type,
         fullPath,
-        pullDataObservationCodes,
-        column.element === 'rawCode'
+        pullDataObservationCodes
       );
 
       if (output && output.length) {

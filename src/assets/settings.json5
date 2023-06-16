@@ -19,8 +19,8 @@
         'contextPatientId'
       ],
       Observation: [
-        'code',
-        'rawCode'
+        'codeText',
+        'code'
       ]
     },
 
@@ -112,11 +112,11 @@
           {
             // See src/app/types/column.description.ts for details
             displayName: "Code",
-            element: "rawCode",
+            element: "code",
             expression: "code",
             displayByDefault: true,
             types: [
-              "CodeableConcept"
+              "CodeableConceptCode"
             ]
           }
         ]
