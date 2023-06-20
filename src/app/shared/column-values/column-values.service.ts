@@ -56,7 +56,7 @@ export class ColumnValuesService {
     // If there is a coding with specified "preferredCodeSystem", then the rest
     // of the terms will be dropped when displaying a value for that column.
     const preferredCodeSystem =
-      type === 'CodeableConcept'
+      type === 'CodeableConcept' || type === 'CodeableConceptCode'
         ? this.settings.get(`preferredCodeSystem.${fullPath}`)
         : '';
 
@@ -177,16 +177,17 @@ export class ColumnValuesService {
    * @param context - context in which we get the cell value
    * @param context.preferredCodeSystem - coding system for filtering data in resource cell
    * @param context.pullDataObservationCodes - a map of selected Observation codes at "pull data" step
+   * @return code of a proper coding in the list, returns null if the coding list is empty
    */
   getCodeableConceptCode(v: CodeableConcept, context: Context = {}): string {
     const { preferredCodeSystem, pullDataObservationCodes } = context;
     let coding = v.coding || [];
 
-    if (preferredCodeSystem) {
+    if (
+      preferredCodeSystem &&
+      coding.some(({ system }) => system === preferredCodeSystem)
+    ) {
       coding = coding.filter(({ system }) => system === preferredCodeSystem);
-      if (!coding.length) {
-        return '';
-      }
     }
 
     if (!coding.length) {
@@ -197,11 +198,7 @@ export class ColumnValuesService {
     const matchingCoding =
       pullDataObservationCodes &&
       coding.find((x) => pullDataObservationCodes.has(x.code));
-    if (matchingCoding) {
-      return matchingCoding.code;
-    }
-
-    return coding[0].code;
+    return matchingCoding ? matchingCoding.code : coding[0].code;
   }
 
   /**
@@ -217,11 +214,11 @@ export class ColumnValuesService {
     const { fullPath, preferredCodeSystem } = context;
     let coding = v.coding || [];
 
-    if (preferredCodeSystem) {
+    if (
+      preferredCodeSystem &&
+      coding.some(({ system }) => system === preferredCodeSystem)
+    ) {
       coding = coding.filter(({ system }) => system === preferredCodeSystem);
-      if (!coding.length) {
-        return '';
-      }
     } else if (v.text) {
       return v.text;
     }
@@ -234,13 +231,11 @@ export class ColumnValuesService {
     const matchingCoding =
       context.pullDataObservationCodes &&
       coding.find((x) => context.pullDataObservationCodes.has(x.code));
-    if (matchingCoding) {
-      return context.pullDataObservationCodes.get(matchingCoding.code);
-    }
-
-    return this.getCodingAsText(coding[0], {
-      fullPath: fullPath ? fullPath + '.coding' : ''
-    });
+    return matchingCoding
+      ? context.pullDataObservationCodes.get(matchingCoding.code)
+      : this.getCodingAsText(coding[0], {
+          fullPath: fullPath ? fullPath + '.coding' : ''
+        });
   }
 
   /**
