@@ -1,11 +1,7 @@
 <p class="info">
   <span class="info-icon" aria-hidden="true"></span>
   In this step, you can just browse public data.
-  {{
-  fhirBackend.serviceBaseUrl.startsWith('https://dbgap-api.ncbi.nlm.nih.gov')
-  ? 'Study selection limits list of variables'
-  : ''
-  }}
+  {{ hasStudyTab() ? 'Study selection limits list of variables.' : '' }}
 </p>
 
 <mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
