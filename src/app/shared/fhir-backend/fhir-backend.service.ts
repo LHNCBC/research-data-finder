@@ -174,6 +174,9 @@ export class FhirBackendService implements HttpBackend {
   set apiKey(val: string) {
     this.fhirClient.setApiKey(val);
   }
+  get apiKey(): string {
+    return this.fhirClient.getApiKey();
+  }
 
   set cacheEnabled(value: boolean) {
     this.isCacheEnabled = value;
@@ -358,12 +361,18 @@ export class FhirBackendService implements HttpBackend {
             this.settings.loadCsvDefinitions().subscribe(
               (resourceDefinitions) => {
                 this.currentDefinitions = { resources: resourceDefinitions };
-                this.fhirClient.setMaxRequestsPerBatch(
-                  this.settings.get('maxRequestsPerBatch')
-                );
-                this.fhirClient.setMaxActiveRequests(
-                  this.settings.get('maxActiveRequests')
-                );
+                // Do not set advanced settings controls if it's during RAS login callback.
+                // They have been set from sessionStorage.
+                if (
+                  !this.injector.get(RasTokenService).isRasCallbackNavigation
+                ) {
+                  this.fhirClient.setMaxRequestsPerBatch(
+                    this.settings.get('maxRequestsPerBatch')
+                  );
+                  this.fhirClient.setMaxActiveRequests(
+                    this.settings.get('maxActiveRequests')
+                  );
+                }
                 this.initialized.next(ConnectionStatus.Ready);
               },
               (err) => {
@@ -494,65 +503,65 @@ export class FhirBackendService implements HttpBackend {
               })
             : this.fhirClient.get(fullUrl, { combine, signal });
 
-            promise.then(
-              ({ status, data, _cacheInfo_ }) => {
-                request.context.set(CACHE_INFO, _cacheInfo_);
-                observer.next(
-                  new HttpResponse<any>({
-                    status,
-                    body: data,
-                    url: fullUrl
-                  })
-                );
-                observer.complete();
-              },
-              ({ status, error }) => {
-                if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
-                  if (status >= 400 && status < 500) {
-                    this.dialogRef = this.dialog.open(AlertDialogComponent, {
-                      data: {
-                        header: 'Session Expired',
-                        content:
-                          'It looks like the session with dbGaP has expired.' +
-                          ' You will be returned to the login page so you can login and select consent groups again.',
-                        hasCancelButton: true
-                      }
-                    });
-                    this.dialogRef.afterClosed().subscribe((isOk) => {
-                      if (isOk) {
-                        this.dbgapRelogin$.next();
-                      }
-                      this.dialogRef = null;
-                    });
-                  } else if (status >= 500 && status < 600) {
-                    this.dialog.open(AlertDialogComponent, {
-                      data: {
-                        header: 'Alert',
-                        content:
-                          'We are unable to connect to dbGaP at this time.',
-                        hasCancelButton: false
-                      }
-                    });
-                  }
+          promise.then(
+            ({ status, data, _cacheInfo_ }) => {
+              request.context.set(CACHE_INFO, _cacheInfo_);
+              observer.next(
+                new HttpResponse<any>({
+                  status,
+                  body: data,
+                  url: fullUrl
+                })
+              );
+              observer.complete();
+            },
+            ({ status, error }) => {
+              if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
+                if (status >= 400 && status < 500) {
+                  this.dialogRef = this.dialog.open(AlertDialogComponent, {
+                    data: {
+                      header: 'Session Expired',
+                      content:
+                        'It looks like the session with dbGaP has expired.' +
+                        ' You will be returned to the login page so you can login and select consent groups again.',
+                      hasCancelButton: true
+                    }
+                  });
+                  this.dialogRef.afterClosed().subscribe((isOk) => {
+                    if (isOk) {
+                      this.dbgapRelogin$.next();
+                    }
+                    this.dialogRef = null;
+                  });
+                } else if (status >= 500 && status < 600) {
+                  this.dialog.open(AlertDialogComponent, {
+                    data: {
+                      header: 'Alert',
+                      content:
+                        'We are unable to connect to dbGaP at this time.',
+                      hasCancelButton: false
+                    }
+                  });
                 }
-                observer.error(
-                  new HttpErrorResponse({
-                    status,
-                    error,
-                    url: fullUrl
-                  })
-                );
               }
-            );
-          });
-          // This is the return from the Observable function, which is the
-          // request cancellation handler.
-          return () => {
-            abortController.abort();
-          };
-        }
-      );
-    }
+              observer.error(
+                new HttpErrorResponse({
+                  status,
+                  error,
+                  url: fullUrl
+                })
+              );
+            }
+          );
+        });
+        // This is the return from the Observable function, which is the
+        // request cancellation handler.
+        return () => {
+          abortController.abort();
+        };
+      }
+    );
+  }
 
   /**
    * Disconnect from server (run on destroying the main component)

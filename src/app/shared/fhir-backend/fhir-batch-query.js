@@ -471,6 +471,14 @@ export class FhirBatchQuery {
   }
 
   /**
+   * Gets the NCBI E-utilities API Key.
+   * @return {string}
+   */
+  getApiKey() {
+    return this._apiKey;
+  }
+
+  /**
    * Adds a parameter to the source URL, or updates an existing one and returns
    * the new URL.
    * @param {string} url source URL

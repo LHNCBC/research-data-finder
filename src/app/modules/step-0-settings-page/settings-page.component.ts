@@ -97,6 +97,12 @@ export class SettingsPageComponent {
           this.settingsFormGroup
             .get('maxActiveRequests')
             .setValue(this.fhirBackend.maxActiveRequests);
+          this.settingsFormGroup
+            .get('apiKey')
+            .setValue(this.fhirBackend.apiKey);
+          this.settingsFormGroup
+            .get('cacheDisabled')
+            .setValue(!this.fhirBackend.cacheEnabled);
         }
         this.liveAnnouncer.clear();
         if (status === ConnectionStatus.Error) {

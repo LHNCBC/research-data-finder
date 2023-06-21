@@ -191,6 +191,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cohort.patient400ErrorFlag = false;
         this.rasToken.login(
           this.fhirBackend.serviceBaseUrl,
+          this.getSettings(),
           this.selectAnActionComponent.createCohortMode.value,
           this.stepper.selectedIndex - 1,
           true
@@ -198,6 +199,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         this.rasToken.login(
           this.fhirBackend.serviceBaseUrl,
+          this.getSettings(),
           this.selectAnActionComponent.createCohortMode.value,
           this.stepper.selectedIndex,
           false
@@ -595,10 +597,19 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     ) {
       this.rasToken.login(
         this.fhirBackend.serviceBaseUrl,
+        this.getSettings(),
         createCohortModeValue
       );
     } else {
       this.stepper.next();
     }
+  }
+
+  /**
+   * Gets form control values on Settings step.
+   * It will be saved into sessionStorage during RAS login.
+   */
+  getSettings(): any {
+    return this.settingsPageComponent.settingsFormGroup.value;
   }
 }
