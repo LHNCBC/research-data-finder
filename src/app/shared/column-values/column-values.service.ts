@@ -183,11 +183,13 @@ export class ColumnValuesService {
     const { preferredCodeSystem, pullDataObservationCodes } = context;
     let coding = v.coding || [];
 
-    if (
-      preferredCodeSystem &&
-      coding.some(({ system }) => system === preferredCodeSystem)
-    ) {
-      coding = coding.filter(({ system }) => system === preferredCodeSystem);
+    if (preferredCodeSystem) {
+      const preferredCodings = coding.filter(
+        ({ system }) => system === preferredCodeSystem
+      );
+      if (preferredCodings.length) {
+        coding = preferredCodings;
+      }
     }
 
     if (!coding.length) {
@@ -214,11 +216,13 @@ export class ColumnValuesService {
     const { fullPath, preferredCodeSystem } = context;
     let coding = v.coding || [];
 
-    if (
-      preferredCodeSystem &&
-      coding.some(({ system }) => system === preferredCodeSystem)
-    ) {
-      coding = coding.filter(({ system }) => system === preferredCodeSystem);
+    if (preferredCodeSystem) {
+      const preferredCodings = coding.filter(
+        ({ system }) => system === preferredCodeSystem
+      );
+      if (preferredCodings.length) {
+        coding = preferredCodings;
+      }
     } else if (v.text) {
       return v.text;
     }
