@@ -96,7 +96,7 @@ export async function configureTestingModule(
       }
       return false;
     });
-  });
+  }, 20);
 
   await fhirBackend.initialized
     .pipe(
