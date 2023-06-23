@@ -7,6 +7,8 @@ import queryResponseCache from './query-response-cache';
 export const HTTP_ABORT = 0;
 // The value of property status in the rejection object when the FHIR version is not supported by RDF
 export const UNSUPPORTED_VERSION = -1;
+// A list of status codes for which we will not cache the http request
+const NOCACHESTATUSES = [HTTP_ABORT, 401, 403];
 
 // Rate limiting interval - the time interval in milliseconds for which a limited number of requests can be specified
 const RATE_LIMIT_INTERVAL = 1000;
@@ -979,7 +981,8 @@ export class FhirBatchQuery {
               });
             },
             (errorResponse) => {
-              (options.cacheErrors && errorResponse.status !== HTTP_ABORT
+              (options.cacheErrors &&
+              !NOCACHESTATUSES.includes(errorResponse.status)
                 ? queryResponseCache.add(fullUrl, errorResponse, options)
                 : Promise.resolve()
               ).then(() => {

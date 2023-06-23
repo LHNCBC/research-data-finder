@@ -19,6 +19,7 @@ import {
 } from '@angular/material/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
+import queryResponseCache from './query-response-cache';
 
 describe('FhirBackendService', () => {
   let service: FhirBackendService;
@@ -32,6 +33,10 @@ describe('FhirBackendService', () => {
   const responseFromFhirBatchQuery = {
     status: 200,
     data: 'response from FhirBatchQuery'
+  };
+  const responseFromFhirBatchQuery401 = {
+    status: 401,
+    data: 'response from FhirBatchQuery 401'
   };
   const responseFromFhirBatchQueryCache = {
     status: 200,
@@ -257,6 +262,69 @@ describe('FhirBackendService', () => {
           done();
         }
       );
+    });
+  });
+
+  describe('caching', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [FhirBackendModule, MatDialogModule, BrowserAnimationsModule]
+      });
+      spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
+      spyOn(FhirBatchQuery.prototype, 'getVersionName').and.returnValue('R4');
+      spyOn(FhirBatchQuery.prototype, 'getFullUrl').and.returnValue('full_url');
+      spyOn(queryResponseCache, 'get').and.resolveTo(undefined);
+      spyOn(queryResponseCache, 'add').and.resolveTo();
+      service = TestBed.inject(FhirBackendService);
+      httpClient = TestBed.inject(HttpClient);
+      defaultHttpXhrBackend = TestBed.inject(HttpXhrBackend);
+    });
+
+    it('should not cache 401 response', (done) => {
+      spyOn(FhirBatchQuery.prototype, 'get').and.rejectWith(
+        responseFromFhirBatchQuery401
+      );
+      FhirBatchQuery.prototype
+        .getWithCache('some_url', { cacheErrors: true })
+        .then(
+          () => {},
+          (response) => {
+            expect(response?.status).toBe(401);
+            expect(FhirBatchQuery.prototype.get).toHaveBeenCalledWith(
+              'full_url',
+              {
+                combine: true,
+                cacheName: null,
+                retryCount: false,
+                cacheErrors: true
+              }
+            );
+            expect(queryResponseCache.add).not.toHaveBeenCalled();
+            done();
+          }
+        );
+    });
+
+    it('should cache 200 response', (done) => {
+      spyOn(FhirBatchQuery.prototype, 'get').and.resolveTo(
+        responseFromFhirBatchQuery
+      );
+      FhirBatchQuery.prototype
+        .getWithCache('some_url', { cacheErrors: true })
+        .then((response) => {
+          expect(response?.status).toBe(200);
+          expect(FhirBatchQuery.prototype.get).toHaveBeenCalledWith(
+            'full_url',
+            {
+              combine: true,
+              cacheName: null,
+              retryCount: false,
+              cacheErrors: true
+            }
+          );
+          expect(queryResponseCache.add).toHaveBeenCalled();
+          done();
+        });
     });
   });
 });
