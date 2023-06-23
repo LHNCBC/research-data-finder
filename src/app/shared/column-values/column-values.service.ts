@@ -13,7 +13,6 @@ import Quantity = fhir.Quantity;
 import HumanName = fhir.HumanName;
 import Address = fhir.Address;
 import { SettingsService } from '../settings-service/settings.service';
-import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 
 // Cell value retrieval context
 interface Context {
@@ -57,7 +56,7 @@ export class ColumnValuesService {
     // If there is a coding with specified "preferredCodeSystem", then the rest
     // of the terms will be dropped when displaying a value for that column.
     const preferredCodeSystem =
-      type === 'CodeableConcept'
+      type === 'CodeableConcept' || type === 'CodeableConceptCode'
         ? this.settings.get(`preferredCodeSystem.${fullPath}`)
         : '';
 
@@ -120,6 +119,7 @@ export class ColumnValuesService {
       Identifier: this.getIdentifierAsText,
       code: this.getCodeAsText,
       CodeableConcept: this.getCodeableConceptAsText,
+      CodeableConceptCode: this.getCodeableConceptCode,
       string: this.identity,
       Reference: this.getReferenceAsText,
       Period: this.getPeriodAsText,
@@ -172,6 +172,38 @@ export class ColumnValuesService {
   }
 
   /**
+   * Returns the code of the "CodeableConcept" value
+   * @param v - value of type "CodeableConcept"
+   * @param context - context in which we get the cell value
+   * @param context.preferredCodeSystem - coding system for filtering data in resource cell
+   * @param context.pullDataObservationCodes - a map of selected Observation codes at "pull data" step
+   * @return code of a proper coding in the list, returns null if the coding list is empty
+   */
+  getCodeableConceptCode(v: CodeableConcept, context: Context = {}): string {
+    const { preferredCodeSystem, pullDataObservationCodes } = context;
+    let coding = v.coding || [];
+
+    if (preferredCodeSystem) {
+      const preferredCodings = coding.filter(
+        ({ system }) => system === preferredCodeSystem
+      );
+      if (preferredCodings.length) {
+        coding = preferredCodings;
+      }
+    }
+
+    if (!coding.length) {
+      return null;
+    }
+
+    // Find a coding that matches context.pullDataObservationCodes, or use the first coding.
+    const matchingCoding =
+      pullDataObservationCodes &&
+      coding.find((x) => pullDataObservationCodes.has(x.code));
+    return matchingCoding ? matchingCoding.code : coding[0].code;
+  }
+
+  /**
    * Returns a textual representation of "CodeableConcept" value
    * see https://www.hl7.org/fhir/datatypes.html#CodeableConcept
    * @param v - value of type "CodeableConcept"
@@ -185,9 +217,11 @@ export class ColumnValuesService {
     let coding = v.coding || [];
 
     if (preferredCodeSystem) {
-      coding = coding.filter(({ system }) => system === preferredCodeSystem);
-      if (!coding.length) {
-        return '';
+      const preferredCodings = coding.filter(
+        ({ system }) => system === preferredCodeSystem
+      );
+      if (preferredCodings.length) {
+        coding = preferredCodings;
       }
     } else if (v.text) {
       return v.text;
@@ -201,13 +235,11 @@ export class ColumnValuesService {
     const matchingCoding =
       context.pullDataObservationCodes &&
       coding.find((x) => context.pullDataObservationCodes.has(x.code));
-    if (matchingCoding) {
-      return context.pullDataObservationCodes.get(matchingCoding.code);
-    }
-
-    return this.getCodingAsText(coding[0], {
-      fullPath: fullPath ? fullPath + '.coding' : ''
-    });
+    return matchingCoding
+      ? context.pullDataObservationCodes.get(matchingCoding.code)
+      : this.getCodingAsText(coding[0], {
+          fullPath: fullPath ? fullPath + '.coding' : ''
+        });
   }
 
   /**
