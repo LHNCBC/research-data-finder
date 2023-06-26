@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "6.3.4",
+  "version": "6.4.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
@@ -67,6 +67,7 @@
     "karma-coverage": "~2.0.3",
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "~1.5.0",
+    "mock-xmlhttprequest": "^8.2.0",
     "ng-mocks": "^14.3.3",
     "prettier": "2.2.1",
     "read-excel-file": "^5.2.9",

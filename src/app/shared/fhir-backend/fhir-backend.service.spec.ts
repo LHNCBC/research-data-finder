@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { CACHE_NAME, FhirBackendService } from './fhir-backend.service';
 import { FhirBackendModule } from './fhir-backend.module';
-import { FhirBatchQuery } from './fhir-batch-query';
+import { FhirBatchQuery, HTTP_ABORT } from './fhir-batch-query';
+import { newServer } from 'mock-xmlhttprequest';
 import {
   HttpClient,
   HttpClientModule,
@@ -325,6 +326,75 @@ describe('FhirBackendService', () => {
           expect(queryResponseCache.add).toHaveBeenCalled();
           done();
         });
+    });
+  });
+});
+
+describe('FhirBatchQuery', () => {
+  let fhirBatchQuery;
+  const server = newServer({
+    post: [
+      /http:\/\/someServerUrl\?_format=json/,
+      {
+        status: HTTP_ABORT,
+        body: '{ "message": "Abort!" }'
+      }
+    ],
+    get: [
+      /http:\/\/someServerUrl\/someUrl[123]\?_format=json/,
+      {
+        // status: 200 is the default
+        body: '{ "message": "Success!" }'
+      }
+    ]
+  });
+
+  beforeEach(() => {
+    server.install(window);
+    fhirBatchQuery = new FhirBatchQuery({
+      serviceBaseUrl: 'http://someServerUrl'
+    });
+    // There are no preflight requests during the test
+    fhirBatchQuery._maxTimeForPreflightRequest = 0;
+  });
+
+  afterEach(() => {
+    server.remove();
+  });
+
+  it('should resent requests separately if batch request fails', (done) => {
+    spyOn(fhirBatchQuery, 'dispatchEvent');
+    Promise.allSettled([
+      fhirBatchQuery.getWithCache('someUrl1'),
+      fhirBatchQuery.getWithCache('someUrl2'),
+      fhirBatchQuery.getWithCache('someUrl3')
+    ]).then((responses) => {
+      responses.forEach((response) =>
+        expect(response.status).toBe('fulfilled')
+      );
+      expect(fhirBatchQuery.dispatchEvent).toHaveBeenCalledOnceWith(
+        jasmine.objectContaining({ type: 'batch-issue' })
+      );
+      expect(server.getRequestLog()).toEqual([
+        jasmine.objectContaining({
+          method: 'POST',
+          url: 'http://someServerUrl?_format=json',
+          body: jasmine.stringMatching(/someUrl1.*someUrl2.*someUrl3/)
+        }),
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://someServerUrl/someUrl1?_format=json'
+        }),
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://someServerUrl/someUrl2?_format=json'
+        }),
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://someServerUrl/someUrl3?_format=json'
+        })
+      ]);
+      done();
     });
   });
 });
