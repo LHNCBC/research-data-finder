@@ -4,7 +4,9 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  SimpleChanges
+  QueryList,
+  SimpleChanges,
+  ViewChildren
 } from '@angular/core';
 import { map, startWith } from 'rxjs/operators';
 import {
@@ -23,6 +25,10 @@ import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
+import {
+  ResourceTableComponent,
+  TableRow
+} from '../resource-table/resource-table.component';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -30,7 +36,10 @@ import { ColumnValuesService } from '../../shared/column-values/column-values.se
 @Component({
   selector: 'app-pull-data-page',
   templateUrl: './pull-data-page.component.html',
-  styleUrls: ['./pull-data-page.component.less']
+  styleUrls: [
+    './pull-data-page.component.less',
+    '../resource-table/resource-table.component.less'
+  ]
 })
 export class PullDataPageComponent
   extends ResourceTableParentComponent
@@ -68,6 +77,14 @@ export class PullDataPageComponent
   } = {};
   // Selected Observation codes
   pullDataObservationCodes: Map<string, string> = null;
+
+  private _isVariablePatientTable = false;
+  // Columns for the Variable-Patient table
+  variablePatientTableColumns: string[] = [];
+  // DataSource for the Variable-Patient table
+  variablePatientTableDataSource: TableRow[] = [];
+  @ViewChildren(ResourceTableComponent)
+  resourceTables: QueryList<ResourceTableComponent>;
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -272,6 +289,13 @@ export class PullDataPageComponent
       return;
     }
     this.loadSubscription?.unsubscribe();
+    if (resourceType === 'Observation') {
+      // If in Variable-Patient table mode, reset to normal Observation table mode.
+      this._isVariablePatientTable = false;
+      // Clear Variable-Patient table dataSource which was built from the previous
+      // Observation table data.
+      this.variablePatientTableDataSource.length = 0;
+    }
 
     if (resourceType === 'Observation') {
       const selectedObservationCodes = parameterGroup.getSearchParamValues()[0]
@@ -350,5 +374,61 @@ export class PullDataPageComponent
     if (!hasObservationTab) {
       this.removeTab('Observation');
     }
+  }
+
+  /**
+   * Property to indicate whether to show the Variable-Patient table or the normal
+   * resource table.
+   */
+  get isVariablePatientTable(): boolean {
+    return this._isVariablePatientTable;
+  }
+  set isVariablePatientTable(value: boolean) {
+    if (value && !this.variablePatientTableDataSource.length) {
+      this.buildVariablePatientTableData();
+    }
+    this._isVariablePatientTable = value;
+  }
+
+  /**
+   * Construct the dataSource for the Variable-Patient table from the Observation table.
+   * It is called if user switch to Variable-Patient table after the Observation table is
+   * fully loaded. It uses cell data from the Observation table, so they don't need to be
+   * calculated again.
+   */
+  buildVariablePatientTableData(): void {
+    const observationResourcetableComponent = this.resourceTables.find(
+      (rt) => rt.resourceType === 'Observation'
+    );
+    const observationTableData =
+      observationResourcetableComponent.dataSource.data;
+    this.variablePatientTableColumns = ['Patient'].concat(
+      Array.from(
+        new Set(
+          // "Variable Name" (codeText) column values from the Observation table are used
+          // as column headers in the Variable-Patient table.
+          observationTableData.map((tableRow) => tableRow.cells['codeText'])
+        )
+      )
+    );
+    // A map of patient to variable data required for the Variable-Patient table.
+    const variablePatientMap = new Map();
+    observationTableData.forEach((tableRow) => {
+      if (!variablePatientMap.has(tableRow.cells['subject'])) {
+        variablePatientMap.set(tableRow.cells['subject'], {
+          Patient: tableRow.cells['subject']
+        });
+      }
+      variablePatientMap.get(tableRow.cells['subject'])[
+        tableRow.cells['codeText']
+      ] = tableRow.cells['value[x]'];
+    });
+    this.variablePatientTableDataSource = Array.from(
+      variablePatientMap,
+      (x) =>
+        ({
+          cells: x[1]
+        } as TableRow)
+    );
   }
 }

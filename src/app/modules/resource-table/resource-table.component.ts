@@ -55,7 +55,7 @@ import Observation = fhir.Observation;
 
 type TableCells = { [key: string]: string };
 
-interface TableRow {
+export interface TableRow {
   cells: TableCells;
   resource: Resource;
 }
