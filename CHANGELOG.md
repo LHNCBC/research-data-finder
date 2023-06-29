@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.4.0] - 2023-06-29
+### Added
+- Option to convert Observation table into Variable-Patient table
+  in pull data step.
+
 ## [6.3.4] - 2023-06-23
 ### Fixed
 - Do not cache failed requests that have status 401 or 403.
