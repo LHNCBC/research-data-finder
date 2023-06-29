@@ -78,13 +78,10 @@ export class PullDataPageComponent
   // Selected Observation codes
   pullDataObservationCodes: Map<string, string> = null;
 
-  private _isVariablePatientTable = false;
   // Columns for the Variable-Patient table
   variablePatientTableColumns: string[] = [];
   // DataSource for the Variable-Patient table
   variablePatientTableDataSource: TableRow[] = [];
-  @ViewChildren(ResourceTableComponent)
-  resourceTables: QueryList<ResourceTableComponent>;
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -380,6 +377,7 @@ export class PullDataPageComponent
    * Property to indicate whether to show the Variable-Patient table or the normal
    * resource table.
    */
+  private _isVariablePatientTable = false;
   get isVariablePatientTable(): boolean {
     return this._isVariablePatientTable;
   }
@@ -397,7 +395,7 @@ export class PullDataPageComponent
    * calculated again.
    */
   buildVariablePatientTableData(): void {
-    const observationResourcetableComponent = this.resourceTables.find(
+    const observationResourcetableComponent = this.tables.find(
       (rt) => rt.resourceType === 'Observation'
     );
     const observationTableData =
