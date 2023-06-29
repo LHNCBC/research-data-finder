@@ -25,10 +25,9 @@ import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
-import {
-  ResourceTableComponent,
-  TableRow
-} from '../resource-table/resource-table.component';
+import { TableRow } from '../resource-table/resource-table.component';
+import Observation = fhir.Observation;
+import { saveAs } from 'file-saver';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -414,19 +413,72 @@ export class PullDataPageComponent
     observationTableData.forEach((tableRow) => {
       if (!variablePatientMap.has(tableRow.cells['subject'])) {
         variablePatientMap.set(tableRow.cells['subject'], {
-          Patient: tableRow.cells['subject']
-        });
+          cells: {
+            // Data for Patient column in Variable-Patient table
+            Patient: tableRow.cells['subject']
+          },
+          valueQuantityData: {}
+        } as TableRow);
       }
-      variablePatientMap.get(tableRow.cells['subject'])[
+      const patientRow = variablePatientMap.get(tableRow.cells['subject']);
+      patientRow.cells[tableRow.cells['codeText']] = tableRow.cells['value[x]'];
+      // valueQuantityData holds data for downloading the Variable-Patient table with
+      // value and unit as separate columns. It is not used for displaying the table.
+      // We could instead do another loop to set this data when user clicks download.
+      // I'm setting it here to save another loop, since downloading seems the common
+      // use case for the Variable-Patient table.
+      patientRow.valueQuantityData[
         tableRow.cells['codeText']
-      ] = tableRow.cells['value[x]'];
+      ] = (tableRow.resource as Observation).valueQuantity;
     });
     this.variablePatientTableDataSource = Array.from(
       variablePatientMap,
-      (x) =>
-        ({
-          cells: x[1]
-        } as TableRow)
+      (x) => x[1]
     );
+  }
+
+  /**
+   * Initiates downloading of resourceTable data in CSV format.
+   * Overrides parent method in ResourceTableParentComponent.
+   */
+  downloadCsv(): void {
+    if (
+      this.isVariablePatientTable &&
+      this.getCurrentResourceType() === 'Observation'
+    ) {
+      const header = this.variablePatientTableColumns
+        .map((c) => {
+          if (c === 'Patient') {
+            return c;
+          } else {
+            // Separate each column into value & unit columns in export
+            return `${c} Value,${c} Unit`;
+          }
+        })
+        .join(',');
+      const rows = this.variablePatientTableDataSource.map((row) =>
+        this.variablePatientTableColumns
+          .map((column) => {
+            if (column === 'Patient') {
+              return row.cells[column];
+            } else {
+              const valueQuantity = row.valueQuantityData[column];
+              return `${valueQuantity?.value ?? ''},${
+                valueQuantity?.unit ?? ''
+              }`;
+            }
+          })
+          .join(',')
+      );
+      saveAs(
+        new Blob([[header].concat(rows).join('\n')], {
+          type: 'text/plain;charset=utf-8',
+          endings: 'native'
+        }),
+        'variable-patient.csv'
+      );
+    } else {
+      super.downloadCsv();
+    }
   }
 }

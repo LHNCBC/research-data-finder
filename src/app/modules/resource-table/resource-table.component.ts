@@ -57,7 +57,8 @@ type TableCells = { [key: string]: string };
 
 export interface TableRow {
   cells: TableCells;
-  resource: Resource;
+  resource?: Resource;
+  valueQuantityData?: fhir.Quantity;
 }
 
 /**
