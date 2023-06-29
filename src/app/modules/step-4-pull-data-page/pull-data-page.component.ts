@@ -285,15 +285,14 @@ export class PullDataPageComponent
       return;
     }
     this.loadSubscription?.unsubscribe();
+
     if (resourceType === 'Observation') {
       // If in Variable-Patient table mode, reset to normal Observation table mode.
       this._isVariablePatientTable = false;
       // Clear Variable-Patient table dataSource which was built from the previous
       // Observation table data.
       this.variablePatientTableDataSource.length = 0;
-    }
 
-    if (resourceType === 'Observation') {
       const selectedObservationCodes = parameterGroup.getSearchParamValues()[0]
         .selectedObservationCodes;
       this.pullDataObservationCodes = new Map();

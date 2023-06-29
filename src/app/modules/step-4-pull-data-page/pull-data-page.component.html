@@ -29,7 +29,7 @@
     <div class="v-box tab-content">
       <div class="h-box" *ngIf="resourceType === 'Observation'">
         <mat-checkbox [(ngModel)]="isVariablePatientTable"
-                      [disabled]="!pullData.getHasLoadedData('Observation')">
+                      [disabled]="!pullData.getHasLoadedData('Observation') || perPatientFormControls['Observation'].value !== 1">
           Convert to Variable-Patient table
         </mat-checkbox>
       </div>
