@@ -462,9 +462,9 @@ export class PullDataPageComponent
               return row.cells[column];
             } else {
               const valueQuantity = row.valueQuantityData[column];
-              return `${valueQuantity?.value ?? ''},${
-                valueQuantity?.unit ?? ''
-              }`;
+              return valueQuantity
+                ? `${valueQuantity.value ?? ''},${valueQuantity.unit ?? ''}`
+                : `${row.cells[column]},`;
             }
           })
           .join(',')
