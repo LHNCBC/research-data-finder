@@ -4,9 +4,7 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  QueryList,
-  SimpleChanges,
-  ViewChildren
+  SimpleChanges
 } from '@angular/core';
 import { map, startWith } from 'rxjs/operators';
 import {
@@ -28,6 +26,9 @@ import { ColumnValuesService } from '../../shared/column-values/column-values.se
 import { TableRow } from '../resource-table/resource-table.component';
 import Observation = fhir.Observation;
 import { saveAs } from 'file-saver';
+// Use ECMAScript module distributions of csv-stringify package for our browser app.
+// See https://csv.js.org/stringify/distributions/browser_esm/
+import { stringify } from 'csv-stringify/browser/esm/sync';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -451,10 +452,10 @@ export class PullDataPageComponent
             return c;
           } else {
             // Separate each column into value & unit columns in export
-            return `${c} Value,${c} Unit`;
+            return [`${c} Value`, `${c} Unit`];
           }
         })
-        .join(',');
+        .flat();
       const rows = this.variablePatientTableDataSource.map((row) =>
         this.variablePatientTableColumns
           .map((column) => {
@@ -463,14 +464,14 @@ export class PullDataPageComponent
             } else {
               const valueQuantity = row.valueQuantityData[column];
               return valueQuantity
-                ? `${valueQuantity.value ?? ''},${valueQuantity.unit ?? ''}`
-                : `${row.cells[column]},`;
+                ? [valueQuantity.value ?? '', valueQuantity.unit ?? '']
+                : [row.cells[column], ''];
             }
           })
-          .join(',')
+          .flat()
       );
       saveAs(
-        new Blob([[header].concat(rows).join('\n')], {
+        new Blob([stringify([header].concat(rows))], {
           type: 'text/plain;charset=utf-8',
           endings: 'native'
         }),
