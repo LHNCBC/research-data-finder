@@ -18,8 +18,7 @@
     "prettier-fix": "prettier --write '**/*.ts'",
     "update-excel-config": "node bin/update-excel-configurations.js && npm run build",
     "update-cached-lists": "node bin/update-non-required-binding-lists.js",
-    "post-evidence-variable-data": "curl -X POST 'https://lforms-fhir.nlm.nih.gov/baseR4' -H 'Content-Type: application/fhir+json; charset=UTF-8' -d '@evidence-variable-r4-bundle.json'",
-    "gen-xlsx": "node bin/generate-xlsx-from-spec.js"
+    "post-evidence-variable-data": "curl -X POST 'https://lforms-fhir.nlm.nih.gov/baseR4' -H 'Content-Type: application/fhir+json; charset=UTF-8' -d '@evidence-variable-r4-bundle.json'"
   },
   "private": true,
   "dependencies": {
