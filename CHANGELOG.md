@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.5.0] - 2023-07-03
+### Added
+- R5 support.
+
 ## [6.4.0] - 2023-06-26
 ### Added
 - Resend requests separately and notify the user of problems if a batch request

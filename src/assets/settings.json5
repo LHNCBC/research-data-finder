@@ -4,7 +4,6 @@
 {
   // Default settings for all servers
   default: {
-    definitionsFile: 'desc-2.csv',
     maxRequestsPerBatch: 10,
     maxActiveRequests: 6,
 
@@ -123,6 +122,17 @@
       }
     },
   },
+
+  // Default settings for R4 servers
+  default_R4: {
+    definitionsFile: 'desc-2.csv',
+  },
+
+  // Default settings for R5 servers
+  default_R5: {
+    definitionsFile: 'desc-4.csv',
+  },
+
   // Settings for servers with the specified URL.
   // You can override default settings here
   "customization": {
@@ -359,6 +369,10 @@
           ],
         }
       }
+    },
+
+    'https://lforms-fhir.nlm.nih.gov/baseR5': {
+      definitionsFile: 'desc-3.csv',
     }
   }
 }
