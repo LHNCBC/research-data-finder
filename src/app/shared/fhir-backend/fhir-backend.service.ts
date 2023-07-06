@@ -21,7 +21,7 @@ import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam, setUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
-import { find, cloneDeep } from 'lodash-es';
+import { cloneDeep, find } from 'lodash-es';
 import { filter, map } from 'rxjs/operators';
 import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
@@ -29,6 +29,7 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { RasTokenService } from '../ras-token/ras-token.service';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
+import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -494,65 +495,72 @@ export class FhirBackendService implements HttpBackend {
               })
             : this.fhirClient.get(fullUrl, { combine, signal });
 
-            promise.then(
-              ({ status, data, _cacheInfo_ }) => {
-                request.context.set(CACHE_INFO, _cacheInfo_);
-                observer.next(
-                  new HttpResponse<any>({
-                    status,
-                    body: data,
-                    url: fullUrl
-                  })
-                );
-                observer.complete();
-              },
-              ({ status, error }) => {
-                if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
-                  if (status >= 400 && status < 500) {
-                    this.dialogRef = this.dialog.open(AlertDialogComponent, {
-                      data: {
-                        header: 'Session Expired',
-                        content:
-                          'It looks like the session with dbGaP has expired.' +
-                          ' You will be returned to the login page so you can login and select consent groups again.',
-                        hasCancelButton: true
-                      }
-                    });
-                    this.dialogRef.afterClosed().subscribe((isOk) => {
-                      if (isOk) {
-                        this.dbgapRelogin$.next();
-                      }
-                      this.dialogRef = null;
-                    });
-                  } else if (status >= 500 && status < 600) {
-                    this.dialog.open(AlertDialogComponent, {
-                      data: {
-                        header: 'Alert',
-                        content:
-                          'We are unable to connect to dbGaP at this time.',
-                        hasCancelButton: false
-                      }
-                    });
-                  }
+          promise.then(
+            ({ status, data, _cacheInfo_ }) => {
+              request.context.set(CACHE_INFO, _cacheInfo_);
+              observer.next(
+                new HttpResponse<any>({
+                  status,
+                  body: data,
+                  url: fullUrl
+                })
+              );
+              observer.complete();
+            },
+            ({ status, error }) => {
+              if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
+                if (
+                  status >= 400 &&
+                  status < 500 &&
+                  // Don't show session expired message on "browse public data".
+                  // Access to CohortService via injector to avoid circular dependency.
+                  this.injector.get(CohortService).createCohortMode !==
+                    CreateCohortMode.NO_COHORT
+                ) {
+                  this.dialogRef = this.dialog.open(AlertDialogComponent, {
+                    data: {
+                      header: 'Session Expired',
+                      content:
+                        'It looks like the session with dbGaP has expired.' +
+                        ' You will be returned to the login page so you can login and select consent groups again.',
+                      hasCancelButton: true
+                    }
+                  });
+                  this.dialogRef.afterClosed().subscribe((isOk) => {
+                    if (isOk) {
+                      this.dbgapRelogin$.next();
+                    }
+                    this.dialogRef = null;
+                  });
+                } else if (status >= 500 && status < 600) {
+                  this.dialog.open(AlertDialogComponent, {
+                    data: {
+                      header: 'Alert',
+                      content:
+                        'We are unable to connect to dbGaP at this time.',
+                      hasCancelButton: false
+                    }
+                  });
                 }
-                observer.error(
-                  new HttpErrorResponse({
-                    status,
-                    error,
-                    url: fullUrl
-                  })
-                );
               }
-            );
-          });
-          // This is the return from the Observable function, which is the
-          // request cancellation handler.
-          return () => {
-            abortController.abort();
-          };
-        }
-      );
-    }
+              observer.error(
+                new HttpErrorResponse({
+                  status,
+                  error,
+                  url: fullUrl
+                })
+              );
+            }
+          );
+        });
+        // This is the return from the Observable function, which is the
+        // request cancellation handler.
+        return () => {
+          abortController.abort();
+        };
+      }
+    );
+  }
 
   /**
    * Disconnect from server (run on destroying the main component)
