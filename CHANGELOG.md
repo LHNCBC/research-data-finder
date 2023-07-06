@@ -3,9 +3,39 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.2.14] - 2023-06-05
+## [6.3.5] - 2023-07-06
 ### Fixed
 - Replaced use of ":not=zzz" in autocomplete with ":missing=false" if supported.
+
+## [6.3.4] - 2023-06-23
+### Fixed
+- Do not cache failed requests that have status 401 or 403.
+
+## [6.3.3] - 2023-06-14
+### Changed
+- Renamed "Code" column to "Variable Name" in Observation table.
+### Added
+- A new "Code" column to display raw code in Observation table.
+
+## [6.3.2] - 2023-06-13
+### Fixed
+- Do not retry GET requests aborted by the server.
+
+## [6.3.1] - 2023-06-12
+### Added
+- Showing the total number of variables from CTSS.
+
+## [6.3.0] - 2023-06-12
+### Added
+- Save/load/restore cohort with cart data.
+### Changed
+- On dbGaP 4xx errors, direct user to re-login and restore the
+  step and data afterwards.
+
+## [6.2.14] - 2023-05-31
+### Fixed
+- Make initialization requests only when necessary. Remove unnecessary
+  requests before login.
 
 ## [6.2.13] - 2023-05-23
 ### Fixed

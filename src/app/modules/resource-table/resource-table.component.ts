@@ -205,6 +205,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() resourceTypeColumns;
   @Input() context = '';
   @Input() resources: Resource[];
+  @Input() total: number;
   @Input() loading: boolean;
   @Input() set progressValue(value) {
     this.progressValue$.next(Math.round(value));
@@ -331,12 +332,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes.loadingStatistics && this.loadingStatistics.length === 0) {
       this.panel?.close();
     }
+    const pluralRecordName = getPluralFormOfRecordName(this.resourceType);
     // Handle a change of loading status
     if (changes['loading']) {
       if (this.loading) {
         this.columnsWithData = {};
         this.liveAnnouncer.announce(
-          `The ${this.resourceType} resources loading process has started`
+          `The ${pluralRecordName} loading process has started`
         );
         this.startTime = Date.now();
         let i = 0;
@@ -357,8 +359,15 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         this.loadTime =
           Math.round((this.loadedDateTime - this.startTime) / 100) / 10;
         this.liveAnnouncer.announce(
-          `The ${this.resourceType} resources loading process has finished. ` +
-            `${this.resources.length} rows loaded. ` +
+          `The ${pluralRecordName} loading process has finished. ` +
+            `${this.resources.length} ${pluralRecordName} loaded. ` +
+            (this.total
+              ? `Total ${pluralRecordName}` +
+                (this.hasFilters() ? ' for the selected filters' : '') +
+                ': ' +
+                this.total +
+                '.'
+              : '') +
             this.getSortMessage(),
           'assertive'
         );
@@ -606,10 +615,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   getCellStrings(row: Resource, column: ColumnDescription): string[] {
     const expression = column.expression || column.element.replace('[x]', '');
     const fullPath = expression ? this.resourceType + '.' + expression : '';
-    // Pass pullDataObservationCodes only for Observation "Code" column.
+    // Pass pullDataObservationCodes only for Observation "Variable Name" or "Code" column.
     const pullDataObservationCodes =
       row.resourceType === 'Observation' &&
-      column.element === 'code' &&
+      (column.element === 'codeText' || column.element === 'code') &&
       this.pullDataObservationCodes
         ? this.pullDataObservationCodes
         : undefined;

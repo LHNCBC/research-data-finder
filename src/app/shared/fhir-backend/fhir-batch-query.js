@@ -7,6 +7,8 @@ import queryResponseCache from './query-response-cache';
 export const HTTP_ABORT = 0;
 // The value of property status in the rejection object when the FHIR version is not supported by RDF
 export const UNSUPPORTED_VERSION = -1;
+// A list of status codes for which we will not cache the http request
+const NOCACHESTATUSES = [HTTP_ABORT, 401, 403];
 
 // Rate limiting interval - the time interval in milliseconds for which a limited number of requests can be specified
 const RATE_LIMIT_INTERVAL = 1000;
@@ -116,25 +118,27 @@ export class FhirBatchQuery {
   /**
    * Returns the name of the persistent cache for initial queries of public
    * data and server capability checks.
+   * @param useInitContext whether to use this.initContext in cache name. Defaults to true.
    * @returns {string}
    */
-  getInitCacheName() {
+  getInitCacheName(useInitContext = true) {
     return (
       'init-' +
-      (this.initContext ? this.initContext + '-' : '') +
+      (useInitContext && this.initContext ? this.initContext + '-' : '') +
       this._serviceBaseUrl
     );
   }
 
   /**
    * Returns common options for initialization requests
+   * @param useInitContext whether to use this.initContext in cache name. Defaults to true.
    * @returns {Object}
    */
-  getCommonInitRequestOptions() {
+  getCommonInitRequestOptions(useInitContext = true) {
     return {
       combine: false,
       retryCount: 2,
-      cacheName: this.getInitCacheName(),
+      cacheName: this.getInitCacheName(useInitContext),
       // Initialization requests are cached for a day:
       expirationTime: 24 * 60 * 60,
       cacheErrors: true
@@ -215,26 +219,17 @@ export class FhirBatchQuery {
       ? `&_security=${this._features.consentGroup}`
       : '';
     // Common options for initialization requests
-    const options = this.getCommonInitRequestOptions();
-
     // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
-    const initializationRequests = [
+    const options = this.getCommonInitRequestOptions();
+    // useInitContext=false, The request is cached as the same name before and after login, so we don't make the request again after login.
+    const options_noInitContext = this.getCommonInitRequestOptions(false);
+
+    // Below are initialization requests that are always made.
+    const initializationRequests = Promise.allSettled([
       // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-      this.getWithCache('metadata?_elements=fhirVersion', options),
-      // Check if sorting Observations by date is supported
       this.getWithCache(
-        `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
-        options
-      ),
-      // Check if sorting Observations by age-at-event is supported
-      this.getWithCache(
-        `Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`,
-        options
-      ),
-      // Check if operation $lastn on Observation is supported
-      this.getWithCache(
-        `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
-        options
+        'metadata?_elements=fhirVersion',
+        options_noInitContext
       ),
       // Check if server has Research Study data
       this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
@@ -254,115 +249,153 @@ export class FhirBatchQuery {
         logPrefix: 'Batch',
         combine: false,
         retryCount: 2
-      }),
-      this.checkNotModifierIssue()
-    ];
-
-    return Promise.allSettled(initializationRequests)
-      .then(
-        ([
-          metadata,
-          observationsSortedByDate,
-          observationsSortedByAgeAtEvent,
-          lastnLookup,
-          hasResearchStudy,
-          missingModifier,
-          batch,
-          hasNotModifierIssue
-        ]) => {
-          if (currentServiceBaseUrl !== this._serviceBaseUrl) {
-            return Promise.reject({
-              status: HTTP_ABORT,
-              error: 'Outdated response to initialization request.'
-            });
-          }
-          if (metadata.status === 'fulfilled') {
-            const fhirVersion = metadata.value.data.fhirVersion;
-            this._versionName = getVersionNameByNumber(fhirVersion);
-            if (!this._versionName) {
-              return Promise.reject({
-                status: UNSUPPORTED_VERSION,
-                error: 'Unsupported FHIR version: ' + fhirVersion
-              });
-            }
-          } else {
-            // If initialization fails, do not cache initialization responses
-            this.clearCacheByName(this.getInitCacheName());
-            return Promise.reject({
-              error:
-                "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
-            });
-          }
-          Object.assign(this._features, {
-            sortObservationsByDate:
-              observationsSortedByDate.status === 'fulfilled' &&
-              observationsSortedByDate.value.data.entry &&
-              observationsSortedByDate.value.data.entry.length > 0,
-            sortObservationsByAgeAtEvent:
-              observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-              observationsSortedByAgeAtEvent.value.data.entry &&
-              observationsSortedByAgeAtEvent.value.data.entry.length > 0,
-            lastnLookup: lastnLookup.status === 'fulfilled',
-            hasResearchStudy:
-              hasResearchStudy.status === 'fulfilled' &&
-              hasResearchStudy.value.data.entry &&
-              hasResearchStudy.value.data.entry.length > 0,
-            missingModifier: missingModifier.status === 'fulfilled',
-            batch: batch.status === 'fulfilled',
-            hasNotModifierIssue:
-              hasNotModifierIssue.status === 'fulfilled' &&
-              hasNotModifierIssue.value
+      })
+    ])
+      .then(([metadata, hasResearchStudy, missingModifier, batch]) => {
+        if (currentServiceBaseUrl !== this._serviceBaseUrl) {
+          return Promise.reject({
+            status: HTTP_ABORT,
+            error: 'Outdated response to initialization request.'
           });
         }
-      )
-      .then(() => {
-        return Promise.allSettled([
-          // Check if server has at least one Research Study with Research Subjects
-          this.getWithCache(
-            `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
-              researchStudyStatusesByVersion[this._versionName]
-            }`,
-            options
-          ),
-          // Check if interpretation search parameter is supported
-          this.getWithCache(
-            `Observation?interpretation${
-              this._features.missingModifier ? ':missing=false' : ':not=zzz'
-            }&_elements=id&_count=1${securityParam}`,
-            options
-          )
-        ]);
+        if (metadata.status === 'fulfilled') {
+          const fhirVersion = metadata.value.data.fhirVersion;
+          this._versionName = getVersionNameByNumber(fhirVersion);
+          if (!this._versionName) {
+            return Promise.reject({
+              status: UNSUPPORTED_VERSION,
+              error: 'Unsupported FHIR version: ' + fhirVersion
+            });
+          }
+          this._features.hasResearchStudy =
+            hasResearchStudy.status === 'fulfilled' &&
+            hasResearchStudy.value.data.entry &&
+            hasResearchStudy.value.data.entry.length > 0;
+          this._features.missingModifier = missingModifier.status === 'fulfilled';
+          this._features.batch = batch.status === 'fulfilled';
+        } else {
+          // If initialization fails, do not cache initialization responses
+          this.clearCacheByName(this.getInitCacheName());
+          // Abort other initialization requests
+          this.clearPendingRequests();
+          return Promise.reject({
+            error:
+              "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
+          });
+        }
       })
-      .then(([hasAvailableStudy, interpretation]) => {
-        Object.assign(this._features, {
-          hasAvailableStudy:
-            hasAvailableStudy.status === 'fulfilled' &&
-            hasAvailableStudy.value.data.entry &&
-            hasAvailableStudy.value.data.entry.length > 0,
-          interpretation:
-            interpretation.status === 'fulfilled' &&
-            interpretation.value.data.entry &&
-            interpretation.value.data.entry.length > 0
-        });
+      .then(() => {
+        // On dbGaP server, only do initializationRequests2 requests after login.
+        if (this.initContext === 'dbgap-pre-login') {
+          // Check if server has at least one Research Study with Research Subjects.
+          // No need to make this request if there is no Research Study at all.
+          return this.checkHasAvailableStudy(options).then((result) => {
+            this._features.hasAvailableStudy = result;
+          });
+        } else {
+          // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
+          return Promise.allSettled([
+            // Check if sorting Observations by date is supported
+            this.getWithCache(
+              `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
+              options
+            ),
+            // Check if sorting Observations by age-at-event is supported
+            this.getWithCache(
+              `Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`,
+              options
+            ),
+            // Check if operation $lastn on Observation is supported
+            this.getWithCache(
+              `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
+              options
+            ),
+            // Check if interpretation search parameter is supported
+            this.getWithCache(
+              `Observation?interpretation${
+                this._features.missingModifier ? ':missing=false' : ':not=zzz'
+              }&_elements=id&_count=1${securityParam}`,
+              options
+            ),
+            this.checkNotModifierIssue(options),
+            this.checkHasAvailableStudy(options)
+          ]).then(
+            ([
+               observationsSortedByDate,
+               observationsSortedByAgeAtEvent,
+               lastnLookup,
+               interpretation,
+               hasNotModifierIssue,
+               hasAvailableStudy
+             ]) => {
+              Object.assign(this._features, {
+                sortObservationsByDate:
+                  observationsSortedByDate.status === 'fulfilled' &&
+                  observationsSortedByDate.value.data.entry &&
+                  observationsSortedByDate.value.data.entry.length > 0,
+                sortObservationsByAgeAtEvent:
+                  observationsSortedByAgeAtEvent.status === 'fulfilled' &&
+                  observationsSortedByAgeAtEvent.value.data.entry &&
+                  observationsSortedByAgeAtEvent.value.data.entry.length > 0,
+                lastnLookup: lastnLookup.status === 'fulfilled',
+                interpretation:
+                  interpretation.status === 'fulfilled' &&
+                  interpretation.value.data.entry &&
+                  interpretation.value.data.entry.length > 0,
+                hasNotModifierIssue:
+                  hasNotModifierIssue.status === 'fulfilled' &&
+                  hasNotModifierIssue.value,
+                hasAvailableStudy:
+                  hasAvailableStudy.status === 'fulfilled' &&
+                  hasAvailableStudy.value
+              });
+            }
+          );
+        }
       });
+
+    return initializationRequests;
+  }
+
+  /**
+   * Check if server has at least one Research Study with Research Subjects.
+   * No need to make this request if there is no Research Study at all.
+   * @param {Object} [options] - additional options (see getWithCache)
+   * @return {Promise<boolean>}
+   */
+  checkHasAvailableStudy(options) {
+    return this._features.hasResearchStudy
+      ? this.getWithCache(
+        `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
+          researchStudyStatusesByVersion[this._versionName]
+        }`,
+        options
+      ).then(
+        ({ data }) => {
+          return data.entry?.length > 0;
+        },
+        () => {
+          return false;
+        }
+      )
+      : Promise.resolve(false);
   }
 
   /**
    * Checks if the ":not" search parameter modifier is interpreted incorrectly
    * (HAPI FHIR server issue).
+   * @param {Object} [options] - additional options (see getWithCache)
    * @return {Promise<boolean>}
    */
-  checkNotModifierIssue() {
-    return this.getWithCache(
-      'Observation?_count=1',
-      this.getCommonInitRequestOptions()
-    ).then((response) => {
-      const obs = response.data.entry?.[0].resource;
-      const firstCode =
-        obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
-      const patientRef = obs?.subject?.reference;
-      return firstCode && patientRef
-        ? this.getWithCache(
+  checkNotModifierIssue(options) {
+    return this.getWithCache('Observation?_count=1', options).then(
+      (response) => {
+        const obs = response.data.entry?.[0].resource;
+        const firstCode =
+          obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
+        const patientRef = obs?.subject?.reference;
+        return firstCode && patientRef
+          ? this.getWithCache(
             `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
             this.getCommonInitRequestOptions()
           ).then((oneCodeResp) => {
@@ -372,29 +405,30 @@ export class FhirBatchQuery {
               oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
             return secondCode
               ? Promise.allSettled([
-                  typeof oneCodeResp.data.total === 'number'
-                    ? Promise.resolve(oneCodeResp)
-                    : this.getWithCache(
-                        `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                        this.getCommonInitRequestOptions()
-                      ),
-                  this.getWithCache(
-                    `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                typeof oneCodeResp.data.total === 'number'
+                  ? Promise.resolve(oneCodeResp)
+                  : this.getWithCache(
+                    `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
                     this.getCommonInitRequestOptions()
+                  ),
+                this.getWithCache(
+                  `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                  this.getCommonInitRequestOptions()
+                )
+              ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
+                return summaryOneCodeResp.status === 'fulfilled' &&
+                summaryTwoCodeResp.status === 'fulfilled'
+                  ? Promise.resolve(
+                    summaryTwoCodeResp.value.data.total <
+                    summaryOneCodeResp.value.data.total
                   )
-                ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
-                  return summaryOneCodeResp.status === 'fulfilled' &&
-                    summaryTwoCodeResp.status === 'fulfilled'
-                    ? Promise.resolve(
-                        summaryTwoCodeResp.value.data.total <
-                          summaryOneCodeResp.value.data.total
-                      )
-                    : Promise.reject();
-                })
+                  : Promise.reject();
+              })
               : Promise.reject();
           })
-        : Promise.reject();
-    });
+          : Promise.reject();
+      }
+    );
   }
 
   /**
@@ -653,10 +687,13 @@ export class FhirBatchQuery {
             // if aborted due to clearPendingRequests
             reject({ status: HTTP_ABORT, error: 'Abort' });
           }
+          const responseTime = new Date() - startAjaxTime;
+          // Maximum time for preflight request.
+          const maxTimeForPreflightRequest = 15000;
           console.log(
-            `${logPrefix ? logPrefix + ' ' : ''}AJAX call returned in ${
-              new Date() - startAjaxTime
-            }`
+            `${
+              logPrefix ? logPrefix + ' ' : ''
+            }AJAX call returned in ${responseTime}`
           );
           const status = oReq.status;
 
@@ -664,8 +701,15 @@ export class FhirBatchQuery {
             this._lastSuccessTime = Date.now();
             resolve({ status, data: JSON.parse(oReq.responseText) });
           } else if (
-            // When the preflight request returns HTTP-429, the real request is aborted
-            (status === 429 || (status === HTTP_ABORT && !signal?.aborted)) &&
+            // When the preflight request returns HTTP-429, the real request is
+            // aborted. If the request is aborted after 15 seconds, we can expect
+            // that this is not because the preflight request returned HTTP-429,
+            // but because the server timed out. In this case, we will not try
+            // to resubmit this request.
+            (status === 429 ||
+              (status === HTTP_ABORT &&
+                !signal?.aborted &&
+                responseTime < maxTimeForPreflightRequest)) &&
             (typeof retryCount !== 'number' || --retryCount > 0) &&
             Date.now() - this._lastSuccessTime < this._giveUpTimeout
           ) {
@@ -963,7 +1007,8 @@ export class FhirBatchQuery {
               });
             },
             (errorResponse) => {
-              (options.cacheErrors && errorResponse.status !== HTTP_ABORT
+              (options.cacheErrors &&
+              !NOCACHESTATUSES.includes(errorResponse.status)
                 ? queryResponseCache.add(fullUrl, errorResponse, options)
                 : Promise.resolve()
               ).then(() => {

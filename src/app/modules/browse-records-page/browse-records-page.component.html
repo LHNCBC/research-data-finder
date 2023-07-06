@@ -11,7 +11,7 @@
 </p>
 
 <mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
-  <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfRecordName(resourceType)">
+  <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="resourceType | pluralFormOfRecordName">
     <div class="v-box tab-content">
       <app-resource-table *ngIf="resourceType === 'ResearchStudy' && selectRecords.currentState[resourceType]"
                           #resourceTable
@@ -42,11 +42,11 @@
                   (keydown.space)="panel.toggle()">
                 <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
                     <span>Selected {{
-                      resourceTable.selectedResources.selected.length
+                        resourceTable.selectedResources.selected.length
                       }} out of {{
-                      resourceTable.dataSource.data.length
+                        resourceTable.dataSource.data.length
                       }} {{
-                      getPluralFormOfRecordName(resourceType)
+                        resourceType | pluralFormOfRecordName | lowercase
                       }}.</span>
                 </mat-panel-title>
                 <mat-panel-description *ngIf="(selectRecords.currentState[resourceType].isCached | async) !== null">
@@ -75,6 +75,7 @@
                           [enableFiltering]="true"
                           [loading]="selectRecords.currentState[resourceType].loading"
                           [resources]="selectRecords.resourceStream[resourceType] | async"
+                          [total]="selectRecords.currentState[resourceType].totalRecords"
                           (loadNextPage)="loadNextPage(resourceType)"
                           context="browse"
                           [sort]="sort[resourceType]"
@@ -92,6 +93,35 @@
             </div>
             <div class="spacer"></div>
           </div>
+        </ng-template>
+        <ng-template #header>
+          <mat-accordion>
+            <mat-expansion-panel hideToggle #panel>
+              <mat-expansion-panel-header
+                  (click)="panel.toggle()"
+                  (keydown.enter)="panel.toggle()"
+                  (keydown.space)="panel.toggle()">
+                <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
+                    <ng-container>{{
+                        variableTable.dataSource.data.length
+                      }} {{
+                        resourceType | pluralFormOfRecordName | lowercase
+                      }} loaded.</ng-container><ng-container *ngIf="selectRecords.currentState[resourceType].totalRecords"> Total {{
+                        resourceType | pluralFormOfRecordName | lowercase
+                      }}{{
+                        variableTable.hasFilters() ? ' for the selected filters': ''
+                      }}: {{
+                        selectRecords.currentState[resourceType].totalRecords
+                      }}.</ng-container>
+                </mat-panel-title>
+                <mat-panel-description>
+                  <span *ngIf="variableTable.loading">
+                    <span>Loading {{resourceType | pluralFormOfRecordName | lowercase}} ...</span>
+                  </span>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+            </mat-expansion-panel>
+          </mat-accordion>
         </ng-template>
       </app-resource-table>
     </div>
