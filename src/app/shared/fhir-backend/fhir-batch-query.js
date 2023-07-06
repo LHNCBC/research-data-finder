@@ -233,6 +233,11 @@ export class FhirBatchQuery {
       ),
       // Check if server has Research Study data
       this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
+      // Check if :missing modifier is supported
+      this.getWithCache(
+        `Observation?code:missing=false&_elements=id&_count=1${securityParam}`,
+        options
+      ),
       // Check if batch request is supported
       this._request({
         method: 'POST',
@@ -246,7 +251,7 @@ export class FhirBatchQuery {
         retryCount: 2
       })
     ])
-      .then(([metadata, hasResearchStudy, batch]) => {
+      .then(([metadata, hasResearchStudy, missingModifier, batch]) => {
         if (currentServiceBaseUrl !== this._serviceBaseUrl) {
           return Promise.reject({
             status: HTTP_ABORT,
@@ -266,6 +271,7 @@ export class FhirBatchQuery {
             hasResearchStudy.status === 'fulfilled' &&
             hasResearchStudy.value.data.entry &&
             hasResearchStudy.value.data.entry.length > 0;
+          this._features.missingModifier = missingModifier.status === 'fulfilled';
           this._features.batch = batch.status === 'fulfilled';
         } else {
           // If initialization fails, do not cache initialization responses
@@ -279,98 +285,117 @@ export class FhirBatchQuery {
         }
       })
       .then(() => {
-        // Check if server has at least one Research Study with Research Subjects.
-        // No need to make this request if there is no Research Study at all.
-        return this._features.hasResearchStudy
-          ? this.getWithCache(
-              `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
-                researchStudyStatusesByVersion[this._versionName]
-              }`,
+        // On dbGaP server, only do initializationRequests2 requests after login.
+        if (this.initContext === 'dbgap-pre-login') {
+          // Check if server has at least one Research Study with Research Subjects.
+          // No need to make this request if there is no Research Study at all.
+          return this.checkHasAvailableStudy(options).then((result) => {
+            this._features.hasAvailableStudy = result;
+          });
+        } else {
+          // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
+          return Promise.allSettled([
+            // Check if sorting Observations by date is supported
+            this.getWithCache(
+              `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
               options
-            ).then(
-              ({ data }) => {
-                this._features.hasAvailableStudy = data.entry?.length > 0;
-              },
-              () => {
-                this._features.hasAvailableStudy = false;
-              }
-            )
-          : Promise.resolve();
+            ),
+            // Check if sorting Observations by age-at-event is supported
+            this.getWithCache(
+              `Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`,
+              options
+            ),
+            // Check if operation $lastn on Observation is supported
+            this.getWithCache(
+              `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
+              options
+            ),
+            // Check if interpretation search parameter is supported
+            this.getWithCache(
+              `Observation?interpretation${
+                this._features.missingModifier ? ':missing=false' : ':not=zzz'
+              }&_elements=id&_count=1${securityParam}`,
+              options
+            ),
+            this.checkNotModifierIssue(options),
+            this.checkHasAvailableStudy(options)
+          ]).then(
+            ([
+               observationsSortedByDate,
+               observationsSortedByAgeAtEvent,
+               lastnLookup,
+               interpretation,
+               hasNotModifierIssue,
+               hasAvailableStudy
+             ]) => {
+              Object.assign(this._features, {
+                sortObservationsByDate:
+                  observationsSortedByDate.status === 'fulfilled' &&
+                  observationsSortedByDate.value.data.entry &&
+                  observationsSortedByDate.value.data.entry.length > 0,
+                sortObservationsByAgeAtEvent:
+                  observationsSortedByAgeAtEvent.status === 'fulfilled' &&
+                  observationsSortedByAgeAtEvent.value.data.entry &&
+                  observationsSortedByAgeAtEvent.value.data.entry.length > 0,
+                lastnLookup: lastnLookup.status === 'fulfilled',
+                interpretation:
+                  interpretation.status === 'fulfilled' &&
+                  interpretation.value.data.entry &&
+                  interpretation.value.data.entry.length > 0,
+                hasNotModifierIssue:
+                  hasNotModifierIssue.status === 'fulfilled' &&
+                  hasNotModifierIssue.value,
+                hasAvailableStudy:
+                  hasAvailableStudy.status === 'fulfilled' &&
+                  hasAvailableStudy.value
+              });
+            }
+          );
+        }
       });
-    // On dbGaP server, only do initializationRequests2 requests after login.
-    if (this.initContext === 'dbgap-pre-login') {
-      return initializationRequests;
-    }
-    // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
-    const initializationRequests2 = Promise.allSettled([
-      // Check if sorting Observations by date is supported
-      this.getWithCache(
-        `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
+
+    return initializationRequests;
+  }
+
+  /**
+   * Check if server has at least one Research Study with Research Subjects.
+   * No need to make this request if there is no Research Study at all.
+   * @param {Object} [options] - additional options (see getWithCache)
+   * @return {Promise<boolean>}
+   */
+  checkHasAvailableStudy(options) {
+    return this._features.hasResearchStudy
+      ? this.getWithCache(
+        `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
+          researchStudyStatusesByVersion[this._versionName]
+        }`,
         options
-      ),
-      // Check if sorting Observations by age-at-event is supported
-      this.getWithCache(
-        `Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`,
-        options
-      ),
-      // Check if operation $lastn on Observation is supported
-      this.getWithCache(
-        `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
-        options
-      ),
-      // Check if interpretation search parameter is supported
-      this.getWithCache(
-        `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
-        options
-      ),
-      this.checkNotModifierIssue()
-    ]).then(
-      ([
-        observationsSortedByDate,
-        observationsSortedByAgeAtEvent,
-        lastnLookup,
-        interpretation,
-        hasNotModifierIssue
-      ]) => {
-        Object.assign(this._features, {
-          sortObservationsByDate:
-            observationsSortedByDate.status === 'fulfilled' &&
-            observationsSortedByDate.value.data.entry &&
-            observationsSortedByDate.value.data.entry.length > 0,
-          sortObservationsByAgeAtEvent:
-            observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-            observationsSortedByAgeAtEvent.value.data.entry &&
-            observationsSortedByAgeAtEvent.value.data.entry.length > 0,
-          lastnLookup: lastnLookup.status === 'fulfilled',
-          interpretation:
-            interpretation.status === 'fulfilled' &&
-            interpretation.value.data.entry &&
-            interpretation.value.data.entry.length > 0,
-          hasNotModifierIssue:
-            hasNotModifierIssue.status === 'fulfilled' &&
-            hasNotModifierIssue.value
-        });
-      }
-    );
-    return Promise.all([initializationRequests, initializationRequests2]);
+      ).then(
+        ({ data }) => {
+          return data.entry?.length > 0;
+        },
+        () => {
+          return false;
+        }
+      )
+      : Promise.resolve(false);
   }
 
   /**
    * Checks if the ":not" search parameter modifier is interpreted incorrectly
    * (HAPI FHIR server issue).
+   * @param {Object} [options] - additional options (see getWithCache)
    * @return {Promise<boolean>}
    */
-  checkNotModifierIssue() {
-    return this.getWithCache(
-      'Observation?_count=1',
-      this.getCommonInitRequestOptions()
-    ).then((response) => {
-      const obs = response.data.entry?.[0].resource;
-      const firstCode =
-        obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
-      const patientRef = obs?.subject?.reference;
-      return firstCode && patientRef
-        ? this.getWithCache(
+  checkNotModifierIssue(options) {
+    return this.getWithCache('Observation?_count=1', options).then(
+      (response) => {
+        const obs = response.data.entry?.[0].resource;
+        const firstCode =
+          obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
+        const patientRef = obs?.subject?.reference;
+        return firstCode && patientRef
+          ? this.getWithCache(
             `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
             this.getCommonInitRequestOptions()
           ).then((oneCodeResp) => {
@@ -380,29 +405,30 @@ export class FhirBatchQuery {
               oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
             return secondCode
               ? Promise.allSettled([
-                  typeof oneCodeResp.data.total === 'number'
-                    ? Promise.resolve(oneCodeResp)
-                    : this.getWithCache(
-                        `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                        this.getCommonInitRequestOptions()
-                      ),
-                  this.getWithCache(
-                    `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                typeof oneCodeResp.data.total === 'number'
+                  ? Promise.resolve(oneCodeResp)
+                  : this.getWithCache(
+                    `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
                     this.getCommonInitRequestOptions()
+                  ),
+                this.getWithCache(
+                  `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                  this.getCommonInitRequestOptions()
+                )
+              ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
+                return summaryOneCodeResp.status === 'fulfilled' &&
+                summaryTwoCodeResp.status === 'fulfilled'
+                  ? Promise.resolve(
+                    summaryTwoCodeResp.value.data.total <
+                    summaryOneCodeResp.value.data.total
                   )
-                ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
-                  return summaryOneCodeResp.status === 'fulfilled' &&
-                    summaryTwoCodeResp.status === 'fulfilled'
-                    ? Promise.resolve(
-                        summaryTwoCodeResp.value.data.total <
-                          summaryOneCodeResp.value.data.total
-                      )
-                    : Promise.reject();
-                })
+                  : Promise.reject();
+              })
               : Promise.reject();
           })
-        : Promise.reject();
-    });
+          : Promise.reject();
+      }
+    );
   }
 
   /**
