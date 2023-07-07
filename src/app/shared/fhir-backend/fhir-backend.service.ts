@@ -512,6 +512,7 @@ export class FhirBackendService implements HttpBackend {
                 if (
                   status >= 400 &&
                   status < 500 &&
+                  this.injector.get(RasTokenService).rasTokenValidated &&
                   // Don't show session expired message on "browse public data".
                   // Access to CohortService via injector to avoid circular dependency.
                   this.injector.get(CohortService).createCohortMode !==
