@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.3.6] - 2023-07-10
+### Fixed
+- Show the list of Observation variables with the same name
+  in define cohort step.
+
 ## [6.3.5] - 2023-07-06
 ### Fixed
 - Replaced use of ":not=zzz" in autocomplete with ":missing=false" if supported.
