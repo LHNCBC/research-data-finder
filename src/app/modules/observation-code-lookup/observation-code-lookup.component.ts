@@ -397,6 +397,9 @@ export class ObservationCodeLookupComponent
                     catchError((error) => {
                       this.loading = false;
                       reject(error);
+                      // Even though it now fails, we still form a proper display for items we have
+                      // retrieved so far, in case there are different items with the same display.
+                      this.appendCodeSystemToDuplicateDisplay(contains);
                       return of(contains);
                     })
                   );
