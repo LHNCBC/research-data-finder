@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.4.0] - 2023-07-11
+### Added
+- Next page preloading for resource tables and using it to load variables
+  from observations.
+
 ## [6.3.0] - 2023-06-08
 ### Added
 - "Browse public data" option for other FHIR servers

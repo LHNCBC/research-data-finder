@@ -39,7 +39,7 @@ describe('SelectRecordsService', () => {
       { active: 'dispay_name', direction: 'desc' },
       0
     );
-    service.resourceStream['Variable'].subscribe(() => {});
+    service.currentState['Variable'].resourceStream.subscribe(() => {});
     mockHttp
       .expectOne((req: HttpRequest<any>) => {
         return (
@@ -55,7 +55,7 @@ describe('SelectRecordsService', () => {
 
   it('should search by prefix when filtering by study_id', () => {
     service.loadVariables([], {}, { study_id: 'someid' }, null, 0);
-    service.resourceStream['Variable'].subscribe(() => {});
+    service.currentState['Variable'].resourceStream.subscribe(() => {});
     mockHttp
       .expectOne((req: HttpRequest<any>) => {
         return (
@@ -73,8 +73,8 @@ describe('SelectRecordsService', () => {
     const emptyBundle = {};
 
     function loadFirstPageOfObservations() {
-      service.loadVariablesFromObservations([], {}, {}, null, true);
-      service.resourceStream['Observation'].subscribe();
+      service.loadFirstPageOfVariablesFromObservations([], {}, {}, null);
+      service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne('$fhir/Observation?_elements=code,value,category&_count=50')
         .flush(observations);
@@ -91,8 +91,8 @@ describe('SelectRecordsService', () => {
       });
       loadFirstPageOfObservations();
 
-      service.loadVariablesFromObservations([], {}, {}, null, false);
-      service.resourceStream['Observation'].subscribe();
+      service.loadNextPageOfVariablesFromObservations([], {}, {}, null);
+      service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
           '$fhir/Observation?_elements=code,value,category&code:not=http://loinc.org%7C11881-0&code:not=http://loinc.org%7C3137-7&code:not=http://loinc.org%7C8302-2&code:not=http://loinc.org%7C8303-0&_count=50'
@@ -108,8 +108,8 @@ describe('SelectRecordsService', () => {
       });
       loadFirstPageOfObservations();
 
-      service.loadVariablesFromObservations([], {}, {}, null, false);
-      service.resourceStream['Observation'].subscribe();
+      service.loadNextPageOfVariablesFromObservations([], {}, {}, null);
+      service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
           '$fhir/Observation?_elements=code,value,category&code:not=http://loinc.org%7C11881-0,http://loinc.org%7C3137-7,http://loinc.org%7C8302-2,http://loinc.org%7C8303-0&_count=50'
@@ -172,8 +172,8 @@ describe('SelectRecordsService', () => {
         mockHttp.expectOne(url).flush(patientWithSubjects);
       });
 
-      service.loadVariablesFromObservations([], {}, {}, null, false);
-      service.resourceStream['Observation'].subscribe();
+      service.loadNextPageOfVariablesFromObservations([], {}, {}, null);
+      service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
           '$fhir/Observation?_elements=code,value,category&code:not=http://loinc.org%7C11881-0,http://loinc.org%7C3137-7,http://loinc.org%7C8302-2,http://loinc.org%7C8303-0&_count=50'

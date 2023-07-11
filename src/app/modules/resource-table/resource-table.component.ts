@@ -220,11 +220,13 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() selectAny = false;
   @ViewChild(CdkVirtualScrollViewport) scrollViewport: CdkVirtualScrollViewport;
   @Output() loadNextPage = new EventEmitter();
-  // A number that identifies a timer to periodically load the next page.
+  // Subscription to interval to periodically preload the next page.
   // This is necessary to avoid expiration of the link to the next page.
-  loadNextPageTimer: any;
-  // Interval in milliseconds to force the next page to load
-  keepAliveTimeout = 120000;
+  preloadSubscription: Subscription;
+  // Event emitter to preload the next page
+  @Output() preloadNextPage = new EventEmitter();
+  // Interval in milliseconds to periodically preload the next page
+  keepAliveTimeout = 20000;
   @Output() filterChanged = new EventEmitter();
   @Output() sortChanged = new EventEmitter();
   // Whether we need to force sorting on the client side and ignore the `(sortChanged)` handler
@@ -322,6 +324,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+    this.preloadSubscription?.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -422,8 +425,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           Object.keys(this.columnsWithData)
         );
       }
+      this.preloadSubscription?.unsubscribe();
       // setTimeout is needed to update the table after this.dataSource changes
-      setTimeout(() => this.onScroll());
+      setTimeout(() => {
+        this.onScroll();
+      });
+      this.runPreloadEvents();
     }
 
     // Update resource table columns
@@ -442,6 +449,21 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         !!scrollViewport?.querySelector(
           '.cdk-keyboard-focused .mat-sort-header-container'
         )
+      );
+    }
+  }
+
+  /**
+   * Starts emitting preload events.
+   */
+  runPreloadEvents(): void {
+    if (this.preloadNextPage.observers.length > 0) {
+      this.preloadSubscription = interval(this.keepAliveTimeout).subscribe(
+        () => {
+          // Preload the next page after the specified time has elapsed
+          // so that the link to the next page does not expire:
+          this.preloadNextPage.emit();
+        }
       );
     }
   }
@@ -827,16 +849,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         scrollViewport.scrollTop -
         scrollViewport.clientHeight;
 
-      clearTimeout(this.loadNextPageTimer);
       if (isNotDetached && delta >= bottomDistance) {
         this.loadNextPage.emit();
-      } else {
-        // In any case, load the next page after the specified time has elapsed
-        // so that the link to the next page does not expire:
-        this.loadNextPageTimer = setTimeout(
-          () => this.loadNextPage.emit(),
-          this.keepAliveTimeout
-        );
       }
     }
   }
