@@ -41,7 +41,7 @@
                         resourceTable.dataSource.data.length
                       }} {{
                         resourceType | pluralFormOfRecordName | lowercase
-                      }}.</span>
+                      }}. Study selection limits list of variables.</span>
                 </mat-panel-title>
                 <mat-panel-description *ngIf="(selectRecords.currentState[resourceType].isCached | async) !== null">
                   <span *ngIf="resourceTable.loading; else loadedTemplate">
