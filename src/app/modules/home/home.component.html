@@ -14,6 +14,8 @@
            matTooltip="Log out from dbGaP"
            role="link"
            aria-label="Log out from dbGaP"
+           (keydown.enter)="onRasLogout()"
+           (keydown.space)="onRasLogout();$event.preventDefault();"
            (click)="onRasLogout()">Log out</div>
       <div class="logout"
            tabIndex="0"
@@ -21,6 +23,8 @@
            matTooltip="Log out from SMART on FHIR"
            role="link"
            aria-label="Log out from SMART on FHIR"
+           (keydown.enter)="onSmartLogout()"
+           (keydown.space)="onSmartLogout();$event.preventDefault();"
            (click)="onSmartLogout()">Log out</div>
       <div id="version">Version: <a target="_blank"
                                     tabIndex="0"
