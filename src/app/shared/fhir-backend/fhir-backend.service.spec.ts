@@ -356,14 +356,17 @@ describe('FhirBatchQuery', () => {
     });
     // There are no preflight requests during the test
     fhirBatchQuery._maxTimeForPreflightRequest = 0;
+    fhirBatchQuery.addEventListener('batch-issue', () => {
+      fhirBatchQuery.setMaxRequestsPerBatch(1);
+    });
+    spyOn(fhirBatchQuery, 'dispatchEvent').and.callThrough();
   });
 
   afterEach(() => {
     server.remove();
   });
 
-  it('should resent requests separately if batch request fails', (done) => {
-    spyOn(fhirBatchQuery, 'dispatchEvent');
+  it('should resend requests if batch request fails', (done) => {
     Promise.allSettled([
       fhirBatchQuery.getWithCache('someUrl1'),
       fhirBatchQuery.getWithCache('someUrl2'),

@@ -874,12 +874,11 @@ export class FhirBatchQuery extends EventTarget {
         },
         ({ status, error }) => {
           if (status === HTTP_ABORT && !signal?.aborted) {
-            // If the batch request was aborted by the server, the reason maybe we request too much data.
-            // We are trying to resend the requests separately.
-            this._pending.unshift(
-              ...requests.map((req) => ({ ...req, combine: false }))
-            );
-            // And notify the user about possible problems with batch requests.
+            // If the batch request was aborted by the server, the reason maybe
+            // we requested too much data.
+            // We are trying to resend the requests in smaller batches
+            // and notify the user about possible problems with batch requests.
+            this._pending.unshift(...requests.map((req) => ({ ...req })));
             this.dispatchEvent(new Event('batch-issue'));
           } else {
             // If the batch request fails, show an error only for the first
