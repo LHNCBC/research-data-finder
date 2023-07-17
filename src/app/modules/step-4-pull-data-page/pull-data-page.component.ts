@@ -446,26 +446,40 @@ export class PullDataPageComponent
       this.isVariablePatientTable &&
       this.getCurrentResourceType() === 'Observation'
     ) {
+      const valueQuantityColumns = [];
+      const valueQuantityData = this.variablePatientTableDataSource[0]
+        .valueQuantityData;
       const header = this.variablePatientTableColumns
         .map((c) => {
           if (c === 'Patient') {
             return c;
-          } else {
+          } else if (valueQuantityData[c]) {
+            // It is a column of type "ValueQuantity".
+            valueQuantityColumns.push(c);
             // Separate each column into value & unit columns in export
             return [`${c} Value`, `${c} Unit`];
+          } else {
+            // For a non-ValueQuantity column, don't add an extra "Unit" column.
+            return c;
           }
         })
         .flat();
+      console.log(valueQuantityData);
+      console.log(valueQuantityColumns);
       const rows = this.variablePatientTableDataSource.map((row) =>
         this.variablePatientTableColumns
           .map((column) => {
             if (column === 'Patient') {
               return row.cells[column];
-            } else {
+            } else if (valueQuantityColumns.includes(column)) {
+              // Return "Value" and "Unit" columns for a ValueQuantity column.
               const valueQuantity = row.valueQuantityData[column];
               return valueQuantity
                 ? [valueQuantity.value ?? '', valueQuantity.unit ?? '']
                 : [row.cells[column], ''];
+            } else {
+              // Return single column for a non-ValueQuantity column, consistent with the header.
+              return row.cells[column];
             }
           })
           .flat()
