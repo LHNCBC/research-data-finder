@@ -470,8 +470,6 @@ export class PullDataPageComponent
           }
         })
         .flat();
-      console.log(valueQuantityData);
-      console.log(valueQuantityColumns);
       const rows = this.variablePatientTableDataSource.map((row) =>
         this.variablePatientTableColumns
           .map((column) => {

@@ -27,13 +27,6 @@
 <mat-tab-group dynamicHeight class="mat-elevation-z1">
   <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="getPluralFormOfResourceType(resourceType)">
     <div class="v-box tab-content">
-      <div class="h-box" *ngIf="resourceType === 'Observation'">
-        <mat-checkbox [(ngModel)]="isVariablePatientTable"
-                      [disabled]="!canConvertToVariablePatientTable || !pullData.getHasLoadedData('Observation')">
-          Convert to Variable-Patient table
-        </mat-checkbox>
-      </div>
-      <div *ngIf="resourceType === 'Observation'" class="spacer"></div>
       <div class="h-box">
         <mat-form-field class="number-field" *ngIf="perPatientFormControls[resourceType]">
           <mat-label>Limit per patient<span *ngIf='resourceType === "Observation"'>&nbsp;per test</span></mat-label>
@@ -45,7 +38,6 @@
           <input matInput [formControl]="maxObservationToCheck" type="number" min="1">
         </mat-form-field>
       </div>
-
       <div class="h-box for-selected-codes">
         <button mat-stroked-button
                 [disabled]="!isValidTab(resourceType) || !cohort.currentState.patients.length"
@@ -62,6 +54,13 @@
         </app-search-parameter-group>
       </div>
       <div class="spacer"></div>
+      <div class="h-box" *ngIf="resourceType === 'Observation'">
+        <mat-checkbox [(ngModel)]="isVariablePatientTable"
+                      [disabled]="!canConvertToVariablePatientTable || !pullData.getHasLoadedData('Observation')">
+          Convert to Variable-Patient table
+        </mat-checkbox>
+      </div>
+      <div *ngIf="resourceType === 'Observation'" class="spacer"></div>
       <app-resource-table *ngIf="(resourceType !== 'Observation' || !isVariablePatientTable) && pullData.resourceStream[resourceType]"
           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'pull-data') | async"
           context="pull-data"
