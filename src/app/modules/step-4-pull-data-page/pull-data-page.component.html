@@ -57,7 +57,7 @@
       <div class="h-box" *ngIf="resourceType === 'Observation'">
         <mat-checkbox [(ngModel)]="isVariablePatientTable"
                       [disabled]="!canConvertToVariablePatientTable || !pullData.getHasLoadedData('Observation')">
-          Convert to Variable-Patient table
+          Show as table with variable names as columns (only available when there is just one result per test per patient)
         </mat-checkbox>
       </div>
       <div *ngIf="resourceType === 'Observation'" class="spacer"></div>
