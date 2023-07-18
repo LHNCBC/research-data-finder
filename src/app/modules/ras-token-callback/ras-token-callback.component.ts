@@ -34,16 +34,6 @@ export class RasTokenCallbackComponent implements OnInit {
           this.rasToken.isRasCallbackNavigation = true;
           sessionStorage.setItem('dbgapTstToken', data['message']['tst']);
           const server = sessionStorage.getItem('dbgapRasLoginServer');
-          const {
-            apiKey,
-            maxRequestsPerBatch,
-            maxActiveRequests,
-            cacheDisabled
-          } = JSON.parse(sessionStorage.getItem('settings'));
-          this.fhirBackend.apiKey = apiKey;
-          this.fhirBackend.maxRequestsPerBatch = maxRequestsPerBatch;
-          this.fhirBackend.maxActiveRequests = maxActiveRequests;
-          this.fhirBackend.cacheEnabled = !cacheDisabled;
           this.fhirBackend.serviceBaseUrl = server;
           this.router.navigate(['/'], {
             queryParams: {

@@ -180,6 +180,7 @@ export class FhirBackendService implements HttpBackend {
 
   set cacheEnabled(value: boolean) {
     this.isCacheEnabled = value;
+    sessionStorage.setItem('isCacheEnabled', value.toString());
     if (!value) {
       FhirBatchQuery.clearCache();
     }
@@ -225,6 +226,7 @@ export class FhirBackendService implements HttpBackend {
     private liveAnnouncer: LiveAnnouncer,
     private dialog: MatDialog
   ) {
+    this.isCacheEnabled = sessionStorage.getItem('isCacheEnabled') !== 'false';
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
     // This check is necessary because we are loading the entire application
@@ -253,7 +255,7 @@ export class FhirBackendService implements HttpBackend {
   dbgapRelogin$ = new ReplaySubject<void>();
 
   // Whether to cache requests to the FHIR server
-  private isCacheEnabled = true;
+  private isCacheEnabled;
 
   // Whether to show a checkbox of SMART on FHIR connection.
   public isSmartOnFhirEnabled = false;
@@ -361,11 +363,10 @@ export class FhirBackendService implements HttpBackend {
             this.settings.loadCsvDefinitions().subscribe(
               (resourceDefinitions) => {
                 this.currentDefinitions = { resources: resourceDefinitions };
-                // Do not set advanced settings controls if it's during RAS login callback.
-                // They have been set from sessionStorage.
-                if (
-                  !this.injector.get(RasTokenService).isRasCallbackNavigation
-                ) {
+                // Below block should only be run for the first time opening the app.
+                // Do not set advanced settings controls if sessionStorage has 'maxPerBatch' stored.
+                // They should be set from sessionStorage in cases like refreshing page.
+                if (sessionStorage.getItem('maxPerBatch') === null) {
                   this.fhirClient.setMaxRequestsPerBatch(
                     this.settings.get('maxRequestsPerBatch')
                   );

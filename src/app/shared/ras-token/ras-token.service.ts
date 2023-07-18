@@ -27,7 +27,6 @@ export class RasTokenService {
    * Initiates login to RAS
    * @param serviceBaseUrl - FHIR REST API Service Base URL
    *   (See https://www.hl7.org/fhir/http.html#root)
-   * @param settings - settings in the Settings step
    * @param createCohortMode - selected cohort creation mode
    * @param currentStepperIndex - user's current step in StepperComponent
    * @param goNextStep - whether the system should bring user to the next step
@@ -36,14 +35,11 @@ export class RasTokenService {
    */
   login(
     serviceBaseUrl: string,
-    settings: any,
     createCohortMode: CreateCohortMode,
     currentStepperIndex = Step.SELECT_AN_ACTION.valueOf(),
     goNextStep = true
   ): void {
     sessionStorage.setItem('dbgapRasLoginServer', serviceBaseUrl);
-    // Store settings object, so the controls in Advanced Settings can be restored.
-    sessionStorage.setItem('settings', JSON.stringify(settings));
     // Store user's selection, so it can be restored after successful RAS connection.
     sessionStorage.setItem('selectedCreateCohortMode', createCohortMode);
     sessionStorage.setItem(
