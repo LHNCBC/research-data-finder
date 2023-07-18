@@ -188,7 +188,7 @@
 
       <tr class="mat-row" *matNoDataRow>
         <ng-container *ngIf="!loading">
-          <td class="mat-cell" [attr.colspan]="columnDescriptions.length + 1">
+          <td class="mat-cell" [attr.colspan]="(columnDescriptions?.length || 0) + 1">
             <ng-container *ngIf="hasFilters(); else noFiltersBlock">
               There are no records for the selected filters.
               <span id="clearFilters"
