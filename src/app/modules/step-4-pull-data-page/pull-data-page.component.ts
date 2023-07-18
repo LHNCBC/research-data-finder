@@ -82,6 +82,8 @@ export class PullDataPageComponent
   variablePatientTableColumns: string[] = [];
   // DataSource for the Variable-Patient table
   variablePatientTableDataSource: TableRow[] = [];
+  // Whether the Observation table can be converted to Variable-Patient table.
+  canConvertToVariablePatientTable = false;
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -293,6 +295,10 @@ export class PullDataPageComponent
       // Clear Variable-Patient table dataSource which was built from the previous
       // Observation table data.
       this.variablePatientTableDataSource.length = 0;
+      // Only allow converting to Variable-Patient table if Observation data is
+      // loaded with 1 code per patient per test.
+      this.canConvertToVariablePatientTable =
+        this.perPatientFormControls[resourceType]?.value === 1;
 
       const selectedObservationCodes = parameterGroup.getSearchParamValues()[0]
         .selectedObservationCodes;
