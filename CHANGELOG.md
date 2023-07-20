@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.4.0] - 2023-07-20
+### Added
+- "Browse public data" option for other FHIR servers
+
 ## [6.3.7] - 2023-07-20
 ### Fixed
 - Issue with incorrect caching of loaded studies

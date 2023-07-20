@@ -52,6 +52,7 @@ import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { isEqual, pickBy } from 'lodash-es';
 import { saveAs } from 'file-saver';
 import Observation = fhir.Observation;
+import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 
 type TableCells = { [key: string]: string };
 
@@ -70,7 +71,8 @@ interface TableRow {
 })
 export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   constructor(
-    private fhirBackend: FhirBackendService,
+    public fhirBackend: FhirBackendService,
+    public rasToken: RasTokenService,
     private http: HttpClient,
     private ngZone: NgZone,
     public columnDescriptionsService: ColumnDescriptionsService,

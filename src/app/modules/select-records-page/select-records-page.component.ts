@@ -59,13 +59,6 @@ export class SelectRecordsPageComponent
     super(fhirBackend, columnDescriptions, selectRecords);
   }
 
-  /**
-   * Whether form should have the Study tab
-   */
-  hasStudyTab(): boolean {
-    return this.fhirBackend.features.hasAvailableStudy;
-  }
-
   ngOnDestroy(): void {
     super.ngOnDestroy();
   }
@@ -119,9 +112,11 @@ export class SelectRecordsPageComponent
    * @param resourceType - resource type
    */
   clearSelectedRecords(resourceType: string): void {
-    const resourceTable = this.tables?.find(
-      (table) => table.resourceType === resourceType
-    );
+    const resourceTable =
+      // we can use resourceType="Observation" for the variable table
+      resourceType === 'Variable'
+        ? this.variableTable
+        : this.tables?.find((table) => table.resourceType === resourceType);
     resourceTable?.selectedResources.clear();
   }
 
