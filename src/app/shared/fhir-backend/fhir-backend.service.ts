@@ -11,7 +11,7 @@ import {
   HttpResponse,
   HttpXhrBackend
 } from '@angular/common/http';
-import { BehaviorSubject, Observable, Observer } from 'rxjs';
+import { BehaviorSubject, Observable, Observer, ReplaySubject } from 'rxjs';
 import {
   FhirBatchQuery,
   HTTP_ABORT,
@@ -21,7 +21,7 @@ import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam, setUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
-import { find, cloneDeep } from 'lodash-es';
+import { cloneDeep, find } from 'lodash-es';
 import { filter, map } from 'rxjs/operators';
 import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
@@ -29,7 +29,7 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { RasTokenService } from '../ras-token/ras-token.service';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
-import { CreateCohortMode } from '../cohort/cohort.service';
+import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -247,6 +247,9 @@ export class FhirBackendService implements HttpBackend {
   initialized = new BehaviorSubject(ConnectionStatus.Pending);
   currentDefinitions$: Observable<any>;
 
+  // Emits when dbGaP re-login is triggered (RAS TST token expired).
+  dbgapRelogin$ = new ReplaySubject<void>();
+
   // Whether to cache requests to the FHIR server
   private isCacheEnabled = true;
 
@@ -331,9 +334,9 @@ export class FhirBackendService implements HttpBackend {
       })
       .then(() => {
         // Set authorization header
+        const isDbgap = this.isDbgap(serviceBaseUrl || this.serviceBaseUrl);
         const dbgapTstToken =
-          this.isDbgap(serviceBaseUrl || this.serviceBaseUrl) &&
-          sessionStorage.getItem('dbgapTstToken');
+          isDbgap && sessionStorage.getItem('dbgapTstToken');
         const authorizationHeader = dbgapTstToken
           ? 'Bearer ' + dbgapTstToken
           : (this.smartConnectionSuccess &&
@@ -341,10 +344,13 @@ export class FhirBackendService implements HttpBackend {
             null;
         this.fhirClient.setAuthorizationHeader(authorizationHeader);
 
+        const isRasLoggedIn = this.injector.get(RasTokenService)
+          .rasTokenValidated;
         const initializeContext =
-          this.injector.get(RasTokenService).rasTokenValidated ||
-          this.smartConnectionSuccess
+          isRasLoggedIn || this.smartConnectionSuccess
             ? 'after-login'
+            : isDbgap && !isRasLoggedIn && this.isAlphaVersion
+            ? 'dbgap-pre-login'
             : '';
 
         this.fhirClient.initialize(serviceBaseUrl, initializeContext).then(
@@ -503,26 +509,27 @@ export class FhirBackendService implements HttpBackend {
             },
             ({ status, error }) => {
               if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
-                if (status >= 400 && status < 500) {
+                if (
+                  status >= 400 &&
+                  status < 500 &&
+                  this.injector.get(RasTokenService).rasTokenValidated &&
+                  // Don't show session expired message on "browse public data".
+                  // Access to CohortService via injector to avoid circular dependency.
+                  this.injector.get(CohortService).createCohortMode !==
+                    CreateCohortMode.NO_COHORT
+                ) {
                   this.dialogRef = this.dialog.open(AlertDialogComponent, {
                     data: {
                       header: 'Session Expired',
                       content:
                         'It looks like the session with dbGaP has expired.' +
-                        ' You will be returned to the login page so you can login and select consent groups again.' +
-                        ' Note that after logging in again, your session data will be lost.' +
-                        ' Hit Cancel if there is anything you would like to save first.',
+                        ' You will be returned to the login page so you can login and select consent groups again.',
                       hasCancelButton: true
                     }
                   });
                   this.dialogRef.afterClosed().subscribe((isOk) => {
                     if (isOk) {
-                      this.injector
-                        .get(RasTokenService)
-                        .login(
-                          this.serviceBaseUrl,
-                          CreateCohortMode.UNSELECTED
-                        );
+                      this.dbgapRelogin$.next();
                     }
                     this.dialogRef = null;
                   });

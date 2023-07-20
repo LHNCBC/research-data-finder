@@ -32,6 +32,7 @@ import { PullDataService } from '../pull-data/pull-data.service';
 import { CohortService } from '../cohort/cohort.service';
 import Observation = fhir.Observation;
 import { ObservationCodeLookupComponent } from '../../modules/observation-code-lookup/observation-code-lookup.component';
+import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
 import ResearchStudy = fhir.ResearchStudy;
 import ResearchSubject = fhir.ResearchSubject;
 
@@ -69,7 +70,8 @@ export class SelectRecordsService {
     private cart: CartService,
     private pullData: PullDataService,
     private cohort: CohortService,
-    private fhirBackend: FhirBackendService
+    private fhirBackend: FhirBackendService,
+    private customRxjs: CustomRxjsOperatorsService
   ) {}
 
   currentState: { [resourceType: string]: SelectRecordState } = {};
@@ -142,6 +144,7 @@ export class SelectRecordsService {
       this.fhirBackend.isCached(url, options?.context?.get(CACHE_NAME))
     );
     this.resourceStream[resourceType] = this.http.get(url, options).pipe(
+      this.customRxjs.takeAllIf(resourceType === 'ResearchStudy', options),
       map((data: Bundle) => {
         const cacheInfo = options?.context?.get(CACHE_INFO);
         currentState.loadTime = cacheInfo

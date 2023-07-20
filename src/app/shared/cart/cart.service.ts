@@ -280,6 +280,56 @@ export class CartService {
   }
 
   /**
+   * Gets cart criteria to be saved for later.
+   */
+  getCartCriteria(): any {
+    Object.values(this.itemsByResourceType).forEach((listData) => {
+      // Construct 'byIdArray' property to be saved to file or sessionStorage.
+      // The 'byId' property is a Map and will be lost.
+      listData['byIdArray'] = Array.from(listData.byId);
+    });
+    // Make a copy of variableData to clear the entry if a Variable has been removed.
+    // It's okay for the system to keep the entry, but we don't want to download
+    // it to the cohort file.
+    const variableData = {};
+    Object.entries(this.variableData).forEach(([k, v]) => {
+      if (this.itemsByResourceType['Variable'].byId.has(k)) {
+        variableData[k] = v;
+      }
+    });
+    return {
+      itemsByResourceType: this.itemsByResourceType,
+      logicalOperator: this.logicalOperator,
+      variableData,
+      variableUnits: this.variableUnits
+    };
+  }
+
+  /**
+   * Sets all selected records and lookups.
+   */
+  setCartCriteria(data: any): void {
+    this.itemsByResourceType = data.itemsByResourceType;
+    Object.values(this.itemsByResourceType).forEach((listData) => {
+      // Restore 'byId' Map property from 'byIdArray'.
+      listData.byId = new Map(listData['byIdArray']);
+    });
+    this.logicalOperator = data.logicalOperator;
+    this.variableData = data.variableData;
+    this.variableUnits = data.variableUnits;
+    if (this.itemsByResourceType['ResearchStudy']) {
+      this.getCartChangedSubject('ResearchStudy').next(
+        this.itemsByResourceType['ResearchStudy']
+      );
+    }
+    if (this.itemsByResourceType['Variable']) {
+      this.getCartChangedSubject('Variable').next(
+        this.itemsByResourceType['Variable']
+      );
+    }
+  }
+
+  /**
    * Resets all selected records.
    */
   reset(): void {

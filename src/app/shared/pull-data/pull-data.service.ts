@@ -17,6 +17,7 @@ import { HttpClient } from '@angular/common/http';
 import { ColumnValuesService } from '../column-values/column-values.service';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import BundleEntry = fhir.BundleEntry;
+import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
 
 type PatientMixin = { patientData?: Patient };
 
@@ -37,7 +38,8 @@ export class PullDataService {
     private cohort: CohortService,
     private fhirBackend: FhirBackendService,
     private http: HttpClient,
-    private columnValues: ColumnValuesService
+    private columnValues: ColumnValuesService,
+    private customRxjs: CustomRxjsOperatorsService
   ) {
     cohort.criteria$.subscribe(() => this.reset());
   }
@@ -188,31 +190,33 @@ export class PullDataService {
               .join(',')}`;
           }
 
-          let requests;
+          let requests, count;
 
           if (observationCodes.length) {
+            count = perPatientCount;
             // Create separate requests for each Observation code
             requests = observationCodes.map((code) => {
               return this.http.get(
-                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${perPatientCount}&combo-code=${code}`
+                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${count}&combo-code=${code}`
               );
             });
           } else {
-            const countParam =
+            count =
               resourceTypeParam === 'Observation'
                 ? // When no code is specified in the criteria, we load the
                   // maxObservationToCheck of recent Observations.
-                  `&_count=${maxObservationToCheck}`
-                : `&_count=${perPatientCount}`;
+                  maxObservationToCheck
+                : perPatientCount;
             requests = [
               this.http.get(
-                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}${countParam}`
+                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${count}`
               )
             ];
           }
 
           return requests.map((req) =>
             req.pipe(
+              this.customRxjs.takeBundleOf(count),
               concatMap((bundle: Bundle) => {
                 if (resourceType === 'EvidenceVariable') {
                   return this.loadEvidenceVariables(

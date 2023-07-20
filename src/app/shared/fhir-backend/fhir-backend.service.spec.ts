@@ -19,12 +19,17 @@ import {
 } from '@angular/material/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
+import queryResponseCache from './query-response-cache';
+import { RasTokenService } from '../ras-token/ras-token.service';
+import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
 
 describe('FhirBackendService', () => {
   let service: FhirBackendService;
   let httpClient: HttpClient;
   let defaultHttpXhrBackend: HttpXhrBackend;
   let matDialog: MatDialog;
+  let rasTokenService: RasTokenService;
+  let cohortService: CohortService;
   const responseFromDefaultBackend = new HttpResponse({
     status: 200,
     body: 'response from default backend'
@@ -32,6 +37,10 @@ describe('FhirBackendService', () => {
   const responseFromFhirBatchQuery = {
     status: 200,
     data: 'response from FhirBatchQuery'
+  };
+  const responseFromFhirBatchQuery401 = {
+    status: 401,
+    data: 'response from FhirBatchQuery 401'
   };
   const responseFromFhirBatchQueryCache = {
     status: 200,
@@ -223,6 +232,10 @@ describe('FhirBackendService', () => {
       httpClient = TestBed.inject(HttpClient);
       defaultHttpXhrBackend = TestBed.inject(HttpXhrBackend);
       matDialog = TestBed.inject(MatDialog);
+      rasTokenService = TestBed.inject(RasTokenService);
+      rasTokenService.rasTokenValidated = true;
+      cohortService = TestBed.inject(CohortService);
+      cohortService.createCohortMode = CreateCohortMode.SEARCH;
       spyOn(matDialog, 'open').and.returnValue({
         afterClosed: () => of(false)
       } as MatDialogRef<AlertDialogComponent>);
@@ -257,6 +270,89 @@ describe('FhirBackendService', () => {
           done();
         }
       );
+    });
+
+    it('should not show token expired message if browsing public data', (done) => {
+      cohortService.createCohortMode = CreateCohortMode.NO_COHORT;
+      httpClient.get('$fhir/some_related_url').subscribe(
+        () => {},
+        (response) => {
+          expect(response?.status).toBe(400);
+          expect(FhirBatchQuery.prototype.getWithCache).toHaveBeenCalledWith(
+            service.serviceBaseUrl + '/some_related_url',
+            {
+              combine: true,
+              signal: jasmine.any(AbortSignal),
+              cacheName: ''
+            }
+          );
+          expect(matDialog.open).not.toHaveBeenCalled();
+          done();
+        }
+      );
+    });
+  });
+
+  describe('caching', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        imports: [FhirBackendModule, MatDialogModule, BrowserAnimationsModule]
+      });
+      spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
+      spyOn(FhirBatchQuery.prototype, 'getVersionName').and.returnValue('R4');
+      spyOn(FhirBatchQuery.prototype, 'getFullUrl').and.returnValue('full_url');
+      spyOn(queryResponseCache, 'get').and.resolveTo(undefined);
+      spyOn(queryResponseCache, 'add').and.resolveTo();
+      service = TestBed.inject(FhirBackendService);
+      httpClient = TestBed.inject(HttpClient);
+      defaultHttpXhrBackend = TestBed.inject(HttpXhrBackend);
+    });
+
+    it('should not cache 401 response', (done) => {
+      spyOn(FhirBatchQuery.prototype, 'get').and.rejectWith(
+        responseFromFhirBatchQuery401
+      );
+      FhirBatchQuery.prototype
+        .getWithCache('some_url', { cacheErrors: true })
+        .then(
+          () => {},
+          (response) => {
+            expect(response?.status).toBe(401);
+            expect(FhirBatchQuery.prototype.get).toHaveBeenCalledWith(
+              'full_url',
+              {
+                combine: true,
+                cacheName: null,
+                retryCount: false,
+                cacheErrors: true
+              }
+            );
+            expect(queryResponseCache.add).not.toHaveBeenCalled();
+            done();
+          }
+        );
+    });
+
+    it('should cache 200 response', (done) => {
+      spyOn(FhirBatchQuery.prototype, 'get').and.resolveTo(
+        responseFromFhirBatchQuery
+      );
+      FhirBatchQuery.prototype
+        .getWithCache('some_url', { cacheErrors: true })
+        .then((response) => {
+          expect(response?.status).toBe(200);
+          expect(FhirBatchQuery.prototype.get).toHaveBeenCalledWith(
+            'full_url',
+            {
+              combine: true,
+              cacheName: null,
+              retryCount: false,
+              cacheErrors: true
+            }
+          );
+          expect(queryResponseCache.add).toHaveBeenCalled();
+          done();
+        });
     });
   });
 });

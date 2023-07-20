@@ -58,12 +58,12 @@ export async function configureTestingModule(
   }
   const fhirBackend = TestBed.inject(FhirBackendService);
   spyOnProperty(fhirBackend, 'currentVersion').and.returnValue('R4');
-  spyOnProperty(fhirBackend, 'features').and.returnValue({
+  spyOnProperty(fhirBackend, 'features').and.callFake(() => ({
     lastnLookup: true,
     sortObservationsByDate: true,
     sortObservationsByAgeAtEvent: false,
     ...(options.features ? options.features : {})
-  });
+  }));
 
   // Mock service base URL to apply default settings
   spyOnProperty(fhirBackend, 'serviceBaseUrl').and.returnValue(
@@ -96,7 +96,7 @@ export async function configureTestingModule(
       }
       return false;
     });
-  });
+  }, 20);
 
   await fhirBackend.initialized
     .pipe(

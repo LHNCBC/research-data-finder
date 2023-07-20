@@ -22,6 +22,7 @@ import { ResourceTableParentComponent } from '../resource-table-parent.component
 import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CohortService } from '../../shared/cohort/cohort.service';
+import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -65,13 +66,16 @@ export class PullDataPageComponent
   parameterGroups: {
     [resourceType: string]: FormControl<SearchParameterGroup>;
   } = {};
+  // Selected Observation codes
+  pullDataObservationCodes: Map<string, string> = null;
 
   constructor(
     private fhirBackend: FhirBackendService,
     public columnDescriptions: ColumnDescriptionsService,
     public cohort: CohortService,
     public pullData: PullDataService,
-    private liveAnnouncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer,
+    private columnValues: ColumnValuesService
   ) {
     super();
     fhirBackend.initialized
@@ -269,6 +273,18 @@ export class PullDataPageComponent
     }
     this.loadSubscription?.unsubscribe();
 
+    if (resourceType === 'Observation') {
+      const selectedObservationCodes = parameterGroup.getSearchParamValues()[0]
+        .selectedObservationCodes;
+      this.pullDataObservationCodes = new Map();
+      selectedObservationCodes.coding?.forEach((c, i) => {
+        this.pullDataObservationCodes.set(
+          c.code,
+          selectedObservationCodes.items[i]
+        );
+      });
+    }
+
     this.loadSubscription = this.pullData
       .loadResources(
         resourceType,
@@ -294,5 +310,45 @@ export class PullDataPageComponent
           ?.selectedObservationCodes.items.length > 0 ||
         this.maxObservationToCheck.valid)
     );
+  }
+
+  /**
+   * Get an object to be saved into sessionStorage before RAS re-login.
+   */
+  getReloginStatus(): any[] {
+    return this.visibleResourceTypes.map((r) => {
+      const tabInfo = {
+        resourceType: r,
+        perPatientFormControls: this.perPatientFormControls[r]?.value,
+        parameterGroups: this.parameterGroups[r].value
+      };
+      if (r === 'Observation') {
+        tabInfo['maxObservationToCheck'] = this.maxObservationToCheck.value;
+      }
+      return tabInfo;
+    });
+  }
+
+  /**
+   * Restore opened resource tabs and related form controls
+   * @param restoreStatus an object constructed from getReloginStatus() method.
+   */
+  restoreLoginStatus(restoreStatus: any[]): void {
+    let hasObservationTab = false;
+    restoreStatus.forEach((x) => {
+      if (x.resourceType === 'Observation') {
+        hasObservationTab = true;
+        this.maxObservationToCheck.setValue(x.maxObservationToCheck);
+      } else {
+        this.addTab(x.resourceType);
+      }
+      this.perPatientFormControls[x.resourceType]?.setValue(
+        x.perPatientFormControls
+      );
+      this.parameterGroups[x.resourceType].setValue(x.parameterGroups);
+    });
+    if (!hasObservationTab) {
+      this.removeTab('Observation');
+    }
   }
 }

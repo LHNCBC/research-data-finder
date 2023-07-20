@@ -17,6 +17,8 @@ import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { HttpContext } from '@angular/common/http';
 import { BrowseRecordsPageComponent } from '../browse-records-page/browse-records-page.component';
+import { MatTabGroup } from '@angular/material/tabs';
+import { SearchParameterGroup } from '../../types/search-parameter-group';
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -38,6 +40,7 @@ export class SelectRecordsPageComponent
   implements AfterViewInit, OnDestroy {
   @ViewChild('additionalCriteria')
   additionalCriteria: SearchParameterGroupComponent;
+  @ViewChild('tabGroup') tabGroup: MatTabGroup;
   maxPatientsNumber = new UntypedFormControl(
     this.cohort.maxPatientCount,
     Validators.required
@@ -321,5 +324,30 @@ export class SelectRecordsPageComponent
             .concat(...(this.cart.getListItems('ResearchStudy') || []))
             .map((r) => r.id)
     );
+  }
+
+  /**
+   * Sets all selected records and lookups.
+   * This is called when loading cohort or after RAS re-login in cart-based approach.
+   */
+  setCartCriteria(
+    cartCriteria: any,
+    additionalCriteria: SearchParameterGroup
+  ): void {
+    // Select the 'Variables' tab so the variable constraint controls is visible.
+    // Otherwise, the Prefetch autocomplete of a 'unit' control in 'Variables' cart cannot be setup.
+    this.tabGroup.selectedIndex = 1;
+    setTimeout(() => {
+      this.cart.setCartCriteria(cartCriteria);
+      // Select and restore 'additional criteria' tab.
+      this.tabGroup.selectedIndex = 2;
+      setTimeout(() => {
+        this.additionalCriteria.writeValue(additionalCriteria);
+        setTimeout(() => {
+          // Switch back to 'Studies' tab.
+          this.tabGroup.selectedIndex = 0;
+        }, 50);
+      });
+    });
   }
 }

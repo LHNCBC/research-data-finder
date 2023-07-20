@@ -17,6 +17,10 @@
       ],
       ResearchStudy: [
         'contextPatientId'
+      ],
+      Observation: [
+        'codeText',
+        'code'
       ]
     },
 
@@ -104,6 +108,18 @@
             ]
           }
         ],
+        "Observation": [
+          {
+            // See src/app/types/column.description.ts for details
+            displayName: "Code",
+            element: "code",
+            expression: "code",
+            displayByDefault: true,
+            types: [
+              "CodeableConceptCode"
+            ]
+          }
+        ]
       }
     },
   },

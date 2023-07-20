@@ -1,0 +1,225 @@
+{
+  "version": "6.2.12",
+  "serviceBaseUrl": "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1",
+  "isCartCriteria": true,
+  "maxPatientCount": 100,
+  "rawCriteria": {
+    "condition": "and",
+    "rules": [
+      {
+        "condition": "and",
+        "rules": [
+          {
+            "field": {
+              "element": "code text",
+              "value": "",
+              "selectedObservationCodes": {
+                "coding": [
+                  {
+                    "code": "phv00493202.v1.p1",
+                    "system": ""
+                  }
+                ],
+                "datatype": "CodeableConcept",
+                "items": [
+                  "Affection status"
+                ]
+              }
+            }
+          },
+          {
+            "field": {
+              "element": "observation value",
+              "value": {
+                "testValuePrefix": "",
+                "testValueModifier": "",
+                "testValue": {
+                  "codes": [
+                    "2"
+                  ],
+                  "items": [
+                    "selected test variable constraint"
+                  ]
+                },
+                "testValueUnit": "",
+                "testValuePrefix2": "",
+                "testValue2": "",
+                "observationDataType": "CodeableConcept"
+              }
+            }
+          }
+        ],
+        "resourceType": "Observation"
+      },
+      {
+        "condition": "and",
+        "resourceType": "Patient",
+        "rules": [
+          {
+            "field": {
+              "element": "gender",
+              "value": {
+                "codes": [
+                  "female"
+                ],
+                "items": [
+                  "Female"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "cartCriteria": {
+    "itemsByResourceType": {
+      "Variable": {
+        "list": [
+          {
+            "resourceType": "Variable",
+            "id": "phv00493202.v1.p1",
+            "display_name": "Affection status",
+            "loinc_long_name": "",
+            "loinc_short_name": "",
+            "loinc_num": "",
+            "study_id": "phs002410.v1",
+            "study_name": "FHIR Test Study BETA",
+            "dataset_id": "pht011553.v1",
+            "dataset_name": "final_CAMP_CData",
+            "class": "",
+            "type": "encoded value",
+            "unit": ""
+          }
+        ],
+        "byId": {},
+        "byIdArray": [
+          [
+            "phv00493202.v1.p1",
+            {
+              "resourceType": "Variable",
+              "id": "phv00493202.v1.p1",
+              "display_name": "Affection status",
+              "loinc_long_name": "",
+              "loinc_short_name": "",
+              "loinc_num": "",
+              "study_id": "phs002410.v1",
+              "study_name": "FHIR Test Study BETA",
+              "dataset_id": "pht011553.v1",
+              "dataset_name": "final_CAMP_CData",
+              "class": "",
+              "type": "encoded value",
+              "unit": ""
+            }
+          ]
+        ]
+      }
+    },
+    "logicalOperator": {
+      "ResearchStudy": "and",
+      "Variable": "and",
+      "Observation": "and"
+    },
+    "variableData": {
+      "phv00493202.v1.p1": {
+        "datatype": "CodeableConcept",
+        "value": {
+          "testValuePrefix": "",
+          "testValueModifier": "",
+          "testValue": {
+            "codes": [
+              "2"
+            ],
+            "items": [
+              "selected test variable constraint"
+            ]
+          },
+          "testValueUnit": "",
+          "testValuePrefix2": "",
+          "testValue2": "",
+          "observationDataType": "CodeableConcept"
+        }
+      }
+    },
+    "variableUnits": {}
+  },
+  "additionalCriteria": {
+    "resourceType": "Patient",
+    "parameters": [
+      {
+        "element": "gender",
+        "value": {
+          "codes": [
+            "female"
+          ],
+          "items": [
+            "Female"
+          ]
+        }
+      }
+    ]
+  },
+  "researchStudies": [],
+  "data": [
+    {
+      "resourceType": "Patient",
+      "id": "3635187",
+      "meta": {
+        "tag": [
+          {
+            "system": "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/CodeSystem/DbGaP-Backend-Source",
+            "code": "Nitro",
+            "display": "Resource served by Nitro backend."
+          }
+        ]
+      },
+      "identifier": [
+        {
+          "id": "3635187",
+          "system": "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/CodeSystem/DbGaPConcept-DbGaPSubjectIdentifier"
+        }
+      ],
+      "gender": "unknown"
+    },
+    {
+      "resourceType": "Patient",
+      "id": "3635188",
+      "meta": {
+        "tag": [
+          {
+            "system": "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/CodeSystem/DbGaP-Backend-Source",
+            "code": "Nitro",
+            "display": "Resource served by Nitro backend."
+          }
+        ]
+      },
+      "identifier": [
+        {
+          "id": "3635188",
+          "system": "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/CodeSystem/DbGaPConcept-DbGaPSubjectIdentifier"
+        }
+      ],
+      "gender": "unknown"
+    },
+    {
+      "resourceType": "Patient",
+      "id": "3635189",
+      "meta": {
+        "tag": [
+          {
+            "system": "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/CodeSystem/DbGaP-Backend-Source",
+            "code": "Nitro",
+            "display": "Resource served by Nitro backend."
+          }
+        ]
+      },
+      "identifier": [
+        {
+          "id": "3635189",
+          "system": "https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/CodeSystem/DbGaPConcept-DbGaPSubjectIdentifier"
+        }
+      ],
+      "gender": "unknown"
+    }
+  ]
+}
