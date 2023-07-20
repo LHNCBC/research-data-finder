@@ -15,6 +15,7 @@ import { SearchParameterGroupModule } from '../search-parameter-group/search-par
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { EllipsisTextModule } from '../../shared/ellipsis-text/ellipsis-text.module';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { TableVirtualScrollModule } from 'ng-table-virtual-scroll';
 
 @NgModule({
   declarations: [PullDataPageComponent],
@@ -35,6 +36,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
     MatCheckboxModule,
     FormsModule,
     EllipsisTextModule,
+    TableVirtualScrollModule,
     ScrollingModule
   ]
 })

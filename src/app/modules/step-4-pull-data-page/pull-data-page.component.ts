@@ -29,6 +29,7 @@ import { saveAs } from 'file-saver';
 // Use ECMAScript module distributions of csv-stringify package for our browser app.
 // See https://csv.js.org/stringify/distributions/browser_esm/
 import { stringify } from 'csv-stringify/browser/esm/sync';
+import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -81,7 +82,9 @@ export class PullDataPageComponent
   // Columns for the Variable-Patient table
   variablePatientTableColumns: string[] = [];
   // DataSource for the Variable-Patient table
-  variablePatientTableDataSource: TableRow[] = [];
+  variablePatientTableDataSource = new TableVirtualScrollDataSource<TableRow>(
+    []
+  );
   // Whether the Observation table can be converted to Variable-Patient table.
   canConvertToVariablePatientTable = false;
 
@@ -294,7 +297,7 @@ export class PullDataPageComponent
       this._isVariablePatientTable = false;
       // Clear Variable-Patient table dataSource which was built from the previous
       // Observation table data.
-      this.variablePatientTableDataSource.length = 0;
+      this.variablePatientTableDataSource.data.length = 0;
       // Only allow converting to Variable-Patient table if Observation data is
       // loaded with 1 code per patient per test.
       this.canConvertToVariablePatientTable =
@@ -387,7 +390,7 @@ export class PullDataPageComponent
     return this._isVariablePatientTable;
   }
   set isVariablePatientTable(value: boolean) {
-    if (value && !this.variablePatientTableDataSource.length) {
+    if (value && !this.variablePatientTableDataSource.data.length) {
       this.buildVariablePatientTableData();
     }
     this._isVariablePatientTable = value;
@@ -437,7 +440,7 @@ export class PullDataPageComponent
         tableRow.cells['codeText']
       ] = (tableRow.resource as Observation).valueQuantity;
     });
-    this.variablePatientTableDataSource = Array.from(
+    this.variablePatientTableDataSource.data = Array.from(
       variablePatientMap,
       (x) => x[1]
     );
@@ -453,7 +456,7 @@ export class PullDataPageComponent
       this.getCurrentResourceType() === 'Observation'
     ) {
       const valueQuantityColumns = [];
-      const valueQuantityData = this.variablePatientTableDataSource[0]
+      const valueQuantityData = this.variablePatientTableDataSource.data[0]
         .valueQuantityData;
       const header = this.variablePatientTableColumns
         .map((c) => {
@@ -470,7 +473,7 @@ export class PullDataPageComponent
           }
         })
         .flat();
-      const rows = this.variablePatientTableDataSource.map((row) =>
+      const rows = this.variablePatientTableDataSource.data.map((row) =>
         this.variablePatientTableColumns
           .map((column) => {
             if (column === 'Patient') {
