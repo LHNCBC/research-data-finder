@@ -144,7 +144,7 @@ export class SelectRecordsService {
       this.fhirBackend.isCached(url, options?.context?.get(CACHE_NAME))
     );
     this.resourceStream[resourceType] = this.http.get(url, options).pipe(
-      this.customRxjs.takeAllIf(resourceType === 'ResearchStudy'),
+      this.customRxjs.takeAllIf(resourceType === 'ResearchStudy', options),
       map((data: Bundle) => {
         const cacheInfo = options?.context?.get(CACHE_INFO);
         currentState.loadTime = cacheInfo
