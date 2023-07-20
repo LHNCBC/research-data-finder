@@ -3,9 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.3.5] - 2023-07-05
+## [6.3.7] - 2023-07-20
 ### Fixed
 - Issue with incorrect caching of loaded studies
+
+## [6.3.6] - 2023-07-19
+### Fixed
+- Do not show session expired message on "browse public data".
+
+## [6.3.5] - 2023-07-06
+### Fixed
+- Replaced use of ":not=zzz" in autocomplete with ":missing=false" if supported.
 
 ## [6.3.4] - 2023-06-23
 ### Fixed

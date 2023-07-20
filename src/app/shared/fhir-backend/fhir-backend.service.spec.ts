@@ -20,12 +20,16 @@ import {
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
 import queryResponseCache from './query-response-cache';
+import { RasTokenService } from '../ras-token/ras-token.service';
+import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
 
 describe('FhirBackendService', () => {
   let service: FhirBackendService;
   let httpClient: HttpClient;
   let defaultHttpXhrBackend: HttpXhrBackend;
   let matDialog: MatDialog;
+  let rasTokenService: RasTokenService;
+  let cohortService: CohortService;
   const responseFromDefaultBackend = new HttpResponse({
     status: 200,
     body: 'response from default backend'
@@ -228,6 +232,10 @@ describe('FhirBackendService', () => {
       httpClient = TestBed.inject(HttpClient);
       defaultHttpXhrBackend = TestBed.inject(HttpXhrBackend);
       matDialog = TestBed.inject(MatDialog);
+      rasTokenService = TestBed.inject(RasTokenService);
+      rasTokenService.rasTokenValidated = true;
+      cohortService = TestBed.inject(CohortService);
+      cohortService.createCohortMode = CreateCohortMode.SEARCH;
       spyOn(matDialog, 'open').and.returnValue({
         afterClosed: () => of(false)
       } as MatDialogRef<AlertDialogComponent>);
@@ -259,6 +267,26 @@ describe('FhirBackendService', () => {
             }
           );
           expect(matDialog.open).toHaveBeenCalled();
+          done();
+        }
+      );
+    });
+
+    it('should not show token expired message if browsing public data', (done) => {
+      cohortService.createCohortMode = CreateCohortMode.NO_COHORT;
+      httpClient.get('$fhir/some_related_url').subscribe(
+        () => {},
+        (response) => {
+          expect(response?.status).toBe(400);
+          expect(FhirBatchQuery.prototype.getWithCache).toHaveBeenCalledWith(
+            service.serviceBaseUrl + '/some_related_url',
+            {
+              combine: true,
+              signal: jasmine.any(AbortSignal),
+              cacheName: ''
+            }
+          );
+          expect(matDialog.open).not.toHaveBeenCalled();
           done();
         }
       );
