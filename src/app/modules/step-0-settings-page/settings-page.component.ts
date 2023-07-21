@@ -72,14 +72,7 @@ export class SettingsPageComponent implements OnDestroy {
     this.subscription = fromEvent(
       this.fhirBackend.fhirClient,
       'batch-issue'
-    ).subscribe(() => {
-      const maxRequestsPerBatch = this.fhirBackend.maxRequestsPerBatch;
-      this.settingsFormGroup
-        .get('maxRequestsPerBatch')
-        .setValue(Math.ceil(maxRequestsPerBatch / 2));
-      this.updateFhirBackendSetting('maxRequestsPerBatch');
-      this.showBatchIssueDialog();
-    });
+    ).subscribe(() => this.showBatchIssueDialog());
   }
 
   /**
@@ -96,16 +89,21 @@ export class SettingsPageComponent implements OnDestroy {
     if (!this.dialogRef) {
       this.dialogRef = this.dialog.open(AlertDialogComponent, {
         data: {
-          header: 'Problem with batch requests',
+          header: 'Disable batch requests?',
           content:
             'We are experiencing problems with batch requests.' +
-            ' Every time a batch request fails, we reduce the requests per batch by half and try to resend the requests.' +
-            ' You can also reduce the number of requests per batch in the settings step.'
+            ' Disabling them may improve performance.' +
+            " Currently, if a batch request doesn't work, we try to resend the requests separately." +
+            ' You can also reduce the number of requests per batch in the settings step.',
+          hasCancelButton: true
         }
       });
-      this.dialogRef.afterClosed().subscribe(() => {
-        // Do not clear the dialog reference to show it once
-        // this.dialogRef = null;
+      this.dialogRef.afterClosed().subscribe((isOk) => {
+        if (isOk) {
+          this.settingsFormGroup.get('maxRequestsPerBatch').setValue(1);
+          this.updateFhirBackendSetting('maxRequestsPerBatch');
+        }
+        this.dialogRef = null;
       });
     }
   }
