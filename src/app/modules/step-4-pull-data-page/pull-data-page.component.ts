@@ -87,6 +87,8 @@ export class PullDataPageComponent
   );
   // Whether the Observation table can be converted to Variable-Patient table.
   canConvertToVariablePatientTable = false;
+  // Whether the Variable-Patient table is full screen.
+  fullscreen = false;
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -518,5 +520,12 @@ export class PullDataPageComponent
     } else {
       super.downloadCsv();
     }
+  }
+
+  /**
+   * Toggle fullscreen mode
+   */
+  toggleFullscreen(): void {
+    this.fullscreen = !this.fullscreen;
   }
 }
