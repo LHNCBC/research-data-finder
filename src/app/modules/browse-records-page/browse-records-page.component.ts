@@ -78,7 +78,7 @@ export class BrowseRecordsPageComponent
    * Whether form should have the Study tab
    */
   hasStudyTab(): boolean {
-    return this.fhirBackend.features.hasResearchStudy;
+    return this.fhirBackend.features.hasAvailableStudy;
   }
 
   /**
@@ -140,10 +140,7 @@ export class BrowseRecordsPageComponent
   onSelectionChange(resourceType: string): void {
     if (resourceType === 'ResearchStudy') {
       this.selectRecords.resetState('Variable');
-      const variableTable = this.tables.find(
-        (table) => table.resourceType === 'Variable'
-      );
-      variableTable?.clearSelection();
+      this.selectRecords.resetState('Observation');
     }
   }
 

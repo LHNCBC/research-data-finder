@@ -32,7 +32,7 @@ describe('BrowseRecordsPageComponent', () => {
       },
       {
         features: {
-          hasResearchStudy: true
+          hasAvailableStudy: true
         },
         serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
       }

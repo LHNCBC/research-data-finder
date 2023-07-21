@@ -43,11 +43,31 @@ td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
   }
 }
 
+.empty-table {
+  width: 100%;
+  ::ng-deep .cdk-virtual-scroll-content-wrapper {
+    height: 100%;
+
+    table {
+      height: 100%;
+
+      tr.mat-no-data-row {
+        height: 100%;
+      }
+    }
+  }
+}
+
 .cell-text-no-wrap {
+  tr.mat-no-data-row {
+    td.mat-cell {
+      text-align: center;
+    }
+  }
   td.mat-cell {
     padding-top: 0;
     padding-bottom: 0;
-    vertical-align: center;
+    vertical-align: middle;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

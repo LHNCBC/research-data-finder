@@ -42,10 +42,13 @@ describe('ObservationCodeLookupComponent', () => {
   function keyDownInAutocompleteInput(
     input: HTMLInputElement,
     keyCode: number
-  ): Promise<any> {
+  ): Promise<void> {
     // @ts-ignore keyCode is deprecated, but autocomplete-lhc uses this property
     input.dispatchEvent(new KeyboardEvent('keydown', { keyCode }));
-    return fixture.whenStable();
+    // Let autocompleter and ObservationCodeLookupComponent to react on keydown event
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(), 100);
+    });
   }
 
   [
@@ -182,6 +185,11 @@ describe('ObservationCodeLookupComponent', () => {
         const ENTER = 13;
         input.focus();
         await keyDownInAutocompleteInput(input, ARROW_DOWN);
+        // Check if autocompleter displays the dropdown list
+        expect(
+          (document.querySelector('#searchResults') as HTMLElement).style
+            .visibility
+        ).toBe('visible');
         await keyDownInAutocompleteInput(input, ARROW_DOWN);
         await keyDownInAutocompleteInput(input, ENTER);
 
@@ -229,6 +237,11 @@ describe('ObservationCodeLookupComponent', () => {
         const ENTER = 13;
         input.focus();
         await keyDownInAutocompleteInput(input, ARROW_DOWN);
+        // Check if autocompleter displays the dropdown list
+        expect(
+          (document.querySelector('#searchResults') as HTMLElement).style
+            .visibility
+        ).toBe('visible');
         await keyDownInAutocompleteInput(input, ARROW_DOWN);
         await keyDownInAutocompleteInput(input, ENTER);
         await keyDownInAutocompleteInput(input, ARROW_DOWN);

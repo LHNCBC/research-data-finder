@@ -27,7 +27,7 @@
     contextColumns: {
       // Custom definition of the "Variable" table columns
       // See src/app/types/column.description.ts for details
-      "select": {
+      "select_or_browse": {
         "Variable": [
           {
             displayName: "Variable Display Text",
@@ -92,7 +92,7 @@
               "string"
             ]
           }
-        ],
+        ]
       },
       // Columns added to the resource table in the context of pulling data
       "pull-data": {
@@ -158,7 +158,7 @@
       contextColumns: {
         // Custom definition of the "Variable" table columns
         // See src/app/types/column.description.ts for details
-        "browse": {
+        "select_or_browse": {
           "Variable": [
             {
               displayName: "Id",
@@ -256,107 +256,7 @@
                 "string"
               ]
             }
-          ],
-        },
-        "select": {
-          "Variable": [
-            {
-              displayName: "Id",
-              element: "id",
-              displayByDefault: false,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "Variable Display Text",
-              element: "display_name",
-              displayByDefault: true,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "LOINC long common name",
-              element: "loinc_long_name",
-              displayByDefault: true,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "LOINC short name",
-              element: "loinc_short_name",
-              displayByDefault: false,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "LOINC code",
-              element: "loinc_num",
-              displayByDefault: true,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "Study ID",
-              element: "study_id",
-              displayByDefault: false,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "Study",
-              element: "study_name",
-              displayByDefault: true,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "Dataset ID",
-              element: "dataset_id",
-              displayByDefault: false,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "Dataset",
-              element: "dataset_name",
-              displayByDefault: true,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "LOINC class",
-              element: "class",
-              displayByDefault: true,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "Type",
-              element: "type",
-              displayByDefault: true,
-              types: [
-                "string"
-              ]
-            },
-            {
-              displayName: "Unit",
-              element: "unit",
-              displayByDefault: true,
-              types: [
-                "string"
-              ]
-            }
-          ],
+          ]
         }
       }
     }
