@@ -874,8 +874,9 @@ export class FhirBatchQuery extends EventTarget {
         },
         ({ status, error }) => {
           if (status === HTTP_ABORT && !signal?.aborted) {
-            // If the batch request was aborted by the server, the reason maybe we request too much data.
-            // We are trying to resend the requests separately.
+            // If the batch request was aborted by the server, the reason maybe
+            // we requested too much data. We are trying to resend the requests
+            // separately.
             this._pending.unshift(
               ...requests.map((req) => ({ ...req, combine: false }))
             );

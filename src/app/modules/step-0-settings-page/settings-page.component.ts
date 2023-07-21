@@ -103,7 +103,8 @@ export class SettingsPageComponent implements OnDestroy {
           this.settingsFormGroup.get('maxRequestsPerBatch').setValue(1);
           this.updateFhirBackendSetting('maxRequestsPerBatch');
         }
-        this.dialogRef = null;
+        // Do not clear the dialog reference to show it once
+        // this.dialogRef = null;
       });
     }
   }

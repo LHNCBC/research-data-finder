@@ -362,7 +362,7 @@ describe('FhirBatchQuery', () => {
     server.remove();
   });
 
-  it('should resent requests separately if batch request fails', (done) => {
+  it('should resend requests separately if batch request fails', (done) => {
     spyOn(fhirBatchQuery, 'dispatchEvent');
     Promise.allSettled([
       fhirBatchQuery.getWithCache('someUrl1'),
