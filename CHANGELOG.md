@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.5.0] - 2023-07-20
+### Added
+- Use CTSS for Observation code lookup in the pull data step.
+
 ## [6.4.1] - 2023-07-21
 ### Fixed
 - Show the list of Observation variables with the same name

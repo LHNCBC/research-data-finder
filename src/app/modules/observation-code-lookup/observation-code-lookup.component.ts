@@ -18,7 +18,7 @@ import { SelectedObservationCodes } from '../../types/selected-observation-codes
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
 import { EMPTY, forkJoin, of, Subject, Subscription } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
 import {
   getNextPageUrl,
@@ -32,6 +32,8 @@ import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import { ErrorStateMatcher } from '@angular/material/core';
 import WORDSYNONYMS from '../../../../word-synonyms.json';
 import { CohortService } from '../../shared/cohort/cohort.service';
+import { CartService } from '../../shared/cart/cart.service';
+import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 
 // This value should be used as the "datatype" field value for the form control
 // value if we don't have a "variable value" criterion (in the "Pull data for
@@ -178,6 +180,8 @@ export class ObservationCodeLookupComponent
     private elementRef: ElementRef,
     private httpClient: HttpClient,
     public cohort: CohortService,
+    private cart: CartService,
+    private selectRecords: SelectRecordsService,
     private errorStateMatcher: ErrorStateMatcher
   ) {
     super();
@@ -226,11 +230,65 @@ export class ObservationCodeLookupComponent
   }
 
   /**
-   * Set up the autocompleter
+   * Set up the autocompleter.
    */
   setupAutocomplete(): void {
-    const testInputId = this.inputId;
+    if (
+      this.isPullData &&
+      this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl)
+    ) {
+      this.setupAutocompleteInputToUseCTSS();
+    } else {
+      this.setupAutocompleteInputToUseObservations();
+    }
+    this.updateAutocomplete();
 
+    // Restore mapping from code to datatype from preselected data,
+    // if restricted by datatype
+    if (this.currentData.datatype !== ANY_DATATYPE) {
+      this.currentData.coding.forEach((code) => {
+        if (!this.code2Type[code.system + '|' + code.code]) {
+          this.code2Type[
+            code.system + '|' + code.code
+          ] = this.currentData.datatype;
+        }
+      });
+    }
+
+    const acInstance = this.acInstance;
+    this.listSelectionsObserver = (eventData) => {
+      const coding = acInstance.getSelectedCodes();
+      const items = acInstance.getSelectedItems();
+      let datatype = '';
+      if (coding.length > 0) {
+        datatype = this.code2Type[coding[0].system + '|' + coding[0].code];
+        if (!eventData.removed) {
+          acInstance.domCache.set('elemVal', eventData.val_typed_in);
+          acInstance.useSearchFn(
+            eventData.val_typed_in,
+            Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD
+          );
+        }
+      }
+      this.currentData = {
+        coding,
+        // If there is no restriction by datatype, then do not reset the datatype
+        datatype:
+          this.currentData.datatype === ANY_DATATYPE ? ANY_DATATYPE : datatype,
+        items
+      };
+      this.onChange(this.currentData);
+    };
+    Def.Autocompleter.Event.observeListSelections(
+      this.inputId,
+      this.listSelectionsObserver
+    );
+  }
+
+  /**
+   * Set up the autocompleter to extract data from observations.
+   */
+  setupAutocompleteInputToUseObservations(): void {
     const acInstance = (this.acInstance = new Def.Autocompleter.Search(
       // We can't use the input element's id here, because it might not be
       // in DOM if the component is in an inactive tab.
@@ -425,47 +483,93 @@ export class ObservationCodeLookupComponent
         matchListValue: true
       }
     ));
+  }
 
-    this.updateAutocomplete();
+  /**
+   * Set up the autocompleter to use CTSS for Observation code lookup.
+   */
+  setupAutocompleteInputToUseCTSS(): void {
+    this.acInstance = new Def.Autocompleter.Search(
+      // We can't use the input element's id here, because it might not be
+      // in DOM if the component is in an inactive tab.
+      this.input.nativeElement,
+      null,
+      {
+        suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
+        fhir: {
+          search: (fieldVal, count) => {
+            const studiesInCart = this.cart.getListItems('ResearchStudy');
+            const studyIds = []
+              .concat(
+                ...(studiesInCart?.length
+                  ? studiesInCart
+                  : this.selectRecords.currentState['ResearchStudy']
+                      .resources || [])
+              )
+              .map((r) => r.id + '*');
+            const query = [
+              `(display_name:(${fieldVal}*) OR synonyms:(${fieldVal}))`
+            ];
+            if (studyIds.length) {
+              query.push('study_id:(' + studyIds.join(' OR ') + ')');
+            }
 
-    // Restore mapping from code to datatype from preselected data,
-    // if restricted by datatype
-    if (this.currentData.datatype !== ANY_DATATYPE) {
-      this.currentData.coding.forEach((code) => {
-        if (!this.code2Type[code.system + '|' + code.code]) {
-          this.code2Type[
-            code.system + '|' + code.code
-          ] = this.currentData.datatype;
-        }
-      });
-    }
+            let offset = 0;
+            // &authenticity_token=&terms=heigh
+            return {
+              then: (resolve, reject) => {
+                const url =
+                  'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search?rec_type=dbgv&df=uid,display_name';
+                const httpParams = new HttpParams({
+                  fromObject: {
+                    offset,
+                    count,
+                    df: 'uid,display_name',
+                    terms: '',
+                    q: query.join(' AND ')
+                  }
+                });
+                this.loading = true;
+                this.subscription?.unsubscribe();
 
-    this.listSelectionsObserver = (eventData) => {
-      const coding = acInstance.getSelectedCodes();
-      const items = acInstance.getSelectedItems();
-      let datatype = '';
-      if (coding.length > 0) {
-        datatype = this.code2Type[coding[0].system + '|' + coding[0].code];
-        if (!eventData.removed) {
-          acInstance.domCache.set('elemVal', eventData.val_typed_in);
-          acInstance.useSearchFn(
-            eventData.val_typed_in,
-            Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD
-          );
-        }
+                this.subscription = this.httpClient
+                  .post(url, httpParams.toString(), {
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                  })
+                  .subscribe(
+                    (data: any) => {
+                      const total = data[0];
+                      const dataList: Array<[string, string]> = data[3];
+                      resolve({
+                        resourceType: 'ValueSet',
+                        expansion: {
+                          total,
+                          contains:
+                            dataList.map(([uid, display_name]) => {
+                              return {
+                                code: { code: uid },
+                                display: display_name
+                              };
+                            })
+                        }
+                      });
+                      this.loading = false;
+                    },
+                    (error) => {
+                      this.loading = false;
+                      reject(error);
+                    }
+                  );
+              }
+            };
+          }
+        },
+        useResultCache: false,
+        maxSelect: '*',
+        matchListValue: true
       }
-      this.currentData = {
-        coding,
-        // If there is no restriction by datatype, then do not reset the datatype
-        datatype:
-          this.currentData.datatype === ANY_DATATYPE ? ANY_DATATYPE : datatype,
-        items
-      };
-      this.onChange(this.currentData);
-    };
-    Def.Autocompleter.Event.observeListSelections(
-      testInputId,
-      this.listSelectionsObserver
     );
   }
 

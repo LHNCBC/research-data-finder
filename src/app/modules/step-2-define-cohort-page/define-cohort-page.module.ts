@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [DefineCohortPageComponent],
@@ -20,7 +21,8 @@ import { MatButtonModule } from '@angular/material/button';
     SearchParametersModule,
     MatInputModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    MatProgressSpinnerModule
   ]
 })
 export class DefineCohortPageModule {}

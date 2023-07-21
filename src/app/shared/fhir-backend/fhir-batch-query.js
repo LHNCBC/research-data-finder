@@ -271,7 +271,8 @@ export class FhirBatchQuery {
             hasResearchStudy.status === 'fulfilled' &&
             hasResearchStudy.value.data.entry &&
             hasResearchStudy.value.data.entry.length > 0;
-          this._features.missingModifier = missingModifier.status === 'fulfilled';
+          this._features.missingModifier =
+            missingModifier.status === 'fulfilled';
           this._features.batch = batch.status === 'fulfilled';
         } else {
           // If initialization fails, do not cache initialization responses
@@ -321,13 +322,13 @@ export class FhirBatchQuery {
             this.checkHasAvailableStudy(options)
           ]).then(
             ([
-               observationsSortedByDate,
-               observationsSortedByAgeAtEvent,
-               lastnLookup,
-               interpretation,
-               hasNotModifierIssue,
-               hasAvailableStudy
-             ]) => {
+              observationsSortedByDate,
+              observationsSortedByAgeAtEvent,
+              lastnLookup,
+              interpretation,
+              hasNotModifierIssue,
+              hasAvailableStudy
+            ]) => {
               Object.assign(this._features, {
                 sortObservationsByDate:
                   observationsSortedByDate.status === 'fulfilled' &&
@@ -366,18 +367,18 @@ export class FhirBatchQuery {
   checkHasAvailableStudy(options) {
     return this._features.hasResearchStudy
       ? this.getWithCache(
-        `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
-          researchStudyStatusesByVersion[this._versionName]
-        }`,
-        options
-      ).then(
-        ({ data }) => {
-          return data.entry?.length > 0;
-        },
-        () => {
-          return false;
-        }
-      )
+          `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
+            researchStudyStatusesByVersion[this._versionName]
+          }`,
+          options
+        ).then(
+          ({ data }) => {
+            return data.entry?.length > 0;
+          },
+          () => {
+            return false;
+          }
+        )
       : Promise.resolve(false);
   }
 
@@ -396,36 +397,36 @@ export class FhirBatchQuery {
         const patientRef = obs?.subject?.reference;
         return firstCode && patientRef
           ? this.getWithCache(
-            `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
-            this.getCommonInitRequestOptions()
-          ).then((oneCodeResp) => {
-            const secondCode =
-              oneCodeResp.data.entry?.[0].resource.code.coding?.[0].system +
-              '%7C' +
-              oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
-            return secondCode
-              ? Promise.allSettled([
-                typeof oneCodeResp.data.total === 'number'
-                  ? Promise.resolve(oneCodeResp)
-                  : this.getWithCache(
-                    `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                    this.getCommonInitRequestOptions()
-                  ),
-                this.getWithCache(
-                  `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                  this.getCommonInitRequestOptions()
-                )
-              ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
-                return summaryOneCodeResp.status === 'fulfilled' &&
-                summaryTwoCodeResp.status === 'fulfilled'
-                  ? Promise.resolve(
-                    summaryTwoCodeResp.value.data.total <
-                    summaryOneCodeResp.value.data.total
-                  )
-                  : Promise.reject();
-              })
-              : Promise.reject();
-          })
+              `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
+              this.getCommonInitRequestOptions()
+            ).then((oneCodeResp) => {
+              const secondCode =
+                oneCodeResp.data.entry?.[0].resource.code.coding?.[0].system +
+                '%7C' +
+                oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
+              return secondCode
+                ? Promise.allSettled([
+                    typeof oneCodeResp.data.total === 'number'
+                      ? Promise.resolve(oneCodeResp)
+                      : this.getWithCache(
+                          `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                          this.getCommonInitRequestOptions()
+                        ),
+                    this.getWithCache(
+                      `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                      this.getCommonInitRequestOptions()
+                    )
+                  ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
+                    return summaryOneCodeResp.status === 'fulfilled' &&
+                      summaryTwoCodeResp.status === 'fulfilled'
+                      ? Promise.resolve(
+                          summaryTwoCodeResp.value.data.total <
+                            summaryOneCodeResp.value.data.total
+                        )
+                      : Promise.reject();
+                  })
+                : Promise.reject();
+            })
           : Promise.reject();
       }
     );
@@ -520,6 +521,20 @@ export class FhirBatchQuery {
     );
   }
 
+  /**
+   * Removes a parameter from the source URL and returns
+   * the new URL.
+   * @param {string} url source URL
+   * @param {string} name - parameter name
+   * @return {string}
+   */
+  removeParamFromUrl(url, name) {
+    const urlParts = url
+      .split(/[?&]/)
+      .filter((paramStr) => !paramStr.startsWith(name + '='));
+    return urlParts[0] + '?' + urlParts.slice(1).join('&');
+  }
+
   static clearCache() {
     queryResponseCache.clearAll();
   }
@@ -540,6 +555,17 @@ export class FhirBatchQuery {
   get(url, { combine = true, retryCount = false, signal = null } = {}) {
     return new Promise((resolve, reject) => {
       let fullUrl = this.getFullUrl(url);
+
+      // TODO: Temporary solution for the issue with "_count=1" on dbGap servers.
+      //   Currently, queries for observations with "_count=1" return errors.
+      if (
+        /^https:\/\/dbgap-api.ncbi.nlm.nih.gov\/fhir.*Observation\?.*_count=1(&|$)/.test(
+          fullUrl
+        )
+      ) {
+        fullUrl = this.removeParamFromUrl(fullUrl, '_count');
+      }
+
       let body, contentType, method;
       // Maximum URL length is 2048, but we can add some parameters later
       // (in the "_request" function).

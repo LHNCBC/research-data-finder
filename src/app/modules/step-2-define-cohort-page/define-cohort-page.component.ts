@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormControl,
@@ -15,6 +15,13 @@ import { SearchParametersComponent } from '../search-parameters/search-parameter
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 
 import { CohortService } from '../../shared/cohort/cohort.service';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
+import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -32,17 +39,45 @@ import { CohortService } from '../../shared/cohort/cohort.service';
 })
 export class DefineCohortPageComponent
   extends BaseControlValueAccessorAndValidator<any>
-  implements OnInit {
+  implements OnInit, OnDestroy {
   defineCohortForm: UntypedFormGroup;
+  subscriptions: Subscription[] = [];
 
   @ViewChild('patientParams') patientParams: SearchParametersComponent;
 
   constructor(
     private formBuilder: UntypedFormBuilder,
     private errorManager: ErrorManager,
+    public fhirBackend: FhirBackendService,
+    public selectRecords: SelectRecordsService,
     public cohort: CohortService
   ) {
     super();
+
+    this.subscriptions.push(
+      fhirBackend.initialized
+        .pipe(filter((status) => status === ConnectionStatus.Ready))
+        .subscribe(() => {
+          selectRecords.resetAll();
+          if (this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl)) {
+            // Load the available studies to use for limiting variables
+            // in the following steps.
+            const resourceType = 'ResearchStudy';
+            const hasStatuses =
+              '&_has:ResearchSubject:study:status=' +
+              Object.keys(
+                this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
+                  'ResearchSubject.status'
+                ]
+              ).join(',');
+            this.selectRecords.loadFirstPage(
+              resourceType,
+              `$fhir/${resourceType}?_count=3000${hasStatuses}`,
+              {}
+            );
+          }
+        })
+    );
   }
 
   ngOnInit(): void {
@@ -52,6 +87,10 @@ export class DefineCohortPageComponent
     this.defineCohortForm.valueChanges.subscribe((value) => {
       this.onChange(value);
     });
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
   validate({ value }: UntypedFormControl): ValidationErrors | null {
