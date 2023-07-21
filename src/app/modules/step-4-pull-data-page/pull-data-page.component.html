@@ -70,7 +70,7 @@
           [progressValue]="pullData.currentState[resourceType].progressValue"
           [pullDataObservationCodes]="pullDataObservationCodes">
       </app-resource-table>
-      <cdk-virtual-scroll-viewport *ngIf="resourceType === 'Observation' && isVariablePatientTable" tvsItemSize class="table-container mat-elevation-z4">
+      <cdk-virtual-scroll-viewport *ngIf="resourceType === 'Observation' && isVariablePatientTable" tvsItemSize bufferMultiplier="0.1" class="table-container mat-elevation-z4">
         <table mat-table [dataSource]="variablePatientTableDataSource">
           <ng-container *ngFor="let column of variablePatientTableColumns" [matColumnDef]="column">
             <th mat-header-cell *matHeaderCellDef>{{column}}</th>
