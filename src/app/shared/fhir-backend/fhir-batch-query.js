@@ -900,7 +900,11 @@ export class FhirBatchQuery extends EventTarget {
       );
     } else if (requests.length) {
       const { resolve, reject, ...options } = requests[0];
-      this._request(options).then(resolve, reject);
+      this._request(options).then(resolve, (errorResponse) => {
+        // Notify the app about a failed request.
+        this.dispatchEvent(new Event('single-request-failure'));
+        reject(errorResponse);
+      });
     }
   }
 

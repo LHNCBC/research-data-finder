@@ -180,6 +180,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       output += `Selected ${this.selectedResources.selected.length} out of `;
     }
     output += `${this.dataSource.data.length} ${this.resourceType} resources loaded.`;
+    if (this.failedRequests) {
+      // Show number of failed requests after displaying successful records in table.
+      output += ` (${this.failedRequests} requests failed during loading)`;
+    }
     return output;
   }
 
@@ -207,6 +211,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() resources: Resource[];
   @Input() total: number;
   @Input() loading: boolean;
+  @Input() failedRequests: number = null;
   @Input() set progressValue(value) {
     this.progressValue$.next(Math.round(value));
   }
