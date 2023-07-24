@@ -164,10 +164,7 @@ export class SelectRecordsPageComponent
       this.loadVariables();
     } else if (resourceType === 'Observation') {
       this.selectRecords.loadFirstPageOfVariablesFromObservations(
-        this.getSelectedRecords('ResearchStudy'),
-        {},
-        this.variableTable?.filtersForm.value || {},
-        this.sort['Observation']
+        ...this.getParametersToLoadPageOfVariables()
       );
     } else if (resourceType === 'ResearchStudy') {
       const cacheName = this.showOnlyStudiesWithSubjects ? '' : 'studies';

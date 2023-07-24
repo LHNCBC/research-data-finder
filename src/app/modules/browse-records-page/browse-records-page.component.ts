@@ -199,10 +199,7 @@ export class BrowseRecordsPageComponent
       this.loadVariables();
     } else if (resourceType === 'Observation') {
       this.selectRecords.loadFirstPageOfVariablesFromObservations(
-        this.getSelectedRecords('ResearchStudy'),
-        {},
-        this.variableTable?.filtersForm.value || {},
-        this.sort['Observation']
+        ...this.getParametersToLoadPageOfVariables()
       );
     } else if (resourceType === 'ResearchStudy') {
       const cacheName = 'studies';
@@ -248,15 +245,13 @@ export class BrowseRecordsPageComponent
       );
     } else if (resourceType === 'Observation') {
       this.selectRecords.loadNextPageOfVariablesFromObservations(
-        this.getSelectedRecords('ResearchStudy'),
-        {},
-        this.variableTable?.filtersForm.value || {},
-        this.sort['Observation']
+        ...this.getParametersToLoadPageOfVariables()
       );
     } else {
       this.selectRecords.loadNextPage(resourceType);
     }
   }
+
   /**
    * Preloads the next page of the specified resource type.
    * @param resourceType - resource type.
@@ -264,11 +259,27 @@ export class BrowseRecordsPageComponent
   preloadNextPage(resourceType: string): void {
     if (resourceType === 'Observation') {
       this.selectRecords.preloadNextPageOfVariablesFromObservations(
-        this.getSelectedRecords('ResearchStudy'),
-        {},
-        this.variableTable?.filtersForm.value || {},
-        this.sort['Observation']
+        ...this.getParametersToLoadPageOfVariables()
       );
     }
+  }
+
+  /**
+   * Returns parameters to load a page of variables.
+   */
+  getParametersToLoadPageOfVariables(): [
+    selectedResearchStudies: Resource[],
+    params: {
+      [param: string]: any;
+    },
+    filters: any,
+    sort: Sort
+  ] {
+    return [
+      this.getSelectedRecords('ResearchStudy'),
+      {},
+      this.variableTable?.filtersForm.value || {},
+      this.sort['Observation']
+    ];
   }
 }
