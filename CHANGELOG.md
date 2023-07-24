@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.4.2] - 2023-07-24
+### Fixed
+- Display of incorrect amount of studies in the select records step.
+
 ## [6.4.1] - 2023-07-21
 ### Fixed
 - Show the list of Observation variables with the same name
