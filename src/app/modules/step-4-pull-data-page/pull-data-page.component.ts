@@ -442,27 +442,10 @@ export class PullDataPageComponent
         tableRow.cells['codeText']
       ] = (tableRow.resource as Observation).valueQuantity;
     });
-    if (this.variablePatientTableColumns.length > 200) {
-      // If the resulting Vairable-Patient table has too many columns, the browser might
-      // not respond for a while when trying to display the table. If you have 1500 columns,
-      // it's frozen for a few second even though the virtual viewport puts only 10 rows
-      // into the DOM. Here we break the work into one row a time, so the page would be
-      // responsive as the rows keep loading. In the future we will probably add a dialog
-      // suggesting the user to download the table without displaying it in the UI.
-      const mapIter = variablePatientMap.values();
-      for (const row of mapIter) {
-        setTimeout(() => {
-          this.variablePatientTableDataSource.data = this.variablePatientTableDataSource.data.concat(
-            row
-          );
-        });
-      }
-    } else {
-      this.variablePatientTableDataSource.data = Array.from(
-        variablePatientMap,
-        (x) => x[1]
-      );
-    }
+    this.variablePatientTableDataSource.data = Array.from(
+      variablePatientMap,
+      (x) => x[1]
+    );
   }
 
   /**
