@@ -7,6 +7,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Added
 - Resend requests separately and notify the user of problems if a batch request
   fails.
+- Display failed requests message in Pull Data tables.
 
 ## [6.3.4] - 2023-06-23
 ### Fixed
