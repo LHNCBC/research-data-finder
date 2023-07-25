@@ -5,10 +5,19 @@
 const writeXlsxFile = require('write-excel-file/node');
 const path = require('path');
 const fs = require('fs');
-const json5 = require('json5');
-const _ = require('lodash');
 const https = require('https');
 const dbGapUrl = 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1';
+const versionName = process.argv[2] && process.argv[2].toUpperCase();
+
+if (!versionName || (versionName !== 'R4' && versionName !== 'R5')) {
+  console.log('Usage: node generate-xlsx-from-spec.js [version]\n');
+  console.log(
+    'This script can be used to create the initial version of the XLSX configuration files.\n'
+  );
+  console.log('Parameters:');
+  console.log('\tversion - R4 or R5');
+  process.exit(1);
+}
 
 const webpackOptions = require('../src/app/shared/definitions/webpack-options.json');
 const webpackLoader = require('../src/app/shared/definitions/webpack-loader').bind(
@@ -25,49 +34,50 @@ const definitionsIndex = JSON.parse(
   )
 );
 
-/*
+let sheetNames;
+let sheetDescriptions;
+let urlsPerSheet;
+let outputFilename;
 
-const versionName = 'R4';
-const sheetNames = [
-  'Resources only on LForms server',
-  'Resources only on dbGap server',
-  'Resources on both servers',
-  'Default R4 resources'
-];
-const sheetDescriptions = [
-  ['List of resources that only exist on LForms server.'],
-  ['List of resources that only exist on dbGap server.'],
-  ['List of resources that exist on LForms server and dbGap server.'],
-  [
-    'List of all available resources on R4 servers. This sheet is used if no custom configuration is provided.',
-    'You can add sheets with a custom configuration for any server. To do that copy this sheet and provide service base URL(s) in the cell next to "---SERVICE BASE URL".'
-  ]
-];
+if (versionName === 'R4') {
+  sheetNames = [
+    'Resources on LForms R4 server',
+    'Resources on dbGap server',
+    'Default R4 resources'
+  ];
+  sheetDescriptions = [
+    ['List of resources that exist on LForms server.'],
+    ['List of resources that exist on dbGap server.'],
+    [
+      'List of all available resources on R4 servers. This sheet is used if no custom configuration is provided.',
+      'You can add sheets with a custom configuration for any server. To do that copy this sheet and provide service base URL(s) in the cell next to "---SERVICE BASE URL".'
+    ]
+  ];
 
-const urlsPerSheet = [
-  { [lhcUrl]: true, [dbGapUrl]: false },
-  { [dbGapUrl]: true, [lhcUrl]: false },
-  { [lhcUrl]: true, [dbGapUrl]: true },
-  {}
-];
+  urlsPerSheet = [
+    { 'https://lforms-fhir.nlm.nih.gov/baseR4': true },
+    { [dbGapUrl]: true },
+    {}
+  ];
 
-const outputFilename = 'column-and-parameter-descriptions-R4.xlsx'
-/*/
+  outputFilename = 'column-and-parameter-descriptions-R4.xlsx';
+} else {
+  sheetNames = ['Resources on LForms R5 server', 'Default R5 resources'];
+  sheetDescriptions = [
+    ['List of resources that exist on LForms R5 server.'],
+    [
+      'List of all available resources on R5 servers. This sheet is used if no custom configuration is provided.',
+      'You can add sheets with a custom configuration for any server. To do that copy this sheet and provide service base URL(s) in the cell next to "---SERVICE BASE URL".'
+    ]
+  ];
+  urlsPerSheet = [{ 'https://lforms-fhir.nlm.nih.gov/baseR5': true }, {}];
 
-const versionName = 'R5';
-const sheetNames = ['Resources on LForms R5 server', 'Default R5 resources'];
-const sheetDescriptions = [
-  ['List of resources that exist on LForms R5 server.'],
-  [
-    'List of all available resources on R5 servers. This sheet is used if no custom configuration is provided.',
-    'You can add sheets with a custom configuration for any server. To do that copy this sheet and provide service base URL(s) in the cell next to "---SERVICE BASE URL".'
-  ]
-];
-const urlsPerSheet = [{ 'https://lforms-fhir.nlm.nih.gov/baseR5': true }, {}];
+  outputFilename = 'column-and-parameter-descriptions-R5.xlsx';
+}
 
-const outputFilename = 'column-and-parameter-descriptions-R5.xlsx';
-//*/
-
+/**
+ * Definitions of columns, search params, value sets for the FHIR version.
+ */
 const definitions = (function getCurrentDefinitions() {
   const definitions = definitionsIndex.configByVersionName[versionName];
 
@@ -108,6 +118,9 @@ const definitions = (function getCurrentDefinitions() {
   return definitions;
 })();
 
+/**
+ * The legend background colors for the resulting Excel file.
+ */
 const legendBackColor = {
   additionalCustomColumn: '#ffe699',
   // neutral: '#ffeb9c',
@@ -127,6 +140,17 @@ function capitalize(str) {
   return str && str.charAt(0).toUpperCase() + str.substring(1);
 }
 
+/**
+ * Creates an array describing row data for an Excel sheet.
+ * @param {string[]} values - cell values, describing search parameter or resource table column.
+ * @param {Object} desc - additional options:
+ * @param {boolean} desc.isExist - whether there is data on the server for
+ *  the resource table column described by this row.
+ * @param {boolean} desc.isSupported - whether the datatype is supported by RDF.
+ * @param {boolean} desc.custom - whether the Excel row is describing a custom resource
+ *  table column.
+ * @return {Object[]}
+ */
 function createRow(values, desc) {
   return values.map((value, i) => ({
     backgroundColor:
@@ -142,16 +166,27 @@ function createRow(values, desc) {
   }));
 }
 
-const settingsJson = json5.parse(
-  fs.readFileSync(path.resolve(__dirname, '../src/assets/settings.json5'))
-);
-
+/**
+ * Returns request URL to get samples of records for the specified server and
+ * resource type.
+ * @param {string} url - server URL.
+ * @param {string} resourceType - resource type.
+ * @return {string}
+ */
 function getRequestUrl(url, resourceType) {
   return url + '/' + resourceType + '?_count = 10000';
 }
 
 const __cache = {};
-function getResource(url, resourceType) {
+
+/**
+ * Returns promise of a bundle with record samples for the specified server and
+ * resource type.
+ * @param {string} url - server URL.
+ * @param {string} resourceType - resource type.
+ * @return {Bundle}
+ */
+function getSampleRecords(url, resourceType) {
   return new Promise((resolve) => {
     const requestUrl = getRequestUrl(url, resourceType);
     const cachedResponse = __cache[requestUrl];
@@ -176,7 +211,7 @@ function getResource(url, resourceType) {
           resp.on('end', () => {
             if (resp.statusCode === 429) {
               setTimeout(() => {
-                getResource(url, resourceType).then(resolve);
+                getSampleRecords(url, resourceType).then(resolve);
               }, 1000);
             } else {
               const body = JSON.parse(data);
@@ -194,6 +229,13 @@ function getResource(url, resourceType) {
   });
 }
 
+/**
+ * Returns promise of an array of resource types that exist on the all specified
+ * servers.
+ * @param {string} urls - server URLs.
+ * @param {string[]} resourceTypes - resource types to check.
+ * @return {string[]}
+ */
 function getExistingResources(urls, resourceTypes) {
   const result = [];
   return new Promise((resolve) => {
@@ -203,7 +245,7 @@ function getExistingResources(urls, resourceTypes) {
       const resourceType = resourceTypes.shift();
       Promise.all(
         Object.keys(urls).map((url) =>
-          getResource(url, resourceType).then((data) => ({
+          getSampleRecords(url, resourceType).then((data) => ({
             data,
             include: urls[url]
           }))
@@ -234,6 +276,15 @@ function getExistingResources(urls, resourceTypes) {
   });
 }
 
+/**
+ * Checks if a column exists for any of the specified servers and the specified
+ * resource type.
+ * @param {string[]} urls - server URLs.
+ * @param {string} resourceType - resource type.
+ * @param {string} fhirName - FHIR name e.g. value[x].
+ * @param {string[]} types - column type e.g. Quantity.
+ * @return {boolean}
+ */
 function checkIfColumnExists(urls, resourceType, fhirName, types) {
   return urls.some((url) => {
     const data = __cache[getRequestUrl(url, resourceType)];
@@ -251,6 +302,9 @@ function checkIfColumnExists(urls, resourceType, fhirName, types) {
   });
 }
 
+/**
+ * Hash of data types supported by RDF.
+ */
 const supportedTypes = {
   Identifier: true,
   code: true,
@@ -277,10 +331,24 @@ const supportedTypes = {
 
 const MAGIC_CELL_TEXT = '---SERVICE BASE URL:';
 
+/**
+ * Checks if any of the specified data types are supported by RDF
+ * @param {string[]} types - data types
+ * @return {boolean}
+ */
 function isTypesSupported(types) {
   return types.filter((type) => supportedTypes[type]).length > 0;
 }
 
+/**
+ * Returns a sheet of an Excel file.
+ * @param {string[]} urls - server URLs used to create the sheet of the Excel file.
+ * @param {string[]} sheetDescriptions - an array of string describing the contents
+ *  of the sheet.
+ * @param {string[]} resourceTypes - resource types.
+ * @param {Object} customColumns - description of additional custom columns.
+ * @return {Array}
+ */
 function getSheetData(urls, sheetDescriptions, resourceTypes, customColumns) {
   const sheetData = urls.length
     ? [
@@ -315,7 +383,12 @@ function getSheetData(urls, sheetDescriptions, resourceTypes, customColumns) {
       [
         { value: MAGIC_CELL_TEXT, type: String },
         {
-          value: urls.length ? urls.join(',') : 'default_' + versionName,
+          value:
+            urls.length === 1 && urls[0] === dbGapUrl
+              ? 'dbgap'
+              : urls.length
+              ? urls.join(',')
+              : 'default_' + versionName,
           type: String
         }
       ],
@@ -452,7 +525,68 @@ Promise.all(
     );
     const customColumns =
       urls.indexOf(dbGapUrl) !== -1
-        ? _.get(settingsJson, `customization["${dbGapUrl}"].customColumns`, {})
+        ? // Additional columns per resource type
+          {
+            // See these column descriptions here: https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content
+            ResearchStudy: [
+              {
+                displayName: 'Number of Analyses',
+                element: 'NumAnalyses',
+                expression:
+                  "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumAnalyses').value",
+                types: ['Count']
+              },
+              {
+                displayName: 'Number of Documents',
+                element: 'NumDocuments',
+                expression:
+                  "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumDocuments').value",
+                types: ['Count']
+              },
+              {
+                displayName: 'Number of Molecular Datasets',
+                element: 'NumMolecularDatasets',
+                expression:
+                  "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumMolecularDatasets').value",
+                types: ['Count']
+              },
+              {
+                displayName: 'Number of Phenotype Datasets',
+                element: 'NumPhenotypeDatasets',
+                expression:
+                  "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumPhenotypeDatasets').value",
+                types: ['Count']
+              },
+              {
+                displayName: 'Number of Samples',
+                element: 'NumSamples',
+                expression:
+                  "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSamples').value",
+                types: ['Count']
+              },
+              {
+                displayName: 'Number of Sub-studies',
+                element: 'NumSubStudies',
+                expression:
+                  "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubStudies').value",
+                types: ['Count']
+              },
+              {
+                displayName: 'Number of Subjects',
+                element: 'NumSubjects',
+                expression:
+                  "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumSubjects').value",
+                types: ['Count']
+              },
+              {
+                displayName: 'Number of Variables',
+                element: 'NumVariables',
+                expression:
+                  "extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content').extension('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/StructureDefinition/ResearchStudy-Content-NumVariables').value",
+                types: ['Count']
+              }
+            ]
+          }
         : {};
     return getSheetData(
       urls,
