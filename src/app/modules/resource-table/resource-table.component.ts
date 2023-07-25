@@ -182,7 +182,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     output += `${this.dataSource.data.length} ${this.resourceType} resources loaded.`;
     if (this.failedRequests) {
       // Show number of failed requests after displaying successful records in table.
-      output += ` (${this.failedRequests} requests failed during loading)`;
+      output += ` (${this.failedRequests} requests failed)`;
     }
     return output;
   }
