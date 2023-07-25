@@ -89,13 +89,15 @@ function updateAppSettings(url2desc) {
 
   for (let i = 0; i < allUrls.length; i++) {
     const url = allUrls[i];
-    const toFilename = 'desc-' + i + '.csv';
+    let toFilename;
     if (url.startsWith('default')) {
       if (!updateSettingsObj[url]) {
         updateSettingsObj[url] = {};
       }
+      toFilename = 'desc-' + url.replace(/_/g, '-') + '.csv';
       updateSettingsObj[url][definitionsFilePropName] = toFilename;
     } else {
+      toFilename = 'desc-' + url.replace(/:\/\/|\.|\//g, '-') + '.csv';
       updateSettingsObj.customization[url] = {
         [definitionsFilePropName]: toFilename
       };

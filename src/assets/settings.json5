@@ -125,23 +125,23 @@
 
   // Default settings for R4 servers
   default_R4: {
-    definitionsFile: 'desc-2.csv',
+    definitionsFile: 'desc-default-R4.csv',
   },
 
   // Default settings for R5 servers
   default_R5: {
-    definitionsFile: 'desc-4.csv',
+    definitionsFile: 'desc-default-R5.csv',
   },
 
   // Settings for servers with the specified URL.
   // You can override default settings here
   "customization": {
     'https://lforms-fhir.nlm.nih.gov/baseR4': {
-      definitionsFile: 'desc-0.csv',
+      definitionsFile: 'desc-https-lforms-fhir-nlm-nih-gov-baseR4.csv',
     },
 
     "dbgap": {
-      definitionsFile: 'desc-1.csv',
+      definitionsFile: 'desc-dbgap.csv',
       urlPattern: '^https://dbgap-api.ncbi.nlm.nih.gov/fhir',
       maxRequestsPerBatch: 50,
       maxActiveRequests: 1,
@@ -372,7 +372,7 @@
     },
 
     'https://lforms-fhir.nlm.nih.gov/baseR5': {
-      definitionsFile: 'desc-3.csv',
+      definitionsFile: 'desc-https-lforms-fhir-nlm-nih-gov-baseR5.csv',
     }
   }
 }
