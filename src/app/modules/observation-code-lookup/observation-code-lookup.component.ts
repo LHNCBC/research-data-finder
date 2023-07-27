@@ -13,12 +13,16 @@ import {
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 // see docs at http://lhncbc.github.io/autocomplete-lhc/docs.html
 import Def from 'autocomplete-lhc';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import {
+  FhirBackendService,
+  REQUEST_PRIORITY,
+  RequestPriorities
+} from '../../shared/fhir-backend/fhir-backend.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
 import { EMPTY, forkJoin, of, Subject, Subscription } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
 import {
   getNextPageUrl,
@@ -296,7 +300,11 @@ export class ObservationCodeLookupComponent
 
                 const obsCode = this.httpClient
                   .get(url, {
-                    params: paramsCode
+                    params: paramsCode,
+                    context: new HttpContext().set(
+                      REQUEST_PRIORITY,
+                      RequestPriorities.HIGH
+                    )
                   })
                   .pipe(
                     tap((response: Bundle) => {
@@ -329,7 +337,11 @@ export class ObservationCodeLookupComponent
                 const obs = this.httpClient
                   // Load first page of Observation resources
                   .get(url, {
-                    params
+                    params,
+                    context: new HttpContext().set(
+                      REQUEST_PRIORITY,
+                      RequestPriorities.HIGH
+                    )
                   })
                   .pipe(
                     // Modifying the Observable to load the following pages sequentially
@@ -361,7 +373,12 @@ export class ObservationCodeLookupComponent
                           }
                         });
                         if (this.fhirBackend.features.lastnLookup) {
-                          return this.httpClient.get(nextPageUrl);
+                          return this.httpClient.get(nextPageUrl, {
+                            context: new HttpContext().set(
+                              REQUEST_PRIORITY,
+                              RequestPriorities.HIGH
+                            )
+                          });
                         } else {
                           return this.httpClient.get(url, {
                             params: {
@@ -374,7 +391,11 @@ export class ObservationCodeLookupComponent
                                 : // Pass each code as a separate "code:not" parameter, which is
                                   // currently causing performance issues on the HAPI FHIR server.
                                   Object.keys(processedCodes)
-                            }
+                            },
+                            context: new HttpContext().set(
+                              REQUEST_PRIORITY,
+                              RequestPriorities.HIGH
+                            )
                           });
                         }
                       } else {

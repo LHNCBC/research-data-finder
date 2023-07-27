@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { CACHE_NAME, FhirBackendService } from './fhir-backend.service';
 import { FhirBackendModule } from './fhir-backend.module';
-import { FhirBatchQuery, HTTP_ABORT } from './fhir-batch-query';
+import { FhirBatchQuery, HTTP_ABORT, PRIORITIES } from './fhir-batch-query';
 import { newServer } from 'mock-xmlhttprequest';
 import {
   HttpClient,
@@ -21,6 +21,7 @@ import {
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
 import queryResponseCache from './query-response-cache';
+import MockXhrServer from 'mock-xmlhttprequest/dist/types/MockXhrServer';
 
 describe('FhirBackendService', () => {
   let service: FhirBackendService;
@@ -135,7 +136,8 @@ describe('FhirBackendService', () => {
           {
             combine: true,
             signal: jasmine.any(AbortSignal),
-            cacheName: ''
+            cacheName: '',
+            priority: PRIORITIES.NORMAL
           }
         );
         done();
@@ -150,7 +152,8 @@ describe('FhirBackendService', () => {
           {
             combine: false,
             signal: jasmine.any(AbortSignal),
-            cacheName: ''
+            cacheName: '',
+            priority: PRIORITIES.NORMAL
           }
         );
         done();
@@ -165,7 +168,8 @@ describe('FhirBackendService', () => {
           service.serviceBaseUrl + '/some_related_url',
           {
             signal: jasmine.any(AbortSignal),
-            combine: true
+            combine: true,
+            priority: PRIORITIES.NORMAL
           }
         );
         done();
@@ -185,7 +189,8 @@ describe('FhirBackendService', () => {
               combine: true,
               signal: jasmine.any(AbortSignal),
               cacheName:
-                'some-cache-name-https://lforms-fhir.nlm.nih.gov/baseR4'
+                'some-cache-name-https://lforms-fhir.nlm.nih.gov/baseR4',
+              priority: PRIORITIES.NORMAL
             }
           );
           done();
@@ -256,7 +261,8 @@ describe('FhirBackendService', () => {
             {
               combine: true,
               signal: jasmine.any(AbortSignal),
-              cacheName: ''
+              cacheName: '',
+              priority: PRIORITIES.NORMAL
             }
           );
           expect(matDialog.open).toHaveBeenCalled();
@@ -297,7 +303,8 @@ describe('FhirBackendService', () => {
                 combine: true,
                 cacheName: null,
                 retryCount: false,
-                cacheErrors: true
+                cacheErrors: true,
+                priority: PRIORITIES.NORMAL
               }
             );
             expect(queryResponseCache.add).not.toHaveBeenCalled();
@@ -320,7 +327,8 @@ describe('FhirBackendService', () => {
               combine: true,
               cacheName: null,
               retryCount: false,
-              cacheErrors: true
+              cacheErrors: true,
+              priority: PRIORITIES.NORMAL
             }
           );
           expect(queryResponseCache.add).toHaveBeenCalled();
@@ -332,25 +340,27 @@ describe('FhirBackendService', () => {
 
 describe('FhirBatchQuery', () => {
   let fhirBatchQuery;
-  const server = newServer({
-    post: [
-      /http:\/\/someServerUrl\?_format=json/,
-      {
-        status: HTTP_ABORT,
-        body: '{ "message": "Abort!" }'
-      }
-    ],
-    get: [
-      /http:\/\/someServerUrl\/someUrl[123]\?_format=json/,
-      {
-        // status: 200 is the default
-        body: '{ "message": "Success!" }'
-      }
-    ]
-  });
+  let server: MockXhrServer;
 
   beforeEach(() => {
-    server.install(window);
+    server = newServer({
+      post: [
+        /http:\/\/someServerUrl\?_format=json/,
+        {
+          status: HTTP_ABORT,
+          body: '{ "message": "Abort!" }'
+        }
+      ],
+      get: [
+        /http:\/\/someServerUrl\/someUrl[123]\?_format=json/,
+        {
+          // status: 200 is the default
+          body: '{ "message": "Success!" }'
+        }
+      ]
+    });
+
+    server.install();
     fhirBatchQuery = new FhirBatchQuery({
       serviceBaseUrl: 'http://someServerUrl'
     });
@@ -359,6 +369,7 @@ describe('FhirBatchQuery', () => {
   });
 
   afterEach(() => {
+    FhirBatchQuery.clearCache();
     server.remove();
   });
 
@@ -392,6 +403,33 @@ describe('FhirBatchQuery', () => {
         jasmine.objectContaining({
           method: 'GET',
           url: 'http://someServerUrl/someUrl3?_format=json'
+        })
+      ]);
+      done();
+    });
+  });
+
+  it('should send requests according to their priority', (done) => {
+    Promise.allSettled([
+      fhirBatchQuery.getWithCache('someUrl1', {combine: false, priority: PRIORITIES.NORMAL}),
+      fhirBatchQuery.getWithCache('someUrl2', {combine: false, priority: PRIORITIES.NORMAL}),
+      fhirBatchQuery.getWithCache('someUrl3', {combine: false, priority: PRIORITIES.HIGH})
+    ]).then((responses) => {
+      responses.forEach((response) =>
+        expect(response.status).toBe('fulfilled')
+      );
+      expect(server.getRequestLog()).toEqual([
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://someServerUrl/someUrl3?_format=json'
+        }),
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://someServerUrl/someUrl1?_format=json'
+        }),
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://someServerUrl/someUrl2?_format=json'
         })
       ]);
       done();

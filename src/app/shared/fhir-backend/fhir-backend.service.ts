@@ -15,7 +15,8 @@ import { BehaviorSubject, Observable, Observer, ReplaySubject } from 'rxjs';
 import {
   FhirBatchQuery,
   HTTP_ABORT,
-  UNSUPPORTED_VERSION
+  UNSUPPORTED_VERSION,
+  PRIORITIES as FhirBatchQueryPriorities
 } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
@@ -43,9 +44,19 @@ export enum ConnectionStatus {
   Disconnect
 }
 
+export enum RequestPriorities {
+  NORMAL = FhirBatchQueryPriorities.NORMAL,
+  HIGH = FhirBatchQueryPriorities.HIGH
+}
+
 // Token to store cacheName in the context of an HTTP request.
 // See https://angular.io/api/common/http/HttpContext
 export const CACHE_NAME = new HttpContextToken<string>(() => '');
+// Token to store priority in the context of an HTTP request.
+// See https://angular.io/api/common/http/HttpContext
+export const REQUEST_PRIORITY = new HttpContextToken<number>(
+  () => RequestPriorities.NORMAL
+);
 
 // Token to store cache info in the context of an HTTP request.
 // See https://angular.io/api/common/http/HttpContext
@@ -287,7 +298,8 @@ export class FhirBackendService implements HttpBackend {
       .getWithCache(`${url}/.well-known/smart-configuration`, {
         combine: false,
         cacheErrors: true,
-        retryCount: 2
+        retryCount: 2,
+        priority: RequestPriorities.HIGH
       })
       .then(() => {
         this.isSmartOnFhirEnabled = true;
@@ -462,6 +474,7 @@ export class FhirBackendService implements HttpBackend {
       '^' + escapeStringForRegExp(this.serviceBaseUrl) + '\\/[^?]+'
     );
     const cacheName = request.context.get(CACHE_NAME);
+    const priority = request.context.get(REQUEST_PRIORITY);
     const newRequest = request.clone({
       url: this.prepareRequestUrl(request.url)
     });
@@ -486,13 +499,12 @@ export class FhirBackendService implements HttpBackend {
             serviceBaseUrlWithEndpoint.test(newRequest.url);
           const promise = this.isCacheEnabled
             ? this.fhirClient.getWithCache(fullUrl, {
-                combine,
-                signal,
-                cacheName: cacheName
-                  ? cacheName + '-' + this.serviceBaseUrl
-                  : ''
-              })
-            : this.fhirClient.get(fullUrl, { combine, signal });
+              combine,
+              signal,
+              cacheName: cacheName ? cacheName + '-' + this.serviceBaseUrl : '',
+              priority
+            })
+            : this.fhirClient.get(fullUrl, { combine, signal, priority });
 
             promise.then(
               ({ status, data, _cacheInfo_ }) => {
