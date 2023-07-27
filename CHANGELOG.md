@@ -6,6 +6,9 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [6.5.0] - 2023-07-03
 ### Added
 - R5 support.
+### Fixed
+- Issue with empty list of variables in the select records step for an R4 server
+  with ResearchStudies.
 
 ## [6.4.0] - 2023-06-26
 ### Added
