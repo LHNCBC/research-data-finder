@@ -211,7 +211,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() resources: Resource[];
   @Input() total: number;
   @Input() loading: boolean;
-  @Input() failedRequests: number = null;
+  @Input() failedRequests = 0;
   @Input() set progressValue(value) {
     this.progressValue$.next(Math.round(value));
   }
