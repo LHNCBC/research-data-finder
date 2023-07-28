@@ -3,10 +3,31 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.4.0] - 2023-06-26
+## [6.4.2] - 2023-07-28
 ### Added
 - Resend requests separately and notify the user of problems if a batch request
   fails.
+
+## [6.4.1] - 2023-07-21
+### Fixed
+- Show the list of Observation variables with the same name
+  in define cohort step.
+
+## [6.4.0] - 2023-07-20
+### Added
+- "Browse public data" option for other FHIR servers
+
+## [6.3.7] - 2023-07-20
+### Fixed
+- Issue with incorrect caching of loaded studies
+
+## [6.3.6] - 2023-07-19
+### Fixed
+- Do not show session expired message on "browse public data".
+
+## [6.3.5] - 2023-07-06
+### Fixed
+- Replaced use of ":not=zzz" in autocomplete with ":missing=false" if supported.
 
 ## [6.3.4] - 2023-06-23
 ### Fixed
