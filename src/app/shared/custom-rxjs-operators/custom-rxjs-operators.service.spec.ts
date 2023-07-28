@@ -5,7 +5,8 @@ import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { CACHE_NAME } from '../fhir-backend/fhir-backend.service';
 
 // Resource bundle pages used to mock responses
 const bundlePages = {
@@ -79,6 +80,55 @@ describe('CustomRxjsOperatorsService', () => {
       mockHttp.expectOne('page-1').flush(bundlePages['page-1']);
       mockHttp.expectOne('page-2').flush(bundlePages['page-2']);
       mockHttp.expectOne('page-3').flush(bundlePages['page-3']);
+
+      expect(next).toHaveBeenCalledOnceWith({
+        link: undefined,
+        entry: [].concat(
+          bundlePages['page-1'].entry,
+          bundlePages['page-2'].entry,
+          bundlePages['page-3'].entry
+        )
+      });
+      expect(error).not.toHaveBeenCalled();
+      expect(complete).toHaveBeenCalledTimes(1);
+    });
+
+    it('should request the following sequence of resource bundle pages with CACHE_NAME', () => {
+      const next = jasmine.createSpy('next');
+      const error = jasmine.createSpy('error');
+      const complete = jasmine.createSpy('complete');
+      const someCacheName = 'someCacheName';
+      const context = new HttpContext().set(CACHE_NAME, someCacheName);
+
+      http
+        .get('page-1', { context })
+        .pipe(service.takeAllIf(true, { context }))
+        .subscribe(next, error, complete);
+
+      mockHttp
+        .match((req) => {
+          return (
+            req.url === 'page-1' &&
+            req.context.get(CACHE_NAME) === someCacheName
+          );
+        })[0]
+        .flush(bundlePages['page-1']);
+      mockHttp
+        .match((req) => {
+          return (
+            req.url === 'page-2' &&
+            req.context.get(CACHE_NAME) === someCacheName
+          );
+        })[0]
+        .flush(bundlePages['page-2']);
+      mockHttp
+        .match((req) => {
+          return (
+            req.url === 'page-3' &&
+            req.context.get(CACHE_NAME) === someCacheName
+          );
+        })[0]
+        .flush(bundlePages['page-3']);
 
       expect(next).toHaveBeenCalledOnceWith({
         link: undefined,

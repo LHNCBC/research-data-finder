@@ -392,6 +392,10 @@ export class ObservationCodeLookupComponent
                     catchError((error) => {
                       this.loading = false;
                       reject(error);
+                      // An error has occurred in one of the subsequent "next-page" queries for codes.
+                      // Even though it now fails, we show a list for items we have retrieved so far.
+                      // So, below method is called in case there are different items with the same display.
+                      this.appendCodeSystemToDuplicateDisplay(contains);
                       return of(contains);
                     })
                   );

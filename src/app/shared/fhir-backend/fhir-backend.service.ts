@@ -29,6 +29,7 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { RasTokenService } from '../ras-token/ras-token.service';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
+import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
 import fhirpath from 'fhirpath';
@@ -523,7 +524,15 @@ export class FhirBackendService implements HttpBackend {
             },
             ({ status, error }) => {
               if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
-                if (status >= 400 && status < 500) {
+                if (
+                  status >= 400 &&
+                  status < 500 &&
+                  this.injector.get(RasTokenService).rasTokenValidated &&
+                  // Don't show session expired message on "browse public data".
+                  // Access to CohortService via injector to avoid circular dependency.
+                  this.injector.get(CohortService).createCohortMode !==
+                    CreateCohortMode.NO_COHORT
+                ) {
                   this.dialogRef = this.dialog.open(AlertDialogComponent, {
                     data: {
                       header: 'Session Expired',

@@ -92,8 +92,10 @@ export class SettingsPageComponent implements OnDestroy {
           header: 'Disable batch requests?',
           content:
             'We are experiencing problems with batch requests.' +
-            ' Disabling them may improve performance.' +
-            " Currently, if a batch request doesn't work, we try to resend the requests separately." +
+            ' Clicking "Okay" will disable batch requests, and may improve performance.' +
+            ' Clicking "Cancel" will mean that we will continue to try batch requests,' +
+            ' and if a batch request doesn\'t work, we will try to resend the requests' +
+            ' in that batch separately.' +
             ' You can also reduce the number of requests per batch in the settings step.',
           hasCancelButton: true
         }
@@ -103,7 +105,8 @@ export class SettingsPageComponent implements OnDestroy {
           this.settingsFormGroup.get('maxRequestsPerBatch').setValue(1);
           this.updateFhirBackendSetting('maxRequestsPerBatch');
         }
-        this.dialogRef = null;
+        // Do not clear the dialog reference to show it once
+        // this.dialogRef = null;
       });
     }
   }
