@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormControl,
@@ -10,10 +10,12 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { Observable } from 'rxjs';
+import { fromEvent, Observable, Subscription } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
 import { setUrlParam } from '../../shared/utils';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { AlertDialogComponent } from '../../shared/alert-dialog/alert-dialog.component';
 
 /**
  * Settings page component for defining general parameters such as FHIR REST API Service Base URL.
@@ -23,13 +25,18 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
   templateUrl: './settings-page.component.html',
   styleUrls: ['./settings-page.component.less']
 })
-export class SettingsPageComponent {
+export class SettingsPageComponent implements OnDestroy {
   settingsFormGroup: UntypedFormGroup;
+  // Subscription to the "batch-issue" event dispatched by FhirBatchQuery
+  subscription: Subscription;
+  // Reference to the dialog about problems with batch requests
+  dialogRef: MatDialogRef<AlertDialogComponent>;
 
   constructor(
     private formBuilder: UntypedFormBuilder,
     public fhirBackend: FhirBackendService,
-    private liveAnnouncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer,
+    private dialog: MatDialog
   ) {
     this.settingsFormGroup = this.formBuilder.group({
       serviceBaseUrl: new UntypedFormControl(this.fhirBackend.serviceBaseUrl, {
@@ -61,6 +68,47 @@ export class SettingsPageComponent {
           );
         }
       });
+
+    this.subscription = fromEvent(
+      this.fhirBackend.fhirClient,
+      'batch-issue'
+    ).subscribe(() => this.showBatchIssueDialog());
+  }
+
+  /**
+   * Performs cleanup when a component instance is destroyed.
+   */
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+
+  /**
+   * Displays a dialog about problems with batch requests.
+   */
+  showBatchIssueDialog(): void {
+    if (!this.dialogRef) {
+      this.dialogRef = this.dialog.open(AlertDialogComponent, {
+        data: {
+          header: 'Disable batch requests?',
+          content:
+            'We are experiencing problems with batch requests.' +
+            ' Clicking "Okay" will disable batch requests, and may improve performance.' +
+            ' Clicking "Cancel" will mean that we will continue to try batch requests,' +
+            ' and if a batch request doesn\'t work, we will try to resend the requests' +
+            ' in that batch separately.' +
+            ' You can also reduce the number of requests per batch in the settings step.',
+          hasCancelButton: true
+        }
+      });
+      this.dialogRef.afterClosed().subscribe((isOk) => {
+        if (isOk) {
+          this.settingsFormGroup.get('maxRequestsPerBatch').setValue(1);
+          this.updateFhirBackendSetting('maxRequestsPerBatch');
+        }
+        // Do not clear the dialog reference to show it once
+        // this.dialogRef = null;
+      });
+    }
   }
 
   /**
