@@ -257,18 +257,13 @@ export class ObservationCodeLookupComponent
                   : '$fhir/Observation';
                 const _elements = 'subject,code,value,component';
                 const subject = this.isPullData
-                  ? this.fhirBackend.features.lastnLookup
-                    ? // 'subject:Patient' is not a valid parameter for $lastn
-                      {
-                        subject: this.cohort.currentState.patients
-                          .map((patient) => 'Patient/' + patient.id)
-                          .join(',')
-                      }
-                    : {
-                        'subject:Patient': this.cohort.currentState.patients
-                          .map((patient) => patient.id)
-                          .join(',')
-                      }
+                  ? {
+                      // "subject:Patient" doesn't work for $lastn and due to
+                      // a bug it doesn't work on baseR5
+                      subject: this.cohort.currentState.patients
+                        .map((patient) => 'Patient/' + patient.id)
+                        .join(',')
+                    }
                   : {};
                 const params = {
                   _elements,

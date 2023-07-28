@@ -9,6 +9,8 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Issue with empty list of variables in the select records step for an R4 server
   with ResearchStudies.
+- Replaced `subject:Patient=<id1>,<id2>` with `subject=Patient/<id1>,Patient/<id2>`
+  because baseR5 doesn't support it.
 
 ## [6.4.0] - 2023-06-26
 ### Added
