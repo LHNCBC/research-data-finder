@@ -183,10 +183,10 @@ describe('SelectRecordsService', () => {
         ]
       };
       [
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C11881-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C3137-7&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8302-2&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8303-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1'
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C11881-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C3137-7&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8302-2&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8303-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1'
       ].forEach((url) => {
         mockHttp.expectOne(url).flush(patientWithSubjects);
       });

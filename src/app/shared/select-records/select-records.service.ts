@@ -452,7 +452,7 @@ export class SelectRecordsService {
                 [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:study`]: selectedResearchStudies
                   .map((s) => 'ResearchStudy/' + s.id)
                   .join(','),
-                _revinclude: 'ResearchSubject:subject'
+                _revinclude: `ResearchSubject:${this.fhirBackend.subjectParamName}`
               }
             : this.fhirBackend.features.hasAvailableStudy
             ? {
@@ -461,7 +461,7 @@ export class SelectRecordsService {
                     'ResearchSubject.status'
                   ]
                 ).join(','),
-                _revinclude: 'ResearchSubject:subject'
+                _revinclude: `ResearchSubject:${this.fhirBackend.subjectParamName}`
               }
             : null
         ),

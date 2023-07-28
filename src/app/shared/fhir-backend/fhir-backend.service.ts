@@ -21,7 +21,7 @@ import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam, setUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
-import { cloneDeep, find } from 'lodash-es';
+import { find } from 'lodash-es';
 import { filter, map } from 'rxjs/operators';
 import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
@@ -30,6 +30,10 @@ import { RasTokenService } from '../ras-token/ras-token.service';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
 import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
+import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
+import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
+import fhirpath from 'fhirpath';
+import Resource = fhir.Resource;
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -195,6 +199,12 @@ export class FhirBackendService implements HttpBackend {
   get currentVersion(): string {
     return this.fhirClient.getVersionName();
   }
+
+  // FHIRPath model
+  fhirPathModel: any;
+
+  // FHIRPath compiled expressions
+  compiledExpressions: { [expression: string]: (row: Resource) => any };
 
   /**
    * The name of the patient reference search parameter for the ResearchSubject.
@@ -365,6 +375,11 @@ export class FhirBackendService implements HttpBackend {
                 this.fhirClient.setMaxActiveRequests(
                   this.settings.get('maxActiveRequests')
                 );
+                this.fhirPathModel = {
+                  R4: fhirPathModelR4,
+                  R5: fhirPathModelR5
+                }[this.currentVersion];
+                this.compiledExpressions = {};
                 this.initialized.next(ConnectionStatus.Ready);
               },
               (err) => {
@@ -579,35 +594,6 @@ export class FhirBackendService implements HttpBackend {
       return this.currentDefinitions;
     }
 
-    // TODO: temporary manual creation of R5 definitions from R4 with overriding
-    //       some of the definitions
-    if (!definitionsIndex.configByVersionName['R5']) {
-      definitionsIndex.configByVersionName['R5'] = cloneDeep(
-        definitionsIndex.configByVersionName['R4']
-      );
-      definitionsIndex.configByVersionName['R5'].valueSets[
-        'http://hl7.org/fhir/ValueSet/research-subject-status|4.0.1'
-      ] = [
-        // See http://hl7.org/fhir/5.0.0-draft-final/valueset-publication-status.html
-        {
-          code: 'draft',
-          display: 'Draft'
-        },
-        {
-          code: 'active',
-          display: 'Active'
-        },
-        {
-          code: 'retired',
-          display: 'Retired'
-        },
-        {
-          code: 'unknown',
-          display: 'Unknown'
-        }
-      ];
-    }
-
     const versionName = this.currentVersion || 'R4';
     let definitions = definitionsIndex.configByVersionName[versionName];
 
@@ -726,5 +712,19 @@ export class FhirBackendService implements HttpBackend {
    */
   clearCache(): void {
     FhirBatchQuery.clearCache();
+  }
+
+  /**
+   * Returns a function for evaluating the passed FHIRPath expression using
+   * current FHIRPath model.
+   * @param expression - FHIRPath expression
+   */
+  getEvaluator(expression: string): (row: Resource) => any {
+    let compiledExpression = this.compiledExpressions[expression];
+    if (!compiledExpression) {
+      compiledExpression = fhirpath.compile(expression, this.fhirPathModel);
+      this.compiledExpressions[expression] = compiledExpression;
+    }
+    return compiledExpression;
   }
 }
