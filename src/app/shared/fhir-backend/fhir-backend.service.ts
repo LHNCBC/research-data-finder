@@ -45,8 +45,8 @@ export enum ConnectionStatus {
 }
 
 export enum RequestPriorities {
-  NORMAL = FhirBatchQueryPriorities.NORMAL,
-  HIGH = FhirBatchQueryPriorities.HIGH
+  LOW = FhirBatchQueryPriorities.LOW,
+  NORMAL = FhirBatchQueryPriorities.NORMAL
 }
 
 // Token to store cacheName in the context of an HTTP request.
@@ -298,8 +298,7 @@ export class FhirBackendService implements HttpBackend {
       .getWithCache(`${url}/.well-known/smart-configuration`, {
         combine: false,
         cacheErrors: true,
-        retryCount: 2,
-        priority: RequestPriorities.HIGH
+        retryCount: 2
       })
       .then(() => {
         this.isSmartOnFhirEnabled = true;

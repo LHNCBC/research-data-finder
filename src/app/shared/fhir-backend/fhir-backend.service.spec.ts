@@ -411,9 +411,9 @@ describe('FhirBatchQuery', () => {
 
   it('should send requests according to their priority', (done) => {
     Promise.allSettled([
-      fhirBatchQuery.getWithCache('someUrl1', {combine: false, priority: PRIORITIES.NORMAL}),
-      fhirBatchQuery.getWithCache('someUrl2', {combine: false, priority: PRIORITIES.NORMAL}),
-      fhirBatchQuery.getWithCache('someUrl3', {combine: false, priority: PRIORITIES.HIGH})
+      fhirBatchQuery.getWithCache('someUrl1', {combine: false, priority: PRIORITIES.LOW}),
+      fhirBatchQuery.getWithCache('someUrl2', {combine: false, priority: PRIORITIES.LOW}),
+      fhirBatchQuery.getWithCache('someUrl3', {combine: false, priority: PRIORITIES.NORMAL})
     ]).then((responses) => {
       responses.forEach((response) =>
         expect(response.status).toBe('fulfilled')

@@ -9,8 +9,8 @@ export const HTTP_ABORT = 0;
 export const UNSUPPORTED_VERSION = -1;
 // Request priorities (numbers by which requests in the pending queue are sorted)
 export const PRIORITIES = {
-  NORMAL: 100,
-  HIGH: 200
+  LOW: 100,
+  NORMAL: 200,
 };
 
 // A list of status codes for which we will not cache the http request

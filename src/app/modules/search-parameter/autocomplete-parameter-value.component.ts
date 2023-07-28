@@ -19,13 +19,9 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { escapeStringForRegExp, getNextPageUrl } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
 import { AutocompleteParameterValue } from '../../types/autocomplete-parameter-value';
-import { HttpClient, HttpContext } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import {
-  FhirBackendService,
-  REQUEST_PRIORITY,
-  RequestPriorities
-} from '../../shared/fhir-backend/fhir-backend.service';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import * as fhirpath from 'fhirpath';
 import * as fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import { ResearchStudyService } from '../../shared/research-study/research-study.service';
@@ -408,8 +404,7 @@ export class AutocompleteParameterValueComponent
 
     const obs = this.httpClient
       .get(url, {
-        params,
-        context: new HttpContext().set(REQUEST_PRIORITY, RequestPriorities.HIGH)
+        params
       })
       .pipe(
         expand((response: Bundle) => {
@@ -429,12 +424,7 @@ export class AutocompleteParameterValueComponent
               // You can reproduce this problem on https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1
               // if you comment next line and enter 'c' in the ResearchStudy.keyword
               // field and click the 'See more items' link.
-              return this.httpClient.get(nextPageUrl, {
-                context: new HttpContext().set(
-                  REQUEST_PRIORITY,
-                  RequestPriorities.HIGH
-                )
-              });
+              return this.httpClient.get(nextPageUrl);
             }
             this.liveAnnouncer.announce('New items added to list.');
             // Update list before calling server for next query.
@@ -455,11 +445,7 @@ export class AutocompleteParameterValueComponent
                 // currently causing performance issues on the HAPI FHIR server.
                 Object.keys(processedCodes);
             return this.httpClient.get(url, {
-              params: newParams,
-              context: new HttpContext().set(
-                REQUEST_PRIORITY,
-                RequestPriorities.HIGH
-              )
+              params: newParams
             });
           } else {
             if (!nextPageUrl) {
@@ -526,11 +512,7 @@ export class AutocompleteParameterValueComponent
 
               this.subscription = this.httpClient
                 .get(url, {
-                  params,
-                  context: new HttpContext().set(
-                    REQUEST_PRIORITY,
-                    RequestPriorities.HIGH
-                  )
+                  params
                 })
                 .pipe(
                   catchError((error) => {
@@ -597,11 +579,7 @@ export class AutocompleteParameterValueComponent
 
               const obs = this.httpClient
                 .get(url, {
-                  params,
-                  context: new HttpContext().set(
-                    REQUEST_PRIORITY,
-                    RequestPriorities.HIGH
-                  )
+                  params
                 })
                 .pipe(
                   expand((response: Bundle) => {
@@ -633,11 +611,7 @@ export class AutocompleteParameterValueComponent
                           // currently causing performance issues on the HAPI FHIR server.
                           Object.keys(processedCodes);
                       return this.httpClient.get(url, {
-                        params: newParams,
-                        context: new HttpContext().set(
-                          REQUEST_PRIORITY,
-                          RequestPriorities.HIGH
-                        )
+                        params: newParams
                       });
                     } else {
                       if (!nextPageUrl) {

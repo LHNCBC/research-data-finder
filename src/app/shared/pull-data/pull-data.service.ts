@@ -13,9 +13,13 @@ import Patient = fhir.Patient;
 import Resource = fhir.Resource;
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { ColumnValuesService } from '../column-values/column-values.service';
-import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import {
+  FhirBackendService,
+  REQUEST_PRIORITY,
+  RequestPriorities
+} from '../fhir-backend/fhir-backend.service';
 import BundleEntry = fhir.BundleEntry;
 import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
 
@@ -47,6 +51,12 @@ export class PullDataService {
   currentState: { [resourceType: string]: PullDataState } = {};
   // Stream of resources for ResourceTableComponent
   resourceStream: { [resourceType: string]: Observable<Resource[]> } = {};
+  // Common HTTP options
+  static get commonHttpOptions() {
+    return {
+      context: new HttpContext().set(REQUEST_PRIORITY, RequestPriorities.LOW)
+    };
+  }
 
   defaultObservationCodes$ = this.cohort.criteria$.pipe(
     map((criteria) =>
@@ -197,7 +207,8 @@ export class PullDataService {
             // Create separate requests for each Observation code
             requests = observationCodes.map((code) => {
               return this.http.get(
-                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${count}&combo-code=${code}`
+                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${count}&combo-code=${code}`,
+                PullDataService.commonHttpOptions
               );
             });
           } else {
@@ -209,7 +220,8 @@ export class PullDataService {
                 : perPatientCount;
             requests = [
               this.http.get(
-                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${count}`
+                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${count}`,
+                PullDataService.commonHttpOptions
               )
             ];
           }
@@ -309,7 +321,7 @@ export class PullDataService {
             return null;
           }
           ++patientEvCount[patientRef];
-          return this.http.get(evUrl);
+          return this.http.get(evUrl, PullDataService.commonHttpOptions);
         })
         .filter((p) => p) || [];
 
