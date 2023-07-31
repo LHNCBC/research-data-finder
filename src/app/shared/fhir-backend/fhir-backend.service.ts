@@ -22,7 +22,7 @@ import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam, setUrlParam } from '../utils';
 import { SettingsService } from '../settings-service/settings.service';
-import { find, cloneDeep } from 'lodash-es';
+import { find } from 'lodash-es';
 import { filter, map } from 'rxjs/operators';
 import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
@@ -30,6 +30,11 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { RasTokenService } from '../ras-token/ras-token.service';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
+import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
+import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
+import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
+import fhirpath from 'fhirpath';
+import Resource = fhir.Resource;
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -206,6 +211,12 @@ export class FhirBackendService implements HttpBackend {
     return this.fhirClient.getVersionName();
   }
 
+  // FHIRPath model
+  fhirPathModel: any;
+
+  // FHIRPath compiled expressions
+  compiledExpressions: { [expression: string]: (row: Resource) => any };
+
   /**
    * The name of the patient reference search parameter for the ResearchSubject.
    */
@@ -375,6 +386,11 @@ export class FhirBackendService implements HttpBackend {
                 this.fhirClient.setMaxActiveRequests(
                   this.settings.get('maxActiveRequests')
                 );
+                this.fhirPathModel = {
+                  R4: fhirPathModelR4,
+                  R5: fhirPathModelR5
+                }[this.currentVersion];
+                this.compiledExpressions = {};
                 this.initialized.next(ConnectionStatus.Ready);
               },
               (err) => {
@@ -505,65 +521,73 @@ export class FhirBackendService implements HttpBackend {
             })
             : this.fhirClient.get(fullUrl, { combine, signal, priority });
 
-            promise.then(
-              ({ status, data, _cacheInfo_ }) => {
-                request.context.set(CACHE_INFO, _cacheInfo_);
-                observer.next(
-                  new HttpResponse<any>({
-                    status,
-                    body: data,
-                    url: fullUrl
-                  })
-                );
-                observer.complete();
-              },
-              ({ status, error }) => {
-                if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
-                  if (status >= 400 && status < 500) {
-                    this.dialogRef = this.dialog.open(AlertDialogComponent, {
-                      data: {
-                        header: 'Session Expired',
-                        content:
-                          'It looks like the session with dbGaP has expired.' +
-                          ' You will be returned to the login page so you can login and select consent groups again.',
-                        hasCancelButton: true
-                      }
-                    });
-                    this.dialogRef.afterClosed().subscribe((isOk) => {
-                      if (isOk) {
-                        this.dbgapRelogin$.next();
-                      }
-                      this.dialogRef = null;
-                    });
-                  } else if (status >= 500 && status < 600) {
-                    this.dialog.open(AlertDialogComponent, {
-                      data: {
-                        header: 'Alert',
-                        content:
-                          'We are unable to connect to dbGaP at this time.',
-                        hasCancelButton: false
-                      }
-                    });
-                  }
+          promise.then(
+            ({ status, data, _cacheInfo_ }) => {
+              request.context.set(CACHE_INFO, _cacheInfo_);
+              observer.next(
+                new HttpResponse<any>({
+                  status,
+                  body: data,
+                  url: fullUrl
+                })
+              );
+              observer.complete();
+            },
+            ({ status, error }) => {
+              if (this.isDbgap(this.serviceBaseUrl) && !this.dialogRef) {
+                if (
+                  status >= 400 &&
+                  status < 500 &&
+                  this.injector.get(RasTokenService).rasTokenValidated &&
+                  // Don't show session expired message on "browse public data".
+                  // Access to CohortService via injector to avoid circular dependency.
+                  this.injector.get(CohortService).createCohortMode !==
+                    CreateCohortMode.NO_COHORT
+                ) {
+                  this.dialogRef = this.dialog.open(AlertDialogComponent, {
+                    data: {
+                      header: 'Session Expired',
+                      content:
+                        'It looks like the session with dbGaP has expired.' +
+                        ' You will be returned to the login page so you can login and select consent groups again.',
+                      hasCancelButton: true
+                    }
+                  });
+                  this.dialogRef.afterClosed().subscribe((isOk) => {
+                    if (isOk) {
+                      this.dbgapRelogin$.next();
+                    }
+                    this.dialogRef = null;
+                  });
+                } else if (status >= 500 && status < 600) {
+                  this.dialog.open(AlertDialogComponent, {
+                    data: {
+                      header: 'Alert',
+                      content:
+                        'We are unable to connect to dbGaP at this time.',
+                      hasCancelButton: false
+                    }
+                  });
                 }
-                observer.error(
-                  new HttpErrorResponse({
-                    status,
-                    error,
-                    url: fullUrl
-                  })
-                );
               }
-            );
-          });
-          // This is the return from the Observable function, which is the
-          // request cancellation handler.
-          return () => {
-            abortController.abort();
-          };
-        }
-      );
-    }
+              observer.error(
+                new HttpErrorResponse({
+                  status,
+                  error,
+                  url: fullUrl
+                })
+              );
+            }
+          );
+        });
+        // This is the return from the Observable function, which is the
+        // request cancellation handler.
+        return () => {
+          abortController.abort();
+        };
+      }
+    );
+  }
 
   /**
    * Disconnect from server (run on destroying the main component)
@@ -579,35 +603,6 @@ export class FhirBackendService implements HttpBackend {
     // Prepare CSV definitions only on first call
     if (this.currentDefinitions?.initialized) {
       return this.currentDefinitions;
-    }
-
-    // TODO: temporary manual creation of R5 definitions from R4 with overriding
-    //       some of the definitions
-    if (!definitionsIndex.configByVersionName['R5']) {
-      definitionsIndex.configByVersionName['R5'] = cloneDeep(
-        definitionsIndex.configByVersionName['R4']
-      );
-      definitionsIndex.configByVersionName['R5'].valueSets[
-        'http://hl7.org/fhir/ValueSet/research-subject-status|4.0.1'
-      ] = [
-        // See http://hl7.org/fhir/5.0.0-draft-final/valueset-publication-status.html
-        {
-          code: 'draft',
-          display: 'Draft'
-        },
-        {
-          code: 'active',
-          display: 'Active'
-        },
-        {
-          code: 'retired',
-          display: 'Retired'
-        },
-        {
-          code: 'unknown',
-          display: 'Unknown'
-        }
-      ];
     }
 
     const versionName = this.currentVersion || 'R4';
@@ -728,5 +723,19 @@ export class FhirBackendService implements HttpBackend {
    */
   clearCache(): void {
     FhirBatchQuery.clearCache();
+  }
+
+  /**
+   * Returns a function for evaluating the passed FHIRPath expression using
+   * current FHIRPath model.
+   * @param expression - FHIRPath expression
+   */
+  getEvaluator(expression: string): (row: Resource) => any {
+    let compiledExpression = this.compiledExpressions[expression];
+    if (!compiledExpression) {
+      compiledExpression = fhirpath.compile(expression, this.fhirPathModel);
+      this.compiledExpressions[expression] = compiledExpression;
+    }
+    return compiledExpression;
   }
 }

@@ -16,6 +16,8 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
+import fhirpath from 'fhirpath';
+import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 
 class Page {
   private fixture: ComponentFixture<ResourceTableComponent>;
@@ -103,12 +105,19 @@ describe('ResourceTableComponent', () => {
       ['getAvailableColumns', 'setVisibleColumnNames', 'setColumnsWithData']
     ),
     SettingsService: jasmine.createSpyObj('SettingsService', ['get']),
-    FhirBackendService: jasmine.createSpyObj('FhirBackendService', [], {
-      initialized: of(ConnectionStatus.Ready),
-      currentVersion: 'R4'
-    })
+    FhirBackendService: jasmine.createSpyObj(
+      'FhirBackendService',
+      ['getEvaluator'],
+      {
+        initialized: of(ConnectionStatus.Ready),
+        currentVersion: 'R4'
+      }
+    )
   };
 
+  spies.FhirBackendService.getEvaluator.and.callFake((expression) =>
+    fhirpath.compile(expression, fhirPathModelR4)
+  );
   spies.HttpClient.get.and.returnValue(of(bundle));
   spies.SettingsService.get
     .withArgs('hideElementsByDefault')

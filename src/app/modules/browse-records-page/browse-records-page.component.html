@@ -1,13 +1,7 @@
 <p class="info">
   <span class="info-icon" aria-hidden="true"></span>
   In this step, you can just browse public data.
-  {{
-  fhirBackend.serviceBaseUrl.startsWith('https://dbgap-api.ncbi.nlm.nih.gov')
-  ? 'Study selection limits list of variables'
-  : ''
-  }}
-  <span style="color: blue"
-  *ngIf="!fhirBackend.isDbgap(fhirBackend.serviceBaseUrl)">[TODO: Don't know what to show for non dbGap servers.]</span>
+  {{ hasStudyTab() ? 'Study selection limits list of variables.' : '' }}
 </p>
 
 <mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
@@ -47,7 +41,8 @@
                         resourceTable.dataSource.data.length
                       }} {{
                         resourceType | pluralFormOfRecordName | lowercase
-                      }}.</span>
+                      }}.
+                      <ng-container *ngIf="hasStudyTab()">Study selection limits list of variables.</ng-container></span>
                 </mat-panel-title>
                 <mat-panel-description *ngIf="(selectRecords.currentState[resourceType].isCached | async) !== null">
                   <span *ngIf="resourceTable.loading; else loadedTemplate">
@@ -70,7 +65,7 @@
       </app-resource-table>
       <app-resource-table *ngIf="(resourceType === 'Variable' || resourceType === 'Observation') && selectRecords.currentState[resourceType]"
                           #variableTable
-                          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'browse') | async"
+                          [columnDescriptions]="columnDescriptions.getVisibleColumns('Variable', 'browse') | async"
                           (filterChanged)="loadFirstPage(resourceType)"
                           [enableFiltering]="true"
                           [loading]="selectRecords.currentState[resourceType].loading"
@@ -80,8 +75,10 @@
                           context="browse"
                           [sort]="sort[resourceType]"
                           (sortChanged)="onSortChanged(resourceType, $event)"
-                          [resourceType]="resourceType">
-        <ng-template #prefix>
+                          [forceClientSort]="resourceType === 'Observation'"
+                          [resourceType]="resourceType"
+                          resourceTypeColumns="Variable">
+        <ng-template #prefix *ngIf="fhirBackend.isDbgap(fhirBackend.serviceBaseUrl)">
           <div class="v-box">
             <div class="h-box">
               <mat-checkbox [(ngModel)]="hasLoinc"

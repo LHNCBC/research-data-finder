@@ -362,9 +362,10 @@ export class PullDataService {
           entry: bundle?.entry?.filter((entry: BundleEntry) => {
             const obs = entry.resource as Observation;
             const patientRef = obs.subject.reference;
-            const codeStr = this.columnValues.getCodeableConceptAsText(
-              obs.code
-            );
+            // Use the "Code" column value as key for counting, instead of
+            // the "Variable Name" column value. This way we will have multiple
+            // Observation rows for codes with the same name, as should be the case.
+            const codeStr = this.columnValues.getCodeableConceptCode(obs.code);
             const codeToCount =
               patientToCodeToCount[patientRef] ||
               (patientToCodeToCount[patientRef] = {});
