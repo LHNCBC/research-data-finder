@@ -290,7 +290,8 @@ describe('FhirBackendService', () => {
             {
               combine: true,
               signal: jasmine.any(AbortSignal),
-              cacheName: ''
+              cacheName: '',
+              priority: PRIORITIES.NORMAL
             }
           );
           expect(matDialog.open).not.toHaveBeenCalled();
@@ -439,9 +440,18 @@ describe('FhirBatchQuery', () => {
 
   it('should send requests according to their priority', (done) => {
     Promise.allSettled([
-      fhirBatchQuery.getWithCache('someUrl1', {combine: false, priority: PRIORITIES.LOW}),
-      fhirBatchQuery.getWithCache('someUrl2', {combine: false, priority: PRIORITIES.LOW}),
-      fhirBatchQuery.getWithCache('someUrl3', {combine: false, priority: PRIORITIES.NORMAL})
+      fhirBatchQuery.getWithCache('someUrl1', {
+        combine: false,
+        priority: PRIORITIES.LOW
+      }),
+      fhirBatchQuery.getWithCache('someUrl2', {
+        combine: false,
+        priority: PRIORITIES.LOW
+      }),
+      fhirBatchQuery.getWithCache('someUrl3', {
+        combine: false,
+        priority: PRIORITIES.NORMAL
+      })
     ]).then((responses) => {
       responses.forEach((response) =>
         expect(response.status).toBe('fulfilled')
