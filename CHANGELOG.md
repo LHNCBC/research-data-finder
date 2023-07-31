@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.5.2] - 2023-07-31
+### Added
+- Request priority management.
+### Fixed
+- Loading data in the pull data step blocked other requests and made it
+  impossible to create a new cohort.
+
 ## [6.5.1] - 2023-07-31
 ### Fixed
 - Display of incorrect amount of studies in the select records step.

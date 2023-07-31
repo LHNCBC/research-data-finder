@@ -7,6 +7,12 @@ import queryResponseCache from './query-response-cache';
 export const HTTP_ABORT = 0;
 // The value of property status in the rejection object when the FHIR version is not supported by RDF
 export const UNSUPPORTED_VERSION = -1;
+// Request priorities (numbers by which requests in the pending queue are sorted)
+export const PRIORITIES = {
+  LOW: 100,
+  NORMAL: 200,
+};
+
 // A list of status codes for which we will not cache the http request
 const NOCACHESTATUSES = [HTTP_ABORT, 401, 403];
 
@@ -536,11 +542,19 @@ export class FhirBatchQuery extends EventTarget {
    *   See https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
    * @param {number|boolean} retryCount - maximum number of retries or false
    *                   to use _giveUpTimeout
+   * @param {number} priority - request priority, the number by which requests
+   *   in the queue are sorted, a request with a higher priority is executed
+   *   first.
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  get(url, { combine = true, retryCount = false, signal = null } = {}) {
+  get(url, {
+    combine = true,
+    retryCount = false,
+    signal = null,
+    priority = PRIORITIES.NORMAL
+  } = {}) {
     return new Promise((resolve, reject) => {
       let fullUrl = this.getFullUrl(url);
       let body, contentType, method;
@@ -554,17 +568,23 @@ export class FhirBatchQuery extends EventTarget {
         [fullUrl, body] = fullUrl.split('?');
         fullUrl += '/_search';
       }
-      this._pending.push({
-        url: fullUrl,
-        body,
-        contentType,
-        method,
-        combine,
-        signal,
-        retryCount,
-        resolve,
-        reject
-      });
+      for (let i = this._pending.length; i >= 0; i--) {
+        if (i === 0 || this._pending[i - 1].priority >= priority) {
+          this._pending.splice(i, 0, {
+            url: fullUrl,
+            body,
+            contentType,
+            method,
+            combine,
+            signal,
+            retryCount,
+            priority,
+            resolve,
+            reject
+          });
+          break;
+        }
+      }
       if (this._pending.length < this._maxPerBatch) {
         clearTimeout(this._batchTimeoutId);
         this._batchTimeoutId = setTimeout(
@@ -1000,6 +1020,7 @@ export class FhirBatchQuery extends EventTarget {
       retryCount: false,
       cacheName: null,
       cacheErrors: false,
+      priority: PRIORITIES.NORMAL,
       ...options
     };
 
