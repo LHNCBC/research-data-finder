@@ -94,10 +94,10 @@
                     <ng-container *ngIf="resourceTable.selectedResources.selected.length">Highlighted {{
                         resourceTable.selectedResources.selected.length
                       }} out of </ng-container><ng-container>{{
-                        resourceTable.dataSource.data.length
+                        resourceTable.dataSource.filteredData.length
                       }} {{
                         resourceType | pluralFormOfRecordName | lowercase
-                      }} loaded.</ng-container>
+                      }} {{resourceTable.hasFilters() ? 'matching the filter values were ': ''}}loaded.</ng-container>
                     </mat-panel-title>
                     <mat-panel-description *ngIf="(selectRecords.currentState[resourceType].isCached | async) !== null">
                   <span *ngIf="resourceTable.loading; else loadedTemplate">

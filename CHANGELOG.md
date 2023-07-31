@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.5.1] - 2023-07-31
+### Fixed
+- Display of incorrect amount of studies in the select records step.
+
 ## [6.5.0] - 2023-07-28
 ### Added
 - R5 support.
