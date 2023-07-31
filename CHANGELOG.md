@@ -3,9 +3,23 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.4.2] - 2023-07-24
+## [6.5.1] - 2023-07-31
 ### Fixed
 - Display of incorrect amount of studies in the select records step.
+
+## [6.5.0] - 2023-07-28
+### Added
+- R5 support.
+### Fixed
+- Issue with empty list of variables in the select records step for an R4 server
+  with ResearchStudies.
+- Replaced `subject:Patient=<id1>,<id2>` with `subject=Patient/<id1>,Patient/<id2>`
+  because baseR5 doesn't support it.
+
+## [6.4.2] - 2023-07-28
+### Added
+- Resend requests separately and notify the user of problems if a batch request
+  fails.
 
 ## [6.4.1] - 2023-07-21
 ### Fixed

@@ -36,7 +36,7 @@ const researchStudyStatusesByVersion = {
 };
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
-export class FhirBatchQuery {
+export class FhirBatchQuery extends EventTarget {
   /**
    * Requests are executed or combined depending on the parameters passed to this method.
    * @constructor
@@ -51,6 +51,7 @@ export class FhirBatchQuery {
     maxActiveRequests = 6,
     batchTimeout = 20
   }) {
+    super();
     this._serviceBaseUrl = serviceBaseUrl;
     this._authorizationHeader = null;
     this._pending = [];
@@ -72,6 +73,8 @@ export class FhirBatchQuery {
     // The string describes an initialization context which is used to
     // distinguish between pre-login and post-login initialization requests
     this.initContext = '';
+    // Maximum time for preflight request in milliseconds
+    this._maxTimeForPreflightRequest = 15000;
   }
 
   /**
@@ -688,8 +691,6 @@ export class FhirBatchQuery {
             reject({ status: HTTP_ABORT, error: 'Abort' });
           }
           const responseTime = new Date() - startAjaxTime;
-          // Maximum time for preflight request.
-          const maxTimeForPreflightRequest = 15000;
           console.log(
             `${
               logPrefix ? logPrefix + ' ' : ''
@@ -709,7 +710,7 @@ export class FhirBatchQuery {
             (status === 429 ||
               (status === HTTP_ABORT &&
                 !signal?.aborted &&
-                responseTime < maxTimeForPreflightRequest)) &&
+                responseTime < this._maxTimeForPreflightRequest)) &&
             (typeof retryCount !== 'number' || --retryCount > 0) &&
             Date.now() - this._lastSuccessTime < this._giveUpTimeout
           ) {
@@ -749,7 +750,9 @@ export class FhirBatchQuery {
             }
             reject({ status, error: this._getErrorDiagnostic(error) });
           }
-          this._postPending();
+          // Let the "resolve" or "reject" handlers to execute before processing
+          // the next requests.
+          setTimeout(() => this._postPending());
         }
       };
 
@@ -852,7 +855,7 @@ export class FhirBatchQuery {
         entry: requests.map(({ url, signal }) => {
           // Track the number of uncanceled requests and abort the batch request
           // if all requests are aborted
-          signal.addEventListener('abort', () => {
+          signal?.addEventListener('abort', () => {
             if (--activeReqCount === 0) {
               abortController.abort();
             }
@@ -896,16 +899,27 @@ export class FhirBatchQuery {
           });
         },
         ({ status, error }) => {
-          // If the batch request fails, show an error only for the first
-          // non-aborted request in the batch, following requests are marked
-          // as aborted:
-          let batchErrorReturned = false;
-          for (let i = 0; i < requests.length; ++i) {
-            if (batchErrorReturned || requests[i].signal?.aborted) {
-              requests[i].reject({ status: HTTP_ABORT, error: 'Abort' });
-            } else {
-              batchErrorReturned = true;
-              requests[i].reject({ status, error });
+          if (status === HTTP_ABORT && !signal?.aborted) {
+            // If the batch request was aborted by the server, the reason maybe
+            // we requested too much data. We are trying to resend the requests
+            // separately.
+            this._pending.unshift(
+              ...requests.map((req) => ({ ...req, combine: false }))
+            );
+            // And notify the user about possible problems with batch requests.
+            this.dispatchEvent(new Event('batch-issue'));
+          } else {
+            // If the batch request fails, show an error only for the first
+            // non-aborted request in the batch, following requests are marked
+            // as aborted:
+            let batchErrorReturned = false;
+            for (let i = 0; i < requests.length; ++i) {
+              if (batchErrorReturned || requests[i].signal?.aborted) {
+                requests[i].reject({ status: HTTP_ABORT, error: 'Abort' });
+              } else {
+                batchErrorReturned = true;
+                requests[i].reject({ status, error });
+              }
             }
           }
         }
