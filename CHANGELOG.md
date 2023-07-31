@@ -3,11 +3,14 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.4.1] - 2023-07-31
+### Added
+- Display failed requests message in Pull Data tables.
+
 ## [6.4.0] - 2023-06-26
 ### Added
 - Resend requests separately and notify the user of problems if a batch request
   fails.
-- Display failed requests message in Pull Data tables.
 
 ## [6.3.4] - 2023-06-23
 ### Fixed
