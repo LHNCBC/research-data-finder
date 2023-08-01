@@ -257,18 +257,13 @@ export class ObservationCodeLookupComponent
                   : '$fhir/Observation';
                 const _elements = 'subject,code,value,component';
                 const subject = this.isPullData
-                  ? this.fhirBackend.features.lastnLookup
-                    ? // 'subject:Patient' is not a valid parameter for $lastn
-                      {
-                        subject: this.cohort.currentState.patients
-                          .map((patient) => 'Patient/' + patient.id)
-                          .join(',')
-                      }
-                    : {
-                        'subject:Patient': this.cohort.currentState.patients
-                          .map((patient) => patient.id)
-                          .join(',')
-                      }
+                  ? {
+                      // "subject:Patient" doesn't work for $lastn and due to
+                      // a bug it doesn't work on baseR5
+                      subject: this.cohort.currentState.patients
+                        .map((patient) => 'Patient/' + patient.id)
+                        .join(',')
+                    }
                   : {};
                 const params = {
                   _elements,
@@ -397,6 +392,10 @@ export class ObservationCodeLookupComponent
                     catchError((error) => {
                       this.loading = false;
                       reject(error);
+                      // An error has occurred in one of the subsequent "next-page" queries for codes.
+                      // Even though it now fails, we show a list for items we have retrieved so far.
+                      // So, below method is called in case there are different items with the same display.
+                      this.appendCodeSystemToDuplicateDisplay(contains);
                       return of(contains);
                     })
                   );
