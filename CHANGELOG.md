@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.6.0] - 2023-08-03
+### Added
+- Option to convert Observation table into Variable-Patient table
+  in pull data step.
+
 ## [6.5.3] - 2023-08-01
 ### Added
 - Display failed requests message in Pull Data tables.
