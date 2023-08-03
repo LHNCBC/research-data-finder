@@ -12,13 +12,7 @@ import { getPluralFormOfRecordName } from '../../shared/utils';
 import { ColumnDescription } from '../../types/column.description';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
-import fhirpath from 'fhirpath';
-import { filter } from 'rxjs/operators';
-import {
-  ConnectionStatus,
-  FhirBackendService
-} from '../../shared/fhir-backend/fhir-backend.service';
-import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { Subscription } from 'rxjs';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
@@ -41,18 +35,7 @@ export class CartComponent implements OnInit, OnChanges {
     private columnValuesService: ColumnValuesService,
     private liveAnnouncer: LiveAnnouncer,
     public cart: CartService
-  ) {
-    this.subscriptions.push(
-      fhirBackend.initialized
-        .pipe(filter((status) => status === ConnectionStatus.Ready))
-        .subscribe(() => {
-          this.fhirPathModel = {
-            R4: fhirPathModelR4
-          }[fhirBackend.currentVersion];
-          this.compiledExpressions = {};
-        })
-    );
-  }
+  ) {}
 
   // The resource type for which cart is displayed
   @Input() resourceType: string;
@@ -86,8 +69,6 @@ export class CartComponent implements OnInit, OnChanges {
   }
   columnDescriptions: ColumnDescription[];
   cells: { [id: string]: ListCells } = {};
-  compiledExpressions: { [expression: string]: (row: Resource) => any };
-  fhirPathModel: any;
   createRemoveGroupTooltip = "Create/Remove OR'd groups";
   selectGroupTooltip = 'Select this group of records to group/ungroup';
   selectRecordTooltip = 'Select this record to group/ungroup';
@@ -147,7 +128,7 @@ export class CartComponent implements OnInit, OnChanges {
 
     for (const type of column.types) {
       const output = this.columnValuesService.valueToStrings(
-        this.getEvaluator(fullPath)(row),
+        this.fhirBackend.getEvaluator(fullPath)(row),
         type,
         fullPath
       );
@@ -157,19 +138,6 @@ export class CartComponent implements OnInit, OnChanges {
       }
     }
     return [];
-  }
-
-  /**
-   * Returns a function for evaluating the passed FHIRPath expression.
-   * @param expression - FHIRPath expression
-   */
-  getEvaluator(expression: string): (row: Resource) => any {
-    let compiledExpression = this.compiledExpressions[expression];
-    if (!compiledExpression) {
-      compiledExpression = fhirpath.compile(expression, this.fhirPathModel);
-      this.compiledExpressions[expression] = compiledExpression;
-    }
-    return compiledExpression;
   }
 
   /**

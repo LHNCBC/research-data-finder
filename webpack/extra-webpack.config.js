@@ -77,16 +77,27 @@ async function prepareCsvData() {
  */
 function updateAppSettings(url2desc) {
   const allUrls = Object.keys(url2desc);
-  const updateSettingsObj = { default: {}, customization: {} };
+  const updateSettingsObj = {
+    // Defines the order of the sections in settings.json5:
+    default: {},
+    default_R4: {},
+    default_R5: {},
+    customization: {}
+  };
   const settingsJsonString = fs.readFileSync(settingsPath).toString();
   const settings = JSON5.parse(settingsJsonString);
 
   for (let i = 0; i < allUrls.length; i++) {
     const url = allUrls[i];
-    const toFilename = 'desc-' + i + '.csv';
-    if (url === 'default') {
-      updateSettingsObj.default[definitionsFilePropName] = toFilename;
+    let toFilename;
+    if (url.startsWith('default')) {
+      if (!updateSettingsObj[url]) {
+        updateSettingsObj[url] = {};
+      }
+      toFilename = 'desc-' + url.replace(/_/g, '-') + '.csv';
+      updateSettingsObj[url][definitionsFilePropName] = toFilename;
     } else {
+      toFilename = 'desc-' + url.replace(/:\/\/|\.|\//g, '-') + '.csv';
       updateSettingsObj.customization[url] = {
         [definitionsFilePropName]: toFilename
       };

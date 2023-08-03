@@ -7,6 +7,14 @@ import queryResponseCache from './query-response-cache';
 export const HTTP_ABORT = 0;
 // The value of property status in the rejection object when the FHIR version is not supported by RDF
 export const UNSUPPORTED_VERSION = -1;
+// Request priorities (numbers by which requests in the pending queue are sorted)
+export const PRIORITIES = {
+  LOW: 100,
+  NORMAL: 200,
+};
+
+// A list of status codes for which we will not cache the http request
+const NOCACHESTATUSES = [HTTP_ABORT, 401, 403];
 
 // Rate limiting interval - the time interval in milliseconds for which a limited number of requests can be specified
 const RATE_LIMIT_INTERVAL = 1000;
@@ -34,7 +42,7 @@ const researchStudyStatusesByVersion = {
 };
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
-export class FhirBatchQuery {
+export class FhirBatchQuery extends EventTarget {
   /**
    * Requests are executed or combined depending on the parameters passed to this method.
    * @constructor
@@ -49,6 +57,7 @@ export class FhirBatchQuery {
     maxActiveRequests,
     batchTimeout
   }) {
+    super();
     this._serviceBaseUrl = serviceBaseUrl;
     this._authorizationHeader = null;
     this._pending = [];
@@ -73,6 +82,8 @@ export class FhirBatchQuery {
     // The string describes an initialization context which is used to
     // distinguish between pre-login and post-login initialization requests
     this.initContext = '';
+    // Maximum time for preflight request in milliseconds
+    this._maxTimeForPreflightRequest = 15000;
   }
 
   /**
@@ -234,6 +245,11 @@ export class FhirBatchQuery {
       ),
       // Check if server has Research Study data
       this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
+      // Check if :missing modifier is supported
+      this.getWithCache(
+        `Observation?code:missing=false&_elements=id&_count=1${securityParam}`,
+        options
+      ),
       // Check if batch request is supported
       this._request({
         method: 'POST',
@@ -247,7 +263,7 @@ export class FhirBatchQuery {
         retryCount: 2
       })
     ])
-      .then(([metadata, hasResearchStudy, batch]) => {
+      .then(([metadata, hasResearchStudy, missingModifier, batch]) => {
         if (currentServiceBaseUrl !== this._serviceBaseUrl) {
           return Promise.reject({
             status: HTTP_ABORT,
@@ -267,6 +283,7 @@ export class FhirBatchQuery {
             hasResearchStudy.status === 'fulfilled' &&
             hasResearchStudy.value.data.entry &&
             hasResearchStudy.value.data.entry.length > 0;
+          this._features.missingModifier = missingModifier.status === 'fulfilled';
           this._features.batch = batch.status === 'fulfilled';
         } else {
           // If initialization fails, do not cache initialization responses
@@ -280,98 +297,117 @@ export class FhirBatchQuery {
         }
       })
       .then(() => {
-        // Check if server has at least one Research Study with Research Subjects.
-        // No need to make this request if there is no Research Study at all.
-        return this._features.hasResearchStudy
-          ? this.getWithCache(
-              `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
-                researchStudyStatusesByVersion[this._versionName]
-              }`,
+        // On dbGaP server, only do initializationRequests2 requests after login.
+        if (this.initContext === 'dbgap-pre-login') {
+          // Check if server has at least one Research Study with Research Subjects.
+          // No need to make this request if there is no Research Study at all.
+          return this.checkHasAvailableStudy(options).then((result) => {
+            this._features.hasAvailableStudy = result;
+          });
+        } else {
+          // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
+          return Promise.allSettled([
+            // Check if sorting Observations by date is supported
+            this.getWithCache(
+              `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
               options
-            ).then(
-              ({ data }) => {
-                this._features.hasAvailableStudy = data.entry?.length > 0;
-              },
-              () => {
-                this._features.hasAvailableStudy = false;
-              }
-            )
-          : Promise.resolve();
+            ),
+            // Check if sorting Observations by age-at-event is supported
+            this.getWithCache(
+              `Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`,
+              options
+            ),
+            // Check if operation $lastn on Observation is supported
+            this.getWithCache(
+              `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
+              options
+            ),
+            // Check if interpretation search parameter is supported
+            this.getWithCache(
+              `Observation?interpretation${
+                this._features.missingModifier ? ':missing=false' : ':not=zzz'
+              }&_elements=id&_count=1${securityParam}`,
+              options
+            ),
+            this.checkNotModifierIssue(options),
+            this.checkHasAvailableStudy(options)
+          ]).then(
+            ([
+               observationsSortedByDate,
+               observationsSortedByAgeAtEvent,
+               lastnLookup,
+               interpretation,
+               hasNotModifierIssue,
+               hasAvailableStudy
+             ]) => {
+              Object.assign(this._features, {
+                sortObservationsByDate:
+                  observationsSortedByDate.status === 'fulfilled' &&
+                  observationsSortedByDate.value.data.entry &&
+                  observationsSortedByDate.value.data.entry.length > 0,
+                sortObservationsByAgeAtEvent:
+                  observationsSortedByAgeAtEvent.status === 'fulfilled' &&
+                  observationsSortedByAgeAtEvent.value.data.entry &&
+                  observationsSortedByAgeAtEvent.value.data.entry.length > 0,
+                lastnLookup: lastnLookup.status === 'fulfilled',
+                interpretation:
+                  interpretation.status === 'fulfilled' &&
+                  interpretation.value.data.entry &&
+                  interpretation.value.data.entry.length > 0,
+                hasNotModifierIssue:
+                  hasNotModifierIssue.status === 'fulfilled' &&
+                  hasNotModifierIssue.value,
+                hasAvailableStudy:
+                  hasAvailableStudy.status === 'fulfilled' &&
+                  hasAvailableStudy.value
+              });
+            }
+          );
+        }
       });
-    // On dbGaP server, only do initializationRequests2 requests after login.
-    if (this.initContext === 'dbgap-pre-login') {
-      return initializationRequests;
-    }
-    // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
-    const initializationRequests2 = Promise.allSettled([
-      // Check if sorting Observations by date is supported
-      this.getWithCache(
-        `Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`,
+
+    return initializationRequests;
+  }
+
+  /**
+   * Check if server has at least one Research Study with Research Subjects.
+   * No need to make this request if there is no Research Study at all.
+   * @param {Object} [options] - additional options (see getWithCache)
+   * @return {Promise<boolean>}
+   */
+  checkHasAvailableStudy(options) {
+    return this._features.hasResearchStudy
+      ? this.getWithCache(
+        `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
+          researchStudyStatusesByVersion[this._versionName]
+        }`,
         options
-      ),
-      // Check if sorting Observations by age-at-event is supported
-      this.getWithCache(
-        `Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`,
-        options
-      ),
-      // Check if operation $lastn on Observation is supported
-      this.getWithCache(
-        `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
-        options
-      ),
-      // Check if interpretation search parameter is supported
-      this.getWithCache(
-        `Observation?interpretation:not=zzz&_elements=id&_count=1${securityParam}`,
-        options
-      ),
-      this.checkNotModifierIssue()
-    ]).then(
-      ([
-        observationsSortedByDate,
-        observationsSortedByAgeAtEvent,
-        lastnLookup,
-        interpretation,
-        hasNotModifierIssue
-      ]) => {
-        Object.assign(this._features, {
-          sortObservationsByDate:
-            observationsSortedByDate.status === 'fulfilled' &&
-            observationsSortedByDate.value.data.entry &&
-            observationsSortedByDate.value.data.entry.length > 0,
-          sortObservationsByAgeAtEvent:
-            observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-            observationsSortedByAgeAtEvent.value.data.entry &&
-            observationsSortedByAgeAtEvent.value.data.entry.length > 0,
-          lastnLookup: lastnLookup.status === 'fulfilled',
-          interpretation:
-            interpretation.status === 'fulfilled' &&
-            interpretation.value.data.entry &&
-            interpretation.value.data.entry.length > 0,
-          hasNotModifierIssue:
-            hasNotModifierIssue.status === 'fulfilled' &&
-            hasNotModifierIssue.value
-        });
-      }
-    );
-    return Promise.all([initializationRequests, initializationRequests2]);
+      ).then(
+        ({ data }) => {
+          return data.entry?.length > 0;
+        },
+        () => {
+          return false;
+        }
+      )
+      : Promise.resolve(false);
   }
 
   /**
    * Checks if the ":not" search parameter modifier is interpreted incorrectly
    * (HAPI FHIR server issue).
+   * @param {Object} [options] - additional options (see getWithCache)
    * @return {Promise<boolean>}
    */
-  checkNotModifierIssue() {
-    return this.getWithCache(
-      'Observation?_count=1',
-      this.getCommonInitRequestOptions()
-    ).then((response) => {
-      const obs = response.data.entry?.[0].resource;
-      const firstCode =
-        obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
-      const patientRef = obs?.subject?.reference;
-      return firstCode && patientRef
-        ? this.getWithCache(
+  checkNotModifierIssue(options) {
+    return this.getWithCache('Observation?_count=1', options).then(
+      (response) => {
+        const obs = response.data.entry?.[0].resource;
+        const firstCode =
+          obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
+        const patientRef = obs?.subject?.reference;
+        return firstCode && patientRef
+          ? this.getWithCache(
             `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
             this.getCommonInitRequestOptions()
           ).then((oneCodeResp) => {
@@ -381,29 +417,30 @@ export class FhirBatchQuery {
               oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
             return secondCode
               ? Promise.allSettled([
-                  typeof oneCodeResp.data.total === 'number'
-                    ? Promise.resolve(oneCodeResp)
-                    : this.getWithCache(
-                        `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                        this.getCommonInitRequestOptions()
-                      ),
-                  this.getWithCache(
-                    `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                typeof oneCodeResp.data.total === 'number'
+                  ? Promise.resolve(oneCodeResp)
+                  : this.getWithCache(
+                    `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
                     this.getCommonInitRequestOptions()
+                  ),
+                this.getWithCache(
+                  `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                  this.getCommonInitRequestOptions()
+                )
+              ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
+                return summaryOneCodeResp.status === 'fulfilled' &&
+                summaryTwoCodeResp.status === 'fulfilled'
+                  ? Promise.resolve(
+                    summaryTwoCodeResp.value.data.total <
+                    summaryOneCodeResp.value.data.total
                   )
-                ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
-                  return summaryOneCodeResp.status === 'fulfilled' &&
-                    summaryTwoCodeResp.status === 'fulfilled'
-                    ? Promise.resolve(
-                        summaryTwoCodeResp.value.data.total <
-                          summaryOneCodeResp.value.data.total
-                      )
-                    : Promise.reject();
-                })
+                  : Promise.reject();
+              })
               : Promise.reject();
           })
-        : Promise.reject();
-    });
+          : Promise.reject();
+      }
+    );
   }
 
   /**
@@ -519,11 +556,19 @@ export class FhirBatchQuery {
    *   See https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
    * @param {number|boolean} retryCount - maximum number of retries or false
    *                   to use _giveUpTimeout
+   * @param {number} priority - request priority, the number by which requests
+   *   in the queue are sorted, a request with a higher priority is executed
+   *   first.
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  get(url, { combine = true, retryCount = false, signal = null } = {}) {
+  get(url, {
+    combine = true,
+    retryCount = false,
+    signal = null,
+    priority = PRIORITIES.NORMAL
+  } = {}) {
     return new Promise((resolve, reject) => {
       let fullUrl = this.getFullUrl(url);
       let body, contentType, method;
@@ -537,17 +582,23 @@ export class FhirBatchQuery {
         [fullUrl, body] = fullUrl.split('?');
         fullUrl += '/_search';
       }
-      this._pending.push({
-        url: fullUrl,
-        body,
-        contentType,
-        method,
-        combine,
-        signal,
-        retryCount,
-        resolve,
-        reject
-      });
+      for (let i = this._pending.length; i >= 0; i--) {
+        if (i === 0 || this._pending[i - 1].priority >= priority) {
+          this._pending.splice(i, 0, {
+            url: fullUrl,
+            body,
+            contentType,
+            method,
+            combine,
+            signal,
+            retryCount,
+            priority,
+            resolve,
+            reject
+          });
+          break;
+        }
+      }
       if (this._pending.length < this._maxPerBatch) {
         clearTimeout(this._batchTimeoutId);
         this._batchTimeoutId = setTimeout(
@@ -674,8 +725,6 @@ export class FhirBatchQuery {
             reject({ status: HTTP_ABORT, error: 'Abort' });
           }
           const responseTime = new Date() - startAjaxTime;
-          // Maximum time for preflight request.
-          const maxTimeForPreflightRequest = 15000;
           console.log(
             `${
               logPrefix ? logPrefix + ' ' : ''
@@ -695,7 +744,7 @@ export class FhirBatchQuery {
             (status === 429 ||
               (status === HTTP_ABORT &&
                 !signal?.aborted &&
-                responseTime < maxTimeForPreflightRequest)) &&
+                responseTime < this._maxTimeForPreflightRequest)) &&
             (typeof retryCount !== 'number' || --retryCount > 0) &&
             Date.now() - this._lastSuccessTime < this._giveUpTimeout
           ) {
@@ -735,7 +784,9 @@ export class FhirBatchQuery {
             }
             reject({ status, error: this._getErrorDiagnostic(error) });
           }
-          this._postPending();
+          // Let the "resolve" or "reject" handlers to execute before processing
+          // the next requests.
+          setTimeout(() => this._postPending());
         }
       };
 
@@ -838,7 +889,7 @@ export class FhirBatchQuery {
         entry: requests.map(({ url, signal }) => {
           // Track the number of uncanceled requests and abort the batch request
           // if all requests are aborted
-          signal.addEventListener('abort', () => {
+          signal?.addEventListener('abort', () => {
             if (--activeReqCount === 0) {
               abortController.abort();
             }
@@ -882,23 +933,38 @@ export class FhirBatchQuery {
           });
         },
         ({ status, error }) => {
-          // If the batch request fails, show an error only for the first
-          // non-aborted request in the batch, following requests are marked
-          // as aborted:
-          let batchErrorReturned = false;
-          for (let i = 0; i < requests.length; ++i) {
-            if (batchErrorReturned || requests[i].signal?.aborted) {
-              requests[i].reject({ status: HTTP_ABORT, error: 'Abort' });
-            } else {
-              batchErrorReturned = true;
-              requests[i].reject({ status, error });
+          if (status === HTTP_ABORT && !signal?.aborted) {
+            // If the batch request was aborted by the server, the reason maybe
+            // we requested too much data. We are trying to resend the requests
+            // separately.
+            this._pending.unshift(
+              ...requests.map((req) => ({ ...req, combine: false }))
+            );
+            // And notify the user about possible problems with batch requests.
+            this.dispatchEvent(new Event('batch-issue'));
+          } else {
+            // If the batch request fails, show an error only for the first
+            // non-aborted request in the batch, following requests are marked
+            // as aborted:
+            let batchErrorReturned = false;
+            for (let i = 0; i < requests.length; ++i) {
+              if (batchErrorReturned || requests[i].signal?.aborted) {
+                requests[i].reject({ status: HTTP_ABORT, error: 'Abort' });
+              } else {
+                batchErrorReturned = true;
+                requests[i].reject({ status, error });
+              }
             }
           }
         }
       );
     } else if (requests.length) {
       const { resolve, reject, ...options } = requests[0];
-      this._request(options).then(resolve, reject);
+      this._request(options).then(resolve, (errorResponse) => {
+        // Notify the app about a failed request.
+        this.dispatchEvent(new Event('single-request-failure'));
+        reject(errorResponse);
+      });
     }
   }
 
@@ -972,6 +1038,7 @@ export class FhirBatchQuery {
       retryCount: false,
       cacheName: null,
       cacheErrors: false,
+      priority: PRIORITIES.NORMAL,
       ...options
     };
 
@@ -993,7 +1060,8 @@ export class FhirBatchQuery {
               });
             },
             (errorResponse) => {
-              (options.cacheErrors && errorResponse.status !== HTTP_ABORT
+              (options.cacheErrors &&
+              !NOCACHESTATUSES.includes(errorResponse.status)
                 ? queryResponseCache.add(fullUrl, errorResponse, options)
                 : Promise.resolve()
               ).then(() => {
