@@ -7,7 +7,7 @@ import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import { CODETEXT } from '../query-params/query-params.service';
 import { CohortService } from '../cohort/cohort.service';
 import { concatMap, finalize, map, startWith, tap } from 'rxjs/operators';
-import { forkJoin, Observable, of } from 'rxjs';
+import { forkJoin, fromEvent, Observable, of } from 'rxjs';
 import { chunk, differenceBy } from 'lodash-es';
 import Patient = fhir.Patient;
 import Resource = fhir.Resource;
@@ -32,6 +32,8 @@ interface PullDataState {
   resources: (Resource & PatientMixin)[];
   // Resource loading progress value
   progressValue: number;
+  // Number of failed requests
+  failedRequests?: number;
 }
 
 @Injectable({
@@ -145,9 +147,16 @@ export class PullDataService {
     const currentState: PullDataState = {
       loading: true,
       resources: [],
-      progressValue: 0
+      progressValue: 0,
+      failedRequests: 0
     };
     this.currentState[resourceType] = currentState;
+    const subscription = fromEvent(
+      this.fhirBackend.fhirClient,
+      'single-request-failure'
+    ).subscribe(() => {
+      currentState.failedRequests++;
+    });
 
     // For pulling EV, we first pull Observations and then retrieve EVs
     // by looking at Observation extensions.
@@ -270,6 +279,7 @@ export class PullDataService {
       finalize(() => {
         currentState.progressValue = 100;
         currentState.loading = false;
+        subscription.unsubscribe();
       })
     );
 

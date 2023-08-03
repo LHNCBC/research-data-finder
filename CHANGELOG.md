@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.5.3] - 2023-08-01
+### Added
+- Display failed requests message in Pull Data tables.
+
 ## [6.5.2] - 2023-07-31
 ### Added
 - Request priority management.

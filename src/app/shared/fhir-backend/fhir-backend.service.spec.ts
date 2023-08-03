@@ -388,6 +388,10 @@ describe('FhirBatchQuery', () => {
         }
       ]
     });
+    server.get(/http:\/\/someServerUrl\/someUrl4\?_format=json/, {
+      status: 500,
+      body: '{ "message": "Failure!" }'
+    });
 
     server.install();
     fhirBatchQuery = new FhirBatchQuery({
@@ -432,6 +436,29 @@ describe('FhirBatchQuery', () => {
         jasmine.objectContaining({
           method: 'GET',
           url: 'http://someServerUrl/someUrl3?_format=json'
+        })
+      ]);
+      done();
+    });
+  });
+
+  it('should emit single request failure events', (done) => {
+    spyOn(fhirBatchQuery, 'dispatchEvent');
+    Promise.allSettled([
+      fhirBatchQuery.get('someUrl3', { combine: false }),
+      fhirBatchQuery.get('someUrl4', { combine: false })
+    ]).then((responses) => {
+      expect(fhirBatchQuery.dispatchEvent).toHaveBeenCalledOnceWith(
+        jasmine.objectContaining({ type: 'single-request-failure' })
+      );
+      expect(server.getRequestLog()).toEqual([
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://someServerUrl/someUrl3?_format=json'
+        }),
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://someServerUrl/someUrl4?_format=json'
         })
       ]);
       done();
