@@ -21,7 +21,7 @@ import {
   UntypedFormGroup
 } from '@angular/forms';
 import { ColumnDescription } from '../../types/column.description';
-import { distinctUntilChanged, filter, sample, tap } from 'rxjs/operators';
+import { distinctUntilChanged, sample, tap } from 'rxjs/operators';
 import {
   escapeStringForRegExp,
   getPluralFormOfRecordName
@@ -36,12 +36,7 @@ import {
 import { SettingsService } from '../../shared/settings-service/settings.service';
 import { Sort } from '@angular/material/sort';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import * as fhirpath from 'fhirpath';
-import * as fhirPathModelR4 from 'fhirpath/fhir-context/r4';
-import {
-  ConnectionStatus,
-  FhirBackendService
-} from '../../shared/fhir-backend/fhir-backend.service';
+import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { ResourceTableFilterComponent } from '../resource-table-filter/resource-table-filter.component';
 import { FilterType } from '../../types/filter-type';
 import { CustomDialog } from '../../shared/custom-dialog/custom-dialog.service';
@@ -52,6 +47,7 @@ import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { isEqual, pickBy } from 'lodash-es';
 import { saveAs } from 'file-saver';
 import Observation = fhir.Observation;
+import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 
 type TableCells = { [key: string]: string };
 
@@ -71,7 +67,8 @@ export interface TableRow {
 })
 export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   constructor(
-    private fhirBackend: FhirBackendService,
+    public fhirBackend: FhirBackendService,
+    public rasToken: RasTokenService,
     private http: HttpClient,
     private ngZone: NgZone,
     public columnDescriptionsService: ColumnDescriptionsService,
@@ -80,16 +77,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private liveAnnouncer: LiveAnnouncer,
     private dialog: CustomDialog
   ) {
-    this.subscriptions.push(
-      fhirBackend.initialized
-        .pipe(filter((status) => status === ConnectionStatus.Ready))
-        .subscribe(() => {
-          this.fhirPathModel = {
-            R4: fhirPathModelR4
-          }[fhirBackend.currentVersion];
-          this.compiledExpressions = {};
-        })
-    );
     this.listFilterColumns = settings.get('listFilterColumns') || [];
 
     // The method to determine if a row satisfies all filter criteria by returning
@@ -181,6 +168,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       output += `Selected ${this.selectedResources.selected.length} out of `;
     }
     output += `${this.dataSource.data.length} ${this.resourceType} resources loaded.`;
+    if (this.failedRequests) {
+      // Show number of failed requests after displaying successful records in table.
+      output += ` (${this.failedRequests} requests failed)`;
+    }
     return output;
   }
 
@@ -208,6 +199,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() resources: Resource[];
   @Input() total: number;
   @Input() loading: boolean;
+  @Input() failedRequests = 0;
   @Input() set progressValue(value) {
     this.progressValue$.next(Math.round(value));
   }
@@ -241,9 +233,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   startTime: number;
   loadedDateTime: number;
   subscriptions: Subscription[] = [];
-  fhirPathModel: any;
   readonly listFilterColumns: string[];
-  compiledExpressions: { [expression: string]: (row: Resource) => any };
 
   @HostBinding('class.fullscreen') fullscreen = false;
 
@@ -596,19 +586,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Returns a function for evaluating the passed FHIRPath expression.
-   * @param expression - FHIRPath expression
-   */
-  getEvaluator(expression: string): (row: Resource) => any {
-    let compiledExpression = this.compiledExpressions[expression];
-    if (!compiledExpression) {
-      compiledExpression = fhirpath.compile(expression, this.fhirPathModel);
-      this.compiledExpressions[expression] = compiledExpression;
-    }
-    return compiledExpression;
-  }
-
-  /**
    * Returns string values to display in a cell
    * @param row - data for a row of table (entry in the bundle)
    * @param column - column description
@@ -626,7 +603,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
     for (const type of column.types) {
       const output = this.columnValuesService.valueToStrings(
-        this.getEvaluator(fullPath)(row),
+        this.fhirBackend.getEvaluator(fullPath)(row),
         type,
         fullPath,
         pullDataObservationCodes

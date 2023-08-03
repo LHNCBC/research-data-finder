@@ -200,7 +200,7 @@ describe('PullDataForCohortComponent', () => {
     expectResourcesToBeLoaded(pullData, 'Encounter', 2);
   });
 
-  it('should add/remove Patient tab', async () => {
+  it('should add/remove Patient tab', () => {
     fixture.detectChanges();
     component.addTab('Patient');
     fixture.detectChanges();

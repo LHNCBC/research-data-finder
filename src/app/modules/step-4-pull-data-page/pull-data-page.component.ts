@@ -57,6 +57,8 @@ export class PullDataPageComponent
   codeTextResourceTypes: string[] = [];
   // Subscription to the loading process
   loadSubscription: Subscription;
+  // Subscription to change cohort criteria
+  changeCriteriaSubscription: Subscription;
 
   // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
   // when the active tab changes
@@ -160,6 +162,9 @@ export class PullDataPageComponent
           this.isObsCodesSelected = isObsCodesSelected;
         });
       });
+    this.changeCriteriaSubscription = this.cohort.criteria$.subscribe(() =>
+      this.loadSubscription?.unsubscribe()
+    );
   }
 
   /**
@@ -196,6 +201,7 @@ export class PullDataPageComponent
 
   ngOnDestroy(): void {
     this.loadSubscription?.unsubscribe();
+    this.changeCriteriaSubscription.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {

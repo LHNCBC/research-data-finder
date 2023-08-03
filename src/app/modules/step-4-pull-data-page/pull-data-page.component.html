@@ -68,6 +68,7 @@
           [loading]="pullData.currentState[resourceType].loading"
           [resources]="pullData.currentState[resourceType].resources"
           [progressValue]="pullData.currentState[resourceType].progressValue"
+          [failedRequests]="pullData.currentState[resourceType].failedRequests"
           [pullDataObservationCodes]="pullDataObservationCodes">
       </app-resource-table>
       <div *ngIf="resourceType === 'Observation' && isVariablePatientTable && variablePatientTableColumns.length > 200">

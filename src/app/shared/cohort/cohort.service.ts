@@ -425,7 +425,7 @@ export class CohortService {
             (resourceType === PATIENT_RESOURCE_TYPE && `_id=${patientId}`) ||
             (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
               `_count=1&_has:ResearchSubject:study:${this.fhirBackend.subjectParamName}=Patient/${patientId}`) ||
-            `_count=1&subject:Patient=${patientId}`;
+            `_count=1&subject=Patient/${patientId}`;
           const query =
             `$fhir/${resourceType}?${link}${elements}` +
             rules
