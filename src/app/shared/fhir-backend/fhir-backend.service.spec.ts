@@ -87,6 +87,7 @@ describe('FhirBackendService', () => {
         '^https://dbgap-api.ncbi.nlm.nih.gov/fhir'
       );
       spyOn(service, 'isDbgap').and.returnValue(false);
+      service.cacheEnabled = true;
     });
 
     it('should be created', () => {
