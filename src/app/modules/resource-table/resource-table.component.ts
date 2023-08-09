@@ -51,9 +51,10 @@ import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 
 type TableCells = { [key: string]: string };
 
-interface TableRow {
+export interface TableRow {
   cells: TableCells;
-  resource: Resource;
+  resource?: Resource;
+  valueQuantityData?: fhir.Quantity;
 }
 
 /**
