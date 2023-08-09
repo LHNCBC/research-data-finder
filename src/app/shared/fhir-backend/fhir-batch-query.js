@@ -53,18 +53,21 @@ export class FhirBatchQuery extends EventTarget {
    */
   constructor({
     serviceBaseUrl = '',
-    maxRequestsPerBatch = 10,
-    maxActiveRequests = 6,
-    batchTimeout = 20
+    maxRequestsPerBatch,
+    maxActiveRequests,
+    batchTimeout
   }) {
     super();
     this._serviceBaseUrl = serviceBaseUrl;
     this._authorizationHeader = null;
     this._pending = [];
     this._batchTimeoutId = null;
-    this._batchTimeout = batchTimeout;
-    this._maxPerBatch = maxRequestsPerBatch;
-    this._maxActiveReq = maxActiveRequests;
+    this._batchTimeout =
+      batchTimeout || sessionStorage.getItem('batchTimeout') || 20;
+    this._maxPerBatch =
+      maxRequestsPerBatch || sessionStorage.getItem('maxPerBatch') || 10;
+    this._maxActiveReq =
+      maxActiveRequests || sessionStorage.getItem('maxActiveReq') || 6;
     this._activeReq = [];
     this._onChangeListeners = [];
     // Timeout between requests in milliseconds
@@ -75,7 +78,7 @@ export class FhirBatchQuery extends EventTarget {
     // The client side should give up if no successful response in 90 seconds
     this._giveUpTimeout = 90 * 1000;
     // NCBI E-utilities API Key
-    this._apiKey = '';
+    this._apiKey = sessionStorage.getItem('apiKey') || '';
     // The string describes an initialization context which is used to
     // distinguish between pre-login and post-login initialization requests
     this.initContext = '';
@@ -472,6 +475,7 @@ export class FhirBatchQuery extends EventTarget {
    */
   setMaxRequestsPerBatch(val) {
     this._maxPerBatch = val;
+    sessionStorage.setItem('maxPerBatch', val);
   }
 
   /**
@@ -488,6 +492,7 @@ export class FhirBatchQuery extends EventTarget {
    */
   setMaxActiveRequests(val) {
     this._maxActiveReq = val;
+    sessionStorage.setItem('maxActiveReq', val);
   }
 
   /**
@@ -505,6 +510,15 @@ export class FhirBatchQuery extends EventTarget {
    */
   setApiKey(val) {
     this._apiKey = (val || '').trim();
+    sessionStorage.setItem('apiKey', this._apiKey);
+  }
+
+  /**
+   * Gets the NCBI E-utilities API Key.
+   * @return {string}
+   */
+  getApiKey() {
+    return this._apiKey;
   }
 
   /**

@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.6.1] - 2023-08-09
+### Fixed
+- Preserve Advanced Settings after RAS login.
+
 ## [6.6.0] - 2023-08-03
 ### Added
 - Option to convert Observation table into Variable-Patient table

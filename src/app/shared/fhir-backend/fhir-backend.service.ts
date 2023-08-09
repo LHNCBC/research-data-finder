@@ -190,9 +190,13 @@ export class FhirBackendService implements HttpBackend {
   set apiKey(val: string) {
     this.fhirClient.setApiKey(val);
   }
+  get apiKey(): string {
+    return this.fhirClient.getApiKey();
+  }
 
   set cacheEnabled(value: boolean) {
     this.isCacheEnabled = value;
+    sessionStorage.setItem('isCacheEnabled', value.toString());
     if (!value) {
       FhirBatchQuery.clearCache();
     }
@@ -244,6 +248,7 @@ export class FhirBackendService implements HttpBackend {
     private liveAnnouncer: LiveAnnouncer,
     private dialog: MatDialog
   ) {
+    this.isCacheEnabled = sessionStorage.getItem('isCacheEnabled') !== 'false';
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
     // This check is necessary because we are loading the entire application
@@ -272,7 +277,7 @@ export class FhirBackendService implements HttpBackend {
   dbgapRelogin$ = new ReplaySubject<void>();
 
   // Whether to cache requests to the FHIR server
-  private isCacheEnabled = true;
+  private isCacheEnabled;
 
   // Whether to show a checkbox of SMART on FHIR connection.
   public isSmartOnFhirEnabled = false;
@@ -380,12 +385,17 @@ export class FhirBackendService implements HttpBackend {
             this.settings.loadCsvDefinitions().subscribe(
               (resourceDefinitions) => {
                 this.currentDefinitions = { resources: resourceDefinitions };
-                this.fhirClient.setMaxRequestsPerBatch(
-                  this.settings.get('maxRequestsPerBatch')
-                );
-                this.fhirClient.setMaxActiveRequests(
-                  this.settings.get('maxActiveRequests')
-                );
+                // Below block should only be run for the first time opening the app.
+                // Do not set advanced settings controls if sessionStorage has 'maxPerBatch' stored.
+                // They should be set from sessionStorage in cases like refreshing page.
+                if (sessionStorage.getItem('maxPerBatch') === null) {
+                  this.fhirClient.setMaxRequestsPerBatch(
+                    this.settings.get('maxRequestsPerBatch')
+                  );
+                  this.fhirClient.setMaxActiveRequests(
+                    this.settings.get('maxActiveRequests')
+                  );
+                }
                 this.fhirPathModel = {
                   R4: fhirPathModelR4,
                   R5: fhirPathModelR5
