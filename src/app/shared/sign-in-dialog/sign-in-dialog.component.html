@@ -1,0 +1,14 @@
+<h1 mat-dialog-title>Sign in</h1>
+<h4 mat-dialog-title>{{server}}</h4>
+<div mat-dialog-content>
+  <div>
+    Username <input [(ngModel)]="data.username">
+  </div>
+  <div>
+    Password <input [(ngModel)]="data.password">
+  </div>
+</div>
+<div mat-dialog-actions>
+  <button mat-button [mat-dialog-close]="false">Cancel</button>
+  <button mat-button (click)="close()">Ok</button>
+</div>

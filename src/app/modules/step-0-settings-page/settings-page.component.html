@@ -23,6 +23,9 @@
     <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('unsupportedVersion')">
       Unsupported FHIR version.
     </mat-error>
+    <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('basicAuthFailed')">
+      Basic authorization failed.
+    </mat-error>
     <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('wrongUrl')">
       Please specify a valid FHIR server URL.
       See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for

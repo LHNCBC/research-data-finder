@@ -94,7 +94,7 @@ export class SettingsPageComponent implements OnDestroy {
             'We are experiencing problems with batch requests.' +
             ' Clicking "Okay" will disable batch requests, and may improve performance.' +
             ' Clicking "Cancel" will mean that we will continue to try batch requests,' +
-            ' and if a batch request doesn\'t work, we will try to resend the requests' +
+            " and if a batch request doesn't work, we will try to resend the requests" +
             ' in that batch separately.' +
             ' You can also reduce the number of requests per batch in the settings step.',
           hasCancelButton: true
@@ -166,6 +166,9 @@ export class SettingsPageComponent implements OnDestroy {
         } else if (status === ConnectionStatus.UnsupportedVersion) {
           this.liveAnnouncer.announce('Unsupported FHIR version.');
           return { unsupportedVersion: true };
+        } else if (status === ConnectionStatus.BasicAuthFailed) {
+          this.liveAnnouncer.announce('Basic authorization failed.');
+          return { basicAuthFailed: true };
         } else {
           if (status === ConnectionStatus.Ready) {
             this.liveAnnouncer.announce('Initialization complete.');

@@ -7,10 +7,12 @@ import queryResponseCache from './query-response-cache';
 export const HTTP_ABORT = 0;
 // The value of property status in the rejection object when the FHIR version is not supported by RDF
 export const UNSUPPORTED_VERSION = -1;
+// The value of property status in the rejection object when the "metadata" query indicated basic authorization failure
+export const BASIC_AUTH_REQUIRED = -1;
 // Request priorities (numbers by which requests in the pending queue are sorted)
 export const PRIORITIES = {
   LOW: 100,
-  NORMAL: 200,
+  NORMAL: 200
 };
 
 // A list of status codes for which we will not cache the http request
@@ -264,6 +266,8 @@ export class FhirBatchQuery extends EventTarget {
       })
     ])
       .then(([metadata, hasResearchStudy, missingModifier, batch]) => {
+        console.log(metadata);
+        console.log(missingModifier);
         if (currentServiceBaseUrl !== this._serviceBaseUrl) {
           return Promise.reject({
             status: HTTP_ABORT,
@@ -283,13 +287,23 @@ export class FhirBatchQuery extends EventTarget {
             hasResearchStudy.status === 'fulfilled' &&
             hasResearchStudy.value.data.entry &&
             hasResearchStudy.value.data.entry.length > 0;
-          this._features.missingModifier = missingModifier.status === 'fulfilled';
+          this._features.missingModifier =
+            missingModifier.status === 'fulfilled';
           this._features.batch = batch.status === 'fulfilled';
         } else {
           // If initialization fails, do not cache initialization responses
           this.clearCacheByName(this.getInitCacheName());
           // Abort other initialization requests
           this.clearPendingRequests();
+          if (
+            metadata.reason?.status === 401 &&
+            metadata.reason?.error?.startsWith('Basic')
+          ) {
+            return Promise.reject({
+              status: BASIC_AUTH_REQUIRED,
+              error: 'basic authorization required'
+            });
+          }
           return Promise.reject({
             error:
               "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
@@ -333,13 +347,13 @@ export class FhirBatchQuery extends EventTarget {
             this.checkHasAvailableStudy(options)
           ]).then(
             ([
-               observationsSortedByDate,
-               observationsSortedByAgeAtEvent,
-               lastnLookup,
-               interpretation,
-               hasNotModifierIssue,
-               hasAvailableStudy
-             ]) => {
+              observationsSortedByDate,
+              observationsSortedByAgeAtEvent,
+              lastnLookup,
+              interpretation,
+              hasNotModifierIssue,
+              hasAvailableStudy
+            ]) => {
               Object.assign(this._features, {
                 sortObservationsByDate:
                   observationsSortedByDate.status === 'fulfilled' &&
@@ -378,18 +392,18 @@ export class FhirBatchQuery extends EventTarget {
   checkHasAvailableStudy(options) {
     return this._features.hasResearchStudy
       ? this.getWithCache(
-        `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
-          researchStudyStatusesByVersion[this._versionName]
-        }`,
-        options
-      ).then(
-        ({ data }) => {
-          return data.entry?.length > 0;
-        },
-        () => {
-          return false;
-        }
-      )
+          `ResearchStudy?_elements=id&_count=1&&_has:ResearchSubject:study:status=${
+            researchStudyStatusesByVersion[this._versionName]
+          }`,
+          options
+        ).then(
+          ({ data }) => {
+            return data.entry?.length > 0;
+          },
+          () => {
+            return false;
+          }
+        )
       : Promise.resolve(false);
   }
 
@@ -408,36 +422,36 @@ export class FhirBatchQuery extends EventTarget {
         const patientRef = obs?.subject?.reference;
         return firstCode && patientRef
           ? this.getWithCache(
-            `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
-            this.getCommonInitRequestOptions()
-          ).then((oneCodeResp) => {
-            const secondCode =
-              oneCodeResp.data.entry?.[0].resource.code.coding?.[0].system +
-              '%7C' +
-              oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
-            return secondCode
-              ? Promise.allSettled([
-                typeof oneCodeResp.data.total === 'number'
-                  ? Promise.resolve(oneCodeResp)
-                  : this.getWithCache(
-                    `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                    this.getCommonInitRequestOptions()
-                  ),
-                this.getWithCache(
-                  `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                  this.getCommonInitRequestOptions()
-                )
-              ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
-                return summaryOneCodeResp.status === 'fulfilled' &&
-                summaryTwoCodeResp.status === 'fulfilled'
-                  ? Promise.resolve(
-                    summaryTwoCodeResp.value.data.total <
-                    summaryOneCodeResp.value.data.total
-                  )
-                  : Promise.reject();
-              })
-              : Promise.reject();
-          })
+              `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
+              this.getCommonInitRequestOptions()
+            ).then((oneCodeResp) => {
+              const secondCode =
+                oneCodeResp.data.entry?.[0].resource.code.coding?.[0].system +
+                '%7C' +
+                oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
+              return secondCode
+                ? Promise.allSettled([
+                    typeof oneCodeResp.data.total === 'number'
+                      ? Promise.resolve(oneCodeResp)
+                      : this.getWithCache(
+                          `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                          this.getCommonInitRequestOptions()
+                        ),
+                    this.getWithCache(
+                      `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                      this.getCommonInitRequestOptions()
+                    )
+                  ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
+                    return summaryOneCodeResp.status === 'fulfilled' &&
+                      summaryTwoCodeResp.status === 'fulfilled'
+                      ? Promise.resolve(
+                          summaryTwoCodeResp.value.data.total <
+                            summaryOneCodeResp.value.data.total
+                        )
+                      : Promise.reject();
+                  })
+                : Promise.reject();
+            })
           : Promise.reject();
       }
     );
@@ -563,12 +577,15 @@ export class FhirBatchQuery extends EventTarget {
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  get(url, {
-    combine = true,
-    retryCount = false,
-    signal = null,
-    priority = PRIORITIES.NORMAL
-  } = {}) {
+  get(
+    url,
+    {
+      combine = true,
+      retryCount = false,
+      signal = null,
+      priority = PRIORITIES.NORMAL
+    } = {}
+  ) {
     return new Promise((resolve, reject) => {
       let fullUrl = this.getFullUrl(url);
       let body, contentType, method;
@@ -782,7 +799,11 @@ export class FhirBatchQuery extends EventTarget {
             } catch (e) {
               error = {};
             }
-            reject({ status, error: this._getErrorDiagnostic(error) });
+            const authHeader = oReq.getResponseHeader('Www-Authenticate') || '';
+            reject({
+              status,
+              error: `${authHeader}${this._getErrorDiagnostic(error)}`
+            });
           }
           // Let the "resolve" or "reject" handlers to execute before processing
           // the next requests.

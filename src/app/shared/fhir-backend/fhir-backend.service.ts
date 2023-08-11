@@ -16,6 +16,7 @@ import {
   FhirBatchQuery,
   HTTP_ABORT,
   UNSUPPORTED_VERSION,
+  BASIC_AUTH_REQUIRED,
   PRIORITIES as FhirBatchQueryPriorities
 } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
@@ -35,6 +36,7 @@ import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
 import fhirpath from 'fhirpath';
 import Resource = fhir.Resource;
+import { SignInDialogComponent } from '../sign-in-dialog/sign-in-dialog.component';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -46,6 +48,7 @@ export enum ConnectionStatus {
   Ready,
   Error,
   UnsupportedVersion,
+  BasicAuthFailed,
   Disconnect
 }
 
@@ -296,6 +299,8 @@ export class FhirBackendService implements HttpBackend {
 
   // MatDialogRef that shows dialog box on dbGaP query errors
   dialogRef: MatDialogRef<AlertDialogComponent>;
+  // MatDialogRef that shows dialog for signing in to a server
+  signInDialogRef: MatDialogRef<SignInDialogComponent>;
 
   // Whether an authorization tag should be added to the url.
   private isAuthorizationRequiredForUrl(url: string): boolean {
@@ -379,50 +384,76 @@ export class FhirBackendService implements HttpBackend {
             ? 'dbgap-pre-login'
             : '';
 
-        this.fhirClient.initialize(serviceBaseUrl, initializeContext).then(
-          () => {
-            // Load definitions of search parameters and columns from CSV file
-            this.settings.loadCsvDefinitions().subscribe(
-              (resourceDefinitions) => {
-                this.currentDefinitions = { resources: resourceDefinitions };
-                // Below block should only be run for the first time opening the app.
-                // Do not set advanced settings controls if sessionStorage has 'maxPerBatch' stored.
-                // They should be set from sessionStorage in cases like refreshing page.
-                if (sessionStorage.getItem('maxPerBatch') === null) {
-                  this.fhirClient.setMaxRequestsPerBatch(
-                    this.settings.get('maxRequestsPerBatch')
-                  );
-                  this.fhirClient.setMaxActiveRequests(
-                    this.settings.get('maxActiveRequests')
-                  );
-                }
-                this.fhirPathModel = {
-                  R4: fhirPathModelR4,
-                  R5: fhirPathModelR5
-                }[this.currentVersion];
-                this.compiledExpressions = {};
-                this.initialized.next(ConnectionStatus.Ready);
-              },
-              (err) => {
-                if (!(err instanceof HttpErrorResponse)) {
-                  // Show exceptions from loadCsvDefinitions in console
-                  console.error(err.message);
-                }
-                this.initialized.next(ConnectionStatus.Error);
-              }
-            );
-          },
-          (err) => {
-            if (err.status !== HTTP_ABORT) {
-              this.initialized.next(
-                err.status === UNSUPPORTED_VERSION
-                  ? ConnectionStatus.UnsupportedVersion
-                  : ConnectionStatus.Error
+        this.makeInitializationCalls(serviceBaseUrl, initializeContext);
+      });
+  }
+
+  /**
+   * Calls fhirClient.initialize()
+   */
+  private makeInitializationCalls(
+    serviceBaseUrl: string,
+    initializeContext: string
+  ): void {
+    this.fhirClient.initialize(serviceBaseUrl, initializeContext).then(
+      () => {
+        // Load definitions of search parameters and columns from CSV file
+        this.settings.loadCsvDefinitions().subscribe(
+          (resourceDefinitions) => {
+            this.currentDefinitions = { resources: resourceDefinitions };
+            // Below block should only be run for the first time opening the app.
+            // Do not set advanced settings controls if sessionStorage has 'maxPerBatch' stored.
+            // They should be set from sessionStorage in cases like refreshing page.
+            if (sessionStorage.getItem('maxPerBatch') === null) {
+              this.fhirClient.setMaxRequestsPerBatch(
+                this.settings.get('maxRequestsPerBatch')
+              );
+              this.fhirClient.setMaxActiveRequests(
+                this.settings.get('maxActiveRequests')
               );
             }
+            this.fhirPathModel = {
+              R4: fhirPathModelR4,
+              R5: fhirPathModelR5
+            }[this.currentVersion];
+            this.compiledExpressions = {};
+            this.initialized.next(ConnectionStatus.Ready);
+          },
+          (err) => {
+            if (!(err instanceof HttpErrorResponse)) {
+              // Show exceptions from loadCsvDefinitions in console
+              console.error(err.message);
+            }
+            this.initialized.next(ConnectionStatus.Error);
           }
         );
-      });
+      },
+      (err) => {
+        if (err.status === BASIC_AUTH_REQUIRED) {
+          this.signInDialogRef = this.dialog.open(SignInDialogComponent);
+          this.signInDialogRef.afterClosed().subscribe((data) => {
+            console.log(data);
+            this.signInDialogRef = null;
+            if (data) {
+              const authorizationHeader = `Basic ${btoa(
+                data.username + ':' + data.password
+              )}`;
+              console.log(authorizationHeader);
+              this.fhirClient.setAuthorizationHeader(authorizationHeader);
+              this.makeInitializationCalls(serviceBaseUrl, initializeContext);
+            } else {
+              this.initialized.next(ConnectionStatus.BasicAuthFailed);
+            }
+          });
+        } else if (err.status !== HTTP_ABORT) {
+          this.initialized.next(
+            err.status === UNSUPPORTED_VERSION
+              ? ConnectionStatus.UnsupportedVersion
+              : ConnectionStatus.Error
+          );
+        }
+      }
+    );
   }
 
   /**
@@ -524,11 +555,13 @@ export class FhirBackendService implements HttpBackend {
             serviceBaseUrlWithEndpoint.test(newRequest.url);
           const promise = this.isCacheEnabled
             ? this.fhirClient.getWithCache(fullUrl, {
-              combine,
-              signal,
-              cacheName: cacheName ? cacheName + '-' + this.serviceBaseUrl : '',
-              priority
-            })
+                combine,
+                signal,
+                cacheName: cacheName
+                  ? cacheName + '-' + this.serviceBaseUrl
+                  : '',
+                priority
+              })
             : this.fhirClient.get(fullUrl, { combine, signal, priority });
 
           promise.then(
