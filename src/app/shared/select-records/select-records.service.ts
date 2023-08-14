@@ -453,12 +453,7 @@ export class SelectRecordsService {
     state.loading = true;
 
     state.preloadSubscription = this.loadVariablesFromObservations(
-      state,
-      selectedResearchStudies,
-      params,
-      filters,
-      sort,
-      false
+      state, selectedResearchStudies, params, filters, sort, false
     ).subscribe(() => {});
   }
 
@@ -470,6 +465,7 @@ export class SelectRecordsService {
    * @param filters - filter values
    * @param sort - the current sort state
    * @param reset - whether to reset already loaded data
+   * @return an Observable of an array of variables
    */
   loadVariablesFromObservations(
     state: SelectRecordState,
@@ -511,9 +507,7 @@ export class SelectRecordsService {
             'code:not': this.fhirBackend.features.hasNotModifierIssue
               ? // Pass a single "code:not" parameter, which is currently working
                 // correctly on the HAPI FHIR server.
-                Array.from<string>(state.processedObservationCodes.keys()).join(
-                  ','
-                )
+                Array.from<string>(state.processedObservationCodes.keys()).join(',')
               : // Pass each code as a separate "code:not" parameter, which is
                 // currently causing performance issues on the HAPI FHIR server.
                 Array.from<string>(state.processedObservationCodes.keys())
