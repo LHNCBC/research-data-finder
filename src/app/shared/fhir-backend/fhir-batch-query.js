@@ -266,8 +266,6 @@ export class FhirBatchQuery extends EventTarget {
       })
     ])
       .then(([metadata, hasResearchStudy, missingModifier, batch]) => {
-        console.log(metadata);
-        console.log(missingModifier);
         if (currentServiceBaseUrl !== this._serviceBaseUrl) {
           return Promise.reject({
             status: HTTP_ABORT,
@@ -799,7 +797,9 @@ export class FhirBatchQuery extends EventTarget {
             } catch (e) {
               error = {};
             }
-            const authHeader = oReq.getResponseHeader('Www-Authenticate') || '';
+            const authHeader =
+              (status === 401 && oReq.getResponseHeader('Www-Authenticate')) ||
+              '';
             reject({
               status,
               error: `${authHeader}${this._getErrorDiagnostic(error)}`
