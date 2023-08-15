@@ -86,6 +86,8 @@ export class FhirBatchQuery extends EventTarget {
     this.initContext = '';
     // Maximum time for preflight request in milliseconds
     this._maxTimeForPreflightRequest = 15000;
+    // Whether to turn on withCredentials for subsequent queries
+    this.withCredentials = false;
   }
 
   /**
@@ -829,6 +831,10 @@ export class FhirBatchQuery extends EventTarget {
 
       if (this._authorizationHeader) {
         oReq.setRequestHeader('Authorization', this._authorizationHeader);
+      }
+
+      if (this.withCredentials) {
+        oReq.withCredentials = true;
       }
 
       oReq.send(body);

@@ -98,6 +98,7 @@ export class FhirBackendService implements HttpBackend {
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
+      this.fhirClient.withCredentials = false;
       // Logging out of RAS when changing server
       (isRasLogoutNeeded
         ? // Access to RasTokenService via injector to avoid circular dependency
@@ -440,6 +441,8 @@ export class FhirBackendService implements HttpBackend {
               )}`;
               console.log(authorizationHeader);
               this.fhirClient.setAuthorizationHeader(authorizationHeader);
+              this.fhirClient.withCredentials = true;
+              initializeContext = 'basic-auth';
               this.makeInitializationCalls(serviceBaseUrl, initializeContext);
             } else {
               this.initialized.next(ConnectionStatus.BasicAuthFailed);
