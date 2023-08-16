@@ -243,10 +243,14 @@ export class FhirBatchQuery extends EventTarget {
     // Below are initialization requests that are always made.
     const initializationRequests = Promise.allSettled([
       // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-      this.getWithCache(
-        'metadata?_elements=fhirVersion',
-        options_noInitContext
-      ),
+      this.initContext === 'basic-auth'
+        ? // Do not cache /metadata query that requires basic authentication.
+          // Credentials must be re-entered if user closes and opens the browser.
+          this.get('metadata?_elements=fhirVersion', options)
+        : this.getWithCache(
+            'metadata?_elements=fhirVersion',
+            options_noInitContext
+          ),
       // Check if server has Research Study data
       this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
       // Check if :missing modifier is supported
