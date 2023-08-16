@@ -18,7 +18,7 @@ import { SelectedObservationCodes } from '../../types/selected-observation-codes
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
 import { EMPTY, forkJoin, of, Subject, Subscription } from 'rxjs';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
 import {
   getNextPageUrl,
@@ -496,75 +496,82 @@ export class ObservationCodeLookupComponent
       null,
       {
         suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
-        fhir: {
-          search: (fieldVal, count) => {
-            const studiesInCart = this.cart.getListItems('ResearchStudy');
-            const studyIds = []
-              .concat(
-                ...(studiesInCart?.length
-                  ? studiesInCart
-                  : this.selectRecords.currentState['ResearchStudy']
-                      .resources || [])
-              )
-              .map((r) => r.id + '*');
-            const query = [
-              `(display_name:(${fieldVal}*) OR synonyms:(${fieldVal}))`
-            ];
-            if (studyIds.length) {
-              query.push('study_id:(' + studyIds.join(' OR ') + ')');
-            }
-
-            let offset = 0;
-            // &authenticity_token=&terms=heigh
-            return {
-              then: (resolve, reject) => {
-                const url =
-                  'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search?rec_type=dbgv&df=uid,display_name';
-                const httpParams = new HttpParams({
-                  fromObject: {
-                    offset,
-                    count,
-                    df: 'uid,display_name',
-                    terms: '',
-                    q: query.join(' AND ')
-                  }
-                });
-                this.loading = true;
-                this.subscription?.unsubscribe();
-
-                this.subscription = this.httpClient
-                  .post(url, httpParams.toString(), {
-                    headers: {
-                      'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                  })
-                  .subscribe(
-                    (data: any) => {
-                      const total = data[0];
-                      const dataList: Array<[string, string]> = data[3];
-                      resolve({
-                        resourceType: 'ValueSet',
-                        expansion: {
-                          total,
-                          contains:
-                            dataList.map(([uid, display_name]) => {
-                              return {
-                                code: { code: uid },
-                                display: display_name
-                              };
-                            })
-                        }
-                      });
-                      this.loading = false;
-                    },
-                    (error) => {
-                      this.loading = false;
-                      reject(error);
-                    }
-                  );
-              }
-            };
+        fhir: true,
+        search: (fieldVal, count) => {
+          const studiesInCart = this.cart.getListItems('ResearchStudy');
+          const studyIds = []
+            .concat(
+              ...(studiesInCart?.length
+                ? studiesInCart
+                : this.selectRecords.currentState['ResearchStudy']
+                    .resources || [])
+            )
+            .map((r) => r.id + '*');
+          const query = [
+            `(display_name:(${fieldVal}*) OR synonyms:(${fieldVal}*))`
+          ];
+          if (studyIds.length) {
+            query.push('study_id:(' + studyIds.join(' OR ') + ')');
           }
+
+          let offset = 0;
+          // &authenticity_token=&terms=heigh
+          return {
+            then: (resolve, reject) => {
+              const url = new URL(
+                'https://clinicaltables.nlm.nih.gov/fhir/R4/ValueSet/dbg-vars'
+              );
+              Object.entries({
+                rec_type: 'dbgv',
+                offset,
+                count,
+                sf: 'display_name',
+                df: 'display_name',
+                q: query.join(' AND ')
+              }).forEach(([name, value]) => {
+                url.searchParams.set(name, value);
+              });
+              this.loading = true;
+              this.subscription?.unsubscribe();
+
+              this.subscription = this.httpClient
+                .post(
+                  'https://clinicaltables.nlm.nih.gov/fhir/R4/ValueSet/$expand?_format=json',
+                  'url=' + encodeURIComponent(url.toString()),
+                  {
+                      headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                      }
+                    }
+                )
+                .subscribe(
+                  (data: any) => {
+                    data.expansion.contains.forEach(item => {
+                      // Autocompleter's function "storeSelectedItem" has only
+                      // two parameters: "itemText" and "code"
+                      // That is why we store "code" and "system" in the "code"
+                      // field, which doesn't match the ValueSet spec.
+                      item.code = {code: item.code};
+                      // If CTSS returns fake system
+                      // "http://clinicaltables.nlm.nih.gov/fhir/CodeSystem/dbg-vars"
+                      // in the "system" field, we skip it.
+                      if (!/clinicaltables/.test(item.system)) {
+                        item.code.system = item.system;
+                      }
+                      // Remove the unused "system" field that is now stored in the "code" field.
+                      delete item.system;
+                    })
+                    this.appendCodeSystemToDuplicateDisplay(data.expansion.contains);
+                    resolve(data);
+                    this.loading = false;
+                  },
+                  (error) => {
+                    this.loading = false;
+                    reject(error);
+                  }
+                );
+            }
+          };
         },
         useResultCache: false,
         maxSelect: '*',
@@ -639,6 +646,10 @@ export class ObservationCodeLookupComponent
           .map((coding) => {
             this.code2Type[coding.system + '|' + coding.code] = datatype;
             return {
+              // Autocompleter's function "storeSelectedItem" has only two
+              // parameters: "itemText" and "code"
+              // That is why we store "code" and "system" in the "code" field,
+              // which doesn't match the ValueSet spec.
               code: { code: coding.code, system: coding.system },
               display: coding.display || coding.code
             };
@@ -731,7 +742,9 @@ export class ObservationCodeLookupComponent
       .map((item) => item.display);
     contains.forEach((item) => {
       if (duplicateDisplays.includes(item.display)) {
-        item.display = `${item.display} | ${item.code.code} | ${item.code.system}`;
+        item.display =
+          `${item.display} | ${item.code.code}` +
+          (item.code.system ? ` | ${item.code.system}` : '');
       }
     });
   }

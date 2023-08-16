@@ -499,42 +499,6 @@ export class FhirBatchQuery {
     this._apiKey = (val || '').trim();
   }
 
-  /**
-   * Adds a parameter to the source URL, or updates an existing one and returns
-   * the new URL.
-   * @param {string} url source URL
-   * @param {string} name - parameter name
-   * @param {string} value - parameter value
-   * @return {string}
-   */
-  addParamToUrl(url, name, value) {
-    const urlParts = url
-      .split(/[?&]/)
-      .filter((paramStr) => !paramStr.startsWith(name + '='));
-    return (
-      urlParts[0] +
-      '?' +
-      urlParts
-        .slice(1)
-        .concat([name + '=' + encodeURIComponent(value)])
-        .join('&')
-    );
-  }
-
-  /**
-   * Removes a parameter from the source URL and returns
-   * the new URL.
-   * @param {string} url source URL
-   * @param {string} name - parameter name
-   * @return {string}
-   */
-  removeParamFromUrl(url, name) {
-    const urlParts = url
-      .split(/[?&]/)
-      .filter((paramStr) => !paramStr.startsWith(name + '='));
-    return urlParts[0] + '?' + urlParts.slice(1).join('&');
-  }
-
   static clearCache() {
     queryResponseCache.clearAll();
   }
@@ -557,13 +521,16 @@ export class FhirBatchQuery {
       let fullUrl = this.getFullUrl(url);
 
       // TODO: Temporary solution for the issue with "_count=1" on dbGap servers.
-      //   Currently, queries for observations with "_count=1" return errors.
+      //   Currently, a query for observations with "_count=1" times out and
+      //   returns an error.
       if (
         /^https:\/\/dbgap-api.ncbi.nlm.nih.gov\/fhir.*Observation\?.*_count=1(&|$)/.test(
           fullUrl
         )
       ) {
-        fullUrl = this.removeParamFromUrl(fullUrl, '_count');
+        let urlObj = new URL(fullUrl);
+        urlObj.searchParams.delete('_count');
+        fullUrl = urlObj.toString();
       }
 
       let body, contentType, method;
@@ -779,13 +746,13 @@ export class FhirBatchQuery {
         }
       };
 
-      let sendUrl = url;
-      if (this._apiKey && sendUrl.indexOf('api_key=') === -1) {
-        sendUrl = this.addParamToUrl(sendUrl, 'api_key', this._apiKey);
+      let sendUrl = new URL(url);
+      if (this._apiKey && !sendUrl.searchParams.has('api_key=')) {
+        sendUrl.searchParams.append('api_key', this._apiKey);
       }
 
-      if (sendUrl.indexOf('_format=json') === -1) {
-        sendUrl = this.addParamToUrl(sendUrl, '_format', 'json');
+      if (!sendUrl.searchParams.has('_format')) {
+        sendUrl.searchParams.append('_format', 'json');
       }
 
       oReq.open(method, sendUrl);

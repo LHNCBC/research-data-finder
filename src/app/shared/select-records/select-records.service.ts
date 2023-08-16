@@ -247,7 +247,7 @@ export class SelectRecordsService {
           // Name for display is currently the LOINC short name or dbGap description.
           // To find synonyms, we extended the display name search by additionally
           // searching the long and short LOINC names.
-          query.push(`(${dataFields[key]}:(${value}*) OR synonyms:(${value}))`);
+          query.push(`(${dataFields[key]}:(${value}*) OR synonyms:(${value}*))`);
         } else {
           // Use wildcard search for below columns so user can filter by typing a prefix.
           ['id', 'study_id', 'dataset_id', 'type', 'unit'].includes(key)
