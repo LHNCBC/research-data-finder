@@ -431,23 +431,18 @@ export class FhirBackendService implements HttpBackend {
       },
       (err) => {
         if (err.status === BASIC_AUTH_REQUIRED) {
-          this.signInDialogRef = this.dialog.open(SignInDialogComponent);
-          this.signInDialogRef.afterClosed().subscribe((data) => {
-            console.log(data);
-            this.signInDialogRef = null;
-            if (data) {
-              const authorizationHeader = `Basic ${btoa(
-                data.username + ':' + data.password
-              )}`;
-              console.log(authorizationHeader);
-              this.fhirClient.setAuthorizationHeader(authorizationHeader);
-              this.fhirClient.withCredentials = true;
-              initializeContext = 'basic-auth';
-              this.makeInitializationCalls(serviceBaseUrl, initializeContext);
-            } else {
-              this.initialized.next(ConnectionStatus.BasicAuthFailed);
-            }
-          });
+          if (initializeContext === 'basic-auth') {
+            // Clear other pending initialization requests if user hits "Cancel" on
+            // the credentials challenge, so it won't pop up again.
+            this.fhirClient.clearPendingRequests();
+            this.initialized.next(ConnectionStatus.BasicAuthFailed);
+          } else {
+            this.fhirClient.withCredentials = true;
+            // Use a new initialize context so the initialization requests will be
+            // made again with withCredentials=true.
+            initializeContext = 'basic-auth';
+            this.makeInitializationCalls(serviceBaseUrl, initializeContext);
+          }
         } else if (err.status !== HTTP_ABORT) {
           this.initialized.next(
             err.status === UNSUPPORTED_VERSION

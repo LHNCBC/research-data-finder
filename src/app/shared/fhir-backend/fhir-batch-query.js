@@ -8,7 +8,7 @@ export const HTTP_ABORT = 0;
 // The value of property status in the rejection object when the FHIR version is not supported by RDF
 export const UNSUPPORTED_VERSION = -1;
 // The value of property status in the rejection object when the "metadata" query indicated basic authorization failure
-export const BASIC_AUTH_REQUIRED = -1;
+export const BASIC_AUTH_REQUIRED = -2;
 // Request priorities (numbers by which requests in the pending queue are sorted)
 export const PRIORITIES = {
   LOW: 100,
