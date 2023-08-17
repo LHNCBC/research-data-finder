@@ -276,7 +276,7 @@ export class FhirBatchQuery extends EventTarget {
           this.clearCacheByName(this.getInitCacheName());
           // Abort other initialization requests
           this.clearPendingRequests();
-          if (metadata.reason?.status === 401 && metadata.reason?.error?.startsWith('Basic')) {
+          if (metadata.reason?.status === 401 && metadata.reason?.wwwAuthenticate?.startsWith('Basic')) {
             return Promise.reject({
               status: BASIC_AUTH_REQUIRED,
               error: 'basic authorization required'
@@ -736,10 +736,11 @@ export class FhirBatchQuery extends EventTarget {
             } catch (e) {
               error = {};
             }
-            const authHeader = (status === 401 && oReq.getResponseHeader('Www-Authenticate')) || '';
+            const wwwAuthenticate = (status === 401 && oReq.getResponseHeader('Www-Authenticate')) || '';
             reject({
               status,
-              error: `${authHeader}${this._getErrorDiagnostic(error)}`
+              wwwAuthenticate,
+              error: this._getErrorDiagnostic(error)
             });
           }
           // Let the "resolve" or "reject" handlers to execute before processing
