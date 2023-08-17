@@ -36,7 +36,6 @@ import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
 import fhirpath from 'fhirpath';
 import Resource = fhir.Resource;
-import { SignInDialogComponent } from '../sign-in-dialog/sign-in-dialog.component';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -300,8 +299,6 @@ export class FhirBackendService implements HttpBackend {
 
   // MatDialogRef that shows dialog box on dbGaP query errors
   dialogRef: MatDialogRef<AlertDialogComponent>;
-  // MatDialogRef that shows dialog for signing in to a server
-  signInDialogRef: MatDialogRef<SignInDialogComponent>;
 
   // Whether an authorization tag should be added to the url.
   private isAuthorizationRequiredForUrl(url: string): boolean {
