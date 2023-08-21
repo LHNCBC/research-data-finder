@@ -110,6 +110,11 @@
           <mat-icon svgIcon="keyboard_arrow_left"></mat-icon>
           Select an action
         </button>
+        <div class="spacer"></div>
+        <button mat-stroked-button (click)="browseRecordsPageComponent.downloadCsv()"
+                [disabled]="!selectRecord.getHasLoadedData(browseRecordsPageComponent.currentResourceType$ | async)">
+          <mat-icon svgIcon="file_download"></mat-icon>Download (in CSV format)
+        </button>
       </div>
     </div>
   </mat-step>
