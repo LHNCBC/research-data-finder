@@ -52,7 +52,7 @@
 
   <button mat-mini-fab
           color="basic"
-          *ngIf="context === 'browse' || context==='select'"
+          *ngIf="context !== 'pull-data'"
           [disabled]="loading || !(enableFiltering ? dataSource.filteredData : dataSource.data).length"
           (click)="downloadCsv()"
           matTooltip="Download (in CSV format)">
