@@ -24,7 +24,7 @@
       Unsupported FHIR version.
     </mat-error>
     <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('basicAuthFailed')">
-      Basic authorization failed.
+      Basic authentication failed.
     </mat-error>
     <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('wrongUrl')">
       Please specify a valid FHIR server URL.

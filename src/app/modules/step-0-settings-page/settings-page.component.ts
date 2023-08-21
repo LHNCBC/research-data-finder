@@ -167,7 +167,7 @@ export class SettingsPageComponent implements OnDestroy {
           this.liveAnnouncer.announce('Unsupported FHIR version.');
           return { unsupportedVersion: true };
         } else if (status === ConnectionStatus.BasicAuthFailed) {
-          this.liveAnnouncer.announce('Basic authorization failed.');
+          this.liveAnnouncer.announce('Basic authentication failed.');
           return { basicAuthFailed: true };
         } else {
           if (status === ConnectionStatus.Ready) {
