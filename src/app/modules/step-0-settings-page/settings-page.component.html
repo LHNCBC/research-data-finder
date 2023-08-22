@@ -13,10 +13,10 @@
     <mat-hint *ngIf="fhirBackend.smartConnectionSuccess" align="end">
       SMART on FHIR connection succeeded.
     </mat-hint>
-    <mat-hint *ngIf="fhirBackend.basicAuthSuccess" align="end">
-      Logged in to {{fhirBackend.serviceBaseUrl}}. To log out, quit your browser.
+    <mat-hint align="start" *ngIf="fhirBackend.basicAuthSuccessMessage">
+      {{fhirBackend.basicAuthSuccessMessage}}
     </mat-hint>
-    <mat-hint align="start" *ngIf="!settingsFormGroup.controls['serviceBaseUrl'].errors">
+    <mat-hint align="start" *ngIf="!fhirBackend.basicAuthSuccessMessage && !settingsFormGroup.controls['serviceBaseUrl'].errors">
       See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
       details.
     </mat-hint>

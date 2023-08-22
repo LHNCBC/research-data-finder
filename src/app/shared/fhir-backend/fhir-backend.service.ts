@@ -98,7 +98,6 @@ export class FhirBackendService implements HttpBackend {
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
       this.fhirClient.withCredentials = false;
-      this.basicAuthSuccess = false;
       // Logging out of RAS when changing server
       (isRasLogoutNeeded
         ? // Access to RasTokenService via injector to avoid circular dependency
@@ -301,8 +300,8 @@ export class FhirBackendService implements HttpBackend {
   // MatDialogRef that shows dialog box on dbGaP query errors
   dialogRef: MatDialogRef<AlertDialogComponent>;
 
-  // Whether the server is connected successfully with basic authentication.
-  basicAuthSuccess = false;
+  // A message if the server is connected successfully with basic authentication.
+  basicAuthSuccessMessage = '';
 
   // Whether an authorization tag should be added to the url.
   private isAuthorizationRequiredForUrl(url: string): boolean {
@@ -399,8 +398,8 @@ export class FhirBackendService implements HttpBackend {
   ): void {
     this.fhirClient.initialize(serviceBaseUrl, initializeContext).then(
       () => {
-        if (initializeContext === 'basic-auth') {
-          this.basicAuthSuccess = true;
+        if (initializeContext === 'basic-auth' && !this.basicAuthSuccessMessage) {
+          this.basicAuthSuccessMessage = `Logged in to ${serviceBaseUrl}. To log out, quit your browser.`
         }
         // Load definitions of search parameters and columns from CSV file
         this.settings.loadCsvDefinitions().subscribe(
