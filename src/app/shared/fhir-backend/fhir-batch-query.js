@@ -225,128 +225,135 @@ export class FhirBatchQuery extends EventTarget {
     const options_noInitContext = this.getCommonInitRequestOptions(false);
 
     // Below are initialization requests that are always made.
-    const initializationRequests = Promise.allSettled([
+    const initializationRequests =
       // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-      this.initContext === 'basic-auth'
+      (this.initContext === 'basic-auth'
         ? // Do not cache /metadata query that requires basic authentication.
           // Credentials must be re-entered if user closes and opens the browser.
           this.get('metadata?_elements=fhirVersion', options)
-        : this.getWithCache('metadata?_elements=fhirVersion', options_noInitContext),
-      // Check if server has Research Study data
-      this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
-      // Check if :missing modifier is supported
-      this.getWithCache(`Observation?code:missing=false&_elements=id&_count=1${securityParam}`, options),
-      // Check if batch request is supported
-      this._request({
-        method: 'POST',
-        url: this._serviceBaseUrl,
-        body: JSON.stringify({
-          resourceType: 'Bundle',
-          type: 'batch'
-        }),
-        logPrefix: 'Batch',
-        combine: false,
-        retryCount: 2
-      })
-    ])
-      .then(([metadata, hasResearchStudy, missingModifier, batch]) => {
-        if (currentServiceBaseUrl !== this._serviceBaseUrl) {
-          return Promise.reject({
-            status: HTTP_ABORT,
-            error: 'Outdated response to initialization request.'
-          });
-        }
-        if (metadata.status === 'fulfilled') {
-          const fhirVersion = metadata.value.data.fhirVersion;
-          this._versionName = getVersionNameByNumber(fhirVersion);
-          if (!this._versionName) {
-            return Promise.reject({
-              status: UNSUPPORTED_VERSION,
-              error: 'Unsupported FHIR version: ' + fhirVersion
-            });
-          }
-          this._features.hasResearchStudy =
-            hasResearchStudy.status === 'fulfilled' &&
-            hasResearchStudy.value.data.entry &&
-            hasResearchStudy.value.data.entry.length > 0;
-          this._features.missingModifier = missingModifier.status === 'fulfilled';
-          this._features.batch = batch.status === 'fulfilled';
-        } else {
-          // If initialization fails, do not cache initialization responses
-          this.clearCacheByName(this.getInitCacheName());
-          // Abort other initialization requests
-          this.clearPendingRequests();
-          if (metadata.reason?.status === 401 && metadata.reason?.wwwAuthenticate?.startsWith('Basic')) {
-            return Promise.reject({
-              status: BASIC_AUTH_REQUIRED,
-              error: 'basic authorization required'
-            });
-          }
-          return Promise.reject({
-            error:
-              "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
-          });
-        }
-      })
-      .then(() => {
-        // On dbGaP server, only do initializationRequests2 requests after login.
-        if (this.initContext === 'dbgap-pre-login') {
-          // Check if server has at least one Research Study with Research Subjects.
-          // No need to make this request if there is no Research Study at all.
-          return this.checkHasAvailableStudy(options).then((result) => {
-            this._features.hasAvailableStudy = result;
-          });
-        } else {
-          // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
-          return Promise.allSettled([
-            // Check if sorting Observations by date is supported
-            this.getWithCache(`Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`, options),
-            // Check if sorting Observations by age-at-event is supported
-            this.getWithCache(`Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`, options),
-            // Check if operation $lastn on Observation is supported
-            this.getWithCache(
-              `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
-              options
-            ),
-            // Check if interpretation search parameter is supported
-            this.getWithCache(
-              `Observation?interpretation${
-                this._features.missingModifier ? ':missing=false' : ':not=zzz'
-              }&_elements=id&_count=1${securityParam}`,
-              options
-            ),
-            this.checkNotModifierIssue(options),
-            this.checkHasAvailableStudy(options)
-          ]).then(
-            ([
-              observationsSortedByDate,
-              observationsSortedByAgeAtEvent,
-              lastnLookup,
-              interpretation,
-              hasNotModifierIssue,
-              hasAvailableStudy
-            ]) => {
-              Object.assign(this._features, {
-                sortObservationsByDate:
-                  observationsSortedByDate.status === 'fulfilled' &&
-                  observationsSortedByDate.value.data.entry &&
-                  observationsSortedByDate.value.data.entry.length > 0,
-                sortObservationsByAgeAtEvent:
-                  observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-                  observationsSortedByAgeAtEvent.value.data.entry &&
-                  observationsSortedByAgeAtEvent.value.data.entry.length > 0,
-                lastnLookup: lastnLookup.status === 'fulfilled',
-                interpretation:
-                  interpretation.status === 'fulfilled' &&
-                  interpretation.value.data.entry &&
-                  interpretation.value.data.entry.length > 0,
-                hasNotModifierIssue: hasNotModifierIssue.status === 'fulfilled' && hasNotModifierIssue.value,
-                hasAvailableStudy: hasAvailableStudy.status === 'fulfilled' && hasAvailableStudy.value
+        : this.getWithCache('metadata?_elements=fhirVersion', options_noInitContext)
+      )
+        .then(
+          (metadata) => {
+            const fhirVersion = metadata.data.fhirVersion;
+            this._versionName = getVersionNameByNumber(fhirVersion);
+            if (!this._versionName) {
+              return Promise.reject({
+                status: UNSUPPORTED_VERSION,
+                error: 'Unsupported FHIR version: ' + fhirVersion
               });
             }
-          );
-        }
-      });
+          },
+          (metadata) => {
+            // If initialization fails, do not cache initialization responses
+            this.clearCacheByName(this.getInitCacheName());
+            // Abort other initialization requests
+            this.clearPendingRequests();
+            if (metadata.status === 401 && metadata.wwwAuthenticate?.startsWith('Basic')) {
+              return Promise.reject({
+                status: BASIC_AUTH_REQUIRED,
+                error: 'basic authorization required'
+              });
+            }
+            return Promise.reject({
+              error:
+                "Could not retrieve the FHIR server's metadata. Please make sure you are entering the base URL for a FHIR server."
+            });
+          }
+        )
+        .then(() => {
+          return Promise.allSettled([
+            // Check if server has Research Study data
+            this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
+            // Check if :missing modifier is supported
+            this.getWithCache(`Observation?code:missing=false&_elements=id&_count=1${securityParam}`, options),
+            // Check if batch request is supported
+            this._request({
+              method: 'POST',
+              url: this._serviceBaseUrl,
+              body: JSON.stringify({
+                resourceType: 'Bundle',
+                type: 'batch'
+              }),
+              logPrefix: 'Batch',
+              combine: false,
+              retryCount: 2
+            })
+          ])
+            .then(([hasResearchStudy, missingModifier, batch]) => {
+              if (currentServiceBaseUrl !== this._serviceBaseUrl) {
+                return Promise.reject({
+                  status: HTTP_ABORT,
+                  error: 'Outdated response to initialization request.'
+                });
+              }
+              this._features.hasResearchStudy =
+                hasResearchStudy.status === 'fulfilled' &&
+                hasResearchStudy.value.data.entry &&
+                hasResearchStudy.value.data.entry.length > 0;
+              this._features.missingModifier = missingModifier.status === 'fulfilled';
+              this._features.batch = batch.status === 'fulfilled';
+            })
+            .then(() => {
+              // On dbGaP server, only do initializationRequests2 requests after login.
+              if (this.initContext === 'dbgap-pre-login') {
+                // Check if server has at least one Research Study with Research Subjects.
+                // No need to make this request if there is no Research Study at all.
+                return this.checkHasAvailableStudy(options).then((result) => {
+                  this._features.hasAvailableStudy = result;
+                });
+              } else {
+                // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
+                return Promise.allSettled([
+                  // Check if sorting Observations by date is supported
+                  this.getWithCache(`Observation?date=gt1000-01-01&_elements=id&_count=1${securityParam}`, options),
+                  // Check if sorting Observations by age-at-event is supported
+                  this.getWithCache(`Observation?_sort=age-at-event&_elements=id&_count=1${securityParam}`, options),
+                  // Check if operation $lastn on Observation is supported
+                  this.getWithCache(
+                    `Observation/$lastn?max=1&_elements=code,value,component&code:text=zzzzz&_count=1${securityParam}`,
+                    options
+                  ),
+                  // Check if interpretation search parameter is supported
+                  this.getWithCache(
+                    `Observation?interpretation${
+                      this._features.missingModifier ? ':missing=false' : ':not=zzz'
+                    }&_elements=id&_count=1${securityParam}`,
+                    options
+                  ),
+                  this.checkNotModifierIssue(options),
+                  this.checkHasAvailableStudy(options)
+                ]).then(
+                  ([
+                    observationsSortedByDate,
+                    observationsSortedByAgeAtEvent,
+                    lastnLookup,
+                    interpretation,
+                    hasNotModifierIssue,
+                    hasAvailableStudy
+                  ]) => {
+                    Object.assign(this._features, {
+                      sortObservationsByDate:
+                        observationsSortedByDate.status === 'fulfilled' &&
+                        observationsSortedByDate.value.data.entry &&
+                        observationsSortedByDate.value.data.entry.length > 0,
+                      sortObservationsByAgeAtEvent:
+                        observationsSortedByAgeAtEvent.status === 'fulfilled' &&
+                        observationsSortedByAgeAtEvent.value.data.entry &&
+                        observationsSortedByAgeAtEvent.value.data.entry.length > 0,
+                      lastnLookup: lastnLookup.status === 'fulfilled',
+                      interpretation:
+                        interpretation.status === 'fulfilled' &&
+                        interpretation.value.data.entry &&
+                        interpretation.value.data.entry.length > 0,
+                      hasNotModifierIssue: hasNotModifierIssue.status === 'fulfilled' && hasNotModifierIssue.value,
+                      hasAvailableStudy: hasAvailableStudy.status === 'fulfilled' && hasAvailableStudy.value
+                    });
+                  }
+                );
+              }
+            });
+        });
 
     return initializationRequests;
   }
