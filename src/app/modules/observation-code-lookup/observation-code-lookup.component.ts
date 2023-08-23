@@ -103,7 +103,9 @@ export class ObservationCodeLookupComponent
   // Callback to handle changes
   listSelectionsObserver: (eventData: any) => void;
   // Subscription used to cancel the previous loading process
-  subscription: Subscription;
+  subscriptionForLoading: Subscription;
+  // Subscription to a change in cohort criteria
+  subscriptionForCriteria: Subscription;
 
   /**
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
@@ -199,7 +201,8 @@ export class ObservationCodeLookupComponent
    */
   ngOnDestroy(): void {
     this.stateChanges.complete();
-    this.subscription?.unsubscribe();
+    this.subscriptionForLoading?.unsubscribe();
+    this.subscriptionForCriteria?.unsubscribe();
     this.destroyAutocomplete();
   }
 
@@ -227,6 +230,10 @@ export class ObservationCodeLookupComponent
    */
   ngAfterViewInit(): void {
     this.setupAutocomplete();
+    this.subscriptionForCriteria = this.cohort.criteria$.subscribe(() => {
+      this.destroyAutocomplete();
+      this.setupAutocomplete();
+    });
   }
 
   /**
@@ -235,7 +242,8 @@ export class ObservationCodeLookupComponent
   setupAutocomplete(): void {
     if (
       this.isPullData &&
-      this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl)
+      this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl) &&
+      this.cart.getListItems('ResearchStudy')?.length
     ) {
       this.setupAutocompleteInputToUseCTSS();
     } else {
@@ -350,7 +358,7 @@ export class ObservationCodeLookupComponent
                 const selectedCodes = acInstance.getSelectedCodes();
 
                 this.loading = true;
-                this.subscription?.unsubscribe();
+                this.subscriptionForLoading?.unsubscribe();
 
                 const obsCode = this.httpClient
                   .get(url, {
@@ -464,16 +472,17 @@ export class ObservationCodeLookupComponent
                   );
 
                 // Resolve autocomplete dropdown after both code and text searches are done.
-                this.subscription = forkJoin([obs, obsCode]).subscribe(() => {
-                  resolve({
-                    resourceType: 'ValueSet',
-                    expansion: {
-                      total: Number.isInteger(total) ? total : null,
-                      contains
-                    }
+                this.subscriptionForLoading = forkJoin([obs, obsCode])
+                  .subscribe(() => {
+                    resolve({
+                      resourceType: 'ValueSet',
+                      expansion: {
+                        total: Number.isInteger(total) ? total : null,
+                        contains
+                      }
+                    });
+                    this.loading = false;
                   });
-                  this.loading = false;
-                });
               }
             };
           }
@@ -532,17 +541,17 @@ export class ObservationCodeLookupComponent
                 url.searchParams.set(name, value);
               });
               this.loading = true;
-              this.subscription?.unsubscribe();
+              this.subscriptionForLoading?.unsubscribe();
 
-              this.subscription = this.httpClient
+              this.subscriptionForLoading = this.httpClient
                 .post(
                   'https://clinicaltables.nlm.nih.gov/fhir/R4/ValueSet/$expand?_format=json',
                   'url=' + encodeURIComponent(url.toString()),
                   {
-                      headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                      }
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
                     }
+                  }
                 )
                 .subscribe(
                   (data: any) => {
