@@ -43,6 +43,7 @@ import Observation = fhir.Observation;
 import { ObservationCodeLookupComponent } from '../../modules/observation-code-lookup/observation-code-lookup.component';
 import ResearchStudy = fhir.ResearchStudy;
 import ResearchSubject = fhir.ResearchSubject;
+import { cloneDeep } from 'lodash-es';
 
 type ResearchStudyMixin = { studyData?: ResearchStudy[] };
 
@@ -437,24 +438,27 @@ export class SelectRecordsService {
     sort: Sort
   ) {
     const resourceType = 'Observation';
+    const minNumOfRecordsToPreload = 30;
     const currentState = this.currentState[resourceType];
-    const preloadState = this.preloadState[resourceType];
-    let state = preloadState || currentState;
-    if (!state || state.loading || !state.nextBundleUrl) {
+    let preloadState = this.preloadState[resourceType];
+
+    if (
+      !currentState || currentState.loading || !currentState.nextBundleUrl ||
+      (preloadState && (preloadState.loading ||
+        preloadState.resources.length - currentState.resources.length > minNumOfRecordsToPreload))
+    ) {
       return;
     }
-    if (!preloadState) {
-      state = {
-        ...currentState
-      };
-      this.preloadState[resourceType] = state;
-    }
 
-    state.loading = true;
+    preloadState = !this.preloadState[resourceType] ? cloneDeep(currentState) : this.preloadState[resourceType];
+    this.preloadState[resourceType] = preloadState;
 
-    state.preloadSubscription = this.loadVariablesFromObservations(
-      state, selectedResearchStudies, params, filters, sort, false
-    ).subscribe(() => {});
+    preloadState.loading = true;
+
+    preloadState.preloadSubscription = this.loadVariablesFromObservations(
+      preloadState, selectedResearchStudies, params, filters, sort, false
+    ).subscribe(() => {
+    });
   }
 
   /**

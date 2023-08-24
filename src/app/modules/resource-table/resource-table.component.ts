@@ -225,8 +225,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   preloadSubscription: Subscription;
   // Event emitter to preload the next page
   @Output() preloadNextPage = new EventEmitter();
-  // Interval in milliseconds to periodically load another page of results
-  keepAliveTimeout = 20000;
+  // Interval in milliseconds to periodically preload another page of results
+  keepAliveTimeout = 1000;
   @Output() filterChanged = new EventEmitter();
   @Output() sortChanged = new EventEmitter();
   // Whether we need to force sorting on the client side and ignore the `(sortChanged)` handler
