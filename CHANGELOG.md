@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.6.2] - 2023-08-21
+### Added
+- Download button on all tables.
+
 ## [6.6.1] - 2023-08-09
 ### Fixed
 - Preserve Advanced Settings after RAS login.

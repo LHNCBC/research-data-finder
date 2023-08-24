@@ -258,6 +258,7 @@ describe('FhirBackendService', () => {
         '^https://dbgap-api.ncbi.nlm.nih.gov/fhir'
       );
       spyOn(service, 'isDbgap').and.returnValue(true);
+      service.cacheEnabled = true;
     });
 
     it('should show message if dbGaP TST token has expired', (done) => {

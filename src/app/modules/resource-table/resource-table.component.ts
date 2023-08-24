@@ -24,7 +24,7 @@ import { ColumnDescription } from '../../types/column.description';
 import { distinctUntilChanged, sample, tap } from 'rxjs/operators';
 import {
   escapeStringForRegExp,
-  getPluralFormOfRecordName
+  getPluralFormOfRecordName, getPluralFormOfResourceType
 } from '../../shared/utils';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
@@ -953,7 +953,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   downloadCsv() {
     saveAs(
       this.getBlob(),
-      getPluralFormOfRecordName(this.resourceType).toLowerCase() + '.csv'
+      getPluralFormOfResourceType(this.resourceType).toLowerCase() + '.csv'
     );
   }
 }
