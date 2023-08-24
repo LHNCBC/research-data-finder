@@ -60,9 +60,6 @@ export class SettingsPageComponent implements OnDestroy {
       .get('serviceBaseUrl')
       .statusChanges.pipe(filter((s) => s === 'VALID'))
       .subscribe(() => {
-        if (!this.basicAuthSuccessMessage) {
-          this.basicAuthSuccessMessage = sessionStorage.getItem('basicAuthSuccessMessage');
-        }
         if (!this.fhirBackend.isSmartOnFhir) {
           const server = this.settingsFormGroup.get('serviceBaseUrl').value;
           // Update url query params after valid server change
@@ -143,6 +140,9 @@ export class SettingsPageComponent implements OnDestroy {
       filter((status) => status !== ConnectionStatus.Pending),
       take(1),
       map((status) => {
+        if (!this.basicAuthSuccessMessage) {
+          this.basicAuthSuccessMessage = sessionStorage.getItem('basicAuthSuccessMessage');
+        }
         if (!this.fhirBackend.isSmartOnFhir) {
           this.settingsFormGroup
             .get('maxRequestsPerBatch')
