@@ -31,6 +31,8 @@ export class SettingsPageComponent implements OnDestroy {
   subscription: Subscription;
   // Reference to the dialog about problems with batch requests
   dialogRef: MatDialogRef<AlertDialogComponent>;
+  // A message if the server is connected successfully with basic authentication.
+  basicAuthSuccessMessage = sessionStorage.getItem('basicAuthSuccessMessage');
 
   constructor(
     private formBuilder: UntypedFormBuilder,
@@ -58,6 +60,9 @@ export class SettingsPageComponent implements OnDestroy {
       .get('serviceBaseUrl')
       .statusChanges.pipe(filter((s) => s === 'VALID'))
       .subscribe(() => {
+        if (!this.basicAuthSuccessMessage) {
+          this.basicAuthSuccessMessage = sessionStorage.getItem('basicAuthSuccessMessage');
+        }
         if (!this.fhirBackend.isSmartOnFhir) {
           const server = this.settingsFormGroup.get('serviceBaseUrl').value;
           // Update url query params after valid server change
