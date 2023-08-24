@@ -396,7 +396,9 @@ export class FhirBackendService implements HttpBackend {
     this.fhirClient.initialize(serviceBaseUrl, initializeContext).then(
       () => {
         if (initializeContext === 'basic-auth' && !sessionStorage.getItem('basicAuthSuccessMessage')) {
-          sessionStorage.setItem('basicAuthSuccessMessage', `Logged in to ${serviceBaseUrl}. To log out, quit your browser.`);
+          const message = `Logged in to ${serviceBaseUrl}. To log out, quit your browser.`;
+          sessionStorage.setItem('basicAuthSuccessMessage', message);
+          this.liveAnnouncer.announce(message);
         }
         // Load definitions of search parameters and columns from CSV file
         this.settings.loadCsvDefinitions().subscribe(
