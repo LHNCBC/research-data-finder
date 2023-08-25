@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.6.3] - 2023-08-23
+### Fixed
+- Server version detection: 4.0.0 is now defined as R4.
+
 ## [6.6.2] - 2023-08-21
 ### Added
 - Download button on all tables.
