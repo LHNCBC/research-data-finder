@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.6.4] - 2023-08-25
+### Fixed
+- "No records were found" message for empty tables not in "browse
+  public data" mode.
+
 ## [6.6.3] - 2023-08-23
 ### Fixed
 - Server version detection: 4.0.0 is now defined as R4.
