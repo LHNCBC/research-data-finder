@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.6.4] - 2023-08-28
+### Fixed
+- Issue with incomplete data loading in the pull data step when checking 10000
+  observations for each of 1000 patients in a cohort by removing the
+  XMLHttpRequest timeout and disabling response caching for requests in the pull
+  data step.
+
 ## [6.6.3] - 2023-08-23
 ### Fixed
 - Server version detection: 4.0.0 is now defined as R4.

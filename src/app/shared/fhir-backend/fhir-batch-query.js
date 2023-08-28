@@ -800,7 +800,6 @@ export class FhirBatchQuery extends EventTarget {
       }
 
       oReq.open(method, sendUrl);
-      oReq.timeout = this._giveUpTimeout;
 
       if (method !== 'GET') {
         oReq.setRequestHeader('Content-Type', contentType);
