@@ -513,12 +513,12 @@ export class ObservationCodeLookupComponent
               ...(studiesInCart?.length
                 ? studiesInCart
                 : this.selectRecords.currentState['ResearchStudy']
-                    .resources || [])
+                .resources || [])
             )
             .map((r) => r.id + '*');
-          const query = [
-            `(display_name:(${fieldVal}*) OR synonyms:(${fieldVal}*))`
-          ];
+          const query = fieldVal
+            ? [`(display_name:(${fieldVal}*) OR synonyms:(${fieldVal}*))`]
+            : [];
           if (studyIds.length) {
             query.push('study_id:(' + studyIds.join(' OR ') + ')');
           }
@@ -584,7 +584,8 @@ export class ObservationCodeLookupComponent
         },
         useResultCache: false,
         maxSelect: '*',
-        matchListValue: true
+        matchListValue: true,
+        showListOnFocusIfEmpty: true
       }
     );
   }
