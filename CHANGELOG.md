@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.7.1] - 2023-08-30
+### Fixed
+- CSP issue when a https server returns next links with http.
+
 ## [6.7.0] - 2023-08-30
 ### Added
 - Support for basic authentication.
