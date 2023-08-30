@@ -31,6 +31,8 @@ export class SettingsPageComponent implements OnDestroy {
   subscription: Subscription;
   // Reference to the dialog about problems with batch requests
   dialogRef: MatDialogRef<AlertDialogComponent>;
+  // A message if the server is connected successfully with basic authentication.
+  basicAuthSuccessMessage = sessionStorage.getItem('basicAuthSuccessMessage');
 
   constructor(
     private formBuilder: UntypedFormBuilder,
@@ -94,7 +96,7 @@ export class SettingsPageComponent implements OnDestroy {
             'We are experiencing problems with batch requests.' +
             ' Clicking "Okay" will disable batch requests, and may improve performance.' +
             ' Clicking "Cancel" will mean that we will continue to try batch requests,' +
-            ' and if a batch request doesn\'t work, we will try to resend the requests' +
+            " and if a batch request doesn't work, we will try to resend the requests" +
             ' in that batch separately.' +
             ' You can also reduce the number of requests per batch in the settings step.',
           hasCancelButton: true
@@ -138,6 +140,9 @@ export class SettingsPageComponent implements OnDestroy {
       filter((status) => status !== ConnectionStatus.Pending),
       take(1),
       map((status) => {
+        if (!this.basicAuthSuccessMessage) {
+          this.basicAuthSuccessMessage = sessionStorage.getItem('basicAuthSuccessMessage');
+        }
         if (!this.fhirBackend.isSmartOnFhir) {
           this.settingsFormGroup
             .get('maxRequestsPerBatch')
@@ -166,6 +171,9 @@ export class SettingsPageComponent implements OnDestroy {
         } else if (status === ConnectionStatus.UnsupportedVersion) {
           this.liveAnnouncer.announce('Unsupported FHIR version.');
           return { unsupportedVersion: true };
+        } else if (status === ConnectionStatus.BasicAuthFailed) {
+          this.liveAnnouncer.announce('Basic authentication failed.');
+          return { basicAuthFailed: true };
         } else {
           if (status === ConnectionStatus.Ready) {
             this.liveAnnouncer.announce('Initialization complete.');

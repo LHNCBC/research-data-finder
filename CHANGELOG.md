@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.7.0] - 2023-08-30
+### Added
+- Support for basic authentication.
+
 ## [6.6.3] - 2023-08-23
 ### Fixed
 - Server version detection: 4.0.0 is now defined as R4.
