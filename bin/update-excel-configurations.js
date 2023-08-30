@@ -1,5 +1,5 @@
 /**
- * This program updates src/conf/xlsx/column-and-parameter-descriptions.xlsx for show/hide
+ * This program updates src/conf/xlsx/column-and-parameter-descriptions-R4.xlsx for show/hide
  * properties of search parameters, depending on whether server has data.
  * It then updates show/hide properties of columns, based on adjacent search parameter rows.
  * When server data might have updated, run:
@@ -20,7 +20,7 @@ const FHIRNAMECOLUMN = 'B';
 const TYPECOLUMN = 'C';
 const SHOWHIDECOLUMN = 'E';
 const DATATYPECOLUMN = 'F';
-const filePath = 'src/conf/xlsx/column-and-parameter-descriptions.xlsx';
+const filePath = 'src/conf/xlsx/column-and-parameter-descriptions-R4.xlsx';
 const file = reader.readFile(filePath, { cellStyles: true });
 const xlsxColumnHeaders = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
 const doNotUpdateList = [

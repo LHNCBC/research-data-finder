@@ -40,7 +40,7 @@ export class SettingsService {
           this.config = json5.parse(config);
           this.fhirBackend.settings = this;
           if (!this.fhirBackend.smartConnectionSuccess) {
-            this.fhirBackend.initializeFhirBatchQuery();
+            this.fhirBackend.initializeFhirBatchQuery(this.fhirBackend.serviceBaseUrl);
           }
         })
       );
@@ -134,11 +134,20 @@ export class SettingsService {
     // Treat https://dbgap-api.ncbi.nlm.nih.gov/fhir* as a dbGap server (at least for now).
     return this.fhirBackend.isDbgap(url)
       ? getPropertyByPath(this.config, `customization.dbgap.${paramPath}`) ||
+          getPropertyByPath(
+            this.config,
+            `default_${this.fhirBackend.currentVersion}.${paramPath}`
+          ) ||
           getPropertyByPath(this.config, `default.${paramPath}`)
       : getPropertyByPath(
           this.config,
           `customization['${url}'].${paramPath}`
-        ) || getPropertyByPath(this.config, `default.${paramPath}`);
+        ) ||
+          getPropertyByPath(
+            this.config,
+            `default_${this.fhirBackend.currentVersion}.${paramPath}`
+          ) ||
+          getPropertyByPath(this.config, `default.${paramPath}`);
   }
 
   /**

@@ -63,9 +63,12 @@ function getSearchParametersConfig(
     valueSets: JSON.parse(
       fs.readFileSync(directoryPath + '/valuesets.json').toString()
     ),
-    v3CodeSystems: JSON.parse(
-      fs.readFileSync(directoryPath + '/v3-codesystems.json').toString()
-    )
+    // R5 definitions do not have this file
+    v3CodeSystems: fs.existsSync(directoryPath + '/v3-codesystems.json')
+      ? JSON.parse(
+          fs.readFileSync(directoryPath + '/v3-codesystems.json').toString()
+        )
+      : null
   };
 
   /**
@@ -83,7 +86,12 @@ function getSearchParametersConfig(
    * @return {TypeDescriptionHash}
    */
   function getTypeDescriptionByPath(resultConfig, path) {
-    const typeDesc = { ...getTypeDescByArrayOfPropertyNames(path.split('.')) };
+    const typeDesc = {
+      ...getTypeDescByArrayOfPropertyNames(
+        // Remove surrounding parentheses
+        (/\((.*)\)/.test(path) ? RegExp.$1 : path).split('.')
+      )
+    };
     findValueSet(resultConfig, path, typeDesc.valueSet);
     return typeDesc;
   }
@@ -103,7 +111,9 @@ function getSearchParametersConfig(
         resultConfig.valueSets[valueSetUrl] =
           valueSet instanceof Array
             ? valueSet.sort((a, b) => a.display.localeCompare(b.display))
-            : valueSet;
+            : valueSet ||
+              // R5 definitions do not have v3-codesystems.json
+              valueSetUrl;
       }
       resultConfig.valueSetByPath[path] = valueSetUrl;
     }
@@ -134,9 +144,18 @@ function getSearchParametersConfig(
     if (!desc.type && /#(.*)/.test(desc.contentReference)) {
       desc = resource.snapshot.element.find((i) => i.id === RegExp.$1);
     }
-    const type = desc.type[0].code;
+    let type = desc.type[0].code;
     if (desc.type.length !== 1) {
-      console.warn('Warning: Data type cannot be accurately determined');
+      if (
+        propertyNames.length === 2 &&
+        /ofType\((.*)\)/.test(propertyNames[1])
+      ) {
+        // FHIRPath expressions in R5 definitions can use ".ofType(...)"
+        type = RegExp.$1;
+        propertyNames.length = 1;
+      } else {
+        console.warn('Warning: Data type cannot be accurately determined');
+      }
     }
     if (propertyNames.length === 1) {
       return {
@@ -236,7 +255,7 @@ function getSearchParametersConfig(
       profiles.valueSets.entry.find(
         (i) => i.fullUrl === url || i.resource.url === url
       ) ||
-      profiles.v3CodeSystems.entry.find(
+      profiles.v3CodeSystems?.entry.find(
         (i) => i.fullUrl === url || i.resource.url === url
       );
     if (!entry) {
@@ -457,6 +476,7 @@ function getSearchParametersConfig(
         columns.push({
           element: elementName,
           types,
+          description: element.short,
           isArray
         });
 
@@ -496,11 +516,12 @@ function getSearchParametersConfig(
 
 module.exports = function loader(source) {
   const index = JSON.parse(source);
-  const { resourceTypes, additionalExpressions } = this.getOptions();
+  const options = this.getOptions();
 
   index.configByVersionName = Object.values(
     index.versionNameByVersionNumberRegex
   ).reduce((acc, versionName) => {
+    const { resourceTypes, additionalExpressions } = options[versionName];
     if (!acc[versionName]) {
       acc[versionName] = getSearchParametersConfig(
         this.context + '/' + versionName,

@@ -3,9 +3,59 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.5.0] - 2023-07-20
+## [6.8.0] - 2023-08-30
 ### Added
 - Use CTSS for Observation code lookup in the pull data step.
+
+## [6.7.0] - 2023-08-30
+### Added
+- Support for basic authentication.
+
+## [6.6.3] - 2023-08-23
+### Fixed
+- Server version detection: 4.0.0 is now defined as R4.
+
+## [6.6.2] - 2023-08-21
+### Added
+- Download button on all tables.
+
+## [6.6.1] - 2023-08-09
+### Fixed
+- Preserve Advanced Settings after RAS login.
+
+## [6.6.0] - 2023-08-03
+### Added
+- Option to convert Observation table into Variable-Patient table
+  in pull data step.
+
+## [6.5.3] - 2023-08-01
+### Added
+- Display failed requests message in Pull Data tables.
+
+## [6.5.2] - 2023-07-31
+### Added
+- Request priority management.
+### Fixed
+- Loading data in the pull data step blocked other requests and made it
+  impossible to create a new cohort.
+
+## [6.5.1] - 2023-07-31
+### Fixed
+- Display of incorrect amount of studies in the select records step.
+
+## [6.5.0] - 2023-07-28
+### Added
+- R5 support.
+### Fixed
+- Issue with empty list of variables in the select records step for an R4 server
+  with ResearchStudies.
+- Replaced `subject:Patient=<id1>,<id2>` with `subject=Patient/<id1>,Patient/<id2>`
+  because baseR5 doesn't support it.
+
+## [6.4.2] - 2023-07-28
+### Added
+- Resend requests separately and notify the user of problems if a batch request
+  fails.
 
 ## [6.4.1] - 2023-07-21
 ### Fixed

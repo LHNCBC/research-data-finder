@@ -23,6 +23,13 @@ import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
+import { TableRow } from '../resource-table/resource-table.component';
+import Observation = fhir.Observation;
+import { saveAs } from 'file-saver';
+// Use ECMAScript module distributions of csv-stringify package for our browser app.
+// See https://csv.js.org/stringify/distributions/browser_esm/
+import { stringify } from 'csv-stringify/browser/esm/sync';
+import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -30,7 +37,10 @@ import { ColumnValuesService } from '../../shared/column-values/column-values.se
 @Component({
   selector: 'app-pull-data-page',
   templateUrl: './pull-data-page.component.html',
-  styleUrls: ['./pull-data-page.component.less']
+  styleUrls: [
+    './pull-data-page.component.less',
+    '../resource-table/resource-table.component.less'
+  ]
 })
 export class PullDataPageComponent
   extends ResourceTableParentComponent
@@ -47,6 +57,8 @@ export class PullDataPageComponent
   codeTextResourceTypes: string[] = [];
   // Subscription to the loading process
   loadSubscription: Subscription;
+  // Subscription to change cohort criteria
+  changeCriteriaSubscription: Subscription;
 
   // This observable is used to avoid ExpressionChangedAfterItHasBeenCheckedError
   // when the active tab changes
@@ -68,6 +80,17 @@ export class PullDataPageComponent
   } = {};
   // Selected Observation codes
   pullDataObservationCodes: Map<string, string> = null;
+
+  // Columns for the Variable-Patient table
+  variablePatientTableColumns: string[] = [];
+  // DataSource for the Variable-Patient table
+  variablePatientTableDataSource = new TableVirtualScrollDataSource<TableRow>(
+    []
+  );
+  // Whether the Observation table can be converted to Variable-Patient table.
+  canConvertToVariablePatientTable = false;
+  // Whether the Variable-Patient table is full screen.
+  fullscreen = false;
 
   constructor(
     private fhirBackend: FhirBackendService,
@@ -139,6 +162,9 @@ export class PullDataPageComponent
           this.isObsCodesSelected = isObsCodesSelected;
         });
       });
+    this.changeCriteriaSubscription = this.cohort.criteria$.subscribe(() =>
+      this.loadSubscription?.unsubscribe()
+    );
   }
 
   /**
@@ -175,6 +201,7 @@ export class PullDataPageComponent
 
   ngOnDestroy(): void {
     this.loadSubscription?.unsubscribe();
+    this.changeCriteriaSubscription.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -274,6 +301,16 @@ export class PullDataPageComponent
     this.loadSubscription?.unsubscribe();
 
     if (resourceType === 'Observation') {
+      // If in Variable-Patient table mode, reset to normal Observation table mode.
+      this._isVariablePatientTable = false;
+      // Clear Variable-Patient table dataSource which was built from the previous
+      // Observation table data.
+      this.variablePatientTableDataSource.data.length = 0;
+      // Only allow converting to Variable-Patient table if Observation data is
+      // loaded with 1 code per patient per test.
+      this.canConvertToVariablePatientTable =
+        this.perPatientFormControls[resourceType]?.value === 1;
+
       const selectedObservationCodes = parameterGroup.getSearchParamValues()[0]
         .selectedObservationCodes;
       this.pullDataObservationCodes = new Map();
@@ -350,5 +387,134 @@ export class PullDataPageComponent
     if (!hasObservationTab) {
       this.removeTab('Observation');
     }
+  }
+
+  /**
+   * Property to indicate whether to show the Variable-Patient table or the normal
+   * resource table.
+   */
+  private _isVariablePatientTable = false;
+  get isVariablePatientTable(): boolean {
+    return this._isVariablePatientTable;
+  }
+  set isVariablePatientTable(value: boolean) {
+    if (value && !this.variablePatientTableDataSource.data.length) {
+      this.buildVariablePatientTableData();
+    }
+    this._isVariablePatientTable = value;
+  }
+
+  /**
+   * Construct the dataSource for the Variable-Patient table from the Observation table.
+   * It is called if user switch to Variable-Patient table after the Observation table is
+   * fully loaded. It uses cell data from the Observation table, so they don't need to be
+   * calculated again.
+   */
+  buildVariablePatientTableData(): void {
+    const observationResourcetableComponent = this.tables.find(
+      (rt) => rt.resourceType === 'Observation'
+    );
+    const observationTableData =
+      observationResourcetableComponent.dataSource.data;
+    this.variablePatientTableColumns = ['Patient'].concat(
+      Array.from(
+        new Set(
+          // "Variable Name" (codeText) column values from the Observation table are used
+          // as column headers in the Variable-Patient table.
+          observationTableData.map((tableRow) => tableRow.cells['codeText'])
+        )
+      )
+    );
+    // A map of patient to variable data required for the Variable-Patient table.
+    const variablePatientMap = new Map();
+    observationTableData.forEach((tableRow) => {
+      if (!variablePatientMap.has(tableRow.cells['subject'])) {
+        variablePatientMap.set(tableRow.cells['subject'], {
+          cells: {
+            // Data for Patient column in Variable-Patient table
+            Patient: tableRow.cells['subject']
+          },
+          valueQuantityData: {}
+        } as TableRow);
+      }
+      const patientRow = variablePatientMap.get(tableRow.cells['subject']);
+      patientRow.cells[tableRow.cells['codeText']] = tableRow.cells['value[x]'];
+      // valueQuantityData holds data for downloading the Variable-Patient table with
+      // value and unit as separate columns. It is not used for displaying the table.
+      // We could instead do another loop to set this data when user clicks download.
+      // I'm setting it here to save another loop, since downloading seems the common
+      // use case for the Variable-Patient table.
+      patientRow.valueQuantityData[
+        tableRow.cells['codeText']
+      ] = (tableRow.resource as Observation).valueQuantity;
+    });
+    this.variablePatientTableDataSource.data = Array.from(
+      variablePatientMap,
+      (x) => x[1]
+    );
+  }
+
+  /**
+   * Initiates downloading of resourceTable data in CSV format.
+   * Overrides parent method in ResourceTableParentComponent.
+   */
+  downloadCsv(): void {
+    if (
+      this.isVariablePatientTable &&
+      this.getCurrentResourceType() === 'Observation'
+    ) {
+      const valueQuantityColumns = [];
+      const valueQuantityData = this.variablePatientTableDataSource.data[0]
+        .valueQuantityData;
+      const header = this.variablePatientTableColumns
+        .map((c) => {
+          if (c === 'Patient') {
+            return c;
+          } else if (valueQuantityData[c]) {
+            // It is a column of type "ValueQuantity".
+            valueQuantityColumns.push(c);
+            // Separate each column into value & unit columns in export
+            return [`${c} Value`, `${c} Unit`];
+          } else {
+            // For a non-ValueQuantity column, don't add an extra "Unit" column.
+            return c;
+          }
+        })
+        .flat();
+      const rows = this.variablePatientTableDataSource.data.map((row) =>
+        this.variablePatientTableColumns
+          .map((column) => {
+            if (column === 'Patient') {
+              return row.cells[column];
+            } else if (valueQuantityColumns.includes(column)) {
+              // Return "Value" and "Unit" columns for a ValueQuantity column.
+              const valueQuantity = row.valueQuantityData[column];
+              return valueQuantity
+                ? [valueQuantity.value ?? '', valueQuantity.unit ?? '']
+                : [row.cells[column], ''];
+            } else {
+              // Return single column for a non-ValueQuantity column, consistent with the header.
+              return row.cells[column];
+            }
+          })
+          .flat()
+      );
+      saveAs(
+        new Blob([stringify([header].concat(rows))], {
+          type: 'text/plain;charset=utf-8',
+          endings: 'native'
+        }),
+        'variable-patient.csv'
+      );
+    } else {
+      super.downloadCsv();
+    }
+  }
+
+  /**
+   * Toggle fullscreen mode
+   */
+  toggleFullscreen(): void {
+    this.fullscreen = !this.fullscreen;
   }
 }
