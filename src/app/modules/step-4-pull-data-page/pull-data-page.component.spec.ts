@@ -46,14 +46,16 @@ describe('PullDataForCohortComponent', () => {
     hasErrors: () => false,
     getConditions: () => ({
       criteria: ''
-    })
+    }),
+    getSearchParamValues: () => [{ selectedObservationCodes: { coding: [] } }]
   } as SearchParameterGroupComponent;
 
   const filledParameterGroup = {
     hasErrors: () => false,
     getConditions: () => ({
       criteria: '&combo-code=system1%2F%7Ccode1,system2%2F%7Ccode2'
-    })
+    }),
+    getSearchParamValues: () => [{ selectedObservationCodes: { coding: [] } }]
   } as SearchParameterGroupComponent;
 
   beforeEach(async () => {
@@ -198,7 +200,7 @@ describe('PullDataForCohortComponent', () => {
     expectResourcesToBeLoaded(pullData, 'Encounter', 2);
   });
 
-  it('should add/remove Patient tab', async () => {
+  it('should add/remove Patient tab', () => {
     fixture.detectChanges();
     component.addTab('Patient');
     fixture.detectChanges();

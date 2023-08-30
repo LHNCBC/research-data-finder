@@ -7,16 +7,21 @@ import {
   HttpTestingController
 } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { HttpParams, HttpRequest } from '@angular/common/http';
+import { HttpContext, HttpParams, HttpRequest } from '@angular/common/http';
 import variables from 'src/test/test-fixtures/variables-4.json';
 import { verifyOutstandingRequests } from '../../../test/helpers';
-import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import {
+  CACHE_NAME,
+  FhirBackendService
+} from '../fhir-backend/fhir-backend.service';
 import { MatDialogModule } from '@angular/material/dialog';
+import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
 
 describe('SelectRecordsService', () => {
   let service: SelectRecordsService;
   let mockHttp: HttpTestingController;
   let fhirBackend: FhirBackendService;
+  let customRxjs: CustomRxjsOperatorsService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -25,6 +30,7 @@ describe('SelectRecordsService', () => {
     mockHttp = TestBed.inject(HttpTestingController);
     service = TestBed.inject(SelectRecordsService);
     fhirBackend = TestBed.inject(FhirBackendService);
+    customRxjs = TestBed.inject(CustomRxjsOperatorsService);
   });
 
   it('should be created', () => {
@@ -67,6 +73,19 @@ describe('SelectRecordsService', () => {
       })
       .flush(variables);
     expect(service.currentState['Variable'].resources.length).toBe(4);
+  });
+
+  it('should pass CACHE_NAME to requests for next pages when loading ResearchStudies', () => {
+    spyOn(customRxjs, 'takeAllIf').and.callThrough();
+    const someCacheName = 'someCacheName';
+    const someUrl = 'someUrl';
+    const context = new HttpContext().set(CACHE_NAME, someCacheName);
+    service.loadFirstPage('ResearchStudy', someUrl, { context });
+    // we don't subscribe to the result resource stream, so we don't expect any requests
+    expect(customRxjs.takeAllIf).toHaveBeenCalledWith(
+      true,
+      jasmine.objectContaining({ context })
+    );
   });
 
   describe('loadVariablesFromObservations', () => {
@@ -164,10 +183,10 @@ describe('SelectRecordsService', () => {
         ]
       };
       [
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C11881-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C3137-7&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8302-2&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8303-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:subject&_elements=id&_count=1'
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C11881-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C3137-7&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8302-2&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8303-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1'
       ].forEach((url) => {
         mockHttp.expectOne(url).flush(patientWithSubjects);
       });

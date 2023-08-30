@@ -22,8 +22,6 @@ import { AutocompleteParameterValue } from '../../types/autocomplete-parameter-v
 import { HttpClient } from '@angular/common/http';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
-import * as fhirpath from 'fhirpath';
-import * as fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import { ResearchStudyService } from '../../shared/research-study/research-study.service';
 import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
@@ -387,7 +385,12 @@ export class AutocompleteParameterValueComponent
     ) {
       params[`${this.searchParameter}:text`] = filterText;
     } else {
-      params[`${this.searchParameter}:not`] = 'zzz';
+      if (this.fhirBackend.features.missingModifier) {
+        params[`${this.searchParameter}:missing`] = false;
+      } else {
+        // if the :missing modifier is not allowed, :not=zzz is used instead
+        params[`${this.searchParameter}:not`] = 'zzz';
+      }
     }
 
     // Hash of processed codes, used to exclude repeated codes
@@ -826,7 +829,7 @@ export class AutocompleteParameterValueComponent
     } else {
       propertyName = this.expression || this.searchParameter;
     }
-    const compiledExpression = fhirpath.compile(propertyName, fhirPathModelR4);
+    const compiledExpression = this.fhirBackend.getEvaluator(propertyName);
 
     return (resource) =>
       [].concat(

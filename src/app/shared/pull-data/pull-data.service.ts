@@ -7,16 +7,21 @@ import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import { CODETEXT } from '../query-params/query-params.service';
 import { CohortService } from '../cohort/cohort.service';
 import { concatMap, finalize, map, startWith, tap } from 'rxjs/operators';
-import { forkJoin, Observable, of } from 'rxjs';
+import { forkJoin, fromEvent, Observable, of } from 'rxjs';
 import { chunk, differenceBy } from 'lodash-es';
 import Patient = fhir.Patient;
 import Resource = fhir.Resource;
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { ColumnValuesService } from '../column-values/column-values.service';
-import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import {
+  FhirBackendService,
+  REQUEST_PRIORITY,
+  RequestPriorities
+} from '../fhir-backend/fhir-backend.service';
 import BundleEntry = fhir.BundleEntry;
+import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
 
 type PatientMixin = { patientData?: Patient };
 
@@ -27,6 +32,8 @@ interface PullDataState {
   resources: (Resource & PatientMixin)[];
   // Resource loading progress value
   progressValue: number;
+  // Number of failed requests
+  failedRequests?: number;
 }
 
 @Injectable({
@@ -37,7 +44,8 @@ export class PullDataService {
     private cohort: CohortService,
     private fhirBackend: FhirBackendService,
     private http: HttpClient,
-    private columnValues: ColumnValuesService
+    private columnValues: ColumnValuesService,
+    private customRxjs: CustomRxjsOperatorsService
   ) {
     cohort.criteria$.subscribe(() => this.reset());
   }
@@ -45,6 +53,12 @@ export class PullDataService {
   currentState: { [resourceType: string]: PullDataState } = {};
   // Stream of resources for ResourceTableComponent
   resourceStream: { [resourceType: string]: Observable<Resource[]> } = {};
+  // Common HTTP options
+  static get commonHttpOptions() {
+    return {
+      context: new HttpContext().set(REQUEST_PRIORITY, RequestPriorities.LOW)
+    };
+  }
 
   defaultObservationCodes$ = this.cohort.criteria$.pipe(
     map((criteria) =>
@@ -133,9 +147,16 @@ export class PullDataService {
     const currentState: PullDataState = {
       loading: true,
       resources: [],
-      progressValue: 0
+      progressValue: 0,
+      failedRequests: 0
     };
     this.currentState[resourceType] = currentState;
+    const subscription = fromEvent(
+      this.fhirBackend.fhirClient,
+      'single-request-failure'
+    ).subscribe(() => {
+      currentState.failedRequests++;
+    });
 
     // For pulling EV, we first pull Observations and then retrieve EVs
     // by looking at Observation extensions.
@@ -188,31 +209,35 @@ export class PullDataService {
               .join(',')}`;
           }
 
-          let requests;
+          let requests, count;
 
           if (observationCodes.length) {
+            count = perPatientCount;
             // Create separate requests for each Observation code
             requests = observationCodes.map((code) => {
               return this.http.get(
-                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${perPatientCount}&combo-code=${code}`
+                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${count}&combo-code=${code}`,
+                PullDataService.commonHttpOptions
               );
             });
           } else {
-            const countParam =
+            count =
               resourceTypeParam === 'Observation'
                 ? // When no code is specified in the criteria, we load the
                   // maxObservationToCheck of recent Observations.
-                  `&_count=${maxObservationToCheck}`
-                : `&_count=${perPatientCount}`;
+                  maxObservationToCheck
+                : perPatientCount;
             requests = [
               this.http.get(
-                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}${countParam}`
+                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${count}`,
+                PullDataService.commonHttpOptions
               )
             ];
           }
 
           return requests.map((req) =>
             req.pipe(
+              this.customRxjs.takeBundleOf(count),
               concatMap((bundle: Bundle) => {
                 if (resourceType === 'EvidenceVariable') {
                   return this.loadEvidenceVariables(
@@ -254,6 +279,7 @@ export class PullDataService {
       finalize(() => {
         currentState.progressValue = 100;
         currentState.loading = false;
+        subscription.unsubscribe();
       })
     );
 
@@ -305,7 +331,7 @@ export class PullDataService {
             return null;
           }
           ++patientEvCount[patientRef];
-          return this.http.get(evUrl);
+          return this.http.get(evUrl, PullDataService.commonHttpOptions);
         })
         .filter((p) => p) || [];
 
@@ -346,9 +372,10 @@ export class PullDataService {
           entry: bundle?.entry?.filter((entry: BundleEntry) => {
             const obs = entry.resource as Observation;
             const patientRef = obs.subject.reference;
-            const codeStr = this.columnValues.getCodeableConceptAsText(
-              obs.code
-            );
+            // Use the "Code" column value as key for counting, instead of
+            // the "Variable Name" column value. This way we will have multiple
+            // Observation rows for codes with the same name, as should be the case.
+            const codeStr = this.columnValues.getCodeableConceptCode(obs.code);
             const codeToCount =
               patientToCodeToCount[patientRef] ||
               (patientToCodeToCount[patientRef] = {});

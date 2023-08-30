@@ -1,13 +1,13 @@
 <p class="info">
   <span class="info-icon" aria-hidden="true"></span>
   In this step, you can search, select, and add records to the cart.
-  Records added to the cart will be used to build a cohort of patients.</p>
+  <ng-container *ngIf="hasStudyTab()">Records added to the cart will be used to build a cohort of patients.</ng-container></p>
 <mat-form-field class="number-field">
   <mat-label>Maximum number of patients</mat-label>
   <input matInput [formControl]="maxPatientsNumber" type="number" min="1">
 </mat-form-field>
 
-<mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
+<mat-tab-group #tabGroup dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
   <mat-tab *ngFor="let resourceType of visibleResourceTypes"
            #tab
            [disabled]="
@@ -94,10 +94,10 @@
                     <ng-container *ngIf="resourceTable.selectedResources.selected.length">Highlighted {{
                         resourceTable.selectedResources.selected.length
                       }} out of </ng-container><ng-container>{{
-                        resourceTable.dataSource.data.length
+                        resourceTable.dataSource.filteredData.length
                       }} {{
                         resourceType | pluralFormOfRecordName | lowercase
-                      }} loaded.</ng-container>
+                      }} {{resourceTable.hasFilters() ? 'matching the filter values were ': ''}}loaded.</ng-container>
                     </mat-panel-title>
                     <mat-panel-description *ngIf="(selectRecords.currentState[resourceType].isCached | async) !== null">
                   <span *ngIf="resourceTable.loading; else loadedTemplate">
@@ -123,7 +123,8 @@
         <ng-container *ngSwitchCase="'Variable'">
           <p class="info">
             <span class="info-icon" aria-hidden="true"></span>
-            Select variables to add to the cart. The list of variables is limited to studies added to the cart.</p>
+            Select variables to add to the cart.
+            <ng-container *ngIf="hasStudyTab()">The list of variables is limited to studies added to the cart.</ng-container></p>
           <app-resource-table *ngIf="selectRecords.currentState[resourceType]"
                               #variableTable
                               [columnDescriptions]="columnDescriptions.getVisibleColumns('Variable', 'select') | async"

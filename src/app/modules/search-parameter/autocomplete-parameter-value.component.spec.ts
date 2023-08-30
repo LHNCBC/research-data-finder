@@ -126,11 +126,19 @@ const bundleOfObservationsWithCategories = {
 
 const emptyBundle = {};
 
-describe('AutoCompleteTestValueComponent (when FHIR server has the :not modifier issue)', () => {
+describe('AutoCompleteTestValueComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let hostComponent: TestHostComponent;
   let component: AutocompleteParameterValueComponent;
   let mockHttp: HttpTestingController;
+  let features = {
+    get hasNotModifierIssue() {
+      return undefined;
+    },
+    get missingModifier() {
+      return undefined;
+    }
+  };
 
   beforeEach(async () => {
     await configureTestingModule(
@@ -139,9 +147,7 @@ describe('AutoCompleteTestValueComponent (when FHIR server has the :not modifier
         imports
       },
       {
-        features: {
-          hasNotModifierIssue: true
-        }
+        features
       }
     );
   });
@@ -154,7 +160,8 @@ describe('AutoCompleteTestValueComponent (when FHIR server has the :not modifier
     mockHttp = TestBed.inject(HttpTestingController);
   });
 
-  it('should use single code:not', function () {
+  it('should use single :not when FHIR server has the :not modifier issue', function () {
+    spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(true);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
     component.searchItemsOnFhirServer('someValue', 20, resolve, reject);
@@ -170,37 +177,9 @@ describe('AutoCompleteTestValueComponent (when FHIR server has the :not modifier
     expect(resolve).toHaveBeenCalled();
     expect(reject).not.toHaveBeenCalled();
   });
-});
 
-describe("AutoCompleteTestValueComponent (when FHIR server doesn't have the :not modifier issue)", () => {
-  let fixture: ComponentFixture<TestHostComponent>;
-  let hostComponent: TestHostComponent;
-  let component: AutocompleteParameterValueComponent;
-  let mockHttp: HttpTestingController;
-
-  beforeEach(async () => {
-    await configureTestingModule(
-      {
-        declarations: [TestHostComponent, AutocompleteParameterValueComponent],
-        imports
-      },
-      {
-        features: {
-          hasNotModifierIssue: false
-        }
-      }
-    );
-  });
-
-  beforeEach(async () => {
-    fixture = TestBed.createComponent(TestHostComponent);
-    fixture.detectChanges();
-    hostComponent = fixture.componentInstance;
-    component = hostComponent.component;
-    mockHttp = TestBed.inject(HttpTestingController);
-  });
-
-  it('should use multiple code:not', function () {
+  it("should use multiple :not when FHIR server doesn't have the :not modifier issue", function () {
+    spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(false);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
 
@@ -211,6 +190,44 @@ describe("AutoCompleteTestValueComponent (when FHIR server doesn't have the :not
     mockHttp
       .expectOne(
         '$fhir/Observation?_elements=category&category:text=someValue&category:not=someCode1&category:not=someCode2'
+      )
+      .flush(emptyBundle);
+    mockHttp.verify();
+    expect(resolve).toHaveBeenCalled();
+    expect(reject).not.toHaveBeenCalled();
+  });
+
+  it('should use :not=zzz when FHIR server does not support :missing modifier', function () {
+    spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(true);
+    spyOnProperty(features, 'missingModifier').and.returnValue(false);
+    const resolve = jasmine.createSpy();
+    const reject = jasmine.createSpy();
+    component.searchItemsOnFhirServer('', 20, resolve, reject);
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:not=zzz')
+      .flush(bundleOfObservationsWithCategories);
+    mockHttp
+      .expectOne(
+        '$fhir/Observation?_elements=category&category:not=someCode1,someCode2'
+      )
+      .flush(emptyBundle);
+    mockHttp.verify();
+    expect(resolve).toHaveBeenCalled();
+    expect(reject).not.toHaveBeenCalled();
+  });
+
+  it('should use :missing=false when FHIR server supports :missing modifier', function () {
+    spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(true);
+    spyOnProperty(features, 'missingModifier').and.returnValue(true);
+    const resolve = jasmine.createSpy();
+    const reject = jasmine.createSpy();
+    component.searchItemsOnFhirServer('', 20, resolve, reject);
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false')
+      .flush(bundleOfObservationsWithCategories);
+    mockHttp
+      .expectOne(
+        '$fhir/Observation?_elements=category&category:missing=false&category:not=someCode1,someCode2'
       )
       .flush(emptyBundle);
     mockHttp.verify();

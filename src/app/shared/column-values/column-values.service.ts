@@ -20,6 +20,8 @@ interface Context {
   fullPath?: string;
   // Coding system for filtering data in resource cell.
   preferredCodeSystem?: string;
+  // A map of selected Observation codes at "pull data" step.
+  pullDataObservationCodes?: Map<string, string>;
 }
 
 @Injectable({
@@ -41,14 +43,20 @@ export class ColumnValuesService {
    * @param value - value
    * @param type - type of value
    * @param fullPath - property path to value started with resourceType
+   * @param pullDataObservationCodes a map of selected Observation codes at "pull data" step
    */
-  valueToStrings(value: Array<any>, type: string, fullPath: string): string[] {
+  valueToStrings(
+    value: Array<any>,
+    type: string,
+    fullPath: string,
+    pullDataObservationCodes: Map<string, string> = undefined
+  ): string[] {
     const singleValueFn = this.getValueFn(type);
 
     // If there is a coding with specified "preferredCodeSystem", then the rest
     // of the terms will be dropped when displaying a value for that column.
     const preferredCodeSystem =
-      type === 'CodeableConcept'
+      type === 'CodeableConcept' || type === 'CodeableConceptCode'
         ? this.settings.get(`preferredCodeSystem.${fullPath}`)
         : '';
 
@@ -59,10 +67,16 @@ export class ColumnValuesService {
           .map((item) =>
             singleValueFn.apply(this, [
               item,
-              {
-                fullPath,
-                preferredCodeSystem
-              }
+              pullDataObservationCodes
+                ? {
+                    fullPath,
+                    preferredCodeSystem,
+                    pullDataObservationCodes
+                  }
+                : {
+                    fullPath,
+                    preferredCodeSystem
+                  }
             ])
           )
           // remove empty strings
@@ -77,7 +91,14 @@ export class ColumnValuesService {
 
       return (
         value
-          .map((item) => singleValueFn.apply(this, [item, { fullPath }]))
+          .map((item) =>
+            singleValueFn.apply(this, [
+              item,
+              pullDataObservationCodes
+                ? { fullPath, pullDataObservationCodes }
+                : { fullPath }
+            ])
+          )
           // remove empty strings
           .filter((item) => item)
       );
@@ -98,6 +119,7 @@ export class ColumnValuesService {
       Identifier: this.getIdentifierAsText,
       code: this.getCodeAsText,
       CodeableConcept: this.getCodeableConceptAsText,
+      CodeableConceptCode: this.getCodeableConceptCode,
       string: this.identity,
       Reference: this.getReferenceAsText,
       Period: this.getPeriodAsText,
@@ -150,31 +172,74 @@ export class ColumnValuesService {
   }
 
   /**
+   * Returns the code of the "CodeableConcept" value
+   * @param v - value of type "CodeableConcept"
+   * @param context - context in which we get the cell value
+   * @param context.preferredCodeSystem - coding system for filtering data in resource cell
+   * @param context.pullDataObservationCodes - a map of selected Observation codes at "pull data" step
+   * @return code of a proper coding in the list, returns null if the coding list is empty
+   */
+  getCodeableConceptCode(v: CodeableConcept, context: Context = {}): string {
+    const { preferredCodeSystem, pullDataObservationCodes } = context;
+    let coding = v.coding || [];
+
+    if (preferredCodeSystem) {
+      const preferredCodings = coding.filter(
+        ({ system }) => system === preferredCodeSystem
+      );
+      if (preferredCodings.length) {
+        coding = preferredCodings;
+      }
+    }
+
+    if (!coding.length) {
+      return null;
+    }
+
+    // Find a coding that matches context.pullDataObservationCodes, or use the first coding.
+    const matchingCoding =
+      pullDataObservationCodes &&
+      coding.find((x) => pullDataObservationCodes.has(x.code));
+    return matchingCoding ? matchingCoding.code : coding[0].code;
+  }
+
+  /**
    * Returns a textual representation of "CodeableConcept" value
    * see https://www.hl7.org/fhir/datatypes.html#CodeableConcept
    * @param v - value of type "CodeableConcept"
    * @param context - context in which we get the cell value
    * @param context.fullPath - property path to value started with resourceType
    * @param context.preferredCodeSystem - coding system for filtering data in resource cell
+   * @param context.pullDataObservationCodes - a map of selected Observation codes at "pull data" step
    */
   getCodeableConceptAsText(v: CodeableConcept, context: Context = {}): string {
     const { fullPath, preferredCodeSystem } = context;
     let coding = v.coding || [];
 
     if (preferredCodeSystem) {
-      coding = coding.filter(({ system }) => system === preferredCodeSystem);
-      if (!coding.length) {
-        return '';
+      const preferredCodings = coding.filter(
+        ({ system }) => system === preferredCodeSystem
+      );
+      if (preferredCodings.length) {
+        coding = preferredCodings;
       }
     } else if (v.text) {
       return v.text;
     }
 
-    return coding && coding[0]
-      ? this.getCodingAsText(coding[0], {
+    if (!coding.length) {
+      return null;
+    }
+
+    // Find a coding that matches context.pullDataObservationCodes, or use the first coding.
+    const matchingCoding =
+      context.pullDataObservationCodes &&
+      coding.find((x) => context.pullDataObservationCodes.has(x.code));
+    return matchingCoding
+      ? context.pullDataObservationCodes.get(matchingCoding.code)
+      : this.getCodingAsText(coding[0], {
           fullPath: fullPath ? fullPath + '.coding' : ''
-        })
-      : null;
+        });
   }
 
   /**

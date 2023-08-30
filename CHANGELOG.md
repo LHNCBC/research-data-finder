@@ -3,18 +3,120 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.4.0] - 2023-07-11
+## [6.8.0] - 2023-08-30
 ### Added
 - Next page preloading for resource tables and using it to load variables
   from observations.
 
-## [6.3.0] - 2023-06-08
+## [6.7.0] - 2023-08-30
+### Added
+- Support for basic authentication.
+
+## [6.6.3] - 2023-08-23
+### Fixed
+- Server version detection: 4.0.0 is now defined as R4.
+
+## [6.6.2] - 2023-08-21
+### Added
+- Download button on all tables.
+
+## [6.6.1] - 2023-08-09
+### Fixed
+- Preserve Advanced Settings after RAS login.
+
+## [6.6.0] - 2023-08-03
+### Added
+- Option to convert Observation table into Variable-Patient table
+  in pull data step.
+
+## [6.5.3] - 2023-08-01
+### Added
+- Display failed requests message in Pull Data tables.
+
+## [6.5.2] - 2023-07-31
+### Added
+- Request priority management.
+### Fixed
+- Loading data in the pull data step blocked other requests and made it
+  impossible to create a new cohort.
+
+## [6.5.1] - 2023-07-31
+### Fixed
+- Display of incorrect amount of studies in the select records step.
+
+## [6.5.0] - 2023-07-28
+### Added
+- R5 support.
+### Fixed
+- Issue with empty list of variables in the select records step for an R4 server
+  with ResearchStudies.
+- Replaced `subject:Patient=<id1>,<id2>` with `subject=Patient/<id1>,Patient/<id2>`
+  because baseR5 doesn't support it.
+
+## [6.4.2] - 2023-07-28
+### Added
+- Resend requests separately and notify the user of problems if a batch request
+  fails.
+
+## [6.4.1] - 2023-07-21
+### Fixed
+- Show the list of Observation variables with the same name
+  in define cohort step.
+
+## [6.4.0] - 2023-07-20
 ### Added
 - "Browse public data" option for other FHIR servers
 
-## [6.2.12] - 2023-05-18
+## [6.3.7] - 2023-07-20
+### Fixed
+- Issue with incorrect caching of loaded studies
+
+## [6.3.6] - 2023-07-19
+### Fixed
+- Do not show session expired message on "browse public data".
+
+## [6.3.5] - 2023-07-06
+### Fixed
+- Replaced use of ":not=zzz" in autocomplete with ":missing=false" if supported.
+
+## [6.3.4] - 2023-06-23
+### Fixed
+- Do not cache failed requests that have status 401 or 403.
+
+## [6.3.3] - 2023-06-14
+### Changed
+- Renamed "Code" column to "Variable Name" in Observation table.
+### Added
+- A new "Code" column to display raw code in Observation table.
+
+## [6.3.2] - 2023-06-13
+### Fixed
+- Do not retry GET requests aborted by the server.
+
+## [6.3.1] - 2023-06-12
 ### Added
 - Showing the total number of variables from CTSS.
+
+## [6.3.0] - 2023-06-12
+### Added
+- Save/load/restore cohort with cart data.
+### Changed
+- On dbGaP 4xx errors, direct user to re-login and restore the
+  step and data afterwards.
+
+## [6.2.14] - 2023-05-31
+### Fixed
+- Make initialization requests only when necessary. Remove unnecessary
+  requests before login.
+
+## [6.2.13] - 2023-05-23
+### Fixed
+- Handled cases when a server returns less than the expected number of results.
+
+## [6.2.12] - 2023-05-23
+### Changed
+- Match Observation table Code column to selected Observation codes,
+  if any, in "pull data" step.
 
 ## [6.2.11] - 2023-05-18
 ### Added

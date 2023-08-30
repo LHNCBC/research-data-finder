@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-
 import { ColumnValuesService } from './column-values.service';
 import { configureTestingModule } from 'src/test/helpers';
 
@@ -32,14 +31,25 @@ describe('ColumnValuesService', () => {
       value: {
         coding: [
           {
-            system: 'http://terminology.hl7.org/CodeSystem/condition-clinical',
-            code: 'inactive'
+            code: '2',
+            display: 'case'
           }
         ]
       },
       type: 'CodeableConcept',
-      fullPath: 'Condition.clinicalStatus',
-      result: 'inactive'
+      result: 'case'
+    },
+    {
+      value: {
+        coding: [
+          {
+            code: '2',
+            display: 'case'
+          }
+        ]
+      },
+      type: 'CodeableConceptCode',
+      result: '2'
     },
     {
       value: 'enc-106-565200923',
@@ -207,6 +217,83 @@ describe('ColumnValuesService', () => {
         result
       ]);
     });
+  });
+
+  it('should match pullDataObservationCodes if any', async () => {
+    expect(
+      service.valueToStrings(
+        [
+          {
+            coding: [
+              {
+                system: 'system1',
+                code: 'value1',
+                display: 'display1'
+              },
+              {
+                system: 'system2',
+                code: 'value2',
+                display: 'display2'
+              }
+            ]
+          }
+        ],
+        'CodeableConcept',
+        '',
+        new Map([['value2', 'displayX']])
+      )
+    ).toEqual(['displayX']);
+  });
+
+  it('should use first coding if no pullDataObservationCodes', async () => {
+    expect(
+      service.valueToStrings(
+        [
+          {
+            coding: [
+              {
+                system: 'system1',
+                code: 'value1',
+                display: 'display1'
+              },
+              {
+                system: 'system2',
+                code: 'value2',
+                display: 'display2'
+              }
+            ]
+          }
+        ],
+        'CodeableConcept',
+        ''
+      )
+    ).toEqual(['display1']);
+  });
+
+  it('should return code for CodeableConceptCode', async () => {
+    expect(
+      service.valueToStrings(
+        [
+          {
+            coding: [
+              {
+                system: 'system1',
+                code: 'value1',
+                display: 'display1'
+              },
+              {
+                system: 'system2',
+                code: 'value2',
+                display: 'display2'
+              }
+            ]
+          }
+        ],
+        'CodeableConceptCode',
+        '',
+        undefined
+      )
+    ).toEqual(['value1']);
   });
 });
 

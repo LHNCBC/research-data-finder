@@ -107,6 +107,9 @@ export class CohortService {
   // A matrix of loading info that will be displayed with View Cohort resource table.
   loadingStatistics: (string | number)[][] = [];
 
+  // A flag indicating a 4xx error has been received during Patient search.
+  patient400ErrorFlag = false;
+
   /**
    * Sets the cohort criteria
    */
@@ -243,6 +246,9 @@ export class CohortService {
       // Complete observable on error
       catchError((e) => {
         console.error(e);
+        if (e.status >= 400 && e.status < 500) {
+          this.patient400ErrorFlag = true;
+        }
         return EMPTY;
       }),
       finalize(() => {
@@ -419,7 +425,7 @@ export class CohortService {
             (resourceType === PATIENT_RESOURCE_TYPE && `_id=${patientId}`) ||
             (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
               `_count=1&_has:ResearchSubject:study:${this.fhirBackend.subjectParamName}=Patient/${patientId}`) ||
-            `_count=1&subject:Patient=${patientId}`;
+            `_count=1&subject=Patient/${patientId}`;
           const query =
             `$fhir/${resourceType}?${link}${elements}` +
             rules
