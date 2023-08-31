@@ -6,6 +6,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [6.8.0] - 2023-08-31
 ### Fixed
 - A bug in the search algorithm: ANDed criteria may be ORed in the parent node.
+- Issues with saving and loading a cohort and criteria.
 
 ## [6.7.0] - 2023-08-30
 ### Added

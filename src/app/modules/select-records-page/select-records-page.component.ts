@@ -289,40 +289,48 @@ export class SelectRecordsPageComponent
     };
   }
 
+
   /**
-   * Searches for a list of Patient resources that match the records in the cart.
+   * Gets the cohort criteria from controls.
    */
-  searchForPatients(): void {
+  getCriteriaFromControls(): Criteria {
     const additionalCriteria: ResourceTypeCriteria = {
       condition: 'and',
       resourceType: 'Patient',
       rules: this.additionalCriteria
         .getSearchParamValues()
-        .map((v) => ({ field: v }))
+        .map((v) => ({field: v}))
     };
 
     const variableCriteria: Criteria = this.getVariableCriteria();
 
-    const criteria: Criteria = additionalCriteria.rules.length
+    return additionalCriteria.rules.length
       ? variableCriteria.condition === 'and'
         ? {
-            condition: 'and',
-            rules: variableCriteria.rules.concat(additionalCriteria)
-          }
+          condition: 'and',
+          rules: variableCriteria.rules.concat(additionalCriteria)
+        }
         : {
-            condition: 'and',
-            rules: [additionalCriteria, variableCriteria]
-          }
+          condition: 'and',
+          rules: [additionalCriteria, variableCriteria]
+        }
       : variableCriteria;
+  }
 
+  /**
+   * Searches for a list of Patient resources that match the records in the cart.
+   */
+  searchForPatients(): void {
+    const hasVariableCriteria = this.cart.getListItems(this.cart.getVariableResourceType())?.length > 0;
+    const criteria: Criteria = this.getCriteriaFromControls();
     this.cohort.searchForPatients(
       criteria,
       this.maxPatientsNumber.value,
-      variableCriteria.rules.length
+      hasVariableCriteria
         ? null
         : []
-            .concat(...(this.cart.getListItems('ResearchStudy') || []))
-            .map((r) => r.id)
+          .concat(...(this.cart.getListItems('ResearchStudy') || []))
+          .map((r) => r.id)
     );
   }
 
@@ -346,6 +354,7 @@ export class SelectRecordsPageComponent
         setTimeout(() => {
           // Switch back to 'Studies' tab.
           this.tabGroup.selectedIndex = 0;
+          this.cohort.setCriteria(this.getCriteriaFromControls());
         }, 50);
       });
     });
