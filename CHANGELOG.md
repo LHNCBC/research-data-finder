@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.8.0] - 2023-08-31
+### Fixed
+- A bug in the search algorithm: ANDed criteria may be ORed in the parent node.
+
 ## [6.7.0] - 2023-08-30
 ### Added
 - Support for basic authentication.
