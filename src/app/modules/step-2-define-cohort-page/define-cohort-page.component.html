@@ -1,7 +1,7 @@
 <form [formGroup]="defineCohortForm">
   <ng-container [ngSwitch]="
        (fhirBackend.features.hasResearchStudy
-       && (selectRecords.resourceStream['ResearchStudy'] | async)
+       && (selectRecords.currentState['ResearchStudy']?.resourceStream | async)
        && selectRecords.currentState['ResearchStudy']?.loading) || false">
     <ng-container *ngSwitchCase="true">
       <p class="h-box" *ngSwitchCase="true">
