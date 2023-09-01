@@ -32,6 +32,8 @@ import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import { ErrorStateMatcher } from '@angular/material/core';
 import WORDSYNONYMS from '../../../../word-synonyms.json';
 import { CohortService } from '../../shared/cohort/cohort.service';
+import { CartService } from '../../shared/cart/cart.service';
+import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 
 // This value should be used as the "datatype" field value for the form control
 // value if we don't have a "variable value" criterion (in the "Pull data for
@@ -101,7 +103,9 @@ export class ObservationCodeLookupComponent
   // Callback to handle changes
   listSelectionsObserver: (eventData: any) => void;
   // Subscription used to cancel the previous loading process
-  subscription: Subscription;
+  subscriptionForLoading: Subscription;
+  // Subscription to a change in cohort criteria
+  subscriptionForCriteria: Subscription;
 
   /**
    * Whether the control is empty (Implemented as part of MatFormFieldControl)
@@ -178,6 +182,8 @@ export class ObservationCodeLookupComponent
     private elementRef: ElementRef,
     private httpClient: HttpClient,
     public cohort: CohortService,
+    private cart: CartService,
+    private selectRecords: SelectRecordsService,
     private errorStateMatcher: ErrorStateMatcher
   ) {
     super();
@@ -195,7 +201,8 @@ export class ObservationCodeLookupComponent
    */
   ngOnDestroy(): void {
     this.stateChanges.complete();
-    this.subscription?.unsubscribe();
+    this.subscriptionForLoading?.unsubscribe();
+    this.subscriptionForCriteria?.unsubscribe();
     this.destroyAutocomplete();
   }
 
@@ -223,14 +230,73 @@ export class ObservationCodeLookupComponent
    */
   ngAfterViewInit(): void {
     this.setupAutocomplete();
+    this.subscriptionForCriteria = this.cohort.criteria$.subscribe(() => {
+      this.destroyAutocomplete();
+      this.setupAutocomplete();
+    });
   }
 
   /**
-   * Set up the autocompleter
+   * Set up the autocompleter.
    */
   setupAutocomplete(): void {
-    const testInputId = this.inputId;
+    if (
+      this.isPullData &&
+      this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl) &&
+      this.cart.getListItems('ResearchStudy')?.length
+    ) {
+      this.setupAutocompleteInputToUseCTSS();
+    } else {
+      this.setupAutocompleteInputToUseObservations();
+    }
+    this.updateAutocomplete();
 
+    // Restore mapping from code to datatype from preselected data,
+    // if restricted by datatype
+    if (this.currentData.datatype !== ANY_DATATYPE) {
+      this.currentData.coding.forEach((code) => {
+        if (!this.code2Type[code.system + '|' + code.code]) {
+          this.code2Type[
+            code.system + '|' + code.code
+          ] = this.currentData.datatype;
+        }
+      });
+    }
+
+    const acInstance = this.acInstance;
+    this.listSelectionsObserver = (eventData) => {
+      const coding = acInstance.getSelectedCodes();
+      const items = acInstance.getSelectedItems();
+      let datatype = '';
+      if (coding.length > 0) {
+        datatype = this.code2Type[coding[0].system + '|' + coding[0].code];
+        if (!eventData.removed) {
+          acInstance.domCache.set('elemVal', eventData.val_typed_in);
+          acInstance.useSearchFn(
+            eventData.val_typed_in,
+            Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD
+          );
+        }
+      }
+      this.currentData = {
+        coding,
+        // If there is no restriction by datatype, then do not reset the datatype
+        datatype:
+          this.currentData.datatype === ANY_DATATYPE ? ANY_DATATYPE : datatype,
+        items
+      };
+      this.onChange(this.currentData);
+    };
+    Def.Autocompleter.Event.observeListSelections(
+      this.inputId,
+      this.listSelectionsObserver
+    );
+  }
+
+  /**
+   * Set up the autocompleter to extract data from observations.
+   */
+  setupAutocompleteInputToUseObservations(): void {
     const acInstance = (this.acInstance = new Def.Autocompleter.Search(
       // We can't use the input element's id here, because it might not be
       // in DOM if the component is in an inactive tab.
@@ -287,7 +353,7 @@ export class ObservationCodeLookupComponent
                 const selectedCodes = acInstance.getSelectedCodes();
 
                 this.loading = true;
-                this.subscription?.unsubscribe();
+                this.subscriptionForLoading?.unsubscribe();
 
                 const obsCode = this.httpClient
                   .get(url, {
@@ -401,16 +467,17 @@ export class ObservationCodeLookupComponent
                   );
 
                 // Resolve autocomplete dropdown after both code and text searches are done.
-                this.subscription = forkJoin([obs, obsCode]).subscribe(() => {
-                  resolve({
-                    resourceType: 'ValueSet',
-                    expansion: {
-                      total: Number.isInteger(total) ? total : null,
-                      contains
-                    }
+                this.subscriptionForLoading = forkJoin([obs, obsCode])
+                  .subscribe(() => {
+                    resolve({
+                      resourceType: 'ValueSet',
+                      expansion: {
+                        total: Number.isInteger(total) ? total : null,
+                        contains
+                      }
+                    });
+                    this.loading = false;
                   });
-                  this.loading = false;
-                });
               }
             };
           }
@@ -420,47 +487,101 @@ export class ObservationCodeLookupComponent
         matchListValue: true
       }
     ));
+  }
 
-    this.updateAutocomplete();
+  /**
+   * Set up the autocompleter to use CTSS for Observation code lookup.
+   */
+  setupAutocompleteInputToUseCTSS(): void {
+    this.acInstance = new Def.Autocompleter.Search(
+      // We can't use the input element's id here, because it might not be
+      // in DOM if the component is in an inactive tab.
+      this.input.nativeElement,
+      null,
+      {
+        suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
+        fhir: true,
+        search: (fieldVal, count) => {
+          const studiesInCart = this.cart.getListItems('ResearchStudy');
+          const studyIds = []
+            .concat(
+              ...(studiesInCart?.length
+                ? studiesInCart
+                : this.selectRecords.currentState['ResearchStudy']
+                .resources || [])
+            )
+            .map((r) => r.id + '*');
+          const query = fieldVal
+            ? [`(display_name:(${fieldVal}*) OR synonyms:(${fieldVal}*))`]
+            : [];
+          if (studyIds.length) {
+            query.push('study_id:(' + studyIds.join(' OR ') + ')');
+          }
 
-    // Restore mapping from code to datatype from preselected data,
-    // if restricted by datatype
-    if (this.currentData.datatype !== ANY_DATATYPE) {
-      this.currentData.coding.forEach((code) => {
-        if (!this.code2Type[code.system + '|' + code.code]) {
-          this.code2Type[
-            code.system + '|' + code.code
-          ] = this.currentData.datatype;
-        }
-      });
-    }
+          let offset = 0;
+          // &authenticity_token=&terms=heigh
+          return {
+            then: (resolve, reject) => {
+              const url = new URL(
+                'https://clinicaltables.nlm.nih.gov/fhir/R4/ValueSet/dbg-vars'
+              );
+              Object.entries({
+                rec_type: 'dbgv',
+                offset,
+                count,
+                sf: 'display_name',
+                df: 'display_name',
+                q: query.join(' AND ')
+              }).forEach(([name, value]) => {
+                url.searchParams.set(name, value);
+              });
+              this.loading = true;
+              this.subscriptionForLoading?.unsubscribe();
 
-    this.listSelectionsObserver = (eventData) => {
-      const coding = acInstance.getSelectedCodes();
-      const items = acInstance.getSelectedItems();
-      let datatype = '';
-      if (coding.length > 0) {
-        datatype = this.code2Type[coding[0].system + '|' + coding[0].code];
-        if (!eventData.removed) {
-          acInstance.domCache.set('elemVal', eventData.val_typed_in);
-          acInstance.useSearchFn(
-            eventData.val_typed_in,
-            Def.Autocompleter.Base.MAX_ITEMS_BELOW_FIELD
-          );
-        }
+              this.subscriptionForLoading = this.httpClient
+                .post(
+                  'https://clinicaltables.nlm.nih.gov/fhir/R4/ValueSet/$expand?_format=json',
+                  'url=' + encodeURIComponent(url.toString()),
+                  {
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                  }
+                )
+                .subscribe(
+                  (data: any) => {
+                    data.expansion.contains.forEach(item => {
+                      // Autocompleter's function "storeSelectedItem" has only
+                      // two parameters: "itemText" and "code"
+                      // That is why we store "code" and "system" in the "code"
+                      // field, which doesn't match the ValueSet spec.
+                      item.code = {code: item.code};
+                      // If CTSS returns fake system
+                      // "http://clinicaltables.nlm.nih.gov/fhir/CodeSystem/dbg-vars"
+                      // in the "system" field, we skip it.
+                      if (!/clinicaltables/.test(item.system)) {
+                        item.code.system = item.system;
+                      }
+                      // Remove the unused "system" field that is now stored in the "code" field.
+                      delete item.system;
+                    })
+                    this.appendCodeSystemToDuplicateDisplay(data.expansion.contains);
+                    resolve(data);
+                    this.loading = false;
+                  },
+                  (error) => {
+                    this.loading = false;
+                    reject(error);
+                  }
+                );
+            }
+          };
+        },
+        useResultCache: false,
+        maxSelect: '*',
+        matchListValue: true,
+        showListOnFocusIfEmpty: true
       }
-      this.currentData = {
-        coding,
-        // If there is no restriction by datatype, then do not reset the datatype
-        datatype:
-          this.currentData.datatype === ANY_DATATYPE ? ANY_DATATYPE : datatype,
-        items
-      };
-      this.onChange(this.currentData);
-    };
-    Def.Autocompleter.Event.observeListSelections(
-      testInputId,
-      this.listSelectionsObserver
     );
   }
 
@@ -530,6 +651,10 @@ export class ObservationCodeLookupComponent
           .map((coding) => {
             this.code2Type[coding.system + '|' + coding.code] = datatype;
             return {
+              // Autocompleter's function "storeSelectedItem" has only two
+              // parameters: "itemText" and "code"
+              // That is why we store "code" and "system" in the "code" field,
+              // which doesn't match the ValueSet spec.
               code: { code: coding.code, system: coding.system },
               display: coding.display || coding.code
             };
@@ -622,7 +747,9 @@ export class ObservationCodeLookupComponent
       .map((item) => item.display);
     contains.forEach((item) => {
       if (duplicateDisplays.includes(item.display)) {
-        item.display = `${item.display} | ${item.code.code} | ${item.code.system}`;
+        item.display =
+          `${item.display} | ${item.code.code}` +
+          (item.code.system ? ` | ${item.code.system}` : '');
       }
     });
   }

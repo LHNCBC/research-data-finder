@@ -52,7 +52,7 @@ describe('SelectRecordsService', () => {
           req.url ===
             'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
           new HttpParams({ fromString: req.body }).get('q') ===
-            '(display_name:(somename) OR synonyms:(somename))'
+            '(display_name:(somename*) OR synonyms:(somename*))'
         );
       })
       .flush(variables);
