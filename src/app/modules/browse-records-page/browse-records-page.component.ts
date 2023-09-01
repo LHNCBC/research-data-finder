@@ -191,20 +191,6 @@ export class BrowseRecordsPageComponent
   }
 
   /**
-   * Loads a list of variables for selected research studies from observations.
-   * @param reset - whether to reset already loaded data
-   */
-  loadVariablesFromObservations(reset = true): void {
-    this.selectRecords.loadVariablesFromObservations(
-      this.getSelectedRecords('ResearchStudy'),
-      {},
-      this.variableTable?.filtersForm.value || {},
-      this.sort['Observation'],
-      reset
-    );
-  }
-
-  /**
    * Loads the first page of the specified resource type.
    * @param resourceType - resource type.
    */
@@ -212,7 +198,9 @@ export class BrowseRecordsPageComponent
     if (resourceType === 'Variable') {
       this.loadVariables();
     } else if (resourceType === 'Observation') {
-      this.loadVariablesFromObservations();
+      this.selectRecords.loadFirstPageOfVariablesFromObservations(
+        ...this.getParametersToLoadPageOfVariables()
+      );
     } else if (resourceType === 'ResearchStudy') {
       const cacheName = 'studies';
       this.selectRecords.loadFirstPage(
@@ -256,9 +244,42 @@ export class BrowseRecordsPageComponent
         this.selectRecords.currentState[resourceType].currentPage + 1
       );
     } else if (resourceType === 'Observation') {
-      this.loadVariablesFromObservations(false);
+      this.selectRecords.loadNextPageOfVariablesFromObservations(
+        ...this.getParametersToLoadPageOfVariables()
+      );
     } else {
       this.selectRecords.loadNextPage(resourceType);
     }
+  }
+
+  /**
+   * Preloads the next page of the specified resource type.
+   * @param resourceType - resource type.
+   */
+  preloadNextPage(resourceType: string): void {
+    if (resourceType === 'Observation') {
+      this.selectRecords.preloadNextPageOfVariablesFromObservations(
+        ...this.getParametersToLoadPageOfVariables()
+      );
+    }
+  }
+
+  /**
+   * Returns parameters to load a page of variables.
+   */
+  getParametersToLoadPageOfVariables(): [
+    selectedResearchStudies: Resource[],
+    params: {
+      [param: string]: any;
+    },
+    filters: any,
+    sort: Sort
+  ] {
+    return [
+      this.getSelectedRecords('ResearchStudy'),
+      {},
+      this.variableTable?.filtersForm.value || {},
+      this.sort['Observation']
+    ];
   }
 }
