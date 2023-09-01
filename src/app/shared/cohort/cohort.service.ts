@@ -573,9 +573,10 @@ export class CohortService {
 
       // Combine code and value criteria for Observation when we have one code
       // and one value:
-      const obsCodeCriterion = criteria.rules.find(
-        (c) => c.field.element === CODETEXT
-      );
+      const obsCodeCriterion = criteria.resourceType === 'Observation'
+        ? criteria.rules.find((c) => c.field.element === CODETEXT)
+        : null;
+
       if (
         obsCodeCriterion?.field.selectedObservationCodes.coding.length === 1
       ) {

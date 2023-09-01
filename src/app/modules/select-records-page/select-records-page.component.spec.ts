@@ -26,10 +26,12 @@ import { CohortService } from '../../shared/cohort/cohort.service';
 import { MatRadioButtonHarness } from '@angular/material/radio/testing';
 import tenPatientBundle from '../step-2-define-cohort-page/test-fixtures/patients-10.json';
 import { MatMenuHarness } from '@angular/material/menu/testing';
-import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import observations from './test-fixtures/observations.json';
 import { CartService } from '../../shared/cart/cart.service';
+import {
+  SearchParametersComponent
+} from '../search-parameters/search-parameters.component';
 
 describe('SelectRecordsPageComponent (when there are studies for the user)', () => {
   let component: SelectRecordsPageComponent;
@@ -370,16 +372,19 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     await addVariablesToCart();
     await selectTab('Additional criteria');
 
-    spyOn(
-      fixture.debugElement.query(By.directive(SearchParameterGroupComponent))
-        .componentInstance,
-      'getSearchParamValues'
-    ).and.returnValue([
-      {
-        element: 'deceased',
-        value: false
-      }
-    ]);
+    fixture.debugElement.query(By.directive(SearchParametersComponent))
+      .componentInstance.queryCtrl.setValue({
+      condition: 'and',
+      resourceType: 'Patient',
+      rules: [
+        {
+          field: {
+            element: 'deceased',
+            value: false
+          }
+        }
+      ]
+    });
 
     component.searchForPatients();
     cohortService.patientStream.subscribe();
@@ -389,7 +394,7 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
         .expectOne(
           `$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=${code}`
         )
-        .flush({ total: (index + 1) * 10 });
+        .flush({total: (index + 1) * 10});
     });
     mockHttp
       .expectOne('$fhir/Patient?_total=accurate&_summary=count&deceased=false')

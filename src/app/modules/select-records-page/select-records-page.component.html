@@ -208,10 +208,12 @@
     <div class="v-box tab-content">
       <p class="info">
         <span class="info-icon" aria-hidden="true"></span>
-        Here you can add additional criteria to Patient records.
+        Here you can add additional criteria to build a cohort of patients.
       </p>
 
-      <app-search-parameter-group inputResourceType="Patient" #additionalCriteria></app-search-parameter-group>
+      <app-search-parameters
+          [excludeResources]="['ResearchStudy', 'Observation']"
+          #additionalCriteria></app-search-parameters>
     </div>
   </mat-tab>
 </mat-tab-group>
