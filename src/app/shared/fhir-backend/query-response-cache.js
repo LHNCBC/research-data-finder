@@ -34,12 +34,9 @@ class QueryResponseCache {
     };
     if (options.cacheName) {
       if (this.isCachesSupported) {
-        return caches
-          .open(options.cacheName)
-          .then((c) => c.put(url, new Response(JSON.stringify(responseData))));
+        return caches.open(options.cacheName).then((c) => c.put(url, new Response(JSON.stringify(responseData))));
       } else {
-        const cache = (this.fakeWindowCaches[options.cacheName] =
-          this.fakeWindowCaches[options.cacheName] || {});
+        const cache = (this.fakeWindowCaches[options.cacheName] = this.fakeWindowCaches[options.cacheName] || {});
         cache[url] = responseData;
         return Promise.resolve();
       }
@@ -73,9 +70,7 @@ class QueryResponseCache {
             });
         });
       }
-      tempCachePromise = Promise.resolve(
-        this.fakeWindowCaches[options.cacheName]?.[url]
-      );
+      tempCachePromise = Promise.resolve(this.fakeWindowCaches[options.cacheName]?.[url]);
     } else {
       tempCachePromise = Promise.resolve(this.temporaryCache[url]);
     }
@@ -103,11 +98,7 @@ class QueryResponseCache {
   hasNotExpiredData(url, cacheName) {
     return (cacheName
       ? this.isCachesSupported
-        ? caches
-            .open(cacheName)
-            .then((cache) =>
-              cache.match(url).then((response) => response?.json())
-            )
+        ? caches.open(cacheName).then((cache) => cache.match(url).then((response) => response?.json()))
         : Promise.resolve(this.fakeWindowCaches[cacheName]?.[url])
       : Promise.resolve(this.temporaryCache[url])
     ).then((responseData) => {
@@ -123,8 +114,7 @@ class QueryResponseCache {
   static isExpired(responseData) {
     return (
       responseData?._cacheInfo_.expirationTime &&
-      responseData?._cacheInfo_.expirationTime * 1000 <
-        +new Date() - responseData?._cacheInfo_.timestamp
+      responseData?._cacheInfo_.expirationTime * 1000 < +new Date() - responseData?._cacheInfo_.timestamp
     );
   }
 
@@ -161,11 +151,7 @@ class QueryResponseCache {
     return (this.isCachesSupported
       ? caches.keys()
       : Promise.resolve(Object.keys(this.fakeWindowCaches))
-    ).then((cacheNames) =>
-      Promise.all(
-        cacheNames.map((cacheName) => this.clearByCacheName(cacheName))
-      )
-    );
+    ).then((cacheNames) => Promise.all(cacheNames.map((cacheName) => this.clearByCacheName(cacheName))));
   }
 
   /**
