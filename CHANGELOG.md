@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.8.0] - 2023-08-31
+### Added
+- Use CTSS for Observation code lookup in the pull data step.
+
 ## [6.7.1] - 2023-08-31
 ### Fixed
 - Issue with incomplete data loading in the pull data step when checking 10000
