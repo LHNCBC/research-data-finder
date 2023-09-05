@@ -202,7 +202,7 @@
                 There are no records available to the current user.
               </ng-container>
               <ng-container *ngSwitchCase="false">
-                There are no public records.
+                {{context === 'browse' ? 'There are no public records.' : 'No records were found.'}}
               </ng-container>
             </ng-template>
           </td>

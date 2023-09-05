@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.9.2] - 2023-09-05
+### Fixed
+- "No records were found" message for empty tables not in "browse
+  public data" mode.
+
 ## [6.9.1] - 2023-09-05
 ### Fixed
 - CSP issue when a https server returns next links with http.

@@ -243,6 +243,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   // in Observation table "Code" column.
   @Input() pullDataObservationCodes: Map<string, string> = null;
 
+  // Whether the table is in the process of continuously loading records - triggering
+  // next queries for more records right away.
+  continuouslyLoading = false;
+  // A timeout for reading "loading finished" message.
+  continuouslyLoadingTimeout: any;
+
   /**
    * Whether it's a valid click event in accessibility sense.
    * A mouse click, The ENTER key or the SPACE key.
@@ -331,9 +337,14 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['loading']) {
       if (this.loading) {
         this.columnsWithData = {};
-        this.liveAnnouncer.announce(
-          `The ${pluralRecordName} loading process has started`
-        );
+        // Don't read too many "loading started" messages during continuous loading.
+        if (!this.continuouslyLoading) {
+          this.liveAnnouncer.announce(
+            `The ${pluralRecordName} loading process has started`
+          );
+        }
+        this.continuouslyLoading = true;
+        clearTimeout(this.continuouslyLoadingTimeout);
         this.startTime = Date.now();
         let i = 0;
         this.progressBarPosition$ = this.progressValue$.pipe(
@@ -349,23 +360,32 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           })
         );
       } else if (changes['loading'].previousValue) {
-        this.loadedDateTime = Date.now();
-        this.loadTime =
-          Math.round((this.loadedDateTime - this.startTime) / 100) / 10;
-        this.liveAnnouncer.announce(
-          `The ${pluralRecordName} loading process has finished. ` +
-            `${this.resources.length} ${pluralRecordName} loaded. ` +
+        this.progressBarPosition$ = null;
+        // Read the "loading finished" message after a delay, so that we get to
+        // clear the timeout without reading it in case of continuous loading.
+        // For example, the Variables table finds 0 records and RDF immediately
+        // triggers the loading of next page in this.onScroll() to look for more
+        // items - we only read the "loading finished" message once after the last
+        // query has returned.
+        this.continuouslyLoadingTimeout = setTimeout(() => {
+          this.continuouslyLoading = false;
+          this.loadedDateTime = Date.now();
+          this.loadTime =
+            Math.round((this.loadedDateTime - this.startTime) / 100) / 10;
+          this.liveAnnouncer.announce(
+            `The ${pluralRecordName} loading process has finished. ` +
+            `${this.resources?.length || 0} ${pluralRecordName} loaded. ` +
             (this.total
               ? `Total ${pluralRecordName}` +
-                (this.hasFilters() ? ' for the selected filters' : '') +
-                ': ' +
-                this.total +
-                '.'
+              (this.hasFilters() ? ' for the selected filters' : '') +
+              ': ' +
+              this.total +
+              '.'
               : '') +
             this.getSortMessage(),
-          'assertive'
-        );
-        this.progressBarPosition$ = null;
+            'assertive'
+          );
+        }, 100);
       }
     }
 
