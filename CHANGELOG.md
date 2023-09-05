@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.9.1] - 2023-09-05
+### Fixed
+- CSP issue when a https server returns next links with http.
+
 ## [6.9.0] - 2023-08-31
 ### Added
 - Next page preloading for resource tables and using it to load variables

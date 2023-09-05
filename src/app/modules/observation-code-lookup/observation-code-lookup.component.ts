@@ -21,7 +21,6 @@ import { EMPTY, forkJoin, of, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
 import {
-  getNextPageUrl,
   modifyStringForSynonyms,
   generateSynonymLookup,
   escapeStringForRegExp
@@ -402,7 +401,7 @@ export class ObservationCodeLookupComponent
                         isMatchToFieldVal
                       );
                       contains.push(...newItems);
-                      const nextPageUrl = getNextPageUrl(response);
+                      const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
                       if (
                         nextPageUrl &&
                         contains.length < count &&

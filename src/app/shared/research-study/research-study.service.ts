@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { expand, finalize, map, startWith } from 'rxjs/operators';
-import { getNextPageUrl } from '../utils';
 import { EMPTY, Observable } from 'rxjs';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import Resource = fhir.Resource;
+import {FhirBackendService} from "../fhir-backend/fhir-backend.service";
 
 interface ResearchStudyState {
   // Indicates that data is loading
@@ -25,7 +25,8 @@ interface ResearchStudyState {
   providedIn: 'root'
 })
 export class ResearchStudyService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient,
+              private fhirBackend: FhirBackendService) {}
   currentState: ResearchStudyState;
 
   /**
@@ -49,7 +50,7 @@ export class ResearchStudyService {
     this.currentState = currentState;
     return this.http.get(url).pipe(
       expand((response: Bundle) => {
-        const nextPageUrl = getNextPageUrl(response);
+        let nextPageUrl = this.fhirBackend.getNextPageUrl(response);
         if (!nextPageUrl) {
           // Emit a complete notification if there is no next page
           return EMPTY;
