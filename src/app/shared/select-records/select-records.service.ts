@@ -17,7 +17,6 @@ import {
 } from 'rxjs/operators';
 import {
   escapeStringForRegExp,
-  getNextPageUrl,
   modifyStringForSynonyms
 } from '../utils';
 import { Sort } from '@angular/material/sort';
@@ -154,7 +153,7 @@ export class SelectRecordsService {
         currentState.resources = currentState.resources.concat(
           data.entry?.map((item) => item.resource) || []
         );
-        currentState.nextBundleUrl = getNextPageUrl(data);
+        currentState.nextBundleUrl = this.fhirBackend.getNextPageUrl(data);
         return currentState.resources;
       }),
       catchError(() => {
@@ -552,7 +551,7 @@ export class SelectRecordsService {
           }
           return requests;
         }, []);
-        currentState.nextBundleUrl = getNextPageUrl(data);
+        currentState.nextBundleUrl = this.fhirBackend.getNextPageUrl(data);
         return forkJoin(checkRequests).pipe(
           map((observations: Observation[]) =>
             observations.filter((obs) => !!obs)

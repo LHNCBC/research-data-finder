@@ -5,15 +5,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { EMPTY, Observable, pipe, UnaryFunction } from 'rxjs';
 import { expand, map, takeLast } from 'rxjs/operators';
-import { getNextPageUrl } from '../utils';
 import Bundle = fhir.Bundle;
 import { HttpOptions } from '../../types/http-options';
+import {FhirBackendService} from "../fhir-backend/fhir-backend.service";
 
 @Injectable({
   providedIn: 'root'
 })
 export class CustomRxjsOperatorsService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private fhirBackend: FhirBackendService) {}
 
   /**
    * Returns RxJS operator to request the following sequence of resource bundle
@@ -41,7 +41,7 @@ export class CustomRxjsOperatorsService {
   ): UnaryFunction<Observable<Bundle>, Observable<Bundle>> {
     return pipe(
       expand((response: Bundle) => {
-        const nextPageUrl = getNextPageUrl(response);
+        const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
         if (!nextPageUrl || response.entry?.length >= amount) {
           // Emit a complete notification if there is no next page
           return EMPTY;

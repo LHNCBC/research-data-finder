@@ -13,13 +13,6 @@ export function capitalize(str: string): string {
 }
 
 /**
- * Extracts next page URL from a bundle (see: https://www.hl7.org/fhir/http.html#paging)
- */
-export function getNextPageUrl(response: Bundle): string | undefined {
-  return response.link?.find((l) => l.relation === 'next')?.url || null;
-}
-
-/**
  * Escapes a FHIR search parameter string
  * (see https://www.hl7.org/fhir/search.html#escaping)
  */

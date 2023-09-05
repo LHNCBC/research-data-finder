@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { expand, finalize, map, startWith } from 'rxjs/operators';
-import { getNextPageUrl } from '../utils';
 import { EMPTY, Observable } from 'rxjs';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
@@ -51,14 +50,10 @@ export class ResearchStudyService {
     this.currentState = currentState;
     return this.http.get(url).pipe(
       expand((response: Bundle) => {
-        let nextPageUrl = getNextPageUrl(response);
+        let nextPageUrl = this.fhirBackend.getNextPageUrl(response);
         if (!nextPageUrl) {
           // Emit a complete notification if there is no next page
           return EMPTY;
-        }
-        // Workaround for LF2383.
-        if (nextPageUrl.startsWith('http:') && this.fhirBackend.serviceBaseUrl.startsWith('https:')) {
-          nextPageUrl = nextPageUrl.replace('http:', 'https:');
         }
         return this.http.get<Bundle>(nextPageUrl);
       }),
