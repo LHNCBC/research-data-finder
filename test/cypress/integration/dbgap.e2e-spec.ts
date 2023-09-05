@@ -24,7 +24,7 @@ describe('Research Data Finder (dbGap)', () => {
       // Waiting for application initialization
       .get('.init-spinner-container')
       .should('exist')
-      .get('.init-spinner-container', { timeout: 60000 })
+      .get('.init-spinner-container', {timeout: 90000})
       .should('not.exist')
       // Initialize common page objects (harnesses)
       .then(() => getHarness(MatStepperHarness))

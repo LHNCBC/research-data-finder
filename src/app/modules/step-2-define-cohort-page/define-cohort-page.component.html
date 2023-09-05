@@ -1,15 +1,27 @@
 <form [formGroup]="defineCohortForm">
-  <p class="info">
-    <span class="info-icon" aria-hidden="true"></span>
-    In this step, you can define criteria to build a cohort of patients for which you want
-    to pull data, or load a previously saved cohort of patients and the criteria which selected them.
-    Criteria can be defined for several types of data records (e.g. "Condition", "Patient", or "Observation")
-    and patients will be added to the cohort if the related resources meet the criteria.  Each criteria consists
-    of a data record type, a search parameter, and one or more values.</p>
-  <mat-form-field class="number-field">
-    <mat-label>Maximum number of patients</mat-label>
-    <input matInput formControlName="maxNumberOfPatients" type="number" min="1">
-  </mat-form-field>
+  <ng-container [ngSwitch]="
+       (fhirBackend.features.hasResearchStudy
+       && (selectRecords.currentState['ResearchStudy']?.resourceStream | async)
+       && selectRecords.currentState['ResearchStudy']?.loading) || false">
+    <ng-container *ngSwitchCase="true">
+      <p class="h-box" *ngSwitchCase="true">
+        <label>Loading available studies...</label> <mat-spinner [diameter]="23"></mat-spinner>
+      </p>
+    </ng-container>
+    <ng-container *ngSwitchCase="false">
+      <p class="info">
+        <span class="info-icon" aria-hidden="true"></span>
+        In this step, you can define criteria to build a cohort of patients for which you want
+        to pull data, or load a previously saved cohort of patients and the criteria which selected them.
+        Criteria can be defined for several types of data records (e.g. "Condition", "Patient", or "Observation")
+        and patients will be added to the cohort if the related resources meet the criteria.  Each criteria consists
+        of a data record type, a search parameter, and one or more values.</p>
+      <mat-form-field class="number-field">
+        <mat-label>Maximum number of patients</mat-label>
+        <input matInput formControlName="maxNumberOfPatients" type="number" min="1">
+      </mat-form-field>
 
-  <app-search-parameters #patientParams></app-search-parameters>
+      <app-search-parameters #patientParams></app-search-parameters>
+    </ng-container>
+  </ng-container>
 </form>

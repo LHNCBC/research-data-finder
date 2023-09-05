@@ -60,6 +60,9 @@ export enum RequestPriorities {
 // Token to store cacheName in the context of an HTTP request.
 // See https://angular.io/api/common/http/HttpContext
 export const CACHE_NAME = new HttpContextToken<string>(() => '');
+// Token to store a flag to disable cache in the context of an HTTP request.
+// See https://angular.io/api/common/http/HttpContext
+export const NO_CACHE = new HttpContextToken<boolean>(() => false);
 // Token to store priority in the context of an HTTP request.
 // See https://angular.io/api/common/http/HttpContext
 export const REQUEST_PRIORITY = new HttpContextToken<number>(
@@ -532,6 +535,7 @@ export class FhirBackendService implements HttpBackend {
     );
     const cacheName = request.context.get(CACHE_NAME);
     const priority = request.context.get(REQUEST_PRIORITY);
+    const noCache = request.context.get(NO_CACHE);
     const newRequest = request.clone({
       url: this.prepareRequestUrl(request.url)
     });
@@ -554,7 +558,7 @@ export class FhirBackendService implements HttpBackend {
           const combine =
             this.fhirClient.getFeatures().batch &&
             serviceBaseUrlWithEndpoint.test(newRequest.url);
-          const promise = this.isCacheEnabled
+          const promise = this.isCacheEnabled && !noCache
             ? this.fhirClient.getWithCache(fullUrl, {
                 combine,
                 signal,

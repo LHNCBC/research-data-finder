@@ -16,9 +16,7 @@ import Observation = fhir.Observation;
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { ColumnValuesService } from '../column-values/column-values.service';
 import {
-  FhirBackendService,
-  REQUEST_PRIORITY,
-  RequestPriorities
+  FhirBackendService, NO_CACHE, REQUEST_PRIORITY, RequestPriorities
 } from '../fhir-backend/fhir-backend.service';
 import BundleEntry = fhir.BundleEntry;
 import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
@@ -56,7 +54,7 @@ export class PullDataService {
   // Common HTTP options
   static get commonHttpOptions() {
     return {
-      context: new HttpContext().set(REQUEST_PRIORITY, RequestPriorities.LOW)
+      context: new HttpContext().set(REQUEST_PRIORITY, RequestPriorities.LOW).set(NO_CACHE, true)
     };
   }
 

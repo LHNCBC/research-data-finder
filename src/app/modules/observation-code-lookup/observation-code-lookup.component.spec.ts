@@ -8,24 +8,35 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
 import { FhirBatchQuery } from '../../shared/fhir-backend/fhir-batch-query';
 import observations from './test-fixtures/observations.json';
-import observationsDuplicateDisplay from './test-fixtures/observations_duplicate_display.json';
+import observationsDuplicateDisplay
+  from './test-fixtures/observations_duplicate_display.json';
 import metadata from './test-fixtures/metadata.json';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { CartService } from '../../shared/cart/cart.service';
+import {
+  configureTestingModule,
+  verifyOutstandingRequests
+} from 'src/test/helpers';
+import { CohortService } from '../../shared/cohort/cohort.service';
 
 @Component({
-  template: ` <mat-form-field class="flex">
-    <mat-label>Observation codes from FHIR server</mat-label>
-    <app-observation-code-lookup
-      [formControl]="selectedObservationCodes"
-      placeholder="Type and select one or more"
-    >
-    </app-observation-code-lookup>
-  </mat-form-field>`
+  template: `
+    <mat-form-field class="flex">
+      <mat-label>Observation codes from FHIR server</mat-label>
+      <app-observation-code-lookup
+          [formControl]="selectedObservationCodes"
+          [isPullData]="isPullData"
+          placeholder="Type and select one or more"
+      >
+      </app-observation-code-lookup>
+    </mat-form-field>`
 })
 class TestHostComponent {
   @ViewChild(ObservationCodeLookupComponent)
   component: ObservationCodeLookupComponent;
+  isPullData = false;
   selectedObservationCodes = new UntypedFormControl({
-    coding: [{ code: '3137-7', system: 'http://loinc.org' }],
+    coding: [{code: '3137-7', system: 'http://loinc.org'}],
     items: ['Height cm'],
     datatype: 'Quantity'
   });
@@ -259,5 +270,86 @@ describe('ObservationCodeLookupComponent', () => {
         ]);
       });
     });
+  });
+});
+
+describe('ObservationCodeLookupComponent', () => {
+  let fixture: ComponentFixture<TestHostComponent>;
+  let hostComponent: TestHostComponent;
+  let component: ObservationCodeLookupComponent;
+
+  let mockHttp: HttpTestingController;
+  let cartService: CartService;
+  let cohortService: CohortService;
+
+
+  beforeEach(async () => {
+    await configureTestingModule(
+      {
+        declarations: [TestHostComponent],
+        imports: [
+          CommonModule,
+          ReactiveFormsModule,
+          MatFormFieldModule,
+          ObservationCodeLookupModule,
+          SharedModule
+        ]
+      },
+      {
+        features: {
+          hasResearchStudy: true,
+          hasAvailableStudy: true
+        },
+        serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
+      }
+    );
+    mockHttp = TestBed.inject(HttpTestingController);
+    cartService = TestBed.inject(CartService);
+    cohortService = TestBed.inject(CohortService);
+  });
+
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(TestHostComponent);
+    hostComponent = fixture.componentInstance;
+    hostComponent.isPullData = true;
+    fixture.detectChanges();
+    component = hostComponent.component;
+  });
+
+
+  afterEach(() => {
+    // Verify that no unmatched requests are outstanding
+    verifyOutstandingRequests(mockHttp);
+  });
+
+
+  it('should use Observations from FHIR server in the pull data step if we don\'t have studies in the cart', () => {
+    spyOn(cartService, 'getListItems').and.callFake(() => []);
+    spyOn(component, 'setupAutocompleteInputToUseCTSS').and.callThrough();
+    spyOn(component, 'setupAutocompleteInputToUseObservations').and.callThrough();
+    // @ts-ignore Access to private method
+    spyOn(component, 'updateAutocomplete').and.callThrough();
+    cohortService.resetCriteria();
+    expect(component.setupAutocompleteInputToUseCTSS).not.toHaveBeenCalled();
+    expect(component.setupAutocompleteInputToUseObservations).toHaveBeenCalledOnceWith();
+    // @ts-ignore Access to private method
+    expect(component.updateAutocomplete).toHaveBeenCalledOnceWith();
+  });
+
+
+  it('should use variables from CTSS in the pull data step if we have studies in the cart', () => {
+    spyOn(cartService, 'getListItems').and.callFake((resourceType) => {
+      return resourceType === 'ResearchStudy' ? [{id: 'someStudyId'}] : [];
+    });
+    spyOn(component, 'setupAutocompleteInputToUseCTSS').and.callThrough();
+    spyOn(component, 'setupAutocompleteInputToUseObservations').and.callThrough();
+    // @ts-ignore Access to private method
+    spyOn(component, 'updateAutocomplete').and.callThrough();
+    cohortService.resetCriteria();
+    expect(component.setupAutocompleteInputToUseCTSS).toHaveBeenCalledOnceWith();
+    expect(component.setupAutocompleteInputToUseObservations).not.toHaveBeenCalled();
+    // @ts-ignore Access to private method
+    expect(component.updateAutocomplete).toHaveBeenCalledOnceWith();
   });
 });
