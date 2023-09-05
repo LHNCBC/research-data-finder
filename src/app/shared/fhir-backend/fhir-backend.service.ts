@@ -16,6 +16,7 @@ import {
   FhirBatchQuery,
   HTTP_ABORT,
   UNSUPPORTED_VERSION,
+  BASIC_AUTH_REQUIRED,
   PRIORITIES as FhirBatchQueryPriorities
 } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
@@ -35,6 +36,7 @@ import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
 import fhirpath from 'fhirpath';
 import Resource = fhir.Resource;
+import Bundle = fhir.Bundle;
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -46,6 +48,7 @@ export enum ConnectionStatus {
   Ready,
   Error,
   UnsupportedVersion,
+  BasicAuthFailed,
   Disconnect
 }
 
@@ -57,6 +60,9 @@ export enum RequestPriorities {
 // Token to store cacheName in the context of an HTTP request.
 // See https://angular.io/api/common/http/HttpContext
 export const CACHE_NAME = new HttpContextToken<string>(() => '');
+// Token to store a flag to disable cache in the context of an HTTP request.
+// See https://angular.io/api/common/http/HttpContext
+export const NO_CACHE = new HttpContextToken<boolean>(() => false);
 // Token to store priority in the context of an HTTP request.
 // See https://angular.io/api/common/http/HttpContext
 export const REQUEST_PRIORITY = new HttpContextToken<number>(
@@ -95,6 +101,7 @@ export class FhirBackendService implements HttpBackend {
       this.smartConnectionSuccess = false;
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
+      this.fhirClient.withCredentials = false;
       // Logging out of RAS when changing server
       (isRasLogoutNeeded
         ? // Access to RasTokenService via injector to avoid circular dependency
@@ -379,50 +386,78 @@ export class FhirBackendService implements HttpBackend {
             ? 'dbgap-pre-login'
             : '';
 
-        this.fhirClient.initialize(serviceBaseUrl, initializeContext).then(
-          () => {
-            // Load definitions of search parameters and columns from CSV file
-            this.settings.loadCsvDefinitions().subscribe(
-              (resourceDefinitions) => {
-                this.currentDefinitions = { resources: resourceDefinitions };
-                // Below block should only be run for the first time opening the app.
-                // Do not set advanced settings controls if sessionStorage has 'maxPerBatch' stored.
-                // They should be set from sessionStorage in cases like refreshing page.
-                if (sessionStorage.getItem('maxPerBatch') === null) {
-                  this.fhirClient.setMaxRequestsPerBatch(
-                    this.settings.get('maxRequestsPerBatch')
-                  );
-                  this.fhirClient.setMaxActiveRequests(
-                    this.settings.get('maxActiveRequests')
-                  );
-                }
-                this.fhirPathModel = {
-                  R4: fhirPathModelR4,
-                  R5: fhirPathModelR5
-                }[this.currentVersion];
-                this.compiledExpressions = {};
-                this.initialized.next(ConnectionStatus.Ready);
-              },
-              (err) => {
-                if (!(err instanceof HttpErrorResponse)) {
-                  // Show exceptions from loadCsvDefinitions in console
-                  console.error(err.message);
-                }
-                this.initialized.next(ConnectionStatus.Error);
-              }
-            );
-          },
-          (err) => {
-            if (err.status !== HTTP_ABORT) {
-              this.initialized.next(
-                err.status === UNSUPPORTED_VERSION
-                  ? ConnectionStatus.UnsupportedVersion
-                  : ConnectionStatus.Error
+        this.makeInitializationCalls(serviceBaseUrl, initializeContext);
+      });
+  }
+
+  /**
+   * Calls fhirClient.initialize()
+   */
+  private makeInitializationCalls(
+    serviceBaseUrl: string,
+    initializeContext: string
+  ): void {
+    this.fhirClient.initialize(serviceBaseUrl, initializeContext).then(
+      () => {
+        if (initializeContext === 'basic-auth' && !sessionStorage.getItem('basicAuthSuccessMessage')) {
+          const message = `Logged in to ${serviceBaseUrl}. To log out, quit your browser.`;
+          sessionStorage.setItem('basicAuthSuccessMessage', message);
+          this.liveAnnouncer.announce(message);
+        }
+        // Load definitions of search parameters and columns from CSV file
+        this.settings.loadCsvDefinitions().subscribe(
+          (resourceDefinitions) => {
+            this.currentDefinitions = { resources: resourceDefinitions };
+            // Below block should only be run for the first time opening the app.
+            // Do not set advanced settings controls if sessionStorage has 'maxPerBatch' stored.
+            // They should be set from sessionStorage in cases like refreshing page.
+            if (sessionStorage.getItem('maxPerBatch') === null) {
+              this.fhirClient.setMaxRequestsPerBatch(
+                this.settings.get('maxRequestsPerBatch')
+              );
+              this.fhirClient.setMaxActiveRequests(
+                this.settings.get('maxActiveRequests')
               );
             }
+            this.fhirPathModel = {
+              R4: fhirPathModelR4,
+              R5: fhirPathModelR5
+            }[this.currentVersion];
+            this.compiledExpressions = {};
+            this.initialized.next(ConnectionStatus.Ready);
+          },
+          (err) => {
+            if (!(err instanceof HttpErrorResponse)) {
+              // Show exceptions from loadCsvDefinitions in console
+              console.error(err.message);
+            }
+            this.initialized.next(ConnectionStatus.Error);
           }
         );
-      });
+      },
+      (err) => {
+        if (err.status === BASIC_AUTH_REQUIRED) {
+          if (initializeContext === 'basic-auth') {
+            // Clear other pending initialization requests if user hits "Cancel" on
+            // the credentials challenge, so it won't pop up again.
+            this.fhirClient.clearPendingRequests();
+            this.initialized.next(ConnectionStatus.BasicAuthFailed);
+          } else {
+            this.fhirClient.withCredentials = true;
+            // Use a new initialize context so the initialization requests will be
+            // made again with withCredentials=true.
+            initializeContext = 'basic-auth';
+            this.makeInitializationCalls(serviceBaseUrl, initializeContext);
+          }
+        } else if (err.status !== HTTP_ABORT) {
+          this.initialized.next(
+            err.status === UNSUPPORTED_VERSION
+              ? ConnectionStatus.UnsupportedVersion
+              : ConnectionStatus.Error
+          );
+        }
+      }
+    );
   }
 
   /**
@@ -500,6 +535,7 @@ export class FhirBackendService implements HttpBackend {
     );
     const cacheName = request.context.get(CACHE_NAME);
     const priority = request.context.get(REQUEST_PRIORITY);
+    const noCache = request.context.get(NO_CACHE);
     const newRequest = request.clone({
       url: this.prepareRequestUrl(request.url)
     });
@@ -522,13 +558,15 @@ export class FhirBackendService implements HttpBackend {
           const combine =
             this.fhirClient.getFeatures().batch &&
             serviceBaseUrlWithEndpoint.test(newRequest.url);
-          const promise = this.isCacheEnabled
+          const promise = this.isCacheEnabled && !noCache
             ? this.fhirClient.getWithCache(fullUrl, {
-              combine,
-              signal,
-              cacheName: cacheName ? cacheName + '-' + this.serviceBaseUrl : '',
-              priority
-            })
+                combine,
+                signal,
+                cacheName: cacheName
+                  ? cacheName + '-' + this.serviceBaseUrl
+                  : '',
+                priority
+              })
             : this.fhirClient.get(fullUrl, { combine, signal, priority });
 
           promise.then(
@@ -747,5 +785,17 @@ export class FhirBackendService implements HttpBackend {
       this.compiledExpressions[expression] = compiledExpression;
     }
     return compiledExpression;
+  }
+
+  /**
+   * Extracts next page URL from a bundle (see: https://www.hl7.org/fhir/http.html#paging)
+   */
+  getNextPageUrl(response: Bundle): string | undefined {
+    let nextPageUrl = response.link?.find((l) => l.relation === 'next')?.url || null;
+    // Workaround for LF2383.
+    if (nextPageUrl && nextPageUrl.startsWith('http:') && this.serviceBaseUrl.startsWith('https:')) {
+      nextPageUrl = nextPageUrl.replace('http:', 'https:');
+    }
+    return nextPageUrl;
   }
 }

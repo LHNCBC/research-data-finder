@@ -30,6 +30,7 @@ import { SearchParameterGroupComponent } from '../search-parameter-group/search-
 import { RouterTestingModule } from '@angular/router/testing';
 import observations from './test-fixtures/observations.json';
 import { CartService } from '../../shared/cart/cart.service';
+import { ResourceTableComponent } from '../resource-table/resource-table.component';
 
 describe('SelectRecordsPageComponent (when there are studies for the user)', () => {
   let component: SelectRecordsPageComponent;
@@ -83,6 +84,13 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    // The first call to getHarness in the expectNumberOfRecords function will
+    // never end if the interval is active. This looks like a bug.
+    // As a workaround, just do not create the "interval()":
+    spyOn(
+      ResourceTableComponent.prototype,
+      'runPreloadEvents'
+    ).and.callFake(() => {});
   });
 
   afterEach(() => {
@@ -138,8 +146,11 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
    * @param query - value of the q parameter for the request to the CTSS.
    */
   async function loadVariables(query = ''): Promise<void> {
+    (ResourceTableComponent.prototype
+      .runPreloadEvents as jasmine.Spy).calls.reset();
     await selectTab('Variables');
-
+    fixture.detectChanges();
+    expect(component.variableTable.runPreloadEvents).not.toHaveBeenCalled();
     mockHttp
       .expectOne((req: HttpRequest<any>) => {
         return (
@@ -150,6 +161,8 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
         );
       })
       .flush(query ? threeVariables : fourVariables);
+    fixture.detectChanges();
+    expect(component.variableTable.runPreloadEvents).toHaveBeenCalledOnceWith();
     await expectNumberOfRecords(query ? 3 : 4);
   }
 
@@ -461,6 +474,13 @@ describe('SelectRecordsPageComponent (when there are no studies for the user)', 
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
+    // The first call to getHarness in the expectNumberOfRecords function will
+    // never end if the interval is active. This looks like a bug.
+    // As a workaround, just do not create the "interval()":
+    spyOn(
+      ResourceTableComponent.prototype,
+      'runPreloadEvents'
+    ).and.callFake(() => {});
   });
 
   afterEach(() => {
@@ -489,6 +509,7 @@ describe('SelectRecordsPageComponent (when there are no studies for the user)', 
       .expectOne('$fhir/Observation?_elements=code,value,category&_count=50')
       .flush(observations);
     fixture.detectChanges();
+    expect(component.variableTable.runPreloadEvents).toHaveBeenCalledOnceWith();
     await fixture.whenStable();
     fixture.detectChanges();
     mockHttp
