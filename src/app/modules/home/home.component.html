@@ -10,6 +10,14 @@
     <div class="h-box buttons">
       <div class="logout"
            tabIndex="0"
+           *ngIf="!oauthToken.oauth2TokenValidated"
+           matTooltip="OAuth2 login"
+           role="link"
+           aria-label="OAuth2 login"
+           (keydown.enter)="onOauth2Login()"
+           (click)="onOauth2Login()">OAuth2 login</div>
+      <div class="logout"
+           tabIndex="0"
            *ngIf="rasToken.rasTokenValidated"
            matTooltip="Log out from dbGaP"
            role="link"

@@ -6,6 +6,7 @@ import { StepperComponent, Step } from '../stepper/stepper.component';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import {Oauth2TokenService} from "../../shared/oauth2-token/oauth2-token.service";
 
 @Component({
   selector: 'app-home',
@@ -19,7 +20,8 @@ export class HomeComponent implements AfterViewInit {
   constructor(
     public rasToken: RasTokenService,
     public fhirBackend: FhirBackendService,
-    private liveAnnouncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer,
+    public oauthToken: Oauth2TokenService
   ) {}
 
   openChangelog(): void {
@@ -54,6 +56,10 @@ export class HomeComponent implements AfterViewInit {
       'alpha-version',
       this.fhirBackend.isAlphaVersion ? 'disable' : 'enable'
     );
+  }
+
+  onOauth2Login(): void {
+    this.oauthToken.login(this.fhirBackend.serviceBaseUrl);
   }
 
   onRasLogout(): void {

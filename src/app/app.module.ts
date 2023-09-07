@@ -12,6 +12,7 @@ import { RasTokenCallbackModule } from './modules/ras-token-callback/ras-token-c
 import { LaunchModule } from './modules/launch/launch.module';
 import { InitializeSpinnerModule } from './shared/initialize-spinner/initialize-spinner.module';
 import { AnnouncerModule } from './shared/announcer/announcer.module';
+import {Oauth2TokenCallbackModule} from "./modules/oauth2-token-callback/oauth2-token-callback.module";
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
@@ -33,6 +34,7 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
     AppRoutingModule,
     HomeModule,
     RasTokenCallbackModule,
+    Oauth2TokenCallbackModule,
     LaunchModule,
     InitializeSpinnerModule
   ],
