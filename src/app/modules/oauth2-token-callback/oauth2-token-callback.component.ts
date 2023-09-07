@@ -32,14 +32,9 @@ export class Oauth2TokenCallbackComponent implements OnInit {
         console.log(data);
         this.error = null;
         this.oauth2Token.oauth2TokenValidated = true;
+        sessionStorage.setItem('oauth2AccessToken', data['access_token']);
         const server = sessionStorage.getItem('oauth2LoginServer');
-        this.fhirBackend.serviceBaseUrl = server;
-        this.router.navigate(['/'], {
-          queryParams: {
-            server
-          },
-          replaceUrl: true
-        });
+        window.location.href = `${window.location.origin}/fhir/research-data-finder/?server=${server}`;
       }, (err) => {
         this.oauth2Token.oauth2TokenValidated = false;
         this.error = err;

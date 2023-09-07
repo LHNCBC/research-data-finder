@@ -12,7 +12,7 @@ export class Oauth2TokenService {
 
   constructor(private http: HttpClient) {
     // If user is logged in and refreshes the page, we keep the login state.
-    if (sessionStorage.getItem('oauth2Token')) {
+    if (sessionStorage.getItem('oauth2AccessToken')) {
       this.oauth2TokenValidated = true;
     }
   }
