@@ -162,7 +162,7 @@ export class BrowseRecordsPageComponent
    */
   onSortChanged(resourceType: string, newSort: Sort): void {
     this.sort[resourceType] = newSort;
-    this.loadFirstPage(resourceType);
+    this.selectRecords.currentState[resourceType].sortChanged.next(newSort);
   }
 
   /**

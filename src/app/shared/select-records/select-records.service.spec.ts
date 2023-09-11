@@ -15,7 +15,11 @@ import {
   FhirBackendService
 } from '../fhir-backend/fhir-backend.service';
 import { MatDialogModule } from '@angular/material/dialog';
-import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
+import {
+  CustomRxjsOperatorsService
+} from '../custom-rxjs-operators/custom-rxjs-operators.service';
+import { Sort } from '@angular/material/sort';
+import { Subject } from 'rxjs';
 
 describe('SelectRecordsService', () => {
   let service: SelectRecordsService;
@@ -150,7 +154,8 @@ describe('SelectRecordsService', () => {
 
       service.currentState['ResearchStudy'] = {
         loading: false,
-        resources: [{ id: 'study-id-1' }, { id: 'study-id-2' }]
+        resources: [{id: 'study-id-1'}, {id: 'study-id-2'}],
+        sortChanged: new Subject<Sort>()
       };
 
       loadFirstPageOfObservations();
