@@ -4,7 +4,7 @@ import { setUrlParam } from '../../shared/utils';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { StepperComponent, Step } from '../stepper/stepper.component';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import {ConnectionStatus, FhirBackendService} from '../../shared/fhir-backend/fhir-backend.service';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import {Oauth2TokenService} from "../../shared/oauth2-token/oauth2-token.service";
 
@@ -21,7 +21,7 @@ export class HomeComponent implements AfterViewInit {
     public rasToken: RasTokenService,
     public fhirBackend: FhirBackendService,
     private liveAnnouncer: LiveAnnouncer,
-    public oauthToken: Oauth2TokenService
+    public oauth2Token: Oauth2TokenService
   ) {}
 
   openChangelog(): void {
@@ -59,20 +59,23 @@ export class HomeComponent implements AfterViewInit {
   }
 
   onOauth2Login(): void {
-    this.oauthToken.login(this.fhirBackend.serviceBaseUrl);
+    this.oauth2Token.login(this.fhirBackend.serviceBaseUrl);
   }
 
   private returnToSettingsPage(): void {
     this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
-    this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
+    this.stepperComponent.selectAnActionComponent?.createCohortMode.setValue(
       CreateCohortMode.UNSELECTED
     );
     this.liveAnnouncer.announce('Logged out. Returning to settings page.');
   }
 
   onOauth2Logout(): void {
-    this.oauthToken.logout();
+    this.oauth2Token.logout();
     this.returnToSettingsPage();
+    // Show "OAuth2 authorization required" error message below server input.
+    this.fhirBackend.initialized.next(ConnectionStatus.Oauth2Required);
+    this.stepperComponent.settingsPageComponent.settingsFormGroup.get('serviceBaseUrl').updateValueAndValidity();
   }
 
   onRasLogout(): void {

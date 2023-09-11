@@ -9,6 +9,8 @@ export const HTTP_ABORT = 0;
 export const UNSUPPORTED_VERSION = -1;
 // The value of property status in the rejection object when the "metadata" query indicated basic authentication failure
 export const BASIC_AUTH_REQUIRED = -2;
+// The value of property status in the rejection object when the "metadata" query indicated that OAuth2 is required
+export const OAUTH2_REQUIRED = -3;
 // Request priorities (numbers by which requests in the pending queue are sorted)
 export const PRIORITIES = {
   LOW: 100,
@@ -356,6 +358,11 @@ export class FhirBatchQuery extends EventTarget {
       if (metadata.status === 401 && metadata.wwwAuthenticate?.startsWith('Basic')) {
         return Promise.reject({
           status: BASIC_AUTH_REQUIRED, error: 'basic authentication required'
+        });
+      }
+      if (metadata.status === 401 && metadata.wwwAuthenticate?.startsWith('Bearer')) {
+        return Promise.reject({
+          status: OAUTH2_REQUIRED, error: 'oauth2 required'
         });
       }
       this.isFormatsupported = !metadata.error.includes('_format');

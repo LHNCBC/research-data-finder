@@ -17,6 +17,7 @@ import {
   HTTP_ABORT,
   UNSUPPORTED_VERSION,
   BASIC_AUTH_REQUIRED,
+  OAUTH2_REQUIRED,
   PRIORITIES as FhirBatchQueryPriorities
 } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
@@ -50,6 +51,7 @@ export enum ConnectionStatus {
   Error,
   UnsupportedVersion,
   BasicAuthFailed,
+  Oauth2Required,
   Disconnect
 }
 
@@ -104,8 +106,9 @@ export class FhirBackendService implements HttpBackend {
       this._isSmartOnFhir = false;
       this.fhirClient.withCredentials = false;
       // Logging out of OAuth2 when changing server
-      const oauth2Token =  this.injector.get(Oauth2TokenService)
+      const oauth2Token = this.injector.get(Oauth2TokenService)
       oauth2Token.oauth2TokenValidated && oauth2Token.logout();
+      oauth2Token.isOauth2Required = false;
       // Logging out of RAS when changing server
       (isRasLogoutNeeded
         ? // Access to RasTokenService via injector to avoid circular dependency
@@ -458,6 +461,24 @@ export class FhirBackendService implements HttpBackend {
             initializeContext = 'basic-auth';
             this.makeInitializationCalls(serviceBaseUrl, initializeContext);
           }
+        } else if (err.status === OAUTH2_REQUIRED) {
+          this.injector.get(Oauth2TokenService).isOauth2Required = true;
+          const dialogRef = this.dialog.open(AlertDialogComponent, {
+            data: {
+              header: 'OAuth2 Authorization Required',
+              content:
+                'This server requires authorization through OAuth2.' +
+                ' You will be redirected to the authorization page.',
+              hasCancelButton: true
+            }
+          });
+          dialogRef.afterClosed().subscribe((isOk) => {
+            if (isOk) {
+              this.injector.get(Oauth2TokenService).login(this.serviceBaseUrl);
+            } else {
+              this.initialized.next(ConnectionStatus.Oauth2Required);
+            }
+          });
         } else if (err.status !== HTTP_ABORT) {
           this.initialized.next(
             err.status === UNSUPPORTED_VERSION

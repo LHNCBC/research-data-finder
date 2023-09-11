@@ -31,11 +31,13 @@ export class Oauth2TokenCallbackComponent implements OnInit {
       .subscribe((data) => {
         console.log(data);
         this.error = null;
+        this.oauth2Token.isOauth2Required = true;
         this.oauth2Token.oauth2TokenValidated = true;
         sessionStorage.setItem('oauth2AccessToken', data['access_token']);
         const server = sessionStorage.getItem('oauth2LoginServer');
         window.location.href = `${window.location.origin}/fhir/research-data-finder/?server=${server}`;
       }, (err) => {
+        this.oauth2Token.isOauth2Required = true;
         this.oauth2Token.oauth2TokenValidated = false;
         this.error = err;
       });

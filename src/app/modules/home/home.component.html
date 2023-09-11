@@ -10,7 +10,7 @@
     <div class="h-box buttons">
       <div class="logout"
            tabIndex="0"
-           *ngIf="!oauthToken.oauth2TokenValidated"
+           *ngIf="oauth2Token.isOauth2Required && !oauth2Token.oauth2TokenValidated"
            matTooltip="OAuth2 login"
            role="link"
            aria-label="OAuth2 login"
@@ -18,7 +18,7 @@
            (click)="onOauth2Login()">OAuth2 login</div>
       <div class="logout"
            tabIndex="0"
-           *ngIf="oauthToken.oauth2TokenValidated"
+           *ngIf="oauth2Token.oauth2TokenValidated"
            matTooltip="OAuth2 log out"
            role="link"
            aria-label="OAuth2 log out"
