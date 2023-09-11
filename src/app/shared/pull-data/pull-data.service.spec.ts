@@ -17,4 +17,49 @@ describe('PullDataService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+
+  describe('combineObservationCodes', () => {
+    it('should change duplicate display names', () => {
+      expect(
+        service.combineObservationCodes([
+          {
+            coding: [
+              {
+                code: 'phv00493202.v1.p1',
+                system: ''
+              }
+            ],
+            datatype: 'CodeableConcept',
+            items: ['Affection status']
+          },
+          {
+            coding: [
+              {
+                code: 'phv00492021.v1.p1',
+                system: ''
+              }
+            ],
+            datatype: 'CodeableConcept',
+            items: ['Affection status']
+          }
+        ])
+      ).toEqual({
+        coding: [
+          {
+            code: 'phv00493202.v1.p1',
+            system: ''
+          },
+          {
+            code: 'phv00492021.v1.p1',
+            system: ''
+          }
+        ],
+        // "datatype" is not used in the pull data step
+        datatype: 'any',
+        items: ['Affection status | phv00493202.v1.p1', 'Affection status | phv00492021.v1.p1']
+      });
+    });
+  });
+
 });
