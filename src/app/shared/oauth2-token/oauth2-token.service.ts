@@ -26,4 +26,12 @@ export class Oauth2TokenService {
     // to rdf-server (see src/proxy.conf.json).
     window.location.href = `${window.location.origin}/rdf-server/oauth2/login`;
   }
+
+  /**
+   * Log out.
+   */
+  logout(): void {
+    this.oauth2TokenValidated = false;
+    sessionStorage.clear();
+  }
 }

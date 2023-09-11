@@ -62,13 +62,22 @@ export class HomeComponent implements AfterViewInit {
     this.oauthToken.login(this.fhirBackend.serviceBaseUrl);
   }
 
+  private returnToSettingsPage(): void {
+    this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
+    this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
+      CreateCohortMode.UNSELECTED
+    );
+    this.liveAnnouncer.announce('Logged out. Returning to settings page.');
+  }
+
+  onOauth2Logout(): void {
+    this.oauthToken.logout();
+    this.returnToSettingsPage();
+  }
+
   onRasLogout(): void {
     this.rasToken.logout().then(() => {
-      this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
-      this.stepperComponent.selectAnActionComponent.createCohortMode.setValue(
-        CreateCohortMode.UNSELECTED
-      );
-      this.liveAnnouncer.announce('Logged out. Returning to settings page.');
+      this.returnToSettingsPage();
     });
   }
 

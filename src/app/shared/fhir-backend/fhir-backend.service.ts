@@ -103,6 +103,9 @@ export class FhirBackendService implements HttpBackend {
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
       this.fhirClient.withCredentials = false;
+      // Logging out of OAuth2 when changing server
+      const oauth2Token =  this.injector.get(Oauth2TokenService)
+      oauth2Token.oauth2TokenValidated && oauth2Token.logout();
       // Logging out of RAS when changing server
       (isRasLogoutNeeded
         ? // Access to RasTokenService via injector to avoid circular dependency
