@@ -181,7 +181,7 @@ export class FhirBatchQuery extends EventTarget {
     if (this._initializationPromise) {
       return this._initializationPromise;
     }
-    this._features = {isFormatsupported: true};
+    this._features = {isFormatSupported: true};
     // if (this._isDbgap) {
     //   this._initializationPromise = Promise.allSettled([
     //     // Query to extract the consent group that must be included as _security param in particular queries.
@@ -361,10 +361,12 @@ export class FhirBatchQuery extends EventTarget {
           status: OAUTH2_REQUIRED, error: 'oauth2 required'
         });
       }
-      this._features.isFormatsupported = !metadata.error.includes('_format');
-      if (metadata.error.includes('_elements')) {
+      this._features.isFormatSupported = !metadata.error.includes('_format');
+      const errorIncludesElements = metadata.error.includes('_elements');
+      if (errorIncludesElements || this._features.isFormatSupported) {
+        // If it complains about '_format', set _features.isFormatSupported and make the /metadata request again.
         // If it complains about '_elements', make the /metadata request again without the '_elements' parameter.
-        return this.checkMetadata(false);
+        return this.checkMetadata(!errorIncludesElements);
       }
       return Promise.reject({
         error: 'Could not retrieve the FHIR server\'s metadata. Please make sure you are entering the base URL for a FHIR server.'
@@ -770,7 +772,7 @@ export class FhirBatchQuery extends EventTarget {
         sendUrl.searchParams.append('api_key', this._apiKey);
       }
 
-      if (this._features.isFormatsupported && !sendUrl.searchParams.has('_format')) {
+      if (this._features.isFormatSupported && !sendUrl.searchParams.has('_format')) {
         sendUrl.searchParams.append('_format', 'json');
       }
 
