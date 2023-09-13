@@ -82,8 +82,6 @@ export class FhirBatchQuery extends EventTarget {
     this._maxTimeForPreflightRequest = 15000;
     // Whether to turn on withCredentials for subsequent queries
     this.withCredentials = false;
-    // Whether _format param is supported in queries
-    this.isFormatsupported = true;
   }
 
   /**
@@ -183,7 +181,7 @@ export class FhirBatchQuery extends EventTarget {
     if (this._initializationPromise) {
       return this._initializationPromise;
     }
-    this._features = {};
+    this._features = {isFormatsupported: true};
     // if (this._isDbgap) {
     //   this._initializationPromise = Promise.allSettled([
     //     // Query to extract the consent group that must be included as _security param in particular queries.
@@ -220,8 +218,6 @@ export class FhirBatchQuery extends EventTarget {
    * @returns {Promise<void>}
    */
   makeInitializationCalls(withSecurityTag = false) {
-    // _format is supported by default for each new server.
-    this.isFormatsupported = true;
     const currentServiceBaseUrl = this._serviceBaseUrl;
     const securityParam = withSecurityTag ? `&_security=${this._features.consentGroup}` : '';
     // Common options for initialization requests
@@ -365,7 +361,7 @@ export class FhirBatchQuery extends EventTarget {
           status: OAUTH2_REQUIRED, error: 'oauth2 required'
         });
       }
-      this.isFormatsupported = !metadata.error.includes('_format');
+      this._features.isFormatsupported = !metadata.error.includes('_format');
       if (metadata.error.includes('_elements')) {
         // If it complains about '_elements', make the /metadata request again without the '_elements' parameter.
         return this.checkMetadata(false);
@@ -774,7 +770,7 @@ export class FhirBatchQuery extends EventTarget {
         sendUrl.searchParams.append('api_key', this._apiKey);
       }
 
-      if (this.isFormatsupported && !sendUrl.searchParams.has('_format')) {
+      if (this._features.isFormatsupported && !sendUrl.searchParams.has('_format')) {
         sendUrl.searchParams.append('_format', 'json');
       }
 

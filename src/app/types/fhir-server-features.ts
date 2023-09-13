@@ -22,4 +22,6 @@ export interface FhirServerFeatures {
   batch: boolean;
   // Item group that must be included as _security param in dbGap queries
   consentGroup: string;
+  // Whether _format param is supported in queries - defaults to true
+  isFormatsupported: boolean;
 }
