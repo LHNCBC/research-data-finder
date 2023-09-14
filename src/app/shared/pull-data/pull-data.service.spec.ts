@@ -37,7 +37,7 @@ describe('PullDataService', () => {
             coding: [
               {
                 code: 'phv00492021.v1.p1',
-                system: ''
+                system: 'some-system'
               }
             ],
             datatype: 'CodeableConcept',
@@ -52,12 +52,12 @@ describe('PullDataService', () => {
           },
           {
             code: 'phv00492021.v1.p1',
-            system: ''
+            system: 'some-system'
           }
         ],
         // "datatype" is not used in the pull data step
         datatype: 'any',
-        items: ['Affection status | phv00493202.v1.p1', 'Affection status | phv00492021.v1.p1']
+        items: ['Affection status | phv00493202.v1.p1', 'Affection status | phv00492021.v1.p1 | some-system']
       });
     });
   });
