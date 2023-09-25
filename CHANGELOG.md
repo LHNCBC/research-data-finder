@@ -8,6 +8,11 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Special case of sorting only the newly loaded items of the list of variables
   obtained from observations.
 
+## [6.9.3] - 2023-09-11
+### Fixed
+- After selecting variables with the same display name but different codes or
+  systems in the pull data step, we only saw one selected observation code item.
+
 ## [6.9.2] - 2023-09-05
 ### Fixed
 - "No records were found" message for empty tables not in "browse
