@@ -16,7 +16,7 @@ import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { EMPTY, of, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { escapeStringForRegExp, getNextPageUrl } from '../../shared/utils';
+import { escapeStringForRegExp } from '../../shared/utils';
 import { catchError, expand } from 'rxjs/operators';
 import { AutocompleteParameterValue } from '../../types/autocomplete-parameter-value';
 import { HttpClient } from '@angular/common/http';
@@ -418,7 +418,7 @@ export class AutocompleteParameterValueComponent
             selectedCodes
           );
           contains.push(...newItems);
-          const nextPageUrl = getNextPageUrl(response);
+          const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
           if (nextPageUrl && contains.length < count) {
             if (!newItems.length) {
               // If the request did not return new items, then we need
@@ -593,7 +593,7 @@ export class AutocompleteParameterValueComponent
                         selectedCodes
                       )
                     );
-                    const nextPageUrl = getNextPageUrl(response);
+                    const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
                     if (nextPageUrl && contains.length < count) {
                       this.liveAnnouncer.announce('New items added to list.');
                       // Update list before calling server for next query.

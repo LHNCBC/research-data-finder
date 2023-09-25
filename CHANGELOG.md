@@ -3,12 +3,47 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.8.0] - 2023-08-31
+## [6.11.0] - 2023-09-11
 ### Added
 - Using the "advanced search" UI for additional criteria.
 ### Fixed
 - A bug in the search algorithm: ANDed criteria may be ORed in the parent node.
 - Issues with saving and loading a cohort and criteria.
+
+## [6.10.0] - 2023-09-11
+### Added
+- Special case of sorting only the newly loaded items of the list of variables
+  obtained from observations.
+
+## [6.9.3] - 2023-09-11
+### Fixed
+- After selecting variables with the same display name but different codes or
+  systems in the pull data step, we only saw one selected observation code item.
+
+## [6.9.2] - 2023-09-05
+### Fixed
+- "No records were found" message for empty tables not in "browse
+  public data" mode.
+
+## [6.9.1] - 2023-09-05
+### Fixed
+- CSP issue when a https server returns next links with http.
+
+## [6.9.0] - 2023-08-31
+### Added
+- Next page preloading for resource tables and using it to load variables
+  from observations.
+
+## [6.8.0] - 2023-08-31
+### Added
+- Use CTSS for Observation code lookup in the pull data step.
+
+## [6.7.1] - 2023-08-31
+### Fixed
+- Issue with incomplete data loading in the pull data step when checking 10000
+  observations for each of 1000 patients in a cohort by removing the
+  XMLHttpRequest timeout and disabling response caching for requests in the pull
+  data step.
 
 ## [6.7.0] - 2023-08-30
 ### Added

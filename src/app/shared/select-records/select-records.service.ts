@@ -4,7 +4,17 @@
  */
 import { Injectable } from '@angular/core';
 import Resource = fhir.Resource;
-import { forkJoin, from, Observable, of, pipe, UnaryFunction } from 'rxjs';
+import {
+  combineLatest,
+  forkJoin,
+  from,
+  Observable,
+  of,
+  pipe,
+  Subject,
+  Subscription,
+  UnaryFunction
+} from 'rxjs';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import Bundle = fhir.Bundle;
 import {
@@ -12,12 +22,12 @@ import {
   concatMap,
   finalize,
   map,
+  shareReplay,
   startWith,
   switchMap
 } from 'rxjs/operators';
 import {
   escapeStringForRegExp,
-  getNextPageUrl,
   modifyStringForSynonyms
 } from '../utils';
 import { Sort } from '@angular/material/sort';
@@ -31,10 +41,20 @@ import {
 import { PullDataService } from '../pull-data/pull-data.service';
 import { CohortService } from '../cohort/cohort.service';
 import Observation = fhir.Observation;
-import { ObservationCodeLookupComponent } from '../../modules/observation-code-lookup/observation-code-lookup.component';
-import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
+import {
+  ObservationCodeLookupComponent
+} from '../../modules/observation-code-lookup/observation-code-lookup.component';
+import {
+  CustomRxjsOperatorsService
+} from '../custom-rxjs-operators/custom-rxjs-operators.service';
 import ResearchStudy = fhir.ResearchStudy;
 import ResearchSubject = fhir.ResearchSubject;
+import { omit } from 'lodash-es';
+import {
+  ColumnDescriptionsService
+} from '../column-descriptions/column-descriptions.service';
+import { FilterType } from '../../types/filter-type';
+import { ColumnValuesService } from '../column-values/column-values.service';
 
 type ResearchStudyMixin = { studyData?: ResearchStudy[] };
 
@@ -59,6 +79,12 @@ interface SelectRecordState {
   // A set of processed observation codes when we build a list of variables from
   // observations
   processedObservationCodes?: Set<string>;
+  // Observable for loading resources
+  resourceStream?: Observable<Resource[]>;
+  // Preload subscription
+  preloadSubscription?: Subscription;
+  // Used to emit and observe sorting changes
+  sortChanged: Subject<Sort>;
 }
 
 @Injectable({
@@ -71,18 +97,20 @@ export class SelectRecordsService {
     private pullData: PullDataService,
     private cohort: CohortService,
     private fhirBackend: FhirBackendService,
-    private customRxjs: CustomRxjsOperatorsService
+    private customRxjs: CustomRxjsOperatorsService,
+    private columnDescriptionsService: ColumnDescriptionsService,
+    private columnValuesService: ColumnValuesService,
   ) {}
 
   currentState: { [resourceType: string]: SelectRecordState } = {};
-  resourceStream: { [resourceType: string]: Observable<Resource[]> } = {};
+  preloadState: { [resourceType: string]: SelectRecordState } = {};
 
   /**
    * Resets the state of all resource types.
    */
   resetAll(): void {
     this.currentState = {};
-    this.resourceStream = {};
+    this.preloadState = {};
     this.cart.reset();
     this.cohort.resetCriteria();
     this.pullData.reset();
@@ -120,7 +148,8 @@ export class SelectRecordsService {
     this.currentState[resourceType] = {
       loading: true,
       resources: [],
-      nextBundleUrl: url
+      nextBundleUrl: url,
+      sortChanged: new Subject<Sort>()
     };
 
     this.loadNextPage(resourceType, options);
@@ -143,7 +172,7 @@ export class SelectRecordsService {
     currentState.isCached = from(
       this.fhirBackend.isCached(url, options?.context?.get(CACHE_NAME))
     );
-    this.resourceStream[resourceType] = this.http.get(url, options).pipe(
+    currentState.resourceStream = this.http.get(url, options).pipe(
       this.customRxjs.takeAllIf(resourceType === 'ResearchStudy', options),
       map((data: Bundle) => {
         const cacheInfo = options?.context?.get(CACHE_INFO);
@@ -154,7 +183,7 @@ export class SelectRecordsService {
         currentState.resources = currentState.resources.concat(
           data.entry?.map((item) => item.resource) || []
         );
-        currentState.nextBundleUrl = getNextPageUrl(data);
+        currentState.nextBundleUrl = this.fhirBackend.getNextPageUrl(data);
         return currentState.resources;
       }),
       catchError(() => {
@@ -247,7 +276,7 @@ export class SelectRecordsService {
           // Name for display is currently the LOINC short name or dbGap description.
           // To find synonyms, we extended the display name search by additionally
           // searching the long and short LOINC names.
-          query.push(`(${dataFields[key]}:(${value}) OR synonyms:(${value}))`);
+          query.push(`(${dataFields[key]}:(${value}*) OR synonyms:(${value}*))`);
         } else {
           // Use wildcard search for below columns so user can filter by typing a prefix.
           ['id', 'study_id', 'dataset_id', 'type', 'unit'].includes(key)
@@ -279,7 +308,7 @@ export class SelectRecordsService {
       }
     });
 
-    this.resourceStream[resourceType] = this.http
+    currentState.resourceStream = this.http
       .post(url, httpParams.toString(), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
@@ -336,39 +365,153 @@ export class SelectRecordsService {
   }
 
   /**
+   * Loads the first page of the list of variables for the selected studies
+   * from observations.
+   * @param selectedResearchStudies - array of selected research studies.
+   * @param params - http parameters.
+   * @param filters - filter values.
+   * @param sort - the current sort state.
+   */
+  loadFirstPageOfVariablesFromObservations(
+    selectedResearchStudies: Resource[],
+    params: {
+      [param: string]: any;
+    },
+    filters: any,
+    sort: Sort
+  ) {
+    const resourceType = 'Observation';
+    const state = {
+      loading: true,
+      resources: [],
+      processedObservationCodes: new Set<string>(),
+      totalRecords: 0,
+      sortChanged: new Subject<Sort>()
+    };
+    this.currentState[resourceType] = state;
+    this.preloadState[resourceType]?.preloadSubscription.unsubscribe();
+    delete this.preloadState[resourceType];
+
+    this.loadVariablesFromObservations(
+      state,
+      selectedResearchStudies,
+      params,
+      filters,
+      sort,
+      true
+    );
+  }
+
+  /**
+   * Loads the next page of the list of variables for the selected studies
+   * from observations.
+   * @param selectedResearchStudies - array of selected research studies.
+   * @param params - http parameters.
+   * @param filters - filter values.
+   * @param sort - the current sort state.
+   */
+  loadNextPageOfVariablesFromObservations(
+    selectedResearchStudies: Resource[],
+    params: {
+      [param: string]: any;
+    },
+    filters: any,
+    sort: Sort
+  ) {
+    const resourceType = 'Observation';
+    if (this.preloadState[resourceType]) {
+      this.preloadState[resourceType].resources = [].concat(
+        this.currentState[resourceType].resources,
+        this.sortObservationsByVariableColumn(this.preloadState[resourceType].resources, sort)
+      );
+      this.currentState[resourceType] = this.preloadState[resourceType];
+      this.preloadState[resourceType].preloadSubscription.unsubscribe();
+      delete this.preloadState[resourceType].preloadSubscription;
+      this.currentState[resourceType].sortChanged.next(null);
+      delete this.preloadState[resourceType];
+    } else {
+      const state = this.currentState[resourceType];
+      if (state.loading || !state.nextBundleUrl) {
+        return;
+      }
+      state.loading = true;
+
+      this.loadVariablesFromObservations(
+        state,
+        selectedResearchStudies,
+        params,
+        filters,
+        sort,
+        false
+      );
+    }
+  }
+
+  /**
+   * Preloads the next page of the list of variables for the selected studies
+   * from observations.
+   * @param selectedResearchStudies - array of selected research studies.
+   * @param params - http parameters.
+   * @param filters - filter values.
+   * @param sort - the current sort state.
+   */
+  preloadNextPageOfVariablesFromObservations(
+    selectedResearchStudies: Resource[],
+    params: {
+      [param: string]: any;
+    },
+    filters: any,
+    sort: Sort
+  ) {
+    const resourceType = 'Observation';
+    const minNumOfRecordsToPreload = 30;
+    const currentState = this.currentState[resourceType];
+    let preloadState = this.preloadState[resourceType];
+
+    if (
+      !currentState || currentState.loading || !currentState.nextBundleUrl ||
+      (preloadState && (preloadState.loading || preloadState.resources.length > minNumOfRecordsToPreload))
+    ) {
+      return;
+    }
+    if (!this.preloadState[resourceType]) {
+      preloadState = {
+        ...omit(currentState, ['resources', 'resourceStream', 'sortChanged']),
+        resources: [],
+        sortChanged: new Subject<Sort>()
+      };
+      this.preloadState[resourceType] = preloadState;
+    }
+
+    preloadState.loading = true;
+
+    preloadState.preloadSubscription = this.loadVariablesFromObservations(
+      preloadState, selectedResearchStudies, params, filters, sort, false
+    ).subscribe(() => {
+    });
+  }
+
+  /**
    * Loads a list of variables for selected research studies from observations.
+   * @param state - the state of the observation records loading process.
    * @param selectedResearchStudies - array of selected research studies.
    * @param params - http parameters
    * @param filters - filter values
    * @param sort - the current sort state
    * @param reset - whether to reset already loaded data
+   * @return an Observable of an array of variables
    */
   loadVariablesFromObservations(
+    state: SelectRecordState,
     selectedResearchStudies: Resource[],
     params: {
       [param: string]: any;
     },
     filters: any,
     sort: Sort,
-    reset = true
-  ): void {
+    reset: boolean
+  ): Observable<Resource[]> {
     const resourceType = 'Observation';
-    let currentState;
-    if (reset) {
-      currentState = {
-        loading: true,
-        resources: [],
-        processedObservationCodes: new Set<string>(),
-        totalRecords: 0
-      };
-      this.currentState[resourceType] = currentState;
-    } else {
-      currentState = this.currentState[resourceType];
-      if (currentState?.loading || !currentState.nextBundleUrl) {
-        return;
-      }
-      currentState.loading = true;
-    }
 
     // Observation filter parameters
     const obsFilterParams = {
@@ -393,19 +536,15 @@ export class SelectRecordsService {
             )
           }
         : {}),
-      ...(currentState.processedObservationCodes.size
+      ...(state.processedObservationCodes.size
         ? {
             'code:not': this.fhirBackend.features.hasNotModifierIssue
               ? // Pass a single "code:not" parameter, which is currently working
                 // correctly on the HAPI FHIR server.
-                Array.from<string>(
-                  currentState.processedObservationCodes.keys()
-                ).join(',')
+                Array.from<string>(state.processedObservationCodes.keys()).join(',')
               : // Pass each code as a separate "code:not" parameter, which is
                 // currently causing performance issues on the HAPI FHIR server.
-                Array.from<string>(
-                  currentState.processedObservationCodes.keys()
-                )
+                Array.from<string>(state.processedObservationCodes.keys())
           }
         : {})
     };
@@ -417,7 +556,7 @@ export class SelectRecordsService {
     const url = lastnLookup
       ? reset
         ? '$fhir/Observation/$lastn?max=1'
-        : currentState.nextBundleUrl
+        : state.nextBundleUrl
       : '$fhir/Observation';
 
     const reqParams =
@@ -440,53 +579,59 @@ export class SelectRecordsService {
         return acc;
       }, {}) || {};
 
-    this.resourceStream[resourceType] = this.http
-      .get(url, { params: reqParams })
-      .pipe(
-        this.filterObservationsByCode(
-          currentState,
-          studies,
-          // Patient filter parameters used to check an observation code
-          selectedResearchStudies.length
+    state.resourceStream = this.http.get(url, { params: reqParams }).pipe(
+      this.filterObservationsByCode(
+        state,
+        studies,
+        // Patient filter parameters used to check an observation code
+        selectedResearchStudies.length
+          ? {
+              [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:study`]: selectedResearchStudies
+                .map((s) => 'ResearchStudy/' + s.id)
+                .join(','),
+            _revinclude: `ResearchSubject:${this.fhirBackend.subjectParamName}`
+            }
+          : this.fhirBackend.features.hasAvailableStudy
             ? {
-                [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:study`]: selectedResearchStudies
-                  .map((s) => 'ResearchStudy/' + s.id)
-                  .join(','),
-                _revinclude: `ResearchSubject:${this.fhirBackend.subjectParamName}`
-              }
-            : this.fhirBackend.features.hasAvailableStudy
-            ? {
-                [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:status`]: Object.keys(
-                  this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
-                    'ResearchSubject.status'
+              [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:status`]: Object.keys(
+                this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
+                  'ResearchSubject.status'
                   ]
-                ).join(','),
-                _revinclude: `ResearchSubject:${this.fhirBackend.subjectParamName}`
-              }
+              ).join(','),
+              _revinclude: `ResearchSubject:${this.fhirBackend.subjectParamName}`
+            }
             : null
-        ),
-        this.convertObservationToVariableRecords(currentState, obsFilterParams),
-        catchError(() => {
-          // Do not retry after an error
-          currentState.nextBundleUrl = null;
-          return of(currentState.resources);
-        }),
-        finalize(() => {
-          currentState.loading = false;
-        }),
-        switchMap((resources: Resource[]) =>
-          // Exclude records added to the cart from the list
-          this.cart.getCartChanged(resourceType).pipe(
-            startWith(resources),
-            map(() =>
-              resources.filter(
-                (resource) => !this.cart.hasRecord(resourceType, resource)
-              )
-            )
-          )
-        )
-        // startWith(currentState.resources)
-      );
+      ),
+      this.convertObservationToVariableRecords(state, obsFilterParams, sort),
+      catchError(() => {
+        // Do not retry after an error
+        state.nextBundleUrl = null;
+        return of(state.resources);
+      }),
+      finalize(() => {
+        state.loading = false;
+      }),
+      switchMap(() => {
+        let currentSort: Sort = null;
+        return combineLatest([
+          state.sortChanged.pipe(startWith(currentSort)),
+          this.cart.getCartChanged(resourceType).pipe(startWith(state.resources))
+        ]).pipe(
+          map(([sort]) => {
+            if (currentSort?.active !== sort?.active || currentSort?.direction !== sort?.direction) {
+              state.resources = this.sortObservationsByVariableColumn(state.resources, sort);
+              currentSort = sort;
+            }
+            return state.resources.filter(
+              // Exclude records added to the cart from the list
+              (resource) => !this.cart.hasRecord(resourceType, resource)
+            );
+          })
+        );
+      }),
+      shareReplay()
+    );
+    return state.resourceStream;
   }
 
   /**
@@ -494,12 +639,12 @@ export class SelectRecordsService {
    * - excludes observation with repeated codes
    * - excludes codes that do not exist for patients who meet the specified
    *   filter criteria
-   * @param currentState - current state
+   * @param state - current state
    * @param studies - studies available to the user
    * @param patientFilters - patient filters specify criteria for studies
    */
   filterObservationsByCode(
-    currentState: SelectRecordState,
+    state: SelectRecordState,
     studies: { [id: string]: ResearchStudy },
     patientFilters: { [param: string]: string }
   ): UnaryFunction<Observable<Bundle>, Observable<Observation[]>> {
@@ -516,9 +661,9 @@ export class SelectRecordsService {
             : null;
           const isNew =
             codeAndSystem &&
-            !currentState.processedObservationCodes.has(codeAndSystem);
+            !state.processedObservationCodes.has(codeAndSystem);
           if (isNew) {
-            currentState.processedObservationCodes.add(codeAndSystem);
+            state.processedObservationCodes.add(codeAndSystem);
             requests.push(
               patientFilters
                 ? this.http
@@ -552,12 +697,14 @@ export class SelectRecordsService {
           }
           return requests;
         }, []);
-        currentState.nextBundleUrl = getNextPageUrl(data);
-        return forkJoin(checkRequests).pipe(
-          map((observations: Observation[]) =>
-            observations.filter((obs) => !!obs)
-          )
-        );
+        state.nextBundleUrl = this.fhirBackend.getNextPageUrl(data);
+        return checkRequests.length === 0
+          ? of([])
+          : forkJoin(checkRequests).pipe(
+              map((observations: Observation[]) =>
+                observations.filter((obs) => !!obs)
+              )
+            );
       })
     );
   }
@@ -567,12 +714,14 @@ export class SelectRecordsService {
    * records:
    * - creates a variable record for each code in each observation
    * - exclude codes that don't match filter parameters
-   * @param currentState - current state
+   * @param state - current state
    * @param obsFilterParams - observation filter parameters
+   * @param sort - the current sort state
    */
   convertObservationToVariableRecords(
-    currentState: SelectRecordState,
-    obsFilterParams: { [param: string]: string | string[] }
+    state: SelectRecordState,
+    obsFilterParams: { [param: string]: string | string[] },
+    sort: Sort
   ): UnaryFunction<Observable<Observation[]>, Observable<Resource[]>> {
     return pipe(
       map((observations: Observation[]) => {
@@ -596,33 +745,71 @@ export class SelectRecordsService {
             return acc;
           }, new Set<string>());
 
-        currentState.resources = currentState.resources.concat(
-          ...observations.map((obs) => {
-            return (
-              obs.code.coding
-                .filter((coding) => {
-                  // Exclude codes that don't match filters
-                  return (
-                    (!allowedCodes?.size || allowedCodes.has(coding.code)) &&
-                    (!reCodeText || reCodeText.test(coding.display))
-                  );
-                })
-                // Create a variable record for each code
-                .map((coding) => ({
-                  ...obs,
-                  // Replace observation ID with code and system, this ID is
-                  // used for identify variable in cart
-                  id: coding.system + '|' + coding.code,
-                  code: {
-                    coding: [coding]
-                  }
-                }))
-            );
-          })
+        const newItems = this.sortObservationsByVariableColumn(
+          [].concat(
+            ...observations.map((obs) => {
+              return (
+                obs.code.coding
+                  .filter((coding) => {
+                    // Exclude codes that don't match filters
+                    return (
+                      (!allowedCodes?.size || allowedCodes.has(coding.code)) &&
+                      (!reCodeText || reCodeText.test(coding.display))
+                    );
+                  })
+                  // Create a variable record for each code
+                  .map((coding) => ({
+                    ...obs,
+                    // Replace observation ID with code and system, this ID is
+                    // used for identify variable in cart
+                    id: coding.system + '|' + coding.code,
+                    code: {
+                      coding: [coding]
+                    }
+                  }))
+              );
+            })
+          ),
+          sort
         );
 
-        return currentState.resources;
+        state.resources = state.resources.concat(newItems);
+
+        return state.resources;
       })
     );
+  }
+
+  /**
+   * Sorts list of variables obtained from observations
+   */
+  sortObservationsByVariableColumn(resources: (Resource & ResearchStudyMixin)[], sort: Sort) {
+    let result = resources;
+
+    if (sort) {
+      // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+      const isAsc = sort.direction === 'desc';
+      const allColumns = this.columnDescriptionsService.getAvailableColumns(
+        'Variable',
+        'browse'
+      );
+      const sortingColumnDescription = allColumns.find(item => item.element === sort.active);
+      if (sortingColumnDescription) {
+        const filterType = sortingColumnDescription.types.length === 1 && sortingColumnDescription.types[0] === 'Count'
+          ? FilterType.Number
+          : FilterType.Text;
+
+        const cells: Map<Resource, string> = new Map(resources.map((r: Resource) => [r, this.columnValuesService.getCellStrings(r, sortingColumnDescription).join('; ')]));
+        result = [].concat(resources).sort((a: Resource, b: Resource) => {
+          const cellValueA = cells.get(a);
+          const cellValueB = cells.get(b);
+          return filterType === FilterType.Number
+            ? (+cellValueA - +cellValueB) * (isAsc ? 1 : -1)
+            : cellValueA.localeCompare(cellValueB) * (isAsc ? 1 : -1);
+        });
+      }
+    }
+
+    return result;
   }
 }

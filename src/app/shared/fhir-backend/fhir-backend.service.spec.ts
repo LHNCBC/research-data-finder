@@ -376,28 +376,28 @@ describe('FhirBatchQuery', () => {
   beforeEach(() => {
     server = newServer({
       post: [
-        /http:\/\/someServerUrl\?_format=json/,
+        /http:\/\/some-server-url\/\?_format=json/,
         {
           status: HTTP_ABORT,
           body: '{ "message": "Abort!" }'
         }
       ],
       get: [
-        /http:\/\/someServerUrl\/someUrl[123]\?_format=json/,
+        /http:\/\/some-server-url\/someUrl[123]\?_format=json/,
         {
           // status: 200 is the default
           body: '{ "message": "Success!" }'
         }
       ]
     });
-    server.get(/http:\/\/someServerUrl\/someUrl4\?_format=json/, {
+    server.get(/http:\/\/some-server-url\/someUrl4\?_format=json/, {
       status: 500,
       body: '{ "message": "Failure!" }'
     });
 
     server.install();
     fhirBatchQuery = new FhirBatchQuery({
-      serviceBaseUrl: 'http://someServerUrl'
+      serviceBaseUrl: 'http://some-server-url'
     });
     // There are no preflight requests during the test
     fhirBatchQuery._maxTimeForPreflightRequest = 0;
@@ -424,20 +424,20 @@ describe('FhirBatchQuery', () => {
       expect(server.getRequestLog()).toEqual([
         jasmine.objectContaining({
           method: 'POST',
-          url: 'http://someServerUrl?_format=json',
+          url: 'http://some-server-url/?_format=json',
           body: jasmine.stringMatching(/someUrl1.*someUrl2.*someUrl3/)
         }),
         jasmine.objectContaining({
           method: 'GET',
-          url: 'http://someServerUrl/someUrl1?_format=json'
+          url: 'http://some-server-url/someUrl1?_format=json'
         }),
         jasmine.objectContaining({
           method: 'GET',
-          url: 'http://someServerUrl/someUrl2?_format=json'
+          url: 'http://some-server-url/someUrl2?_format=json'
         }),
         jasmine.objectContaining({
           method: 'GET',
-          url: 'http://someServerUrl/someUrl3?_format=json'
+          url: 'http://some-server-url/someUrl3?_format=json'
         })
       ]);
       done();
@@ -456,11 +456,11 @@ describe('FhirBatchQuery', () => {
       expect(server.getRequestLog()).toEqual([
         jasmine.objectContaining({
           method: 'GET',
-          url: 'http://someServerUrl/someUrl3?_format=json'
+          url: 'http://some-server-url/someUrl3?_format=json'
         }),
         jasmine.objectContaining({
           method: 'GET',
-          url: 'http://someServerUrl/someUrl4?_format=json'
+          url: 'http://some-server-url/someUrl4?_format=json'
         })
       ]);
       done();
@@ -488,15 +488,15 @@ describe('FhirBatchQuery', () => {
       expect(server.getRequestLog()).toEqual([
         jasmine.objectContaining({
           method: 'GET',
-          url: 'http://someServerUrl/someUrl3?_format=json'
+          url: 'http://some-server-url/someUrl3?_format=json'
         }),
         jasmine.objectContaining({
           method: 'GET',
-          url: 'http://someServerUrl/someUrl1?_format=json'
+          url: 'http://some-server-url/someUrl1?_format=json'
         }),
         jasmine.objectContaining({
           method: 'GET',
-          url: 'http://someServerUrl/someUrl2?_format=json'
+          url: 'http://some-server-url/someUrl2?_format=json'
         })
       ]);
       done();

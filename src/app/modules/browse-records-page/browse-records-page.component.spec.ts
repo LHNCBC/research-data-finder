@@ -17,6 +17,7 @@ import { HttpParams, HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { ResourceTableComponent } from '../resource-table/resource-table.component';
 
 describe('BrowseRecordsPageComponent', () => {
   let component: BrowseRecordsPageComponent;
@@ -45,6 +46,13 @@ describe('BrowseRecordsPageComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    // The first call to getHarness in the expectNumberOfRecords function will
+    // never end if the interval is active. This looks like a bug.
+    // As a workaround, just do not create the "interval()":
+    spyOn(
+      ResourceTableComponent.prototype,
+      'runPreloadEvents'
+    ).and.callFake(() => {});
   });
 
   afterEach(() => {
@@ -56,7 +64,6 @@ describe('BrowseRecordsPageComponent', () => {
    * Load studies at the beginning
    */
   async function loadStudies(): Promise<void> {
-    component.ngAfterViewInit();
     await fixture.whenStable();
     fixture.detectChanges();
     mockHttp
@@ -95,8 +102,11 @@ describe('BrowseRecordsPageComponent', () => {
    * Go to variables tab and load variables.
    */
   async function loadVariables(): Promise<void> {
+    (ResourceTableComponent.prototype
+      .runPreloadEvents as jasmine.Spy).calls.reset();
     await selectTab('Variables');
-
+    fixture.detectChanges();
+    expect(component.variableTable.runPreloadEvents).not.toHaveBeenCalled();
     mockHttp
       .expectOne((req: HttpRequest<any>) => {
         return (
@@ -106,6 +116,8 @@ describe('BrowseRecordsPageComponent', () => {
         );
       })
       .flush(fourVariables);
+    fixture.detectChanges();
+    expect(component.variableTable.runPreloadEvents).toHaveBeenCalledOnceWith();
     await expectNumberOfRecords(4);
   }
 

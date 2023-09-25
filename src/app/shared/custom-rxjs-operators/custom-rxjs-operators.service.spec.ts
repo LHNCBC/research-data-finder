@@ -1,12 +1,11 @@
-import { TestBed } from '@angular/core/testing';
-
-import { CustomRxjsOperatorsService } from './custom-rxjs-operators.service';
+import {TestBed} from '@angular/core/testing';
+import {CustomRxjsOperatorsService} from './custom-rxjs-operators.service';
 import {
   HttpClientTestingModule,
   HttpTestingController
 } from '@angular/common/http/testing';
-import { HttpClient, HttpContext } from '@angular/common/http';
-import { CACHE_NAME } from '../fhir-backend/fhir-backend.service';
+import {HttpClient, HttpContext} from '@angular/common/http';
+import {CACHE_NAME, FhirBackendService} from '../fhir-backend/fhir-backend.service';
 
 // Resource bundle pages used to mock responses
 const bundlePages = {
@@ -17,7 +16,7 @@ const bundlePages = {
         url: 'page-2'
       }
     ],
-    entry: [{ resource: { id: '1' } }, { resource: { id: '2' } }]
+    entry: [{resource: {id: '1'}}, {resource: {id: '2'}}]
   },
   'page-2': {
     link: [
@@ -26,12 +25,17 @@ const bundlePages = {
         url: 'page-3'
       }
     ],
-    entry: [{ resource: { id: '3' } }, { resource: { id: '4' } }]
+    entry: [{resource: {id: '3'}}, {resource: {id: '4'}}]
   },
   'page-3': {
-    entry: [{ resource: { id: '5' } }, { resource: { id: '6' } }]
+    entry: [{resource: {id: '5'}}, {resource: {id: '6'}}]
   }
 };
+
+const mockFhirBackend = jasmine.createSpyObj('FhirBackendService', ['getNextPageUrl']);
+mockFhirBackend.getNextPageUrl.and.callFake(function(response) {
+  return response.link?.find((l) => l.relation === 'next')?.url || null;
+});
 
 describe('CustomRxjsOperatorsService', () => {
   let service: CustomRxjsOperatorsService;
@@ -39,7 +43,10 @@ describe('CustomRxjsOperatorsService', () => {
   let http: HttpClient;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [HttpClientTestingModule] });
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [{provide: FhirBackendService, useValue: mockFhirBackend}]
+    });
     service = TestBed.inject(CustomRxjsOperatorsService);
     mockHttp = TestBed.inject(HttpTestingController);
     http = TestBed.inject(HttpClient);
@@ -101,8 +108,8 @@ describe('CustomRxjsOperatorsService', () => {
       const context = new HttpContext().set(CACHE_NAME, someCacheName);
 
       http
-        .get('page-1', { context })
-        .pipe(service.takeAllIf(true, { context }))
+        .get('page-1', {context})
+        .pipe(service.takeAllIf(true, {context}))
         .subscribe(next, error, complete);
 
       mockHttp

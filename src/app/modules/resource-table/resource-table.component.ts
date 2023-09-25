@@ -213,14 +213,17 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() selectAny = false;
   @ViewChild(CdkVirtualScrollViewport) scrollViewport: CdkVirtualScrollViewport;
   @Output() loadNextPage = new EventEmitter();
-  // A number that identifies a timer to periodically load the next page.
+  // Subscription to interval to periodically preload the next page.
   // This is necessary to avoid expiration of the link to the next page.
-  loadNextPageTimer: any;
-  // Interval in milliseconds to force the next page to load
-  keepAliveTimeout = 120000;
+  preloadSubscription: Subscription;
+  // Event emitter to preload the next page
+  @Output() preloadNextPage = new EventEmitter();
+  // Interval in milliseconds to periodically preload another page of results
+  keepAliveTimeout = 1000;
   @Output() filterChanged = new EventEmitter();
   @Output() sortChanged = new EventEmitter();
-  // Whether we need to force sorting on the client side and ignore the `(sortChanged)` handler
+  // Whether we need to enable sorting on the client side for all columns using
+  // `(sortChanged)` handler
   @Input() forceClientSort = false;
   @Input() sort: Sort;
   columns: string[] = [];
@@ -240,6 +243,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   // Selected Observation codes at "pull data" step, used to display a matching code
   // in Observation table "Code" column.
   @Input() pullDataObservationCodes: Map<string, string> = null;
+
+  // Whether the table is in the process of continuously loading records - triggering
+  // next queries for more records right away.
+  continuouslyLoading = false;
+  // A timeout for reading "loading finished" message.
+  continuouslyLoadingTimeout: any;
 
   /**
    * Whether it's a valid click event in accessibility sense.
@@ -317,6 +326,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+    this.preloadSubscription?.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -328,9 +338,14 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['loading']) {
       if (this.loading) {
         this.columnsWithData = {};
-        this.liveAnnouncer.announce(
-          `The ${pluralRecordName} loading process has started`
-        );
+        // Don't read too many "loading started" messages during continuous loading.
+        if (!this.continuouslyLoading) {
+          this.liveAnnouncer.announce(
+            `The ${pluralRecordName} loading process has started`
+          );
+        }
+        this.continuouslyLoading = true;
+        clearTimeout(this.continuouslyLoadingTimeout);
         this.startTime = Date.now();
         let i = 0;
         this.progressBarPosition$ = this.progressValue$.pipe(
@@ -346,23 +361,32 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           })
         );
       } else if (changes['loading'].previousValue) {
-        this.loadedDateTime = Date.now();
-        this.loadTime =
-          Math.round((this.loadedDateTime - this.startTime) / 100) / 10;
-        this.liveAnnouncer.announce(
-          `The ${pluralRecordName} loading process has finished. ` +
-            `${this.resources.length} ${pluralRecordName} loaded. ` +
+        this.progressBarPosition$ = null;
+        // Read the "loading finished" message after a delay, so that we get to
+        // clear the timeout without reading it in case of continuous loading.
+        // For example, the Variables table finds 0 records and RDF immediately
+        // triggers the loading of next page in this.onScroll() to look for more
+        // items - we only read the "loading finished" message once after the last
+        // query has returned.
+        this.continuouslyLoadingTimeout = setTimeout(() => {
+          this.continuouslyLoading = false;
+          this.loadedDateTime = Date.now();
+          this.loadTime =
+            Math.round((this.loadedDateTime - this.startTime) / 100) / 10;
+          this.liveAnnouncer.announce(
+            `The ${pluralRecordName} loading process has finished. ` +
+            `${this.resources?.length || 0} ${pluralRecordName} loaded. ` +
             (this.total
               ? `Total ${pluralRecordName}` +
-                (this.hasFilters() ? ' for the selected filters' : '') +
-                ': ' +
-                this.total +
-                '.'
+              (this.hasFilters() ? ' for the selected filters' : '') +
+              ': ' +
+              this.total +
+              '.'
               : '') +
             this.getSortMessage(),
-          'assertive'
-        );
-        this.progressBarPosition$ = null;
+            'assertive'
+          );
+        }, 100);
       }
     }
 
@@ -386,7 +410,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }, {} as TableCells)
       }));
 
-      if (this.forceClientSort || !this.sortChanged.observers.length) {
+      if (!this.sortChanged.observers.length) {
         this.clientSort(newRows);
       }
 
@@ -417,8 +441,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           Object.keys(this.columnsWithData)
         );
       }
+      this.preloadSubscription?.unsubscribe();
       // setTimeout is needed to update the table after this.dataSource changes
-      setTimeout(() => this.onScroll());
+      setTimeout(() => {
+        this.onScroll();
+      });
+      this.runPreloadEvents();
     }
 
     // Update resource table columns
@@ -437,6 +465,21 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         !!scrollViewport?.querySelector(
           '.cdk-keyboard-focused .mat-sort-header-container'
         )
+      );
+    }
+  }
+
+  /**
+   * Starts emitting preload events.
+   */
+  runPreloadEvents(): void {
+    if (this.preloadNextPage.observers.length > 0) {
+      this.preloadSubscription = interval(this.keepAliveTimeout).subscribe(
+        () => {
+          // Preload the next page after the specified time has elapsed
+          // so that the link to the next page does not expire:
+          this.preloadNextPage.emit();
+        }
       );
     }
   }
@@ -591,8 +634,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param column - column description
    */
   getCellStrings(row: Resource, column: ColumnDescription): string[] {
-    const expression = column.expression || column.element.replace('[x]', '');
-    const fullPath = expression ? this.resourceType + '.' + expression : '';
     // Pass pullDataObservationCodes only for Observation "Variable Name" or "Code" column.
     const pullDataObservationCodes =
       row.resourceType === 'Observation' &&
@@ -601,19 +642,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         ? this.pullDataObservationCodes
         : undefined;
 
-    for (const type of column.types) {
-      const output = this.columnValuesService.valueToStrings(
-        this.fhirBackend.getEvaluator(fullPath)(row),
-        type,
-        fullPath,
-        pullDataObservationCodes
-      );
-
-      if (output && output.length) {
-        return output;
-      }
-    }
-    return [];
+    return this.columnValuesService.getCellStrings(row, column, pullDataObservationCodes);
   }
 
   /**
@@ -626,7 +655,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
     this.scrollViewport.scrollToIndex(0);
-    if (!this.forceClientSort && this.sortChanged.observers.length) {
+    if (this.sortChanged.observers.length) {
       this.sortChanged.emit(sort);
       return;
     }
@@ -817,16 +846,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         scrollViewport.scrollTop -
         scrollViewport.clientHeight;
 
-      clearTimeout(this.loadNextPageTimer);
       if (isNotDetached && delta >= bottomDistance) {
         this.loadNextPage.emit();
-      } else {
-        // In any case, load the next page after the specified time has elapsed
-        // so that the link to the next page does not expire:
-        this.loadNextPageTimer = setTimeout(
-          () => this.loadNextPage.emit(),
-          this.keepAliveTimeout
-        );
       }
     }
   }

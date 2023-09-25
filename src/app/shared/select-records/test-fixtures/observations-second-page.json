@@ -1,0 +1,71 @@
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 2,
+  "link": [
+    {
+      "relation": "next",
+      "url": "https://someDefaultURL/next-observations-by-code-phv00492021.v1.p1.json"
+    }
+  ],
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "id-5",
+        "code": {
+          "coding": [
+            {
+              "code": "code-5",
+              "system": "system-5",
+              "display": "display-5"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/5"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "2",
+              "display": "case"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "id-6",
+        "code": {
+          "coding": [
+            {
+              "code": "code-6",
+              "system": "system-6",
+              "display": "display-6"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/6"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "2",
+              "display": "case"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    }
+  ]
+}

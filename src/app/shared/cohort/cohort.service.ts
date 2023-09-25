@@ -39,7 +39,6 @@ import {
   QueryParamsService
 } from '../query-params/query-params.service';
 import { uniqBy, cloneDeep } from 'lodash-es';
-import { getNextPageUrl } from '../utils';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
@@ -945,7 +944,7 @@ export class CohortService {
     currentState: CohortState
   ): OperatorFunction<Bundle, Bundle> {
     return expand((response: Bundle) => {
-      const nextPageUrl = getNextPageUrl(response);
+      const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
       if (!nextPageUrl) {
         // Emit a complete notification if there is no next page
         return EMPTY;

@@ -36,6 +36,7 @@ import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
 import fhirpath from 'fhirpath';
 import Resource = fhir.Resource;
+import Bundle = fhir.Bundle;
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -59,6 +60,9 @@ export enum RequestPriorities {
 // Token to store cacheName in the context of an HTTP request.
 // See https://angular.io/api/common/http/HttpContext
 export const CACHE_NAME = new HttpContextToken<string>(() => '');
+// Token to store a flag to disable cache in the context of an HTTP request.
+// See https://angular.io/api/common/http/HttpContext
+export const NO_CACHE = new HttpContextToken<boolean>(() => false);
 // Token to store priority in the context of an HTTP request.
 // See https://angular.io/api/common/http/HttpContext
 export const REQUEST_PRIORITY = new HttpContextToken<number>(
@@ -531,6 +535,7 @@ export class FhirBackendService implements HttpBackend {
     );
     const cacheName = request.context.get(CACHE_NAME);
     const priority = request.context.get(REQUEST_PRIORITY);
+    const noCache = request.context.get(NO_CACHE);
     const newRequest = request.clone({
       url: this.prepareRequestUrl(request.url)
     });
@@ -553,7 +558,7 @@ export class FhirBackendService implements HttpBackend {
           const combine =
             this.fhirClient.getFeatures().batch &&
             serviceBaseUrlWithEndpoint.test(newRequest.url);
-          const promise = this.isCacheEnabled
+          const promise = this.isCacheEnabled && !noCache
             ? this.fhirClient.getWithCache(fullUrl, {
                 combine,
                 signal,
@@ -780,5 +785,17 @@ export class FhirBackendService implements HttpBackend {
       this.compiledExpressions[expression] = compiledExpression;
     }
     return compiledExpression;
+  }
+
+  /**
+   * Extracts next page URL from a bundle (see: https://www.hl7.org/fhir/http.html#paging)
+   */
+  getNextPageUrl(response: Bundle): string | undefined {
+    let nextPageUrl = response.link?.find((l) => l.relation === 'next')?.url || null;
+    // Workaround for LF2383.
+    if (nextPageUrl && nextPageUrl.startsWith('http:') && this.serviceBaseUrl.startsWith('https:')) {
+      nextPageUrl = nextPageUrl.replace('http:', 'https:');
+    }
+    return nextPageUrl;
   }
 }
