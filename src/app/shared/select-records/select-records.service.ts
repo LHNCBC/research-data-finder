@@ -5,11 +5,13 @@
 import { Injectable } from '@angular/core';
 import Resource = fhir.Resource;
 import {
+  combineLatest,
   forkJoin,
   from,
   Observable,
   of,
   pipe,
+  Subject,
   Subscription,
   UnaryFunction
 } from 'rxjs';
@@ -39,11 +41,20 @@ import {
 import { PullDataService } from '../pull-data/pull-data.service';
 import { CohortService } from '../cohort/cohort.service';
 import Observation = fhir.Observation;
-import { ObservationCodeLookupComponent } from '../../modules/observation-code-lookup/observation-code-lookup.component';
-import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
+import {
+  ObservationCodeLookupComponent
+} from '../../modules/observation-code-lookup/observation-code-lookup.component';
+import {
+  CustomRxjsOperatorsService
+} from '../custom-rxjs-operators/custom-rxjs-operators.service';
 import ResearchStudy = fhir.ResearchStudy;
 import ResearchSubject = fhir.ResearchSubject;
-import { cloneDeep } from 'lodash-es';
+import { omit } from 'lodash-es';
+import {
+  ColumnDescriptionsService
+} from '../column-descriptions/column-descriptions.service';
+import { FilterType } from '../../types/filter-type';
+import { ColumnValuesService } from '../column-values/column-values.service';
 
 type ResearchStudyMixin = { studyData?: ResearchStudy[] };
 
@@ -72,6 +83,8 @@ interface SelectRecordState {
   resourceStream?: Observable<Resource[]>;
   // Preload subscription
   preloadSubscription?: Subscription;
+  // Used to emit and observe sorting changes
+  sortChanged: Subject<Sort>;
 }
 
 @Injectable({
@@ -84,7 +97,9 @@ export class SelectRecordsService {
     private pullData: PullDataService,
     private cohort: CohortService,
     private fhirBackend: FhirBackendService,
-    private customRxjs: CustomRxjsOperatorsService
+    private customRxjs: CustomRxjsOperatorsService,
+    private columnDescriptionsService: ColumnDescriptionsService,
+    private columnValuesService: ColumnValuesService,
   ) {}
 
   currentState: { [resourceType: string]: SelectRecordState } = {};
@@ -133,7 +148,8 @@ export class SelectRecordsService {
     this.currentState[resourceType] = {
       loading: true,
       resources: [],
-      nextBundleUrl: url
+      nextBundleUrl: url,
+      sortChanged: new Subject<Sort>()
     };
 
     this.loadNextPage(resourceType, options);
@@ -369,7 +385,8 @@ export class SelectRecordsService {
       loading: true,
       resources: [],
       processedObservationCodes: new Set<string>(),
-      totalRecords: 0
+      totalRecords: 0,
+      sortChanged: new Subject<Sort>()
     };
     this.currentState[resourceType] = state;
     this.preloadState[resourceType]?.preloadSubscription.unsubscribe();
@@ -403,7 +420,14 @@ export class SelectRecordsService {
   ) {
     const resourceType = 'Observation';
     if (this.preloadState[resourceType]) {
+      this.preloadState[resourceType].resources = [].concat(
+        this.currentState[resourceType].resources,
+        this.sortObservationsByVariableColumn(this.preloadState[resourceType].resources, sort)
+      );
       this.currentState[resourceType] = this.preloadState[resourceType];
+      this.preloadState[resourceType].preloadSubscription.unsubscribe();
+      delete this.preloadState[resourceType].preloadSubscription;
+      this.currentState[resourceType].sortChanged.next(null);
       delete this.preloadState[resourceType];
     } else {
       const state = this.currentState[resourceType];
@@ -446,14 +470,18 @@ export class SelectRecordsService {
 
     if (
       !currentState || currentState.loading || !currentState.nextBundleUrl ||
-      (preloadState && (preloadState.loading ||
-        preloadState.resources.length - currentState.resources.length > minNumOfRecordsToPreload))
+      (preloadState && (preloadState.loading || preloadState.resources.length > minNumOfRecordsToPreload))
     ) {
       return;
     }
-
-    preloadState = !this.preloadState[resourceType] ? cloneDeep(currentState) : this.preloadState[resourceType];
-    this.preloadState[resourceType] = preloadState;
+    if (!this.preloadState[resourceType]) {
+      preloadState = {
+        ...omit(currentState, ['resources', 'resourceStream', 'sortChanged']),
+        resources: [],
+        sortChanged: new Subject<Sort>()
+      };
+      this.preloadState[resourceType] = preloadState;
+    }
 
     preloadState.loading = true;
 
@@ -564,17 +592,17 @@ export class SelectRecordsService {
             _revinclude: `ResearchSubject:${this.fhirBackend.subjectParamName}`
             }
           : this.fhirBackend.features.hasAvailableStudy
-          ? {
+            ? {
               [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:status`]: Object.keys(
                 this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
                   'ResearchSubject.status'
-                ]
+                  ]
               ).join(','),
               _revinclude: `ResearchSubject:${this.fhirBackend.subjectParamName}`
             }
-          : null
+            : null
       ),
-      this.convertObservationToVariableRecords(state, obsFilterParams),
+      this.convertObservationToVariableRecords(state, obsFilterParams, sort),
       catchError(() => {
         // Do not retry after an error
         state.nextBundleUrl = null;
@@ -583,18 +611,24 @@ export class SelectRecordsService {
       finalize(() => {
         state.loading = false;
       }),
-      switchMap((resources: Resource[]) =>
-        // Exclude records added to the cart from the list
-        this.cart.getCartChanged(resourceType).pipe(
-          startWith(resources),
-          map(() =>
-            resources.filter(
+      switchMap(() => {
+        let currentSort: Sort = null;
+        return combineLatest([
+          state.sortChanged.pipe(startWith(currentSort)),
+          this.cart.getCartChanged(resourceType).pipe(startWith(state.resources))
+        ]).pipe(
+          map(([sort]) => {
+            if (currentSort?.active !== sort?.active || currentSort?.direction !== sort?.direction) {
+              state.resources = this.sortObservationsByVariableColumn(state.resources, sort);
+              currentSort = sort;
+            }
+            return state.resources.filter(
+              // Exclude records added to the cart from the list
               (resource) => !this.cart.hasRecord(resourceType, resource)
-            )
-          )
-        )
-      ),
-      // startWith(currentState.resources)
+            );
+          })
+        );
+      }),
       shareReplay()
     );
     return state.resourceStream;
@@ -682,10 +716,12 @@ export class SelectRecordsService {
    * - exclude codes that don't match filter parameters
    * @param state - current state
    * @param obsFilterParams - observation filter parameters
+   * @param sort - the current sort state
    */
   convertObservationToVariableRecords(
     state: SelectRecordState,
-    obsFilterParams: { [param: string]: string | string[] }
+    obsFilterParams: { [param: string]: string | string[] },
+    sort: Sort
   ): UnaryFunction<Observable<Observation[]>, Observable<Resource[]>> {
     return pipe(
       map((observations: Observation[]) => {
@@ -709,33 +745,71 @@ export class SelectRecordsService {
             return acc;
           }, new Set<string>());
 
-        state.resources = state.resources.concat(
-          ...observations.map((obs) => {
-            return (
-              obs.code.coding
-                .filter((coding) => {
-                  // Exclude codes that don't match filters
-                  return (
-                    (!allowedCodes?.size || allowedCodes.has(coding.code)) &&
-                    (!reCodeText || reCodeText.test(coding.display))
-                  );
-                })
-                // Create a variable record for each code
-                .map((coding) => ({
-                  ...obs,
-                  // Replace observation ID with code and system, this ID is
-                  // used for identify variable in cart
-                  id: coding.system + '|' + coding.code,
-                  code: {
-                    coding: [coding]
-                  }
-                }))
-            );
-          })
+        const newItems = this.sortObservationsByVariableColumn(
+          [].concat(
+            ...observations.map((obs) => {
+              return (
+                obs.code.coding
+                  .filter((coding) => {
+                    // Exclude codes that don't match filters
+                    return (
+                      (!allowedCodes?.size || allowedCodes.has(coding.code)) &&
+                      (!reCodeText || reCodeText.test(coding.display))
+                    );
+                  })
+                  // Create a variable record for each code
+                  .map((coding) => ({
+                    ...obs,
+                    // Replace observation ID with code and system, this ID is
+                    // used for identify variable in cart
+                    id: coding.system + '|' + coding.code,
+                    code: {
+                      coding: [coding]
+                    }
+                  }))
+              );
+            })
+          ),
+          sort
         );
+
+        state.resources = state.resources.concat(newItems);
 
         return state.resources;
       })
     );
+  }
+
+  /**
+   * Sorts list of variables obtained from observations
+   */
+  sortObservationsByVariableColumn(resources: (Resource & ResearchStudyMixin)[], sort: Sort) {
+    let result = resources;
+
+    if (sort) {
+      // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
+      const isAsc = sort.direction === 'desc';
+      const allColumns = this.columnDescriptionsService.getAvailableColumns(
+        'Variable',
+        'browse'
+      );
+      const sortingColumnDescription = allColumns.find(item => item.element === sort.active);
+      if (sortingColumnDescription) {
+        const filterType = sortingColumnDescription.types.length === 1 && sortingColumnDescription.types[0] === 'Count'
+          ? FilterType.Number
+          : FilterType.Text;
+
+        const cells: Map<Resource, string> = new Map(resources.map((r: Resource) => [r, this.columnValuesService.getCellStrings(r, sortingColumnDescription).join('; ')]));
+        result = [].concat(resources).sort((a: Resource, b: Resource) => {
+          const cellValueA = cells.get(a);
+          const cellValueB = cells.get(b);
+          return filterType === FilterType.Number
+            ? (+cellValueA - +cellValueB) * (isAsc ? 1 : -1)
+            : cellValueA.localeCompare(cellValueB) * (isAsc ? 1 : -1);
+        });
+      }
+    }
+
+    return result;
   }
 }

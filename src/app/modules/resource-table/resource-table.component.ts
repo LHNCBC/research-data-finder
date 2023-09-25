@@ -222,7 +222,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   keepAliveTimeout = 1000;
   @Output() filterChanged = new EventEmitter();
   @Output() sortChanged = new EventEmitter();
-  // Whether we need to force sorting on the client side and ignore the `(sortChanged)` handler
+  // Whether we need to enable sorting on the client side for all columns using
+  // `(sortChanged)` handler
   @Input() forceClientSort = false;
   @Input() sort: Sort;
   columns: string[] = [];
@@ -409,7 +410,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         }, {} as TableCells)
       }));
 
-      if (this.forceClientSort || !this.sortChanged.observers.length) {
+      if (!this.sortChanged.observers.length) {
         this.clientSort(newRows);
       }
 
@@ -633,8 +634,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    * @param column - column description
    */
   getCellStrings(row: Resource, column: ColumnDescription): string[] {
-    const expression = column.expression || column.element.replace('[x]', '');
-    const fullPath = expression ? this.resourceType + '.' + expression : '';
     // Pass pullDataObservationCodes only for Observation "Variable Name" or "Code" column.
     const pullDataObservationCodes =
       row.resourceType === 'Observation' &&
@@ -643,19 +642,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
         ? this.pullDataObservationCodes
         : undefined;
 
-    for (const type of column.types) {
-      const output = this.columnValuesService.valueToStrings(
-        this.fhirBackend.getEvaluator(fullPath)(row),
-        type,
-        fullPath,
-        pullDataObservationCodes
-      );
-
-      if (output && output.length) {
-        return output;
-      }
-    }
-    return [];
+    return this.columnValuesService.getCellStrings(row, column, pullDataObservationCodes);
   }
 
   /**
@@ -668,7 +655,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
     this.scrollViewport.scrollToIndex(0);
-    if (!this.forceClientSort && this.sortChanged.observers.length) {
+    if (this.sortChanged.observers.length) {
       this.sortChanged.emit(sort);
       return;
     }

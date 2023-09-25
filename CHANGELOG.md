@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.10.0] - 2023-09-11
+### Added
+- Special case of sorting only the newly loaded items of the list of variables
+  obtained from observations.
+
 ## [6.9.3] - 2023-09-11
 ### Fixed
 - After selecting variables with the same display name but different codes or

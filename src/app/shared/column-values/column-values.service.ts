@@ -13,6 +13,8 @@ import Quantity = fhir.Quantity;
 import HumanName = fhir.HumanName;
 import Address = fhir.Address;
 import { SettingsService } from '../settings-service/settings.service';
+import { ColumnDescription } from '../../types/column.description';
+import Resource = fhir.Resource;
 
 // Cell value retrieval context
 interface Context {
@@ -35,7 +37,39 @@ export class ColumnValuesService {
   constructor(
     private fhirBackend: FhirBackendService,
     private settings: SettingsService
-  ) {}
+  ) {
+  }
+
+
+  /**
+   * Returns string values to display in a cell of a resource table
+   * @param row - data for a row of table (entry in the bundle)
+   * @param column - column description
+   * @param pullDataObservationCodes a map of selected Observation codes at "pull data" step
+   */
+  getCellStrings(
+    row: Resource,
+    column: ColumnDescription,
+    pullDataObservationCodes: Map<string, string> = undefined
+  ): string[] {
+    const expression = column.expression || column.element.replace('[x]', '');
+    const fullPath = expression ? row.resourceType + '.' + expression : '';
+
+    for (const type of column.types) {
+      const output = this.valueToStrings(
+        this.fhirBackend.getEvaluator(fullPath)(row),
+        type,
+        fullPath,
+        pullDataObservationCodes
+      );
+
+      if (output && output.length) {
+        return output;
+      }
+    }
+    return [];
+  }
+
 
   /**
    * Returns array of string represented the specified value
