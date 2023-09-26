@@ -3,6 +3,15 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.11.1] - 2023-09-22
+### Fixed
+- An issue where the search parameter value was updated with the value of the
+  previous control when the search parameter name was changed to a search
+  parameter of a different data type.
+- Improved search performance when using ResearchStudy criteria.
+- Improved search performance when using criteria that can be converted to the
+  _has search parameter for the Patient resource.
+
 ## [6.11.0] - 2023-09-11
 ### Added
 - Using the "advanced search" UI for additional criteria.

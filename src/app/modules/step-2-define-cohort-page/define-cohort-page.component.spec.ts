@@ -7,7 +7,6 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import tenPatientBundle from './test-fixtures/patients-10.json';
 import tenObservationBundle from './test-fixtures/observations-10.json';
 import examplePatient from './test-fixtures/example-patient.json';
-import exampleResearchStudy from './test-fixtures/example-research-study.json';
 import { last } from 'rxjs/operators';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -376,15 +375,26 @@ describe('DefineCohortComponent', () => {
 
     mockHttp
       .expectOne(
-        `$fhir/ResearchStudy?_total=accurate&_summary=count&_has:ResearchSubject:study:status=candidate,eligible,follow-up,ineligible,not-registered,off-study,on-study,on-study-intervention,on-study-observation,pending-on-study,potential-candidate,screening,withdrawn&status=completed`
+        `$fhir/ResearchStudy?_elements=id&_has:ResearchSubject:study:status=candidate,eligible,follow-up,ineligible,not-registered,off-study,on-study,on-study-intervention,on-study-observation,pending-on-study,potential-candidate,screening,withdrawn&status=completed`
       )
-      .flush({ total: 2 });
+      .flush({
+        entry: [
+          {resource: {id: 'study-1'}},
+          {resource: {id: 'study-2'}}
+        ]
+      });
+
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_total=accurate&_summary=count&_has:ResearchSubject:individual:study=study-1,study-2`
+      )
+      .flush({total: 20});
 
     mockHttp
       .expectOne(
         `$fhir/Observation?_total=accurate&_summary=count&status=final&combo-code-value-quantity=http%3A%2F%2Floinc.org%7C3137-7%24gt100%7C%7Ccm`
       )
-      .flush({ total: 10 });
+      .flush({total: 10});
 
     mockHttp
       .expectOne(
@@ -401,32 +411,19 @@ describe('DefineCohortComponent', () => {
       )
     ];
 
-    patientIds.forEach((patientId, index) => {
+    patientIds.forEach((patientId) => {
       mockHttp
         .expectOne(
-          `$fhir/ResearchStudy?_count=1&_has:ResearchSubject:study:individual=Patient/${patientId}&_elements=id&status=completed`
+          `$fhir/Patient?_id=${patientId}&_has:ResearchSubject:individual:study=study-1,study-2`
         )
         .flush({
           entry: [
             {
-              resource: {
-                ...exampleResearchStudy,
-                id: `research-study-${index}`
-              }
+              resource: {...examplePatient, id: patientId}
             }
           ]
         });
     });
-
-    mockHttp
-      .expectOne(
-        `$fhir/Patient?_id=${patientIds.join(',')}&_count=${patientIds.length}`
-      )
-      .flush({
-        entry: patientIds.map((patientId) => ({
-          resource: { ...examplePatient, id: patientId }
-        }))
-      });
   });
 
   it('should load Patients using _has with Observation code and value', (done) => {

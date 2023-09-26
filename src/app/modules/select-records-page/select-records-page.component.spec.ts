@@ -24,7 +24,8 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { CartComponent } from '../cart/cart.component';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { MatRadioButtonHarness } from '@angular/material/radio/testing';
-import tenPatientBundle from '../step-2-define-cohort-page/test-fixtures/patients-10.json';
+import tenPatientBundle
+  from '../step-2-define-cohort-page/test-fixtures/patients-10.json';
 import { MatMenuHarness } from '@angular/material/menu/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import observations from './test-fixtures/observations.json';
@@ -32,7 +33,10 @@ import { CartService } from '../../shared/cart/cart.service';
 import {
   SearchParametersComponent
 } from '../search-parameters/search-parameters.component';
-import { ResourceTableComponent } from '../resource-table/resource-table.component';
+import {
+  ResourceTableComponent
+} from '../resource-table/resource-table.component';
+import { last } from 'rxjs/operators';
 
 describe('SelectRecordsPageComponent (when there are studies for the user)', () => {
   let component: SelectRecordsPageComponent;
@@ -278,41 +282,18 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     });
   }
 
-  it('should search for patients by ANDed variables in the cart', async () => {
+  it('should search for patients by ANDed variables in the cart', async (done) => {
     await addVariablesToCart();
 
     component.searchForPatients();
-    cohortService.patientStream.subscribe();
-
-    Object.keys(code2observations).forEach((code, index) => {
-      mockHttp
-        .expectOne(
-          `$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=${code}`
-        )
-        .flush({ total: (index + 1) * 10 });
+    cohortService.patientStream.pipe(last()).subscribe((pat) => {
+      expect(pat.length).toEqual(10);
+      done();
     });
 
     mockHttp
-      .expectOne(
-        '$fhir/Patient?_count=20&_has:Observation:subject:combo-code=phv00492021.v1.p1'
-      )
+      .expectOne(`$fhir/Patient?_count=20${Object.keys(code2observations).map(code => '&_has:Observation:subject:combo-code=' + code).join('')}`)
       .flush(tenPatientBundle);
-
-    Object.keys(code2observations)
-      .slice(1)
-      .forEach((code) => {
-        tenPatientBundle.entry.forEach((entry) => {
-          mockHttp
-            .expectOne(
-              `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=${code}`
-            )
-            .flush({
-              ...tenPatientBundle,
-              entry: [entry],
-              total: 1
-            });
-        });
-      });
   });
 
   it('should search for patients by ORed variables in the cart', async () => {
@@ -381,7 +362,7 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     });
   });
 
-  it('should search for patients by additional criteria', async () => {
+  it('should search for patients by additional criteria', async (done) => {
     await addVariablesToCart();
     await selectTab('Additional criteria');
 
@@ -400,50 +381,14 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     });
 
     component.searchForPatients();
-    cohortService.patientStream.subscribe();
-
-    Object.keys(code2observations).forEach((code, index) => {
-      mockHttp
-        .expectOne(
-          `$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=${code}`
-        )
-        .flush({total: (index + 1) * 10});
+    cohortService.patientStream.pipe(last()).subscribe((pat) => {
+      expect(pat.length).toEqual(10);
+      done();
     });
-    mockHttp
-      .expectOne('$fhir/Patient?_total=accurate&_summary=count&deceased=false')
-      .flush({ total: 100 });
 
     mockHttp
-      .expectOne(
-        '$fhir/Patient?_count=20&_has:Observation:subject:combo-code=phv00492021.v1.p1'
-      )
+      .expectOne(`$fhir/Patient?_count=20${Object.keys(code2observations).map(code => '&_has:Observation:subject:combo-code=' + code).join('')}&deceased=false`)
       .flush(tenPatientBundle);
-
-    Object.keys(code2observations)
-      .slice(1)
-      .forEach((code) => {
-        tenPatientBundle.entry.forEach((entry) => {
-          mockHttp
-            .expectOne(
-              `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=${code}`
-            )
-            .flush({
-              ...tenPatientBundle,
-              entry: [entry],
-              total: 1
-            });
-        });
-      });
-
-    tenPatientBundle.entry.forEach((entry) => {
-      mockHttp
-        .expectOne(`$fhir/Patient?_id=${entry.resource.id}&deceased=false`)
-        .flush({
-          ...tenPatientBundle,
-          entry: [entry],
-          total: 1
-        });
-    });
   });
 });
 
