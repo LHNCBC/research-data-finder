@@ -456,7 +456,20 @@ export class CohortService {
       );
     } else {
       observable = from(criteria.rules).pipe(
-        concatMap((rule) => this.check(resource, rule))
+        concatMap((rule) => this.check(resource, rule).pipe(
+          catchError((err) => {
+            // If the nested resource criteria are combined by the AND operator
+            // and one of the queries returns nothing, "check()" throws "null"
+            // to terminate queries.
+            // But if the parent criteria are combined by the OR operator, we
+            // should not terminate queries.
+            if (criteria.condition === 'or' && err === null) {
+              return of(null);
+            }
+            // Pass through other values
+            throw err;
+          })
+        ))
       );
     }
 
@@ -559,9 +572,10 @@ export class CohortService {
 
       // Combine code and value criteria for Observation when we have one code
       // and one value:
-      const obsCodeCriterion = criteria.rules.find(
-        (c) => c.field.element === CODETEXT
-      );
+      const obsCodeCriterion = criteria.resourceType === 'Observation'
+        ? criteria.rules.find((c) => c.field.element === CODETEXT)
+        : null;
+
       if (
         obsCodeCriterion?.field.selectedObservationCodes.coding.length === 1
       ) {
@@ -610,8 +624,7 @@ export class CohortService {
             criteria.condition === 'or' &&
             'resourceType' in preparedRule &&
             preparedRule.rules.length === 1 &&
-            preparedRule.rules[0].field.selectedObservationCodes.coding.length >
-              0 &&
+            preparedRule.rules[0].field.selectedObservationCodes?.coding.length > 0 &&
             !preparedRule.rules[0].field.value &&
             preparedRule.rules[0].field.value !== false
           ) {

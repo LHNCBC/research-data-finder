@@ -17,6 +17,9 @@ import { FormControlCollectorModule } from '../../shared/error-manager/form-cont
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PipesModule } from '../../shared/pipes/pipes.module';
+import {
+  SearchParametersModule
+} from '../search-parameters/search-parameters.module';
 
 @NgModule({
   declarations: [SelectRecordsPageComponent],
@@ -39,7 +42,8 @@ import { PipesModule } from '../../shared/pipes/pipes.module';
     FormControlCollectorModule,
     MatExpansionModule,
     MatTooltipModule,
-    PipesModule
+    PipesModule,
+    SearchParametersModule
   ]
 })
 export class SelectRecordsPageModule {}

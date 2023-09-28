@@ -8,6 +8,7 @@ import fhirpath from 'fhirpath';
 import { sortBy } from 'lodash-es';
 import { AutocompleteOption } from '../../modules/autocomplete/autocomplete.component';
 import Observation = fhir.Observation;
+import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 
 // List item, this can be a record or a group (array) of records
 export type ListItem = Resource | Resource[];
@@ -50,7 +51,8 @@ export class CartService {
     [resourceType: string]: Subject<ListData>;
   } = {};
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private fhirBackend: FhirBackendService) {
+  }
 
   /**
    * Adds records of the specified resource type to the card.
@@ -280,6 +282,15 @@ export class CartService {
   }
 
   /**
+   * Returns the resource type used to retrieve variables.
+   */
+  getVariableResourceType(): string {
+    return this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl)
+      ? 'Variable'
+      : 'Observation';
+  }
+
+  /**
    * Gets cart criteria to be saved for later.
    */
   getCartCriteria(): any {
@@ -292,8 +303,9 @@ export class CartService {
     // It's okay for the system to keep the entry, but we don't want to download
     // it to the cohort file.
     const variableData = {};
+    const variableResourceType = this.getVariableResourceType();
     Object.entries(this.variableData).forEach(([k, v]) => {
-      if (this.itemsByResourceType['Variable'].byId.has(k)) {
+      if (this.itemsByResourceType[variableResourceType].byId.has(k)) {
         variableData[k] = v;
       }
     });
@@ -322,9 +334,10 @@ export class CartService {
         this.itemsByResourceType['ResearchStudy']
       );
     }
-    if (this.itemsByResourceType['Variable']) {
-      this.getCartChangedSubject('Variable').next(
-        this.itemsByResourceType['Variable']
+    const variableResourceType = this.getVariableResourceType();
+    if (this.itemsByResourceType[variableResourceType]) {
+      this.getCartChangedSubject(variableResourceType).next(
+        this.itemsByResourceType[variableResourceType]
       );
     }
   }

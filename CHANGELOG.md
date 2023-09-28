@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.11.0] - 2023-09-11
+### Added
+- Using the "advanced search" UI for additional criteria.
+### Fixed
+- A bug in the search algorithm when ANDed criteria are ORed in the parent node.
+- Issues with saving and loading a cohort and criteria.
+
 ## [6.10.0] - 2023-09-11
 ### Added
 - Special case of sorting only the newly loaded items of the list of variables
