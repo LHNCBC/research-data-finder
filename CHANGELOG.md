@@ -7,7 +7,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Added
 - Using the "advanced search" UI for additional criteria.
 ### Fixed
-- A bug in the search algorithm: ANDed criteria may be ORed in the parent node.
+- A bug in the search algorithm when ANDed criteria may be ORed in the parent node.
 - Issues with saving and loading a cohort and criteria.
 
 ## [6.10.0] - 2023-09-11
