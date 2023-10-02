@@ -58,6 +58,9 @@ export class HomeComponent implements AfterViewInit {
     );
   }
 
+  /**
+   * Initiate login through OAuth2.
+   */
   onOauth2Login(): void {
     this.oauth2Token.login(this.fhirBackend.serviceBaseUrl);
   }
@@ -70,6 +73,9 @@ export class HomeComponent implements AfterViewInit {
     this.liveAnnouncer.announce('Logged out. Returning to settings page.');
   }
 
+  /**
+   * Log out of a server connected through OAuth2.
+   */
   onOauth2Logout(): void {
     this.oauth2Token.logout();
     this.returnToSettingsPage();
