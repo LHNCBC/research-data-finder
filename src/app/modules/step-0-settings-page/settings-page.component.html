@@ -30,7 +30,7 @@
       Basic authentication failed.
     </mat-error>
     <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('oauth2Required')">
-      OAuth2 authorization required. Please click the "OAuth2 login" button to login.
+      Authorization required. Please click the "login" button to login.
     </mat-error>
     <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('wrongUrl')">
       Please specify a valid FHIR server URL.

@@ -175,7 +175,7 @@ export class SettingsPageComponent implements OnDestroy {
           this.liveAnnouncer.announce('Basic authentication failed.');
           return { basicAuthFailed: true };
         } else if (status === ConnectionStatus.Oauth2Required) {
-          this.liveAnnouncer.announce('OAuth2 authorization required.');
+          this.liveAnnouncer.announce('Authorization required.');
           return { oauth2Required: true };
         } else {
           if (status === ConnectionStatus.Ready) {

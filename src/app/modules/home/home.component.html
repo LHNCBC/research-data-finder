@@ -15,7 +15,7 @@
            role="link"
            aria-label="OAuth2 login"
            (keydown.enter)="onOauth2Login()"
-           (click)="onOauth2Login()">OAuth2 login</div>
+           (click)="onOauth2Login()">Login</div>
       <div class="logout"
            tabIndex="0"
            *ngIf="oauth2Token.oauth2TokenValidated"
@@ -23,7 +23,7 @@
            role="link"
            aria-label="OAuth2 log out"
            (keydown.enter)="onOauth2Logout()"
-           (click)="onOauth2Logout()">OAuth2 log out</div>
+           (click)="onOauth2Logout()">Log out</div>
       <div class="logout"
            tabIndex="0"
            *ngIf="rasToken.rasTokenValidated"

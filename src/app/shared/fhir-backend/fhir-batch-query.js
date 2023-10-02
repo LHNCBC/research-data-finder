@@ -363,7 +363,7 @@ export class FhirBatchQuery extends EventTarget {
       }
       this._features.isFormatSupported = !metadata.error.includes('_format');
       const errorIncludesElements = metadata.error.includes('_elements');
-      if (errorIncludesElements || this._features.isFormatSupported) {
+      if (errorIncludesElements || !this._features.isFormatSupported) {
         // If it complains about '_format', set _features.isFormatSupported and make the /metadata request again.
         // If it complains about '_elements', make the /metadata request again without the '_elements' parameter.
         return this.checkMetadata(!errorIncludesElements);

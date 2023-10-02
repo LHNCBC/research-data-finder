@@ -73,7 +73,7 @@ export class HomeComponent implements AfterViewInit {
   onOauth2Logout(): void {
     this.oauth2Token.logout();
     this.returnToSettingsPage();
-    // Show "OAuth2 authorization required" error message below server input.
+    // Show "Authorization required" error message below server input.
     this.fhirBackend.initialized.next(ConnectionStatus.Oauth2Required);
     this.stepperComponent.settingsPageComponent.settingsFormGroup.get('serviceBaseUrl').updateValueAndValidity();
   }
