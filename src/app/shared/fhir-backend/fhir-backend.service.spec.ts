@@ -401,6 +401,7 @@ describe('FhirBatchQuery', () => {
     });
     // There are no preflight requests during the test
     fhirBatchQuery._maxTimeForPreflightRequest = 0;
+    fhirBatchQuery._features = {isFormatSupported: true};
   });
 
   afterEach(() => {
