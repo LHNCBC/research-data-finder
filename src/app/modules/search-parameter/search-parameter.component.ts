@@ -118,7 +118,7 @@ export class SearchParameterComponent
     this.selectedParameter = null;
 
     this.parameterName.valueChanges.subscribe((value) => {
-      const oldUseLoockupParameter = this.selectedParameter && this.useLookupParamValue;
+      const oldUseLookupParameter = this.selectedParameter && this.useLookupParamValue;
       const oldParamType = this.selectedParameter?.type;
       this.selectedParameter = this.selectedResourceType.searchParameters.find(
         (p) => p.displayName === value
@@ -130,7 +130,7 @@ export class SearchParameterComponent
             // the model to update with default values from a previous control
             // of a different type.
             emitModelToViewChange: !(
-              oldUseLoockupParameter !== this.useLookupParamValue
+              oldUseLookupParameter !== this.useLookupParamValue
               || oldParamType !== this.selectedParameter.type
             )
           }
