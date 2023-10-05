@@ -44,7 +44,7 @@ export class FhirServerSelectComponent
       url: 'https://lforms-fhir.nlm.nih.gov/baseR4'
     },
     {
-      description: 'dbGap',
+      description: 'dbGaP',
       url: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
     },
     {

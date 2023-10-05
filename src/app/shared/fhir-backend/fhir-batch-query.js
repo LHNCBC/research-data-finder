@@ -237,7 +237,16 @@ export class FhirBatchQuery extends EventTarget {
             url: this._serviceBaseUrl,
             body: JSON.stringify({
               resourceType: 'Bundle',
-              type: 'batch'
+              type: 'batch',
+              // Include an entry of the metadata query that we know would succeed if sent separately.
+              // The server might return status === "400 Bad Request" for the entry, even though the POST request
+              // itself returns with a 200, in which case the server does not support batch request.
+              entry: [{
+                request: {
+                  method: 'GET',
+                  url: this.metaDataQuery
+                }
+              }]
             }),
             logPrefix: 'Batch',
             combine: false,
@@ -256,7 +265,11 @@ export class FhirBatchQuery extends EventTarget {
             hasResearchStudy.value.data.entry &&
             hasResearchStudy.value.data.entry.length > 0;
           this._features.missingModifier = missingModifier.status === 'fulfilled';
-          this._features.batch = batch.status === 'fulfilled';
+          this._features.batch =
+            batch.status === 'fulfilled' &&
+            batch.value.data.entry &&
+            batch.value.data.entry.length > 0 &&
+            batch.value.data.entry[0].response?.status?.startsWith('200');
         })
         .then(() => {
           // On dbGaP server, only do certain initialization requests after login.
@@ -345,6 +358,11 @@ export class FhirBatchQuery extends EventTarget {
         return Promise.reject({
           status: UNSUPPORTED_VERSION, error: 'Unsupported FHIR version: ' + fhirVersion
         });
+      }
+      // Mark the metadata query url for later use in the batch query.
+      this.metaDataQuery = `metadata${elementsParam}`;
+      if (this._features.isFormatSupported) {
+        this.metaDataQuery += withElementsParam ? '&_format=json' : '?_format=json';
       }
     }, (metadata) => {
       // If initialization fails, do not cache initialization responses
