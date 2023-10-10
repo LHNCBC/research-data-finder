@@ -16,6 +16,8 @@ export class RasTokenService {
   // automatically move to next steps.
   public isRasCallbackNavigation = false;
 
+  public errorMessage = '';
+
   constructor(private http: HttpClient) {
     // If user is logged in and refreshes the page, we keep the login state.
     if (sessionStorage.getItem('dbgapTstToken')) {

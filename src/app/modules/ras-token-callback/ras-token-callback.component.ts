@@ -34,25 +34,38 @@ export class RasTokenCallbackComponent implements OnInit {
             console.log(data);
             this.error = null;
             this.rasToken.rasTokenValidated = true;
-            this.rasToken.isRasCallbackNavigation = true;
             sessionStorage.setItem('dbgapTstToken', data['message']['tst']);
-            const server = sessionStorage.getItem('dbgapRasLoginServer');
-            this.fhirBackend.serviceBaseUrl = server;
-            this.router.navigate(['/'], {
-              queryParams: {
-                'alpha-version': 'enable',
-                server
-              },
-              replaceUrl: true
-            });
           },
           (err) => {
-            this.rasToken.rasTokenValidated = false;
             this.error = err.error || 'TST decode error';
+            this.rasToken.rasTokenValidated = false;
+            this.rasToken.errorMessage = this.error;
+          },
+          () => {
+            this.goToStepper();
           }
         );
     } else {
       this.error = getUrlParam('error') || 'RAS error';
+      this.rasToken.rasTokenValidated = false;
+      this.rasToken.errorMessage = this.error;
+      this.goToStepper();
     }
+  }
+
+  /**
+   * Navigate back to the stepper.
+   */
+  private goToStepper(): void {
+    this.rasToken.isRasCallbackNavigation = true;
+    const server = sessionStorage.getItem('dbgapRasLoginServer');
+    this.fhirBackend.serviceBaseUrl = server;
+    this.router.navigate(['/'], {
+      queryParams: {
+        'alpha-version': 'enable',
+        server
+      },
+      replaceUrl: true
+    });
   }
 }
