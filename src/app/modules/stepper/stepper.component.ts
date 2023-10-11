@@ -263,9 +263,9 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
                 if (!this.rasToken.rasTokenValidated) {
                   this.dialog.open(AlertDialogComponent, {
                     data: {
-                      header: 'RAS login failed',
+                      header: 'Problem obtaining authorization for research study data',
                       content:
-                      this.rasToken.errorMessage,
+                      'Error message from dbGaP or CIT: ' + this.rasToken.errorMessage,
                       hasCancelButton: false
                     }
                   });
