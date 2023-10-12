@@ -36,11 +36,10 @@ Try it out on the [demo page](https://lhcforms.nlm.nih.gov/fhir/research-data-fi
         npm run analyze-gzip
 
 ## Connecting to a new server that requires OAuth2
-1. If you want to connect to your own OAuth2 server, you will need to
+If you want to connect to your own OAuth2 server, you will need to
 have a server program which holds your client secret and handles OAuth
-login calls from RDF.
-2. Sample code for the server program (sample for Google Health, nodejs
-environment):
+login calls from RDF. Here is some sample code for the server program,
+for the case of a Google Health & Node.js environment:
    1. app.js
    ```JavaScript
    const express = require('express');
