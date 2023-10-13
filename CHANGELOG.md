@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.12.0] - 2023-10-13
+### Added
+- OAuth2 support.
+
 ## [6.11.0] - 2023-09-11
 ### Added
 - Using the "advanced search" UI for additional criteria.
