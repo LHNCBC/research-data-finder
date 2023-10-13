@@ -391,7 +391,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       rawCriteria: this.cohort.criteria,
       cartCriteria: this.cart.getCartCriteria(),
       additionalCriteria: this.selectRecordsComponent?.additionalCriteria
-        ?.value,
+        ?.queryCtrl.value,
       researchStudies:
         this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
     };
@@ -455,10 +455,10 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       maxPatientCount,
       rawCriteria,
       cartCriteria,
-      additionalCriteria,
       data,
       researchStudies
     } = rawData;
+    let additionalCriteria = rawData.additionalCriteria;
     if (serviceBaseUrl !== this.fhirBackend.serviceBaseUrl) {
       alert(
         'Error: Inapplicable data, because it was downloaded from another server.'
@@ -482,6 +482,16 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     if (isCartApproach) {
       // Set max field value.
       this.selectRecordsComponent.maxPatientsNumber.setValue(maxPatientCount);
+      // Update criteria object if the cohort was downloaded from an older version.
+      if (additionalCriteria.parameters) {
+        additionalCriteria = {
+          condition: 'and',
+          rules: [{
+            resourceType: 'Patient',
+            rules: additionalCriteria.parameters.map(item => ({field: item}))
+          }]
+        };
+      }
       // Restore resources, controls and lookups in carts and in 'Additional Criteria' tab.
       this.selectRecordsComponent.setCartCriteria(
         cartCriteria,
