@@ -70,13 +70,19 @@ export class PullDataService {
   combineObservationCodes(
     observationCodeArray: SelectedObservationCodes[]
   ): SelectedObservationCodes {
+    const codeCounts = observationCodeArray.reduce((res, observationCodeItem) => {
+      observationCodeItem.items.forEach(item => {
+        res[item] = res[item] ? res[item] + 1 : 1;
+      });
+      return res;
+    }, {});
     return observationCodeArray.reduce(
       (result, cc) => {
         cc.items.forEach((item, index) => {
-          if (result.items.indexOf(item) === -1) {
-            result.items.push(item);
-            result.coding.push(cc.coding[index]);
-          }
+          result.items.push(codeCounts[item] > 1
+            ? `${item} | ${cc.coding[index].code}` + (cc.coding[index].system ? ` | ${cc.coding[index].system}` : '')
+            : item);
+          result.coding.push(cc.coding[index]);
         });
         return result;
       },

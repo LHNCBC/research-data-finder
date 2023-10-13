@@ -9,6 +9,8 @@ export const HTTP_ABORT = 0;
 export const UNSUPPORTED_VERSION = -1;
 // The value of property status in the rejection object when the "metadata" query indicated basic authentication failure
 export const BASIC_AUTH_REQUIRED = -2;
+// The value of property status in the rejection object when the "metadata" query indicated that OAuth2 is required
+export const OAUTH2_REQUIRED = -3;
 // Request priorities (numbers by which requests in the pending queue are sorted)
 export const PRIORITIES = {
   LOW: 100,
@@ -179,7 +181,7 @@ export class FhirBatchQuery extends EventTarget {
     if (this._initializationPromise) {
       return this._initializationPromise;
     }
-    this._features = {};
+    this._features = {isFormatSupported: true};
     // if (this._isDbgap) {
     //   this._initializationPromise = Promise.allSettled([
     //     // Query to extract the consent group that must be included as _security param in particular queries.
@@ -221,39 +223,8 @@ export class FhirBatchQuery extends EventTarget {
     // Common options for initialization requests
     // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
     const options = this.getCommonInitRequestOptions();
-    // useInitContext=false, The request is cached as the same name before and after login, so we don't make the request again after login.
-    const options_noInitContext = this.getCommonInitRequestOptions(false);
 
-    // Below are initialization requests that are always made.
-    const initializationRequests =
-      // Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
-      // Do not cache /metadata query that requires basic authentication.
-      // Credentials must be re-entered if user closes and opens the browser.
-      (this.initContext === 'basic-auth'
-        ? this.get('metadata?_elements=fhirVersion', options)
-        : this.getWithCache('metadata?_elements=fhirVersion', options_noInitContext))
-      .then((metadata) => {
-        const fhirVersion = metadata.data.fhirVersion;
-        this._versionName = getVersionNameByNumber(fhirVersion);
-        if (!this._versionName) {
-          return Promise.reject({
-            status: UNSUPPORTED_VERSION, error: 'Unsupported FHIR version: ' + fhirVersion
-          });
-        }
-      }, (metadata) => {
-        // If initialization fails, do not cache initialization responses
-        this.clearCacheByName(this.getInitCacheName());
-        // Abort other initialization requests
-        this.clearPendingRequests();
-        if (metadata.status === 401 && metadata.wwwAuthenticate?.startsWith('Basic')) {
-          return Promise.reject({
-            status: BASIC_AUTH_REQUIRED, error: 'basic authorization required'
-          });
-        }
-        return Promise.reject({
-          error: 'Could not retrieve the FHIR server\'s metadata. Please make sure you are entering the base URL for a FHIR server.'
-        });
-      })
+    const initializationRequests = this.checkMetadata()
       .then(() => {
         return Promise.allSettled([
           // Check if server has Research Study data
@@ -266,7 +237,16 @@ export class FhirBatchQuery extends EventTarget {
             url: this._serviceBaseUrl,
             body: JSON.stringify({
               resourceType: 'Bundle',
-              type: 'batch'
+              type: 'batch',
+              // Include an entry of the metadata query that we know would succeed if sent separately.
+              // The server might return status === "400 Bad Request" for the entry, even though the POST request
+              // itself returns with a 200, in which case the server does not support batch request.
+              entry: [{
+                request: {
+                  method: 'GET',
+                  url: this.metaDataQuery
+                }
+              }]
             }),
             logPrefix: 'Batch',
             combine: false,
@@ -285,10 +265,14 @@ export class FhirBatchQuery extends EventTarget {
             hasResearchStudy.value.data.entry &&
             hasResearchStudy.value.data.entry.length > 0;
           this._features.missingModifier = missingModifier.status === 'fulfilled';
-          this._features.batch = batch.status === 'fulfilled';
+          this._features.batch =
+            batch.status === 'fulfilled' &&
+            batch.value.data.entry &&
+            batch.value.data.entry.length > 0 &&
+            batch.value.data.entry[0].response?.status?.startsWith('200');
         })
         .then(() => {
-          // On dbGaP server, only do initializationRequests2 requests after login.
+          // On dbGaP server, only do certain initialization requests after login.
           if (this.initContext === 'dbgap-pre-login') {
             // Check if server has at least one Research Study with Research Subjects.
             // No need to make this request if there is no Research Study at all.
@@ -349,6 +333,63 @@ export class FhirBatchQuery extends EventTarget {
       });
 
     return initializationRequests;
+  }
+
+  /**
+   * Retrieve the information about a server's capabilities (https://www.hl7.org/fhir/http.html#capabilities)
+   * @param {boolean} withElementsParam - whether to include _elements parameter in the metadata query.
+   * @returns {Promise<void>}
+   */
+  checkMetadata(withElementsParam = true) {
+    // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
+    const options = this.getCommonInitRequestOptions();
+    // useInitContext=false, The request is cached as the same name before and after login, so we don't make the request again after login.
+    const options_noInitContext = this.getCommonInitRequestOptions(false);
+    const elementsParam = withElementsParam ? '?_elements=fhirVersion' : '';
+    // Do not cache /metadata query that requires basic authentication.
+    // Credentials must be re-entered if user closes and opens the browser.
+    return (this.initContext === 'basic-auth'
+      ? this.get(`metadata${elementsParam}`, options)
+      : this.getWithCache(`metadata${elementsParam}`, options_noInitContext))
+    .then((metadata) => {
+      const fhirVersion = metadata.data.fhirVersion;
+      this._versionName = getVersionNameByNumber(fhirVersion);
+      if (!this._versionName) {
+        return Promise.reject({
+          status: UNSUPPORTED_VERSION, error: 'Unsupported FHIR version: ' + fhirVersion
+        });
+      }
+      // Mark the metadata query url for later use in the batch query.
+      this.metaDataQuery = `metadata${elementsParam}`;
+      if (this._features.isFormatSupported) {
+        this.metaDataQuery += withElementsParam ? '&_format=json' : '?_format=json';
+      }
+    }, (metadata) => {
+      // If initialization fails, do not cache initialization responses
+      this.clearCacheByName(this.getInitCacheName());
+      // Abort other initialization requests
+      this.clearPendingRequests();
+      if (metadata.status === 401 && metadata.wwwAuthenticate?.startsWith('Basic')) {
+        return Promise.reject({
+          status: BASIC_AUTH_REQUIRED, error: 'basic authentication required'
+        });
+      }
+      if (metadata.status === 401 && metadata.wwwAuthenticate?.startsWith('Bearer')) {
+        return Promise.reject({
+          status: OAUTH2_REQUIRED, error: 'oauth2 required'
+        });
+      }
+      this._features.isFormatSupported = !metadata.error.includes('_format');
+      const errorIncludesElements = metadata.error.includes('_elements');
+      if (errorIncludesElements || !this._features.isFormatSupported) {
+        // If it complains about '_format', set _features.isFormatSupported and make the /metadata request again.
+        // If it complains about '_elements', make the /metadata request again without the '_elements' parameter.
+        return this.checkMetadata(!errorIncludesElements);
+      }
+      return Promise.reject({
+        error: 'Could not retrieve the FHIR server\'s metadata. Please make sure you are entering the base URL for a FHIR server.'
+      });
+    })
   }
 
   /**
@@ -749,7 +790,7 @@ export class FhirBatchQuery extends EventTarget {
         sendUrl.searchParams.append('api_key', this._apiKey);
       }
 
-      if (!sendUrl.searchParams.has('_format')) {
+      if (this._features.isFormatSupported && !sendUrl.searchParams.has('_format')) {
         sendUrl.searchParams.append('_format', 'json');
       }
 
@@ -931,7 +972,7 @@ export class FhirBatchQuery extends EventTarget {
       return data.issue.map((item) => item.diagnostics).join('\n') || '';
     }
 
-    return 'Unknown Error';
+    return data?.error?.message || 'Unknown Error';
   }
 
   clearPendingRequests() {
