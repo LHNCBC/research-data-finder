@@ -312,16 +312,12 @@ export class SelectRecordsPageComponent
    * Searches for a list of Patient resources that match the records in the cart.
    */
   searchForPatients(): void {
-    const hasVariableCriteria = this.cart.getListItems(this.cart.getVariableResourceType())?.length > 0;
     const criteria: Criteria = this.getCriteriaFromControls();
     this.cohort.searchForPatients(
       criteria,
       this.maxPatientsNumber.value,
-      hasVariableCriteria
-        ? null
-        : []
-          .concat(...(this.cart.getListItems('ResearchStudy') || []))
-          .map((r) => r.id)
+      [].concat(...(this.cart.getListItems('ResearchStudy') || []))
+        .map((r) => r.id)
     );
   }
 

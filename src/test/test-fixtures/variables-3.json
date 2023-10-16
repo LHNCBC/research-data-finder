@@ -1,35 +1,50 @@
 [
-  4,
+  3,
   [
-    "phv00325554.v1.p1",
-    "phv00347548.v1.p1",
-    "phv00347549.v1.p1"
+    "phv00492021.v1.p1",
+    "phv00492022.v1.p1",
+    "phv00492024.v1.p1"
   ],
   null,
   [
     [
-      "Subject age",
-      "phs001457.v1",
-      "pht007054.v1",
-      "MISC",
-      "integer",
-      "years"
+      "phv00492021.v1.p1",
+      "Affection status",
+      "",
+      "",
+      "phs002409.v1.p1",
+      "FHIR Test Study's ALPHA",
+      "",
+      "",
+      "",
+      "",
+      ""
     ],
     [
-      "Subject's weight",
-      "phs001459.v1",
-      "pht007311.v1",
-      "BDYWGT.ATOM",
-      "decimal, encoded value",
-      "pounds"
+      "phv00492022.v1.p1",
+      "Affection status in PEAK",
+      "",
+      "",
+      "phs002409.v1.p1",
+      "FHIR Test Study's ALPHA",
+      "",
+      "",
+      "",
+      "",
+      ""
     ],
     [
-      "Subject age",
-      "phs001459.v1",
-      "pht007311.v1",
-      "MISC",
-      "integer",
-      "years"
+      "phv00492024.v1.p1",
+      "Age at Baseline",
+      "",
+      "",
+      "phs002409.v1.p1",
+      "FHIR Test Study's ALPHA",
+      "",
+      "",
+      "",
+      "",
+      ""
     ]
   ]
 ]
