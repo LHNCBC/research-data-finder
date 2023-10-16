@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.12.2] - 2023-10-16
+### Fixed
+- Go to "Additional Criteria" tab and show errors, if user search for patients
+  from another tab while "Additional Criteria" tab has validation errors.
+
 ## [6.12.1] - 2023-10-13
 ### Added
 - Handle RAS error in RDF callback.
