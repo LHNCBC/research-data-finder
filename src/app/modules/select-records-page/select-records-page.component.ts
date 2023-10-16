@@ -197,8 +197,8 @@ export class SelectRecordsPageComponent
    * Shows errors for existing formControls
    */
   showErrors(): void {
-    // Go to "Additional Criteria" tab.
-    this.tabGroup.selectedIndex = 2;
+    // Go to the last tab, which is "Additional Criteria".
+    this.tabGroup.selectedIndex = this.visibleResourceTypes.length;
     this.additionalCriteria.errorManager.showErrors();
   }
 
