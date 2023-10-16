@@ -9,8 +9,6 @@ import Resource = fhir.Resource;
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';
-import { ErrorManager } from '../../shared/error-manager/error-manager.service';
-import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
@@ -27,14 +25,7 @@ import {
 @Component({
   selector: 'app-select-records-page',
   templateUrl: './select-records-page.component.html',
-  styleUrls: ['./select-records-page.component.less'],
-  providers: [
-    ErrorManager,
-    {
-      provide: ErrorStateMatcher,
-      useExisting: ErrorManager
-    }
-  ]
+  styleUrls: ['./select-records-page.component.less']
 })
 export class SelectRecordsPageComponent
   extends BrowseRecordsPageComponent
@@ -53,7 +44,6 @@ export class SelectRecordsPageComponent
     public columnDescriptions: ColumnDescriptionsService,
     public selectRecords: SelectRecordsService,
     private liveAnnouncer: LiveAnnouncer,
-    private errorManager: ErrorManager,
     public cohort: CohortService,
     public cart: CartService
   ) {
@@ -200,14 +190,16 @@ export class SelectRecordsPageComponent
    * Checks for errors
    */
   hasErrors(): boolean {
-    return this.errorManager.errors !== null;
+    return this.additionalCriteria.errorManager.errors !== null;
   }
 
   /**
    * Shows errors for existing formControls
    */
   showErrors(): void {
-    this.errorManager.showErrors();
+    // Go to "Additional Criteria" tab.
+    this.tabGroup.selectedIndex = 2;
+    this.additionalCriteria.errorManager.showErrors();
   }
 
   /**
