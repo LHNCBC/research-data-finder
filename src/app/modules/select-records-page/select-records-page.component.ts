@@ -18,6 +18,8 @@ import { MatTabGroup } from '@angular/material/tabs';
 import {
   SearchParametersComponent
 } from '../search-parameters/search-parameters.component';
+import {ErrorStateMatcher} from "@angular/material/core";
+import {ErrorManager} from "../../shared/error-manager/error-manager.service";
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -25,7 +27,14 @@ import {
 @Component({
   selector: 'app-select-records-page',
   templateUrl: './select-records-page.component.html',
-  styleUrls: ['./select-records-page.component.less']
+  styleUrls: ['./select-records-page.component.less'],
+  providers: [
+    ErrorManager,
+    {
+      provide: ErrorStateMatcher,
+      useExisting: ErrorManager
+    }
+  ]
 })
 export class SelectRecordsPageComponent
   extends BrowseRecordsPageComponent
@@ -44,6 +53,7 @@ export class SelectRecordsPageComponent
     public columnDescriptions: ColumnDescriptionsService,
     public selectRecords: SelectRecordsService,
     private liveAnnouncer: LiveAnnouncer,
+    private errorManager: ErrorManager,
     public cohort: CohortService,
     public cart: CartService
   ) {
@@ -190,16 +200,18 @@ export class SelectRecordsPageComponent
    * Checks for errors
    */
   hasErrors(): boolean {
-    return this.additionalCriteria.errorManager.errors !== null;
+    return this.errorManager.errors !== null;
   }
 
   /**
    * Shows errors for existing formControls
    */
   showErrors(): void {
-    // Go to the last tab, which is "Additional Criteria".
-    this.tabGroup.selectedIndex = this.visibleResourceTypes.length;
-    this.additionalCriteria.errorManager.showErrors();
+    this.errorManager.showErrors();
+    // Go to the last tab, which is "Additional Criteria", if it has validation errors.
+    if (this.additionalCriteria.hasErrors()) {
+      this.tabGroup.selectedIndex = this.visibleResourceTypes.length;
+    }
   }
 
   /**
