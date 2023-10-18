@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.12.2] - 2023-10-18
+### Changed
+- Show "browse public data" option only if it's useful.
+
 ## [6.12.1] - 2023-10-13
 ### Added
 - Handle RAS error in RDF callback.
