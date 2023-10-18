@@ -12,10 +12,17 @@ import { RasTokenCallbackModule } from './modules/ras-token-callback/ras-token-c
 import { LaunchModule } from './modules/launch/launch.module';
 import { InitializeSpinnerModule } from './shared/initialize-spinner/initialize-spinner.module';
 import { AnnouncerModule } from './shared/announcer/announcer.module';
+import {
+  MAT_TOOLTIP_DEFAULT_OPTIONS,
+  MAT_TOOLTIP_DEFAULT_OPTIONS_FACTORY
+} from "@angular/material/tooltip";
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
 };
+
+const myCustomTooltipDefaults = MAT_TOOLTIP_DEFAULT_OPTIONS_FACTORY();
+myCustomTooltipDefaults.disableTooltipInteractivity = true;
 
 /**
  * Application initializer.
@@ -40,6 +47,10 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: appearance
+    },
+    {
+      provide: MAT_TOOLTIP_DEFAULT_OPTIONS,
+      useValue: myCustomTooltipDefaults
     },
     {
       provide: APP_INITIALIZER,
