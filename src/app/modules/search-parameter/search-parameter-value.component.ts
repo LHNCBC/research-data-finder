@@ -20,7 +20,9 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 /**
  * data type used for this control
  */
-export interface ObservationTestValue {
+export interface SearchParameterValue {
+  // TODO: "observationDataType" should be renamed to "dataType", but this will
+  //  affect backwards compatibility.
   observationDataType: string;
   testValuePrefix: string;
   testValueModifier: string;
@@ -31,22 +33,30 @@ export interface ObservationTestValue {
 }
 
 /**
- * Component for from/to date inputs combined together as one control
+ * Component for entering the value of a search parameter of a Quantity,
+ * CodeableConcept, or String data type.
  */
 @Component({
-  selector: 'app-observation-test-value',
-  templateUrl: './observation-test-value.component.html',
-  styleUrls: ['./observation-test-value.component.less'],
-  providers: createControlValueAccessorProviders(ObservationTestValueComponent)
+  selector: 'app-search-parameter-value',
+  templateUrl: './search-parameter-value.component.html',
+  styleUrls: ['./search-parameter-value.component.less'],
+  providers: createControlValueAccessorProviders(SearchParameterValueComponent)
 })
-export class ObservationTestValueComponent
-  extends BaseControlValueAccessor<ObservationTestValue>
+export class SearchParameterValueComponent
+  extends BaseControlValueAccessor<SearchParameterValue>
   implements OnInit, OnChanges {
   @Input() datatype: string;
   @Input() observationCodes: string[] = [];
   @Input() loincCodes: string[] = [];
   @Input() unitList: AutocompleteOption[];
   @Input() required = true;
+  // Label for the value input field.
+  @Input() valueLabelText = 'Test value';
+  // Label for the unit input field.
+  @Input() unitLabelText = 'Test value unit';
+  // Placeholder for the value input field. If not specified, the default
+  // placeholder is used, which depends on the data type.
+  @Input() valuePlaceholderText = '';
   selectedDatatype = 'Quantity';
   testValueComparator = 'Quantity - ';
   showAddLineButton = false;
@@ -150,7 +160,7 @@ export class ObservationTestValueComponent
   /**
    * Part of the ControlValueAccessor interface
    */
-  writeValue(value: ObservationTestValue): void {
+  writeValue(value: SearchParameterValue): void {
     this.form.patchValue(
       value || {
         testValuePrefix: '',

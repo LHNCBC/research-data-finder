@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.12.2] - 2023-10-19
+### Fixed
+- Names of search parameter value fields.
+- Target javascript version: es2017 -> es2015.
+
 ## [6.12.1] - 2023-10-13
 ### Added
 - Handle RAS error in RDF callback.
