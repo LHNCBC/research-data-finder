@@ -622,21 +622,29 @@ export class FhirBackendService implements HttpBackend {
                   this.injector.get(CohortService).createCohortMode !==
                     CreateCohortMode.NO_COHORT
                 ) {
-                  this.dialogRef = this.dialog.open(AlertDialogComponent, {
-                    data: {
-                      header: 'Session Expired',
-                      content:
-                        'It looks like the session with dbGaP has expired.' +
-                        ' You will be returned to the login page so you can login and select consent groups again.',
-                      hasCancelButton: true
-                    }
-                  });
-                  this.dialogRef.afterClosed().subscribe((isOk) => {
-                    if (isOk) {
-                      this.dbgapRelogin$.next();
-                    }
-                    this.dialogRef = null;
-                  });
+                  // Current focus might be in an autocomplete-lhc input field, which tries to
+                  // refocus the input when it's blurred. We let it blur, but open the dialog
+                  // after a delay, to make sure the focus ends up in the dialog.
+                  (document.activeElement as HTMLElement).blur();
+                  setTimeout(() => {
+                    this.liveAnnouncer.announce('A dialog has opened.');
+                    this.dialogRef = this.dialog.open(AlertDialogComponent, {
+                      data: {
+                        header: 'Session Expired',
+                        content:
+                          'It looks like the session with dbGaP has expired.' +
+                          ' You will be returned to the login page so you can login and select consent groups again.',
+                        hasCancelButton: true
+                      }
+                    });
+                    this.dialogRef.afterClosed().subscribe((isOk) => {
+                      if (isOk) {
+                        this.dbgapRelogin$.next();
+                      }
+                      this.dialogRef = null;
+                    });
+                  }, 10);
+
                 } else if (status >= 500 && status < 600) {
                   this.dialog.open(AlertDialogComponent, {
                     data: {

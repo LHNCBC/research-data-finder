@@ -89,27 +89,28 @@ export class SettingsPageComponent implements OnDestroy {
    */
   showBatchIssueDialog(): void {
     if (!this.dialogRef) {
-      this.dialogRef = this.dialog.open(AlertDialogComponent, {
-        data: {
-          header: 'Disable batch requests?',
-          content:
-            'We are experiencing problems with batch requests.' +
-            ' Clicking "Okay" will disable batch requests, and may improve performance.' +
-            ' Clicking "Cancel" will mean that we will continue to try batch requests,' +
-            " and if a batch request doesn't work, we will try to resend the requests" +
-            ' in that batch separately.' +
-            ' You can also reduce the number of requests per batch in the settings step.',
-          hasCancelButton: true
-        }
-      });
-      this.dialogRef.afterClosed().subscribe((isOk) => {
-        if (isOk) {
-          this.settingsFormGroup.get('maxRequestsPerBatch').setValue(1);
-          this.updateFhirBackendSetting('maxRequestsPerBatch');
-        }
-        // Do not clear the dialog reference to show it once
-        // this.dialogRef = null;
-      });
+      (document.activeElement as HTMLElement).blur();
+      setTimeout(() => {
+        this.dialogRef = this.dialog.open(AlertDialogComponent, {
+          data: {
+            header: 'Disable batch requests?',
+            content:
+              'We are experiencing problems with batch requests.' +
+              ' Clicking "Okay" will disable batch requests, and may improve performance.' +
+              ' Clicking "Cancel" will mean that we will continue to try batch requests,' +
+              " and if a batch request doesn't work, we will try to resend the requests" +
+              ' in that batch separately.' +
+              ' You can also reduce the number of requests per batch in the settings step.',
+            hasCancelButton: true
+          }
+        });
+        this.dialogRef.afterClosed().subscribe((isOk) => {
+          if (isOk) {
+            this.settingsFormGroup.get('maxRequestsPerBatch').setValue(1);
+            this.updateFhirBackendSetting('maxRequestsPerBatch');
+          }
+        });
+      }, 10);
     }
   }
 
