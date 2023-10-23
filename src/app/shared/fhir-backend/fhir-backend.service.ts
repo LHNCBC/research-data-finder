@@ -17,6 +17,7 @@ import {
   HTTP_ABORT,
   UNSUPPORTED_VERSION,
   BASIC_AUTH_REQUIRED,
+  OAUTH2_REQUIRED,
   PRIORITIES as FhirBatchQueryPriorities
 } from './fhir-batch-query';
 import definitionsIndex from '../definitions/index.json';
@@ -37,6 +38,7 @@ import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
 import fhirpath from 'fhirpath';
 import Resource = fhir.Resource;
 import Bundle = fhir.Bundle;
+import {Oauth2TokenService} from "../oauth2-token/oauth2-token.service";
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -49,6 +51,7 @@ export enum ConnectionStatus {
   Error,
   UnsupportedVersion,
   BasicAuthFailed,
+  Oauth2Required,
   Disconnect
 }
 
@@ -102,6 +105,10 @@ export class FhirBackendService implements HttpBackend {
       this.fhirService.setSmartConnection(null);
       this._isSmartOnFhir = false;
       this.fhirClient.withCredentials = false;
+      // Logging out of OAuth2 when changing server
+      const oauth2Token = this.injector.get(Oauth2TokenService)
+      oauth2Token.oauth2TokenValidated && oauth2Token.logout();
+      oauth2Token.isOauth2Required = false;
       // Logging out of RAS when changing server
       (isRasLogoutNeeded
         ? // Access to RasTokenService via injector to avoid circular dependency
@@ -366,21 +373,26 @@ export class FhirBackendService implements HttpBackend {
           : Promise.resolve();
       })
       .then(() => {
-        // Set authorization header
         const isDbgap = this.isDbgap(serviceBaseUrl || this.serviceBaseUrl);
+        const isRasLoggedIn = this.injector.get(RasTokenService).rasTokenValidated;
+        const isOauth2LoggedIn = this.injector.get(Oauth2TokenService).oauth2TokenValidated;
+        // Set authorization header.
+        let authorizationHeader;
         const dbgapTstToken =
           isDbgap && sessionStorage.getItem('dbgapTstToken');
-        const authorizationHeader = dbgapTstToken
-          ? 'Bearer ' + dbgapTstToken
-          : (this.smartConnectionSuccess &&
+        if (dbgapTstToken) {
+          authorizationHeader = 'Bearer ' + dbgapTstToken
+        } else if (isOauth2LoggedIn) {
+          authorizationHeader = 'Bearer ' + sessionStorage.getItem('oauth2AccessToken');
+        } else {
+          authorizationHeader = (this.smartConnectionSuccess &&
               this.fhirService.getSmartConnection().getAuthorizationHeader()) ||
             null;
+        }
         this.fhirClient.setAuthorizationHeader(authorizationHeader);
 
-        const isRasLoggedIn = this.injector.get(RasTokenService)
-          .rasTokenValidated;
         const initializeContext =
-          isRasLoggedIn || this.smartConnectionSuccess
+          isRasLoggedIn || isOauth2LoggedIn || this.smartConnectionSuccess
             ? 'after-login'
             : isDbgap && !isRasLoggedIn && this.isAlphaVersion
             ? 'dbgap-pre-login'
@@ -449,6 +461,24 @@ export class FhirBackendService implements HttpBackend {
             initializeContext = 'basic-auth';
             this.makeInitializationCalls(serviceBaseUrl, initializeContext);
           }
+        } else if (err.status === OAUTH2_REQUIRED) {
+          this.injector.get(Oauth2TokenService).isOauth2Required = true;
+          const dialogRef = this.dialog.open(AlertDialogComponent, {
+            data: {
+              header: 'OAuth2 Authorization Required',
+              content:
+                'This server requires authorization through OAuth2.' +
+                ' You will be redirected to the authorization page.',
+              hasCancelButton: true
+            }
+          });
+          dialogRef.afterClosed().subscribe((isOk) => {
+            if (isOk) {
+              this.injector.get(Oauth2TokenService).login(this.serviceBaseUrl);
+            } else {
+              this.initialized.next(ConnectionStatus.Oauth2Required);
+            }
+          });
         } else if (err.status !== HTTP_ABORT) {
           this.initialized.next(
             err.status === UNSUPPORTED_VERSION

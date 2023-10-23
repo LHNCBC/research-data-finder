@@ -3,9 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.11.1] - 2023-10-11
+## [6.12.2] - 2023-10-23
 ### Fixed
-- Moved action button's tooltip to the right, so it doesn't block next row.
+- Tooltip for the "add to cart" button blocks next row button.
+
+## [6.12.1] - 2023-10-13
+### Added
+- Handle RAS error in RDF callback.
+
+## [6.12.0] - 2023-10-13
+### Added
+- OAuth2 support.
 
 ## [6.11.0] - 2023-09-11
 ### Added

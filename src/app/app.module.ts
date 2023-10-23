@@ -16,6 +16,7 @@ import {
   MAT_TOOLTIP_DEFAULT_OPTIONS,
   MAT_TOOLTIP_DEFAULT_OPTIONS_FACTORY
 } from "@angular/material/tooltip";
+import {Oauth2TokenCallbackModule} from "./modules/oauth2-token-callback/oauth2-token-callback.module";
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
@@ -40,6 +41,7 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
     AppRoutingModule,
     HomeModule,
     RasTokenCallbackModule,
+    Oauth2TokenCallbackModule,
     LaunchModule,
     InitializeSpinnerModule
   ],

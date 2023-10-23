@@ -26,6 +26,7 @@ import { SelectOptions } from '../step-1-select-an-area-of-interest/select-an-ar
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpClientModule } from '@angular/common/http';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
+import {MatDialogModule} from "@angular/material/dialog";
 
 @Component({
   selector: 'app-select-an-area-of-interest',
@@ -93,7 +94,8 @@ describe('StepperComponent', () => {
         MatStepperModule,
         MatButtonModule,
         NoopAnimationsModule,
-        MatIconTestingModule
+        MatIconTestingModule,
+        MatDialogModule
       ],
       providers: [
         {
