@@ -243,7 +243,6 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
-   * Creates and initializes an instance of FhirBackendService
    * @param defaultBackend - default Angular final HttpHandler which uses
    *   XMLHttpRequest to send requests to a backend server.
    * @param fhirService a service which holds the SMART on FHIR connection client
@@ -261,20 +260,18 @@ export class FhirBackendService implements HttpBackend {
     private injector: Injector,
     private liveAnnouncer: LiveAnnouncer,
     private dialog: MatDialog
-  ) {
+  ) {}
+
+  /**
+   * Creates and initializes an instance of FhirBackendService.
+   * This is moved out of the constructor and now called from HomeComponent, so that
+   * the service is not initialized in the token callback routes.
+   */
+  init(): void {
     this.isCacheEnabled = sessionStorage.getItem('isCacheEnabled') !== 'false';
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
-    // This check is necessary because we are loading the entire application
-    // with /request-redirect-token-callback, which causes FhirBackend to
-    // initialize with the default server (because the server parameter is
-    // missing from the URL search string). The better solution would be to use
-    // lazy loading of the modules.
-    const serviceBaseUrl = /\/request-redirect-token-callback\/?\?/.test(
-      window.location.href
-    )
-      ? sessionStorage.getItem('dbgapRasLoginServer')
-      : getUrlParam('server') || defaultServer;
+    const serviceBaseUrl = getUrlParam('server') || defaultServer;
     this.fhirClient = new FhirBatchQuery({
       serviceBaseUrl
     });
@@ -282,7 +279,9 @@ export class FhirBackendService implements HttpBackend {
       filter((status) => status === ConnectionStatus.Ready),
       map(() => this.getCurrentDefinitions())
     );
+    this.initializeFhirBatchQuery(serviceBaseUrl);
   }
+
   // Whether the connection to server is initialized.
   initialized = new BehaviorSubject(ConnectionStatus.Pending);
   currentDefinitions$: Observable<any>;
@@ -543,9 +542,9 @@ export class FhirBackendService implements HttpBackend {
    * Research Data Finder is used for that.
    */
   handle(request: HttpRequest<any>): Observable<HttpEvent<any>> {
-    if (
-      !serviceBaseUrlRegExp.test(request.url) &&
-      !request.url.startsWith(this.serviceBaseUrl)
+    if (!this.fhirClient ||
+      (!serviceBaseUrlRegExp.test(request.url) &&
+      !request.url.startsWith(this.serviceBaseUrl))
     ) {
       // If it is not a request to the FHIR server,
       // pass the request to the default Angular backend.

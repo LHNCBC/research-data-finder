@@ -22,7 +22,10 @@ export class HomeComponent implements AfterViewInit {
     public fhirBackend: FhirBackendService,
     private liveAnnouncer: LiveAnnouncer,
     public oauth2Token: Oauth2TokenService
-  ) {}
+  ) {
+    // Initialize FhirBackendService only on the default route which uses HomeComponent.
+    fhirBackend.init();
+  }
 
   openChangelog(): void {
     window.open(

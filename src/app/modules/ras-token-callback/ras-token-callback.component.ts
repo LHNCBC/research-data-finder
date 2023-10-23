@@ -59,7 +59,6 @@ export class RasTokenCallbackComponent implements OnInit {
   private goToStepper(): void {
     this.rasToken.isRasCallbackNavigation = true;
     const server = sessionStorage.getItem('dbgapRasLoginServer');
-    this.fhirBackend.serviceBaseUrl = server;
     this.router.navigate(['/'], {
       queryParams: {
         'alpha-version': 'enable',
