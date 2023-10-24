@@ -267,7 +267,7 @@ export class FhirBackendService implements HttpBackend {
    * This is moved out of the constructor and now called from HomeComponent, so that
    * the service is not initialized in the token callback routes.
    */
-  init(): void {
+  init(): Promise<void> {
     this.isCacheEnabled = sessionStorage.getItem('isCacheEnabled') !== 'false';
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
@@ -279,7 +279,7 @@ export class FhirBackendService implements HttpBackend {
       filter((status) => status === ConnectionStatus.Ready),
       map(() => this.getCurrentDefinitions())
     );
-    this.initializeFhirBatchQuery(serviceBaseUrl);
+    return this.initializeFhirBatchQuery(serviceBaseUrl);
   }
 
   // Whether the connection to server is initialized.
