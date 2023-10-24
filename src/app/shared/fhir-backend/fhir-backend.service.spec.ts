@@ -261,7 +261,7 @@ describe('FhirBackendService', () => {
       service.cacheEnabled = true;
     });
 
-    fit('should show message if dbGaP TST token has expired', (done) => {
+    it('should show message if dbGaP TST token has expired', (done) => {
       httpClient.get('$fhir/some_related_url').subscribe(
         () => {},
         (response) => {
