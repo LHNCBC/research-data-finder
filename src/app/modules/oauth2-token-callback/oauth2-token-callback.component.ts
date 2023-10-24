@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Router} from '@angular/router';
 import {Oauth2TokenService} from "../../shared/oauth2-token/oauth2-token.service";
-import {FhirBackendService} from "../../shared/fhir-backend/fhir-backend.service";
 import {HttpClient} from "@angular/common/http";
 import {getUrlParam} from "../../shared/utils";
 
@@ -14,9 +13,7 @@ export class Oauth2TokenCallbackComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private route: ActivatedRoute,
     private oauth2Token: Oauth2TokenService,
-    private fhirBackend: FhirBackendService,
     private http: HttpClient
   ) {
   }
