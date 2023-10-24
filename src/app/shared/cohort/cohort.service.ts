@@ -507,7 +507,7 @@ export class CohortService {
   }
 
   /**
-   * Moves ANDed child criteria to the parent criteria.
+   * Moves child criteria from subgroups to the parent level if subgroups are ANDed.
    * @param criteria source criteria
    * @returns simplified criteria.
    */
