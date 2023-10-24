@@ -275,8 +275,10 @@ describe('FhirBackendService', () => {
               priority: PRIORITIES.NORMAL
             }
           );
-          expect(matDialog.open).toHaveBeenCalled();
-          done();
+          setTimeout(() => {
+            expect(matDialog.open).toHaveBeenCalled();
+            done();
+          }, 10);
         }
       );
     });
@@ -296,8 +298,10 @@ describe('FhirBackendService', () => {
               priority: PRIORITIES.NORMAL
             }
           );
-          expect(matDialog.open).not.toHaveBeenCalled();
-          done();
+          setTimeout(() => {
+            expect(matDialog.open).not.toHaveBeenCalled();
+            done();
+          }, 10);
         }
       );
     });
