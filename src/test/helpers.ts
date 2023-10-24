@@ -76,7 +76,6 @@ export async function configureTestingModule(
     settingsService.loadJsonConfig().subscribe(() => {
       fhirBackend.init();
     });
-  }
 
   // Pass-through for settings file
   mockHttp
@@ -106,6 +105,7 @@ export async function configureTestingModule(
       take(1)
     )
     .toPromise();
+  }
 
   if (options.definitions) {
     spyOn(fhirBackend, 'getCurrentDefinitions').and.returnValue(
