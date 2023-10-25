@@ -24,7 +24,8 @@ fhirClient.initialize().then(() => {
   const settings = JSON5.parse(settingsJsonString);
 
   // json5-writer will remove any property that does not exist in updateSettingsObj.
-  // To keep an existing properties, we need to pass undefined.
+  // To keep the previous property values, we need to pass undefined as the value
+  // for those properties.
   const updateSettingsObj = Object.keys(settings).reduce((res, key) => {
     if (key === 'customization') {
       res[key] = {};
