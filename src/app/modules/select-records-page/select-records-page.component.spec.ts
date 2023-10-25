@@ -292,8 +292,32 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     });
 
     mockHttp
-      .expectOne(`$fhir/Patient?_count=20${Object.keys(code2observations).map(code => '&_has:Observation:subject:combo-code=' + code).join('')}`)
+      .expectOne(
+        '$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=phv00492021.v1.p1&_has:Observation:subject:combo-code=phv00492022.v1.p1'
+      )
+      .flush({total: 10});
+    mockHttp
+      .expectOne(
+        '$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1'
+      )
+      .flush({total: 20});
+
+    mockHttp
+      .expectOne(`$fhir/Patient?_count=20&_has:Observation:subject:combo-code=phv00492021.v1.p1&_has:Observation:subject:combo-code=phv00492022.v1.p1`)
       .flush(tenPatientBundle);
+
+    tenPatientBundle.entry.forEach((entry) => {
+      mockHttp
+        .expectOne(
+          `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1`
+        )
+        .flush({
+          ...tenPatientBundle,
+          entry: [entry],
+          total: 1
+        });
+    });
+
   });
 
   it('should search for patients by ORed variables in the cart', async () => {
@@ -387,8 +411,31 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     });
 
     mockHttp
-      .expectOne(`$fhir/Patient?_count=20${Object.keys(code2observations).map(code => '&_has:Observation:subject:combo-code=' + code).join('')}&deceased=false`)
+      .expectOne(
+        '$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=phv00492021.v1.p1&_has:Observation:subject:combo-code=phv00492022.v1.p1'
+      )
+      .flush({total: 10});
+    mockHttp
+      .expectOne(
+        '$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1&deceased=false'
+      )
+      .flush({total: 20});
+
+    mockHttp
+      .expectOne(`$fhir/Patient?_count=20&_has:Observation:subject:combo-code=phv00492021.v1.p1&_has:Observation:subject:combo-code=phv00492022.v1.p1`)
       .flush(tenPatientBundle);
+
+    tenPatientBundle.entry.forEach((entry) => {
+      mockHttp
+        .expectOne(
+          `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1&deceased=false`
+        )
+        .flush({
+          ...tenPatientBundle,
+          entry: [entry],
+          total: 1
+        });
+    });
   });
 });
 

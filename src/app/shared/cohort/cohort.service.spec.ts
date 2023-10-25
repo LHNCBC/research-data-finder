@@ -603,8 +603,9 @@ describe('CohortService', () => {
           {
             condition: 'and',
             rules: [
-              getCriteriaFor('PatientCombinedWithPatientForResearchStudy'),
-              getCriteriaFor('Condition')]
+              getCriteriaFor('Condition'),
+              getCriteriaFor('PatientCombinedWithPatientForResearchStudy')
+            ]
           },
           {
             condition: 'or',

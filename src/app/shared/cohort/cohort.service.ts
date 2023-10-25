@@ -614,10 +614,19 @@ export class CohortService {
   }
 
   /**
+   * Returns the number of criteria whose parameter name begins with _has
+   * @param rules - array of criteria
+   */
+  getNumberOfHasCriteria(rules: Criterion[]) {
+    return rules.filter(c => c.field.element.startsWith('_has')).length;
+  }
+
+  /**
    * Combines ANDed criteria for the patient resource type on each level of the criteria tree.
    * @param criteria source criteria
    */
   combineANDedCriteriaForPatient(criteria: Criteria | ResourceTypeCriteria): Criteria | ResourceTypeCriteria | null {
+    const maxHasAllowed = 2;
     let rules = [];
     let patientCriteria: ResourceTypeCriteria;
     if ('resourceType' in criteria) {
@@ -627,7 +636,12 @@ export class CohortService {
         if ('resourceType' in rule) {
           if (criteria.condition === 'and' && rule.resourceType === PATIENT_RESOURCE_TYPE) {
             if (patientCriteria) {
-              patientCriteria.rules.push(...rule.rules);
+              if (this.getNumberOfHasCriteria(patientCriteria.rules) + this.getNumberOfHasCriteria(rule.rules) > maxHasAllowed) {
+                newRules.push(patientCriteria);
+                patientCriteria = rule;
+              } else {
+                patientCriteria.rules.push(...rule.rules);
+              }
             } else {
               patientCriteria = rule;
             }
@@ -641,7 +655,7 @@ export class CohortService {
       }, []);
     }
     if (patientCriteria) {
-      rules.unshift(patientCriteria);
+      rules.push(patientCriteria);
     }
 
     return {
