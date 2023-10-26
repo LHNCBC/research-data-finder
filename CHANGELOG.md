@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.12.4] - 2023-10-25
+### Fixed
+- Sorting CTSS variables did not work.
+- The selected studies were not considered in the patient search when variables
+  were selected.
+
 ## [6.12.3] - 2023-10-24
 ### Fixed
 - Go to "Additional Criteria" tab and show errors, if user search for patients
