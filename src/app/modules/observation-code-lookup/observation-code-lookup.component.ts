@@ -526,6 +526,8 @@ export class ObservationCodeLookupComponent
           // &authenticity_token=&terms=heigh
           return {
             then: (resolve, reject) => {
+              clearTimeout(this.keystrokeTimeoutId);
+              this.keystrokeTimeoutId = setTimeout(() => {
               const url = new URL(
                 'https://clinicaltables.nlm.nih.gov/fhir/R4/ValueSet/dbg-vars'
               );
@@ -578,6 +580,7 @@ export class ObservationCodeLookupComponent
                     reject(error);
                   }
                 );
+              }, 200);
             }
           };
         },
