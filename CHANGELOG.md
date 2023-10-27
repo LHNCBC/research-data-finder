@@ -3,12 +3,6 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.12.3] - 2023-10-27
-### Changed
-- When user types in the Observation Name autocomplete search input field,
-  wait 200ms before sending out the query, so that previous queries are not
-  sent if user keeps tying.
-
 ## [6.12.2] - 2023-10-18
 ### Changed
 - Show "browse public data" option only if it's useful.
