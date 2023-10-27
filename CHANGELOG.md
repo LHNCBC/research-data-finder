@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.12.4] - 2023-10-27
+### Changed
+- When user types in the Observation Name autocomplete search input field,
+  wait 200ms before sending out the query, so that previous queries are not
+  sent if user keeps tying.
+
 ## [6.12.3] - 2023-10-24
 ### Fixed
 - Go to "Additional Criteria" tab and show errors, if user search for patients
