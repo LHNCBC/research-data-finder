@@ -3,11 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.12.4] - 2023-10-27
+## [6.12.5] - 2023-10-27
 ### Changed
 - When user types in the Observation Name autocomplete search input field,
   wait 200ms before sending out the query, so that previous queries are not
   sent if user keeps tying.
+
+## [6.12.4] - 2023-10-25
+### Fixed
+- Sorting CTSS variables did not work.
+- The selected studies were not considered in the patient search when variables
+  were selected.
 
 ## [6.12.3] - 2023-10-24
 ### Fixed
