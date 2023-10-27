@@ -58,7 +58,7 @@ describe('ObservationCodeLookupComponent', () => {
     input.dispatchEvent(new KeyboardEvent('keydown', { keyCode }));
     // Let autocompleter and ObservationCodeLookupComponent to react on keydown event
     return new Promise((resolve) => {
-      setTimeout(() => resolve(), 100);
+      setTimeout(() => resolve(), 300);
     });
   }
 
