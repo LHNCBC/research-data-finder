@@ -138,8 +138,22 @@
   "customization": {
     'https://lforms-fhir.nlm.nih.gov/baseR4': {
       definitionsFile: 'desc-https-lforms-fhir-nlm-nih-gov-baseR4.csv',
+      // Predefined initialization results
+      serverDescription: {
+        version: 'R4',
+        features: {
+          hasResearchStudy: false,
+          missingModifier: false,
+          batch: true,
+          sortObservationsByDate: true,
+          sortObservationsByAgeAtEvent: false,
+          lastnLookup: true,
+          interpretation: false,
+          hasNotModifierIssue: true,
+          hasAvailableStudy: false
+        }
+      }
     },
-
     "dbgap": {
       definitionsFile: 'desc-dbgap.csv',
       urlPattern: '^https://dbgap-api.ncbi.nlm.nih.gov/fhir',
@@ -163,6 +177,7 @@
         'sponsor',
         'status'
       ],
+      // Predefined initialization results
       serverDescription: {
         version: 'R4',
         features: {
@@ -285,6 +300,21 @@
 
     'https://lforms-fhir.nlm.nih.gov/baseR5': {
       definitionsFile: 'desc-https-lforms-fhir-nlm-nih-gov-baseR5.csv',
+      // Predefined initialization results
+      serverDescription: {
+        version: 'R5',
+        features: {
+          hasResearchStudy: true,
+          missingModifier: true,
+          batch: true,
+          sortObservationsByDate: true,
+          sortObservationsByAgeAtEvent: true,
+          lastnLookup: false,
+          interpretation: false,
+          hasNotModifierIssue: false,
+          hasAvailableStudy: true
+        }
+      }
     }
   }
 }

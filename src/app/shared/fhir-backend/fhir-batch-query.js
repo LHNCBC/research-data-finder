@@ -272,8 +272,7 @@ class FhirBatchQuery extends EventTarget {
           }
           this._features.hasResearchStudy =
             hasResearchStudy.status === 'fulfilled' &&
-            hasResearchStudy.value.data.entry &&
-            hasResearchStudy.value.data.entry.length > 0;
+            hasResearchStudy.value.data.entry?.length > 0;
           this._features.missingModifier = missingModifier.status === 'fulfilled';
           this._features.batch = batch.status === 'fulfilled';
         })
@@ -325,8 +324,7 @@ class FhirBatchQuery extends EventTarget {
                   lastnLookup: lastnLookup.status === 'fulfilled',
                   interpretation:
                     interpretation.status === 'fulfilled' &&
-                    interpretation.value.data.entry &&
-                    interpretation.value.data.entry.length > 0,
+                    interpretation.value.data.entry?.length > 0,
                   hasNotModifierIssue: hasNotModifierIssue.status === 'fulfilled' && hasNotModifierIssue.value,
                   hasAvailableStudy: hasAvailableStudy.status === 'fulfilled' && hasAvailableStudy.value
                 });
