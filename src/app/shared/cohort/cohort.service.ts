@@ -16,7 +16,7 @@ import {
   Observable,
   of,
   OperatorFunction,
-  Subject
+  Subject, throwError
 } from 'rxjs';
 import {
   bufferCount,
@@ -43,6 +43,8 @@ import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import Patient = fhir.Patient;
+import {MatDialog, MatDialogRef} from "@angular/material/dialog";
+import {AlertDialogComponent} from "../alert-dialog/alert-dialog.component";
 
 // Patient resource type name
 const PATIENT_RESOURCE_TYPE = 'Patient';
@@ -86,7 +88,8 @@ export class CohortService {
   constructor(
     private fhirBackend: FhirBackendService,
     private queryParams: QueryParamsService,
-    private http: HttpClient
+    private http: HttpClient,
+    private dialog: MatDialog
   ) {}
 
   createCohortMode = CreateCohortMode.SEARCH;
@@ -108,6 +111,9 @@ export class CohortService {
 
   // A flag indicating a 4xx error has been received during Patient search.
   patient400ErrorFlag = false;
+
+  // MatDialogRef that shows dialog box on query errors
+  dialogRef: MatDialogRef<AlertDialogComponent>;
 
   /**
    * Sets the cohort criteria
@@ -848,6 +854,21 @@ export class CohortService {
             )
         )
         .pipe(
+          catchError((err) => {
+            if (!this.dialogRef) {
+              this.dialogRef = this.dialog.open(AlertDialogComponent, {
+                data: {
+                  header: 'Bad request',
+                  content: 'The request might contain an invalid parameter. Check, for example, the "Maximum number of patients" field.',
+                  hasCancelButton: false
+                }
+              });
+              this.dialogRef.afterClosed().subscribe(() => {
+                this.dialogRef = null;
+              });
+            }
+            return throwError(err);
+          }),
           // Modifying the Observable to load the following pages sequentially
           this.loadPagesSequentially(
             maxPatientCount,
@@ -908,6 +929,21 @@ export class CohortService {
         .join('');
 
     return this.http.get<Bundle>(query).pipe(
+      catchError((err) => {
+        if (!this.dialogRef) {
+          this.dialogRef = this.dialog.open(AlertDialogComponent, {
+            data: {
+              header: 'Bad request',
+              content: 'The request might contain an invalid parameter. Check, for example, the "Maximum number of patients" field.',
+              hasCancelButton: false
+            }
+          });
+          this.dialogRef.afterClosed().subscribe(() => {
+            this.dialogRef = null;
+          });
+        }
+        return throwError(err);
+      }),
       // Modifying the Observable to load the following pages sequentially
       this.loadPagesSequentially(
         maxPatientCount,
