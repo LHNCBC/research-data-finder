@@ -142,6 +142,7 @@
       serverDescription: {
         version: 'R4',
         features: {
+          isFormatSupported: true,
           hasResearchStudy: false,
           missingModifier: false,
           batch: true,
@@ -181,6 +182,7 @@
       serverDescription: {
         version: 'R4',
         features: {
+          isFormatSupported: true,
           hasResearchStudy: true,
           missingModifier: true,
           batch: true,
@@ -304,6 +306,7 @@
       serverDescription: {
         version: 'R5',
         features: {
+          isFormatSupported: true,
           hasResearchStudy: true,
           missingModifier: true,
           batch: true,

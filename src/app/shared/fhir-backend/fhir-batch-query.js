@@ -1222,6 +1222,7 @@ module.exports = {
   HTTP_ABORT,
   UNSUPPORTED_VERSION,
   BASIC_AUTH_REQUIRED,
+  OAUTH2_REQUIRED,
   PRIORITIES,
   FhirBatchQuery,
   getVersionNameByNumber,
