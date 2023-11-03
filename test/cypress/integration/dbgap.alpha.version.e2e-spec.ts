@@ -69,23 +69,19 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
     });
   });
 
-  describe('in Settings step', () => {
-    before((done) => {
+  it('should not allow empty Advanced Setting fields', () => {
       settingsStep
         .select()
         .then(() => settingsStep.getHarness(MatExpansionPanelHarness))
         .then((advancedSettings) => {
           advancedSettings.expand();
-          done();
         });
-    });
 
     [
       ['server URL', 'serviceBaseUrl'],
       ['Request per batch', 'maxRequestsPerBatch'],
       ['Maximum active requests', 'maxActiveRequests']
     ].forEach(([displayName, controlName]) => {
-      it(`should not allow empty "${displayName}"`, () => {
         let value;
         cy.get(
           `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
@@ -94,7 +90,6 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
           .then((el) => {
             value = el.val();
           });
-
         cy.get('@inputField')
           .focus()
           .clear()
@@ -102,8 +97,7 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
           .then(() => nextPageBtn.click())
           .then(() => settingsStep.isSelected())
           .then((isSelected) => expect(isSelected).to.be.true)
-          .then(() => cy.get('@inputField').type(value));
-      });
+          .then(() => cy.get('@inputField').type(value).blur());
     });
   });
 
@@ -194,4 +188,39 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
     cy.contains('Variables in Cart').should('be.visible');
     cy.contains('selected test variable constraint').should('be.visible');
   });
+
+  // This should be the last test in the suite. It sets a fake TST token into FhirBatchQuery._authorizationHeader,
+  // and it won't work for subsequent dbGaP queries.
+  it('should use new TST token after RAS login', () => {
+    cy.contains('Select an action').click();
+    cy.contains(
+      'Create a cohort of patients by browsing and selecting records'
+    ).click();
+    // Stub rdf-server requests to return a fake TST token.
+    cy.intercept('/rdf-server/login', (req) => {
+      req.redirect('/fhir/research-data-finder/request-redirect-token-callback?tst-token=test');
+    });
+    cy.intercept('/rdf-server/tst-return/?tst-token=test', {
+      statusCode: 200,
+      body: {
+        message: {
+          tst: 'testTstToken'
+        }
+      }
+    });
+    // Triggers RAS login.
+    cy.contains('Next').click();
+    cy.intercept('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/**', {
+      statusCode: 200
+    }).as('dbgapQuery');
+    // Verify that the dbGaP initialization query after RAS login contains the new TST token in "Authorization" header.
+    cy.wait('@dbgapQuery')
+      .its('request.headers')
+      .should('have.property', 'authorization', 'Bearer testTstToken');
+    // Clear TST token in sessionStorage so we don't get issues when tests are re-run during "cypress open".
+    cy.window().then((win) => {
+      win.sessionStorage.clear();
+    });
+  });
+
 });
