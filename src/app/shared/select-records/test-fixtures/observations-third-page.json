@@ -1,0 +1,100 @@
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 3,
+  "link": [
+    {
+      "relation": "next",
+      "url": "https://someDefaultURL/next-observations-by-code-phv00492021.v1.p1.json"
+    }
+  ],
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "id-7",
+        "code": {
+          "coding": [
+            {
+              "code": "code-7",
+              "system": "system-7",
+              "display": "display-7"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/7"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "2",
+              "display": "case"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "id-8",
+        "code": {
+          "coding": [
+            {
+              "code": "code-8",
+              "system": "system-8",
+              "display": "display-8"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/8"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "2",
+              "display": "case"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "id-9",
+        "code": {
+          "coding": [
+            {
+              "code": "code-9",
+              "system": "system-9",
+              "display": "display-9"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/9"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "2",
+              "display": "case"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "match"
+      }
+    }
+  ]
+}

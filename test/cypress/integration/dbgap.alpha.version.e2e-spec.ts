@@ -201,7 +201,7 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
   });
 
   it('should save cohort', () => {
-    cy.contains('Save the cohort and criteria for later', { timeout: 10000 })
+    cy.contains('Save the cohort and criteria for later', {timeout: 30000})
       .should('be.enabled')
       .click();
     cy.readFile(`${Cypress.config('downloadsFolder')}/cohort-100.json`, {

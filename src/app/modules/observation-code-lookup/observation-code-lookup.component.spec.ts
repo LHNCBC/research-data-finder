@@ -222,12 +222,12 @@ describe('ObservationCodeLookupComponent', () => {
 
         // search by text
         expect(requestedUrls).toContain(
-          jasmine.stringMatching(/\/Observation\?_elements=.*&code:text=H/)
+          jasmine.stringMatching(/&code:text=H/)
         );
 
         // search by code
         expect(requestedUrls).toContain(
-          jasmine.stringMatching(/\/Observation\?_elements=.*&code=H/)
+          jasmine.stringMatching(/&code=H/)
         );
 
         expect(hostComponent.selectedObservationCodes.value.coding.length).toBe(

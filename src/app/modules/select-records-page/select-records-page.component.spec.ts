@@ -26,10 +26,12 @@ import { CohortService } from '../../shared/cohort/cohort.service';
 import { MatRadioButtonHarness } from '@angular/material/radio/testing';
 import tenPatientBundle from '../step-2-define-cohort-page/test-fixtures/patients-10.json';
 import { MatMenuHarness } from '@angular/material/menu/testing';
-import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import observations from './test-fixtures/observations.json';
 import { CartService } from '../../shared/cart/cart.service';
+import {
+  SearchParametersComponent
+} from '../search-parameters/search-parameters.component';
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 
 describe('SelectRecordsPageComponent (when there are studies for the user)', () => {
@@ -243,10 +245,6 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
    * Adds variables to the cart.
    */
   async function addVariablesToCart(): Promise<void> {
-    component.maxPatientsNumber.setValue(20);
-    await loadStudies();
-    await loadVariables();
-
     // Select all rows (variables) and add them to the cart
     const rows = fixture.debugElement.nativeElement.querySelectorAll(
       'mat-tab-body:nth-child(2) table tr:has(button mat-icon[svgicon="add_shopping_cart_black"])'
@@ -267,9 +265,9 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
       .query(By.css('.mat-tab-body-active'))
       .query(By.directive(CartComponent));
     const variableCart = variableCartEl.componentInstance;
-    expect(variableCart.listItems.length).toEqual(4);
+    expect(variableCart.listItems.length).toEqual(rows.length);
 
-    Object.entries(code2observations).forEach(([code, data]) => {
+    Object.entries(code2observations).slice(0, rows.length).forEach(([code, data]) => {
       mockHttp
         .expectOne(`$fhir/Observation?_count=1&combo-code=${code}`)
         .flush(data);
@@ -277,6 +275,9 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
   }
 
   it('should search for patients by ANDed variables in the cart', async () => {
+    component.maxPatientsNumber.setValue(20);
+    await loadStudies();
+    await loadVariables();
     await addVariablesToCart();
 
     component.searchForPatients();
@@ -314,6 +315,9 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
   });
 
   it('should search for patients by ORed variables in the cart', async () => {
+    component.maxPatientsNumber.setValue(20);
+    await loadStudies();
+    await loadVariables();
     await addVariablesToCart();
 
     const orRadioButton = await loader.getHarness(
@@ -335,9 +339,12 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
   });
 
   it('should search for patients by grouped variables in the cart', async () => {
+    component.maxPatientsNumber.setValue(20);
+    await loadStudies();
+    await loadVariables();
     await addVariablesToCart();
     const groupMenuButton = await loader.getHarness(
-      MatButtonHarness.with({ selector: '.list-toolbar button' })
+      MatButtonHarness.with({selector: '.list-toolbar button'})
     );
     await groupMenuButton.click();
     const menu = await loader.getHarness(MatMenuHarness);
@@ -380,19 +387,25 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
   });
 
   it('should search for patients by additional criteria', async () => {
+    component.maxPatientsNumber.setValue(20);
+    await loadStudies();
+    await loadVariables();
     await addVariablesToCart();
     await selectTab('Additional criteria');
 
-    spyOn(
-      fixture.debugElement.query(By.directive(SearchParameterGroupComponent))
-        .componentInstance,
-      'getSearchParamValues'
-    ).and.returnValue([
-      {
-        element: 'deceased',
-        value: false
-      }
-    ]);
+    fixture.debugElement.query(By.directive(SearchParametersComponent))
+      .componentInstance.queryCtrl.setValue({
+      condition: 'and',
+      resourceType: 'Patient',
+      rules: [
+        {
+          field: {
+            element: 'deceased',
+            value: false
+          }
+        }
+      ]
+    });
 
     component.searchForPatients();
     cohortService.patientStream.subscribe();
@@ -402,7 +415,7 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
         .expectOne(
           `$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=${code}`
         )
-        .flush({ total: (index + 1) * 10 });
+        .flush({total: (index + 1) * 10});
     });
     mockHttp
       .expectOne('$fhir/Patient?_total=accurate&_summary=count&deceased=false')
@@ -439,6 +452,18 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
           total: 1
         });
     });
+  });
+
+  it('should use selected studies in the patient search when variables have been selected', async () => {
+    await loadStudies();
+    await addSecondStudyToCart();
+    await loadVariables('study_id:(phs002409*)');
+    await addVariablesToCart();
+    spyOn(cohortService, 'searchForPatients').and.callThrough();
+    component.searchForPatients();
+    expect(cohortService.searchForPatients).toHaveBeenCalledOnceWith(
+      jasmine.any(Object), jasmine.any(Number), ['phs002409']
+    );
   });
 });
 

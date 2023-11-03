@@ -34,6 +34,8 @@ import { SettingsPageComponent } from '../step-0-settings-page/settings-page.com
 import Patient = fhir.Patient;
 import { first } from 'rxjs/operators';
 import { CartService } from '../../shared/cart/cart.service';
+import {MatDialog} from "@angular/material/dialog";
+import {AlertDialogComponent} from "../../shared/alert-dialog/alert-dialog.component";
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -123,7 +125,8 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     public pullData: PullDataService,
     public selectRecord: SelectRecordsService,
     public rasToken: RasTokenService,
-    private cart: CartService
+    private cart: CartService,
+    private dialog: MatDialog
   ) {
     this.stepDescriptions[Step.SETTINGS] = {
       label: 'Settings',
@@ -231,10 +234,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.allowChangeCreateCohortMode) {
           this.cohort.createCohortMode = CreateCohortMode.SEARCH;
         } else {
-          if (
-            !this.rasToken.rasTokenValidated ||
-            !this.rasToken.isRasCallbackNavigation
-          ) {
+          if (!this.rasToken.isRasCallbackNavigation) {
             this.cohort.createCohortMode = CreateCohortMode.UNSELECTED;
             this.selectAnActionComponent?.createCohortMode.setValue(
               CreateCohortMode.UNSELECTED
@@ -260,7 +260,16 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.selectAnActionComponent.createCohortMode.setValue(
                   selectedCreateCohortMode
                 );
-                if (this.rasStepCountDown === 0) {
+                if (!this.rasToken.rasTokenValidated) {
+                  this.dialog.open(AlertDialogComponent, {
+                    data: {
+                      header: 'Problem obtaining authorization for research study data',
+                      content:
+                      'Error message from dbGaP or CIT: ' + this.rasToken.errorMessage,
+                      hasCancelButton: false
+                    }
+                  });
+                } else if (this.rasStepCountDown === 0) {
                   this.checkNextStep(goNextStep);
                 } else {
                   // setTimeout is needed so this.stepper.next() is only called after
@@ -391,7 +400,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       rawCriteria: this.cohort.criteria,
       cartCriteria: this.cart.getCartCriteria(),
       additionalCriteria: this.selectRecordsComponent?.additionalCriteria
-        ?.value,
+        ?.queryCtrl.value,
       researchStudies:
         this.selectAreaOfInterestComponent?.getResearchStudySearchParam() ?? []
     };
@@ -455,10 +464,10 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       maxPatientCount,
       rawCriteria,
       cartCriteria,
-      additionalCriteria,
       data,
       researchStudies
     } = rawData;
+    let additionalCriteria = rawData.additionalCriteria;
     if (serviceBaseUrl !== this.fhirBackend.serviceBaseUrl) {
       alert(
         'Error: Inapplicable data, because it was downloaded from another server.'
@@ -482,6 +491,16 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
     if (isCartApproach) {
       // Set max field value.
       this.selectRecordsComponent.maxPatientsNumber.setValue(maxPatientCount);
+      // Update criteria object if the cohort was downloaded from an older version.
+      if (additionalCriteria.parameters) {
+        additionalCriteria = {
+          condition: 'and',
+          rules: [{
+            resourceType: 'Patient',
+            rules: additionalCriteria.parameters.map(item => ({field: item}))
+          }]
+        };
+      }
       // Restore resources, controls and lookups in carts and in 'Additional Criteria' tab.
       this.selectRecordsComponent.setCartCriteria(
         cartCriteria,

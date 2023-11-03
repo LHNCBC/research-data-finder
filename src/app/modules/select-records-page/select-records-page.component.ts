@@ -9,16 +9,17 @@ import Resource = fhir.Resource;
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';
-import { ErrorManager } from '../../shared/error-manager/error-manager.service';
-import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
-import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { HttpContext } from '@angular/common/http';
 import { BrowseRecordsPageComponent } from '../browse-records-page/browse-records-page.component';
 import { MatTabGroup } from '@angular/material/tabs';
-import { SearchParameterGroup } from '../../types/search-parameter-group';
+import {
+  SearchParametersComponent
+} from '../search-parameters/search-parameters.component';
+import {ErrorStateMatcher} from "@angular/material/core";
+import {ErrorManager} from "../../shared/error-manager/error-manager.service";
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -39,7 +40,7 @@ export class SelectRecordsPageComponent
   extends BrowseRecordsPageComponent
   implements AfterViewInit, OnDestroy {
   @ViewChild('additionalCriteria')
-  additionalCriteria: SearchParameterGroupComponent;
+  additionalCriteria: SearchParametersComponent;
   @ViewChild('tabGroup') tabGroup: MatTabGroup;
   maxPatientsNumber = new UntypedFormControl(
     this.cohort.maxPatientCount,
@@ -207,6 +208,10 @@ export class SelectRecordsPageComponent
    */
   showErrors(): void {
     this.errorManager.showErrors();
+    // Go to the last tab, which is "Additional Criteria", if it has validation errors.
+    if (this.additionalCriteria.hasErrors()) {
+      this.tabGroup.selectedIndex = this.visibleResourceTypes.length;
+    }
   }
 
   /**
@@ -285,40 +290,38 @@ export class SelectRecordsPageComponent
     };
   }
 
+
+  /**
+   * Gets the cohort criteria from controls.
+   */
+  getCriteriaFromControls(): Criteria {
+    const additionalCriteria = this.additionalCriteria.queryCtrl.value;
+
+    const variableCriteria: Criteria = this.getVariableCriteria();
+
+    return additionalCriteria.rules.length
+      ? variableCriteria.condition === 'and'
+        ? {
+          condition: 'and',
+          rules: variableCriteria.rules.concat(additionalCriteria)
+        }
+        : {
+          condition: 'and',
+          rules: [additionalCriteria, variableCriteria]
+        }
+      : variableCriteria;
+  }
+
   /**
    * Searches for a list of Patient resources that match the records in the cart.
    */
   searchForPatients(): void {
-    const additionalCriteria: ResourceTypeCriteria = {
-      condition: 'and',
-      resourceType: 'Patient',
-      rules: this.additionalCriteria
-        .getSearchParamValues()
-        .map((v) => ({ field: v }))
-    };
-
-    const variableCriteria: Criteria = this.getVariableCriteria();
-
-    const criteria: Criteria = additionalCriteria.rules.length
-      ? variableCriteria.condition === 'and'
-        ? {
-            condition: 'and',
-            rules: variableCriteria.rules.concat(additionalCriteria)
-          }
-        : {
-            condition: 'and',
-            rules: [additionalCriteria, variableCriteria]
-          }
-      : variableCriteria;
-
+    const criteria: Criteria = this.getCriteriaFromControls();
     this.cohort.searchForPatients(
       criteria,
       this.maxPatientsNumber.value,
-      variableCriteria.rules.length
-        ? null
-        : []
-            .concat(...(this.cart.getListItems('ResearchStudy') || []))
-            .map((r) => r.id)
+      [].concat(...(this.cart.getListItems('ResearchStudy') || []))
+        .map((r) => r.id)
     );
   }
 
@@ -328,7 +331,7 @@ export class SelectRecordsPageComponent
    */
   setCartCriteria(
     cartCriteria: any,
-    additionalCriteria: SearchParameterGroup
+    additionalCriteria: any
   ): void {
     // Select the 'Variables' tab so the variable constraint controls is visible.
     // Otherwise, the Prefetch autocomplete of a 'unit' control in 'Variables' cart cannot be setup.
@@ -338,10 +341,11 @@ export class SelectRecordsPageComponent
       // Select and restore 'additional criteria' tab.
       this.tabGroup.selectedIndex = 2;
       setTimeout(() => {
-        this.additionalCriteria.writeValue(additionalCriteria);
+        this.additionalCriteria.queryCtrl.setValue(additionalCriteria);
         setTimeout(() => {
           // Switch back to 'Studies' tab.
           this.tabGroup.selectedIndex = 0;
+          this.cohort.setCriteria(this.getCriteriaFromControls());
         }, 50);
       });
     });

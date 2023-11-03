@@ -3,7 +3,8 @@ import {
   ViewChildren,
   QueryList,
   ViewChild,
-  OnDestroy
+  OnDestroy,
+  Input
 } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import {
@@ -36,6 +37,7 @@ import { CODETEXT } from '../../shared/query-params/query-params.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { getFocusableChildren } from '../../shared/utils';
 import { CohortService } from '../../shared/cohort/cohort.service';
+import { without } from 'lodash-es';
 
 const OPERATOR_ADDING_MESSAGE =
   ' A radio group for selecting an AND/OR operator to combine criteria has appeared above the criteria.';
@@ -49,6 +51,7 @@ const OPERATOR_ADDING_MESSAGE =
   styleUrls: ['./search-parameters.component.less'],
   providers: [
     ...createControlValueAccessorProviders(SearchParametersComponent),
+    ErrorManager,
     {
       provide: ErrorStateMatcher,
       useExisting: ErrorManager
@@ -72,6 +75,7 @@ export class SearchParametersComponent
   public queryCtrl: UntypedFormControl = new UntypedFormControl({});
   public queryBuilderConfig: QueryBuilderConfig = { fields: {} };
   resourceTypes$: Observable<AutocompleteOption[]>;
+  @Input() excludeResources: string[];
   selectedSearchParameterNamesMap = new Map<ResourceTypeCriteria, string[]>();
   observationDataType: string;
   observationCodes: string[] = [];
@@ -81,12 +85,17 @@ export class SearchParametersComponent
   constructor(
     private fhirBackend: FhirBackendService,
     private liveAnnouncer: LiveAnnouncer,
-    private cohort: CohortService
+    private cohort: CohortService,
+    public errorManager: ErrorManager
   ) {
     super();
 
     this.resourceTypes$ = fhirBackend.currentDefinitions$.pipe(
-      map((definitions) => Object.keys(definitions.resources))
+      map((definitions) =>
+        this.excludeResources?.length
+          ? without(Object.keys(definitions.resources), ...this.excludeResources)
+          : Object.keys(definitions.resources)
+      )
     );
 
     this.subscriptions.push(
@@ -326,5 +335,19 @@ export class SearchParametersComponent
       parentRuleSet,
       parentRuleSet.rules.map((c) => c.field.element)
     );
+  }
+
+  /**
+   * Checks for errors
+   */
+  hasErrors(): boolean {
+    return this.errorManager.errors !== null;
+  }
+
+  /**
+   * Shows errors for existing formControls
+   */
+  showErrors(): void {
+    this.errorManager.showErrors();
   }
 }

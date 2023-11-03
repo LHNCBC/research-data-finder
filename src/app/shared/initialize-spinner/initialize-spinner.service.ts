@@ -53,7 +53,7 @@ export class InitializeSpinnerService {
       });
       this.initSpinnerDialog.afterClosed().subscribe(() => {
         // Restore focus to the server input after server initialization.
-        document.getElementById('serverBaseUrl').focus();
+        document.getElementById('serverBaseUrl')?.focus();
       });
       this.liveAnnouncer.announce(
         'Please wait. Initializing data for the selected server.'

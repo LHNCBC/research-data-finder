@@ -1,32 +1,51 @@
 import { TestBed } from '@angular/core/testing';
 import observations from './test-fixtures/observations.json';
-
+import observationsSecondPage
+  from './test-fixtures/observations-second-page.json';
+import observationsThirdPage
+  from './test-fixtures/observations-third-page.json';
 import { SelectRecordsService } from './select-records.service';
-import {
-  HttpClientTestingModule,
-  HttpTestingController
-} from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpContext, HttpParams, HttpRequest } from '@angular/common/http';
 import variables from 'src/test/test-fixtures/variables-4.json';
-import { verifyOutstandingRequests } from '../../../test/helpers';
+import {
+  configureTestingModule,
+  verifyOutstandingRequests
+} from '../../../test/helpers';
 import {
   CACHE_NAME,
   FhirBackendService
 } from '../fhir-backend/fhir-backend.service';
 import { MatDialogModule } from '@angular/material/dialog';
-import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
+import {
+  CustomRxjsOperatorsService
+} from '../custom-rxjs-operators/custom-rxjs-operators.service';
+import { Sort } from '@angular/material/sort';
+import { Subject } from 'rxjs';
+import Resource = fhir.Resource;
 
 describe('SelectRecordsService', () => {
   let service: SelectRecordsService;
   let mockHttp: HttpTestingController;
   let fhirBackend: FhirBackendService;
   let customRxjs: CustomRxjsOperatorsService;
+  let options: {
+    features: any;
+  } = {
+    features: {
+      hasResearchStudy: true,
+      hasAvailableStudy: true
+    }
+  };
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [RouterTestingModule, HttpClientTestingModule, MatDialogModule]
-    });
+  beforeEach(async () => {
+    await configureTestingModule(
+      {
+        imports: [RouterTestingModule, MatDialogModule]
+      },
+      options
+    );
     mockHttp = TestBed.inject(HttpTestingController);
     service = TestBed.inject(SelectRecordsService);
     fhirBackend = TestBed.inject(FhirBackendService);
@@ -91,12 +110,31 @@ describe('SelectRecordsService', () => {
   describe('loadVariablesFromObservations', () => {
     const emptyBundle = {};
 
-    function loadFirstPageOfObservations() {
-      service.loadFirstPageOfVariablesFromObservations([], {}, {}, null);
+    function loadFirstPageOfObservations(sort = null) {
+      service.loadFirstPageOfVariablesFromObservations([], {}, {}, sort);
       service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne('$fhir/Observation?_elements=code,value,category&_count=50')
         .flush(observations);
+    }
+
+    /**
+     * Returns a matcher, usable in any matcher that uses Jasmine's equality
+     * (e.g. toEqual, toContain, or toHaveBeenCalledWith), that will succeed if
+     * the actual value is an Array of observations with specified codes.
+     * @param codes - array of observation codes
+     * @return a matcher, usable in any matcher that uses Jasmine's equality
+     */
+    function arrayOfObservationsWithCodes(codes: string[]): Resource[] {
+      return codes.map((code) =>
+        jasmine.objectContaining({
+          code: {
+            coding: [
+              jasmine.objectContaining({code})
+            ]
+          }
+        }) as Resource
+      );
     }
 
     afterEach(() => {
@@ -104,53 +142,135 @@ describe('SelectRecordsService', () => {
     });
 
     it('should use multiple "code:not" when FHIR server doesn\'t have the :not modifier issue', () => {
-      spyOnProperty(fhirBackend, 'features').and.returnValue({
-        ...fhirBackend.features,
+      options.features = {
         hasNotModifierIssue: false
-      });
+      };
       loadFirstPageOfObservations();
 
       service.loadNextPageOfVariablesFromObservations([], {}, {}, null);
       service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
-          '$fhir/Observation?_elements=code,value,category&code:not=http://loinc.org%7C11881-0&code:not=http://loinc.org%7C3137-7&code:not=http://loinc.org%7C8302-2&code:not=http://loinc.org%7C8303-0&_count=50'
+          '$fhir/Observation?_elements=code,value,category&code:not=system-1%7Ccode-1&code:not=system-2%7Ccode-2&code:not=system-3%7Ccode-3&code:not=system-4%7Ccode-4&_count=50'
         )
         .flush(emptyBundle);
       expect(service.currentState['Observation'].resources.length).toBe(4);
     });
 
     it('should use single "code:not" when FHIR server has the :not modifier issue', function () {
-      spyOnProperty(fhirBackend, 'features').and.returnValue({
-        ...fhirBackend.features,
+      options.features = {
         hasNotModifierIssue: true
-      });
+      };
       loadFirstPageOfObservations();
 
       service.loadNextPageOfVariablesFromObservations([], {}, {}, null);
       service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
-          '$fhir/Observation?_elements=code,value,category&code:not=http://loinc.org%7C11881-0,http://loinc.org%7C3137-7,http://loinc.org%7C8302-2,http://loinc.org%7C8303-0&_count=50'
+          '$fhir/Observation?_elements=code,value,category&code:not=system-1%7Ccode-1,system-2%7Ccode-2,system-3%7Ccode-3,system-4%7Ccode-4&_count=50'
         )
         .flush(emptyBundle);
       expect(service.currentState['Observation'].resources.length).toBe(4);
     });
 
+
+    it('should sort each loaded page on the client side', function() {
+      options.features = {
+        hasNotModifierIssue: true
+      };
+      const sort: Sort = {active: 'code', direction: 'asc'};
+      spyOn(service, 'sortObservationsByVariableColumn').and.callThrough();
+      loadFirstPageOfObservations(sort);
+      expect(service.sortObservationsByVariableColumn).toHaveBeenCalledOnceWith(
+        arrayOfObservationsWithCodes(['code-1', 'code-2', 'code-3', 'code-4']),
+        sort
+      );
+      (service.sortObservationsByVariableColumn as jasmine.Spy).calls.reset();
+
+      service.loadNextPageOfVariablesFromObservations([], {}, {}, sort);
+      service.currentState['Observation'].resourceStream.subscribe();
+      mockHttp
+        .expectOne(
+          '$fhir/Observation?_elements=code,value,category&code:not=system-1%7Ccode-1,system-2%7Ccode-2,system-3%7Ccode-3,system-4%7Ccode-4&_count=50'
+        )
+        .flush(observationsSecondPage);
+      expect(service.sortObservationsByVariableColumn).toHaveBeenCalledOnceWith(
+        arrayOfObservationsWithCodes(['code-5', 'code-6']),
+        sort
+      );
+      expect(service.currentState['Observation'].resources).toEqual(
+        arrayOfObservationsWithCodes(['code-4', 'code-3', 'code-2', 'code-1', 'code-6', 'code-5'])
+      );
+    });
+
+
+    it('should sort preloaded data before adding them to the list', function() {
+      options.features = {
+        hasNotModifierIssue: true
+      };
+      const sort: Sort = {active: 'code', direction: 'asc'};
+      spyOn(service, 'sortObservationsByVariableColumn').and.callThrough();
+      loadFirstPageOfObservations(sort);
+      expect(service.sortObservationsByVariableColumn).toHaveBeenCalledOnceWith(
+        arrayOfObservationsWithCodes(['code-1', 'code-2', 'code-3', 'code-4']),
+        sort
+      );
+      (service.sortObservationsByVariableColumn as jasmine.Spy).calls.reset();
+
+      service.preloadNextPageOfVariablesFromObservations([], {}, {}, sort);
+      mockHttp
+        .expectOne(
+          '$fhir/Observation?_elements=code,value,category&code:not=system-1%7Ccode-1,system-2%7Ccode-2,system-3%7Ccode-3,system-4%7Ccode-4&_count=50'
+        )
+        .flush(observationsSecondPage);
+      expect(service.sortObservationsByVariableColumn).toHaveBeenCalledOnceWith(
+        arrayOfObservationsWithCodes(['code-5', 'code-6']),
+        sort
+      );
+      (service.sortObservationsByVariableColumn as jasmine.Spy).calls.reset();
+
+      service.preloadNextPageOfVariablesFromObservations([], {}, {}, sort);
+      mockHttp
+        .expectOne(
+          '$fhir/Observation?_elements=code,value,category&code:not=system-1%7Ccode-1,system-2%7Ccode-2,system-3%7Ccode-3,system-4%7Ccode-4,system-5%7Ccode-5,system-6%7Ccode-6&_count=50'
+        )
+        .flush(observationsThirdPage);
+      expect(service.sortObservationsByVariableColumn).toHaveBeenCalledOnceWith(
+        arrayOfObservationsWithCodes(['code-7', 'code-8', 'code-9']),
+        sort
+      );
+      (service.sortObservationsByVariableColumn as jasmine.Spy).calls.reset();
+      expect(service.preloadState['Observation'].resources).toEqual(
+        arrayOfObservationsWithCodes(['code-6', 'code-5', 'code-9', 'code-8', 'code-7'])
+      );
+
+      service.loadNextPageOfVariablesFromObservations([], {}, {}, sort);
+      service.currentState['Observation'].resourceStream.subscribe();
+      expect(service.sortObservationsByVariableColumn).toHaveBeenCalledOnceWith(
+        arrayOfObservationsWithCodes(['code-6', 'code-5', 'code-9', 'code-8', 'code-7']),
+        sort
+      );
+
+      expect(service.currentState['Observation'].resources).toEqual(
+        arrayOfObservationsWithCodes(['code-4', 'code-3', 'code-2', 'code-1', 'code-9', 'code-8', 'code-7', 'code-6', 'code-5'])
+      );
+    });
+
+
     it('should add study data to variables', () => {
       spyOn(fhirBackend, 'getCurrentDefinitions').and.returnValue({
-        valueSetMapByPath: { 'ResearchSubject.status': ['someSSubjectStatus'] }
+        valueSetMapByPath: {'ResearchSubject.status': ['someSSubjectStatus']}
       });
-      spyOnProperty(fhirBackend, 'features').and.returnValue({
-        ...fhirBackend.features,
+      options.features = {
         hasNotModifierIssue: true,
         hasResearchStudy: true,
         hasAvailableStudy: true
-      });
+      };
 
       service.currentState['ResearchStudy'] = {
         loading: false,
-        resources: [{ id: 'study-id-1' }, { id: 'study-id-2' }]
+        resources: [{id: 'study-id-1'}, {id: 'study-id-2'}],
+        sortChanged: new Subject<Sort>()
       };
 
       loadFirstPageOfObservations();
@@ -183,10 +303,10 @@ describe('SelectRecordsService', () => {
         ]
       };
       [
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C11881-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C3137-7&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8302-2&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=http://loinc.org%7C8303-0&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1'
+        '$fhir/Patient?_has:Observation:subject:code=system-1%7Ccode-1&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=system-2%7Ccode-2&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=system-3%7Ccode-3&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
+        '$fhir/Patient?_has:Observation:subject:code=system-4%7Ccode-4&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1'
       ].forEach((url) => {
         mockHttp.expectOne(url).flush(patientWithSubjects);
       });
@@ -195,7 +315,7 @@ describe('SelectRecordsService', () => {
       service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
-          '$fhir/Observation?_elements=code,value,category&code:not=http://loinc.org%7C11881-0,http://loinc.org%7C3137-7,http://loinc.org%7C8302-2,http://loinc.org%7C8303-0&_count=50'
+          '$fhir/Observation?_elements=code,value,category&code:not=system-1%7Ccode-1,system-2%7Ccode-2,system-3%7Ccode-3,system-4%7Ccode-4&_count=50'
         )
         .flush(emptyBundle);
       expect(service.currentState['Observation'].resources.length).toBe(4);
