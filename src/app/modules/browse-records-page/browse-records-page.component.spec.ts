@@ -147,9 +147,30 @@ describe('BrowseRecordsPageComponent', () => {
       .expectOne((req: HttpRequest<any>) => {
         return (
           req.url ===
-            'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
-          new HttpParams({ fromString: req.body }).get('q') ===
-            'study_id:(phs002409*)'
+          'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
+          new HttpParams({fromString: req.body}).get('q') ===
+          'study_id:(phs002409*)'
+        );
+      })
+      .flush(threeVariables);
+    await expectNumberOfRecords(3);
+  });
+
+  it('should reload CTSS variables when the sort order changes', async () => {
+    await loadStudies();
+    await loadVariables();
+    // Sort by first column
+    fixture.debugElement
+      .queryAll(By.css('mat-tab-body:nth-child(2) .mat-sort-header'))[0]
+      .nativeElement.click();
+    fixture.detectChanges();
+    mockHttp
+      .expectOne((req: HttpRequest<any>) => {
+        return (
+          req.url ===
+          'https://clinicaltables.nlm.nih.gov/api/dbg_vars/v3/search' &&
+          new HttpParams({fromString: req.body}).get('of') ===
+          'display_name:desc'
         );
       })
       .flush(threeVariables);

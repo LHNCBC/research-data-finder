@@ -15,10 +15,11 @@ import { Injectable, Optional, SkipSelf } from '@angular/core';
 export class ErrorManager implements ErrorStateMatcher {
   constructor(@SkipSelf() @Optional() parent: ErrorManager) {
     if (parent) {
-      // Use previously provided instance if exists
-      return parent;
+      parent.childServices.push(this);
     }
   }
+  // Array of child ErrorManager services in the DI tree
+  childServices: ErrorManager[] = [];
   // Array of controls for which errors should be displayed
   controlToShowErrors: UntypedFormControl[] = [];
   // Array of all controls
@@ -56,6 +57,9 @@ export class ErrorManager implements ErrorStateMatcher {
    */
   showErrors(): void {
     this.controlToShowErrors = this.allControls.concat();
+    this.childServices.forEach(s => {
+      s.showErrors();
+    });
   }
 
   /**
@@ -66,6 +70,14 @@ export class ErrorManager implements ErrorStateMatcher {
     for (let i = 0; i < length; ++i) {
       if (this.allControls[i].invalid) {
         return { required: true };
+      }
+    }
+    // Return error if any of the child ErrorManagers has errors.
+    // Controls in a child component with an ErrorManager provider is managed in the child ErrorManager.
+    for (let i = 0; i < this.childServices.length; ++i) {
+      const err = this.childServices[i].errors;
+      if (err) {
+        return err;
       }
     }
     return null;
