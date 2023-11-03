@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.12.5] - 2023-11-03
+### Changed
+- Show "browse public data" option only if it's useful.
+- Remove Immport dev server from list.
+
 ## [6.12.4] - 2023-10-25
 ### Fixed
 - Sorting CTSS variables did not work.
