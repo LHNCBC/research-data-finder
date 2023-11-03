@@ -97,8 +97,7 @@ describe('FhirBackendService', () => {
     it('should initialize FhirBatchQuery', async () => {
       await service.initializeFhirBatchQuery();
       expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith(
-        '',
-        ''
+        '', '', null
       );
     });
 

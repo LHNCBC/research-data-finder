@@ -138,8 +138,23 @@
   "customization": {
     'https://lforms-fhir.nlm.nih.gov/baseR4': {
       definitionsFile: 'desc-https-lforms-fhir-nlm-nih-gov-baseR4.csv',
+      // Predefined initialization results
+      serverDescription: {
+        version: 'R4',
+        features: {
+          isFormatSupported: true,
+          hasResearchStudy: false,
+          missingModifier: false,
+          batch: true,
+          sortObservationsByDate: true,
+          sortObservationsByAgeAtEvent: false,
+          lastnLookup: true,
+          interpretation: false,
+          hasNotModifierIssue: true,
+          hasAvailableStudy: false
+        }
+      }
     },
-
     "dbgap": {
       definitionsFile: 'desc-dbgap.csv',
       urlPattern: '^https://dbgap-api.ncbi.nlm.nih.gov/fhir',
@@ -155,7 +170,6 @@
           condition: 'urn:oid:2.16.840.1.113883.6.177'
         }
       },
-
       // table columns that will apply autocomplete multi-select control
       listFilterColumns: [
         'category',
@@ -164,7 +178,22 @@
         'sponsor',
         'status'
       ],
-
+      // Predefined initialization results
+      serverDescription: {
+        version: 'R4',
+        features: {
+          isFormatSupported: true,
+          hasResearchStudy: true,
+          missingModifier: true,
+          batch: true,
+          sortObservationsByDate: false,
+          sortObservationsByAgeAtEvent: false,
+          lastnLookup: false,
+          interpretation: false,
+          hasNotModifierIssue: false,
+          hasAvailableStudy: true
+        }
+      },
       contextColumns: {
         // Custom definition of the "Variable" table columns
         // See src/app/types/column.description.ts for details
@@ -273,6 +302,22 @@
 
     'https://lforms-fhir.nlm.nih.gov/baseR5': {
       definitionsFile: 'desc-https-lforms-fhir-nlm-nih-gov-baseR5.csv',
+      // Predefined initialization results
+      serverDescription: {
+        version: 'R5',
+        features: {
+          isFormatSupported: true,
+          hasResearchStudy: true,
+          missingModifier: true,
+          batch: true,
+          sortObservationsByDate: true,
+          sortObservationsByAgeAtEvent: true,
+          lastnLookup: false,
+          interpretation: false,
+          hasNotModifierIssue: false,
+          hasAvailableStudy: true
+        }
+      }
     }
   }
 }

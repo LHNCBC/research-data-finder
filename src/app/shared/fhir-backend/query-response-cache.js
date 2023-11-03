@@ -10,7 +10,7 @@ class QueryResponseCache {
   fakeWindowCaches = {};
 
   // Whether "window.caches" is supported.
-  isCachesSupported = !!window.caches;
+  isCachesSupported = !!globalThis.caches;
 
   /**
    * Stores the response data for a URL in the persistent or temporary cache.
@@ -164,4 +164,4 @@ class QueryResponseCache {
   }
 }
 
-export default new QueryResponseCache();
+module.exports = new QueryResponseCache();

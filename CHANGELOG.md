@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.13.0] - 2023-11-03
+### Added
+- Bypass initialization queries when there is a setting for the result.
+
 ## [6.12.5] - 2023-11-03
 ### Changed
 - Show "browse public data" option only if it's useful.

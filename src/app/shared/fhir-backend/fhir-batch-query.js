@@ -1,18 +1,17 @@
-import definitionsIndex from '../definitions/index.json';
-
+const definitionsIndex = require('../definitions/index.json');
 // An object used to cache responses to HTTP requests
-import queryResponseCache from './query-response-cache';
+const queryResponseCache = require('./query-response-cache.js');
 
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
-export const HTTP_ABORT = 0;
+const HTTP_ABORT = 0;
 // The value of property status in the rejection object when the FHIR version is not supported by RDF
-export const UNSUPPORTED_VERSION = -1;
+const UNSUPPORTED_VERSION = -1;
 // The value of property status in the rejection object when the "metadata" query indicated basic authentication failure
-export const BASIC_AUTH_REQUIRED = -2;
+const BASIC_AUTH_REQUIRED = -2;
 // The value of property status in the rejection object when the "metadata" query indicated that OAuth2 is required
-export const OAUTH2_REQUIRED = -3;
+const OAUTH2_REQUIRED = -3;
 // Request priorities (numbers by which requests in the pending queue are sorted)
-export const PRIORITIES = {
+const PRIORITIES = {
   LOW: 100,
   NORMAL: 200
 };
@@ -46,7 +45,7 @@ const researchStudyStatusesByVersion = {
 };
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
-export class FhirBatchQuery extends EventTarget {
+class FhirBatchQuery extends EventTarget {
   /**
    * Requests are executed or combined depending on the parameters passed to this method.
    * @constructor
@@ -55,15 +54,20 @@ export class FhirBatchQuery extends EventTarget {
    * @param {number} maxActiveRequests - the maximum number of requests that can be executed simultaneously
    * @param {number} batchTimeout - the time in milliseconds between requests that can be combined
    */
-  constructor({ serviceBaseUrl = '', maxRequestsPerBatch, maxActiveRequests, batchTimeout }) {
+  constructor({
+                serviceBaseUrl = '',
+                maxRequestsPerBatch,
+                maxActiveRequests,
+                batchTimeout
+              }) {
     super();
     this._serviceBaseUrl = serviceBaseUrl;
     this._authorizationHeader = null;
     this._pending = [];
     this._batchTimeoutId = null;
-    this._batchTimeout = batchTimeout || sessionStorage.getItem('batchTimeout') || 20;
-    this._maxPerBatch = maxRequestsPerBatch || sessionStorage.getItem('maxPerBatch') || 10;
-    this._maxActiveReq = maxActiveRequests || sessionStorage.getItem('maxActiveReq') || 6;
+    this._batchTimeout = batchTimeout || globalThis.sessionStorage?.getItem('batchTimeout') || 20;
+    this._maxPerBatch = maxRequestsPerBatch || globalThis.sessionStorage?.getItem('maxPerBatch') || 10;
+    this._maxActiveReq = maxActiveRequests || globalThis.sessionStorage?.getItem('maxActiveReq') || 6;
     this._activeReq = [];
     this._onChangeListeners = [];
     // Timeout between requests in milliseconds
@@ -74,7 +78,7 @@ export class FhirBatchQuery extends EventTarget {
     // The client side should give up if no successful response in 90 seconds
     this._giveUpTimeout = 90 * 1000;
     // NCBI E-utilities API Key
-    this._apiKey = sessionStorage.getItem('apiKey') || '';
+    this._apiKey = globalThis.sessionStorage?.getItem('apiKey') || '';
     // The string describes an initialization context which is used to
     // distinguish between pre-login and post-login initialization requests
     this.initContext = '';
@@ -158,9 +162,14 @@ export class FhirBatchQuery extends EventTarget {
    * @param {string} [context] - string describes an initialization context
    *  which is used to distinguish between pre-login and post-login
    *  initialization requests.
+   * @param {Object|null} predefinedInitResult - null or predefined initialization
+   *  result from the configuration file:
+   * @param {string} predefinedInitResult.version - version name e.g. "R4".
+   * @param {Object} predefinedInitResult.features - object describing the server
+   *  features.
    * @return {Promise}
    */
-  initialize(newServiceBaseUrl, context = '') {
+  initialize(newServiceBaseUrl, context = '', predefinedInitResult = null) {
     const serverUrlChanged = newServiceBaseUrl && newServiceBaseUrl !== this._serviceBaseUrl;
 
     if (serverUrlChanged) {
@@ -178,46 +187,23 @@ export class FhirBatchQuery extends EventTarget {
 
     // const currentServiceBaseUrl = this._serviceBaseUrl;
 
-    if (this._initializationPromise) {
-      return this._initializationPromise;
+    if (!this._initializationPromise) {
+      this._features = {isFormatSupported: true};
+      this._initializationPromise = this.makeInitializationCalls(predefinedInitResult);
     }
-    this._features = {isFormatSupported: true};
-    // if (this._isDbgap) {
-    //   this._initializationPromise = Promise.allSettled([
-    //     // Query to extract the consent group that must be included as _security param in particular queries.
-    //     this.getWithCache('ResearchSubject', this.getCommonInitRequestOptions())
-    //   ]).then(([researchSubject]) => {
-    //     if (currentServiceBaseUrl !== this._serviceBaseUrl) {
-    //       return Promise.reject({
-    //         status: HTTP_ABORT,
-    //         error: 'Outdated response to initialization request.'
-    //       });
-    //     }
-    //     if (
-    //       researchSubject &&
-    //       researchSubject.status === 'rejected' &&
-    //       /Deny access to all but these consent groups: (.*) -- codes from last denial/.test(
-    //         researchSubject.reason.error
-    //       )
-    //     ) {
-    //       this._features.consentGroup = RegExp.$1.replace(', ', ',');
-    //       return this.makeInitializationCalls(true);
-    //     } else {
-    //       return this.makeInitializationCalls();
-    //     }
-    //   });
-    // } else {
-    this._initializationPromise = this.makeInitializationCalls();
-    // }
     return this._initializationPromise;
   }
 
   /**
    * Makes multiple queries to server and determine values in _feature property.
+   * @param {Object|null} predefinedInitResult - null or predefined initialization
+   *  result from the configuration file:
+   * @param {string} predefinedInitResult.version - version name e.g. "R4".
+   * @param {Object} predefinedInitResult.features - object describing the server
    * @param withSecurityTag whether to add _security search parameter in applicable queries
    * @returns {Promise<void>}
    */
-  makeInitializationCalls(withSecurityTag = false) {
+  makeInitializationCalls(predefinedInitResult = null, withSecurityTag = false) {
     const currentServiceBaseUrl = this._serviceBaseUrl;
     const securityParam = withSecurityTag ? `&_security=${this._features.consentGroup}` : '';
     // Common options for initialization requests
@@ -226,6 +212,10 @@ export class FhirBatchQuery extends EventTarget {
 
     const initializationRequests = this.checkMetadata()
       .then(() => {
+        if (predefinedInitResult && predefinedInitResult.version === this._versionName) {
+          this._features = predefinedInitResult.features;
+          return Promise.resolve();
+        }
         return Promise.allSettled([
           // Check if server has Research Study data
           this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
@@ -262,8 +252,7 @@ export class FhirBatchQuery extends EventTarget {
           }
           this._features.hasResearchStudy =
             hasResearchStudy.status === 'fulfilled' &&
-            hasResearchStudy.value.data.entry &&
-            hasResearchStudy.value.data.entry.length > 0;
+            hasResearchStudy.value.data.entry?.length > 0;
           this._features.missingModifier = missingModifier.status === 'fulfilled';
           this._features.batch =
             batch.status === 'fulfilled' &&
@@ -312,17 +301,14 @@ export class FhirBatchQuery extends EventTarget {
                 Object.assign(this._features, {
                   sortObservationsByDate:
                     observationsSortedByDate.status === 'fulfilled' &&
-                    observationsSortedByDate.value.data.entry &&
-                    observationsSortedByDate.value.data.entry.length > 0,
+                    observationsSortedByDate.value.data.entry?.length > 0,
                   sortObservationsByAgeAtEvent:
                     observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-                    observationsSortedByAgeAtEvent.value.data.entry &&
-                    observationsSortedByAgeAtEvent.value.data.entry.length > 0,
+                    observationsSortedByAgeAtEvent.value.data.entry?.length > 0,
                   lastnLookup: lastnLookup.status === 'fulfilled',
                   interpretation:
                     interpretation.status === 'fulfilled' &&
-                    interpretation.value.data.entry &&
-                    interpretation.value.data.entry.length > 0,
+                    interpretation.value.data.entry?.length > 0,
                   hasNotModifierIssue: hasNotModifierIssue.status === 'fulfilled' && hasNotModifierIssue.value,
                   hasAvailableStudy: hasAvailableStudy.status === 'fulfilled' && hasAvailableStudy.value
                 });
@@ -1197,7 +1183,7 @@ export class FhirBatchQuery extends EventTarget {
  * @param versionNumber
  * @return {string|null}
  */
-export function getVersionNameByNumber(versionNumber) {
+function getVersionNameByNumber(versionNumber) {
   let versionName = null;
 
   Object.keys(definitionsIndex.versionNameByVersionNumberRegex).some((versionRegEx) => {
@@ -1217,7 +1203,7 @@ export function getVersionNameByNumber(versionNumber) {
  * @param {string|number} value - parameter value
  * @return {string}
  */
-export function updateUrlWithParam(url, name, value) {
+function updateUrlWithParam(url, name, value) {
   if (!/^([^?]*)(\?([^?]*)|)$/.test(url)) {
     // This is not correct if the URL has two "?" - do nothing:
     return url;
@@ -1230,4 +1216,15 @@ export function updateUrlWithParam(url, name, value) {
     .join('&');
 
   return params ? urlWithoutParams + '?' + params : urlWithoutParams;
+}
+
+module.exports = {
+  HTTP_ABORT,
+  UNSUPPORTED_VERSION,
+  BASIC_AUTH_REQUIRED,
+  OAUTH2_REQUIRED,
+  PRIORITIES,
+  FhirBatchQuery,
+  getVersionNameByNumber,
+  updateUrlWithParam
 }
