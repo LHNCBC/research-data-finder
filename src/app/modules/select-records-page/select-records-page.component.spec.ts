@@ -75,7 +75,8 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
       {
         features: {
           hasResearchStudy: true,
-          hasAvailableStudy: true
+          hasAvailableStudy: true,
+          maxHasAllowed: 2
         },
         serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
       }

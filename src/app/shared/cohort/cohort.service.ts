@@ -626,7 +626,7 @@ export class CohortService {
    * @param criteria source criteria
    */
   combineANDedCriteriaForPatient(criteria: Criteria | ResourceTypeCriteria): Criteria | ResourceTypeCriteria | null {
-    const maxHasAllowed = 2;
+    const maxHasAllowed = this.fhirBackend.features.maxHasAllowed;
     let rules = [];
     let patientCriteria: ResourceTypeCriteria;
     if ('resourceType' in criteria) {

@@ -18,6 +18,8 @@ export interface FhirServerFeatures {
   interpretation: boolean;
   // Whether :missing modifier is supported
   missingModifier: boolean;
+  // How many ":has" are allowed per request
+  maxHasAllowed: number;
   // Whether batching request is supported
   batch: boolean;
   // Item group that must be included as _security param in dbGap queries

@@ -335,6 +335,7 @@ describe('FhirBackendService', () => {
                 cacheName: null,
                 retryCount: false,
                 cacheErrors: true,
+                cacheAbort: false,
                 priority: PRIORITIES.NORMAL
               }
             );
@@ -359,6 +360,7 @@ describe('FhirBackendService', () => {
               cacheName: null,
               retryCount: false,
               cacheErrors: true,
+              cacheAbort: false,
               priority: PRIORITIES.NORMAL
             }
           );
