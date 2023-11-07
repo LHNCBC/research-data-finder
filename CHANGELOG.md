@@ -7,7 +7,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Changed
 - When user types in the Observation Name autocomplete search input field,
   wait 200ms before sending out the query, so that previous queries are not
-  sent if user keeps tying.
+  sent if user keeps typing.
 
 ## [6.12.4] - 2023-10-25
 ### Fixed
