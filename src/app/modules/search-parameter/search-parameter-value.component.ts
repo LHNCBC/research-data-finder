@@ -51,9 +51,9 @@ export class SearchParameterValueComponent
   @Input() unitList: AutocompleteOption[];
   @Input() required = true;
   // Label for the value input field.
-  @Input() valueLabelText = 'Test value';
+  @Input() valueLabelText = 'Search parameter value';
   // Label for the unit input field.
-  @Input() unitLabelText = 'Test value unit';
+  @Input() unitLabelText = 'Unit code';
   // Placeholder for the value input field. If not specified, the default
   // placeholder is used, which depends on the data type.
   @Input() valuePlaceholderText = '';
