@@ -60,7 +60,7 @@ describe('FhirBackendService', () => {
   };
 
   describe('non-dbGaP', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       TestBed.configureTestingModule({
         imports: [FhirBackendModule, HttpClientModule, MatDialogModule]
       });
@@ -78,7 +78,6 @@ describe('FhirBackendService', () => {
       spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
         of(responseFromDefaultBackend)
       );
-      service.fhirClient._features = { batch: true, interpretation: true };
       service.settings = TestBed.inject(SettingsService);
       spyOn(service.settings, 'loadCsvDefinitions').and.returnValue(
         of(csvDefinitions)
@@ -88,22 +87,22 @@ describe('FhirBackendService', () => {
       );
       spyOn(service, 'isDbgap').and.returnValue(false);
       service.cacheEnabled = true;
+      await service.init();
+      service.fhirClient._features = {batch: true, interpretation: true};
     });
 
     it('should be created', () => {
       expect(service).toBeTruthy();
     });
 
-    it('should initialize FhirBatchQuery', async () => {
-      await service.initializeFhirBatchQuery();
+    it('should initialize FhirBatchQuery', () => {
       expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith(
-        '',
+        'https://lforms-fhir.nlm.nih.gov/baseR4',
         ''
       );
     });
 
     it('should add interpretation search parameter', (done) => {
-      service.initializeFhirBatchQuery();
       service.currentDefinitions$.subscribe((definitions) => {
         expect(
           definitions.resources.Observation.searchParameters.some(
@@ -223,7 +222,7 @@ describe('FhirBackendService', () => {
   });
 
   describe('dbGaP', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       TestBed.configureTestingModule({
         imports: [FhirBackendModule, MatDialogModule, BrowserAnimationsModule]
       });
@@ -249,7 +248,6 @@ describe('FhirBackendService', () => {
       spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
         of(responseFromDefaultBackend)
       );
-      service.fhirClient._features = { batch: true, interpretation: true };
       service.settings = TestBed.inject(SettingsService);
       spyOn(service.settings, 'loadCsvDefinitions').and.returnValue(
         of(csvDefinitions)
@@ -259,6 +257,8 @@ describe('FhirBackendService', () => {
       );
       spyOn(service, 'isDbgap').and.returnValue(true);
       service.cacheEnabled = true;
+      await service.init();
+      service.fhirClient._features = { batch: true, interpretation: true };
     });
 
     it('should show message if dbGaP TST token has expired', (done) => {

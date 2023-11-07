@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.12.5] - 2023-10-25
+### Fixed
+- After logging in through RAS, a new TST token is received but the
+  subsequent queries are not sent with the new token.
+
 ## [6.12.4] - 2023-10-24
 ### Fixed
 - Issue of focus left behind the dialog after the dialog of "session expired"

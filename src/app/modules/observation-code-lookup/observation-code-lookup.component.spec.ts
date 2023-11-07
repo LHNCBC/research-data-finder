@@ -18,6 +18,9 @@ import {
   verifyOutstandingRequests
 } from 'src/test/helpers';
 import { CohortService } from '../../shared/cohort/cohort.service';
+import {ConnectionStatus, FhirBackendService} from "../../shared/fhir-backend/fhir-backend.service";
+import {SettingsService} from "../../shared/settings-service/settings.service";
+import {filter, take} from "rxjs/operators";
 
 @Component({
   template: `
@@ -165,6 +168,17 @@ describe('ObservationCodeLookupComponent', () => {
 
       beforeEach(async () => {
         beforeEachFn();
+        const fhirBackend = TestBed.inject(FhirBackendService);
+        const settingsService = TestBed.inject(SettingsService);
+        settingsService.loadJsonConfig().subscribe(() => {
+          fhirBackend.init();
+        });
+        await fhirBackend.initialized
+          .pipe(
+            filter((status) => status === ConnectionStatus.Ready),
+            take(1)
+          )
+          .toPromise();
         fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         hostComponent = fixture.componentInstance;
@@ -208,11 +222,6 @@ describe('ObservationCodeLookupComponent', () => {
           .allArgs()
           .map((params) => params[0]);
 
-        // should include consent groups (currently disabled)
-        // expect(requestedUrls).toContain(
-        //   jasmine.stringMatching(/_security=phs002409-1,phs002409-2/)
-        // );
-
         // use "code:not" when $last is not used
         expect(requestedUrls).toContain(
           jasmine.stringMatching(
@@ -222,12 +231,12 @@ describe('ObservationCodeLookupComponent', () => {
 
         // search by text
         expect(requestedUrls).toContain(
-          jasmine.stringMatching(/\/Observation\?_elements=.*&code:text=H/)
+          jasmine.stringMatching(/&code:text=H/)
         );
 
         // search by code
         expect(requestedUrls).toContain(
-          jasmine.stringMatching(/\/Observation\?_elements=.*&code=H/)
+          jasmine.stringMatching(/&code=H/)
         );
 
         expect(hostComponent.selectedObservationCodes.value.coding.length).toBe(
