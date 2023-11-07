@@ -30,6 +30,7 @@ describe('FhirBackendService', () => {
   let httpClient: HttpClient;
   let defaultHttpXhrBackend: HttpXhrBackend;
   let matDialog: MatDialog;
+  let dialogOpenSpy: jasmine.Spy;
   let rasTokenService: RasTokenService;
   let cohortService: CohortService;
   const responseFromDefaultBackend = new HttpResponse({
@@ -242,9 +243,7 @@ describe('FhirBackendService', () => {
       rasTokenService.rasTokenValidated = true;
       cohortService = TestBed.inject(CohortService);
       cohortService.createCohortMode = CreateCohortMode.SEARCH;
-      spyOn(matDialog, 'open').and.returnValue({
-        afterClosed: () => of(false)
-      } as MatDialogRef<AlertDialogComponent>);
+      dialogOpenSpy = spyOn(matDialog, 'open');
       spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
         of(responseFromDefaultBackend)
       );
@@ -275,10 +274,13 @@ describe('FhirBackendService', () => {
               priority: PRIORITIES.NORMAL
             }
           );
-          setTimeout(() => {
+          dialogOpenSpy.and.callFake(() => {
             expect(matDialog.open).toHaveBeenCalled();
             done();
-          }, 10);
+            return {
+              afterClosed: () => of(false)
+            } as MatDialogRef<AlertDialogComponent>;
+          });
         }
       );
     });
@@ -301,7 +303,7 @@ describe('FhirBackendService', () => {
           setTimeout(() => {
             expect(matDialog.open).not.toHaveBeenCalled();
             done();
-          }, 10);
+          }, 1);
         }
       );
     });

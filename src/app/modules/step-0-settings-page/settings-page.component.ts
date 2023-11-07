@@ -89,6 +89,9 @@ export class SettingsPageComponent implements OnDestroy {
    */
   showBatchIssueDialog(): void {
     if (!this.dialogRef) {
+      // Current focus might be in an autocomplete-lhc input field, which tries to
+      // refocus the input when it's blurred. We let it blur, but open the dialog
+      // after a delay, to make sure the focus ends up in the dialog.
       (document.activeElement as HTMLElement).blur();
       setTimeout(() => {
         this.dialogRef = this.dialog.open(AlertDialogComponent, {
@@ -110,7 +113,7 @@ export class SettingsPageComponent implements OnDestroy {
             this.updateFhirBackendSetting('maxRequestsPerBatch');
           }
         });
-      }, 10);
+      }, 1);
     }
   }
 

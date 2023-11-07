@@ -642,7 +642,7 @@ export class FhirBackendService implements HttpBackend {
                       }
                       this.dialogRef = null;
                     });
-                  }, 10);
+                  }, 1);
 
                 } else if (status >= 500 && status < 600) {
                   this.dialog.open(AlertDialogComponent, {
