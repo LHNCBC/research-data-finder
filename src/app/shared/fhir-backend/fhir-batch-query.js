@@ -287,7 +287,7 @@ class FhirBatchQuery extends EventTarget {
                 }&_elements=id&_count=1${securityParam}`,
                 options
               ),
-              this.checkNotModifierIssue(options),
+              this.checkNotModifierIssueAndMaxHasAllowed(options),
               this.checkHasAvailableStudy(options)
             ]).then(
               ([
@@ -295,7 +295,7 @@ class FhirBatchQuery extends EventTarget {
                  observationsSortedByAgeAtEvent,
                  lastnLookup,
                  interpretation,
-                 hasNotModifierIssue,
+                 hasNotModifierIssueAndMaxHasAllowed,
                  hasAvailableStudy
                ]) => {
                 Object.assign(this._features, {
@@ -309,7 +309,7 @@ class FhirBatchQuery extends EventTarget {
                   interpretation:
                     interpretation.status === 'fulfilled' &&
                     interpretation.value.data.entry?.length > 0,
-                  hasNotModifierIssue: hasNotModifierIssue.status === 'fulfilled' && hasNotModifierIssue.value,
+                  ...hasNotModifierIssueAndMaxHasAllowed.value,
                   hasAvailableStudy: hasAvailableStudy.status === 'fulfilled' && hasAvailableStudy.value
                 });
               }
@@ -404,11 +404,11 @@ class FhirBatchQuery extends EventTarget {
 
   /**
    * Checks if the ":not" search parameter modifier is interpreted incorrectly
-   * (HAPI FHIR server issue).
+   * (HAPI FHIR server issue) and how many ":has" are allowed per request.
    * @param {Object} [options] - additional options (see getWithCache)
-   * @return {Promise<boolean>}
+   * @return {Promise<{hasNotModifierIssue:boolean, maxHasAllowed: number}>}
    */
-  checkNotModifierIssue(options) {
+  checkNotModifierIssueAndMaxHasAllowed(options) {
     return this.getWithCache('Observation?_count=1', options).then((response) => {
       const obs = response.data.entry?.[0].resource;
       const firstCode = obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
@@ -416,32 +416,52 @@ class FhirBatchQuery extends EventTarget {
       return firstCode && patientRef
         ? this.getWithCache(
           `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
-          this.getCommonInitRequestOptions()
+          options
         ).then((oneCodeResp) => {
           const secondCode =
             oneCodeResp.data.entry?.[0].resource.code.coding?.[0].system +
             '%7C' +
             oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
+
+          // If a query with two "_has" takes too long, treat that as two "_has"
+          // in one query are not supported.
+          const abortController = new AbortController();
+          setTimeout(() => {
+            abortController.abort()
+          }, 20000);
+
           return secondCode
             ? Promise.allSettled([
               typeof oneCodeResp.data.total === 'number'
                 ? Promise.resolve(oneCodeResp)
                 : this.getWithCache(
                   `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                  this.getCommonInitRequestOptions()
+                  options
                 ),
               this.getWithCache(
                 `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                this.getCommonInitRequestOptions()
-              )
-            ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
-              return summaryOneCodeResp.status === 'fulfilled' && summaryTwoCodeResp.status === 'fulfilled'
-                ? Promise.resolve(summaryTwoCodeResp.value.data.total < summaryOneCodeResp.value.data.total)
-                : Promise.reject();
+                options
+              ),
+              this.getWithCache(
+                `Patient?_has:Observation:subject:combo-code=${firstCode}&_has:Observation:subject:combo-code=${secondCode}&_total=accurate&_summary=count`,
+                {...options, cacheAbort: true, signal: abortController.signal}
+              ),
+            ]).then(([summaryOneCodeResp, summaryTwoCodeResp, summaryHasResp]) => {
+              return {
+                hasNotModifierIssue: summaryOneCodeResp.status === 'fulfilled' && summaryTwoCodeResp.status === 'fulfilled'
+                  ? summaryTwoCodeResp.value.data.total < summaryOneCodeResp.value.data.total
+                  : false,
+                maxHasAllowed: summaryHasResp.status === 'fulfilled' && summaryHasResp.value.data.total > 0 ? 2 : 1
+              }
             })
             : Promise.reject();
         })
         : Promise.reject();
+    }).catch(() => {
+      return {
+        hasNotModifierIssue: false,
+        maxHasAllowed: 1
+      };
     });
   }
 
@@ -1004,6 +1024,8 @@ class FhirBatchQuery extends EventTarget {
    *   entry can be in the cache before expiring.
    * @param {boolean} [options.cacheErrors] - whether to cache error responses,
    *   false by default.
+   * @param {boolean} [options.cacheAbort] - whether to cache abort response,
+   *   false by default.
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *   status is HTTP status number, data is Object constructed from a JSON
    *   response.
@@ -1014,6 +1036,7 @@ class FhirBatchQuery extends EventTarget {
       retryCount: false,
       cacheName: null,
       cacheErrors: false,
+      cacheAbort: false,
       priority: PRIORITIES.NORMAL,
       ...options
     };
@@ -1036,7 +1059,8 @@ class FhirBatchQuery extends EventTarget {
               });
             },
             (errorResponse) => {
-              (options.cacheErrors && !NOCACHESTATUSES.includes(errorResponse.status)
+              ((options.cacheAbort && errorResponse.status === HTTP_ABORT) ||
+                (options.cacheErrors && !NOCACHESTATUSES.includes(errorResponse.status))
                   ? queryResponseCache.add(fullUrl, errorResponse, options)
                   : Promise.resolve()
               ).then(() => {

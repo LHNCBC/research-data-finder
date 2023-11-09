@@ -30,6 +30,15 @@ export class CustomRxjsOperatorsService {
 
   /**
    * Returns RxJS operator to request the following sequence of resource bundle
+   * pages and combine them into a single resource bundle.
+   * @param options - the HTTP options to send with the request.
+   */
+  takeAll(options?: HttpOptions): UnaryFunction<Observable<Bundle>, Observable<Bundle>> {
+    return this.takeBundleOf(Infinity, options);
+  }
+
+  /**
+   * Returns RxJS operator to request the following sequence of resource bundle
    * pages and combine them into a single resource bundle until the specified
    * amount of resources is received.
    * @param amount - amount of resources.

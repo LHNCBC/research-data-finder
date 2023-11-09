@@ -24,7 +24,8 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { CartComponent } from '../cart/cart.component';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { MatRadioButtonHarness } from '@angular/material/radio/testing';
-import tenPatientBundle from '../step-2-define-cohort-page/test-fixtures/patients-10.json';
+import tenPatientBundle
+  from '../step-2-define-cohort-page/test-fixtures/patients-10.json';
 import { MatMenuHarness } from '@angular/material/menu/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import observations from './test-fixtures/observations.json';
@@ -32,7 +33,10 @@ import { CartService } from '../../shared/cart/cart.service';
 import {
   SearchParametersComponent
 } from '../search-parameters/search-parameters.component';
-import { ResourceTableComponent } from '../resource-table/resource-table.component';
+import {
+  ResourceTableComponent
+} from '../resource-table/resource-table.component';
+import { last } from 'rxjs/operators';
 
 describe('SelectRecordsPageComponent (when there are studies for the user)', () => {
   let component: SelectRecordsPageComponent;
@@ -71,7 +75,8 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
       {
         features: {
           hasResearchStudy: true,
-          hasAvailableStudy: true
+          hasAvailableStudy: true,
+          maxHasAllowed: 2
         },
         serverUrl: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
       }
@@ -274,44 +279,45 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     });
   }
 
-  it('should search for patients by ANDed variables in the cart', async () => {
+  it('should search for patients by ANDed variables in the cart', async (done) => {
     component.maxPatientsNumber.setValue(20);
     await loadStudies();
     await loadVariables();
     await addVariablesToCart();
 
     component.searchForPatients();
-    cohortService.patientStream.subscribe();
-
-    Object.keys(code2observations).forEach((code, index) => {
-      mockHttp
-        .expectOne(
-          `$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=${code}`
-        )
-        .flush({ total: (index + 1) * 10 });
+    cohortService.patientStream.pipe(last()).subscribe((pat) => {
+      expect(pat.length).toEqual(10);
+      done();
     });
 
     mockHttp
       .expectOne(
-        '$fhir/Patient?_count=20&_has:Observation:subject:combo-code=phv00492021.v1.p1'
+        '$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=phv00492021.v1.p1&_has:Observation:subject:combo-code=phv00492022.v1.p1'
       )
+      .flush({total: 10});
+    mockHttp
+      .expectOne(
+        '$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1'
+      )
+      .flush({total: 20});
+
+    mockHttp
+      .expectOne(`$fhir/Patient?_count=20&_has:Observation:subject:combo-code=phv00492021.v1.p1&_has:Observation:subject:combo-code=phv00492022.v1.p1`)
       .flush(tenPatientBundle);
 
-    Object.keys(code2observations)
-      .slice(1)
-      .forEach((code) => {
-        tenPatientBundle.entry.forEach((entry) => {
-          mockHttp
-            .expectOne(
-              `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=${code}`
-            )
-            .flush({
-              ...tenPatientBundle,
-              entry: [entry],
-              total: 1
-            });
+    tenPatientBundle.entry.forEach((entry) => {
+      mockHttp
+        .expectOne(
+          `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1`
+        )
+        .flush({
+          ...tenPatientBundle,
+          entry: [entry],
+          total: 1
         });
-      });
+    });
+
   });
 
   it('should search for patients by ORed variables in the cart', async () => {
@@ -386,7 +392,7 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     });
   });
 
-  it('should search for patients by additional criteria', async () => {
+  it('should search for patients by additional criteria', async (done) => {
     component.maxPatientsNumber.setValue(20);
     await loadStudies();
     await loadVariables();
@@ -408,44 +414,31 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     });
 
     component.searchForPatients();
-    cohortService.patientStream.subscribe();
-
-    Object.keys(code2observations).forEach((code, index) => {
-      mockHttp
-        .expectOne(
-          `$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=${code}`
-        )
-        .flush({total: (index + 1) * 10});
+    cohortService.patientStream.pipe(last()).subscribe((pat) => {
+      expect(pat.length).toEqual(10);
+      done();
     });
-    mockHttp
-      .expectOne('$fhir/Patient?_total=accurate&_summary=count&deceased=false')
-      .flush({ total: 100 });
 
     mockHttp
       .expectOne(
-        '$fhir/Patient?_count=20&_has:Observation:subject:combo-code=phv00492021.v1.p1'
+        '$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=phv00492021.v1.p1&_has:Observation:subject:combo-code=phv00492022.v1.p1'
       )
-      .flush(tenPatientBundle);
+      .flush({total: 10});
+    mockHttp
+      .expectOne(
+        '$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1&deceased=false'
+      )
+      .flush({total: 20});
 
-    Object.keys(code2observations)
-      .slice(1)
-      .forEach((code) => {
-        tenPatientBundle.entry.forEach((entry) => {
-          mockHttp
-            .expectOne(
-              `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=${code}`
-            )
-            .flush({
-              ...tenPatientBundle,
-              entry: [entry],
-              total: 1
-            });
-        });
-      });
+    mockHttp
+      .expectOne(`$fhir/Patient?_count=20&_has:Observation:subject:combo-code=phv00492021.v1.p1&_has:Observation:subject:combo-code=phv00492022.v1.p1`)
+      .flush(tenPatientBundle);
 
     tenPatientBundle.entry.forEach((entry) => {
       mockHttp
-        .expectOne(`$fhir/Patient?_id=${entry.resource.id}&deceased=false`)
+        .expectOne(
+          `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1&deceased=false`
+        )
         .flush({
           ...tenPatientBundle,
           entry: [entry],
