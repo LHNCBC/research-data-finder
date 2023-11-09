@@ -43,6 +43,9 @@ import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import Patient = fhir.Patient;
+import {
+  CustomRxjsOperatorsService
+} from '../custom-rxjs-operators/custom-rxjs-operators.service';
 
 // Patient resource type name
 const PATIENT_RESOURCE_TYPE = 'Patient';
@@ -86,7 +89,8 @@ export class CohortService {
   constructor(
     private fhirBackend: FhirBackendService,
     private queryParams: QueryParamsService,
-    private http: HttpClient
+    private http: HttpClient,
+    private customRxjs: CustomRxjsOperatorsService
   ) {}
 
   createCohortMode = CreateCohortMode.SEARCH;
@@ -170,13 +174,20 @@ export class CohortService {
     // If we have only one block with Patient criteria - load all Patient in one request.
     this.patientStream = defer(() => {
       currentState.patients = [];
-      return this.search(
-        maxPatientCount,
-        criteria,
-        maxPatientCount,
-        currentState
+      return this.replaceOtherResourceCriteriaWithPatientCriteria(
+        of(this.simplifyCriteriaTree(criteria))
       );
     }).pipe(
+      concatMap((simplifiedCriteria) => {
+        return simplifiedCriteria
+          ? this.search(
+            maxPatientCount,
+            this.combineANDedCriteriaForPatient(simplifiedCriteria),
+            maxPatientCount,
+            currentState
+          )
+          : EMPTY;
+      }),
       // Expand each array of resources into separate resources
       concatMap((resources) => {
         resources = resources
@@ -493,6 +504,164 @@ export class CohortService {
       observable = observable.pipe(take(1));
     }
     return observable;
+  }
+
+  /**
+   * Moves child criteria from subgroups to the parent level if subgroups are ANDed.
+   * @param criteria source criteria
+   * @returns simplified criteria.
+   */
+  simplifyCriteriaTree(criteria: Criteria | ResourceTypeCriteria): Criteria | ResourceTypeCriteria | null {
+    let rules = [];
+    if ('resourceType' in criteria) {
+      rules.push(...criteria.rules);
+    } else {
+      rules = criteria.rules.reduce((newRules, rule) => {
+        if (rule.rules.length) {
+          if ('resourceType' in rule) {
+            newRules.push(rule);
+          } else if (criteria.condition === 'and' && rule.condition === 'and') {
+            // Moves ANDed child criteria to the parent criteria
+            newRules.push(
+              ...rule.rules.map(r => this.simplifyCriteriaTree(r)).filter(r => r)
+            );
+          } else {
+            const newRule = this.simplifyCriteriaTree(rule);
+            if (newRule) {
+              newRules.push(newRule);
+            }
+          }
+        }
+        return newRules;
+      }, []);
+    }
+    return {
+      ...criteria,
+      rules
+    };
+  }
+
+  /**
+   * Replaces:
+   * - criteria for ResearchStudy with study id criteria for Patient.
+   * - criteria for other resources, which can be replaced by _has criteria for the patient
+   * @param criteria source criteria
+   * @return updated criteria or null if it is known in advance that the search
+   *  will return an empty list
+   */
+  replaceOtherResourceCriteriaWithPatientCriteria(criteria: Observable<Criteria | ResourceTypeCriteria>): Observable<Criteria | ResourceTypeCriteria | null> {
+    return criteria.pipe(
+      concatMap((c) => {
+        if ('resourceType' in c) {
+          if (c.resourceType === 'ResearchStudy') {
+            const hasResearchSubjects = this.getHasResearchSubjectsParam();
+            const query =
+              `$fhir/${c.resourceType}?_elements=id${hasResearchSubjects}` +
+              c.rules
+                .map((criterion: Criterion) => this.queryParams.getQueryParam(c.resourceType, criterion.field))
+                .join('');
+            return this.http.get<Bundle>(query).pipe(
+              this.customRxjs.takeAll(),
+              map((bundle) => {
+                const researchStudyIds = bundle.entry?.map(r => r.resource.id).join(',');
+                return researchStudyIds ? {
+                  condition: 'and',
+                  resourceType: 'Patient',
+                  rules: [
+                    {
+                      field: {
+                        element: `_has:ResearchSubject:${this.fhirBackend.subjectParamName}:study`,
+                        value: researchStudyIds
+                      }
+                    }
+                  ]
+                } as ResourceTypeCriteria : null;
+              })
+            );
+          } else if (this.canUseHas(c.resourceType, c.rules)) {
+            return of({
+              condition: c.condition,
+              resourceType: 'Patient',
+              // At the moment we have only one element in this array, but we use map() just in case
+              rules: c.rules.map((r) => {
+                const [element, value] = this.queryParams
+                  .getQueryParam(c.resourceType, r.field)
+                  .replace(/&/g, `_has:${c.resourceType}:subject:`)
+                  .split('=');
+                return {
+                  field: {element, value}
+                };
+              })
+            });
+          } else {
+            return of(c);
+          }
+        } else {
+          return forkJoin(c.rules.map((cc) => this.replaceOtherResourceCriteriaWithPatientCriteria(of(cc)))).pipe(
+            map((ccc: (Criteria | ResourceTypeCriteria)[]) => {
+              const rules = ccc.filter((i) => i);
+              return c.condition === 'and' && rules.length < ccc.length
+                ? null
+                : {
+                  ...c,
+                  rules
+                };
+            })
+          );
+        }
+      })
+    );
+  }
+
+  /**
+   * Returns the number of criteria whose parameter name begins with _has
+   * @param rules - array of criteria
+   */
+  getNumberOfHasCriteria(rules: Criterion[]) {
+    return rules.filter(c => c.field.element.startsWith('_has')).length;
+  }
+
+  /**
+   * Combines ANDed criteria for the patient resource type on each level of the criteria tree.
+   * @param criteria source criteria
+   */
+  combineANDedCriteriaForPatient(criteria: Criteria | ResourceTypeCriteria): Criteria | ResourceTypeCriteria | null {
+    const maxHasAllowed = this.fhirBackend.features.maxHasAllowed;
+    let rules = [];
+    let patientCriteria: ResourceTypeCriteria;
+    if ('resourceType' in criteria) {
+      rules.push(...criteria.rules);
+    } else {
+      rules = criteria.rules.reduce((newRules, rule) => {
+        if ('resourceType' in rule) {
+          if (criteria.condition === 'and' && rule.resourceType === PATIENT_RESOURCE_TYPE) {
+            if (patientCriteria) {
+              if (this.getNumberOfHasCriteria(patientCriteria.rules) + this.getNumberOfHasCriteria(rule.rules) > maxHasAllowed) {
+                newRules.push(patientCriteria);
+                patientCriteria = rule;
+              } else {
+                patientCriteria.rules.push(...rule.rules);
+              }
+            } else {
+              patientCriteria = rule;
+            }
+          } else {
+            newRules.push(rule);
+          }
+        } else {
+          newRules.push(this.combineANDedCriteriaForPatient(rule));
+        }
+        return newRules;
+      }, []);
+    }
+    if (patientCriteria) {
+      rules.push(patientCriteria);
+    }
+
+    return {
+      ...criteria,
+      rules
+    };
   }
 
   /**

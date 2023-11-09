@@ -7,6 +7,20 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Added
 - Ability to login to Immport server through OAuth2.
 
+## [6.13.2] - 2023-11-09
+### Fixed
+- Names of search parameter value fields.
+- Target javascript version: es2017 -> es2015.
+
+## [6.13.1] - 2023-11-09
+### Fixed
+- An issue where the search parameter value was updated with the value of the
+  previous control when the search parameter name was changed to a search
+  parameter of a different data type.
+- Improved search performance when using ResearchStudy criteria.
+- Improved search performance when using criteria that can be converted to the
+  _has search parameter for the Patient resource.
+
 ## [6.13.0] - 2023-11-03
 ### Added
 - Bypass initialization queries when there is a setting for the result.
