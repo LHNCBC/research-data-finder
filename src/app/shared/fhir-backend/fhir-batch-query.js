@@ -380,8 +380,7 @@ class FhirBatchQuery extends EventTarget {
     .then((hasResearchStudy) => {
       this._features.hasResearchStudy = hasResearchStudy.data.entry?.length > 0;
     }, (hasResearchStudy) => {
-      // TODO: check "Www-Authenticate" header.
-      if (hasResearchStudy.status === 401) {
+      if (hasResearchStudy.status === 401 && hasResearchStudy.wwwAuthenticate?.startsWith('Bearer')) {
         // As is the case with server https://fhir.immport.org/fhir, /metadata is intentionally configured
         // for other reasons to return 200 while not logged in, we use this /ResearchStudy query to trigger
         // OAuth2 login.
