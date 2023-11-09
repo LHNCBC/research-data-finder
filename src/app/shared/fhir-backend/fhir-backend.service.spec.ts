@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { CACHE_NAME, FhirBackendService } from './fhir-backend.service';
 import { FhirBackendModule } from './fhir-backend.module';
-import { FhirBatchQuery, HTTP_ABORT, PRIORITIES } from './fhir-batch-query';
+import { FhirBatchQuery, HTTP_ABORT, PRIORITIES, OAUTH2_REQUIRED } from './fhir-batch-query';
 import { newServer } from 'mock-xmlhttprequest';
 import {
   HttpClient,
@@ -97,8 +97,7 @@ describe('FhirBackendService', () => {
     it('should initialize FhirBatchQuery', async () => {
       await service.initializeFhirBatchQuery();
       expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith(
-        '',
-        ''
+        '', '', null
       );
     });
 
@@ -396,6 +395,10 @@ describe('FhirBatchQuery', () => {
       status: 500,
       body: '{ "message": "Failure!" }'
     });
+    server.get(/http:\/\/some-server-url\/[Observation|ResearchStudy].*/, {
+      status: 200,
+      body: JSON.stringify({ entry: [] })
+    });
 
     server.install();
     fhirBatchQuery = new FhirBatchQuery({
@@ -403,6 +406,7 @@ describe('FhirBatchQuery', () => {
     });
     // There are no preflight requests during the test
     fhirBatchQuery._maxTimeForPreflightRequest = 0;
+    fhirBatchQuery._features = {isFormatSupported: true};
   });
 
   afterEach(() => {
@@ -499,6 +503,52 @@ describe('FhirBatchQuery', () => {
         jasmine.objectContaining({
           method: 'GET',
           url: 'http://some-server-url/someUrl2?_format=json'
+        })
+      ]);
+      done();
+    });
+  });
+
+  it('should remake metadata query without _elements param if not supported by server', (done) => {
+    server.get(/http:\/\/some-server-url\/metadata\?_elements=fhirVersion&_format=json/, {
+      status: 400,
+      body: JSON.stringify({error: {message: '_elements is not supported.'}})
+    });
+    server.get(/http:\/\/some-server-url\/metadata\?_format=json/, {
+      status: 200,
+      body: '{ "fhirVersion": "4.0.1" }'
+    });
+    fhirBatchQuery.makeInitializationCalls().then(() => {
+      const metaDataQueries = server.getRequestLog().filter(l => l.url.startsWith('http://some-server-url/metadata'));
+      expect(metaDataQueries).toEqual([
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://some-server-url/metadata?_elements=fhirVersion&_format=json'
+        }),
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://some-server-url/metadata?_format=json'
+        })
+      ]);
+      done();
+    });
+  });
+
+  it('should reject initialization if metadata requires OAuth2', (done) => {
+    server.get(/http:\/\/some-server-url\/metadata.*/, {
+      status: 401,
+      body: '{ "message": "Not authorized!" }',
+      headers: {'Www-Authenticate': 'Bearer bla bla'}
+    });
+    fhirBatchQuery.makeInitializationCalls().then(() => {
+    }, (reason) => {
+      expect(reason).toEqual({
+        status: OAUTH2_REQUIRED, error: 'oauth2 required'
+      })
+      expect(server.getRequestLog()).toEqual([
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://some-server-url/metadata?_elements=fhirVersion&_format=json'
         })
       ]);
       done();

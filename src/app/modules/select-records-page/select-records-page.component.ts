@@ -9,8 +9,6 @@ import Resource = fhir.Resource;
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';
-import { ErrorManager } from '../../shared/error-manager/error-manager.service';
-import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
@@ -20,6 +18,8 @@ import { MatTabGroup } from '@angular/material/tabs';
 import {
   SearchParametersComponent
 } from '../search-parameters/search-parameters.component';
+import {ErrorStateMatcher} from "@angular/material/core";
+import {ErrorManager} from "../../shared/error-manager/error-manager.service";
 
 /**
  * Component for searching, selecting, and adding records to the cart.
@@ -208,6 +208,10 @@ export class SelectRecordsPageComponent
    */
   showErrors(): void {
     this.errorManager.showErrors();
+    // Go to the last tab, which is "Additional Criteria", if it has validation errors.
+    if (this.additionalCriteria.hasErrors()) {
+      this.tabGroup.selectedIndex = this.visibleResourceTypes.length;
+    }
   }
 
   /**
@@ -312,16 +316,12 @@ export class SelectRecordsPageComponent
    * Searches for a list of Patient resources that match the records in the cart.
    */
   searchForPatients(): void {
-    const hasVariableCriteria = this.cart.getListItems(this.cart.getVariableResourceType())?.length > 0;
     const criteria: Criteria = this.getCriteriaFromControls();
     this.cohort.searchForPatients(
       criteria,
       this.maxPatientsNumber.value,
-      hasVariableCriteria
-        ? null
-        : []
-          .concat(...(this.cart.getListItems('ResearchStudy') || []))
-          .map((r) => r.id)
+      [].concat(...(this.cart.getListItems('ResearchStudy') || []))
+        .map((r) => r.id)
     );
   }
 

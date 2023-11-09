@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.11.1] - 2023-09-22
+## [6.13.1] - 2023-11-09
 ### Fixed
 - An issue where the search parameter value was updated with the value of the
   previous control when the search parameter name was changed to a search
@@ -12,11 +12,43 @@ This project follows [Semantic Versioning](http://semver.org/).
 - Improved search performance when using criteria that can be converted to the
   _has search parameter for the Patient resource.
 
+## [6.13.0] - 2023-11-03
+### Added
+- Bypass initialization queries when there is a setting for the result.
+
+## [6.12.5] - 2023-11-03
+### Changed
+- Show "browse public data" option only if it's useful.
+- Remove Immport dev server from list.
+
+## [6.12.4] - 2023-10-25
+### Fixed
+- Sorting CTSS variables did not work.
+- The selected studies were not considered in the patient search when variables
+  were selected.
+
+## [6.12.3] - 2023-10-24
+### Fixed
+- Go to "Additional Criteria" tab and show errors, if user search for patients
+  from another tab while "Additional Criteria" tab has validation errors.
+
+## [6.12.2] - 2023-10-23
+### Fixed
+- Tooltip for the "add to cart" button blocks next row button.
+
+## [6.12.1] - 2023-10-13
+### Added
+- Handle RAS error in RDF callback.
+
+## [6.12.0] - 2023-10-13
+### Added
+- OAuth2 support.
+
 ## [6.11.0] - 2023-09-11
 ### Added
 - Using the "advanced search" UI for additional criteria.
 ### Fixed
-- A bug in the search algorithm: ANDed criteria may be ORed in the parent node.
+- A bug in the search algorithm when ANDed criteria are ORed in the parent node.
 - Issues with saving and loading a cohort and criteria.
 
 ## [6.10.0] - 2023-09-11

@@ -44,13 +44,17 @@ export class FhirServerSelectComponent
       url: 'https://lforms-fhir.nlm.nih.gov/baseR4'
     },
     {
-      description: 'dbGap',
+      description: 'dbGaP',
       url: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
     },
     {
       description: 'https://r4.smarthealthit.org Provider Standalone Launch',
       url:
         'https://launch.smarthealthit.org/v/r4/sim/eyJoIjoiMSIsImoiOiIxIn0/fhir'
+    },
+    {
+      description: 'Google Health API',
+      url: 'https://healthcare.googleapis.com/v1/projects/lhncbc-fhir-tools/locations/us-east4/datasets/lforms-fhir-data/fhirStores/R4-2/fhir'
     }
   ];
 
