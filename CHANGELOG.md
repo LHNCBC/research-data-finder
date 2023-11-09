@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.13.2] - 2023-11-09
+### Fixed
+- Names of search parameter value fields.
+- Target javascript version: es2017 -> es2015.
+
 ## [6.13.1] - 2023-11-09
 ### Fixed
 - An issue where the search parameter value was updated with the value of the
