@@ -304,6 +304,7 @@ class FhirBatchQuery extends EventTarget {
                     interpretation.value.data.entry?.length > 0,
                   hasNotModifierIssue: hasNotModifierIssue.status === 'fulfilled' && hasNotModifierIssue.value
                 });
+                console.log(this._features);
               }
             );
           }

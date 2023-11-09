@@ -26,9 +26,9 @@ export class Oauth2TokenService {
    */
   login(serviceBaseUrl: string): void {
     sessionStorage.setItem('oauth2LoginServer', serviceBaseUrl);
-    // Contact rdf-server for RAS login. '/rdf-server' queries are proxy forwarded
+    // Contact rdf-server for OAuth2 login. '/rdf-server' queries are proxy forwarded
     // to rdf-server (see src/proxy.conf.json).
-    window.location.href = `${window.location.origin}/rdf-server/oauth2/login`;
+    window.location.href = `${window.location.origin}/rdf-server/oauth2/login/?server=${serviceBaseUrl}`;
   }
 
   /**
