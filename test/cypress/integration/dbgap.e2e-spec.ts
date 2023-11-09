@@ -24,7 +24,9 @@ describe('Research Data Finder (dbGap)', () => {
       // Waiting for application initialization
       .get('.init-spinner-container')
       .should('exist')
-      .get('.init-spinner-container', {timeout: 90000})
+      // When we get the initialization parameters from settings,
+      // the initialization should be much faster.
+      .get('.init-spinner-container', {timeout: 5000})
       .should('not.exist')
       // Initialize common page objects (harnesses)
       .then(() => getHarness(MatStepperHarness))
@@ -109,9 +111,37 @@ describe('Research Data Finder (dbGap)', () => {
           .then(() => nextPageBtn.click())
           .then(() => settingsStep.isSelected())
           .then((isSelected) => expect(isSelected).to.be.true)
-          .then(() => cy.get('@inputField').type(value));
+          .then(() => cy.get('@inputField').type(value))
+          .blur();
       });
     });
+
+    it('should not allow a non-existent URL similar to dbGap', () => {
+      let value;
+      cy.get(
+        'input[formControlName="serviceBaseUrl"],[formControlName="serviceBaseUrl"] input'
+      )
+        .as('inputField')
+        .then((el) => {
+          value = el.val();
+        });
+
+      cy.get('@inputField')
+        .focus()
+        .clear()
+        .type('https://dbgap-api.ncbi.nlm.nih.gov/fhir/something')
+        .blur();
+
+      cy.get('.init-spinner-container')
+        .should('exist')
+        .get('.init-spinner-container', {timeout: 20000})
+        .should('not.exist')
+        .then(() => nextPageBtn.click())
+        .then(() => settingsStep.isSelected())
+        .then((isSelected) => expect(isSelected).to.be.true)
+        .then(() => cy.get('@inputField').focus().clear().type(value).blur());
+    });
+
   });
 
   it('should not allow skipping the Define cohort step', (done) => {

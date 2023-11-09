@@ -3,10 +3,43 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.12.2] - 2023-10-19
+## [6.13.2] - 2023-11-09
 ### Fixed
 - Names of search parameter value fields.
 - Target javascript version: es2017 -> es2015.
+
+## [6.13.1] - 2023-11-09
+### Fixed
+- An issue where the search parameter value was updated with the value of the
+  previous control when the search parameter name was changed to a search
+  parameter of a different data type.
+- Improved search performance when using ResearchStudy criteria.
+- Improved search performance when using criteria that can be converted to the
+  _has search parameter for the Patient resource.
+
+## [6.13.0] - 2023-11-03
+### Added
+- Bypass initialization queries when there is a setting for the result.
+
+## [6.12.5] - 2023-11-03
+### Changed
+- Show "browse public data" option only if it's useful.
+- Remove Immport dev server from list.
+
+## [6.12.4] - 2023-10-25
+### Fixed
+- Sorting CTSS variables did not work.
+- The selected studies were not considered in the patient search when variables
+  were selected.
+
+## [6.12.3] - 2023-10-24
+### Fixed
+- Go to "Additional Criteria" tab and show errors, if user search for patients
+  from another tab while "Additional Criteria" tab has validation errors.
+
+## [6.12.2] - 2023-10-23
+### Fixed
+- Tooltip for the "add to cart" button blocks next row button.
 
 ## [6.12.1] - 2023-10-13
 ### Added

@@ -40,6 +40,9 @@
               "src/theme/theme.scss",
               "src/styles.less"
             ],
+            "allowedCommonJsDependencies": [
+              "fhirpath"
+            ],
             "scripts": [
               "./node_modules/jquery/dist/jquery.min.js"
             ],

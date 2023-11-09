@@ -51,6 +51,7 @@ const OPERATOR_ADDING_MESSAGE =
   styleUrls: ['./search-parameters.component.less'],
   providers: [
     ...createControlValueAccessorProviders(SearchParametersComponent),
+    ErrorManager,
     {
       provide: ErrorStateMatcher,
       useExisting: ErrorManager
@@ -84,7 +85,8 @@ export class SearchParametersComponent
   constructor(
     private fhirBackend: FhirBackendService,
     private liveAnnouncer: LiveAnnouncer,
-    private cohort: CohortService
+    private cohort: CohortService,
+    public errorManager: ErrorManager
   ) {
     super();
 
@@ -333,5 +335,19 @@ export class SearchParametersComponent
       parentRuleSet,
       parentRuleSet.rules.map((c) => c.field.element)
     );
+  }
+
+  /**
+   * Checks for errors
+   */
+  hasErrors(): boolean {
+    return this.errorManager.errors !== null;
+  }
+
+  /**
+   * Shows errors for existing formControls
+   */
+  showErrors(): void {
+    this.errorManager.showErrors();
   }
 }

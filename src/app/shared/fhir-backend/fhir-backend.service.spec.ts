@@ -97,8 +97,7 @@ describe('FhirBackendService', () => {
     it('should initialize FhirBatchQuery', async () => {
       await service.initializeFhirBatchQuery();
       expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith(
-        '',
-        ''
+        '', '', null
       );
     });
 
@@ -335,6 +334,7 @@ describe('FhirBackendService', () => {
                 cacheName: null,
                 retryCount: false,
                 cacheErrors: true,
+                cacheAbort: false,
                 priority: PRIORITIES.NORMAL
               }
             );
@@ -359,6 +359,7 @@ describe('FhirBackendService', () => {
               cacheName: null,
               retryCount: false,
               cacheErrors: true,
+              cacheAbort: false,
               priority: PRIORITIES.NORMAL
             }
           );
