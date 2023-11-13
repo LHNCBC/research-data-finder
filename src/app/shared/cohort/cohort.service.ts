@@ -93,7 +93,7 @@ export class CohortService {
     private customRxjs: CustomRxjsOperatorsService
   ) {}
 
-  createCohortMode = CreateCohortMode.SEARCH;
+  createCohortMode = CreateCohortMode.UNSELECTED;
 
   // Observable that emits Patient resources that match the criteria
   patientStream: Observable<Patient[]>;

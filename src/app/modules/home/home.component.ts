@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import pkg from '../../../../package.json';
-import { setUrlParam } from '../../shared/utils';
+import { setUrlParam, removeUrlParam } from '../../shared/utils';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { StepperComponent, Step } from '../stepper/stepper.component';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
@@ -47,15 +47,16 @@ export class HomeComponent implements AfterViewInit {
   }
 
   /**
-   * Update the url 'alpha-version' parameter.
-   * Called when switching alpha version on/off.
+   * Update the url 'prev-version' parameter.
+   * Called when switching previous version on/off.
    * @private
    */
   private setVersionUrlParam(): void {
-    window.location.href = setUrlParam(
-      'alpha-version',
-      this.fhirBackend.isAlphaVersion ? 'disable' : 'enable'
-    );
+    if (this.fhirBackend.isPreviousVersion) {
+      window.location.href = removeUrlParam('prev-version');
+    } else {
+      window.location.href = setUrlParam('prev-version', 'enable');
+    }
   }
 
   /**

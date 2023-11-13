@@ -62,7 +62,6 @@ export class RasTokenCallbackComponent implements OnInit {
     this.fhirBackend.serviceBaseUrl = server;
     this.router.navigate(['/'], {
       queryParams: {
-        'alpha-version': 'enable',
         server
       },
       replaceUrl: true

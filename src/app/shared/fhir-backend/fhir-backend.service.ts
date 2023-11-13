@@ -133,19 +133,9 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
-   * The value of the URL parameter "alpha-version".
-   * @private
+   * Whether the previous version is enabled.
    */
-  private alphaVersionParam = getUrlParam('alpha-version');
-
-  /**
-   * Whether the alpha version is enabled.
-   */
-  get isAlphaVersion(): boolean {
-    return this.alphaVersionParam
-      ? this.alphaVersionParam === 'enable'
-      : this.isDbgap(this.serviceBaseUrl);
-  }
+  isPreviousVersion = getUrlParam('prev-version') === 'enable';
 
   // Checkbox value of whether to use a SMART on FHIR client.
   // tslint:disable-next-line:variable-name
@@ -163,7 +153,7 @@ export class FhirBackendService implements HttpBackend {
             redirectUri: setUrlParam(
               'isSmart',
               true,
-              window.location.pathname + window.location.search
+              window.location.origin + window.location.pathname + window.location.search
             )
           }
         ],
@@ -394,9 +384,9 @@ export class FhirBackendService implements HttpBackend {
         const initializeContext =
           isRasLoggedIn || isOauth2LoggedIn || this.smartConnectionSuccess
             ? 'after-login'
-            : isDbgap && !isRasLoggedIn && this.isAlphaVersion
-            ? 'dbgap-pre-login'
-            : '';
+            : isDbgap && !isRasLoggedIn && !this.isPreviousVersion
+              ? 'dbgap-pre-login'
+              : '';
 
         this.makeInitializationCalls(serviceBaseUrl, initializeContext);
       });
