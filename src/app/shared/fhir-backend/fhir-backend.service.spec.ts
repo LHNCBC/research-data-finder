@@ -99,7 +99,8 @@ describe('FhirBackendService', () => {
     it('should initialize FhirBatchQuery', () => {
       expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith(
         'https://lforms-fhir.nlm.nih.gov/baseR4',
-        ''
+        '',
+        null
       );
     });
 
@@ -341,6 +342,7 @@ describe('FhirBackendService', () => {
                 cacheName: null,
                 retryCount: false,
                 cacheErrors: true,
+                cacheAbort: false,
                 priority: PRIORITIES.NORMAL
               }
             );
@@ -365,6 +367,7 @@ describe('FhirBackendService', () => {
               cacheName: null,
               retryCount: false,
               cacheErrors: true,
+              cacheAbort: false,
               priority: PRIORITIES.NORMAL
             }
           );

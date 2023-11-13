@@ -126,25 +126,25 @@ export class SettingsService {
   /**
    * Returns a settings parameter for the current FHIR server by property path.
    */
-  get(paramPath): any {
-    const url = this.fhirBackend.serviceBaseUrl;
+  get(paramPath, serverBaseUrl = null): any {
+    const url = serverBaseUrl || this.fhirBackend.serviceBaseUrl;
     // Treat https://dbgap-api.ncbi.nlm.nih.gov/fhir* as a dbGap server (at least for now).
     return this.fhirBackend.isDbgap(url)
-      ? getPropertyByPath(this.config, `customization.dbgap.${paramPath}`) ||
-          getPropertyByPath(
-            this.config,
-            `default_${this.fhirBackend.currentVersion}.${paramPath}`
-          ) ||
-          getPropertyByPath(this.config, `default.${paramPath}`)
+      ? getPropertyByPath(this.config, `customization.dbgap.${paramPath}`) ??
+      getPropertyByPath(
+        this.config,
+        `default_${this.fhirBackend.currentVersion}.${paramPath}`
+      ) ??
+      getPropertyByPath(this.config, `default.${paramPath}`)
       : getPropertyByPath(
-          this.config,
-          `customization['${url}'].${paramPath}`
-        ) ||
-          getPropertyByPath(
-            this.config,
-            `default_${this.fhirBackend.currentVersion}.${paramPath}`
-          ) ||
-          getPropertyByPath(this.config, `default.${paramPath}`);
+        this.config,
+        `customization['${url}'].${paramPath}`
+      ) ??
+      getPropertyByPath(
+        this.config,
+        `default_${this.fhirBackend.currentVersion}.${paramPath}`
+      ) ??
+      getPropertyByPath(this.config, `default.${paramPath}`);
   }
 
   /**

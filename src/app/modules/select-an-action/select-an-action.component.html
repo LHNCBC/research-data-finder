@@ -1,8 +1,8 @@
 <mat-radio-group aria-label="Select an option" class="h-box" [formControl]="createCohortMode">
   <div class="v-box">
     <div class="spacer"></div>
-    <mat-radio-button
-        [value]="CreateCohortMode.NO_COHORT">Browse public data</mat-radio-button>
+    <mat-radio-button *ngIf="fhirBackend.features.hasResearchStudy && fhirBackend.isDbgap(fhirBackend.serviceBaseUrl)"
+        [value]="CreateCohortMode.NO_COHORT">Browse data about the research studies (to find studies of interest; no login required)</mat-radio-button>
     <div class="spacer"></div>
     <mat-radio-button [value]="CreateCohortMode.BROWSE">Create a cohort of patients by browsing and selecting records (and then pull data for the cohort)</mat-radio-button>
     <div class="spacer"></div>

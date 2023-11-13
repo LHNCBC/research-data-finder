@@ -3,8 +3,8 @@ import {
   MatStepperHarness,
   MatStepperNextHarness
 } from '@angular/material/stepper/testing';
-import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
-import { getHarness } from '@jscutlery/cypress-harness';
+import {MatExpansionPanelHarness} from '@angular/material/expansion/testing';
+import {getHarness} from '@jscutlery/cypress-harness';
 
 describe('Research Data Finder (dbGap alpha version cart-based approach)', () => {
   // Page objects & harnesses
@@ -24,7 +24,9 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
       // Waiting for application initialization
       .get('.init-spinner-container')
       .should('exist')
-      .get('.init-spinner-container', { timeout: 30000 })
+      // When we get the initialization parameters from settings,
+      // the initialization should be much faster.
+      .get('.init-spinner-container', {timeout: 5000})
       .should('not.exist')
       .then(() => getHarness(MatStepperHarness))
       .then((result: MatStepperHarness) => {
@@ -42,7 +44,7 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
 
   beforeEach((done) => {
     stepper
-      .getSteps({ selected: true })
+      .getSteps({selected: true})
       .then(([currentStep]) =>
         currentStep
           ? currentStep.getHarness(MatStepperNextHarness).catch(() => null)
@@ -70,36 +72,65 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
   });
 
   it('should not allow empty Advanced Setting fields', () => {
-      settingsStep
-        .select()
-        .then(() => settingsStep.getHarness(MatExpansionPanelHarness))
-        .then((advancedSettings) => {
-          advancedSettings.expand();
-        });
+    settingsStep
+      .select()
+      .then(() => settingsStep.getHarness(MatExpansionPanelHarness))
+      .then((advancedSettings) => {
+        advancedSettings.expand();
+      });
 
     [
       ['server URL', 'serviceBaseUrl'],
       ['Request per batch', 'maxRequestsPerBatch'],
       ['Maximum active requests', 'maxActiveRequests']
     ].forEach(([displayName, controlName]) => {
-        let value;
-        cy.get(
-          `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
-        )
-          .as('inputField')
-          .then((el) => {
-            value = el.val();
-          });
-        cy.get('@inputField')
-          .focus()
-          .clear()
-          .blur()
-          .then(() => nextPageBtn.click())
-          .then(() => settingsStep.isSelected())
-          .then((isSelected) => expect(isSelected).to.be.true)
-          .then(() => cy.get('@inputField').type(value).blur());
+      let value;
+      cy.get(
+        `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
+      )
+        .as('inputField')
+        .then((el) => {
+          value = el.val();
+        });
+
+      cy.get('@inputField')
+        .focus()
+        .clear()
+        .blur()
+        .then(() => nextPageBtn.click())
+        .then(() => settingsStep.isSelected())
+        .then((isSelected) => expect(isSelected).to.be.true)
+        .then(() => cy.get('@inputField').type(value))
+        .blur();
     });
   });
+
+  it('should not allow a non-existent URL similar to dbGap', () => {
+    let value;
+    cy.get(
+      'input[formControlName="serviceBaseUrl"],[formControlName="serviceBaseUrl"] input'
+    )
+      .as('inputField')
+      .then((el) => {
+        value = el.val();
+      });
+
+    cy.get('@inputField')
+      .focus()
+      .clear()
+      .type('https://dbgap-api.ncbi.nlm.nih.gov/fhir/something')
+      .blur();
+
+    cy.get('.init-spinner-container')
+      .should('exist')
+      .get('.init-spinner-container', {timeout: 20000})
+      .should('not.exist')
+      .then(() => nextPageBtn.click())
+      .then(() => settingsStep.isSelected())
+      .then((isSelected) => expect(isSelected).to.be.true)
+      .then(() => cy.get('@inputField').focus().clear().type(value).blur());
+  });
+
 
   it('should allow to proceed to the Select An Action step', (done) => {
     nextPageBtn

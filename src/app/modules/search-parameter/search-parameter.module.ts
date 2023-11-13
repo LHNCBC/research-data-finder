@@ -7,7 +7,9 @@ import { MatInputModule } from '@angular/material/input';
 import { SearchParameterComponent } from './search-parameter.component';
 import { ObservationCodeLookupModule } from '../observation-code-lookup/observation-code-lookup.module';
 import { DatesFromToComponent } from './dates-from-to.component';
-import { ObservationTestValueComponent } from './observation-test-value.component';
+import {
+  SearchParameterValueComponent
+} from './search-parameter-value.component';
 import { MatSelectModule } from '@angular/material/select';
 import { AutocompleteParameterValueComponent } from './autocomplete-parameter-value.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -26,10 +28,10 @@ import { MatButtonModule } from '@angular/material/button';
     SearchParameterComponent,
     DatesFromToComponent,
     AutocompleteParameterValueComponent,
-    ObservationTestValueComponent,
+    SearchParameterValueComponent,
     ObservationTestValueUnitComponent
   ],
-  exports: [SearchParameterComponent, ObservationTestValueComponent],
+  exports: [SearchParameterComponent, SearchParameterValueComponent],
   imports: [
     CommonModule,
     MatFormFieldModule,

@@ -4,7 +4,9 @@ import { configureTestingModule } from 'src/test/helpers';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { MockComponent } from 'ng-mocks';
-import { ObservationTestValueComponent } from './observation-test-value.component';
+import {
+  SearchParameterValueComponent
+} from './search-parameter-value.component';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -23,7 +25,7 @@ class Page {
   }
   get compositeTestValue(): DebugElement {
     return this.fixture.debugElement.query(
-      By.css('app-observation-test-value')
+      By.css('app-search-parameter-value')
     );
   }
 }
@@ -38,7 +40,7 @@ describe('SearchParameterComponent', () => {
       {
         declarations: [
           SearchParameterComponent,
-          MockComponent(ObservationTestValueComponent)
+          MockComponent(SearchParameterValueComponent)
         ],
         imports: [
           CommonModule,
