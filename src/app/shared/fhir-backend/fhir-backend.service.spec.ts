@@ -30,6 +30,7 @@ describe('FhirBackendService', () => {
   let httpClient: HttpClient;
   let defaultHttpXhrBackend: HttpXhrBackend;
   let matDialog: MatDialog;
+  let dialogOpenSpy: jasmine.Spy;
   let rasTokenService: RasTokenService;
   let cohortService: CohortService;
   const responseFromDefaultBackend = new HttpResponse({
@@ -60,7 +61,7 @@ describe('FhirBackendService', () => {
   };
 
   describe('non-dbGaP', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       TestBed.configureTestingModule({
         imports: [FhirBackendModule, HttpClientModule, MatDialogModule]
       });
@@ -78,7 +79,6 @@ describe('FhirBackendService', () => {
       spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
         of(responseFromDefaultBackend)
       );
-      service.fhirClient._features = { batch: true, interpretation: true };
       service.settings = TestBed.inject(SettingsService);
       spyOn(service.settings, 'loadCsvDefinitions').and.returnValue(
         of(csvDefinitions)
@@ -88,21 +88,23 @@ describe('FhirBackendService', () => {
       );
       spyOn(service, 'isDbgap').and.returnValue(false);
       service.cacheEnabled = true;
+      await service.init();
+      service.fhirClient._features = {batch: true, interpretation: true};
     });
 
     it('should be created', () => {
       expect(service).toBeTruthy();
     });
 
-    it('should initialize FhirBatchQuery', async () => {
-      await service.initializeFhirBatchQuery();
+    it('should initialize FhirBatchQuery', () => {
       expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith(
-        '', '', null
+        'https://lforms-fhir.nlm.nih.gov/baseR4',
+        '',
+        null
       );
     });
 
     it('should add interpretation search parameter', (done) => {
-      service.initializeFhirBatchQuery();
       service.currentDefinitions$.subscribe((definitions) => {
         expect(
           definitions.resources.Observation.searchParameters.some(
@@ -222,7 +224,7 @@ describe('FhirBackendService', () => {
   });
 
   describe('dbGaP', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       TestBed.configureTestingModule({
         imports: [FhirBackendModule, MatDialogModule, BrowserAnimationsModule]
       });
@@ -242,13 +244,10 @@ describe('FhirBackendService', () => {
       rasTokenService.rasTokenValidated = true;
       cohortService = TestBed.inject(CohortService);
       cohortService.createCohortMode = CreateCohortMode.SEARCH;
-      spyOn(matDialog, 'open').and.returnValue({
-        afterClosed: () => of(false)
-      } as MatDialogRef<AlertDialogComponent>);
+      dialogOpenSpy = spyOn(matDialog, 'open');
       spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
         of(responseFromDefaultBackend)
       );
-      service.fhirClient._features = { batch: true, interpretation: true };
       service.settings = TestBed.inject(SettingsService);
       spyOn(service.settings, 'loadCsvDefinitions').and.returnValue(
         of(csvDefinitions)
@@ -258,6 +257,8 @@ describe('FhirBackendService', () => {
       );
       spyOn(service, 'isDbgap').and.returnValue(true);
       service.cacheEnabled = true;
+      await service.init();
+      service.fhirClient._features = { batch: true, interpretation: true };
     });
 
     it('should show message if dbGaP TST token has expired', (done) => {
@@ -274,8 +275,13 @@ describe('FhirBackendService', () => {
               priority: PRIORITIES.NORMAL
             }
           );
-          expect(matDialog.open).toHaveBeenCalled();
-          done();
+          dialogOpenSpy.and.callFake(() => {
+            expect(matDialog.open).toHaveBeenCalled();
+            done();
+            return {
+              afterClosed: () => of(false)
+            } as MatDialogRef<AlertDialogComponent>;
+          });
         }
       );
     });
@@ -295,8 +301,10 @@ describe('FhirBackendService', () => {
               priority: PRIORITIES.NORMAL
             }
           );
-          expect(matDialog.open).not.toHaveBeenCalled();
-          done();
+          setTimeout(() => {
+            expect(matDialog.open).not.toHaveBeenCalled();
+            done();
+          }, 1);
         }
       );
     });
