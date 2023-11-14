@@ -100,8 +100,7 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
         .then(() => nextPageBtn.click())
         .then(() => settingsStep.isSelected())
         .then((isSelected) => expect(isSelected).to.be.true)
-        .then(() => cy.get('@inputField').type(value))
-        .blur();
+        .then(() => cy.get('@inputField').type(value).blur());
     });
   });
 
@@ -129,6 +128,11 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
       .then(() => settingsStep.isSelected())
       .then((isSelected) => expect(isSelected).to.be.true)
       .then(() => cy.get('@inputField').focus().clear().type(value).blur());
+
+    cy.get('.init-spinner-container')
+      .should('exist')
+      .get('.init-spinner-container', {timeout: 20000})
+      .should('not.exist');
   });
 
 
