@@ -470,7 +470,8 @@ export class SelectRecordsService {
 
     if (
       !currentState || currentState.loading || !currentState.nextBundleUrl ||
-      (preloadState && (preloadState.loading || preloadState.resources.length > minNumOfRecordsToPreload))
+      (preloadState && (preloadState.loading || !preloadState.nextBundleUrl ||
+        preloadState.resources.length > minNumOfRecordsToPreload))
     ) {
       return;
     }
@@ -697,7 +698,7 @@ export class SelectRecordsService {
           }
           return requests;
         }, []);
-        state.nextBundleUrl = this.fhirBackend.getNextPageUrl(data);
+        state.nextBundleUrl = checkRequests.length === 0 ? null : this.fhirBackend.getNextPageUrl(data);
         return checkRequests.length === 0
           ? of([])
           : forkJoin(checkRequests).pipe(

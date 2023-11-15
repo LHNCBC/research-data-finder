@@ -173,6 +173,23 @@ describe('SelectRecordsService', () => {
       expect(service.currentState['Observation'].resources.length).toBe(4);
     });
 
+    it('should stop loading variables when the next page has no new codes', function() {
+      options.features = {
+        hasNotModifierIssue: true
+      };
+      loadFirstPageOfObservations();
+
+      service.loadNextPageOfVariablesFromObservations([], {}, {}, null);
+      service.currentState['Observation'].resourceStream.subscribe();
+      mockHttp
+        .expectOne(
+          '$fhir/Observation?_elements=code,value,category&code:not=system-1%7Ccode-1,system-2%7Ccode-2,system-3%7Ccode-3,system-4%7Ccode-4&_count=50'
+        )
+        .flush(observations);
+      expect(service.currentState['Observation'].resources.length).toBe(4);
+      expect(service.currentState['Observation'].nextBundleUrl).toBe(null);
+    });
+
 
     it('should sort each loaded page on the client side', function() {
       options.features = {

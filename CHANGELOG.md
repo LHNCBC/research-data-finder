@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.13.6] - 2023-11-15
+### Fixed
+- Infinite loop when loading variables in the "Select records" step if the
+  server returns observations without codes.
+
 ## [6.13.5] - 2023-11-13
 ### Fixed
 - After logging in through RAS, a new TST token is received but the
