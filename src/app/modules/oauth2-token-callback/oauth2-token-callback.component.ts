@@ -35,7 +35,7 @@ export class Oauth2TokenCallbackComponent implements OnInit {
         this.oauth2Token.isOauth2Required = true;
         this.oauth2Token.oauth2TokenValidated = true;
         sessionStorage.setItem('oauth2AccessToken', data['access_token']);
-        window.location.href = `${window.location.origin}/fhir/research-data-finder/?server=${server}`;
+        window.location.href = `${window.location.origin}/fhir/research-data-finder/?server=${server}&alpha-version=enable`;
       }, (err) => {
         this.oauth2Token.isOauth2Required = true;
         this.oauth2Token.oauth2TokenValidated = false;
