@@ -3,8 +3,8 @@ import {
   MatStepperHarness,
   MatStepperNextHarness
 } from '@angular/material/stepper/testing';
-import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
-import { getHarness } from '@jscutlery/cypress-harness';
+import {MatExpansionPanelHarness} from '@angular/material/expansion/testing';
+import {getHarness} from '@jscutlery/cypress-harness';
 
 describe('Research Data Finder (dbGap alpha version cart-based approach)', () => {
   // Page objects & harnesses
@@ -24,7 +24,9 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
       // Waiting for application initialization
       .get('.init-spinner-container')
       .should('exist')
-      .get('.init-spinner-container', { timeout: 30000 })
+      // When we get the initialization parameters from settings,
+      // the initialization should be much faster.
+      .get('.init-spinner-container', {timeout: 5000})
       .should('not.exist')
       .then(() => getHarness(MatStepperHarness))
       .then((result: MatStepperHarness) => {
@@ -42,7 +44,7 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
 
   beforeEach((done) => {
     stepper
-      .getSteps({ selected: true })
+      .getSteps({selected: true})
       .then(([currentStep]) =>
         currentStep
           ? currentStep.getHarness(MatStepperNextHarness).catch(() => null)
@@ -69,43 +71,70 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
     });
   });
 
-  describe('in Settings step', () => {
-    before((done) => {
-      settingsStep
-        .select()
-        .then(() => settingsStep.getHarness(MatExpansionPanelHarness))
-        .then((advancedSettings) => {
-          advancedSettings.expand();
-          done();
-        });
-    });
+  it('should not allow empty Advanced Setting fields', () => {
+    settingsStep
+      .select()
+      .then(() => settingsStep.getHarness(MatExpansionPanelHarness))
+      .then((advancedSettings) => {
+        advancedSettings.expand();
+      });
 
     [
       ['server URL', 'serviceBaseUrl'],
       ['Request per batch', 'maxRequestsPerBatch'],
       ['Maximum active requests', 'maxActiveRequests']
     ].forEach(([displayName, controlName]) => {
-      it(`should not allow empty "${displayName}"`, () => {
-        let value;
-        cy.get(
-          `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
-        )
-          .as('inputField')
-          .then((el) => {
-            value = el.val();
-          });
+      let value;
+      cy.get(
+        `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
+      )
+        .as('inputField')
+        .then((el) => {
+          value = el.val();
+        });
 
-        cy.get('@inputField')
-          .focus()
-          .clear()
-          .blur()
-          .then(() => nextPageBtn.click())
-          .then(() => settingsStep.isSelected())
-          .then((isSelected) => expect(isSelected).to.be.true)
-          .then(() => cy.get('@inputField').type(value));
-      });
+      cy.get('@inputField')
+        .focus()
+        .clear()
+        .blur()
+        .then(() => nextPageBtn.click())
+        .then(() => settingsStep.isSelected())
+        .then((isSelected) => expect(isSelected).to.be.true)
+        .then(() => cy.get('@inputField').type(value).blur());
     });
   });
+
+  it('should not allow a non-existent URL similar to dbGap', () => {
+    let value;
+    cy.get(
+      'input[formControlName="serviceBaseUrl"],[formControlName="serviceBaseUrl"] input'
+    )
+      .as('inputField')
+      .then((el) => {
+        value = el.val();
+      });
+
+    cy.get('@inputField')
+      .focus()
+      .clear()
+      .type('https://dbgap-api.ncbi.nlm.nih.gov/fhir/something')
+      .blur();
+
+    cy.get('.init-spinner-container')
+      .should('exist')
+      .get('.init-spinner-container', {timeout: 20000})
+      .should('not.exist')
+      .then(() => nextPageBtn.click())
+      .then(() => settingsStep.isSelected())
+      .then((isSelected) => expect(isSelected).to.be.true)
+      .then(() => cy.get('@inputField').focus().clear().type(value).blur());
+
+    cy.get('.init-spinner-container')
+      .should('exist')
+      .get('.init-spinner-container', {timeout: 20000})
+      .should('not.exist');
+  });
+
 
   it('should allow to proceed to the Select An Action step', (done) => {
     nextPageBtn
@@ -194,4 +223,39 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
     cy.contains('Variables in Cart').should('be.visible');
     cy.contains('selected test variable constraint').should('be.visible');
   });
+
+  // This should be the last test in the suite. It sets a fake TST token into FhirBatchQuery._authorizationHeader,
+  // and it won't work for subsequent dbGaP queries.
+  it('should use new TST token after RAS login', () => {
+    cy.contains('Select an action').click();
+    cy.contains(
+      'Create a cohort of patients by browsing and selecting records'
+    ).click();
+    // Stub rdf-server requests to return a fake TST token.
+    cy.intercept('/rdf-server/login', (req) => {
+      req.redirect('/fhir/research-data-finder/request-redirect-token-callback?tst-token=test');
+    });
+    cy.intercept('/rdf-server/tst-return/?tst-token=test', {
+      statusCode: 200,
+      body: {
+        message: {
+          tst: 'testTstToken'
+        }
+      }
+    });
+    // Triggers RAS login.
+    cy.contains('Next').click();
+    cy.intercept('https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1/**', {
+      statusCode: 200
+    }).as('dbgapQuery');
+    // Verify that the dbGaP initialization query after RAS login contains the new TST token in "Authorization" header.
+    cy.wait('@dbgapQuery')
+      .its('request.headers')
+      .should('have.property', 'authorization', 'Bearer testTstToken');
+    // Clear TST token in sessionStorage so we don't get issues when tests are re-run during "cypress open".
+    cy.window().then((win) => {
+      win.sessionStorage.clear();
+    });
+  });
+
 });

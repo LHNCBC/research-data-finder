@@ -31,26 +31,28 @@
       </mat-select>
     </mat-form-field>
     <mat-form-field class="value">
-      <mat-label>Test value</mat-label>
+      <mat-label>{{valueLabelText}}</mat-label>
       <ng-container [ngSwitch]="selectedDatatype">
         <app-autocomplete-parameter-value
-          *ngSwitchCase="'CodeableConcept'"
-          formControlName="testValue" placeholder="Select one or more"
-          resourceType="Observation"
-          [observationCodes]="observationCodes"
-          columnName="value"
-          expression="value"
-          searchParameter="value-concept">
+            *ngSwitchCase="'CodeableConcept'"
+            formControlName="testValue"
+            placeholder="{{valuePlaceholderText || 'Select one or more'}}"
+            resourceType="Observation"
+            [observationCodes]="observationCodes"
+            columnName="value"
+            expression="value"
+            searchParameter="value-concept">
         </app-autocomplete-parameter-value>
-        <input *ngSwitchCase="'Quantity'" type="number" step="any" matInput formControlName="testValue"
+        <input *ngSwitchCase="'Quantity'" type="number" step="any" matInput
+               formControlName="testValue"
                autocomplete="off"
-               placeholder="Enter number value">
+               placeholder="{{valuePlaceholderText || 'Enter number value'}}">
         <input *ngSwitchDefault type="text" matInput formControlName="testValue"
-               placeholder="Enter string value">
+               placeholder="{{valuePlaceholderText || 'Enter string value'}}">
       </ng-container>
     </mat-form-field>
     <mat-form-field *ngIf="typeDescriptions[selectedDatatype].unit" class="unit">
-      <mat-label>Test value unit</mat-label>
+      <mat-label>{{unitLabelText}}</mat-label>
       <ng-container [ngSwitch]="unitList?.length > 0 ? 1 : unitList?.length === 0 ? 2 : 3">
         <app-autocomplete
           *ngSwitchCase="1"
@@ -88,11 +90,11 @@
       </mat-select>
     </mat-form-field>
     <mat-form-field class="value">
-      <mat-label>Test value</mat-label>
+      <mat-label>{{valueLabelText}}</mat-label>
       <input type="number" step="any" matInput
              formControlName="testValue2"
              autocomplete="off"
-             placeholder="Enter number value">
+             placeholder="{{valuePlaceholderText || 'Enter number value'}}">
     </mat-form-field>
   </div>
 </form>

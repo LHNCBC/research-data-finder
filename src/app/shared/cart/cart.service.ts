@@ -3,7 +3,9 @@ import { Observable, Subject } from 'rxjs';
 import Resource = fhir.Resource;
 import { HttpClient } from '@angular/common/http';
 import Bundle = fhir.Bundle;
-import { ObservationTestValue } from '../../modules/search-parameter/observation-test-value.component';
+import {
+  SearchParameterValue
+} from '../../modules/search-parameter/search-parameter-value.component';
 import fhirpath from 'fhirpath';
 import { sortBy } from 'lodash-es';
 import { AutocompleteOption } from '../../modules/autocomplete/autocomplete.component';
@@ -39,7 +41,7 @@ export class CartService {
   public variableData: {
     [uid: string]: {
       datatype: string;
-      value?: ObservationTestValue;
+      value?: SearchParameterValue;
     };
   } = {};
 
