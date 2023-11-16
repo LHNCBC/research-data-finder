@@ -103,6 +103,8 @@ export class ObservationCodeLookupComponent
   listSelectionsObserver: (eventData: any) => void;
   // Subscription used to cancel the previous loading process
   subscriptionForLoading: Subscription;
+  // Timeout for delaying search on user keystroke
+  keystrokeTimeoutId: any;
   // Subscription to a change in cohort criteria
   subscriptionForCriteria: Subscription;
 
@@ -305,180 +307,183 @@ export class ObservationCodeLookupComponent
         suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
         fhir: {
           search: (fieldVal, count) => {
-            const fieldValWithSynonyms = modifyStringForSynonyms(
-              ObservationCodeLookupComponent.wordSynonymsLookup,
-              fieldVal
-            );
-            // Construct RegExp /base|basic/i from comma-separated synonym string
-            // 'base,basic', for example.
-            const isMatchToFieldVal = new RegExp(
-              escapeStringForRegExp(fieldValWithSynonyms).replace(/\\,/g, '|'),
-              'i'
-            );
-            return {
-              then: (resolve, reject) => {
-                const url = this.fhirBackend.features.lastnLookup
-                  ? '$fhir/Observation/$lastn?max=1'
-                  : '$fhir/Observation';
-                const _elements = 'subject,code,value,component';
-                const subject = this.isPullData
-                  ? {
-                      // "subject:Patient" doesn't work for $lastn and due to
-                      // a bug it doesn't work on baseR5
-                      subject: this.cohort.currentState.patients
-                        .map((patient) => 'Patient/' + patient.id)
-                        .join(',')
-                    }
-                  : {};
-                const params = {
-                  _elements,
-                  ...subject,
-                  'code:text': fieldValWithSynonyms,
-                  _count: '500'
-                };
-                const paramsCode = {
-                  _elements,
-                  ...subject,
-                  code: fieldVal,
-                  _count: '1'
-                };
-                // Hash of processed codes, used to exclude repeated codes
-                const processedCodes = {};
-                // Array of result items for autocompleter
-                const contains: ValueSetExpansionContains[] = [];
-                // Total amount of items
-                let total = null;
-                // Already selected codes
-                const selectedCodes = acInstance.getSelectedCodes();
+              const fieldValWithSynonyms = modifyStringForSynonyms(
+                ObservationCodeLookupComponent.wordSynonymsLookup,
+                fieldVal
+              );
+              // Construct RegExp /base|basic/i from comma-separated synonym string
+              // 'base,basic', for example.
+              const isMatchToFieldVal = new RegExp(
+                escapeStringForRegExp(fieldValWithSynonyms).replace(/\\,/g, '|'),
+                'i'
+              );
+              return {
+                then: (resolve, reject) => {
+                  clearTimeout(this.keystrokeTimeoutId);
+                  this.keystrokeTimeoutId = setTimeout(() => {
+                    const url = this.fhirBackend.features.lastnLookup
+                      ? '$fhir/Observation/$lastn?max=1'
+                      : '$fhir/Observation';
+                    const _elements = 'subject,code,value,component';
+                    const subject = this.isPullData
+                      ? {
+                        // "subject:Patient" doesn't work for $lastn and due to
+                        // a bug it doesn't work on baseR5
+                        subject: this.cohort.currentState.patients
+                          .map((patient) => 'Patient/' + patient.id)
+                          .join(',')
+                      }
+                      : {};
+                    const params = {
+                      _elements,
+                      ...subject,
+                      'code:text': fieldValWithSynonyms,
+                      _count: '500'
+                    };
+                    const paramsCode = {
+                      _elements,
+                      ...subject,
+                      code: fieldVal,
+                      _count: '1'
+                    };
+                    // Hash of processed codes, used to exclude repeated codes
+                    const processedCodes = {};
+                    // Array of result items for autocompleter
+                    const contains: ValueSetExpansionContains[] = [];
+                    // Total amount of items
+                    let total = null;
+                    // Already selected codes
+                    const selectedCodes = acInstance.getSelectedCodes();
 
-                this.loading = true;
-                this.subscriptionForLoading?.unsubscribe();
+                    this.loading = true;
+                    this.subscriptionForLoading?.unsubscribe();
 
-                const obsCode = this.httpClient
-                  .get(url, {
-                    params: paramsCode
-                  })
-                  .pipe(
-                    tap((response: Bundle) => {
-                      contains.unshift(
-                        ...this.getAutocompleteItems(
-                          response,
-                          processedCodes,
-                          selectedCodes,
-                          isMatchToFieldVal
-                        )
+                    const obsCode = this.httpClient
+                      .get(url, {
+                        params: paramsCode
+                      })
+                      .pipe(
+                        tap((response: Bundle) => {
+                          contains.unshift(
+                            ...this.getAutocompleteItems(
+                              response,
+                              processedCodes,
+                              selectedCodes,
+                              isMatchToFieldVal
+                            )
+                          );
+                          // Update list immediately.
+                          resolve({
+                            resourceType: 'ValueSet',
+                            expansion: {
+                              total: Number.isInteger(response.total)
+                                ? response.total
+                                : null,
+                              contains
+                            }
+                          });
+                        }),
+                        catchError((error) => {
+                          this.loading = false;
+                          reject(error);
+                          return of(contains);
+                        })
                       );
-                      // Update list immediately.
-                      resolve({
-                        resourceType: 'ValueSet',
-                        expansion: {
-                          total: Number.isInteger(response.total)
-                            ? response.total
-                            : null,
-                          contains
-                        }
-                      });
-                    }),
-                    catchError((error) => {
-                      this.loading = false;
-                      reject(error);
-                      return of(contains);
-                    })
-                  );
 
-                const obs = this.httpClient
-                  // Load first page of Observation resources
-                  .get(url, {
-                    params
-                  })
-                  .pipe(
-                    // Modifying the Observable to load the following pages sequentially
-                    expand((response: Bundle) => {
-                      const newItems = this.getAutocompleteItems(
-                        response,
-                        processedCodes,
-                        selectedCodes,
-                        isMatchToFieldVal
+                    const obs = this.httpClient
+                      // Load first page of Observation resources
+                      .get(url, {
+                        params
+                      })
+                      .pipe(
+                        // Modifying the Observable to load the following pages sequentially
+                        expand((response: Bundle) => {
+                          const newItems = this.getAutocompleteItems(
+                            response,
+                            processedCodes,
+                            selectedCodes,
+                            isMatchToFieldVal
+                          );
+                          contains.push(...newItems);
+                          const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
+                          if (
+                            nextPageUrl &&
+                            contains.length < count &&
+                            // Checking "newItems.length" eliminates an infinite loop
+                            // in case the server misinterprets the ":not" modifier
+                            // for the "code" search parameter.
+                            newItems.length
+                          ) {
+                            // Update list immediately
+                            resolve({
+                              resourceType: 'ValueSet',
+                              expansion: {
+                                total: Number.isInteger(response.total)
+                                  ? response.total
+                                  : null,
+                                contains
+                              }
+                            });
+                            if (this.fhirBackend.features.lastnLookup) {
+                              return this.httpClient.get(nextPageUrl);
+                            } else {
+                              return this.httpClient.get(url, {
+                                params: {
+                                  ...params,
+                                  'code:not': this.fhirBackend.features
+                                    .hasNotModifierIssue
+                                    ? // Pass a single "code:not" parameter, which is currently working
+                                      // correctly on the HAPI FHIR server.
+                                    Object.keys(processedCodes).join(',')
+                                    : // Pass each code as a separate "code:not" parameter, which is
+                                      // currently causing performance issues on the HAPI FHIR server.
+                                    Object.keys(processedCodes)
+                                }
+                              });
+                            }
+                          } else {
+                            if (
+                              this.fhirBackend.features.lastnLookup &&
+                              response.total
+                            ) {
+                              total = response.total;
+                            } else if (!nextPageUrl) {
+                              total = contains.length;
+                            }
+                            if (contains.length > count) {
+                              contains.length = count;
+                            }
+                            this.appendCodeSystemToDuplicateDisplay(contains);
+                            // Emit a complete notification
+                            return EMPTY;
+                          }
+                        }),
+                        catchError((error) => {
+                          this.loading = false;
+                          reject(error);
+                          // An error has occurred in one of the subsequent "next-page" queries for codes.
+                          // Even though it now fails, we show a list for items we have retrieved so far.
+                          // So, below method is called in case there are different items with the same display.
+                          this.appendCodeSystemToDuplicateDisplay(contains);
+                          return of(contains);
+                        })
                       );
-                      contains.push(...newItems);
-                      const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
-                      if (
-                        nextPageUrl &&
-                        contains.length < count &&
-                        // Checking "newItems.length" eliminates an infinite loop
-                        // in case the server misinterprets the ":not" modifier
-                        // for the "code" search parameter.
-                        newItems.length
-                      ) {
-                        // Update list immediately
+
+                    // Resolve autocomplete dropdown after both code and text searches are done.
+                    this.subscriptionForLoading = forkJoin([obs, obsCode])
+                      .subscribe(() => {
                         resolve({
                           resourceType: 'ValueSet',
                           expansion: {
-                            total: Number.isInteger(response.total)
-                              ? response.total
-                              : null,
+                            total: Number.isInteger(total) ? total : null,
                             contains
                           }
                         });
-                        if (this.fhirBackend.features.lastnLookup) {
-                          return this.httpClient.get(nextPageUrl);
-                        } else {
-                          return this.httpClient.get(url, {
-                            params: {
-                              ...params,
-                              'code:not': this.fhirBackend.features
-                                .hasNotModifierIssue
-                                ? // Pass a single "code:not" parameter, which is currently working
-                                  // correctly on the HAPI FHIR server.
-                                  Object.keys(processedCodes).join(',')
-                                : // Pass each code as a separate "code:not" parameter, which is
-                                  // currently causing performance issues on the HAPI FHIR server.
-                                  Object.keys(processedCodes)
-                            }
-                          });
-                        }
-                      } else {
-                        if (
-                          this.fhirBackend.features.lastnLookup &&
-                          response.total
-                        ) {
-                          total = response.total;
-                        } else if (!nextPageUrl) {
-                          total = contains.length;
-                        }
-                        if (contains.length > count) {
-                          contains.length = count;
-                        }
-                        this.appendCodeSystemToDuplicateDisplay(contains);
-                        // Emit a complete notification
-                        return EMPTY;
-                      }
-                    }),
-                    catchError((error) => {
-                      this.loading = false;
-                      reject(error);
-                      // An error has occurred in one of the subsequent "next-page" queries for codes.
-                      // Even though it now fails, we show a list for items we have retrieved so far.
-                      // So, below method is called in case there are different items with the same display.
-                      this.appendCodeSystemToDuplicateDisplay(contains);
-                      return of(contains);
-                    })
-                  );
-
-                // Resolve autocomplete dropdown after both code and text searches are done.
-                this.subscriptionForLoading = forkJoin([obs, obsCode])
-                  .subscribe(() => {
-                    resolve({
-                      resourceType: 'ValueSet',
-                      expansion: {
-                        total: Number.isInteger(total) ? total : null,
-                        contains
-                      }
-                    });
-                    this.loading = false;
-                  });
-              }
-            };
+                        this.loading = false;
+                      });
+                  }, 200);
+                }
+              };
           }
         },
         useResultCache: false,
@@ -521,6 +526,8 @@ export class ObservationCodeLookupComponent
           // &authenticity_token=&terms=heigh
           return {
             then: (resolve, reject) => {
+              clearTimeout(this.keystrokeTimeoutId);
+              this.keystrokeTimeoutId = setTimeout(() => {
               const url = new URL(
                 'https://clinicaltables.nlm.nih.gov/fhir/R4/ValueSet/dbg-vars'
               );
@@ -573,6 +580,7 @@ export class ObservationCodeLookupComponent
                     reject(error);
                   }
                 );
+              }, 200);
             }
           };
         },
