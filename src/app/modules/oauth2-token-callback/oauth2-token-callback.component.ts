@@ -20,9 +20,10 @@ export class Oauth2TokenCallbackComponent implements OnInit {
 
   ngOnInit(): void {
     const code = getUrlParam('code');
+    const server = sessionStorage.getItem('oauth2LoginServer');
     this.http
       .get(
-        `${window.location.origin}/rdf-server/oauth2/callback/?code=${code}`,
+        `${window.location.origin}/rdf-server/oauth2/callback/?code=${code}&server=${server}`,
         {withCredentials: true}
       )
       .subscribe((data) => {
@@ -31,9 +32,9 @@ export class Oauth2TokenCallbackComponent implements OnInit {
         this.oauth2Token.isOauth2Required = true;
         this.oauth2Token.oauth2TokenValidated = true;
         sessionStorage.setItem('oauth2AccessToken', data['access_token']);
-        const server = sessionStorage.getItem('oauth2LoginServer');
         this.router.navigate(['/'], {
           queryParams: {
+            'alpha-version': 'enable',
             server
           },
           replaceUrl: true
