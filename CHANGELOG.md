@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.14.1] - 2023-11-17
+### Fixed
+- Navigate to alpha version after Immport OAuth2 login.
+
 ## [6.14.0] - 2023-11-16
 ### Added
 - Ability to login to Immport server through OAuth2.
