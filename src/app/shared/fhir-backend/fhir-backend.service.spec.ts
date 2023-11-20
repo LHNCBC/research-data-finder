@@ -403,10 +403,6 @@ describe('FhirBatchQuery', () => {
       status: 500,
       body: '{ "message": "Failure!" }'
     });
-    server.get(/http:\/\/some-server-url\/[Observation|ResearchStudy].*/, {
-      status: 200,
-      body: JSON.stringify({ entry: [] })
-    });
 
     server.install();
     fhirBatchQuery = new FhirBatchQuery({
@@ -526,6 +522,10 @@ describe('FhirBatchQuery', () => {
       status: 200,
       body: '{ "fhirVersion": "4.0.1" }'
     });
+    server.get(/http:\/\/some-server-url\/[Observation|ResearchStudy].*/, {
+      status: 200,
+      body: JSON.stringify({ entry: [] })
+    });
     fhirBatchQuery.makeInitializationCalls().then(() => {
       const metaDataQueries = server.getRequestLog().filter(l => l.url.startsWith('http://some-server-url/metadata'));
       expect(metaDataQueries).toEqual([
@@ -557,6 +557,35 @@ describe('FhirBatchQuery', () => {
         jasmine.objectContaining({
           method: 'GET',
           url: 'http://some-server-url/metadata?_elements=fhirVersion&_format=json'
+        })
+      ]);
+      done();
+    });
+  });
+
+  it('should reject initialization if ResearchStudy requires OAuth2', (done) => {
+    server.get(/http:\/\/some-server-url\/metadata.*/, {
+      status: 200,
+      body: '{ "fhirVersion": "4.0.1" }'
+    });
+    server.get(/http:\/\/some-server-url\/ResearchStudy.*/, {
+      status: 401,
+      body: '{ "message": "Not authorized!" }',
+      headers: {'Www-Authenticate': 'Bearer bla bla'}
+    });
+    fhirBatchQuery.makeInitializationCalls().then(() => {
+    }, (reason) => {
+      expect(reason).toEqual({
+        status: OAUTH2_REQUIRED, error: 'oauth2 required'
+      })
+      expect(server.getRequestLog()).toEqual([
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://some-server-url/metadata?_elements=fhirVersion&_format=json'
+        }),
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://some-server-url/ResearchStudy?_elements=id&_count=1&_format=json'
         })
       ]);
       done();

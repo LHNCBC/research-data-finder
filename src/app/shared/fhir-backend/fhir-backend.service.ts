@@ -136,7 +136,7 @@ export class FhirBackendService implements HttpBackend {
    * The value of the URL parameter "alpha-version".
    * @private
    */
-  private alphaVersionParam = getUrlParam('alpha-version');
+  public alphaVersionParam = getUrlParam('alpha-version');
 
   /**
    * Whether the alpha version is enabled.

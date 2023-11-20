@@ -3,10 +3,24 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.13.6] - 2023-11-15
+## [6.14.2] - 2023-11-17
 ### Fixed
 - Infinite loop when loading variables in the "Select records" step if the
   server returns observations without codes.
+
+## [6.14.1] - 2023-11-17
+### Fixed
+- Navigate to alpha version after Immport OAuth2 login.
+
+## [6.14.0] - 2023-11-16
+### Added
+- Ability to login to Immport server through OAuth2.
+
+## [6.13.6] - 2023-11-16
+### Changed
+- When user types in the Observation Name autocomplete search input field,
+  wait 200ms before sending out the query, so that previous queries are not
+  sent if user keeps typing.
 
 ## [6.13.5] - 2023-11-13
 ### Fixed

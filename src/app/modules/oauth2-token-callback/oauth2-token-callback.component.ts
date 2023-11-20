@@ -3,6 +3,7 @@ import {Router} from '@angular/router';
 import {Oauth2TokenService} from "../../shared/oauth2-token/oauth2-token.service";
 import {HttpClient} from "@angular/common/http";
 import {getUrlParam} from "../../shared/utils";
+import {FhirBackendService} from "../../shared/fhir-backend/fhir-backend.service";
 
 @Component({
   selector: 'app-oauth2-token-callback',
@@ -14,15 +15,17 @@ export class Oauth2TokenCallbackComponent implements OnInit {
   constructor(
     private router: Router,
     private oauth2Token: Oauth2TokenService,
-    private http: HttpClient
+    private http: HttpClient,
+    private fhirBackend: FhirBackendService
   ) {
   }
 
   ngOnInit(): void {
     const code = getUrlParam('code');
+    const server = sessionStorage.getItem('oauth2LoginServer');
     this.http
       .get(
-        `${window.location.origin}/rdf-server/oauth2/callback/?code=${code}`,
+        `${window.location.origin}/rdf-server/oauth2/callback/?code=${code}&server=${server}`,
         {withCredentials: true}
       )
       .subscribe((data) => {
@@ -31,9 +34,12 @@ export class Oauth2TokenCallbackComponent implements OnInit {
         this.oauth2Token.isOauth2Required = true;
         this.oauth2Token.oauth2TokenValidated = true;
         sessionStorage.setItem('oauth2AccessToken', data['access_token']);
-        const server = sessionStorage.getItem('oauth2LoginServer');
+        // 'alphaVersionParam' was set on page load when there was no 'alpha-version' param.
+        // We need to set it if we navigate through router without reloading.
+        this.fhirBackend.alphaVersionParam = 'enable';
         this.router.navigate(['/'], {
           queryParams: {
+            'alpha-version': 'enable',
             server
           },
           replaceUrl: true

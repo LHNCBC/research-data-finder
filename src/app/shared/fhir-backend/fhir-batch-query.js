@@ -210,15 +210,18 @@ class FhirBatchQuery extends EventTarget {
     // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
     const options = this.getCommonInitRequestOptions();
 
-    const initializationRequests = this.checkMetadata()
+    return this.checkMetadata()
+    .then(() => {
+      if (predefinedInitResult && predefinedInitResult.version === this._versionName) {
+        this._features = predefinedInitResult.features;
+        return Promise.resolve();
+      }
+      return this.checkResearchStudy(options)
       .then(() => {
-        if (predefinedInitResult && predefinedInitResult.version === this._versionName) {
-          this._features = predefinedInitResult.features;
-          return Promise.resolve();
-        }
         return Promise.allSettled([
-          // Check if server has Research Study data
-          this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
+          // Check if server has at least one Research Study with Research Subjects.
+          // No need to make this request if there is no Research Study at all.
+          this.checkHasAvailableStudy(options),
           // Check if :missing modifier is supported
           this.getWithCache(`Observation?code:missing=false&_elements=id&_count=1${securityParam}`, options),
           // Check if batch request is supported
@@ -243,16 +246,14 @@ class FhirBatchQuery extends EventTarget {
             retryCount: 2
           })
         ])
-        .then(([hasResearchStudy, missingModifier, batch]) => {
+        .then(([hasAvailableStudy, missingModifier, batch]) => {
           if (currentServiceBaseUrl !== this._serviceBaseUrl) {
             return Promise.reject({
               status: HTTP_ABORT,
               error: 'Outdated response to initialization request.'
             });
           }
-          this._features.hasResearchStudy =
-            hasResearchStudy.status === 'fulfilled' &&
-            hasResearchStudy.value.data.entry?.length > 0;
+          this._features.hasAvailableStudy = hasAvailableStudy.value;
           this._features.missingModifier = missingModifier.status === 'fulfilled';
           this._features.batch =
             batch.status === 'fulfilled' &&
@@ -262,13 +263,7 @@ class FhirBatchQuery extends EventTarget {
         })
         .then(() => {
           // On dbGaP server, only do certain initialization requests after login.
-          if (this.initContext === 'dbgap-pre-login') {
-            // Check if server has at least one Research Study with Research Subjects.
-            // No need to make this request if there is no Research Study at all.
-            return this.checkHasAvailableStudy(options).then((result) => {
-              this._features.hasAvailableStudy = result;
-            });
-          } else {
+          if (this.initContext !== 'dbgap-pre-login') {
             // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
             return Promise.allSettled([
               // Check if sorting Observations by date is supported
@@ -287,16 +282,14 @@ class FhirBatchQuery extends EventTarget {
                 }&_elements=id&_count=1${securityParam}`,
                 options
               ),
-              this.checkNotModifierIssueAndMaxHasAllowed(options),
-              this.checkHasAvailableStudy(options)
+              this.checkNotModifierIssueAndMaxHasAllowed(options)
             ]).then(
               ([
                  observationsSortedByDate,
                  observationsSortedByAgeAtEvent,
                  lastnLookup,
                  interpretation,
-                 hasNotModifierIssueAndMaxHasAllowed,
-                 hasAvailableStudy
+                 hasNotModifierIssueAndMaxHasAllowed
                ]) => {
                 Object.assign(this._features, {
                   sortObservationsByDate:
@@ -309,16 +302,15 @@ class FhirBatchQuery extends EventTarget {
                   interpretation:
                     interpretation.status === 'fulfilled' &&
                     interpretation.value.data.entry?.length > 0,
-                  ...hasNotModifierIssueAndMaxHasAllowed.value,
-                  hasAvailableStudy: hasAvailableStudy.status === 'fulfilled' && hasAvailableStudy.value
+                  ...hasNotModifierIssueAndMaxHasAllowed.value
                 });
+                console.log(this._features);
               }
             );
           }
         });
       });
-
-    return initializationRequests;
+    });
   }
 
   /**
@@ -376,6 +368,28 @@ class FhirBatchQuery extends EventTarget {
         error: 'Could not retrieve the FHIR server\'s metadata. Please make sure you are entering the base URL for a FHIR server.'
       });
     })
+  }
+
+  /**
+   * Check if server has Research Study data.
+   * @param {Object} [options] - additional options (see getWithCache)
+   * @returns {Promise<void>}
+   */
+  checkResearchStudy(options) {
+    return this.getWithCache('ResearchStudy?_elements=id&_count=1', options)
+    .then((hasResearchStudy) => {
+      this._features.hasResearchStudy = hasResearchStudy.data.entry?.length > 0;
+    }, (hasResearchStudy) => {
+      if (hasResearchStudy.status === 401 && hasResearchStudy.wwwAuthenticate?.startsWith('Bearer')) {
+        // As is the case with server https://fhir.immport.org/fhir, /metadata is intentionally configured
+        // for other reasons to return 200 while not logged in, we use this /ResearchStudy query to trigger
+        // OAuth2 login.
+        return Promise.reject({
+          status: OAUTH2_REQUIRED, error: 'oauth2 required'
+        });
+      }
+      this._features.hasResearchStudy = false;
+    });
   }
 
   /**
