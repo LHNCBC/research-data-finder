@@ -90,14 +90,20 @@
                       (click)="panel.toggle()"
                       (keydown.enter)="panel.toggle()"
                       (keydown.space)="panel.toggle()">
-                    <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
-                    <ng-container *ngIf="resourceTable.selectedResources.selected.length">Highlighted {{
+                    <mat-panel-title *ngIf="!resourceTable.loading">
+                      <ng-container
+                          *ngIf="resourceTable.selectedResources.selected.length">
+                        Highlighted {{
                         resourceTable.selectedResources.selected.length
-                      }} out of </ng-container><ng-container>{{
+                        }} out of
+                      </ng-container>
+                      <ng-container>{{
                         resourceTable.dataSource.filteredData.length
-                      }} {{
+                        }} {{
                         resourceType | pluralFormOfRecordName | lowercase
-                      }} {{resourceTable.hasFilters() ? 'matching the filter values were ': ''}}loaded.</ng-container>
+                        }} {{resourceTable.hasFilters() ? 'matching the filter values were ' : ''}}
+                        loaded.
+                      </ng-container>
                     </mat-panel-title>
                     <mat-panel-description *ngIf="(selectRecords.currentState[resourceType].isCached | async) !== null">
                   <span *ngIf="resourceTable.loading; else loadedTemplate">
@@ -176,18 +182,28 @@
                       (click)="panel.toggle()"
                       (keydown.enter)="panel.toggle()"
                       (keydown.space)="panel.toggle()">
-                    <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
-                    <ng-container *ngIf="variableTable.selectedResources.selected.length">Highlighted {{
-                      variableTable.selectedResources.selected.length
-                      }} out of </ng-container><ng-container>{{
+                    <mat-panel-title *ngIf="!variableTable.loading">
+                      <ng-container
+                          *ngIf="variableTable.selectedResources.selected.length">
+                        Highlighted {{
+                        variableTable.selectedResources.selected.length
+                        }} out of
+                      </ng-container>
+                      <ng-container>{{
                         variableTable.dataSource.data.length
-                      }} {{
+                        }} {{
                         resourceType | pluralFormOfRecordName | lowercase
-                      }} loaded.</ng-container><ng-container *ngIf="selectRecords.currentState[resourceType].totalRecords"> Total {{
+                        }} loaded.
+                      </ng-container>
+                      <ng-container
+                          *ngIf="selectRecords.currentState[resourceType].totalRecords">
+                        Total {{
                         resourceType | pluralFormOfRecordName | lowercase
-                      }}{{variableTable.hasFilters() ? ' for the selected filters': ''}}: {{
+                        }}{{variableTable.hasFilters() ? ' for the selected filters' : ''}}
+                        : {{
                         selectRecords.currentState[resourceType].totalRecords
-                      }}.</ng-container>
+                        }}.
+                      </ng-container>
                     </mat-panel-title>
                     <mat-panel-description>
                   <span *ngIf="variableTable.loading">

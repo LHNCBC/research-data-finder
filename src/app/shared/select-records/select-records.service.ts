@@ -3,10 +3,8 @@
  * the "Select records" and "Browse public data" steps.
  */
 import { Injectable } from '@angular/core';
-import Resource = fhir.Resource;
 import {
   combineLatest,
-  forkJoin,
   from,
   Observable,
   of,
@@ -15,8 +13,7 @@ import {
   Subscription,
   UnaryFunction
 } from 'rxjs';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import Bundle = fhir.Bundle;
+import { HttpClient, HttpContext, HttpParams } from '@angular/common/http';
 import {
   catchError,
   concatMap,
@@ -26,43 +23,39 @@ import {
   startWith,
   switchMap
 } from 'rxjs/operators';
-import {
-  escapeStringForRegExp,
-  modifyStringForSynonyms
-} from '../utils';
+import { escapeStringForRegExp, modifyStringForSynonyms } from '../utils';
 import { Sort } from '@angular/material/sort';
 import { CartService } from '../cart/cart.service';
 import { HttpOptions } from '../../types/http-options';
 import {
   CACHE_INFO,
   CACHE_NAME,
-  FhirBackendService
+  FhirBackendService, NO_CACHE, REQUEST_PRIORITY, RequestPriorities
 } from '../fhir-backend/fhir-backend.service';
 import { PullDataService } from '../pull-data/pull-data.service';
 import { CohortService } from '../cohort/cohort.service';
-import Observation = fhir.Observation;
 import {
   ObservationCodeLookupComponent
 } from '../../modules/observation-code-lookup/observation-code-lookup.component';
 import {
   CustomRxjsOperatorsService
 } from '../custom-rxjs-operators/custom-rxjs-operators.service';
-import ResearchStudy = fhir.ResearchStudy;
-import ResearchSubject = fhir.ResearchSubject;
-import { omit } from 'lodash-es';
+import { omit, uniq } from 'lodash-es';
 import {
   ColumnDescriptionsService
 } from '../column-descriptions/column-descriptions.service';
 import { FilterType } from '../../types/filter-type';
 import { ColumnValuesService } from '../column-values/column-values.service';
-
-type ResearchStudyMixin = { studyData?: ResearchStudy[] };
+import Resource = fhir.Resource;
+import Bundle = fhir.Bundle;
+import Observation = fhir.Observation;
+import ResearchStudy = fhir.ResearchStudy;
 
 interface SelectRecordState {
   // Indicates that data is loading
   loading: boolean;
   // Array of loaded resources
-  resources: (Resource & ResearchStudyMixin)[];
+  resources: Resource[];
   // Whether result is cached
   isCached?: Observable<boolean>;
   // Time when the data was received from the server
@@ -79,6 +72,18 @@ interface SelectRecordState {
   // A set of processed observation codes when we build a list of variables from
   // observations
   processedObservationCodes?: Set<string>;
+  // Subjects for selected studies
+  subjectsForVariables?: {
+    // Patient reference list used to load variables from observations
+    current: string[],
+    // Patient reference set for which variables have already been loaded
+    processedSubjects: Set<string>,
+    // Link to the next page of subjects for selected studies
+    nextPageUrl: string,
+    // The time of the last access to the link to the next page is used to
+    // periodically repeat the request to keep it alive
+    lastTime: Date
+  },
   // Observable for loading resources
   resourceStream?: Observable<Resource[]>;
   // Preload subscription
@@ -368,20 +373,16 @@ export class SelectRecordsService {
    * Loads the first page of the list of variables for the selected studies
    * from observations.
    * @param selectedResearchStudies - array of selected research studies.
-   * @param params - http parameters.
    * @param filters - filter values.
    * @param sort - the current sort state.
    */
   loadFirstPageOfVariablesFromObservations(
     selectedResearchStudies: Resource[],
-    params: {
-      [param: string]: any;
-    },
     filters: any,
     sort: Sort
   ) {
     const resourceType = 'Observation';
-    const state = {
+    const state: SelectRecordState = {
       loading: true,
       resources: [],
       processedObservationCodes: new Set<string>(),
@@ -392,29 +393,66 @@ export class SelectRecordsService {
     this.preloadState[resourceType]?.preloadSubscription.unsubscribe();
     delete this.preloadState[resourceType];
 
-    this.loadVariablesFromObservations(
-      state,
-      selectedResearchStudies,
-      params,
-      filters,
-      sort,
-      true
-    );
+    const subjects$ = selectedResearchStudies?.length
+      ? this.http.get('$fhir/ResearchSubject', {
+        params: {
+          _elements: this.fhirBackend.subjectParamName,
+          study: selectedResearchStudies.map((s) => 'ResearchStudy/' + s.id).join(',')
+        }
+      })
+      : of(null);
+
+    subjects$.subscribe((bundle) => {
+      let subjects = bundle?.entry
+        ?.map((i) => i.resource?.[this.fhirBackend.subjectParamName]?.reference/*.replace(/^Patient\/(.*)/, '$1')*/)
+        .filter((i) => i);
+      const uniqSubjects = subjects ? uniq(subjects) : [];
+      state.subjectsForVariables = {
+        current: uniqSubjects,
+        processedSubjects: new Set<string>(),
+        nextPageUrl: bundle ? this.fhirBackend.getNextPageUrl(bundle) : null,
+        lastTime: new Date()
+      };
+      this.loadVariablesFromObservations(
+        state,
+        filters,
+        sort,
+        true
+      );
+    });
+
+  }
+
+  /**
+   * Gets the next page of research subjects for loading variables from observations.
+   * @param state
+   */
+  getNextSubjects(state: SelectRecordState): Observable<any> {
+    if (state.subjectsForVariables?.nextPageUrl) {
+      return this.http.get(state.subjectsForVariables.nextPageUrl).pipe(
+        concatMap((bundle: Bundle) => {
+          let subjects = bundle?.entry
+            ?.map((i) => i.resource?.[this.fhirBackend.subjectParamName]?.reference/*.replace(/^Patient\/(.*)/, '$1')*/)
+            .filter((i) => i);
+          state.subjectsForVariables.current.forEach(i => state.subjectsForVariables.processedSubjects.add(i));
+          state.subjectsForVariables.current = (subjects ? uniq(subjects) : []).filter(i => !state.subjectsForVariables.processedSubjects.has(i));
+          state.subjectsForVariables.nextPageUrl = this.fhirBackend.getNextPageUrl(bundle);
+          state.subjectsForVariables.lastTime = new Date();
+          return state.subjectsForVariables.current.length ? of(state.subjectsForVariables) : this.getNextSubjects(state);
+        })
+      );
+    } else {
+      return of(null);
+    }
   }
 
   /**
    * Loads the next page of the list of variables for the selected studies
    * from observations.
-   * @param selectedResearchStudies - array of selected research studies.
-   * @param params - http parameters.
    * @param filters - filter values.
    * @param sort - the current sort state.
    */
   loadNextPageOfVariablesFromObservations(
-    selectedResearchStudies: Resource[],
-    params: {
-      [param: string]: any;
-    },
     filters: any,
     sort: Sort
   ) {
@@ -438,8 +476,6 @@ export class SelectRecordsService {
 
       this.loadVariablesFromObservations(
         state,
-        selectedResearchStudies,
-        params,
         filters,
         sort,
         false
@@ -450,16 +486,10 @@ export class SelectRecordsService {
   /**
    * Preloads the next page of the list of variables for the selected studies
    * from observations.
-   * @param selectedResearchStudies - array of selected research studies.
-   * @param params - http parameters.
    * @param filters - filter values.
    * @param sort - the current sort state.
    */
   preloadNextPageOfVariablesFromObservations(
-    selectedResearchStudies: Resource[],
-    params: {
-      [param: string]: any;
-    },
     filters: any,
     sort: Sort
   ) {
@@ -473,6 +503,15 @@ export class SelectRecordsService {
       (preloadState && (preloadState.loading || !preloadState.nextBundleUrl ||
         preloadState.resources.length > minNumOfRecordsToPreload))
     ) {
+      if (preloadState?.subjectsForVariables && preloadState.subjectsForVariables.nextPageUrl
+        && (+new Date() - +preloadState.subjectsForVariables.lastTime) > 20000) {
+        // keep alive next page link
+        preloadState.subjectsForVariables.lastTime = new Date();
+        this.http.get(preloadState.subjectsForVariables.nextPageUrl, {
+          context: new HttpContext().set(REQUEST_PRIORITY, RequestPriorities.LOW).set(NO_CACHE, true)
+        }).subscribe(() => {
+        });
+      }
       return;
     }
     if (!this.preloadState[resourceType]) {
@@ -487,7 +526,7 @@ export class SelectRecordsService {
     preloadState.loading = true;
 
     preloadState.preloadSubscription = this.loadVariablesFromObservations(
-      preloadState, selectedResearchStudies, params, filters, sort, false
+      preloadState, filters, sort, false
     ).subscribe(() => {
     });
   }
@@ -495,8 +534,6 @@ export class SelectRecordsService {
   /**
    * Loads a list of variables for selected research studies from observations.
    * @param state - the state of the observation records loading process.
-   * @param selectedResearchStudies - array of selected research studies.
-   * @param params - http parameters
    * @param filters - filter values
    * @param sort - the current sort state
    * @param reset - whether to reset already loaded data
@@ -504,10 +541,6 @@ export class SelectRecordsService {
    */
   loadVariablesFromObservations(
     state: SelectRecordState,
-    selectedResearchStudies: Resource[],
-    params: {
-      [param: string]: any;
-    },
     filters: any,
     sort: Sort,
     reset: boolean
@@ -522,31 +555,36 @@ export class SelectRecordsService {
               ObservationCodeLookupComponent.wordSynonymsLookup,
               filters.code
             )
-          }
+        }
         : {}),
       ...(filters.code_value
         ? {
-            code: filters.code_value
-          }
+          code: filters.code_value
+        }
         : {}),
       ...(filters.category
         ? {
-            'category:text': modifyStringForSynonyms(
-              ObservationCodeLookupComponent.wordSynonymsLookup,
-              filters.category
-            )
-          }
+          'category:text': modifyStringForSynonyms(
+            ObservationCodeLookupComponent.wordSynonymsLookup,
+            filters.category
+          )
+        }
+        : {}),
+      ...(state.subjectsForVariables?.current.length
+        ? {
+          subject: state.subjectsForVariables?.current.join(',')
+        }
         : {}),
       ...(state.processedObservationCodes.size
         ? {
-            'code:not': this.fhirBackend.features.hasNotModifierIssue
-              ? // Pass a single "code:not" parameter, which is currently working
-                // correctly on the HAPI FHIR server.
-                Array.from<string>(state.processedObservationCodes.keys()).join(',')
-              : // Pass each code as a separate "code:not" parameter, which is
-                // currently causing performance issues on the HAPI FHIR server.
-                Array.from<string>(state.processedObservationCodes.keys())
-          }
+          'code:not': this.fhirBackend.features.hasNotModifierIssue
+            ? // Pass a single "code:not" parameter, which is currently working
+              // correctly on the HAPI FHIR server.
+            Array.from<string>(state.processedObservationCodes.keys()).join(',')
+            : // Pass each code as a separate "code:not" parameter, which is
+              // currently causing performance issues on the HAPI FHIR server.
+            Array.from<string>(state.processedObservationCodes.keys())
+        }
         : {})
     };
 
@@ -581,28 +619,7 @@ export class SelectRecordsService {
       }, {}) || {};
 
     state.resourceStream = this.http.get(url, { params: reqParams }).pipe(
-      this.filterObservationsByCode(
-        state,
-        studies,
-        // Patient filter parameters used to check an observation code
-        selectedResearchStudies.length
-          ? {
-              [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:study`]: selectedResearchStudies
-                .map((s) => 'ResearchStudy/' + s.id)
-                .join(','),
-            _revinclude: `ResearchSubject:${this.fhirBackend.subjectParamName}`
-            }
-          : this.fhirBackend.features.hasAvailableStudy
-            ? {
-              [`_has:ResearchSubject:${this.fhirBackend.subjectParamName}:status`]: Object.keys(
-                this.fhirBackend.getCurrentDefinitions().valueSetMapByPath[
-                  'ResearchSubject.status'
-                  ]
-              ).join(','),
-              _revinclude: `ResearchSubject:${this.fhirBackend.subjectParamName}`
-            }
-            : null
-      ),
+      this.filterObservationsByCode(state, studies),
       this.convertObservationToVariableRecords(state, obsFilterParams, sort),
       catchError(() => {
         // Do not retry after an error
@@ -638,24 +655,19 @@ export class SelectRecordsService {
   /**
    * RxJS operator to filter observations by code:
    * - excludes observation with repeated codes
-   * - excludes codes that do not exist for patients who meet the specified
-   *   filter criteria
+   * - if there are no new codes, load the next page of subjects to search for
+   *   other codes on the next run of loadVariablesFromObservations().
    * @param state - current state
    * @param studies - studies available to the user
-   * @param patientFilters - patient filters specify criteria for studies
    */
   filterObservationsByCode(
     state: SelectRecordState,
-    studies: { [id: string]: ResearchStudy },
-    patientFilters: { [param: string]: string }
+    studies: { [id: string]: ResearchStudy }
   ): UnaryFunction<Observable<Bundle>, Observable<Observation[]>> {
     return pipe(
       concatMap((data: Bundle) => {
-        const checkRequests = data.entry.reduce((requests, entry) => {
-          const obs: Observation & ResearchStudyMixin = {
-            ...(entry.resource as Observation),
-            studyData: []
-          };
+        const observations = data.entry?.reduce((res, entry) => {
+          const obs: Observation = entry.resource as Observation;
           const coding = obs.code.coding?.[0];
           const codeAndSystem = coding
             ? coding.system + '|' + coding.code
@@ -665,47 +677,28 @@ export class SelectRecordsService {
             !state.processedObservationCodes.has(codeAndSystem);
           if (isNew) {
             state.processedObservationCodes.add(codeAndSystem);
-            requests.push(
-              patientFilters
-                ? this.http
-                    .get('$fhir/Patient', {
-                      params: {
-                        '_has:Observation:subject:code': codeAndSystem,
-                        ...patientFilters,
-                        _elements: 'id',
-                        _count: 1
-                      }
-                    })
-                    .pipe(
-                      map((checkResponse: Bundle) => {
-                        const entries = checkResponse.entry;
-                        for (let i = 1; i < entries?.length; i++) {
-                          const subject = entries[i]
-                            .resource as ResearchSubject;
-                          const studyId = subject.study?.reference
-                            .split('/')
-                            .pop();
-                          const study = studies[studyId];
-                          if (study) {
-                            obs.studyData.push(study);
-                          }
-                        }
-                        return checkResponse.entry?.length ? obs : null;
-                      })
-                    )
-                : of(obs)
-            );
+            res.push(obs);
           }
-          return requests;
-        }, []);
-        state.nextBundleUrl = checkRequests.length === 0 ? null : this.fhirBackend.getNextPageUrl(data);
-        return checkRequests.length === 0
-          ? of([])
-          : forkJoin(checkRequests).pipe(
-              map((observations: Observation[]) =>
-                observations.filter((obs) => !!obs)
-              )
-            );
+          return res;
+        }, []) || [];
+
+        const nextPage = this.fhirBackend.getNextPageUrl(data);
+        let loadNextSubject: Observable<any>;
+        if (observations.length === 0 || !nextPage) {
+          if (state.subjectsForVariables?.nextPageUrl) {
+            loadNextSubject = this.getNextSubjects(state);
+            state.nextBundleUrl = 'custom';
+          } else {
+            state.nextBundleUrl = null;
+          }
+        } else {
+          state.nextBundleUrl = nextPage;
+        }
+
+        return (loadNextSubject || of(null))
+          .pipe(
+            map(() => (observations.length === 0 ? [] : observations))
+          );
       })
     );
   }
@@ -784,7 +777,7 @@ export class SelectRecordsService {
   /**
    * Sorts list of variables obtained from observations
    */
-  sortObservationsByVariableColumn(resources: (Resource & ResearchStudyMixin)[], sort: Sort) {
+  sortObservationsByVariableColumn(resources: Resource[], sort: Sort) {
     let result = resources;
 
     if (sort) {

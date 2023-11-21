@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.14.3] - 2023-11-21
+### Fixed
+- Improved performance of loading variables from Observations.
+
 ## [6.14.2] - 2023-11-17
 ### Fixed
 - Infinite loop when loading variables in the "Select records" step if the
