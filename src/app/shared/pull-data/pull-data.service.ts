@@ -6,8 +6,8 @@ import { SelectedObservationCodes } from '../../types/selected-observation-codes
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import { CODETEXT } from '../query-params/query-params.service';
 import { CohortService } from '../cohort/cohort.service';
-import {catchError, concatMap, finalize, map, startWith, tap} from 'rxjs/operators';
-import {forkJoin, fromEvent, Observable, of, throwError} from 'rxjs';
+import {concatMap, finalize, map, startWith, tap} from 'rxjs/operators';
+import {forkJoin, fromEvent, Observable, of} from 'rxjs';
 import { chunk, differenceBy } from 'lodash-es';
 import Patient = fhir.Patient;
 import Resource = fhir.Resource;
@@ -20,8 +20,6 @@ import {
 } from '../fhir-backend/fhir-backend.service';
 import BundleEntry = fhir.BundleEntry;
 import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
-import {AlertDialogComponent} from "../alert-dialog/alert-dialog.component";
-import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 
 type PatientMixin = { patientData?: Patient };
 
@@ -45,8 +43,7 @@ export class PullDataService {
     private fhirBackend: FhirBackendService,
     private http: HttpClient,
     private columnValues: ColumnValuesService,
-    private customRxjs: CustomRxjsOperatorsService,
-    private dialog: MatDialog
+    private customRxjs: CustomRxjsOperatorsService
   ) {
     cohort.criteria$.subscribe(() => this.reset());
   }
@@ -54,8 +51,6 @@ export class PullDataService {
   currentState: { [resourceType: string]: PullDataState } = {};
   // Stream of resources for ResourceTableComponent
   resourceStream: { [resourceType: string]: Observable<Resource[]> } = {};
-  // MatDialogRef that shows dialog box on query errors
-  dialogRef: MatDialogRef<AlertDialogComponent>;
   // Common HTTP options
   static get commonHttpOptions() {
     return {
@@ -246,21 +241,6 @@ export class PullDataService {
 
           return requests.map((req) =>
             req.pipe(
-              catchError((err) => {
-                if (!this.dialogRef) {
-                  this.dialogRef = this.dialog.open(AlertDialogComponent, {
-                    data: {
-                      header: 'Bad request',
-                      content: 'The request might contain an invalid parameter. Check, for example, the "Limit per patient" field.',
-                      hasCancelButton: false
-                    }
-                  });
-                  this.dialogRef.afterClosed().subscribe(() => {
-                    this.dialogRef = null;
-                  });
-                }
-                return throwError(err);
-              }),
               this.customRxjs.takeBundleOf(count),
               concatMap((bundle: Bundle) => {
                 if (resourceType === 'EvidenceVariable') {
