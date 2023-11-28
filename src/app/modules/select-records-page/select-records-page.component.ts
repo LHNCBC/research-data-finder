@@ -44,7 +44,7 @@ export class SelectRecordsPageComponent
   @ViewChild('tabGroup') tabGroup: MatTabGroup;
   maxPatientsNumber = new UntypedFormControl(
     this.cohort.maxPatientCount,
-    Validators.required
+    [Validators.required, Validators.max(9999999999)]
   );
   showOnlyStudiesWithSubjects = true;
 

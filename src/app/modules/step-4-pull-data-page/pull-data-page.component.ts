@@ -70,7 +70,8 @@ export class PullDataPageComponent
   // in the criteria.
   maxObservationToCheck = new FormControl<number>(1000, [
     Validators.required,
-    Validators.min(1)
+    Validators.min(1),
+    Validators.max(9999999999)
   ]);
   // Whether any Observation code is added to the Observation criteria
   isObsCodesSelected = false;

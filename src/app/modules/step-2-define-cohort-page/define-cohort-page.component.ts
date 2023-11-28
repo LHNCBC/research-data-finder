@@ -82,7 +82,7 @@ export class DefineCohortPageComponent
 
   ngOnInit(): void {
     this.defineCohortForm = this.formBuilder.group({
-      maxNumberOfPatients: [this.cohort.maxPatientCount, Validators.required]
+      maxNumberOfPatients: [this.cohort.maxPatientCount, Validators.compose([Validators.required, Validators.max(9999999999)])]
     });
     this.defineCohortForm.valueChanges.subscribe((value) => {
       this.onChange(value);
