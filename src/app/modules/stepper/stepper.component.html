@@ -20,7 +20,8 @@
     </div>
   </mat-step>
 
-  <mat-step [label]="getLabel(Step.SELECT_AN_ACTION)"
+  <mat-step #selectAnActionStep
+            [label]="getLabel(Step.SELECT_AN_ACTION)"
             *ngIf="isVisible(Step.SELECT_AN_ACTION)">
     <div class="v-box">
       <app-select-an-action #selectAnActionComponent></app-select-an-action>

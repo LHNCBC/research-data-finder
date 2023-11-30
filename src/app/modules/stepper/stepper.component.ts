@@ -65,6 +65,17 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('settings') public settingsPageComponent: SettingsPageComponent;
   @ViewChild('settingsStep') public settingsStep: MatStep;
 
+  @ViewChild('selectAnActionStep') set _selectAnActionStep(step: MatStep) {
+    this.selectAnActionStep = step;
+    if (step) {
+      // If RAS login is required, mark the step incomplete to disable the header of the next step.
+      step.completed = !this.enableRas ||
+        !this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl) ||
+        this.rasToken.rasTokenValidated;
+    }
+  }
+  selectAnActionStep: MatStep;
+
   @ViewChild('defineCohortStep') set _defineCohortStep(step: MatStep) {
     this.defineCohortStep = step;
     if (step) {
@@ -617,6 +628,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         createCohortModeValue
       );
     } else {
+      this.selectAnActionStep.completed = true;
       this.stepper.next();
     }
   }
