@@ -403,7 +403,7 @@ export class SelectRecordsService {
       : of(null);
 
     subjects$.subscribe((bundle) => {
-      let subjects = bundle?.entry
+      let subjects: string[] = bundle?.entry
         ?.map((i) => i.resource?.[this.fhirBackend.subjectParamName]?.reference/*.replace(/^Patient\/(.*)/, '$1')*/)
         .filter((i) => i);
       const uniqSubjects = subjects ? uniq(subjects) : [];

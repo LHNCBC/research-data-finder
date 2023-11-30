@@ -306,17 +306,11 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
       .expectOne(`$fhir/Patient?_count=20&_has:Observation:subject:combo-code=phv00492021.v1.p1&_has:Observation:subject:combo-code=phv00492022.v1.p1`)
       .flush(tenPatientBundle);
 
-    tenPatientBundle.entry.forEach((entry) => {
-      mockHttp
-        .expectOne(
-          `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1`
-        )
-        .flush({
-          ...tenPatientBundle,
-          entry: [entry],
-          total: 1
-        });
-    });
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_id=${tenPatientBundle.entry.map(({resource}) => resource.id).join(',')}&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1`
+      )
+      .flush(tenPatientBundle);
 
   });
 
@@ -371,7 +365,7 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
       .expectOne(
         '$fhir/Patient?_total=accurate&_summary=count&_has:Observation:subject:combo-code=phv00492024.v1.p1,phv00492025.v1.p1'
       )
-      .flush({ total: 20 });
+      .flush({total: 20});
 
     mockHttp
       .expectOne(
@@ -379,17 +373,11 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
       )
       .flush(tenPatientBundle);
 
-    tenPatientBundle.entry.forEach((entry) => {
-      mockHttp
-        .expectOne(
-          `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=phv00492024.v1.p1,phv00492025.v1.p1`
-        )
-        .flush({
-          ...tenPatientBundle,
-          entry: [entry],
-          total: 1
-        });
-    });
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_id=${tenPatientBundle.entry.map(({resource}) => resource.id).join(',')}&_has:Observation:subject:combo-code=phv00492024.v1.p1,phv00492025.v1.p1`
+      )
+      .flush(tenPatientBundle);
   });
 
   it('should search for patients by additional criteria', async (done) => {
@@ -434,17 +422,11 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
       .expectOne(`$fhir/Patient?_count=20&_has:Observation:subject:combo-code=phv00492021.v1.p1&_has:Observation:subject:combo-code=phv00492022.v1.p1`)
       .flush(tenPatientBundle);
 
-    tenPatientBundle.entry.forEach((entry) => {
-      mockHttp
-        .expectOne(
-          `$fhir/Patient?_id=${entry.resource.id}&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1&deceased=false`
-        )
-        .flush({
-          ...tenPatientBundle,
-          entry: [entry],
-          total: 1
-        });
-    });
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_id=${tenPatientBundle.entry.map(({resource}) => resource.id).join(',')}&_has:Observation:subject:combo-code=phv00492024.v1.p1&_has:Observation:subject:combo-code=phv00492025.v1.p1&deceased=false`
+      )
+      .flush(tenPatientBundle);
   });
 
   it('should use selected studies in the patient search when variables have been selected', async () => {

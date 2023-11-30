@@ -3,6 +3,14 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.14.4] - 2023-11-30
+### Fixed
+- Combined requests for patients with the "_id" parameter to reduce the number
+  of requests.
+- Bug in the search for patients when nested ORed criteria produce requests for
+  different resource types therefore in the output stream, we may have different
+  resource types.
+
 ## [6.14.3] - 2023-11-21
 ### Fixed
 - Improved performance of loading variables from Observations.
