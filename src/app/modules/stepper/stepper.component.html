@@ -204,3 +204,7 @@
     <mat-icon svgIcon="create"></mat-icon>
   </ng-template>
 </mat-horizontal-stepper>
+
+
+<!--A hidden button used only by e2e tests to navigate to next steps bypassing RAS login.-->
+<button id="hiddenButton" (click)="selectAnActionStep.completed = true;"></button>

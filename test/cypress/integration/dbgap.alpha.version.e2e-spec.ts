@@ -169,7 +169,19 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
       });
   });
 
-  it('should allow to proceed to the Select Records step', (done) => {
+  it('should not allow to proceed to the Select Records step', (done) => {
+    cy.contains('Select records')
+      .click()
+      .then(() => selectAnActionStep.isSelected())
+      .then((isSelected) => {
+        expect(isSelected).to.equal(true);
+        done();
+      });
+  });
+
+  it('should allow to proceed to the Select Records step by a hack', (done) => {
+    // Bypass RAS login in the test using a hidden button.
+    cy.get('#hiddenButton').click({force: true});
     cy.contains('Select records')
       .click()
       .then(() => selectRecordsStep.isSelected())
