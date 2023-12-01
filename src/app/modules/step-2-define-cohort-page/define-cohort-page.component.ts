@@ -22,6 +22,7 @@ import {
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
+import {LiveAnnouncer} from "@angular/cdk/a11y";
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -50,7 +51,8 @@ export class DefineCohortPageComponent
     private errorManager: ErrorManager,
     public fhirBackend: FhirBackendService,
     public selectRecords: SelectRecordsService,
-    public cohort: CohortService
+    public cohort: CohortService,
+    private liveAnnouncer: LiveAnnouncer
   ) {
     super();
 
@@ -124,6 +126,9 @@ export class DefineCohortPageComponent
    * Shows errors for existing formControls
    */
   showErrors(): void {
+    if (this.defineCohortForm.controls['maxNumberOfPatients'].invalid) {
+      this.liveAnnouncer.announce('Maximum number of patients field is not valid.');
+    }
     this.errorManager.showErrors();
   }
 }

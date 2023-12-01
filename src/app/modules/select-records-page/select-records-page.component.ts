@@ -207,6 +207,9 @@ export class SelectRecordsPageComponent
    * Shows errors for existing formControls
    */
   showErrors(): void {
+    if (this.maxPatientsNumber.invalid) {
+      this.liveAnnouncer.announce('Maximum number of patients field is not valid.');
+    }
     this.errorManager.showErrors();
     // Go to the last tab, which is "Additional Criteria", if it has validation errors.
     if (this.additionalCriteria.hasErrors()) {
