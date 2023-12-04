@@ -43,7 +43,7 @@
       <div id="version">Version: <a target="_blank"
                                     tabIndex="0"
                                     (keyup.enter)="$event.currentTarget.click()"
-                                    [matMenuTriggerFor]="menu">{{version + (fhirBackend.isPreviousVersion ? ' (previous)' : '') }}</a>
+                                    [matMenuTriggerFor]="menu">{{version + (fhirBackend.isPreviousVersion ? ' (previous UI)' : '') }}</a>
       </div>
       <mat-menu #menu="matMenu">
         <button mat-menu-item
@@ -51,7 +51,7 @@
         <button mat-menu-item
                 (click)="switchVersion()">Switch to
           the {{fhirBackend.isPreviousVersion ? 'current' : 'previous' }}
-          version
+          UI version
         </button>
       </mat-menu>
     </div>

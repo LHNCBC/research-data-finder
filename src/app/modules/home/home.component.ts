@@ -39,19 +39,20 @@ export class HomeComponent implements AfterViewInit {
   switchVersion(): void {
     if (this.rasToken.rasTokenValidated) {
       this.rasToken.logout().then(() => {
-        this.setVersionUrlParam();
+        this.switchVersionUrlParam();
       });
     } else {
-      this.setVersionUrlParam();
+      this.switchVersionUrlParam();
     }
   }
 
   /**
-   * Update the url 'prev-version' parameter.
-   * Called when switching previous version on/off.
+   * Sets the "prev-version" parameter in the application URL to the opposite
+   * value of the currently loaded UI. If "pre-version" = "enable" the previous
+   * (legacy) UI will be used, otherwise the new table-based UI will be used.
    * @private
    */
-  private setVersionUrlParam(): void {
+  private switchVersionUrlParam(): void {
     if (this.fhirBackend.isPreviousVersion) {
       window.location.href = removeUrlParam('prev-version');
     } else {
