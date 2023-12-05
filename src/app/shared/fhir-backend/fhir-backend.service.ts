@@ -364,7 +364,7 @@ export class FhirBackendService implements HttpBackend {
   initializeFhirBatchQuery(serviceBaseUrl: string = ''): Promise<void> {
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
-    return this.checkSmartOnFhirEnabled(this.serviceBaseUrl)
+    return this.checkSmartOnFhirEnabled(serviceBaseUrl)
       .then(() => {
         // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
         return this.isSmartOnFhirEnabled && this.isSmartOnFhir

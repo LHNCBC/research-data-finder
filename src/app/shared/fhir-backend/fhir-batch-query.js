@@ -810,7 +810,9 @@ class FhirBatchQuery extends EventTarget {
         sendUrl.searchParams.append('api_key', this._apiKey);
       }
 
-      if (this._features.isFormatSupported && !sendUrl.searchParams.has('_format')) {
+      // The question mark is required for the case where it sends the '/smart-configuration' query to check
+      // SMART ON FHIR availability before initialization and this._features is not yet set. See LF-2807.
+      if (this._features?.isFormatSupported && !sendUrl.searchParams.has('_format')) {
         sendUrl.searchParams.append('_format', 'json');
       }
 
