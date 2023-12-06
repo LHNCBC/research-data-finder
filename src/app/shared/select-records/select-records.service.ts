@@ -698,14 +698,19 @@ export class SelectRecordsService {
           }
           return requests;
         }, []);
+        // When loading variables from observations using code:not=<loaded codes>,
+        // nextBundleUrl is used as a flag that there are observations that have
+        // not yet been loaded. If no new codes are found on the current page,
+        // then calling the load operation again with the code:not=<loaded codes>
+        // parameter will not give new results, so we need to reset the flag.
         state.nextBundleUrl = checkRequests.length === 0 ? null : this.fhirBackend.getNextPageUrl(data);
         return checkRequests.length === 0
           ? of([])
           : forkJoin(checkRequests).pipe(
-              map((observations: Observation[]) =>
-                observations.filter((obs) => !!obs)
-              )
-            );
+            map((observations: Observation[]) =>
+              observations.filter((obs) => !!obs)
+            )
+          );
       })
     );
   }
