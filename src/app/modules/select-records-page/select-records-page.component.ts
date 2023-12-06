@@ -215,6 +215,9 @@ export class SelectRecordsPageComponent
     if (this.additionalCriteria.hasErrors()) {
       this.tabGroup.selectedIndex = this.visibleResourceTypes.length;
     }
+    setTimeout(() => {
+      document.querySelector('.mat-form-field-invalid')?.scrollIntoView();
+    });
   }
 
   /**

@@ -130,5 +130,8 @@ export class DefineCohortPageComponent
       this.liveAnnouncer.announce('Maximum number of patients field is not valid.');
     }
     this.errorManager.showErrors();
+    setTimeout(() => {
+      document.querySelector('.mat-form-field-invalid')?.scrollIntoView();
+    });
   }
 }
