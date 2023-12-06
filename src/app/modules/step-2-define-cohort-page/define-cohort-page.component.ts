@@ -14,7 +14,7 @@ import { SearchParametersComponent } from '../search-parameters/search-parameter
 
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 
-import { CohortService } from '../../shared/cohort/cohort.service';
+import { CohortService, MAX_PAGE_SIZE } from '../../shared/cohort/cohort.service';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -41,6 +41,7 @@ import {LiveAnnouncer} from "@angular/cdk/a11y";
 export class DefineCohortPageComponent
   extends BaseControlValueAccessorAndValidator<any>
   implements OnInit, OnDestroy {
+  MAX_PAGE_SIZE = MAX_PAGE_SIZE;
   defineCohortForm: UntypedFormGroup;
   subscriptions: Subscription[] = [];
 
@@ -84,7 +85,7 @@ export class DefineCohortPageComponent
 
   ngOnInit(): void {
     this.defineCohortForm = this.formBuilder.group({
-      maxNumberOfPatients: [this.cohort.maxPatientCount, Validators.compose([Validators.required, Validators.max(9999999999)])]
+      maxNumberOfPatients: [this.cohort.maxPatientCount, Validators.compose([Validators.required, Validators.max(MAX_PAGE_SIZE)])]
     });
     this.defineCohortForm.valueChanges.subscribe((value) => {
       this.onChange(value);

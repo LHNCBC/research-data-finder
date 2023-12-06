@@ -37,7 +37,7 @@
           <mat-label>Max recent Observations per Patient to check</mat-label>
           <input matInput [formControl]="maxObservationToCheck" type="number" min="1">
           <mat-error *ngIf="maxObservationToCheck.hasError('required')">This field is Required.</mat-error>
-          <mat-error *ngIf="maxObservationToCheck.hasError('max')">Maximum number allowed: 9999999999.</mat-error>
+          <mat-error *ngIf="maxObservationToCheck.hasError('max')">Maximum number allowed: {{MAX_PAGE_SIZE}}.</mat-error>
           <mat-error *ngIf="maxObservationToCheck.hasError('min')">Minimum number allowed: 1.</mat-error>
         </mat-form-field>
       </div>
