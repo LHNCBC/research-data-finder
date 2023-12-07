@@ -8,6 +8,7 @@
   <mat-error *ngIf="maxPatientsNumber.hasError('required')">This field is Required.</mat-error>
   <mat-error *ngIf="maxPatientsNumber.hasError('max')">Maximum number allowed: {{MAX_PAGE_SIZE}}.</mat-error>
   <mat-error *ngIf="maxPatientsNumber.hasError('min')">Minimum number allowed: 1.</mat-error>
+  <mat-error *ngIf="maxPatientsNumber.hasError('pattern')">Only integers allowed.</mat-error>
 </mat-form-field>
 
 <mat-tab-group #tabGroup dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">

@@ -22,6 +22,7 @@
         <mat-error *ngIf="defineCohortForm.controls['maxNumberOfPatients'].hasError('required')">This field is Required.</mat-error>
         <mat-error *ngIf="defineCohortForm.controls['maxNumberOfPatients'].hasError('max')">Maximum number allowed: {{MAX_PAGE_SIZE}}.</mat-error>
         <mat-error *ngIf="defineCohortForm.controls['maxNumberOfPatients'].hasError('min')">Minimum number allowed: 1.</mat-error>
+        <mat-error *ngIf="defineCohortForm.controls['maxNumberOfPatients'].hasError('pattern')">Only integers allowed.</mat-error>
       </mat-form-field>
 
       <app-search-parameters #patientParams></app-search-parameters>
