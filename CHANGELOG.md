@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.15.0] - 2023-12-07
+### Added
+- The alpha version became the current version, current version became the
+  previous version.
+
 ## [6.14.3] - 2023-12-07
 ### Fixed
 - Infinite loop when loading variables in the "Select records" step if the

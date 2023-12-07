@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import pkg from '../../../../package.json';
-import { setUrlParam } from '../../shared/utils';
+import { setUrlParam, removeUrlParam } from '../../shared/utils';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import { StepperComponent, Step } from '../stepper/stepper.component';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
@@ -42,23 +42,25 @@ export class HomeComponent implements AfterViewInit {
   switchVersion(): void {
     if (this.rasToken.rasTokenValidated) {
       this.rasToken.logout().then(() => {
-        this.setVersionUrlParam();
+        this.switchVersionUrlParam();
       });
     } else {
-      this.setVersionUrlParam();
+      this.switchVersionUrlParam();
     }
   }
 
   /**
-   * Update the url 'alpha-version' parameter.
-   * Called when switching alpha version on/off.
+   * Sets the "prev-version" parameter in the application URL to the opposite
+   * value of the currently loaded UI. If "pre-version" = "enable" the previous
+   * (legacy) UI will be used, otherwise the new table-based UI will be used.
    * @private
    */
-  private setVersionUrlParam(): void {
-    window.location.href = setUrlParam(
-      'alpha-version',
-      this.fhirBackend.isAlphaVersion ? 'disable' : 'enable'
-    );
+  private switchVersionUrlParam(): void {
+    if (this.fhirBackend.isPreviousVersion) {
+      window.location.href = removeUrlParam('prev-version');
+    } else {
+      window.location.href = setUrlParam('prev-version', 'enable');
+    }
   }
 
   /**

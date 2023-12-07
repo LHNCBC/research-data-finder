@@ -19,7 +19,7 @@ describe('Research Data Finder (dbGap)', () => {
 
   before(() => {
     cy.visit(
-      '/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&alpha-version=disable'
+      '/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&prev-version=enable'
     )
       // Waiting for application initialization
       .get('.init-spinner-container')

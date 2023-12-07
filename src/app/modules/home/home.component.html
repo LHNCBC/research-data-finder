@@ -43,12 +43,16 @@
       <div id="version">Version: <a target="_blank"
                                     tabIndex="0"
                                     (keyup.enter)="$event.currentTarget.click()"
-                                    [matMenuTriggerFor]="menu">{{version + (fhirBackend.isAlphaVersion ? ' (alpha)' : '') }}</a></div>
+                                    [matMenuTriggerFor]="menu">{{version + (fhirBackend.isPreviousVersion ? ' (previous UI)' : '') }}</a>
+      </div>
       <mat-menu #menu="matMenu">
         <button mat-menu-item
                 (click)="openChangelog()">View change log</button>
         <button mat-menu-item
-                (click)="switchVersion()">Switch to the {{fhirBackend.isAlphaVersion ? 'stable' : 'alpha' }} version</button>
+                (click)="switchVersion()">Switch to
+          the {{fhirBackend.isPreviousVersion ? 'current' : 'previous' }}
+          UI version
+        </button>
       </mat-menu>
     </div>
   </div>
