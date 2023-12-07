@@ -30,6 +30,7 @@ describe('FhirBackendService', () => {
   let httpClient: HttpClient;
   let defaultHttpXhrBackend: HttpXhrBackend;
   let matDialog: MatDialog;
+  let dialogOpenSpy: jasmine.Spy;
   let rasTokenService: RasTokenService;
   let cohortService: CohortService;
   const responseFromDefaultBackend = new HttpResponse({
@@ -60,7 +61,7 @@ describe('FhirBackendService', () => {
   };
 
   describe('non-dbGaP', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       TestBed.configureTestingModule({
         imports: [FhirBackendModule, HttpClientModule, MatDialogModule]
       });
@@ -78,7 +79,6 @@ describe('FhirBackendService', () => {
       spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
         of(responseFromDefaultBackend)
       );
-      service.fhirClient._features = { batch: true, interpretation: true };
       service.settings = TestBed.inject(SettingsService);
       spyOn(service.settings, 'loadCsvDefinitions').and.returnValue(
         of(csvDefinitions)
@@ -88,22 +88,23 @@ describe('FhirBackendService', () => {
       );
       spyOn(service, 'isDbgap').and.returnValue(false);
       service.cacheEnabled = true;
+      await service.init();
+      service.fhirClient._features = {batch: true, interpretation: true};
     });
 
     it('should be created', () => {
       expect(service).toBeTruthy();
     });
 
-    it('should initialize FhirBatchQuery', async () => {
-      await service.initializeFhirBatchQuery();
+    it('should initialize FhirBatchQuery', () => {
       expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith(
+        'https://lforms-fhir.nlm.nih.gov/baseR4',
         '',
-        ''
+        null
       );
     });
 
     it('should add interpretation search parameter', (done) => {
-      service.initializeFhirBatchQuery();
       service.currentDefinitions$.subscribe((definitions) => {
         expect(
           definitions.resources.Observation.searchParameters.some(
@@ -223,7 +224,7 @@ describe('FhirBackendService', () => {
   });
 
   describe('dbGaP', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       TestBed.configureTestingModule({
         imports: [FhirBackendModule, MatDialogModule, BrowserAnimationsModule]
       });
@@ -243,13 +244,10 @@ describe('FhirBackendService', () => {
       rasTokenService.rasTokenValidated = true;
       cohortService = TestBed.inject(CohortService);
       cohortService.createCohortMode = CreateCohortMode.SEARCH;
-      spyOn(matDialog, 'open').and.returnValue({
-        afterClosed: () => of(false)
-      } as MatDialogRef<AlertDialogComponent>);
+      dialogOpenSpy = spyOn(matDialog, 'open');
       spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
         of(responseFromDefaultBackend)
       );
-      service.fhirClient._features = { batch: true, interpretation: true };
       service.settings = TestBed.inject(SettingsService);
       spyOn(service.settings, 'loadCsvDefinitions').and.returnValue(
         of(csvDefinitions)
@@ -259,6 +257,8 @@ describe('FhirBackendService', () => {
       );
       spyOn(service, 'isDbgap').and.returnValue(true);
       service.cacheEnabled = true;
+      await service.init();
+      service.fhirClient._features = { batch: true, interpretation: true };
     });
 
     it('should show message if dbGaP TST token has expired', (done) => {
@@ -275,8 +275,13 @@ describe('FhirBackendService', () => {
               priority: PRIORITIES.NORMAL
             }
           );
-          expect(matDialog.open).toHaveBeenCalled();
-          done();
+          dialogOpenSpy.and.callFake(() => {
+            expect(matDialog.open).toHaveBeenCalled();
+            done();
+            return {
+              afterClosed: () => of(false)
+            } as MatDialogRef<AlertDialogComponent>;
+          });
         }
       );
     });
@@ -296,8 +301,10 @@ describe('FhirBackendService', () => {
               priority: PRIORITIES.NORMAL
             }
           );
-          expect(matDialog.open).not.toHaveBeenCalled();
-          done();
+          setTimeout(() => {
+            expect(matDialog.open).not.toHaveBeenCalled();
+            done();
+          }, 1);
         }
       );
     });
@@ -335,6 +342,7 @@ describe('FhirBackendService', () => {
                 cacheName: null,
                 retryCount: false,
                 cacheErrors: true,
+                cacheAbort: false,
                 priority: PRIORITIES.NORMAL
               }
             );
@@ -359,6 +367,7 @@ describe('FhirBackendService', () => {
               cacheName: null,
               retryCount: false,
               cacheErrors: true,
+              cacheAbort: false,
               priority: PRIORITIES.NORMAL
             }
           );
@@ -393,10 +402,6 @@ describe('FhirBatchQuery', () => {
     server.get(/http:\/\/some-server-url\/someUrl4\?_format=json/, {
       status: 500,
       body: '{ "message": "Failure!" }'
-    });
-    server.get(/http:\/\/some-server-url\/[Observation|ResearchStudy].*/, {
-      status: 200,
-      body: JSON.stringify({ entry: [] })
     });
 
     server.install();
@@ -517,6 +522,10 @@ describe('FhirBatchQuery', () => {
       status: 200,
       body: '{ "fhirVersion": "4.0.1" }'
     });
+    server.get(/http:\/\/some-server-url\/[Observation|ResearchStudy].*/, {
+      status: 200,
+      body: JSON.stringify({ entry: [] })
+    });
     fhirBatchQuery.makeInitializationCalls().then(() => {
       const metaDataQueries = server.getRequestLog().filter(l => l.url.startsWith('http://some-server-url/metadata'));
       expect(metaDataQueries).toEqual([
@@ -548,6 +557,35 @@ describe('FhirBatchQuery', () => {
         jasmine.objectContaining({
           method: 'GET',
           url: 'http://some-server-url/metadata?_elements=fhirVersion&_format=json'
+        })
+      ]);
+      done();
+    });
+  });
+
+  it('should reject initialization if ResearchStudy requires OAuth2', (done) => {
+    server.get(/http:\/\/some-server-url\/metadata.*/, {
+      status: 200,
+      body: '{ "fhirVersion": "4.0.1" }'
+    });
+    server.get(/http:\/\/some-server-url\/ResearchStudy.*/, {
+      status: 401,
+      body: '{ "message": "Not authorized!" }',
+      headers: {'Www-Authenticate': 'Bearer bla bla'}
+    });
+    fhirBatchQuery.makeInitializationCalls().then(() => {
+    }, (reason) => {
+      expect(reason).toEqual({
+        status: OAUTH2_REQUIRED, error: 'oauth2 required'
+      })
+      expect(server.getRequestLog()).toEqual([
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://some-server-url/metadata?_elements=fhirVersion&_format=json'
+        }),
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://some-server-url/ResearchStudy?_elements=id&_count=1&_format=json'
         })
       ]);
       done();

@@ -19,7 +19,7 @@ import {
   BASIC_AUTH_REQUIRED,
   OAUTH2_REQUIRED,
   PRIORITIES as FhirBatchQueryPriorities
-} from './fhir-batch-query';
+} from './fhir-batch-query.js';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
 import { escapeStringForRegExp, getUrlParam, setUrlParam } from '../utils';
@@ -136,7 +136,7 @@ export class FhirBackendService implements HttpBackend {
    * The value of the URL parameter "alpha-version".
    * @private
    */
-  private alphaVersionParam = getUrlParam('alpha-version');
+  public alphaVersionParam = getUrlParam('alpha-version');
 
   /**
    * Whether the alpha version is enabled.
@@ -243,7 +243,6 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
-   * Creates and initializes an instance of FhirBackendService
    * @param defaultBackend - default Angular final HttpHandler which uses
    *   XMLHttpRequest to send requests to a backend server.
    * @param fhirService a service which holds the SMART on FHIR connection client
@@ -261,20 +260,18 @@ export class FhirBackendService implements HttpBackend {
     private injector: Injector,
     private liveAnnouncer: LiveAnnouncer,
     private dialog: MatDialog
-  ) {
+  ) {}
+
+  /**
+   * Creates and initializes an instance of FhirBackendService.
+   * This is moved out of the constructor and now called from HomeComponent, so that
+   * the service is not initialized in the token callback routes.
+   */
+  init(): Promise<void> {
     this.isCacheEnabled = sessionStorage.getItem('isCacheEnabled') !== 'false';
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
     const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
-    // This check is necessary because we are loading the entire application
-    // with /request-redirect-token-callback, which causes FhirBackend to
-    // initialize with the default server (because the server parameter is
-    // missing from the URL search string). The better solution would be to use
-    // lazy loading of the modules.
-    const serviceBaseUrl = /\/request-redirect-token-callback\/?\?/.test(
-      window.location.href
-    )
-      ? sessionStorage.getItem('dbgapRasLoginServer')
-      : getUrlParam('server') || defaultServer;
+    const serviceBaseUrl = getUrlParam('server') || defaultServer;
     this.fhirClient = new FhirBatchQuery({
       serviceBaseUrl
     });
@@ -282,7 +279,9 @@ export class FhirBackendService implements HttpBackend {
       filter((status) => status === ConnectionStatus.Ready),
       map(() => this.getCurrentDefinitions())
     );
+    return this.initializeFhirBatchQuery(serviceBaseUrl);
   }
+
   // Whether the connection to server is initialized.
   initialized = new BehaviorSubject(ConnectionStatus.Pending);
   currentDefinitions$: Observable<any>;
@@ -409,85 +408,91 @@ export class FhirBackendService implements HttpBackend {
     serviceBaseUrl: string,
     initializeContext: string
   ): void {
-    this.fhirClient.initialize(serviceBaseUrl, initializeContext).then(
-      () => {
-        if (initializeContext === 'basic-auth' && !sessionStorage.getItem('basicAuthSuccessMessage')) {
-          const message = `Logged in to ${serviceBaseUrl}. To log out, quit your browser.`;
-          sessionStorage.setItem('basicAuthSuccessMessage', message);
-          this.liveAnnouncer.announce(message);
-        }
-        // Load definitions of search parameters and columns from CSV file
-        this.settings.loadCsvDefinitions().subscribe(
-          (resourceDefinitions) => {
-            this.currentDefinitions = { resources: resourceDefinitions };
-            // Below block should only be run for the first time opening the app.
-            // Do not set advanced settings controls if sessionStorage has 'maxPerBatch' stored.
-            // They should be set from sessionStorage in cases like refreshing page.
-            if (sessionStorage.getItem('maxPerBatch') === null) {
-              this.fhirClient.setMaxRequestsPerBatch(
-                this.settings.get('maxRequestsPerBatch')
-              );
-              this.fhirClient.setMaxActiveRequests(
-                this.settings.get('maxActiveRequests')
-              );
-            }
-            this.fhirPathModel = {
-              R4: fhirPathModelR4,
-              R5: fhirPathModelR5
-            }[this.currentVersion];
-            this.compiledExpressions = {};
-            this.initialized.next(ConnectionStatus.Ready);
-          },
-          (err) => {
-            if (!(err instanceof HttpErrorResponse)) {
-              // Show exceptions from loadCsvDefinitions in console
-              console.error(err.message);
-            }
-            this.initialized.next(ConnectionStatus.Error);
+    const version = this.settings.get('serverDescription.version', serviceBaseUrl || this.serviceBaseUrl);
+    const features = this.settings.get('serverDescription.features', serviceBaseUrl || this.serviceBaseUrl);
+    this.fhirClient
+      .initialize(serviceBaseUrl, initializeContext, version && features ? {
+        version,
+        features
+      } : null)
+      .then(() => {
+          if (initializeContext === 'basic-auth' && !sessionStorage.getItem('basicAuthSuccessMessage')) {
+            const message = `Logged in to ${serviceBaseUrl}. To log out, quit your browser.`;
+            sessionStorage.setItem('basicAuthSuccessMessage', message);
+            this.liveAnnouncer.announce(message);
           }
-        );
-      },
-      (err) => {
-        if (err.status === BASIC_AUTH_REQUIRED) {
-          if (initializeContext === 'basic-auth') {
-            // Clear other pending initialization requests if user hits "Cancel" on
-            // the credentials challenge, so it won't pop up again.
-            this.fhirClient.clearPendingRequests();
-            this.initialized.next(ConnectionStatus.BasicAuthFailed);
-          } else {
-            this.fhirClient.withCredentials = true;
-            // Use a new initialize context so the initialization requests will be
-            // made again with withCredentials=true.
-            initializeContext = 'basic-auth';
-            this.makeInitializationCalls(serviceBaseUrl, initializeContext);
-          }
-        } else if (err.status === OAUTH2_REQUIRED) {
-          this.injector.get(Oauth2TokenService).isOauth2Required = true;
-          const dialogRef = this.dialog.open(AlertDialogComponent, {
-            data: {
-              header: 'OAuth2 Authorization Required',
-              content:
-                'This server requires authorization through OAuth2.' +
-                ' You will be redirected to the authorization page.',
-              hasCancelButton: true
+          // Load definitions of search parameters and columns from CSV file
+          this.settings.loadCsvDefinitions().subscribe(
+            (resourceDefinitions) => {
+              this.currentDefinitions = {resources: resourceDefinitions};
+              // Below block should only be run for the first time opening the app.
+              // Do not set advanced settings controls if sessionStorage has 'maxPerBatch' stored.
+              // They should be set from sessionStorage in cases like refreshing page.
+              if (sessionStorage.getItem('maxPerBatch') === null) {
+                this.fhirClient.setMaxRequestsPerBatch(
+                  this.settings.get('maxRequestsPerBatch')
+                );
+                this.fhirClient.setMaxActiveRequests(
+                  this.settings.get('maxActiveRequests')
+                );
+              }
+              this.fhirPathModel = {
+                R4: fhirPathModelR4,
+                R5: fhirPathModelR5
+              }[this.currentVersion];
+              this.compiledExpressions = {};
+              this.initialized.next(ConnectionStatus.Ready);
+            },
+            (err) => {
+              if (!(err instanceof HttpErrorResponse)) {
+                // Show exceptions from loadCsvDefinitions in console
+                console.error(err.message);
+              }
+              this.initialized.next(ConnectionStatus.Error);
             }
-          });
-          dialogRef.afterClosed().subscribe((isOk) => {
-            if (isOk) {
-              this.injector.get(Oauth2TokenService).login(this.serviceBaseUrl);
-            } else {
-              this.initialized.next(ConnectionStatus.Oauth2Required);
-            }
-          });
-        } else if (err.status !== HTTP_ABORT) {
-          this.initialized.next(
-            err.status === UNSUPPORTED_VERSION
-              ? ConnectionStatus.UnsupportedVersion
-              : ConnectionStatus.Error
           );
+        },
+        (err) => {
+          if (err.status === BASIC_AUTH_REQUIRED) {
+            if (initializeContext === 'basic-auth') {
+              // Clear other pending initialization requests if user hits "Cancel" on
+              // the credentials challenge, so it won't pop up again.
+              this.fhirClient.clearPendingRequests();
+              this.initialized.next(ConnectionStatus.BasicAuthFailed);
+            } else {
+              this.fhirClient.withCredentials = true;
+              // Use a new initialize context so the initialization requests will be
+              // made again with withCredentials=true.
+              initializeContext = 'basic-auth';
+              this.makeInitializationCalls(serviceBaseUrl, initializeContext);
+            }
+          } else if (err.status === OAUTH2_REQUIRED) {
+            this.injector.get(Oauth2TokenService).isOauth2Required = true;
+            const dialogRef = this.dialog.open(AlertDialogComponent, {
+              data: {
+                header: 'OAuth2 Authorization Required',
+                content:
+                  'This server requires authorization through OAuth2.' +
+                  ' You will be redirected to the authorization page.',
+                hasCancelButton: true
+              }
+            });
+            dialogRef.afterClosed().subscribe((isOk) => {
+              if (isOk) {
+                this.injector.get(Oauth2TokenService).login(this.serviceBaseUrl);
+              } else {
+                this.initialized.next(ConnectionStatus.Oauth2Required);
+              }
+            });
+          } else if (err.status !== HTTP_ABORT) {
+            this.initialized.next(
+              err.status === UNSUPPORTED_VERSION
+                ? ConnectionStatus.UnsupportedVersion
+                : ConnectionStatus.Error
+            );
+          }
         }
-      }
-    );
+      );
   }
 
   /**
@@ -543,9 +548,9 @@ export class FhirBackendService implements HttpBackend {
    * Research Data Finder is used for that.
    */
   handle(request: HttpRequest<any>): Observable<HttpEvent<any>> {
-    if (
-      !serviceBaseUrlRegExp.test(request.url) &&
-      !request.url.startsWith(this.serviceBaseUrl)
+    if (!this.fhirClient ||
+      (!serviceBaseUrlRegExp.test(request.url) &&
+      !request.url.startsWith(this.serviceBaseUrl))
     ) {
       // If it is not a request to the FHIR server,
       // pass the request to the default Angular backend.
@@ -622,21 +627,29 @@ export class FhirBackendService implements HttpBackend {
                   this.injector.get(CohortService).createCohortMode !==
                     CreateCohortMode.NO_COHORT
                 ) {
-                  this.dialogRef = this.dialog.open(AlertDialogComponent, {
-                    data: {
-                      header: 'Session Expired',
-                      content:
-                        'It looks like the session with dbGaP has expired.' +
-                        ' You will be returned to the login page so you can login and select consent groups again.',
-                      hasCancelButton: true
-                    }
-                  });
-                  this.dialogRef.afterClosed().subscribe((isOk) => {
-                    if (isOk) {
-                      this.dbgapRelogin$.next();
-                    }
-                    this.dialogRef = null;
-                  });
+                  // Current focus might be in an autocomplete-lhc input field, which tries to
+                  // refocus the input when it's blurred. We let it blur, but open the dialog
+                  // after a delay, to make sure the focus ends up in the dialog.
+                  (document.activeElement as HTMLElement).blur();
+                  setTimeout(() => {
+                    this.liveAnnouncer.announce('A dialog has opened.');
+                    this.dialogRef = this.dialog.open(AlertDialogComponent, {
+                      data: {
+                        header: 'Session Expired',
+                        content:
+                          'It looks like the session with dbGaP has expired.' +
+                          ' You will be returned to the login page so you can login and select consent groups again.',
+                        hasCancelButton: true
+                      }
+                    });
+                    this.dialogRef.afterClosed().subscribe((isOk) => {
+                      if (isOk) {
+                        this.dbgapRelogin$.next();
+                      }
+                      this.dialogRef = null;
+                    });
+                  }, 1);
+
                 } else if (status >= 500 && status < 600) {
                   this.dialog.open(AlertDialogComponent, {
                     data: {

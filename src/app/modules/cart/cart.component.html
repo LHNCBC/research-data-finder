@@ -84,27 +84,31 @@
                   <div class="cell cell-Variable-constraint h-box" *ngSwitchCase="'empty'" role="cell">No data found for this variable.</div>
                   <div class="cell cell-Variable-constraint h-box" *ngSwitchCase="'error'" role="cell">Error loading data for this variable.</div>
                   <ng-container [ngSwitch]="cart.isGroup(listItem)" *ngSwitchDefault>
-                    <app-observation-test-value
+                    <app-search-parameter-value
                         role="cell"
                         *ngSwitchCase="true"
                         class="cell cell-Variable-constraint"
+                        valueLabelText="Test value"
+                        unitLabelText="Test value unit"
                         [required]="false"
                         [(ngModel)]="cart.variableData[listItem[0].id].value"
                         (ngModelChange)="cart.updateVariableGroupValues(listItem)"
                         [observationCodes]="[listItem[0].id]"
                         [unitList]="cart.variableUnits[listItem[0].id]"
                         [datatype]="cart.getVariableType(listItem)">
-                    </app-observation-test-value>
-                    <app-observation-test-value
+                    </app-search-parameter-value>
+                    <app-search-parameter-value
                         role="cell"
                         *ngSwitchCase="false"
                         class="cell cell-Variable-constraint"
+                        valueLabelText="Test value"
+                        unitLabelText="Test value unit"
                         [required]="false"
                         [(ngModel)]="cart.variableData[listItem.id].value"
                         [observationCodes]="[listItem.id]"
                         [unitList]="cart.variableUnits[listItem.id]"
                         [datatype]="cart.getVariableType(listItem)">
-                    </app-observation-test-value>
+                    </app-search-parameter-value>
                   </ng-container>
                 </ng-container>
               </ng-container>

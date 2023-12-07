@@ -118,12 +118,22 @@ export class SearchParameterComponent
     this.selectedParameter = null;
 
     this.parameterName.valueChanges.subscribe((value) => {
+      const oldUseLookupParameter = this.selectedParameter && this.useLookupParamValue;
+      const oldParamType = this.selectedParameter?.type;
       this.selectedParameter = this.selectedResourceType.searchParameters.find(
         (p) => p.displayName === value
       );
       if (this.selectedParameter) {
         this.parameterValue.setValue(
-          this.selectedParameter.type === 'boolean' ? 'true' : ''
+          this.selectedParameter.type === 'boolean' ? 'true' : '', {
+            // Avoid updating the value of a previous control, which might cause
+            // the model to update with default values from a previous control
+            // of a different type.
+            emitModelToViewChange: !(
+              oldUseLookupParameter !== this.useLookupParamValue
+              || oldParamType !== this.selectedParameter.type
+            )
+          }
         );
         this.liveAnnouncer.announce(
           `Selected ${value}. One or more new fields have appeared.`
@@ -164,10 +174,6 @@ export class SearchParameterComponent
    * changes.
    */
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.selectedElements?.currentValue) {
-      this.updateAvailableSearchParameters();
-    }
-
     // Announce a change of the variable value type
     if (
       changes.observationDataType &&

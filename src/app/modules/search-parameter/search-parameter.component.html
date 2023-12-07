@@ -25,27 +25,37 @@
         *ngSwitchCase="useLookupParamValue ? selectedParameter.type : ''">
         <mat-label>Search parameter value</mat-label>
         <app-autocomplete-parameter-value
-          [options]="parameterValues" [formControl]="parameterValue" placeholder="Select one or more"
-          [resourceType]="resourceType" [searchParameter]="selectedParameter.element"
-          [columnName]="selectedParameter.rootPropertyName"
-          [expression]="selectedParameter.expression"
-          [usePrefetch]="selectedParameter.required && parameterValues !== undefined">
+            [options]="parameterValues" [formControl]="parameterValue"
+            placeholder="Select one or more"
+            [resourceType]="resourceType"
+            [searchParameter]="selectedParameter.element"
+            [columnName]="selectedParameter.rootPropertyName"
+            [expression]="selectedParameter.expression"
+            [usePrefetch]="selectedParameter.required && parameterValues !== undefined">
         </app-autocomplete-parameter-value>
       </mat-form-field>
 
-      <app-dates-from-to *ngSwitchCase="'date'" [formControl]="parameterValue" class="parameter-value"></app-dates-from-to>
+      <app-dates-from-to *ngSwitchCase="'date'" [formControl]="parameterValue"
+                         class="parameter-value"></app-dates-from-to>
 
-      <app-observation-test-value *ngSwitchCase="'Quantity'" class="parameter-value" [formControl]="parameterValue"
-                                  datatype="Quantity">
-      </app-observation-test-value>
+      <app-search-parameter-value *ngSwitchCase="'Quantity'"
+                                  class="parameter-value"
+                                  [formControl]="parameterValue"
+                                  datatype="Quantity"
+                                  [valuePlaceholderText]="selectedParameter.description">
+      </app-search-parameter-value>
 
-      <app-observation-test-value *ngSwitchCase="'string'" class="parameter-value" [formControl]="parameterValue"
-                                  datatype="String">
-      </app-observation-test-value>
+      <app-search-parameter-value *ngSwitchCase="'string'"
+                                  class="parameter-value"
+                                  [formControl]="parameterValue"
+                                  datatype="String"
+                                  [valuePlaceholderText]="selectedParameter.description">
+      </app-search-parameter-value>
 
       <mat-form-field *ngSwitchDefault class="parameter-value">
         <mat-label>Search parameter value</mat-label>
-        <input matInput [formControl]="parameterValue" [placeholder]="selectedParameter.description">
+        <input matInput [formControl]="parameterValue"
+               [placeholder]="selectedParameter.description">
       </mat-form-field>
 
     </ng-container>
@@ -54,21 +64,26 @@
   <mat-form-field class="flex" *ngIf="selectedParameter?.element === CODETEXT">
     <mat-label>{{resourceType}} codes from FHIR server</mat-label>
     <app-autocomplete-parameter-value *ngIf="resourceType !== 'Observation'"
-                                      [formControl]="parameterValue" placeholder="Select one or more"
-                                      [resourceType]="resourceType" searchParameter="code">
+                                      [formControl]="parameterValue"
+                                      placeholder="Select one or more"
+                                      [resourceType]="resourceType"
+                                      searchParameter="code">
     </app-autocomplete-parameter-value>
     <app-observation-code-lookup *ngIf="resourceType === 'Observation'"
-      [formControl]="selectedObservationCodes"
-      [isPullData]="isPullData"
-      placeholder="Type and select one or more">
+                                 [formControl]="selectedObservationCodes"
+                                 [isPullData]="isPullData"
+                                 placeholder="Type and select one or more">
     </app-observation-code-lookup>
   </mat-form-field>
 
-  <app-observation-test-value *ngIf="selectedParameter?.element === OBSERVATION_VALUE"
-                              class="parameter-value" [formControl]="parameterValue"
-                              [datatype]="observationDataType"
-                              [observationCodes]="observationCodes"
-                              [loincCodes]="observationLoincCodes">
-  </app-observation-test-value>
+  <app-search-parameter-value
+      *ngIf="selectedParameter?.element === OBSERVATION_VALUE"
+      class="parameter-value" [formControl]="parameterValue"
+      valueLabelText="Test value"
+      unitLabelText="Test value unit"
+      [datatype]="observationDataType"
+      [observationCodes]="observationCodes"
+      [loincCodes]="observationLoincCodes">
+  </app-search-parameter-value>
 
 </div>

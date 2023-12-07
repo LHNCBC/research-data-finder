@@ -1,18 +1,17 @@
-import definitionsIndex from '../definitions/index.json';
-
+const definitionsIndex = require('../definitions/index.json');
 // An object used to cache responses to HTTP requests
-import queryResponseCache from './query-response-cache';
+const queryResponseCache = require('./query-response-cache.js');
 
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
-export const HTTP_ABORT = 0;
+const HTTP_ABORT = 0;
 // The value of property status in the rejection object when the FHIR version is not supported by RDF
-export const UNSUPPORTED_VERSION = -1;
+const UNSUPPORTED_VERSION = -1;
 // The value of property status in the rejection object when the "metadata" query indicated basic authentication failure
-export const BASIC_AUTH_REQUIRED = -2;
+const BASIC_AUTH_REQUIRED = -2;
 // The value of property status in the rejection object when the "metadata" query indicated that OAuth2 is required
-export const OAUTH2_REQUIRED = -3;
+const OAUTH2_REQUIRED = -3;
 // Request priorities (numbers by which requests in the pending queue are sorted)
-export const PRIORITIES = {
+const PRIORITIES = {
   LOW: 100,
   NORMAL: 200
 };
@@ -46,7 +45,7 @@ const researchStudyStatusesByVersion = {
 };
 
 // Javascript client for FHIR with the ability to automatically combine requests in a batch
-export class FhirBatchQuery extends EventTarget {
+class FhirBatchQuery extends EventTarget {
   /**
    * Requests are executed or combined depending on the parameters passed to this method.
    * @constructor
@@ -55,15 +54,20 @@ export class FhirBatchQuery extends EventTarget {
    * @param {number} maxActiveRequests - the maximum number of requests that can be executed simultaneously
    * @param {number} batchTimeout - the time in milliseconds between requests that can be combined
    */
-  constructor({ serviceBaseUrl = '', maxRequestsPerBatch, maxActiveRequests, batchTimeout }) {
+  constructor({
+                serviceBaseUrl = '',
+                maxRequestsPerBatch,
+                maxActiveRequests,
+                batchTimeout
+              }) {
     super();
     this._serviceBaseUrl = serviceBaseUrl;
     this._authorizationHeader = null;
     this._pending = [];
     this._batchTimeoutId = null;
-    this._batchTimeout = batchTimeout || sessionStorage.getItem('batchTimeout') || 20;
-    this._maxPerBatch = maxRequestsPerBatch || sessionStorage.getItem('maxPerBatch') || 10;
-    this._maxActiveReq = maxActiveRequests || sessionStorage.getItem('maxActiveReq') || 6;
+    this._batchTimeout = batchTimeout || globalThis.sessionStorage?.getItem('batchTimeout') || 20;
+    this._maxPerBatch = maxRequestsPerBatch || globalThis.sessionStorage?.getItem('maxPerBatch') || 10;
+    this._maxActiveReq = maxActiveRequests || globalThis.sessionStorage?.getItem('maxActiveReq') || 6;
     this._activeReq = [];
     this._onChangeListeners = [];
     // Timeout between requests in milliseconds
@@ -74,7 +78,7 @@ export class FhirBatchQuery extends EventTarget {
     // The client side should give up if no successful response in 90 seconds
     this._giveUpTimeout = 90 * 1000;
     // NCBI E-utilities API Key
-    this._apiKey = sessionStorage.getItem('apiKey') || '';
+    this._apiKey = globalThis.sessionStorage?.getItem('apiKey') || '';
     // The string describes an initialization context which is used to
     // distinguish between pre-login and post-login initialization requests
     this.initContext = '';
@@ -158,9 +162,14 @@ export class FhirBatchQuery extends EventTarget {
    * @param {string} [context] - string describes an initialization context
    *  which is used to distinguish between pre-login and post-login
    *  initialization requests.
+   * @param {Object|null} predefinedInitResult - null or predefined initialization
+   *  result from the configuration file:
+   * @param {string} predefinedInitResult.version - version name e.g. "R4".
+   * @param {Object} predefinedInitResult.features - object describing the server
+   *  features.
    * @return {Promise}
    */
-  initialize(newServiceBaseUrl, context = '') {
+  initialize(newServiceBaseUrl, context = '', predefinedInitResult = null) {
     const serverUrlChanged = newServiceBaseUrl && newServiceBaseUrl !== this._serviceBaseUrl;
 
     if (serverUrlChanged) {
@@ -178,57 +187,41 @@ export class FhirBatchQuery extends EventTarget {
 
     // const currentServiceBaseUrl = this._serviceBaseUrl;
 
-    if (this._initializationPromise) {
-      return this._initializationPromise;
+    if (!this._initializationPromise) {
+      this._features = {isFormatSupported: true};
+      this._initializationPromise = this.makeInitializationCalls(predefinedInitResult);
     }
-    this._features = {isFormatSupported: true};
-    // if (this._isDbgap) {
-    //   this._initializationPromise = Promise.allSettled([
-    //     // Query to extract the consent group that must be included as _security param in particular queries.
-    //     this.getWithCache('ResearchSubject', this.getCommonInitRequestOptions())
-    //   ]).then(([researchSubject]) => {
-    //     if (currentServiceBaseUrl !== this._serviceBaseUrl) {
-    //       return Promise.reject({
-    //         status: HTTP_ABORT,
-    //         error: 'Outdated response to initialization request.'
-    //       });
-    //     }
-    //     if (
-    //       researchSubject &&
-    //       researchSubject.status === 'rejected' &&
-    //       /Deny access to all but these consent groups: (.*) -- codes from last denial/.test(
-    //         researchSubject.reason.error
-    //       )
-    //     ) {
-    //       this._features.consentGroup = RegExp.$1.replace(', ', ',');
-    //       return this.makeInitializationCalls(true);
-    //     } else {
-    //       return this.makeInitializationCalls();
-    //     }
-    //   });
-    // } else {
-    this._initializationPromise = this.makeInitializationCalls();
-    // }
     return this._initializationPromise;
   }
 
   /**
    * Makes multiple queries to server and determine values in _feature property.
+   * @param {Object|null} predefinedInitResult - null or predefined initialization
+   *  result from the configuration file:
+   * @param {string} predefinedInitResult.version - version name e.g. "R4".
+   * @param {Object} predefinedInitResult.features - object describing the server
    * @param withSecurityTag whether to add _security search parameter in applicable queries
    * @returns {Promise<void>}
    */
-  makeInitializationCalls(withSecurityTag = false) {
+  makeInitializationCalls(predefinedInitResult = null, withSecurityTag = false) {
     const currentServiceBaseUrl = this._serviceBaseUrl;
     const securityParam = withSecurityTag ? `&_security=${this._features.consentGroup}` : '';
     // Common options for initialization requests
     // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
     const options = this.getCommonInitRequestOptions();
 
-    const initializationRequests = this.checkMetadata()
+    return this.checkMetadata()
+    .then(() => {
+      if (predefinedInitResult && predefinedInitResult.version === this._versionName) {
+        this._features = predefinedInitResult.features;
+        return Promise.resolve();
+      }
+      return this.checkResearchStudy(options)
       .then(() => {
         return Promise.allSettled([
-          // Check if server has Research Study data
-          this.getWithCache('ResearchStudy?_elements=id&_count=1', options),
+          // Check if server has at least one Research Study with Research Subjects.
+          // No need to make this request if there is no Research Study at all.
+          this.checkHasAvailableStudy(options),
           // Check if :missing modifier is supported
           this.getWithCache(`Observation?code:missing=false&_elements=id&_count=1${securityParam}`, options),
           // Check if batch request is supported
@@ -253,17 +246,14 @@ export class FhirBatchQuery extends EventTarget {
             retryCount: 2
           })
         ])
-        .then(([hasResearchStudy, missingModifier, batch]) => {
+        .then(([hasAvailableStudy, missingModifier, batch]) => {
           if (currentServiceBaseUrl !== this._serviceBaseUrl) {
             return Promise.reject({
               status: HTTP_ABORT,
               error: 'Outdated response to initialization request.'
             });
           }
-          this._features.hasResearchStudy =
-            hasResearchStudy.status === 'fulfilled' &&
-            hasResearchStudy.value.data.entry &&
-            hasResearchStudy.value.data.entry.length > 0;
+          this._features.hasAvailableStudy = hasAvailableStudy.value;
           this._features.missingModifier = missingModifier.status === 'fulfilled';
           this._features.batch =
             batch.status === 'fulfilled' &&
@@ -273,13 +263,7 @@ export class FhirBatchQuery extends EventTarget {
         })
         .then(() => {
           // On dbGaP server, only do certain initialization requests after login.
-          if (this.initContext === 'dbgap-pre-login') {
-            // Check if server has at least one Research Study with Research Subjects.
-            // No need to make this request if there is no Research Study at all.
-            return this.checkHasAvailableStudy(options).then((result) => {
-              this._features.hasAvailableStudy = result;
-            });
-          } else {
+          if (this.initContext !== 'dbgap-pre-login') {
             // Below are initialization requests that are not made if it's dbGaP server and user hasn't logged in.
             return Promise.allSettled([
               // Check if sorting Observations by date is supported
@@ -298,41 +282,35 @@ export class FhirBatchQuery extends EventTarget {
                 }&_elements=id&_count=1${securityParam}`,
                 options
               ),
-              this.checkNotModifierIssue(options),
-              this.checkHasAvailableStudy(options)
+              this.checkNotModifierIssueAndMaxHasAllowed(options)
             ]).then(
               ([
                  observationsSortedByDate,
                  observationsSortedByAgeAtEvent,
                  lastnLookup,
                  interpretation,
-                 hasNotModifierIssue,
-                 hasAvailableStudy
+                 hasNotModifierIssueAndMaxHasAllowed
                ]) => {
                 Object.assign(this._features, {
                   sortObservationsByDate:
                     observationsSortedByDate.status === 'fulfilled' &&
-                    observationsSortedByDate.value.data.entry &&
-                    observationsSortedByDate.value.data.entry.length > 0,
+                    observationsSortedByDate.value.data.entry?.length > 0,
                   sortObservationsByAgeAtEvent:
                     observationsSortedByAgeAtEvent.status === 'fulfilled' &&
-                    observationsSortedByAgeAtEvent.value.data.entry &&
-                    observationsSortedByAgeAtEvent.value.data.entry.length > 0,
+                    observationsSortedByAgeAtEvent.value.data.entry?.length > 0,
                   lastnLookup: lastnLookup.status === 'fulfilled',
                   interpretation:
                     interpretation.status === 'fulfilled' &&
-                    interpretation.value.data.entry &&
-                    interpretation.value.data.entry.length > 0,
-                  hasNotModifierIssue: hasNotModifierIssue.status === 'fulfilled' && hasNotModifierIssue.value,
-                  hasAvailableStudy: hasAvailableStudy.status === 'fulfilled' && hasAvailableStudy.value
+                    interpretation.value.data.entry?.length > 0,
+                  ...hasNotModifierIssueAndMaxHasAllowed.value
                 });
+                console.log(this._features);
               }
             );
           }
         });
       });
-
-    return initializationRequests;
+    });
   }
 
   /**
@@ -393,6 +371,28 @@ export class FhirBatchQuery extends EventTarget {
   }
 
   /**
+   * Check if server has Research Study data.
+   * @param {Object} [options] - additional options (see getWithCache)
+   * @returns {Promise<void>}
+   */
+  checkResearchStudy(options) {
+    return this.getWithCache('ResearchStudy?_elements=id&_count=1', options)
+    .then((hasResearchStudy) => {
+      this._features.hasResearchStudy = hasResearchStudy.data.entry?.length > 0;
+    }, (hasResearchStudy) => {
+      if (hasResearchStudy.status === 401 && hasResearchStudy.wwwAuthenticate?.startsWith('Bearer')) {
+        // As is the case with server https://fhir.immport.org/fhir, /metadata is intentionally configured
+        // for other reasons to return 200 while not logged in, we use this /ResearchStudy query to trigger
+        // OAuth2 login.
+        return Promise.reject({
+          status: OAUTH2_REQUIRED, error: 'oauth2 required'
+        });
+      }
+      this._features.hasResearchStudy = false;
+    });
+  }
+
+  /**
    * Check if server has at least one Research Study with Research Subjects.
    * No need to make this request if there is no Research Study at all.
    * @param {Object} [options] - additional options (see getWithCache)
@@ -418,11 +418,11 @@ export class FhirBatchQuery extends EventTarget {
 
   /**
    * Checks if the ":not" search parameter modifier is interpreted incorrectly
-   * (HAPI FHIR server issue).
+   * (HAPI FHIR server issue) and how many ":has" are allowed per request.
    * @param {Object} [options] - additional options (see getWithCache)
-   * @return {Promise<boolean>}
+   * @return {Promise<{hasNotModifierIssue:boolean, maxHasAllowed: number}>}
    */
-  checkNotModifierIssue(options) {
+  checkNotModifierIssueAndMaxHasAllowed(options) {
     return this.getWithCache('Observation?_count=1', options).then((response) => {
       const obs = response.data.entry?.[0].resource;
       const firstCode = obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
@@ -430,32 +430,52 @@ export class FhirBatchQuery extends EventTarget {
       return firstCode && patientRef
         ? this.getWithCache(
           `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
-          this.getCommonInitRequestOptions()
+          options
         ).then((oneCodeResp) => {
           const secondCode =
             oneCodeResp.data.entry?.[0].resource.code.coding?.[0].system +
             '%7C' +
             oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
+
+          // If a query with two "_has" takes too long, treat that as two "_has"
+          // in one query are not supported.
+          const abortController = new AbortController();
+          setTimeout(() => {
+            abortController.abort()
+          }, 20000);
+
           return secondCode
             ? Promise.allSettled([
               typeof oneCodeResp.data.total === 'number'
                 ? Promise.resolve(oneCodeResp)
                 : this.getWithCache(
                   `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                  this.getCommonInitRequestOptions()
+                  options
                 ),
               this.getWithCache(
                 `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                this.getCommonInitRequestOptions()
-              )
-            ]).then(([summaryOneCodeResp, summaryTwoCodeResp]) => {
-              return summaryOneCodeResp.status === 'fulfilled' && summaryTwoCodeResp.status === 'fulfilled'
-                ? Promise.resolve(summaryTwoCodeResp.value.data.total < summaryOneCodeResp.value.data.total)
-                : Promise.reject();
+                options
+              ),
+              this.getWithCache(
+                `Patient?_has:Observation:subject:combo-code=${firstCode}&_has:Observation:subject:combo-code=${secondCode}&_total=accurate&_summary=count`,
+                {...options, cacheAbort: true, signal: abortController.signal}
+              ),
+            ]).then(([summaryOneCodeResp, summaryTwoCodeResp, summaryHasResp]) => {
+              return {
+                hasNotModifierIssue: summaryOneCodeResp.status === 'fulfilled' && summaryTwoCodeResp.status === 'fulfilled'
+                  ? summaryTwoCodeResp.value.data.total < summaryOneCodeResp.value.data.total
+                  : false,
+                maxHasAllowed: summaryHasResp.status === 'fulfilled' && summaryHasResp.value.data.total > 0 ? 2 : 1
+              }
             })
             : Promise.reject();
         })
         : Promise.reject();
+    }).catch(() => {
+      return {
+        hasNotModifierIssue: false,
+        maxHasAllowed: 1
+      };
     });
   }
 
@@ -1018,6 +1038,8 @@ export class FhirBatchQuery extends EventTarget {
    *   entry can be in the cache before expiring.
    * @param {boolean} [options.cacheErrors] - whether to cache error responses,
    *   false by default.
+   * @param {boolean} [options.cacheAbort] - whether to cache abort response,
+   *   false by default.
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *   status is HTTP status number, data is Object constructed from a JSON
    *   response.
@@ -1028,6 +1050,7 @@ export class FhirBatchQuery extends EventTarget {
       retryCount: false,
       cacheName: null,
       cacheErrors: false,
+      cacheAbort: false,
       priority: PRIORITIES.NORMAL,
       ...options
     };
@@ -1050,7 +1073,8 @@ export class FhirBatchQuery extends EventTarget {
               });
             },
             (errorResponse) => {
-              (options.cacheErrors && !NOCACHESTATUSES.includes(errorResponse.status)
+              ((options.cacheAbort && errorResponse.status === HTTP_ABORT) ||
+                (options.cacheErrors && !NOCACHESTATUSES.includes(errorResponse.status))
                   ? queryResponseCache.add(fullUrl, errorResponse, options)
                   : Promise.resolve()
               ).then(() => {
@@ -1197,7 +1221,7 @@ export class FhirBatchQuery extends EventTarget {
  * @param versionNumber
  * @return {string|null}
  */
-export function getVersionNameByNumber(versionNumber) {
+function getVersionNameByNumber(versionNumber) {
   let versionName = null;
 
   Object.keys(definitionsIndex.versionNameByVersionNumberRegex).some((versionRegEx) => {
@@ -1217,7 +1241,7 @@ export function getVersionNameByNumber(versionNumber) {
  * @param {string|number} value - parameter value
  * @return {string}
  */
-export function updateUrlWithParam(url, name, value) {
+function updateUrlWithParam(url, name, value) {
   if (!/^([^?]*)(\?([^?]*)|)$/.test(url)) {
     // This is not correct if the URL has two "?" - do nothing:
     return url;
@@ -1230,4 +1254,15 @@ export function updateUrlWithParam(url, name, value) {
     .join('&');
 
   return params ? urlWithoutParams + '?' + params : urlWithoutParams;
+}
+
+module.exports = {
+  HTTP_ABORT,
+  UNSUPPORTED_VERSION,
+  BASIC_AUTH_REQUIRED,
+  OAUTH2_REQUIRED,
+  PRIORITIES,
+  FhirBatchQuery,
+  getVersionNameByNumber,
+  updateUrlWithParam
 }
