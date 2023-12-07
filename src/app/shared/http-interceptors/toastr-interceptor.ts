@@ -13,7 +13,11 @@ export class ToastrInterceptor implements HttpInterceptor {
     return next.handle(req)
       .pipe(
         catchError((err) => {
-          this.toastr.error(err.error, 'HTTP error response');
+          this.toastr.error(err.error, 'HTTP error response', {
+            timeOut: 10000,
+            closeButton: true,
+            tapToDismiss: false
+          });
           return throwError(err);
         })
       );
