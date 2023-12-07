@@ -3,10 +3,14 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.14.2] - 2023-11-17
+## [6.14.3] - 2023-12-07
 ### Fixed
 - Infinite loop when loading variables in the "Select records" step if the
   server returns observations without codes.
+
+## [6.14.2] - 2023-12-07
+### Changed
+- Inform user if the search patient or pull data request failed.
 
 ## [6.14.1] - 2023-11-17
 ### Fixed

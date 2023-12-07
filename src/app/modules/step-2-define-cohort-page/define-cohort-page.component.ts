@@ -14,7 +14,7 @@ import { SearchParametersComponent } from '../search-parameters/search-parameter
 
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 
-import { CohortService } from '../../shared/cohort/cohort.service';
+import { CohortService, MAX_PAGE_SIZE } from '../../shared/cohort/cohort.service';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -22,6 +22,7 @@ import {
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
+import {LiveAnnouncer} from "@angular/cdk/a11y";
 
 /**
  * Component for defining criteria to build a cohort of Patient resources.
@@ -40,6 +41,7 @@ import { SelectRecordsService } from '../../shared/select-records/select-records
 export class DefineCohortPageComponent
   extends BaseControlValueAccessorAndValidator<any>
   implements OnInit, OnDestroy {
+  MAX_PAGE_SIZE = MAX_PAGE_SIZE;
   defineCohortForm: UntypedFormGroup;
   subscriptions: Subscription[] = [];
 
@@ -50,7 +52,8 @@ export class DefineCohortPageComponent
     private errorManager: ErrorManager,
     public fhirBackend: FhirBackendService,
     public selectRecords: SelectRecordsService,
-    public cohort: CohortService
+    public cohort: CohortService,
+    private liveAnnouncer: LiveAnnouncer
   ) {
     super();
 
@@ -82,7 +85,7 @@ export class DefineCohortPageComponent
 
   ngOnInit(): void {
     this.defineCohortForm = this.formBuilder.group({
-      maxNumberOfPatients: [this.cohort.maxPatientCount, Validators.required]
+      maxNumberOfPatients: [this.cohort.maxPatientCount, Validators.compose([Validators.required, Validators.max(MAX_PAGE_SIZE), Validators.pattern(/^\d+$/)])]
     });
     this.defineCohortForm.valueChanges.subscribe((value) => {
       this.onChange(value);
@@ -124,6 +127,12 @@ export class DefineCohortPageComponent
    * Shows errors for existing formControls
    */
   showErrors(): void {
+    if (this.defineCohortForm.controls['maxNumberOfPatients'].invalid) {
+      this.liveAnnouncer.announce('Maximum number of patients field is not valid.');
+    }
     this.errorManager.showErrors();
+    setTimeout(() => {
+      document.querySelector('.mat-form-field-invalid')?.scrollIntoView();
+    });
   }
 }
