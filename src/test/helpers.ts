@@ -73,8 +73,9 @@ export async function configureTestingModule(
   const settingsService = TestBed.inject(SettingsService);
   const mockHttp = TestBed.inject(HttpTestingController);
   if (!options.skipInitApp) {
-    settingsService.loadJsonConfig().subscribe();
-  }
+    settingsService.loadJsonConfig().subscribe(() => {
+      fhirBackend.init();
+    });
 
   // Pass-through for settings file
   mockHttp
@@ -104,6 +105,7 @@ export async function configureTestingModule(
       take(1)
     )
     .toPromise();
+  }
 
   if (options.definitions) {
     spyOn(fhirBackend, 'getCurrentDefinitions').and.returnValue(

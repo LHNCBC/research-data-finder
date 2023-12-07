@@ -55,6 +55,10 @@ export class FhirServerSelectComponent
     {
       description: 'Google Health API',
       url: 'https://healthcare.googleapis.com/v1/projects/lhncbc-fhir-tools/locations/us-east4/datasets/lforms-fhir-data/fhirStores/R4-2/fhir'
+    },
+    {
+      description: 'immport (HAPI FHIR R5) server',
+      url: 'https://fhir.immport.org/fhir'
     }
   ];
 

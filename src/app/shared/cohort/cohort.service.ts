@@ -56,6 +56,9 @@ const EVIDENCE_VARIABLE_RESOURCE_TYPE = 'EvidenceVariable';
 // Observation resource type name
 const OBSERVATION_RESOURCE_TYPE = 'Observation';
 
+// Maximum value allowed for the _count parameter.
+export const MAX_PAGE_SIZE = 2147483647;
+
 export enum CreateCohortMode {
   UNSELECTED = 'UNSELECTED',
   NO_COHORT = 'NO_COHORT',
