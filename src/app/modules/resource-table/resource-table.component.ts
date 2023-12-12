@@ -203,7 +203,11 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   // starting/stopping of the loading process.
   @Input('loading') isLoading: boolean;
 
-  // Returns loading state for the table.
+  /**
+   * Returns loading state for the table.
+   * It depends on the isLoading input parameter but ignores its frequent
+   * changes to avoid flickering the loading indicator.
+   */
   get loading(): boolean {
     return this.continuouslyLoading;
   };
