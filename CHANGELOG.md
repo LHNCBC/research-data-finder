@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.15.1] - 2023-12-15
+### Fixed
+- Updated limit on the number of _has parameters per request for known servers.
+
 ## [6.15.0] - 2023-12-07
 ### Added
 - The alpha version became the current version, current version became the
