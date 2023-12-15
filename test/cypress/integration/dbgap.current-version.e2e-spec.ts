@@ -19,7 +19,7 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
 
   before(() => {
     cy.visit(
-      '/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&alpha-version=enable'
+      '/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&prev-version=disable'
     )
       // Waiting for application initialization
       .get('.init-spinner-container')

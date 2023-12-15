@@ -3,8 +3,6 @@
  * Please add future utility methods here (as top-level exports)
  */
 
-import Bundle = fhir.Bundle;
-
 /**
  * Capitalize the first char and return the string
  */
@@ -132,12 +130,8 @@ export function getFocusableChildren(element: HTMLElement): HTMLElement[] {
  * @param name - parameter name
  */
 export function getUrlParam(name): string {
-  const queryMatch = window.location.search.match(
-    new RegExp(`[?&]${escapeStringForRegExp(name)}=([^?&]+)`, 'i')
-  );
-  return queryMatch && queryMatch.length
-    ? decodeURIComponent(queryMatch[1])
-    : null;
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
 }
 
 /**
@@ -149,17 +143,21 @@ export function getUrlParam(name): string {
  * @param originalUrl old URL string
  */
 export function setUrlParam(name, value, originalUrl = ''): string {
-  const urlParts = (originalUrl || window.location.href)
-    .split(/[?&]/)
-    .filter((paramStr) => !paramStr.startsWith(name + '='));
-  return (
-    urlParts[0] +
-    '?' +
-    urlParts
-      .slice(1)
-      .concat([name + '=' + encodeURIComponent(value)])
-      .join('&')
-  );
+  const url = new URL(originalUrl || window.location.href);
+  url.searchParams.set(name, value);
+  return url.toString();
+}
+
+/**
+ * Returns a new URL from originalUrl, removing a parameter.
+ * Will use window.location.href if originalUrl is omitted.
+ * @param name - parameter name
+ * @param originalUrl old URL string
+ */
+export function removeUrlParam(name, originalUrl = ''): string {
+  const url = new URL(originalUrl || window.location.href);
+  url.searchParams.delete(name);
+  return url.toString();
 }
 
 /**
