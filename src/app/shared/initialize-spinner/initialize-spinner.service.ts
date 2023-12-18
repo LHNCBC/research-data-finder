@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { InitializeSpinnerComponent } from './initialize-spinner.component';
+import { InitializeSpinnerComponent } from '../../modules/step-0-settings-page/initialize-spinner/initialize-spinner.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { map } from 'rxjs/operators';
 import {
