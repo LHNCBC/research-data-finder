@@ -359,7 +359,7 @@ export class FhirBackendService implements HttpBackend {
 
   /**
    * Initialize/reinitialize FhirBatchQuery instance
-   * @param [serviceBaseUrl] - new FHIR REST API Service Base URL
+   * @param serviceBaseUrl - new FHIR REST API Service Base URL
    */
   initializeFhirBatchQuery(serviceBaseUrl): Promise<void> {
     if (!serviceBaseUrl) {
