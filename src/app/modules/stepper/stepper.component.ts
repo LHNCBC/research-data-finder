@@ -110,7 +110,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(PullDataPageComponent)
   public pullDataPageComponent: PullDataPageComponent;
 
-  allowChangeCreateCohortMode = false;
+  allowChangeCreateCohortMode = true;
 
   defineCohort: UntypedFormControl = new UntypedFormControl();
   subscription: Subscription;
@@ -246,7 +246,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         // changes. So I decided to do it only here:
         this.settingsStep.completed = this.settingsPageComponent.settingsFormGroup.valid;
       } else if (status === ConnectionStatus.Ready) {
-        this.allowChangeCreateCohortMode = this.fhirBackend.isAlphaVersion;
+        this.allowChangeCreateCohortMode = !this.fhirBackend.isPreviousVersion;
         if (!this.allowChangeCreateCohortMode) {
           this.cohort.createCohortMode = CreateCohortMode.SEARCH;
         } else {

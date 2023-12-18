@@ -102,9 +102,10 @@ describe('StepperComponent', () => {
           provide: FhirBackendService,
           useValue: {
             initialized: new BehaviorSubject(ConnectionStatus.Ready),
-            features: { batch: true },
-            disconnect: () => {},
-            isAlphaVersion: false,
+            features: {batch: true},
+            disconnect: () => {
+            },
+            isPreviousVersion: false,
             dbgapRelogin$: new ReplaySubject()
           }
         },

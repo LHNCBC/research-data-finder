@@ -3,9 +3,27 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.14.2] - 2023-12-01
+## [6.15.2] - 2023-12-18
 ### Fixed
 - Disable next step header if RAS not logged in.
+
+## [6.15.1] - 2023-12-15
+### Fixed
+- Updated limit on the number of _has parameters per request for known servers.
+
+## [6.15.0] - 2023-12-07
+### Added
+- The alpha version became the current version, current version became the
+  previous version.
+
+## [6.14.3] - 2023-12-07
+### Fixed
+- Infinite loop when loading variables in the "Select records" step if the
+  server returns observations without codes.
+
+## [6.14.2] - 2023-12-07
+### Changed
+- Inform user if the search patient or pull data request failed.
 
 ## [6.14.1] - 2023-11-17
 ### Fixed
