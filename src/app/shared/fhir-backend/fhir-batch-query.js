@@ -1047,7 +1047,7 @@ class FhirBatchQuery extends EventTarget {
   getWithCache(url, options = {}) {
     options = {
       combine: true,
-      retryCount: false,
+      retryCount: 3,
       cacheName: null,
       cacheErrors: false,
       cacheAbort: false,
