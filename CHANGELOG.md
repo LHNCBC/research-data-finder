@@ -3,10 +3,14 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.15.3] - 2023-12-19
+## [6.15.4] - 2023-12-19
 ### Changed
 - When a query fails, limit the retry count to 3 instead of retrying for 90
   seconds.
+
+## [6.15.3] - 2023-12-19
+### Fixed
+- Improved performance of loading variables from Observations.
 
 ## [6.15.2] - 2023-12-18
 ### Fixed
