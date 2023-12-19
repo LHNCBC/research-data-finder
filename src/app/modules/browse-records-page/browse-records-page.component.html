@@ -34,13 +34,13 @@
                   (click)="panel.toggle()"
                   (keydown.enter)="panel.toggle()"
                   (keydown.space)="panel.toggle()">
-                <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
+                <mat-panel-title *ngIf="!resourceTable.loading">
                     <span>Selected {{
-                        resourceTable.selectedResources.selected.length
+                      resourceTable.selectedResources.selected.length
                       }} out of {{
-                        resourceTable.dataSource.data.length
+                      resourceTable.dataSource.data.length
                       }} {{
-                        resourceType | pluralFormOfRecordName | lowercase
+                      resourceType | pluralFormOfRecordName | lowercase
                       }}.
                       <ng-container *ngIf="hasStudyTab()">Study selection limits list of variables.</ng-container></span>
                 </mat-panel-title>
@@ -99,22 +99,28 @@
                   (click)="panel.toggle()"
                   (keydown.enter)="panel.toggle()"
                   (keydown.space)="panel.toggle()">
-                <mat-panel-title *ngIf="!selectRecords.currentState[resourceType].loading">
-                    <ng-container>{{
-                        variableTable.dataSource.data.length
-                      }} {{
-                        resourceType | pluralFormOfRecordName | lowercase
-                      }} loaded.</ng-container><ng-container *ngIf="selectRecords.currentState[resourceType].totalRecords"> Total {{
-                        resourceType | pluralFormOfRecordName | lowercase
-                      }}{{
-                        variableTable.hasFilters() ? ' for the selected filters': ''
-                      }}: {{
-                        selectRecords.currentState[resourceType].totalRecords
-                      }}.</ng-container>
+                <mat-panel-title *ngIf="!variableTable.loading">
+                  <ng-container>{{
+                    variableTable.dataSource.data.length
+                    }} {{
+                    resourceType | pluralFormOfRecordName | lowercase
+                    }} loaded.
+                  </ng-container>
+                  <ng-container
+                      *ngIf="selectRecords.currentState[resourceType].totalRecords">
+                    Total {{
+                    resourceType | pluralFormOfRecordName | lowercase
+                    }}{{
+                    variableTable.hasFilters() ? ' for the selected filters' : ''
+                    }}: {{
+                    selectRecords.currentState[resourceType].totalRecords
+                    }}.
+                  </ng-container>
                 </mat-panel-title>
                 <mat-panel-description>
                   <span *ngIf="variableTable.loading">
-                    <span>Loading {{resourceType | pluralFormOfRecordName | lowercase}} ...</span>
+                    <span>Loading {{resourceType | pluralFormOfRecordName | lowercase}}
+                      ...</span>
                   </span>
                 </mat-panel-description>
               </mat-expansion-panel-header>

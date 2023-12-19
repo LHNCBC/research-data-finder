@@ -56,26 +56,6 @@
             ]
           },
           {
-            displayName: "Study ID",
-            element: "study_id",
-            expression: "studyData.id",
-            displayByDefault: false,
-            filterable: false,
-            types: [
-              "string"
-            ]
-          },
-          {
-            displayName: "Study",
-            element: "study_name",
-            expression: "studyData.title",
-            displayByDefault: true,
-            filterable: false,
-            types: [
-              "string"
-            ]
-          },
-          {
             displayName: "Category",
             element: "category",
             displayByDefault: true,
