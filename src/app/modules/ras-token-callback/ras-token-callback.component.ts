@@ -61,7 +61,6 @@ export class RasTokenCallbackComponent implements OnInit {
     const server = sessionStorage.getItem('dbgapRasLoginServer');
     this.router.navigate(['/'], {
       queryParams: {
-        'alpha-version': 'enable',
         server
       },
       replaceUrl: true

@@ -10,12 +10,14 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { fromEvent, Observable, Subscription } from 'rxjs';
-import { filter, map, take } from 'rxjs/operators';
+import { fromEvent, Observable, Subject } from 'rxjs';
+import { filter, map, take, takeUntil } from 'rxjs/operators';
 import { setUrlParam } from '../../shared/utils';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { AlertDialogComponent } from '../../shared/alert-dialog/alert-dialog.component';
+import {
+  AlertDialogComponent
+} from '../../shared/alert-dialog/alert-dialog.component';
 
 /**
  * Settings page component for defining general parameters such as FHIR REST API Service Base URL.
@@ -27,8 +29,8 @@ import { AlertDialogComponent } from '../../shared/alert-dialog/alert-dialog.com
 })
 export class SettingsPageComponent implements OnDestroy {
   settingsFormGroup: UntypedFormGroup;
-  // Subscription to the "batch-issue" event dispatched by FhirBatchQuery
-  subscription: Subscription;
+  // Subject to emit a destroy event
+  destroy = new Subject();
   // Reference to the dialog about problems with batch requests
   dialogRef: MatDialogRef<AlertDialogComponent>;
   // A message if the server is connected successfully with basic authentication.
@@ -71,17 +73,16 @@ export class SettingsPageComponent implements OnDestroy {
         }
       });
 
-    this.subscription = fromEvent(
-      this.fhirBackend.fhirClient,
-      'batch-issue'
-    ).subscribe(() => this.showBatchIssueDialog());
+    fromEvent(this.fhirBackend.fhirClient, 'batch-issue')
+      .pipe(takeUntil(this.destroy))
+      .subscribe(() => this.showBatchIssueDialog());
   }
 
   /**
    * Performs cleanup when a component instance is destroyed.
    */
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    this.destroy.next();
   }
 
   /**
@@ -142,6 +143,7 @@ export class SettingsPageComponent implements OnDestroy {
     // Wait for response to validate server
     return this.fhirBackend.initialized.pipe(
       filter((status) => status !== ConnectionStatus.Pending),
+      takeUntil(this.destroy),
       take(1),
       map((status) => {
         if (!this.basicAuthSuccessMessage) {

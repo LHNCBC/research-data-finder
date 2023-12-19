@@ -65,6 +65,14 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('settings') public settingsPageComponent: SettingsPageComponent;
   @ViewChild('settingsStep') public settingsStep: MatStep;
 
+  @ViewChild('selectAnActionStep') set _selectAnActionStep(step: MatStep) {
+    this.selectAnActionStep = step;
+    if (step) {
+      step.completed = false;
+    }
+  }
+  selectAnActionStep: MatStep;
+
   @ViewChild('defineCohortStep') set _defineCohortStep(step: MatStep) {
     this.defineCohortStep = step;
     if (step) {
@@ -83,7 +91,15 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(SelectAnAreaOfInterestComponent)
   public selectAreaOfInterestComponent: SelectAnAreaOfInterestComponent;
-  @ViewChild(SelectAnActionComponent)
+  @ViewChild(SelectAnActionComponent) set _selectAnActionComponent(comp: SelectAnActionComponent) {
+    this.selectAnActionComponent = comp;
+    if (comp) {
+      comp.createCohortMode.valueChanges.subscribe((value) => {
+        // If RAS login is required, mark the step incomplete to disable the header of the next step.
+        this.selectAnActionStep.completed = !this.isRasLoginRequired(value);
+      });
+    }
+  }
   public selectAnActionComponent: SelectAnActionComponent;
   @ViewChild(DefineCohortPageComponent)
   public defineCohortComponent: DefineCohortPageComponent;
@@ -94,7 +110,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(PullDataPageComponent)
   public pullDataPageComponent: PullDataPageComponent;
 
-  allowChangeCreateCohortMode = false;
+  allowChangeCreateCohortMode = true;
 
   defineCohort: UntypedFormControl = new UntypedFormControl();
   subscription: Subscription;
@@ -230,7 +246,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         // changes. So I decided to do it only here:
         this.settingsStep.completed = this.settingsPageComponent.settingsFormGroup.valid;
       } else if (status === ConnectionStatus.Ready) {
-        this.allowChangeCreateCohortMode = this.fhirBackend.isAlphaVersion;
+        this.allowChangeCreateCohortMode = !this.fhirBackend.isPreviousVersion;
         if (!this.allowChangeCreateCohortMode) {
           this.cohort.createCohortMode = CreateCohortMode.SEARCH;
         } else {
@@ -601,17 +617,22 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Contact rdf-server for dbGap login, if required.
+   * Returns whether RAS login is required.
    */
-  onSelectAnActionNext(createCohortModeValue: CreateCohortMode): void {
-    if (
-      this.enableRas &&
+  isRasLoginRequired(createCohortModeValue: CreateCohortMode): boolean {
+    return this.enableRas &&
       this.fhirBackend.isDbgap(this.fhirBackend.serviceBaseUrl) &&
       [CreateCohortMode.BROWSE, CreateCohortMode.SEARCH].includes(
         createCohortModeValue
       ) &&
-      !this.rasToken.rasTokenValidated
-    ) {
+      !this.rasToken.rasTokenValidated;
+  }
+
+  /**
+   * Contact rdf-server for dbGap login, if required.
+   */
+  onSelectAnActionNext(createCohortModeValue: CreateCohortMode): void {
+    if (this.isRasLoginRequired(createCohortModeValue)) {
       this.rasToken.login(
         this.fhirBackend.serviceBaseUrl,
         createCohortModeValue
