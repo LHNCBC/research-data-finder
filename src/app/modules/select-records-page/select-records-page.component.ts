@@ -10,7 +10,7 @@ import { SelectRecordsService } from '../../shared/select-records/select-records
 import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { CohortService } from '../../shared/cohort/cohort.service';
+import { CohortService, MAX_PAGE_SIZE } from '../../shared/cohort/cohort.service';
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import { HttpContext } from '@angular/common/http';
 import { BrowseRecordsPageComponent } from '../browse-records-page/browse-records-page.component';
@@ -39,12 +39,13 @@ import {ErrorManager} from "../../shared/error-manager/error-manager.service";
 export class SelectRecordsPageComponent
   extends BrowseRecordsPageComponent
   implements AfterViewInit, OnDestroy {
+  MAX_PAGE_SIZE = MAX_PAGE_SIZE;
   @ViewChild('additionalCriteria')
   additionalCriteria: SearchParametersComponent;
   @ViewChild('tabGroup') tabGroup: MatTabGroup;
   maxPatientsNumber = new UntypedFormControl(
     this.cohort.maxPatientCount,
-    Validators.required
+    [Validators.required, Validators.max(MAX_PAGE_SIZE), Validators.pattern(/^\d+$/)]
   );
   showOnlyStudiesWithSubjects = true;
 
@@ -208,11 +209,17 @@ export class SelectRecordsPageComponent
    * Shows errors for existing formControls
    */
   showErrors(): void {
+    if (this.maxPatientsNumber.invalid) {
+      this.liveAnnouncer.announce('Maximum number of patients field is not valid.');
+    }
     this.errorManager.showErrors();
     // Go to the last tab, which is "Additional Criteria", if it has validation errors.
     if (this.additionalCriteria.hasErrors()) {
       this.tabGroup.selectedIndex = this.visibleResourceTypes.length;
     }
+    setTimeout(() => {
+      document.querySelector('.mat-form-field-invalid')?.scrollIntoView();
+    });
   }
 
   /**

@@ -21,7 +21,7 @@ import { getPluralFormOfResourceType } from '../../shared/utils';
 import { ResourceTableParentComponent } from '../resource-table-parent.component';
 import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { CohortService } from '../../shared/cohort/cohort.service';
+import { CohortService, MAX_PAGE_SIZE } from '../../shared/cohort/cohort.service';
 import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 import { TableRow } from '../resource-table/resource-table.component';
 import Observation = fhir.Observation;
@@ -45,6 +45,7 @@ import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 export class PullDataPageComponent
   extends ResourceTableParentComponent
   implements OnChanges, AfterViewInit, OnDestroy {
+  MAX_PAGE_SIZE = MAX_PAGE_SIZE;
   // Default observation codes for the "Pull data for the cohort" step
   @Input()
   defaultObservationCodes: SelectedObservationCodes;
@@ -70,7 +71,9 @@ export class PullDataPageComponent
   // in the criteria.
   maxObservationToCheck = new FormControl<number>(1000, [
     Validators.required,
-    Validators.min(1)
+    Validators.min(1),
+    Validators.max(MAX_PAGE_SIZE),
+    Validators.pattern(/^\d+$/)
   ]);
   // Whether any Observation code is added to the Observation criteria
   isObsCodesSelected = false;

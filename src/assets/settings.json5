@@ -124,6 +124,7 @@
         features: {
           isFormatSupported: true,
           hasResearchStudy: false,
+          hasAvailableStudy: false,
           missingModifier: false,
           batch: true,
           sortObservationsByDate: true,
@@ -131,7 +132,7 @@
           lastnLookup: true,
           interpretation: false,
           hasNotModifierIssue: true,
-          hasAvailableStudy: false
+          maxHasAllowed: 1
         }
       }
     },
@@ -164,6 +165,7 @@
         features: {
           isFormatSupported: true,
           hasResearchStudy: true,
+          hasAvailableStudy: true,
           missingModifier: true,
           batch: true,
           sortObservationsByDate: false,
@@ -171,7 +173,7 @@
           lastnLookup: false,
           interpretation: false,
           hasNotModifierIssue: false,
-          hasAvailableStudy: true
+          maxHasAllowed: 2
         }
       },
       contextColumns: {
@@ -288,6 +290,7 @@
         features: {
           isFormatSupported: true,
           hasResearchStudy: true,
+          hasAvailableStudy: true,
           missingModifier: true,
           batch: true,
           sortObservationsByDate: true,
@@ -295,7 +298,7 @@
           lastnLookup: false,
           interpretation: false,
           hasNotModifierIssue: false,
-          hasAvailableStudy: true
+          maxHasAllowed: 1
         }
       }
     }

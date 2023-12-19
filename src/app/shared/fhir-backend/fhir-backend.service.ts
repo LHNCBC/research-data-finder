@@ -133,19 +133,9 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
-   * The value of the URL parameter "alpha-version".
-   * @private
+   * Whether the previous version is enabled.
    */
-  public alphaVersionParam = getUrlParam('alpha-version');
-
-  /**
-   * Whether the alpha version is enabled.
-   */
-  get isAlphaVersion(): boolean {
-    return this.alphaVersionParam
-      ? this.alphaVersionParam === 'enable'
-      : this.isDbgap(this.serviceBaseUrl);
-  }
+  isPreviousVersion = getUrlParam('prev-version') === 'enable';
 
   // Checkbox value of whether to use a SMART on FHIR client.
   // tslint:disable-next-line:variable-name
@@ -163,7 +153,7 @@ export class FhirBackendService implements HttpBackend {
             redirectUri: setUrlParam(
               'isSmart',
               true,
-              window.location.pathname + window.location.search
+              window.location.origin + window.location.pathname + window.location.search
             )
           }
         ],
@@ -243,6 +233,7 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
+   * Creates and initializes an instance of FhirBackendService
    * @param defaultBackend - default Angular final HttpHandler which uses
    *   XMLHttpRequest to send requests to a backend server.
    * @param fhirService a service which holds the SMART on FHIR connection client
@@ -393,9 +384,9 @@ export class FhirBackendService implements HttpBackend {
         const initializeContext =
           isRasLoggedIn || isOauth2LoggedIn || this.smartConnectionSuccess
             ? 'after-login'
-            : isDbgap && !isRasLoggedIn && this.isAlphaVersion
-            ? 'dbgap-pre-login'
-            : '';
+            : isDbgap && !isRasLoggedIn && !this.isPreviousVersion
+              ? 'dbgap-pre-login'
+              : '';
 
         this.makeInitializationCalls(serviceBaseUrl, initializeContext);
       });
@@ -408,8 +399,13 @@ export class FhirBackendService implements HttpBackend {
     serviceBaseUrl: string,
     initializeContext: string
   ): void {
-    const version = this.settings.get('serverDescription.version', serviceBaseUrl || this.serviceBaseUrl);
-    const features = this.settings.get('serverDescription.features', serviceBaseUrl || this.serviceBaseUrl);
+    const serverUrlForSettings = serviceBaseUrl || this.serviceBaseUrl;
+    const version: string = this.settings.get('serverDescription.version', serverUrlForSettings);
+    const features: FhirServerFeatures = this.settings.get('serverDescription.features', serverUrlForSettings);
+    if (features && !features.maxHasAllowed) {
+      // Set default value for maxHasAllowed if it is missed in the serverDescription in settings.json5.
+      features.maxHasAllowed = 1;
+    }
     this.fhirClient
       .initialize(serviceBaseUrl, initializeContext, version && features ? {
         version,

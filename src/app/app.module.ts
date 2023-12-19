@@ -17,6 +17,10 @@ import {
   MAT_TOOLTIP_DEFAULT_OPTIONS_FACTORY
 } from "@angular/material/tooltip";
 import {Oauth2TokenCallbackModule} from "./modules/oauth2-token-callback/oauth2-token-callback.module";
+import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
+import {ToastrModule} from "ngx-toastr";
+import {HTTP_INTERCEPTORS} from "@angular/common/http";
+import {ToastrInterceptor} from "./shared/http-interceptors/toastr-interceptor";
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
@@ -43,9 +47,12 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
     RasTokenCallbackModule,
     Oauth2TokenCallbackModule,
     LaunchModule,
-    InitializeSpinnerModule
+    InitializeSpinnerModule,
+    BrowserAnimationsModule,
+    ToastrModule.forRoot()
   ],
   providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: ToastrInterceptor, multi: true },
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: appearance
