@@ -203,6 +203,7 @@ export class BrowseRecordsPageComponent
       this.loadVariables();
     } else if (resourceType === 'Observation') {
       this.selectRecords.loadFirstPageOfVariablesFromObservations(
+        this.getSelectedRecords('ResearchStudy'),
         ...this.getParametersToLoadPageOfVariables()
       );
     } else if (resourceType === 'ResearchStudy') {
@@ -272,16 +273,10 @@ export class BrowseRecordsPageComponent
    * Returns parameters to load a page of variables.
    */
   getParametersToLoadPageOfVariables(): [
-    selectedResearchStudies: Resource[],
-    params: {
-      [param: string]: any;
-    },
     filters: any,
     sort: Sort
   ] {
     return [
-      this.getSelectedRecords('ResearchStudy'),
-      {},
       this.variableTable?.filtersForm.value || {},
       this.sort['Observation']
     ];

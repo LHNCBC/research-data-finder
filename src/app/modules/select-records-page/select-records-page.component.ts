@@ -169,6 +169,7 @@ export class SelectRecordsPageComponent
       this.loadVariables();
     } else if (resourceType === 'Observation') {
       this.selectRecords.loadFirstPageOfVariablesFromObservations(
+        this.getSelectedRecords('ResearchStudy'),
         ...this.getParametersToLoadPageOfVariables()
       );
     } else if (resourceType === 'ResearchStudy') {
