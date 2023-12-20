@@ -9,6 +9,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpContext, HttpParams, HttpRequest } from '@angular/common/http';
 import variables from 'src/test/test-fixtures/variables-4.json';
+import studies from 'src/test/test-fixtures/research-studies.json';
 import {
   configureTestingModule,
   verifyOutstandingRequests
@@ -111,7 +112,7 @@ describe('SelectRecordsService', () => {
     const emptyBundle = {};
 
     function loadFirstPageOfObservations(sort = null) {
-      service.loadFirstPageOfVariablesFromObservations([], {}, {}, sort);
+      service.loadFirstPageOfVariablesFromObservations([], {}, sort);
       service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne('$fhir/Observation?_elements=code,value,category&_count=50')
@@ -147,7 +148,7 @@ describe('SelectRecordsService', () => {
       };
       loadFirstPageOfObservations();
 
-      service.loadNextPageOfVariablesFromObservations([], {}, {}, null);
+      service.loadNextPageOfVariablesFromObservations({}, null);
       service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
@@ -163,7 +164,7 @@ describe('SelectRecordsService', () => {
       };
       loadFirstPageOfObservations();
 
-      service.loadNextPageOfVariablesFromObservations([], {}, {}, null);
+      service.loadNextPageOfVariablesFromObservations({}, null);
       service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
@@ -179,7 +180,7 @@ describe('SelectRecordsService', () => {
       };
       loadFirstPageOfObservations();
 
-      service.loadNextPageOfVariablesFromObservations([], {}, {}, null);
+      service.loadNextPageOfVariablesFromObservations({}, null);
       service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
@@ -204,7 +205,7 @@ describe('SelectRecordsService', () => {
       );
       (service.sortObservationsByVariableColumn as jasmine.Spy).calls.reset();
 
-      service.loadNextPageOfVariablesFromObservations([], {}, {}, sort);
+      service.loadNextPageOfVariablesFromObservations({}, sort);
       service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
@@ -234,7 +235,7 @@ describe('SelectRecordsService', () => {
       );
       (service.sortObservationsByVariableColumn as jasmine.Spy).calls.reset();
 
-      service.preloadNextPageOfVariablesFromObservations([], {}, {}, sort);
+      service.preloadNextPageOfVariablesFromObservations({}, sort);
       mockHttp
         .expectOne(
           '$fhir/Observation?_elements=code,value,category&code:not=system-1%7Ccode-1,system-2%7Ccode-2,system-3%7Ccode-3,system-4%7Ccode-4&_count=50'
@@ -246,7 +247,7 @@ describe('SelectRecordsService', () => {
       );
       (service.sortObservationsByVariableColumn as jasmine.Spy).calls.reset();
 
-      service.preloadNextPageOfVariablesFromObservations([], {}, {}, sort);
+      service.preloadNextPageOfVariablesFromObservations({}, sort);
       mockHttp
         .expectOne(
           '$fhir/Observation?_elements=code,value,category&code:not=system-1%7Ccode-1,system-2%7Ccode-2,system-3%7Ccode-3,system-4%7Ccode-4,system-5%7Ccode-5,system-6%7Ccode-6&_count=50'
@@ -261,7 +262,7 @@ describe('SelectRecordsService', () => {
         arrayOfObservationsWithCodes(['code-6', 'code-5', 'code-9', 'code-8', 'code-7'])
       );
 
-      service.loadNextPageOfVariablesFromObservations([], {}, {}, sort);
+      service.loadNextPageOfVariablesFromObservations({}, sort);
       service.currentState['Observation'].resourceStream.subscribe();
       expect(service.sortObservationsByVariableColumn).toHaveBeenCalledOnceWith(
         arrayOfObservationsWithCodes(['code-6', 'code-5', 'code-9', 'code-8', 'code-7']),
@@ -274,6 +275,55 @@ describe('SelectRecordsService', () => {
     });
 
 
+    it('should use selected studies when loading variables', () => {
+      options.features = {
+        hasNotModifierIssue: true
+      };
+
+      service.loadFirstPageOfVariablesFromObservations(studies.entry.map(i => i.resource), {}, null);
+
+      mockHttp
+        .expectOne('$fhir/ResearchSubject?_elements=individual&study=ResearchStudy/phs002410,ResearchStudy/phs002409')
+        .flush({
+          entry: [
+            {resource: {individual: {reference: 'Patient/pat-1'}}},
+            {resource: {individual: {reference: 'Patient/pat-2'}}}
+          ]
+        });
+
+      service.currentState['Observation'].resourceStream.subscribe();
+      mockHttp
+        .expectOne('$fhir/Observation?_elements=code,value,category&subject=Patient/pat-1,Patient/pat-2&_count=50')
+        .flush(observations);
+      expect(service.currentState['Observation'].resources).toEqual(
+        jasmine.arrayContaining(arrayOfObservationsWithCodes(['code-1', 'code-2', 'code-3', 'code-4']))
+      );
+
+      service.loadNextPageOfVariablesFromObservations({}, null);
+
+      service.currentState['Observation'].resourceStream.subscribe();
+      mockHttp
+        .expectOne(
+          '$fhir/Observation?_elements=code,value,category&subject=Patient/pat-1,Patient/pat-2&code:not=system-1%7Ccode-1,system-2%7Ccode-2,system-3%7Ccode-3,system-4%7Ccode-4&_count=50'
+        )
+        .flush(observationsSecondPage);
+      expect(service.currentState['Observation'].resources).toEqual(
+        jasmine.arrayContaining(arrayOfObservationsWithCodes(['code-1', 'code-2', 'code-3', 'code-4', 'code-5', 'code-6']))
+      );
+
+      service.preloadNextPageOfVariablesFromObservations({}, null);
+      mockHttp
+        .expectOne(
+          '$fhir/Observation?_elements=code,value,category&subject=Patient/pat-1,Patient/pat-2&code:not=system-1%7Ccode-1,system-2%7Ccode-2,system-3%7Ccode-3,system-4%7Ccode-4,system-5%7Ccode-5,system-6%7Ccode-6&_count=50'
+        )
+        .flush(observationsThirdPage);
+      expect(service.preloadState['Observation'].resources).toEqual(
+        jasmine.arrayContaining(arrayOfObservationsWithCodes(['code-7', 'code-8', 'code-9']))
+      );
+    });
+
+
+    // TODO Remove adding study data to variables
     it('should add study data to variables', () => {
       spyOn(fhirBackend, 'getCurrentDefinitions').and.returnValue({
         valueSetMapByPath: {'ResearchSubject.status': ['someSSubjectStatus']}
@@ -292,43 +342,7 @@ describe('SelectRecordsService', () => {
 
       loadFirstPageOfObservations();
 
-      const patientWithSubjects = {
-        resourceType: 'Bundle',
-        entry: [
-          {
-            resource: {
-              resourceType: 'Patient',
-              id: 'pat-88189'
-            }
-          },
-          {
-            resource: {
-              resourceType: 'ResearchSubject',
-              study: {
-                reference: 'ResearchStudy/study-id-1'
-              }
-            }
-          },
-          {
-            resource: {
-              resourceType: 'ResearchSubject',
-              study: {
-                reference: 'ResearchStudy/study-id-2'
-              }
-            }
-          }
-        ]
-      };
-      [
-        '$fhir/Patient?_has:Observation:subject:code=system-1%7Ccode-1&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=system-2%7Ccode-2&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=system-3%7Ccode-3&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1',
-        '$fhir/Patient?_has:Observation:subject:code=system-4%7Ccode-4&_has:ResearchSubject:individual:status=0&_revinclude=ResearchSubject:individual&_elements=id&_count=1'
-      ].forEach((url) => {
-        mockHttp.expectOne(url).flush(patientWithSubjects);
-      });
-
-      service.loadNextPageOfVariablesFromObservations([], {}, {}, null);
+      service.loadNextPageOfVariablesFromObservations({}, null);
       service.currentState['Observation'].resourceStream.subscribe();
       mockHttp
         .expectOne(
@@ -336,9 +350,6 @@ describe('SelectRecordsService', () => {
         )
         .flush(emptyBundle);
       expect(service.currentState['Observation'].resources.length).toBe(4);
-      service.currentState['Observation'].resources.forEach((obs) => {
-        expect(obs.studyData.length).toBe(2);
-      });
     });
   });
 });

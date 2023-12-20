@@ -3,6 +3,18 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.15.3] - 2023-12-19
+### Fixed
+- Improved performance of loading variables from Observations.
+
+## [6.15.2] - 2023-12-18
+### Fixed
+- Disable next step header if RAS not logged in.
+
+## [6.15.1] - 2023-12-15
+### Fixed
+- Updated limit on the number of _has parameters per request for known servers.
+
 ## [6.15.0] - 2023-12-07
 ### Added
 - The alpha version became the current version, current version became the

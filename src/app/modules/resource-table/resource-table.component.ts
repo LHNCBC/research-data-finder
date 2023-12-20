@@ -198,14 +198,30 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() context = '';
   @Input() resources: Resource[];
   @Input() total: number;
-  @Input() loading: boolean;
+
+  // Used to get notifications from outside of the component about
+  // starting/stopping of the loading process.
+  @Input('loading') isLoading: boolean;
+
+  /**
+   * Returns loading state for the table.
+   * It depends on the isLoading input parameter but ignores its frequent
+   * changes to avoid flickering the loading indicator.
+   */
+  get loading(): boolean {
+    return this.continuouslyLoading;
+  };
+
   @Input() failedRequests = 0;
+
   @Input() set progressValue(value) {
     this.progressValue$.next(Math.round(value));
   }
+
   get progressValue(): number {
     return this.progressValue$.value;
   }
+
   progressValue$ = new BehaviorSubject(0);
   progressBarPosition$: Observable<number>;
   @Input() loadingStatistics: (string | number)[][] = [];
@@ -335,8 +351,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     }
     const pluralRecordName = getPluralFormOfRecordName(this.resourceType);
     // Handle a change of loading status
-    if (changes['loading']) {
-      if (this.loading) {
+    if (changes['isLoading']) {
+      if (this.isLoading) {
         this.columnsWithData = {};
         // Don't read too many "loading started" messages during continuous loading.
         if (!this.continuouslyLoading) {
@@ -360,7 +376,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
             }
           })
         );
-      } else if (changes['loading'].previousValue) {
+      } else if (changes['isLoading'].previousValue) {
         this.progressBarPosition$ = null;
         // Read the "loading finished" message after a delay, so that we get to
         // clear the timeout without reading it in case of continuous loading.

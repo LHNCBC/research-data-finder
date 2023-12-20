@@ -399,8 +399,13 @@ export class FhirBackendService implements HttpBackend {
     serviceBaseUrl: string,
     initializeContext: string
   ): void {
-    const version = this.settings.get('serverDescription.version', serviceBaseUrl || this.serviceBaseUrl);
-    const features = this.settings.get('serverDescription.features', serviceBaseUrl || this.serviceBaseUrl);
+    const serverUrlForSettings = serviceBaseUrl || this.serviceBaseUrl;
+    const version: string = this.settings.get('serverDescription.version', serverUrlForSettings);
+    const features: FhirServerFeatures = this.settings.get('serverDescription.features', serverUrlForSettings);
+    if (features && !features.maxHasAllowed) {
+      // Set default value for maxHasAllowed if it is missed in the serverDescription in settings.json5.
+      features.maxHasAllowed = 1;
+    }
     this.fhirClient
       .initialize(serviceBaseUrl, initializeContext, version && features ? {
         version,
