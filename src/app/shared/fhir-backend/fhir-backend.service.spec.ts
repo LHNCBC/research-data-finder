@@ -215,7 +215,7 @@ describe('FhirBackendService', () => {
       spyOn(fhirService, 'getSmartConnection').and.returnValue(fhirClient);
       spyOn(service, 'checkSmartOnFhirEnabled').and.resolveTo(true);
       spyOn(FhirBatchQuery.prototype, 'setAuthorizationHeader');
-      await service.initializeFhirBatchQuery(service.serviceBaseUrl);
+      await service.initializeFhirBatchQuery();
       expect(fhirClient.getAuthorizationHeader).toHaveBeenCalledOnceWith();
       expect(
         FhirBatchQuery.prototype.setAuthorizationHeader

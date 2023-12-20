@@ -352,10 +352,9 @@ export class FhirBackendService implements HttpBackend {
    * Initialize/reinitialize FhirBatchQuery instance
    * @param serviceBaseUrl - new FHIR REST API Service Base URL
    */
-  initializeFhirBatchQuery(serviceBaseUrl): Promise<void> {
-    if (!serviceBaseUrl) {
-      return Promise.resolve();
-    }
+  initializeFhirBatchQuery(serviceBaseUrl: string = ''): Promise<void> {
+    // If serviceBaseUrl param is omitted, use this.serviceBaseUrl.
+    serviceBaseUrl ||= this.serviceBaseUrl;
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
     return this.checkSmartOnFhirEnabled(serviceBaseUrl)
@@ -366,7 +365,7 @@ export class FhirBackendService implements HttpBackend {
           : Promise.resolve();
       })
       .then(() => {
-        const isDbgap = this.isDbgap(serviceBaseUrl || this.serviceBaseUrl);
+        const isDbgap = this.isDbgap(serviceBaseUrl);
         const isRasLoggedIn = this.injector.get(RasTokenService).rasTokenValidated;
         const isOauth2LoggedIn = this.injector.get(Oauth2TokenService).oauth2TokenValidated;
         // Set authorization header.
