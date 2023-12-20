@@ -18,6 +18,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import {
   AlertDialogComponent
 } from '../../shared/alert-dialog/alert-dialog.component';
+import {InitializeSpinnerService} from "../../shared/initialize-spinner/initialize-spinner.service";
 
 /**
  * Settings page component for defining general parameters such as FHIR REST API Service Base URL.
@@ -40,7 +41,8 @@ export class SettingsPageComponent implements OnDestroy {
     private formBuilder: UntypedFormBuilder,
     public fhirBackend: FhirBackendService,
     private liveAnnouncer: LiveAnnouncer,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    public initSpinner: InitializeSpinnerService
   ) {
     this.settingsFormGroup = this.formBuilder.group({
       serviceBaseUrl: new UntypedFormControl(this.fhirBackend.serviceBaseUrl, {
