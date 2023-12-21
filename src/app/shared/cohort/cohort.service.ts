@@ -350,7 +350,7 @@ export class CohortService {
                   .filter((resource) => !currentState.processedPatientIds[this.getPatientIdFromResource(resource)])
                   .map((resource) => ({
                     resource,
-                    checkPassed: newCriteria.condition !== 'or'
+                    checkPassed: true
                   }));
 
                 // Run a parallel check of the accumulated resources by the rest
@@ -421,6 +421,14 @@ export class CohortService {
           ? criteria.rules.map((rule) => [rule])
           : [criteria.rules]
       ).pipe(
+        // "mergeScan" is the RxJS version of "reduce".
+        // See https://rxjs.dev/api/operators/mergeScan.
+        // Here we go through all the criteria sets sequentially and accumulate
+        // the resulting set of resources associated with patients with a check
+        // status. This is needed only if the criteria for the resource type are
+        // ORed. When they are ANDed it is only one iteration. Currently, the UI
+        // only allows criteria with the AND operator for the resource type, but
+        // I don't want to have this limitation in the search algorithm.
         mergeScan(
           (acc, rules) => {
             const {
@@ -456,6 +464,11 @@ export class CohortService {
                         const responseResources = new Map(response?.entry?.map(({resource}) => [resource.id, resource]));
                         return curResourcesToCheck.map(item => {
                           const patientId = this.getPatientIdFromResource(item.resource);
+                          // If in the set of loaded patients that meet the criteria,
+                          // there is a patient with the same identifier as the resource
+                          // being checked, then we replace this resource with the patient
+                          // so that at the end of the search we do not have to make
+                          // an additional request for the patient by identifier.
                           if (responseResources.has(patientId)) {
                             item = {
                               resource: responseResources.get(patientId),
@@ -482,9 +495,6 @@ export class CohortService {
                   return this.requestResourcesForCheck(resourceType, link, elements, criteria.resourceType, rules, useHas).pipe(
                     map((response) => {
                       resourceToCheck.checkPassed = !!response?.entry?.length;
-                      if (resourceToCheck.checkPassed && response.entry[0].resource.resourceType === PATIENT_RESOURCE_TYPE) {
-                        resourceToCheck.resource = response.entry[0].resource;
-                      }
                       return resourceToCheck;
                     })
                   );
