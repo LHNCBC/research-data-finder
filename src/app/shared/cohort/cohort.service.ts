@@ -551,16 +551,18 @@ export class CohortService {
     isORedCriteria: boolean
   ): { toCheck: ResourceToCheck[]; alreadyChecked: ResourceToCheck[] } {
     const toCheck = [];
-    const alreadyChecked = resourcesToCheck.filter((r) => {
+    const alreadyChecked = [];
+
+    resourcesToCheck.forEach((r) => {
       // If the resource criteria are combined by the OR operator, we
       // will take the first matched resource. If the resource criteria
       // are combined by the AND operator, and one of the queries returns
       // nothing, we don't need to check the other criteria.
-      const alreadyChecked = isORedCriteria ? r.checkPassed : !r.checkPassed;
-      if (!alreadyChecked) {
+      if (isORedCriteria ? r.checkPassed : !r.checkPassed) {
+        alreadyChecked.push(r);
+      } else {
         toCheck.push(r);
       }
-      return alreadyChecked;
     });
     return {toCheck, alreadyChecked};
   }
