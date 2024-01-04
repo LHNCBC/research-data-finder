@@ -3,10 +3,18 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.15.4] - 2023-12-19
+## [6.15.5] - 2024-01-04
 ### Changed
 - When a query fails, limit the retry count to 3 instead of retrying for 90
   seconds.
+
+## [6.15.4] - 2024-01-04
+### Fixed
+- Combined requests for patients with the "_id" parameter to reduce the number
+  of requests.
+- Bug in the search for patients when nested ORed criteria produce requests for
+  different resource types therefore in the output stream, we may have different
+  resource types.
 
 ## [6.15.3] - 2023-12-19
 ### Fixed
