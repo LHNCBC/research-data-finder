@@ -17,7 +17,7 @@ describe('Research Data Finder (baseR4)', () => {
   let pullDataStep: MatStepHarness;
 
   before(() => {
-    cy.visit('/?server=https://lforms-fhir.nlm.nih.gov/baseR4')
+    cy.visit('/?server=https://lforms-fhir.nlm.nih.gov/baseR4&prev-version=enable')
       .get('.init-spinner-container')
       .should('exist')
       .get('.init-spinner-container', { timeout: 30000 })
@@ -131,7 +131,7 @@ describe('Research Data Finder (baseR4)', () => {
     cy.get('mat-form-field.parameter-name app-autocomplete input')
       .type('variable name')
       .blur();
-    cy.get('#code-selector-2').type('Height cm');
+    cy.get('#code-selector-1').type('Height cm');
     cy.get('#completionOptions').should('be.visible');
     cy.get('#completionOptions > ul > li:first-child').click();
   });

@@ -6,8 +6,8 @@ import { SelectedObservationCodes } from '../../types/selected-observation-codes
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import { CODETEXT } from '../query-params/query-params.service';
 import { CohortService } from '../cohort/cohort.service';
-import { concatMap, finalize, map, startWith, tap } from 'rxjs/operators';
-import { forkJoin, fromEvent, Observable, of } from 'rxjs';
+import {concatMap, finalize, map, startWith, tap} from 'rxjs/operators';
+import {forkJoin, fromEvent, Observable, of} from 'rxjs';
 import { chunk, differenceBy } from 'lodash-es';
 import Patient = fhir.Patient;
 import Resource = fhir.Resource;

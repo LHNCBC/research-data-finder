@@ -20,7 +20,8 @@
     </div>
   </mat-step>
 
-  <mat-step [label]="getLabel(Step.SELECT_AN_ACTION)"
+  <mat-step #selectAnActionStep
+            [label]="getLabel(Step.SELECT_AN_ACTION)"
             *ngIf="isVisible(Step.SELECT_AN_ACTION)">
     <div class="v-box">
       <app-select-an-action #selectAnActionComponent></app-select-an-action>
@@ -203,3 +204,7 @@
     <mat-icon svgIcon="create"></mat-icon>
   </ng-template>
 </mat-horizontal-stepper>
+
+
+<!--A hidden button used only by e2e tests to navigate to next steps bypassing RAS login.-->
+<button id="hiddenButton" (click)="selectAnActionStep.completed = true;"></button>
