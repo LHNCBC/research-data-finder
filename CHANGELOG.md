@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.15.4] - 2023-01-04
+## [6.15.4] - 2024-01-04
 ### Fixed
 - Combined requests for patients with the "_id" parameter to reduce the number
   of requests.
