@@ -25,8 +25,10 @@ import {
   expand,
   filter,
   finalize,
+  last,
   map,
   mergeMap,
+  mergeScan,
   share,
   startWith,
   switchMap,
@@ -38,7 +40,7 @@ import {
   OBSERVATION_VALUE,
   QueryParamsService
 } from '../query-params/query-params.service';
-import { uniqBy, cloneDeep } from 'lodash-es';
+import { uniqBy, cloneDeep, chunk } from 'lodash-es';
 import Bundle = fhir.Bundle;
 import { HttpClient } from '@angular/common/http';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
@@ -75,6 +77,13 @@ interface CohortState {
   processedPatientIds: { [patientId: string]: boolean };
   // The number of resources in processing is used to pause the loading of the next page
   numberOfProcessingResources$: BehaviorSubject<number>;
+}
+
+interface ResourceToCheck {
+  // Resource to check
+  resource: Resource;
+  // Whether the resource meets the criteria
+  checkPassed: boolean;
 }
 
 // Empty cohort state
@@ -211,19 +220,23 @@ export class CohortService {
           resources.length = maxPatientCount - currentState.patients.length;
         }
 
+        // Split the list of resources into patients and others
+        const {patients, otherResources} = resources.reduce((acc, resource) => {
+          (resource.resourceType === PATIENT_RESOURCE_TYPE ? acc.patients : acc.otherResources)
+            .push(resource);
+          return acc;
+        }, {patients: [], otherResources: []});
+
         // If the found resource isn't a Patient (when no criteria for Patients),
         // replace it with a Patient
-        if (
-          resources.length &&
-          resources[0].resourceType !== PATIENT_RESOURCE_TYPE
-        ) {
+        if (otherResources.length) {
           return this.http
             .get<Bundle>(`$fhir/${PATIENT_RESOURCE_TYPE}`, {
               params: {
-                _id: resources
+                _id: otherResources
                   .map((resource) => this.getPatientIdFromResource(resource))
                   .join(','),
-                _count: resources.length
+                _count: otherResources.length
               }
             })
             .pipe(
@@ -231,11 +244,11 @@ export class CohortService {
                 if (!response?.entry?.length) {
                   return [];
                 }
-                return response.entry.map((entry) => entry.resource);
+                return patients.concat(response.entry.map((entry) => entry.resource));
               })
             );
         } else {
-          return of(resources);
+          return of(patients);
         }
       }),
       map((patients: Patient[]) => {
@@ -336,40 +349,30 @@ export class CohortService {
             ).pipe(
               mergeMap((resources: Resource[]) => {
                 // Exclude processed and duplicate resources
-                const uncheckedResources = (uniqBy(
-                  resources,
-                  this.getPatientIdFromResource
-                ) as Resource[]).filter(
-                  (resource) =>
-                    !currentState.processedPatientIds[
-                      this.getPatientIdFromResource(resource)
-                    ]
-                );
+                const uncheckedResources = (uniqBy(resources, this.getPatientIdFromResource) as Resource[])
+                  .filter((resource) => !currentState.processedPatientIds[this.getPatientIdFromResource(resource)])
+                  .map((resource) => ({
+                    resource,
+                    checkPassed: true
+                  }));
 
                 // Run a parallel check of the accumulated resources by the rest
                 // of the criteria:
                 return (uncheckedResources.length
-                  ? forkJoin(
-                      uncheckedResources.map((resource) =>
-                        this.check(resource, {
-                          ...newCriteria,
-                          rules: restRules
-                        }).pipe(
-                          startWith(null as Resource),
-                          catchError((err) => {
-                            // If the resource criteria are combined by the AND
-                            // operator and one of the queries returns nothing,
-                            // "check()" throws "null" to terminate queries
-                            if (err === null) {
-                              return of(null);
-                            }
-                            // Pass through unexpected errors
-                            throw err;
-                          })
-                        )
+                    ? this.check(uncheckedResources, {
+                      ...newCriteria,
+                      rules: restRules
+                    }).pipe(
+                      map((res) =>
+                        res.reduce((acc, {resource, checkPassed}) => {
+                          if (checkPassed) {
+                            acc.push(resource);
+                          }
+                          return acc;
+                        }, [])
                       )
                     )
-                  : of([])
+                    : of([])
                 ).pipe(
                   map((r: Resource[]) => {
                     const checkedResources = r.filter((resource) => !!resource);
@@ -397,116 +400,213 @@ export class CohortService {
   }
 
   /**
-   * Checks if the Patient related to the specified resource meets the specified
-   * criteria. Returns an Observable that emits resource that match the criteria.
-   * If among the criteria there are criteria for Patients or the input resource
-   * is the Patient, then the Observable will emit Patient resource.
+   * Checks if the patients related to the specified resources meet the specified
+   * criteria. If the criteria include criteria for patients, or the input
+   * resources are patients, then the Observable will return the patient resources.
+   * @param resourcesToCheck - array of resources with check status for each resource
+   * @param criteria - criteria to check
+   * @returns an Observable that returns a list of resources with a flag for
+   *  each resource indicating that it meets the criteria
    */
   check(
-    resource: Resource,
+    resourcesToCheck: ResourceToCheck[],
     criteria: Criteria | ResourceTypeCriteria
-  ): Observable<Resource> {
-    const patientId = this.getPatientIdFromResource(resource);
+  ): Observable<ResourceToCheck[]> {
     let observable;
+    const isORedCriteria = criteria.condition === 'or';
 
     if ('resourceType' in criteria) {
-      // If the resource criteria are combined by the OR operator, we split them
-      // into separate ones. ANDed criteria will be sent in one request.
+      // Currently, resource criteria are always ANDed, but we leave the option
+      // to OR them if needed in the future. If resource criteria are ORed, we
+      // split them into separate ones. ANDed criteria will be sent in one request.
       observable = from(
-        criteria.condition === 'or'
+        isORedCriteria
           ? criteria.rules.map((rule) => [rule])
           : [criteria.rules]
       ).pipe(
-        // Sequentially execute queries and put the result into the stream
-        concatMap((rules) => {
-          const useHas = this.canUseHas(criteria.resourceType, rules);
-          const resourceType =
-            criteria.resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
-              ? OBSERVATION_RESOURCE_TYPE
-              : useHas
-              ? PATIENT_RESOURCE_TYPE
-              : criteria.resourceType;
-          // If the resource is not a Patient, we extract only the subject
-          // element in order to further identify the Patient by it.
-          const elements =
-            (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
-              '&_elements=id') ||
-            (resourceType !== PATIENT_RESOURCE_TYPE && '&_elements=subject') ||
-            '';
+        // "mergeScan" is the RxJS version of "reduce".
+        // See https://rxjs.dev/api/operators/mergeScan.
+        // Here we go through all the criteria sets sequentially and accumulate
+        // the resulting set of resources associated with patients with a check
+        // status. This is needed only if the criteria for the resource type are
+        // ORed. When they are ANDed it is only one iteration. Currently, the UI
+        // only allows criteria with the AND operator for the resource type, but
+        // I don't want to have this limitation in the search algorithm.
+        mergeScan(
+          (acc, rules) => {
+            const {
+              toCheck,
+              alreadyChecked
+            } = this.splitListByCheckStatus(acc, isORedCriteria);
+            if (toCheck.length) {
+              const useHas = this.canUseHas(criteria.resourceType, rules);
+              const resourceType =
+                criteria.resourceType === EVIDENCE_VARIABLE_RESOURCE_TYPE
+                  ? OBSERVATION_RESOURCE_TYPE
+                  : useHas
+                    ? PATIENT_RESOURCE_TYPE
+                    : criteria.resourceType;
+              // If the resource is not a Patient, we extract only the subject
+              // element in order to further identify the Patient by it.
+              const elements =
+                (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
+                  '&_elements=id') ||
+                (resourceType !== PATIENT_RESOURCE_TYPE && '&_elements=subject') ||
+                '';
 
-          const link =
-            (resourceType === PATIENT_RESOURCE_TYPE && `_id=${patientId}`) ||
-            (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
-              `_count=1&_has:ResearchSubject:study:${this.fhirBackend.subjectParamName}=Patient/${patientId}`) ||
-            `_count=1&subject=Patient/${patientId}`;
-          const query =
-            `$fhir/${resourceType}?${link}${elements}` +
-            rules
-              .map((criterion: Criterion) => {
-                const urlParamString = this.queryParams.getQueryParam(
-                  criteria.resourceType,
-                  criterion.field
+              if (resourceType === PATIENT_RESOURCE_TYPE) {
+                const numberOfPatientsInRequest = 10;
+                return forkJoin(chunk(
+                    toCheck,
+                    numberOfPatientsInRequest
+                  ).map((curResourcesToCheck) => {
+                    const link = '_id=' + curResourcesToCheck.map(({resource}) => this.getPatientIdFromResource(resource));
+
+                    return this.requestResourcesForCheck(resourceType, link, elements, criteria.resourceType, rules, useHas).pipe(
+                      map((response) => {
+                        const responseResources = new Map(response?.entry?.map(({resource}) => [resource.id, resource]));
+                        return curResourcesToCheck.map(item => {
+                          const patientId = this.getPatientIdFromResource(item.resource);
+                          // If in the set of loaded patients that meet the criteria,
+                          // there is a patient with the same identifier as the resource
+                          // being checked, then we replace this resource with the patient
+                          // so that at the end of the search we do not have to make
+                          // an additional request for the patient by identifier.
+                          if (responseResources.has(patientId)) {
+                            item = {
+                              resource: responseResources.get(patientId),
+                              checkPassed: true
+                            };
+                          } else {
+                            item.checkPassed = false;
+                          }
+                          return item;
+                        });
+                      })
+                    );
+                  })
+                ).pipe(
+                  map((res) => alreadyChecked.concat(...res))
                 );
-                return useHas
-                  ? urlParamString.replace(
-                      /&/g,
-                      `&_has:${criteria.resourceType}:subject:`
-                    )
-                  : urlParamString;
-              })
-              .join('');
-          return this.http.get<Bundle>(query).pipe(
-            map((response) => {
-              if (!response?.entry?.length) {
-                return null;
+              } else {
+                return forkJoin(toCheck.map(resourceToCheck => {
+                  const patientId = this.getPatientIdFromResource(resourceToCheck.resource);
+                  const link =
+                    (resourceType === RESEARCH_STUDY_RESOURCE_TYPE &&
+                      `_count=1&_has:ResearchSubject:study:${this.fhirBackend.subjectParamName}=Patient/${patientId}`) ||
+                    `_count=1&subject=Patient/${patientId}`;
+                  return this.requestResourcesForCheck(resourceType, link, elements, criteria.resourceType, rules, useHas).pipe(
+                    map((response) => {
+                      resourceToCheck.checkPassed = !!response?.entry?.length;
+                      return resourceToCheck;
+                    })
+                  );
+                })).pipe(
+                  map((res) => alreadyChecked.concat(res))
+                );
               }
-              return response.entry[0].resource.resourceType ===
-                PATIENT_RESOURCE_TYPE
-                ? response.entry[0].resource
-                : resource;
-            })
-          );
-        })
+            } else {
+              return of(alreadyChecked);
+            }
+          },
+          resourcesToCheck,
+          1
+        ),
+        last()
       );
     } else {
       observable = from(criteria.rules).pipe(
-        concatMap((rule) => this.check(resource, rule).pipe(
-          catchError((err) => {
-            // If the nested resource criteria are combined by the AND operator
-            // and one of the queries returns nothing, "check()" throws "null"
-            // to terminate queries.
-            // But if the parent criteria are combined by the OR operator, we
-            // should not terminate queries.
-            if (criteria.condition === 'or' && err === null) {
-              return of(null);
-            }
-            // Pass through other values
-            throw err;
-          })
-        ))
+        mergeScan(
+          (acc, rule) => {
+            const {
+              toCheck,
+              alreadyChecked
+            } = this.splitListByCheckStatus(acc, isORedCriteria);
+            return toCheck.length
+              ? this
+                .check(toCheck.map(({resource}) => ({
+                  resource,
+                  checkPassed: rule.condition !== 'or'
+                })), rule)
+                .pipe(map((res) => alreadyChecked.concat(res)))
+              : of(alreadyChecked);
+          },
+          resourcesToCheck,
+          1
+        ),
+        last()
       );
     }
 
-    // If the resource criteria are combined by the OR operator, we will
-    // take the first matched resource. If the resource criteria are combined
-    // by the AND operator and one of the queries returns nothing, we throw
-    // "null" to terminate queries, this must be handled at the site of the
-    // "check()" call.
-    observable = observable.pipe(
-      filter((r) => {
-        if (criteria.condition === 'or') {
-          return r !== null;
-        } else if (r === null) {
-          throw null;
-        } else {
-          return true;
-        }
-      })
-    );
-    if (criteria.condition === 'or') {
-      observable = observable.pipe(take(1));
-    }
     return observable;
+  }
+
+  /**
+   * Splits list of resources to list of already checked resources and resources
+   * that need additional checks if we have other criteria.
+   * @param resourcesToCheck - list of resources with check status
+   * @param isORedCriteria - `true` when the criteria are combined using OR,
+   *  `false` when AND.
+   * @returns two new resource lists
+   */
+  splitListByCheckStatus(
+    resourcesToCheck: ResourceToCheck[],
+    isORedCriteria: boolean
+  ): { toCheck: ResourceToCheck[]; alreadyChecked: ResourceToCheck[] } {
+    const toCheck = [];
+    const alreadyChecked = [];
+
+    resourcesToCheck.forEach((r) => {
+      // If the resource criteria are combined by the OR operator, we
+      // will take the first matched resource. If the resource criteria
+      // are combined by the AND operator, and one of the queries returns
+      // nothing, we don't need to check the other criteria.
+      if (isORedCriteria ? r.checkPassed : !r.checkPassed) {
+        alreadyChecked.push(r);
+      } else {
+        toCheck.push(r);
+      }
+    });
+    return {toCheck, alreadyChecked};
+  }
+
+  /**
+   * Requests resources related with a patient based on criteria to check if
+   * they meet the criteria.
+   * @param requestResourceType - type of resource to request
+   * @param link = url parameter to link a resource with a patient
+   * @param elements - url parameter with requested resource fields
+   * @param criteriaResourceType - resource type for which the criteria are
+   *   specified may be different from requestResourceType if useHas is true
+   * @param rules - array of criteria
+   * @param useHas - true if we need a _has query
+   * @returns an Observable of result of an HTTP call
+   */
+  requestResourcesForCheck(
+    requestResourceType: string,
+    link: string,
+    elements: string,
+    criteriaResourceType: string,
+    rules: Criterion[],
+    useHas: boolean
+  ): Observable<Bundle> {
+    const query =
+      `$fhir/${requestResourceType}?${link}${elements}` +
+      rules
+        .map((criterion: Criterion) => {
+          const urlParamString = this.queryParams.getQueryParam(
+            criteriaResourceType,
+            criterion.field
+          );
+          return useHas
+            ? urlParamString.replace(
+              /&/g,
+              `&_has:${criteriaResourceType}:subject:`
+            )
+            : urlParamString;
+        })
+        .join('');
+    return this.http.get<Bundle>(query);
   }
 
   /**
