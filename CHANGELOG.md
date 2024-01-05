@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.15.6] - 2024-01-05
+### Fixed
+- Align search parameter name fields in query builder.
+
 ## [6.15.5] - 2024-01-04
 ### Changed
 - When a query fails, limit the retry count to 3 instead of retrying for 90
