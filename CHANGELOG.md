@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.15.7] - 2024-01-09
+### Changed
+- Added showing number of people in studies for R5 servers
+  (ResearchStudy.recruitment.actualNumber).
+
 ## [6.15.6] - 2024-01-08
 ### Changed
 - Added baseR5 server to the list and made it default.

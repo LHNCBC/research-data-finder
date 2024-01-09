@@ -258,6 +258,7 @@ ResearchStudy,,,,,,,
 ,protocol,"search parameter",protocol,show,reference,,"Steps followed in executing study"
 ,protocol,column,Protocol,show,Reference,,"Steps followed in executing study"
 ,recruitment,column,Recruitment,hide,BackboneElement,,"Target or actual group of participants enrolled in study"
+,recruitment-actual,column,"# of participants",show,unsignedInt,recruitment.actualNumber,"Actual total number of participants enrolled in study"
 ,recruitment-actual,"search parameter",recruitment-actual,show,number,,"Actual number of participants enrolled in study across all groups"
 ,recruitment-target,"search parameter",recruitment-target,show,number,,"Target number of participants enrolled in study across all groups"
 ,region,"search parameter",region,show,CodeableConcept,,"Geographic area for the study"
