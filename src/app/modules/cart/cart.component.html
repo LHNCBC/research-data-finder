@@ -27,18 +27,27 @@
         </div>
         <div class="h-box list-title" role="row">
           <div class="list-toolbar" *ngIf="isTree()" role="columnheader">
-            <button type="button" mat-icon-button
+            <button type="button"
+                    mat-mini-fab color="basic"
                     [attr.aria-label]="createRemoveGroupTooltip"
                     [matTooltip]="createRemoveGroupTooltip"
                     [matMenuTriggerFor]="menu"
                     [disabled]="">
-              <mat-icon svgIcon="rule"></mat-icon>
+              <mat-icon svgIcon="more_vert"></mat-icon>
             </button>
             <mat-menu #menu="matMenu">
-              <button mat-menu-item (click)="groupAllItems()">Group all records with the same data types</button>
-              <button mat-menu-item (click)="groupSelectedItems()">Group selected records</button>
-              <button mat-menu-item (click)="ungroupAllItems()">Ungroup all records</button>
-              <button mat-menu-item (click)="ungroupSelectedItems()">Ungroup selected records</button>
+              <button mat-menu-item (click)="groupAllItems()">Group all records
+                with the same data types
+              </button>
+              <button mat-menu-item (click)="groupSelectedItems()">Group
+                selected records
+              </button>
+              <button mat-menu-item (click)="ungroupAllItems()">Ungroup all
+                records
+              </button>
+              <button mat-menu-item (click)="ungroupSelectedItems()">Ungroup
+                selected records
+              </button>
             </mat-menu>
           </div>
           <div class="list-toolbar list-toolbar__icon" role="columnheader"></div>
@@ -65,7 +74,7 @@
               <div class="list-toolbar list-toolbar__icon" role="cell">
                 <button
                     type="button"
-                    mat-icon-button
+                    mat-mini-fab class="mini-fab-32" color="basic"
                     (click)="removeRecordFromCart(resourceType, listItem)"
                     [attr.aria-label]="cart.isGroup(listItem) ? removeGroupTooltip : removeRecordTooltip"
                     [matTooltip]="cart.isGroup(listItem) ? removeGroupTooltip : removeRecordTooltip">
@@ -129,7 +138,7 @@
                 <div class="list-toolbar list-toolbar__icon" role="cell">
                   <button
                       type="button"
-                      mat-icon-button
+                      mat-mini-fab class="mini-fab-32" color="basic"
                       (click)="removeRecordFromCart(resourceType, innerItem)"
                       [attr.aria-label]="removeRecordTooltip"
                       [matTooltip]="removeRecordTooltip">

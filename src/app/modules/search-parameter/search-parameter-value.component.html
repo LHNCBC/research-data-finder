@@ -77,7 +77,8 @@
   </div>
 
   <div class="test-value" *ngIf="hasSecondLine">
-    <button type="button" mat-icon-button aria-label="Remove this end of the range"
+    <button type="button" aria-label="Remove this end of the range"
+            mat-mini-fab class="mini-fab-32" color="basic"
             matTooltip="Remove this end of the range"
             (click)="resetSecondLine(); checkToShowAddButton(prefixControlValue)">
       <mat-icon svgIcon="clear"></mat-icon>
@@ -85,8 +86,9 @@
     <mat-form-field class="comparator">
       <mat-label>Comparator</mat-label>
       <mat-select formControlName="testValuePrefix2">
-        <mat-option *ngFor="let option of rangeComparatorOptions[prefixControlValue]"
-                    [value]="option[1]">{{option[0]}}</mat-option>
+        <mat-option
+            *ngFor="let option of rangeComparatorOptions[prefixControlValue]"
+            [value]="option[1]">{{option[0]}}</mat-option>
       </mat-select>
     </mat-form-field>
     <mat-form-field class="value">

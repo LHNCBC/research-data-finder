@@ -1,5 +1,5 @@
 :host {
-  padding: 0 24px 10px;
+  padding: 0 16px 10px;
 }
 
 .cart-header {
@@ -13,12 +13,15 @@
 }
 
 .list {
-  max-height: 400px;
+  max-height: 410px;
   overflow: auto;
-  padding-bottom: 1px;
+
+  padding-bottom: 8px;
+  padding-left: 8px;
 
   .h-box.switch-group {
     align-items: center;
+
     label {
       margin-top: 0;
     }
@@ -43,7 +46,7 @@
     :after {
       content: "";
       left: 18px;
-      border-color: #619ed7;
+      border-color: #000;
       border-style: solid;
       width: 22px;
       height: calc(50% - 15px);
@@ -64,9 +67,8 @@
       box-sizing: border-box;
       border-width: 1px 0;
       border-style: solid;
-      border-color: rgb(97, 158, 215);
       background: white;
-      color: rgb(49, 118, 179);
+      color: #3f51b5;
       padding: 0 8px;
     }
 
@@ -109,12 +111,11 @@
   }
   mat-checkbox {
     margin-left: 12px;
-    margin-top: 17px;
+    margin-top: 18px;
     line-height: 1;
   }
   button {
-    margin-top: 6px;
-    line-height: 1;
+    margin-top: 9px;
   }
 }
 
@@ -131,6 +132,8 @@
   z-index: 1;
   min-width: 100%;
   width: fit-content;
+  margin-left: -8px;
+  padding-left: 8px;
 }
 
 .list-title {
@@ -148,7 +151,6 @@
     &:before {
       content: "";
       left: -9px;
-      border-color: #619ed7;
       border-style: solid;
       width: 22px;
       height: calc(100% + 10px);
@@ -168,9 +170,8 @@
   &:before {
     content: "";
     left: -9px;
-    border-color: #619ed7;
     border-style: solid;
-    width: 22px;
+    width: 33px;
     height: 26px;
     position: absolute;
     border-width: 0 0 1px 1px;
@@ -190,7 +191,6 @@
   &:not(:last-child):after {
     content: "";
     left: -9px;
-    border-color: #619ed7;
     border-style: solid;
     width: 22px;
     height: calc(100% - 34px);
@@ -205,7 +205,8 @@
     top: 19px;
     width: 26px;
     font-size: 0.6em;
-    border: 1px solid rgb(97, 158, 215);
+    border-width: 1px;
+    border-style: solid;
     border-radius: 5px;
     background-color: rgba(255, 255, 255, 1);
     text-align: center;
@@ -229,27 +230,26 @@
   position: relative;
   & > .list-toolbar:first-child:after {
     content: "";
-    left: 54px;
-    border-color: #619ed7;
+    left: 50px;
     border-style: solid;
     width: 22px;
-    height: calc(100% - 46px);
+    height: calc(100% - 43px);
     position: absolute;
     border-width: 0 0 0 1px;
-    top: 46px;
+    top: 43px;
   }
 }
 .list--tree-view .list-item .list-item {
   margin-left: 0;
   padding-left: 0;
   &:before {
-    left: 54px;
+    left: 50px;
   }
   &:not(:last-child):after {
-    left: 54px;
+    left: 50px;
   }
   .condition-label {
-    left: 41px;
+    left: 37px;
   }
 }
 

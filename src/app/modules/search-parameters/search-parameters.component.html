@@ -10,20 +10,22 @@
     <div class="condition-label" *ngIf="parentRuleSet?.rules?.length > 1">{{parentRuleSet.condition}}</div>
     <!-- Prefix for the resource criteria -->
     <div class="v-box" *ngIf="ruleset.hasOwnProperty('resourceType')">
-      <div class="h-box" >
-        <button type="button" mat-icon-button [attr.aria-label]="'Remove criteria for the ' + (ruleset.resourceType || 'undefined') + ' resource'"
-                class="remove-btn"
+      <div class="h-box">
+        <button type="button"
+                [attr.aria-label]="'Remove criteria for the ' + (ruleset.resourceType || 'undefined') + ' resource'"
+                mat-mini-fab color="basic"
+                class="remove-btn mini-fab-32"
                 #removeResTypeBtn
                 (click)="focusOnPreviousElement(removeResTypeBtn._elementRef.nativeElement);removeRuleSet()">
           <mat-icon svgIcon="clear"></mat-icon>
         </button>
-        <mat-form-field class="resource-type"*ngIf="!ruleset.resourceType">
+        <mat-form-field class="resource-type" *ngIf="!ruleset.resourceType">
           <mat-label>Record type</mat-label>
           <app-autocomplete
-            required
-            [options]="resourceTypes$ | async"
-            [(ngModel)]="ruleset.resourceType"
-            (ngModelChange)="focusOnAddCriterionBtn()"></app-autocomplete>
+              required
+              [options]="resourceTypes$ | async"
+              [(ngModel)]="ruleset.resourceType"
+              (ngModelChange)="focusOnAddCriterionBtn()"></app-autocomplete>
         </mat-form-field>
         <p *ngIf="ruleset.resourceType && ruleset.resourceType !== 'Patient'">Select Patients which have
           {{getIndefiniteArticle(ruleset.resourceType)}}
@@ -34,9 +36,11 @@
     <!-- Prefix for the subgroup -->
     <div class="v-box" *ngIf="removeRuleSet && !ruleset.hasOwnProperty('resourceType')">
       <div class="h-box">
-        <button type="button" mat-icon-button aria-label="Remove subgroup of criteria for resource types"
+        <button type="button"
+                aria-label="Remove subgroup of criteria for resource types"
                 #removeSubgroupBtn
-                class="remove-btn"
+                mat-mini-fab color="basic"
+                class="remove-btn mini-fab-32"
                 (click)="focusOnPreviousElement(removeSubgroupBtn._elementRef.nativeElement);removeRuleSet()">
           <mat-icon svgIcon="clear"></mat-icon>
         </button>
@@ -108,8 +112,9 @@
   </ng-container>
 
   <ng-container *queryRemoveButton="let rule; let removeRule=removeRule">
-    <button type="button" mat-icon-button aria-label="Remove search parameter"
-            class="remove-btn"
+    <button type="button" aria-label="Remove search parameter"
+            class="remove-btn mini-fab-32"
+            mat-mini-fab color="basic"
             #removeParamBtn
             (click)="focusOnPreviousElement(removeParamBtn._elementRef.nativeElement);removeRule(rule)">
       <mat-icon svgIcon="clear"></mat-icon>
