@@ -98,7 +98,7 @@ describe('FhirBackendService', () => {
 
     it('should initialize FhirBatchQuery', () => {
       expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith(
-        'https://lforms-fhir.nlm.nih.gov/baseR4',
+        'https://lforms-fhir.nlm.nih.gov/baseR5',
         '',
         null
       );
@@ -195,7 +195,7 @@ describe('FhirBackendService', () => {
               combine: true,
               signal: jasmine.any(AbortSignal),
               cacheName:
-                'some-cache-name-https://lforms-fhir.nlm.nih.gov/baseR4',
+                'some-cache-name-https://lforms-fhir.nlm.nih.gov/baseR5',
               priority: PRIORITIES.NORMAL
             }
           );
