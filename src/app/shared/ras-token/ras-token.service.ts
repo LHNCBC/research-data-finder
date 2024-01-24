@@ -55,14 +55,11 @@ export class RasTokenService {
 
   /**
    * Logs out of RAS.
-   * @return a promise that resolves when the logout request has completed.
    */
-  logout(): Promise<void> {
+  logout(): void {
     // Remove the session variable to avoid duplicate logout requests
     sessionStorage.removeItem('dbgapRasLoginServer');
     this.rasTokenValidated = false;
     sessionStorage.clear();
-
-    return Promise.resolve();
   }
 }
