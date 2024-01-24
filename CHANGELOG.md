@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.15.8] - 2024-01-24
+### Fixed
+- Observation.interpretation should be searchable if available on server.
+
 ## [6.15.7] - 2024-01-24
 ### Fixed
 - Align search parameter name fields in query builder.
