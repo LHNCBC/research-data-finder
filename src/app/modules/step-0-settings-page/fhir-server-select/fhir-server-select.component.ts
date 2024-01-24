@@ -40,7 +40,11 @@ export class FhirServerSelectComponent
 
   options = [
     {
-      description: 'FHIR Tools project FHIR server (fake data)',
+      description: 'FHIR Tools project FHIR R5 server (fake data)',
+      url: 'https://lforms-fhir.nlm.nih.gov/baseR5'
+    },
+    {
+      description: 'FHIR Tools project FHIR R4 server (fake data)',
       url: 'https://lforms-fhir.nlm.nih.gov/baseR4'
     },
     {
