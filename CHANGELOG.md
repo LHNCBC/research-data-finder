@@ -3,9 +3,34 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.15.4] - 2023-12-19
+## [6.15.9] - 2024-01-25
 ### Fixed
 - Issue of missing logout button and checkbox after SMART on FHIR login.
+
+## [6.15.8] - 2024-01-24
+### Fixed
+- Observation.interpretation should be searchable if available on server.
+
+## [6.15.7] - 2024-01-24
+### Fixed
+- Align search parameter name fields in query builder.
+
+## [6.15.6] - 2024-01-08
+### Changed
+- Added baseR5 server to the list and made it default.
+
+## [6.15.5] - 2024-01-04
+### Changed
+- When a query fails, limit the retry count to 3 instead of retrying for 90
+  seconds.
+
+## [6.15.4] - 2024-01-04
+### Fixed
+- Combined requests for patients with the "_id" parameter to reduce the number
+  of requests.
+- Bug in the search for patients when nested ORed criteria produce requests for
+  different resource types therefore in the output stream, we may have different
+  resource types.
 
 ## [6.15.3] - 2023-12-19
 ### Fixed

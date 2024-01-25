@@ -261,7 +261,7 @@ export class FhirBackendService implements HttpBackend {
   init(): Promise<void> {
     this.isCacheEnabled = sessionStorage.getItem('isCacheEnabled') !== 'false';
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
-    const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR4';
+    const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR5';
     const serviceBaseUrl = getUrlParam('server') || defaultServer;
     this.fhirClient = new FhirBatchQuery({
       serviceBaseUrl

@@ -401,7 +401,7 @@ export class PullDataService {
           entry: differenceBy(
             bundle?.entry,
             currentState.resources,
-            (i) => i.resource?.id || i.id
+            (i) => (i as BundleEntry).resource?.id || i.id
           )
         } as Bundle);
   }

@@ -188,7 +188,7 @@ export class AutocompleteComponent
   updateInputFieldText(): void {
     const option = find(this.options, { value: this.currentData });
     this.acInstance.setFieldToListValue(
-      option ? option.name : this.currentData
+      option instanceof Object ? option.name : this.currentData
     );
   }
 

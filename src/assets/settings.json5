@@ -296,7 +296,7 @@
           sortObservationsByDate: true,
           sortObservationsByAgeAtEvent: true,
           lastnLookup: false,
-          interpretation: false,
+          interpretation: true,
           hasNotModifierIssue: false,
           maxHasAllowed: 1
         }

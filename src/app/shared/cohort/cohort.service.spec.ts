@@ -14,7 +14,10 @@ import {
   HttpClientTestingModule
 } from '@angular/common/http/testing';
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
-import { configureTestingModule } from 'src/test/helpers';
+import {
+  configureTestingModule,
+  verifyOutstandingRequests
+} from 'src/test/helpers';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
@@ -25,9 +28,18 @@ describe('CohortService', () => {
   beforeEach(async () => {
     await configureTestingModule({
       imports: [SharedModule, HttpClientTestingModule, RouterTestingModule]
+    }, {
+      features: {
+        maxHasAllowed: 1
+      }
     });
     mockHttp = TestBed.inject(HttpTestingController);
     cohort = TestBed.inject(CohortService);
+  });
+
+  afterEach(() => {
+    // Verify that no unmatched requests are outstanding
+    verifyOutstandingRequests(mockHttp);
   });
 
   it('should be created', () => {
@@ -169,6 +181,25 @@ describe('CohortService', () => {
                 }
               ],
               'resourceType': 'Patient'
+            },
+            {
+              'condition': 'and',
+              'rules': [
+                {
+                  'field': {
+                    'element': 'gender',
+                    'value': {
+                      'codes': [
+                        'unknown'
+                      ],
+                      'items': [
+                        'Unknown'
+                      ]
+                    }
+                  }
+                }
+              ],
+              'resourceType': 'Patient'
             }
           ]
         }
@@ -196,23 +227,298 @@ describe('CohortService', () => {
       .flush({total: 30});
 
     mockHttp
+      .expectOne('$fhir/Patient?_total=accurate&_summary=count&gender=unknown')
+      .flush({total: 40});
+
+    mockHttp
       .expectOne(
         '$fhir/Patient?_count=20&_has:Observation:subject:combo-code=http%3A%2F%2Floinc.org%7C72166-2'
       )
       .flush(tenPatientBundle);
 
-    tenPatientBundle.entry.forEach(({resource}) => {
-      mockHttp
-        .expectOne(`$fhir/Patient?_id=${resource.id}&active=false`)
-        .flush({total: 0});
+    const patientIds = tenPatientBundle.entry.map(({resource}) => resource.id).join(',');
+    mockHttp
+      .expectOne(`$fhir/Patient?_id=${patientIds}&active=false`)
+      .flush({total: 0});
+
+    mockHttp
+      .expectOne(`$fhir/Patient?_id=${patientIds}&gender=male`)
+      .flush(tenPatientBundle);
+  });
+
+
+  it('should skip unnecessary requests when criteria are ANDed', (done) => {
+    const criteria: Criteria = {
+      'condition': 'and',
+      'rules': [
+        {
+          'condition': 'and',
+          'rules': [
+            {
+              'field': {
+                'element': 'onset-date',
+                'value': {
+                  'from': '1980-01-01'
+                }
+              }
+            }
+          ],
+          'resourceType': 'Condition'
+        },
+        {
+          'condition': 'and',
+          'rules': [
+            {
+              'condition': 'and',
+              'rules': [
+                {
+                  'field': {
+                    'element': 'status',
+                    'value': {
+                      'codes': [
+                        'active'
+                      ],
+                      'items': [
+                        'Active'
+                      ]
+                    }
+                  }
+                }
+              ],
+              'resourceType': 'MedicationRequest'
+            },
+            {
+              'condition': 'and',
+              'rules': [
+                {
+                  'field': {
+                    'element': 'status',
+                    'value': {
+                      'codes': [
+                        'declined'
+                      ],
+                      'items': [
+                        'Declined'
+                      ]
+                    }
+                  }
+                }
+              ],
+              'resourceType': 'MedicationDispense'
+            }
+          ]
+        }
+      ]
+    };
+
+    cohort.searchForPatients(criteria, 20);
+    cohort.patientStream.pipe(last()).subscribe((patients) => {
+      expect(patients.length).toEqual(1);
+      done();
     });
 
-    tenPatientBundle.entry.forEach(({resource}) => {
-      mockHttp
-        .expectOne(`$fhir/Patient?_id=${resource.id}&gender=male`)
-        .flush({total: 1, entry: [{resource}]});
-    });
+    mockHttp
+      .expectOne('$fhir/Patient?_total=accurate&_summary=count&_has:Condition:subject:onset-date=ge1980-01-01')
+      .flush({total: 10});
+
+    mockHttp
+      .expectOne('$fhir/Patient?_total=accurate&_summary=count&_has:MedicationRequest:subject:status=active')
+      .flush({total: 20});
+
+    mockHttp
+      .expectOne('$fhir/Patient?_total=accurate&_summary=count&_has:MedicationDispense:subject:status=declined')
+      .flush({total: 30});
+
+    mockHttp
+      .expectOne(
+        '$fhir/Patient?_count=20&_has:Condition:subject:onset-date=ge1980-01-01'
+      )
+      .flush(tenPatientBundle);
+
+    // Index of a resource that meets the criteria
+    const indexOfMatchingResource = 3;
+
+    mockHttp
+      .expectOne(`$fhir/Patient?_id=${tenPatientBundle.entry.map(({resource}) => resource.id).join(',')}&_has:MedicationRequest:subject:status=active`)
+      .flush({
+        ...tenPatientBundle,
+        entry: tenPatientBundle.entry.filter((item, index) => index === indexOfMatchingResource)
+      });
+
+
+    const matchingPatient = tenPatientBundle.entry[indexOfMatchingResource].resource;
+
+    mockHttp
+      .expectOne(`$fhir/Patient?_id=${matchingPatient.id}&_has:MedicationDispense:subject:status=declined`)
+      .flush({total: 1, entry: [{resource: matchingPatient}]});
+
   });
+
+
+  it('should correctly process nested ORed criteria if they return different resource types', (done) => {
+    const criteria: Criteria = {
+      condition: 'and',
+      rules: [
+        {
+          condition: 'and',
+          rules: [
+            {
+              field: {
+                element: 'code text',
+                value: '',
+                selectedObservationCodes: {
+                  coding: [
+                    {
+                      code: '9317-9',
+                      system: 'http://loinc.org'
+                    }
+                  ],
+                  datatype: 'String',
+                  items: ['Platelet Bld Ql Smear']
+                }
+              }
+            },
+            {
+              field: {
+                element: 'observation value',
+                value: {
+                  testValuePrefix: '',
+                  testValueModifier: ':contains',
+                  testValue: 'a',
+                  testValueUnit: '',
+                  observationDataType: 'String'
+                }
+              }
+            }
+          ],
+          resourceType: 'Observation'
+        },
+        {
+          condition: 'or',
+          rules: [
+            {
+              condition: 'and',
+              rules: [
+                {
+                  field: {
+                    element: 'active',
+                    value: 'false'
+                  }
+                }
+              ],
+              resourceType: 'Patient'
+            },
+            {
+              condition: 'and',
+              rules: [
+                {
+                  field: {
+                    element: 'code text',
+                    value: '',
+                    selectedObservationCodes: {
+                      coding: [
+                        {
+                          code: '9317-9',
+                          system: 'http://loinc.org'
+                        }
+                      ],
+                      datatype: 'String',
+                      items: ['Platelet Bld Ql Smear']
+                    }
+                  }
+                },
+                {
+                  field: {
+                    element: 'observation value',
+                    value: {
+                      testValuePrefix: '',
+                      testValueModifier: ':contains',
+                      testValue: 'b',
+                      testValueUnit: '',
+                      observationDataType: 'String'
+                    }
+                  }
+                }
+              ],
+              resourceType: 'Observation'
+            }
+          ]
+        }
+      ]
+    };
+    cohort.searchForPatients(criteria, 20);
+
+
+    cohort.patientStream.pipe(last()).subscribe((patients) => {
+      expect(patients.length).toEqual(9);
+      done();
+    });
+
+    mockHttp
+      .expectOne(
+        '$fhir/Observation?_total=accurate&_summary=count&code-value-string:contains=http%3A%2F%2Floinc.org%7C9317-9%24a'
+      )
+      .flush({total: 10});
+
+    mockHttp
+      .expectOne('$fhir/Patient?_total=accurate&_summary=count&active=false')
+      .flush({total: 20});
+
+    mockHttp
+      .expectOne('$fhir/Observation?_total=accurate&_summary=count&code-value-string:contains=http%3A%2F%2Floinc.org%7C9317-9%24b')
+      .flush({total: 30});
+
+    mockHttp
+      .expectOne(
+        '$fhir/Observation?_count=20&_elements=subject&code-value-string:contains=http%3A%2F%2Floinc.org%7C9317-9%24a'
+      )
+      .flush(tenObservationBundle);
+
+    const patientIds = [
+      // Search ignores duplicate Patients
+      ...new Set(
+        tenObservationBundle.entry.map(({resource}) =>
+          resource.subject.reference.replace(/^Patient\//, '')
+        )
+      )
+    ];
+
+    // Index of a patient that meets the second ORed criteria
+    const patientIndex = 3;
+    // ID of patient that meets the second ORed criteria
+    const patientIdForSecondCriterion = patientIds[patientIndex];
+
+    mockHttp
+      .expectOne(`$fhir/Patient?_id=${patientIds.join(',')}&active=false`)
+      .flush(
+        {
+          total: 9,
+          entry: patientIds
+            .filter(patientId => patientId !== patientIdForSecondCriterion)
+            .map(patientId => ({resource: {...examplePatient, id: patientId}}))
+        }
+      );
+
+    const exampleObservation = tenObservationBundle.entry[patientIndex];
+    mockHttp
+      .expectOne(
+        `$fhir/Observation?_count=1&subject=Patient/${patientIdForSecondCriterion}&_elements=subject&code-value-string:contains=http%3A%2F%2Floinc.org%7C9317-9%24b`
+      )
+      .flush({entry: [{resource: exampleObservation}]});
+
+
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_id=${patientIdForSecondCriterion}&_count=1`
+      )
+      .flush({
+        entry: [{
+          resource: {...examplePatient, id: patientIdForSecondCriterion}
+        }]
+      });
+
+  });
+
 
   it('should update old format criteria for observationDataType', () => {
     const criteria = {
