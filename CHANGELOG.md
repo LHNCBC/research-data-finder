@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.15.9] - 2024-01-25
+### Fixed
+- Issue of missing logout button and checkbox after SMART on FHIR login.
+
 ## [6.15.8] - 2024-01-24
 ### Fixed
 - Observation.interpretation should be searchable if available on server.
