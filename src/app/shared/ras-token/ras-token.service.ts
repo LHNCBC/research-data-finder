@@ -57,7 +57,6 @@ export class RasTokenService {
    * Logs out of RAS.
    */
   logout(): void {
-    // Remove the session variable to avoid duplicate logout requests
     sessionStorage.removeItem('dbgapRasLoginServer');
     this.rasTokenValidated = false;
     sessionStorage.clear();
