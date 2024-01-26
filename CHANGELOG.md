@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.16.0] - 2024-01-26
+### Changed
+- Support for rdf-server 1.0.0, which is ready for application-based stickiness
+  for AWS load balancer.
+
 ## [6.15.9] - 2024-01-25
 ### Fixed
 - Issue of missing logout button and checkbox after SMART on FHIR login.
