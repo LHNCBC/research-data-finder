@@ -5,7 +5,7 @@
 import {
   AfterViewInit,
   Component,
-  ElementRef,
+  ElementRef, HostBinding,
   HostListener,
   Input,
   OnDestroy,
@@ -18,9 +18,10 @@ import { BaseControlValueAccessor } from '../../base-control-value-accessor';
 import { AbstractControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import Def from 'autocomplete-lhc';
-import { FhirBackendService } from '../../../shared/fhir-backend/fhir-backend.service';
+import {ConnectionStatus, FhirBackendService} from '../../../shared/fhir-backend/fhir-backend.service';
 import { setUrlParam } from '../../../shared/utils';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import {map} from "rxjs/operators";
 
 @Component({
   selector: 'app-fhir-server-select',
@@ -136,6 +137,11 @@ export class FhirServerSelectComponent
   setDescribedByIds(): void {}
 
   /**
+   * Whether the control is in a loading state.
+   */
+  @HostBinding('class.loading') loading = false;
+
+  /**
    * Handles focusin event to maintain the focused state.
    */
   @HostListener('focusin')
@@ -200,6 +206,19 @@ export class FhirServerSelectComponent
       // the providers) to avoid running into a circular import.
       ngControl.valueAccessor = this;
     }
+    // Show initialization spinner when connection to server is in pending state
+    this.fhirBackend.initialized
+      .pipe(map((status) => status === ConnectionStatus.Pending))
+      .subscribe((show) => {
+        if (show) {
+          this.loading = true;
+          this.liveAnnouncer.announce(
+            'Please wait. Initializing data for the selected server.'
+          );
+        } else {
+          this.loading = false;
+        }
+      });
   }
 
   /**

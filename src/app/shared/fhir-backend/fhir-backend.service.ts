@@ -39,7 +39,6 @@ import fhirpath from 'fhirpath';
 import Resource = fhir.Resource;
 import Bundle = fhir.Bundle;
 import {Oauth2TokenService} from "../oauth2-token/oauth2-token.service";
-import {InitializeSpinnerService} from "../initialize-spinner/initialize-spinner.service";
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -465,7 +464,6 @@ export class FhirBackendService implements HttpBackend {
             }
           } else if (err.status === OAUTH2_REQUIRED) {
             this.injector.get(Oauth2TokenService).isOauth2Required = true;
-            this.injector.get(InitializeSpinnerService).hideInitSpinner();
             const dialogRef = this.dialog.open(AlertDialogComponent, {
               data: {
                 header: 'OAuth2 Authorization Required',

@@ -10,14 +10,12 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FhirServerSelectComponent } from './fhir-server-select/fhir-server-select.component';
 import { MatButtonModule } from '@angular/material/button';
 import { AppRoutingModule } from '../../app-routing.module';
-import {InitializeSpinnerComponent} from "./initialize-spinner/initialize-spinner.component";
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
 
 @NgModule({
   declarations: [
     SettingsPageComponent,
-    FhirServerSelectComponent,
-    InitializeSpinnerComponent
+    FhirServerSelectComponent
   ],
   exports: [SettingsPageComponent],
   imports: [
