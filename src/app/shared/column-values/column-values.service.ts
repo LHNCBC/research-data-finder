@@ -164,6 +164,7 @@ export class ColumnValuesService {
       Count: this.getQuantityAsText,
       Quantity: this.getQuantityAsText,
       decimal: this.identity,
+      unsignedInt: this.identity,
       Money: this.getMoneyAsText,
       boolean: this.identity,
       instant: this.identity,

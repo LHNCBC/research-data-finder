@@ -41,12 +41,9 @@ export class HomeComponent implements AfterViewInit {
    */
   switchVersion(): void {
     if (this.rasToken.rasTokenValidated) {
-      this.rasToken.logout().then(() => {
-        this.switchVersionUrlParam();
-      });
-    } else {
-      this.switchVersionUrlParam();
+      this.rasToken.logout();
     }
+    this.switchVersionUrlParam();
   }
 
   /**
@@ -90,9 +87,8 @@ export class HomeComponent implements AfterViewInit {
   }
 
   onRasLogout(): void {
-    this.rasToken.logout().then(() => {
-      this.returnToSettingsPage();
-    });
+    this.rasToken.logout();
+    this.returnToSettingsPage();
   }
 
   onSmartLogout(): void {

@@ -106,26 +106,20 @@ export class FhirBackendService implements HttpBackend {
       this._isSmartOnFhir = false;
       this.fhirClient.withCredentials = false;
       // Logging out of OAuth2 when changing server
-      const oauth2Token = this.injector.get(Oauth2TokenService)
+      const oauth2Token = this.injector.get(Oauth2TokenService);
       oauth2Token.oauth2TokenValidated && oauth2Token.logout();
       oauth2Token.isOauth2Required = false;
       // Logging out of RAS when changing server
-      (isRasLogoutNeeded
-        ? // Access to RasTokenService via injector to avoid circular dependency
-          this.injector.get(RasTokenService).logout()
-        : Promise.resolve()
-      ).then(() => {
-        this.initializeFhirBatchQuery(url);
-      });
+      if (isRasLogoutNeeded) {
+        // Access to RasTokenService via injector to avoid circular dependency
+        this.injector.get(RasTokenService).logout();
+      }
+      this.initializeFhirBatchQuery(url);
     } else if (isRasLogoutNeeded) {
       // Logging out of RAS when changing the "server" URL parameter
-      this.injector
-        // Access to RasTokenService via injector to avoid circular dependency
-        .get(RasTokenService)
-        .logout()
-        .then(() => {
-          this.initializeFhirBatchQuery(url);
-        });
+      // Access to RasTokenService via injector to avoid circular dependency
+      this.injector.get(RasTokenService).logout();
+      this.initializeFhirBatchQuery(url);
     }
   }
   get serviceBaseUrl(): string {
@@ -350,12 +344,14 @@ export class FhirBackendService implements HttpBackend {
 
   /**
    * Initialize/reinitialize FhirBatchQuery instance
-   * @param [serviceBaseUrl] - new FHIR REST API Service Base URL
+   * @param serviceBaseUrl - new FHIR REST API Service Base URL
    */
   initializeFhirBatchQuery(serviceBaseUrl: string = ''): Promise<void> {
+    // If serviceBaseUrl param is omitted, use this.serviceBaseUrl.
+    serviceBaseUrl ||= this.serviceBaseUrl;
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
-    return this.checkSmartOnFhirEnabled(this.serviceBaseUrl)
+    return this.checkSmartOnFhirEnabled(serviceBaseUrl)
       .then(() => {
         // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
         return this.isSmartOnFhirEnabled && this.isSmartOnFhir
@@ -363,7 +359,7 @@ export class FhirBackendService implements HttpBackend {
           : Promise.resolve();
       })
       .then(() => {
-        const isDbgap = this.isDbgap(serviceBaseUrl || this.serviceBaseUrl);
+        const isDbgap = this.isDbgap(serviceBaseUrl);
         const isRasLoggedIn = this.injector.get(RasTokenService).rasTokenValidated;
         const isOauth2LoggedIn = this.injector.get(Oauth2TokenService).oauth2TokenValidated;
         // Set authorization header.
