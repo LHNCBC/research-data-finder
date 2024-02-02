@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.16.1] - 2024-02-02
+### Changed
+- Added showing number of people in studies for R5 servers
+  (ResearchStudy.recruitment.actualNumber).
+
 ## [6.16.0] - 2024-01-26
 ### Changed
 - Support for rdf-server 1.0.0, which is ready for application-based stickiness
