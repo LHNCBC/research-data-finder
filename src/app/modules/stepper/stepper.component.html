@@ -1,11 +1,12 @@
-<p class="info">
+<p class="info" *ngIf="stepper.selectedIndex === 0">
   <span class="info-icon" aria-hidden="true"></span>
-  This is a query tool that allows you search a FHIR server to select a cohort of patients,
+  This is a query tool that allows you search a FHIR server to select a cohort
+  of patients,
   and then pull data for those patients.
 </p>
 <mat-horizontal-stepper linear="true" #stepper>
-<!-- If you are going to change [completed] condition, do the same in the component code which is duplicate
-     initialization for this parameter after resetting the stepper state.  -->
+  <!-- If you are going to change [completed] condition, do the same in the component code which is duplicate
+       initialization for this parameter after resetting the stepper state.  -->
   <mat-step [label]="getLabel(Step.SETTINGS)"
             #settingsStep
             [completed]="settings.settingsFormGroup.valid">

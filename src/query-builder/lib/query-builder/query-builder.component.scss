@@ -49,7 +49,7 @@
 
   .q-switch-group, .q-button-group {
     font-family: "Lucida Grande", Tahoma, Verdana, sans-serif;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .q-right-align {
@@ -157,7 +157,6 @@
 
   .q-rule {
     border: 1px solid #CCC;
-    background: white;
   }
 
   .q-transition {
@@ -172,6 +171,8 @@
     width: 100%;
     overflow: hidden;
     transition: ease-in 0.25s max-height;
+    padding-bottom: 13px;
+    margin-bottom: -13px;
 
     &.q-collapsed {
       max-height: 0 !important;
