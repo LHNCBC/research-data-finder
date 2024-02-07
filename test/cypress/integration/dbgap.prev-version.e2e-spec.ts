@@ -22,11 +22,11 @@ describe('Research Data Finder (dbGap)', () => {
       '/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&prev-version=enable'
     )
       // Waiting for application initialization
-      .get('app-initialize-spinner')
+      .get('app-fhir-server-select.loading')
       .should('exist')
       // When we get the initialization parameters from settings,
       // the initialization should be much faster.
-      .get('app-initialize-spinner', {timeout: 5000})
+      .get('app-fhir-server-select.loading', {timeout: 5000})
       .should('not.exist')
       // Initialize common page objects (harnesses)
       .then(() => getHarness(MatStepperHarness))
@@ -132,9 +132,9 @@ describe('Research Data Finder (dbGap)', () => {
         .type('https://dbgap-api.ncbi.nlm.nih.gov/fhir/something')
         .blur();
 
-      cy.get('app-initialize-spinner')
+      cy.get('app-fhir-server-select.loading')
         .should('exist')
-        .get('app-initialize-spinner', {timeout: 20000})
+        .get('app-fhir-server-select.loading', {timeout: 20000})
         .should('not.exist')
         .then(() => nextPageBtn.click())
         .then(() => settingsStep.isSelected())
