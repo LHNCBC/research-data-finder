@@ -843,9 +843,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   getFilterType(column: ColumnDescription): FilterType {
     return this.listFilterColumns.includes(column.element)
       ? FilterType.Autocomplete
-      : column.types.length === 1 && column.types[0] === 'Count'
-      ? FilterType.Number
-      : FilterType.Text;
+      : column.types.length === 1 && (column.types[0] === 'Count' || column.types[0] === 'unsignedInt')
+        ? FilterType.Number
+        : FilterType.Text;
   }
 
   /**

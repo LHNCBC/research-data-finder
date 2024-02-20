@@ -131,6 +131,7 @@
               {{column.displayName}}
             </span>
             <button *ngIf='column.description'
+                    type="button" mat-mini-fab class="mini-fab-16" color="basic"
                     title=""
                     aria-label="column info"
                     #tooltip="matTooltip"
@@ -139,15 +140,19 @@
                     (click)="onInfoIconClick($event, tooltip)"
                     (keydown.enter)="onInfoIconClick($event, tooltip)"
                     (keydown.space)="onInfoIconClick($event, tooltip)"
-                    [matTooltip]='column.description' matTooltipPosition='above'>
+                    [matTooltip]='column.description'
+                    matTooltipPosition='above'>
               <mat-icon svgIcon='info'></mat-icon>
             </button>
-            <button *ngIf='enableFiltering && column.filterable !== false' aria-label='open filter criteria for this column'
+            <button *ngIf='enableFiltering && column.filterable !== false'
+                    aria-label='open filter criteria for this column'
+                    type="button" mat-mini-fab class="mini-fab-16" color="basic"
                     title='open filter criteria for this column'
                     (click)='openFilterDialog($event, column)'
                     (keydown.enter)='openFilterDialog($event, column)'
                     (keydown.space)='openFilterDialog($event, column)'>
-              <mat-icon [svgIcon]="hasFilter(column.element) ? 'filter_filled' : 'filter_outlined'"></mat-icon>
+              <mat-icon
+                  [svgIcon]="hasFilter(column.element) ? 'filter_filled' : 'filter_outlined'"></mat-icon>
             </button>
           </th>
         </ng-container>

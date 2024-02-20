@@ -23,7 +23,7 @@ query-builder {
 }
 
 .remove-btn {
-  margin-top: 0.4em;
+  margin: 9px 6px 9px 6px;
 }
 
 .group-header {
@@ -33,7 +33,7 @@ query-builder {
 :host query-builder ::ng-deep {
   .q-connector {
     &::before, &::after {
-      border-color: rgb(97, 158, 215);
+      border-color: #000;
     }
     &::before {
       border-width: 0 0 1px 1px;
@@ -44,12 +44,21 @@ query-builder {
   }
 
   .q-tree-container query-builder.q-one-rule > .q-tree-container {
-    margin-top: -9px;
+    margin-top: -13px;
+    padding-top: 4px;
+
     & > .q-tree {
       padding-left: 30px;
-      & >  .q-connector::before {
-        left: -12px;
-        width: 10px;
+
+      & > .q-connector::before {
+        top: -11px;
+        left: -9px;
+        width: 14px;
+        height: 37px;
+      }
+
+      & > .q-connector.q-ruleset::before {
+        width: 8px;
       }
     }
   }
@@ -97,7 +106,14 @@ query-builder {
       top: -7px;
       left: -24px;
       height: 39px;
-      width: 22px;
+    }
+
+    .q-connector.q-ruleset::before {
+      width: 23px;
+    }
+
+    .q-connector.q-rule::before {
+      width: 29px;
     }
 
     .q-connector::after {
@@ -122,14 +138,14 @@ mat-radio-group.q-switch-group {
       line-height: 28px;
       font-weight: normal;
     }
+
     text-align: center;
     text-shadow: none;
     box-sizing: border-box;
     border-width: 1px 0;
     border-style: solid;
-    border-color: rgb(97, 158, 215);
     background: white;
-    color: rgb(49, 118, 179);
+    color: #3f51b5;
     padding: 0 8px;
   }
 
@@ -170,9 +186,8 @@ mat-radio-group.q-switch-group {
 
   .q-switch-radio:checked + &,
   &:first-child {
-    border: 1px solid rgb(97, 158, 215);
+    border: 1px solid;
     background: white;
-    color: rgb(49, 118, 179);
   }
 
   background-color: #e4e4e4;
@@ -205,9 +220,9 @@ mat-radio-group.q-switch-group {
   top: 25px;
   width: 26px;
   font-size: 0.6em;
-  border: 1px solid rgb(97, 158, 215);
+  border: 1px solid;
   border-radius: 5px;
-  background-color: rgba(255,255,255,1);
+  background-color: rgba(255, 255, 255, 1);
   text-align: center;
   text-transform: uppercase;
 }

@@ -577,7 +577,7 @@ class FhirBatchQuery extends EventTarget {
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  get(url, { combine = true, retryCount = false, signal = null, priority = PRIORITIES.NORMAL } = {}) {
+  get(url, { combine = true, retryCount = 3, signal = null, priority = PRIORITIES.NORMAL } = {}) {
     return new Promise((resolve, reject) => {
       let fullUrl = this.getFullUrl(url);
 
@@ -716,7 +716,7 @@ class FhirBatchQuery extends EventTarget {
              body = undefined,
              combine = true,
              signal = null,
-             retryCount = false,
+             retryCount = 3,
              contentType = 'application/fhir+json',
              logPrefix = ''
            }) {
@@ -810,7 +810,9 @@ class FhirBatchQuery extends EventTarget {
         sendUrl.searchParams.append('api_key', this._apiKey);
       }
 
-      if (this._features.isFormatSupported && !sendUrl.searchParams.has('_format')) {
+      // The question mark is required for the case where it sends the '/smart-configuration' query to check
+      // SMART ON FHIR availability before initialization and this._features is not yet set. See LF-2807.
+      if (this._features?.isFormatSupported && !sendUrl.searchParams.has('_format')) {
         sendUrl.searchParams.append('_format', 'json');
       }
 
@@ -1047,7 +1049,7 @@ class FhirBatchQuery extends EventTarget {
   getWithCache(url, options = {}) {
     options = {
       combine: true,
-      retryCount: false,
+      retryCount: 3,
       cacheName: null,
       cacheErrors: false,
       cacheAbort: false,

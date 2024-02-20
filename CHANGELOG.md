@@ -3,9 +3,52 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.16.0] - 2023-12-20
+## [6.17.0] - 2024-02-20
 ### Changed
 - Changed the initialization spinner to a non-blocking one.
+
+## [6.16.2] - 2024-02-02
+### Changed
+- Made buttons and menus more obvious.
+
+## [6.16.1] - 2024-02-02
+### Changed
+- Added showing number of people in studies for R5 servers
+  (ResearchStudy.recruitment.actualNumber).
+
+## [6.16.0] - 2024-01-26
+### Changed
+- Support for rdf-server 1.0.0, which is ready for application-based stickiness
+  for AWS load balancer.
+
+## [6.15.9] - 2024-01-25
+### Fixed
+- Issue of missing logout button and checkbox after SMART on FHIR login.
+
+## [6.15.8] - 2024-01-24
+### Fixed
+- Observation.interpretation should be searchable if available on server.
+
+## [6.15.7] - 2024-01-24
+### Fixed
+- Align search parameter name fields in query builder.
+
+## [6.15.6] - 2024-01-08
+### Changed
+- Added baseR5 server to the list and made it default.
+
+## [6.15.5] - 2024-01-04
+### Changed
+- When a query fails, limit the retry count to 3 instead of retrying for 90
+  seconds.
+
+## [6.15.4] - 2024-01-04
+### Fixed
+- Combined requests for patients with the "_id" parameter to reduce the number
+  of requests.
+- Bug in the search for patients when nested ORed criteria produce requests for
+  different resource types therefore in the output stream, we may have different
+  resource types.
 
 ## [6.15.3] - 2023-12-19
 ### Fixed

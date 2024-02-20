@@ -41,7 +41,11 @@ export class FhirServerSelectComponent
 
   options = [
     {
-      description: 'FHIR Tools project FHIR server (fake data)',
+      description: 'FHIR Tools project FHIR R5 server (fake data)',
+      url: 'https://lforms-fhir.nlm.nih.gov/baseR5'
+    },
+    {
+      description: 'FHIR Tools project FHIR R4 server (fake data)',
       url: 'https://lforms-fhir.nlm.nih.gov/baseR4'
     },
     {
@@ -268,13 +272,7 @@ export class FhirServerSelectComponent
     this.acInstance.setFieldVal(this.currentValue, false);
     // Prevent the server list from showing after page load.
     this.acInstance.preventListFromShowing = true;
-    this.listSelectionsObserver = (eventData) => {
-      if (
-        eventData.input_method === 'clicked' ||
-        eventData.input_method === 'arrows'
-      ) {
-        this.checkSmartOnFhirEnabled(eventData.final_val);
-      }
+    this.listSelectionsObserver = () => {
       this.updateCurrentValue();
     };
     Def.Autocompleter.Event.observeListSelections(

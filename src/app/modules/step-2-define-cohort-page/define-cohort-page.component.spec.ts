@@ -282,21 +282,27 @@ describe('DefineCohortComponent', () => {
       )
       .flush({
         ...tenObservationBundle,
-        link: [{ relation: 'next', url: 'next-observation-bundle-page' }]
+        link: [{relation: 'next', url: 'next-observation-bundle-page'}]
       });
 
-    [
+    const patientIds = [
       // Search ignores duplicate Patients
       ...new Set(
-        tenObservationBundle.entry.map(({ resource }) =>
+        tenObservationBundle.entry.map(({resource}) =>
           resource.subject.reference.replace(/^Patient\//, '')
         )
       )
-    ].forEach((patientId) => {
-      mockHttp
-        .expectOne(`$fhir/Patient?_id=${patientId}&gender=female`)
-        .flush({ entry: [{ resource: { ...examplePatient, id: patientId } }] });
-    });
+    ];
+    mockHttp
+      .expectOne(`$fhir/Patient?_id=${patientIds.join(',')}&gender=female`)
+      .flush({
+        entry: patientIds.map(patientId => ({
+          resource: {
+            ...examplePatient,
+            id: patientId
+          }
+        }))
+      });
 
     // If the next page contains the same resources, there are no additional requests
     mockHttp
@@ -405,25 +411,24 @@ describe('DefineCohortComponent', () => {
     const patientIds = [
       // Search ignores duplicate Patients
       ...new Set(
-        tenObservationBundle.entry.map(({ resource }) =>
+        tenObservationBundle.entry.map(({resource}) =>
           resource.subject.reference.replace(/^Patient\//, '')
         )
       )
     ];
 
-    patientIds.forEach((patientId) => {
-      mockHttp
-        .expectOne(
-          `$fhir/Patient?_id=${patientId}&_has:ResearchSubject:individual:study=study-1,study-2`
-        )
-        .flush({
-          entry: [
-            {
-              resource: {...examplePatient, id: patientId}
-            }
-          ]
-        });
-    });
+    mockHttp
+      .expectOne(
+        `$fhir/Patient?_id=${patientIds.join(',')}&_has:ResearchSubject:individual:study=study-1,study-2`
+      )
+      .flush({
+        entry: patientIds.map(patientId => ({
+          resource: {
+            ...examplePatient,
+            id: patientId
+          }
+        }))
+      });
   });
 
   it('should load Patients using _has with Observation code and value', (done) => {

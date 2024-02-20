@@ -130,3 +130,68 @@ $app-theme: mat.define-light-theme((
     background-color: rgba(197, 202, 233, 0.5);
   }
 }
+
+.mat-stroked-button {
+  color: #3f51b5;
+
+  &.mat-primary {
+    color: #3f51b5;
+    font-weight: bold;
+  }
+}
+
+.mat-mini-fab:not(.mat-button-disabled) {
+  .mat-button-wrapper {
+    .mat-icon {
+      svg {
+        fill: #3f51b5
+      }
+    }
+  }
+
+  &.mini-fab-16 {
+    width: 16px;
+    height: 16px;
+
+    .mat-button-wrapper {
+      padding: 0;
+      line-height: 1;
+    }
+  }
+
+  &.mini-fab-32 {
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+
+    .mat-button-wrapper {
+      padding: 0;
+
+      .mat-icon {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+.mat-icon.mat-icon-22 {
+  width: 22px;
+  height: 22px;
+}
+
+.mat-sort-header-content {
+  color: #3f51b5;
+}
+
+.mat-sort-header:hover .mat-sort-header-content,
+.mat-sort-header.cdk-keyboard-focused .mat-sort-header-content,
+.mat-sort-header.cdk-program-focused .mat-sort-header-content {
+  text-decoration: underline;
+}
+
+.mat-table {
+  [mat-sort-header].cdk-keyboard-focused .mat-sort-header-container,
+  [mat-sort-header].cdk-program-focused .mat-sort-header-container {
+    border-bottom: none;
+  }
+}

@@ -3,7 +3,6 @@
  */
 import { Injectable } from '@angular/core';
 import { CreateCohortMode } from '../cohort/cohort.service';
-import { HttpClient } from '@angular/common/http';
 import { Step } from '../../modules/stepper/stepper.component';
 
 @Injectable({
@@ -18,7 +17,7 @@ export class RasTokenService {
 
   public errorMessage = '';
 
-  constructor(private http: HttpClient) {
+  constructor() {
     // If user is logged in and refreshes the page, we keep the login state.
     if (sessionStorage.getItem('dbgapTstToken')) {
       this.rasTokenValidated = true;
@@ -56,20 +55,10 @@ export class RasTokenService {
 
   /**
    * Logs out of RAS.
-   * @return a promise that resolves when the logout request has completed.
    */
-  logout(): Promise<void> {
-    // Remove the session variable to avoid duplicate logout requests
+  logout(): void {
     sessionStorage.removeItem('dbgapRasLoginServer');
-
-    return this.rasTokenValidated
-      ? this.http
-          .get(`${window.location.origin}/rdf-server/logout`)
-          .toPromise()
-          .then(() => {
-            this.rasTokenValidated = false;
-            sessionStorage.clear();
-          })
-      : Promise.resolve();
+    this.rasTokenValidated = false;
+    sessionStorage.clear();
   }
 }

@@ -32,7 +32,7 @@ const icons = [
   'info',
   'settings',
   'remove_done_black',
-  'rule'
+  'more_vert'
 ];
 
 @NgModule({
