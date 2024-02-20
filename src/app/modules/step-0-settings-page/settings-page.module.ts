@@ -10,6 +10,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FhirServerSelectComponent } from './fhir-server-select/fhir-server-select.component';
 import { MatButtonModule } from '@angular/material/button';
 import { AppRoutingModule } from '../../app-routing.module';
+import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { AppRoutingModule } from '../../app-routing.module';
     MatExpansionModule,
     MatButtonModule,
     AppRoutingModule,
-    FormsModule
+    FormsModule,
+    MatProgressSpinnerModule
   ]
 })
 export class SettingsPageModule {}

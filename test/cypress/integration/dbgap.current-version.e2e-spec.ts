@@ -22,11 +22,11 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
       '/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&prev-version=disable'
     )
       // Waiting for application initialization
-      .get('.init-spinner-container')
+      .get('app-fhir-server-select.loading')
       .should('exist')
       // When we get the initialization parameters from settings,
       // the initialization should be much faster.
-      .get('.init-spinner-container', {timeout: 5000})
+      .get('app-fhir-server-select.loading', {timeout: 5000})
       .should('not.exist')
       .then(() => getHarness(MatStepperHarness))
       .then((result: MatStepperHarness) => {
@@ -120,18 +120,18 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
       .type('https://dbgap-api.ncbi.nlm.nih.gov/fhir/something')
       .blur();
 
-    cy.get('.init-spinner-container')
+    cy.get('app-fhir-server-select.loading')
       .should('exist')
-      .get('.init-spinner-container', {timeout: 20000})
+      .get('app-fhir-server-select.loading', {timeout: 20000})
       .should('not.exist')
       .then(() => nextPageBtn.click())
       .then(() => settingsStep.isSelected())
       .then((isSelected) => expect(isSelected).to.be.true)
       .then(() => cy.get('@inputField').focus().clear().type(value).blur());
 
-    cy.get('.init-spinner-container')
+    cy.get('app-fhir-server-select.loading')
       .should('exist')
-      .get('.init-spinner-container', {timeout: 20000})
+      .get('app-fhir-server-select.loading', {timeout: 20000})
       .should('not.exist');
   });
 

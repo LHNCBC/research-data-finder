@@ -14,7 +14,8 @@
       <app-settings-page #settings></app-settings-page>
       <div class="spacer"></div>
       <div class="h-box">
-        <button mat-stroked-button color="primary" matStepperNext type="button">
+        <button mat-stroked-button color="primary" matStepperNext type="button"
+            [disabled]="!settings.settingsFormGroup.valid">
           {{ getNextStepLabel(Step.SETTINGS) }}<mat-icon svgIcon="keyboard_arrow_right"></mat-icon>
         </button>
       </div>

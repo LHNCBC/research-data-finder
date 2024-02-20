@@ -147,7 +147,10 @@ export class FhirBackendService implements HttpBackend {
             redirectUri: setUrlParam(
               'isSmart',
               true,
-              window.location.origin + window.location.pathname + window.location.search
+              setUrlParam(
+                'server',
+                this.serviceBaseUrl,
+                window.location.origin + window.location.pathname + window.location.search)
             )
           }
         ],

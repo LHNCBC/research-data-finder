@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.17.0] - 2024-02-20
+### Changed
+- Changed the initialization spinner to a non-blocking one.
+
 ## [6.16.2] - 2024-02-02
 ### Changed
 - Made buttons and menus more obvious.
