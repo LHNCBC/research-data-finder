@@ -153,7 +153,10 @@ export class FhirBackendService implements HttpBackend {
             redirectUri: setUrlParam(
               'isSmart',
               true,
-              window.location.origin + window.location.pathname + window.location.search
+              setUrlParam(
+                'server',
+                this.serviceBaseUrl,
+                window.location.origin + window.location.pathname + window.location.search)
             )
           }
         ],
@@ -353,9 +356,10 @@ export class FhirBackendService implements HttpBackend {
    * @param [serviceBaseUrl] - new FHIR REST API Service Base URL
    */
   initializeFhirBatchQuery(serviceBaseUrl: string = ''): Promise<void> {
+    serviceBaseUrl ||= this.serviceBaseUrl;
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
-    return this.checkSmartOnFhirEnabled(this.serviceBaseUrl)
+    return this.checkSmartOnFhirEnabled(serviceBaseUrl)
       .then(() => {
         // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
         return this.isSmartOnFhirEnabled && this.isSmartOnFhir
@@ -363,7 +367,7 @@ export class FhirBackendService implements HttpBackend {
           : Promise.resolve();
       })
       .then(() => {
-        const isDbgap = this.isDbgap(serviceBaseUrl || this.serviceBaseUrl);
+        const isDbgap = this.isDbgap(serviceBaseUrl);
         const isRasLoggedIn = this.injector.get(RasTokenService).rasTokenValidated;
         const isOauth2LoggedIn = this.injector.get(Oauth2TokenService).oauth2TokenValidated;
         // Set authorization header.
