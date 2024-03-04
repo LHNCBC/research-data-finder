@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.17.1] - 2024-03-01
+### Fixed
+- Issues with reading column headers by a screen reader. Also, for ordinary users,
+  a column description will be displayed when they hover over the info button,
+  and for screen reader users it will be read when they click on the button.
+
 ## [6.17.0] - 2024-02-20
 ### Changed
 - Changed the initialization spinner to a non-blocking one.
