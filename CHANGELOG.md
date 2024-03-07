@@ -3,6 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.17.1] - 2024-02-20
+### Added
+- An input field to set "max recent Observations per Patient to check" for
+  EvidenceVariables.
+- a "Patient Id" column to the EvidenceVariable table.
+### Fixed
+- Removing a resource type tab in the pull data step did not stop the loading
+  process on this tab or clear the already loaded data.
+- Removed duplicate requests for EvidenceVariable.
+
+
 ## [6.17.0] - 2024-02-20
 ### Changed
 - Changed the initialization spinner to a non-blocking one.

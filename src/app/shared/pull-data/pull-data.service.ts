@@ -2,12 +2,21 @@
  * This file contains a service for pulling data for a cohort of patients.
  */
 import { Injectable } from '@angular/core';
-import { SelectedObservationCodes } from '../../types/selected-observation-codes';
+import {
+  SelectedObservationCodes
+} from '../../types/selected-observation-codes';
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import { CODETEXT } from '../query-params/query-params.service';
 import { CohortService } from '../cohort/cohort.service';
-import {concatMap, finalize, map, startWith, tap} from 'rxjs/operators';
-import {forkJoin, fromEvent, Observable, of} from 'rxjs';
+import {
+  concatMap,
+  finalize,
+  map,
+  share,
+  startWith,
+  tap
+} from 'rxjs/operators';
+import { forkJoin, fromEvent, Observable, of } from 'rxjs';
 import { chunk, differenceBy } from 'lodash-es';
 import Patient = fhir.Patient;
 import Resource = fhir.Resource;
@@ -134,6 +143,15 @@ export class PullDataService {
   }
 
   /**
+   * Resets data loaded for the specified resource type.
+   * @param resourceType - resource type.
+   */
+  resetResourceData(resourceType: string): void {
+    delete this.currentState[resourceType];
+    delete this.resourceStream[resourceType];
+  }
+
+  /**
    * Loads resources of the specified type for a cohort of Patients.
    * @param resourceType - resource type
    * @param perPatientCount - numbers of resources to show per patient
@@ -169,6 +187,7 @@ export class PullDataService {
     const observationCodes = [];
     const patientToCodeToCount = {};
     const patientEvCount = {};
+    const evObservables = {};
     let sortParam = '';
 
     if (resourceTypeParam === 'Observation') {
@@ -247,6 +266,7 @@ export class PullDataService {
                   return this.loadEvidenceVariables(
                     bundle,
                     patientEvCount,
+                    evObservables,
                     perPatientCount
                   );
                 } else if (resourceType === 'Observation') {
@@ -307,12 +327,15 @@ export class PullDataService {
    * Loads EvidenceVariables for a bundle of Observations.
    * @param bundle - bundle of Observations.
    * @param patientEvCount - mapping patients to the number of loaded variables.
+   * @param evObservables - mapping EvidenceVariable URLs to observables of
+   *   EvidenceVariable resources.
    * @param perPatientCount - maximum resources per patient.
    * @return observable bundle of EvidenceVariables.
    */
   loadEvidenceVariables(
     bundle: Bundle,
     patientEvCount: { [patientRef: string]: number },
+    evObservables: { [evURL: string]: Observable<Resource> },
     perPatientCount: number
   ): Observable<Bundle> {
     const evRequests =
@@ -335,7 +358,10 @@ export class PullDataService {
             return null;
           }
           ++patientEvCount[patientRef];
-          return this.http.get(evUrl, PullDataService.commonHttpOptions);
+          if (!evObservables[evUrl]) {
+            evObservables[evUrl] = this.http.get(evUrl, PullDataService.commonHttpOptions).pipe(share());
+          }
+          return evObservables[evUrl];
         })
         .filter((p) => p) || [];
 

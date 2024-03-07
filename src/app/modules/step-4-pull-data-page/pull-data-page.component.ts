@@ -22,7 +22,6 @@ import { ResourceTableParentComponent } from '../resource-table-parent.component
 import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { CohortService, MAX_PAGE_SIZE } from '../../shared/cohort/cohort.service';
-import { ColumnValuesService } from '../../shared/column-values/column-values.service';
 import { TableRow } from '../resource-table/resource-table.component';
 import Observation = fhir.Observation;
 import { saveAs } from 'file-saver';
@@ -57,7 +56,7 @@ export class PullDataPageComponent
   // Array of resource type names that has "code text" search parameter
   codeTextResourceTypes: string[] = [];
   // Subscription to the loading process
-  loadSubscription: Subscription;
+  loadSubscription: { [resourceType: string]: Subscription } = {};
   // Subscription to change cohort criteria
   changeCriteriaSubscription: Subscription;
 
@@ -68,13 +67,8 @@ export class PullDataPageComponent
   // Form controls of 'per patient' input
   perPatientFormControls: { [resourceType: string]: UntypedFormControl } = {};
   // Number of recent Observations per Patient to load when no code is specified
-  // in the criteria.
-  maxObservationToCheck = new FormControl<number>(1000, [
-    Validators.required,
-    Validators.min(1),
-    Validators.max(MAX_PAGE_SIZE),
-    Validators.pattern(/^\d+$/)
-  ]);
+  // in the Observation criteria or when loading EvidenceVariables.
+  maxObservationToCheck: { [resourceType: string]: UntypedFormControl } = {};
   // Whether any Observation code is added to the Observation criteria
   isObsCodesSelected = false;
   // Form controls of SearchParameterGroupComponents
@@ -100,10 +94,17 @@ export class PullDataPageComponent
     public columnDescriptions: ColumnDescriptionsService,
     public cohort: CohortService,
     public pullData: PullDataService,
-    private liveAnnouncer: LiveAnnouncer,
-    private columnValues: ColumnValuesService
+    private liveAnnouncer: LiveAnnouncer
   ) {
     super();
+    ['Observation', 'EvidenceVariable'].forEach((resourceType) => {
+      this.maxObservationToCheck[resourceType] = new FormControl<number>(1000, [
+        Validators.required,
+        Validators.min(1),
+        Validators.max(MAX_PAGE_SIZE),
+        Validators.pattern(/^\d+$/)
+      ]);
+    });
     fhirBackend.initialized
       .pipe(map((status) => status === ConnectionStatus.Ready))
       .subscribe((connected) => {
@@ -165,9 +166,23 @@ export class PullDataPageComponent
           this.isObsCodesSelected = isObsCodesSelected;
         });
       });
-    this.changeCriteriaSubscription = this.cohort.criteria$.subscribe(() =>
-      this.loadSubscription?.unsubscribe()
-    );
+    this.changeCriteriaSubscription = this.cohort.criteria$.subscribe(() => this.cancelAllLoads());
+  }
+
+  /**
+   * Cancel all loading processes.
+   */
+  cancelAllLoads(): void {
+    Object.keys(this.loadSubscription).forEach(resourceType => this.cancelLoadOf(resourceType));
+  }
+
+  /**
+   * Cancel download for the specified resource.
+   * @param resourceType - resource type
+   */
+  cancelLoadOf(resourceType: string): void {
+    this.loadSubscription[resourceType]?.unsubscribe();
+    delete this.loadSubscription[resourceType];
   }
 
   /**
@@ -203,7 +218,7 @@ export class PullDataPageComponent
   }
 
   ngOnDestroy(): void {
-    this.loadSubscription?.unsubscribe();
+    this.cancelAllLoads();
     this.changeCriteriaSubscription.unsubscribe();
   }
 
@@ -269,6 +284,8 @@ export class PullDataPageComponent
    * Removes tab for specified resource type.
    */
   removeTab(resourceType: string): void {
+    this.cancelLoadOf(resourceType);
+    this.pullData.resetResourceData(resourceType);
     this.unselectedResourceTypes.push(resourceType);
     this.unselectedResourceTypes.sort();
     const removeIndex = this.visibleResourceTypes.indexOf(resourceType);
@@ -301,7 +318,7 @@ export class PullDataPageComponent
       parameterGroup.showErrors();
       return;
     }
-    this.loadSubscription?.unsubscribe();
+    this.cancelLoadOf(resourceType);
 
     if (resourceType === 'Observation') {
       // If in Variable-Patient table mode, reset to normal Observation table mode.
@@ -325,15 +342,19 @@ export class PullDataPageComponent
       });
     }
 
-    this.loadSubscription = this.pullData
+    this.loadSubscription[resourceType] = this.pullData
       .loadResources(
         resourceType,
         this.perPatientFormControls[resourceType]?.value || 1000,
         // TODO: simplify by using observationParameterGroup
         parameterGroup.getConditions().criteria,
-        this.maxObservationToCheck.value
+        this.maxObservationToCheck[resourceType]?.value
       )
       .subscribe();
+  }
+
+  isMaxObservationToCheckVisible(resourceType: string): boolean {
+    return this.maxObservationToCheck[resourceType] && ((resourceType === 'Observation' && !this.isObsCodesSelected) || (resourceType === 'EvidenceVariable'));
   }
 
   /**
@@ -343,12 +364,8 @@ export class PullDataPageComponent
    */
   isValidTab(resourceType: string): boolean {
     return (
-      (!this.perPatientFormControls[resourceType] ||
-        this.perPatientFormControls[resourceType].valid) &&
-      (resourceType !== 'Observation' ||
-        this.parameterGroups['Observation'].value.parameters[0]
-          ?.selectedObservationCodes.items.length > 0 ||
-        this.maxObservationToCheck.valid)
+      (!this.perPatientFormControls[resourceType] || this.perPatientFormControls[resourceType].valid)
+      && (!this.isMaxObservationToCheckVisible(resourceType) || this.maxObservationToCheck[resourceType].valid)
     );
   }
 
@@ -362,8 +379,8 @@ export class PullDataPageComponent
         perPatientFormControls: this.perPatientFormControls[r]?.value,
         parameterGroups: this.parameterGroups[r].value
       };
-      if (r === 'Observation') {
-        tabInfo['maxObservationToCheck'] = this.maxObservationToCheck.value;
+      if (r === 'Observation' || r === 'EvidenceVariable') {
+        tabInfo['maxObservationToCheck'] = this.maxObservationToCheck[r].value;
       }
       return tabInfo;
     });
@@ -376,9 +393,9 @@ export class PullDataPageComponent
   restoreLoginStatus(restoreStatus: any[]): void {
     let hasObservationTab = false;
     restoreStatus.forEach((x) => {
-      if (x.resourceType === 'Observation') {
+      if (x.resourceType === 'Observation' || x.resourceType === 'EvidenceVariable') {
         hasObservationTab = true;
-        this.maxObservationToCheck.setValue(x.maxObservationToCheck);
+        this.maxObservationToCheck[x.resourceType].setValue(x.maxObservationToCheck || 1000);
       } else {
         this.addTab(x.resourceType);
       }
