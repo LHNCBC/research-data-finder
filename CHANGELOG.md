@@ -9,6 +9,7 @@ This project follows [Semantic Versioning](http://semver.org/).
   reader. Also, for ordinary users, a column description will be displayed when
   they hover over the info button, and for screen reader users it will be read
   when they click on the button.
+- Removed a separate column without a heading for the "Add record to cart" button.
 
 ## [6.17.0] - 2024-02-20
 ### Changed

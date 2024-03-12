@@ -89,18 +89,6 @@
            [class.highlightable]="highlightSelection"
            (matSortChange)="sortData($event)"
            [attr.aria-rowcount]="dataSource.data.length+1">
-      <!-- Row action column -->
-      <ng-container matColumnDef="action">
-        <th mat-header-cell *matHeaderCellDef class="cell-with-icon" width="28">
-          <!-- Do we need a header for the action column? -->
-        </th>
-        <td mat-cell *matCellDef="let row" class="cell-with-icon">
-          <ng-container *ngIf="rowActionTemplate as template">
-            <ng-container
-                *ngTemplateOutlet="template; context: {templateContext, row}"></ng-container>
-          </ng-container>
-        </td>
-      </ng-container>
       <!-- Select checkbox column -->
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef class="cell-with-icon" width="28">
@@ -131,7 +119,8 @@
       </ng-container>
 
       <!-- Data Columns -->
-      <ng-container *ngFor="let column of columnDescriptions" [matColumnDef]="column.element">
+      <ng-container *ngFor="let column of columnDescriptions; let i=index;"
+                    [matColumnDef]="column.element">
         <ng-container *ngIf="isSortable(column); else noSort">
           <th mat-header-cell *matHeaderCellDef [attr.role]="'none'">
             <div style="display: flex;">
@@ -201,7 +190,14 @@
         </ng-template>
 
         <td mat-cell *matCellDef="let row">
-          <app-ellipsis-text>{{row.cells[column.element]}}</app-ellipsis-text>
+          <div class="h-box">
+            <ng-container *ngIf="i === 0 && rowActionTemplate as template">
+              <ng-container
+                  *ngTemplateOutlet="template; context: {templateContext, row}"></ng-container>
+            </ng-container>
+            <app-ellipsis-text
+                [class.has-a-preceding-button]="rowActionTemplate">{{row.cells[column.element]}}</app-ellipsis-text>
+          </div>
         </td>
       </ng-container>
 

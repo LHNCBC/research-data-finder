@@ -470,9 +470,6 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       const scrollViewport = this.scrollViewport?.elementRef.nativeElement;
 
       this.columns.length = 0;
-      if (this.rowActionTemplate) {
-        this.columns.push('action');
-      }
       if (this.enableSelection) {
         this.columns.push('select');
       }

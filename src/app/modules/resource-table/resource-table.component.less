@@ -69,12 +69,19 @@ td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
     padding-bottom: 0;
     vertical-align: middle;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     max-width: 100px;
-    div {
-      overflow: hidden;
-      text-overflow: ellipsis;
+
+    .h-box {
+      align-items: center;
+      gap: 10px;
+
+      app-ellipsis-text.has-a-preceding-button {
+        max-width: calc(100% - 42px)
+      }
+
+      app-ellipsis-text:not(.has-a-preceding-button) {
+        max-width: 100%
+      }
     }
   }
 
@@ -95,8 +102,6 @@ td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
 
   th.mat-header-cell:not(.cell-with-icon) {
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 
