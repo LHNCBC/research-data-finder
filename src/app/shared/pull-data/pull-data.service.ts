@@ -12,12 +12,12 @@ import {
   concatMap,
   finalize,
   map,
-  share,
+  shareReplay,
   startWith,
   tap
 } from 'rxjs/operators';
 import { forkJoin, fromEvent, Observable, of } from 'rxjs';
-import { chunk, differenceBy } from 'lodash-es';
+import { chunk, differenceBy, uniqBy } from 'lodash-es';
 import Patient = fhir.Patient;
 import Resource = fhir.Resource;
 import Bundle = fhir.Bundle;
@@ -37,10 +37,15 @@ interface PullDataState {
   loading: boolean;
   // Array of loaded resources
   resources: (Resource & PatientMixin)[];
+  // Array of unique loaded resources
+  uniqueResources: Resource[];
   // Resource loading progress value
   progressValue: number;
   // Number of failed requests
   failedRequests?: number;
+  startTime: number;
+  loadedDateTime: number;
+  loadTime: number;
 }
 
 @Injectable({
@@ -169,8 +174,12 @@ export class PullDataService {
     const currentState: PullDataState = {
       loading: true,
       resources: [],
+      uniqueResources: [],
       progressValue: 0,
-      failedRequests: 0
+      failedRequests: 0,
+      startTime: Date.now(),
+      loadedDateTime: 0,
+      loadTime: 0
     };
     this.currentState[resourceType] = currentState;
     const subscription = fromEvent(
@@ -281,7 +290,7 @@ export class PullDataService {
 
                 return of(bundle);
               }),
-              map(this.prepareResponseData(patients, currentState)),
+              map(this.prepareResponseData(resourceType, patients, currentState)),
               tap(
                 this.updateProgressIndicator(
                   currentState,
@@ -298,16 +307,32 @@ export class PullDataService {
       map((resources) => {
         // Reassign currentState.resources in correct order
         currentState.resources = [].concat(...resources);
+        this.updateUniqueResources(resourceType, currentState);
         return currentState.resources;
       }),
       finalize(() => {
         currentState.progressValue = 100;
         currentState.loading = false;
+        currentState.loadedDateTime = Date.now();
+        currentState.loadTime = Math.round((currentState.loadedDateTime - currentState.startTime) / 100) / 10;
         subscription.unsubscribe();
       })
     );
 
     return this.resourceStream[resourceType];
+  }
+
+  /**
+   * Updates the list of unique resources in the current state.
+   * Currently only used for EvidenceVariables.
+   * @param resourceType - resource type
+   * @param currentState - the current state of pulling data.
+   */
+  updateUniqueResources(resourceType: string, currentState: PullDataState) : void {
+    // Create an array with unique resources only for EvidenceVariables
+    if (resourceType === 'EvidenceVariable') {
+      currentState.uniqueResources = uniqBy(currentState.resources, res => res.id);
+    }
   }
 
   /**
@@ -359,7 +384,11 @@ export class PullDataService {
           }
           ++patientEvCount[patientRef];
           if (!evObservables[evUrl]) {
-            evObservables[evUrl] = this.http.get(evUrl, PullDataService.commonHttpOptions).pipe(share());
+            evObservables[evUrl] = this.http.get(evUrl, PullDataService.commonHttpOptions)
+              // Using `share()` may cause the request to be repeated,
+              // see explanation here:
+              // https://www.bitovi.com/blog/always-know-when-to-use-share-vs.-sharereplay
+              .pipe(shareReplay({ bufferSize: 1, refCount: true }));
           }
           return evObservables[evUrl];
         })
@@ -435,12 +464,14 @@ export class PullDataService {
   /**
    * Returns a function which extracts resources from the resource bundle and
    * adds Patient info.
+   * @param resourceType - resource type.
    * @param patients - patients if we are pulling patients, or one patient if we
    *   are pulling other resources.
    * @param currentState - the current state of pulling data.
    * @return a function
    */
   prepareResponseData(
+    resourceType: string,
     patients: Patient[],
     currentState: PullDataState
   ): (bundle: Bundle) => (Resource & PatientMixin)[] {
@@ -451,6 +482,7 @@ export class PullDataService {
           ...(patients.length === 1 ? { patientData: patients[0] } : {})
         })) || [];
       currentState.resources = currentState.resources.concat(res);
+      this.updateUniqueResources(resourceType, currentState);
       return res;
     };
   }

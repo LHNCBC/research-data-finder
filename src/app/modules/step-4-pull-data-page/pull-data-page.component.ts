@@ -299,9 +299,12 @@ export class PullDataPageComponent
    * Opens a dialog for configuring resource table columns.
    */
   configureColumns(): void {
+    const resourceType = this.getCurrentResourceType();
     this.columnDescriptions.openColumnsDialog(
-      this.getCurrentResourceType(),
-      'pull-data'
+      resourceType,
+      resourceType === 'EvidenceVariable' && this.showOnlyUniqueEV
+      ? 'pull-data-EV'
+      : 'pull-data'
     );
   }
 
@@ -423,6 +426,11 @@ export class PullDataPageComponent
     }
     this._isVariablePatientTable = value;
   }
+
+  /**
+   * Show only unique EvidenceVariables.
+   */
+  public showOnlyUniqueEV = false;
 
   /**
    * Construct the dataSource for the Variable-Patient table from the Observation table.

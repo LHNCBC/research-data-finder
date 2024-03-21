@@ -71,19 +71,45 @@
         </app-search-parameter-group>
       </div>
       <div class="spacer"></div>
-      <div class="h-box" *ngIf="resourceType === 'Observation'">
-        <mat-checkbox [(ngModel)]="isVariablePatientTable"
-                      [disabled]="!canConvertToVariablePatientTable || !pullData.getHasLoadedData('Observation')">
-          Show as table with variable names as columns (only available when there is just one result per test per patient)
-        </mat-checkbox>
-      </div>
-      <div *ngIf="resourceType === 'Observation'" class="spacer"></div>
-      <app-resource-table *ngIf="(resourceType !== 'Observation' || !isVariablePatientTable) && pullData.resourceStream[resourceType]"
+      <ng-container [ngSwitch]="resourceType">
+        <ng-container *ngSwitchCase="'Observation'">
+          <div class="h-box" >
+            <mat-checkbox [(ngModel)]="isVariablePatientTable"
+                          [disabled]="!canConvertToVariablePatientTable || !pullData.getHasLoadedData('Observation')">
+              Show as table with variable names as columns (only available when there is just one result per test per patient)
+            </mat-checkbox>
+          </div>
+          <div class="spacer"></div>
+        </ng-container>
+        <ng-container *ngSwitchCase="'EvidenceVariable'">
+          <div class="h-box">
+            <mat-checkbox [(ngModel)]="showOnlyUniqueEV">
+              Show only unique EvidenceVariables
+            </mat-checkbox>
+          </div>
+          <div class="spacer"></div>
+        </ng-container>
+      </ng-container>
+      <app-resource-table *ngIf="(resourceType !== 'Observation' || !isVariablePatientTable) && (resourceType !== 'EvidenceVariable' || !showOnlyUniqueEV) && pullData.resourceStream[resourceType]"
           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'pull-data') | async"
           context="pull-data"
           resourceType="{{resourceType}}"
+          [loadedDateTime]="pullData.currentState[resourceType].loadedDateTime"
+          [loadTime]="pullData.currentState[resourceType].loadTime"
           [loading]="pullData.currentState[resourceType].loading"
           [resources]="pullData.currentState[resourceType].resources"
+          [progressValue]="pullData.currentState[resourceType].progressValue"
+          [failedRequests]="pullData.currentState[resourceType].failedRequests"
+          [pullDataObservationCodes]="pullDataObservationCodes">
+      </app-resource-table>
+      <app-resource-table *ngIf="resourceType === 'EvidenceVariable' && showOnlyUniqueEV && pullData.resourceStream[resourceType]"
+          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'pull-data-EV') | async"
+          context="pull-data-EV"
+          resourceType="{{resourceType}}"
+          [loadedDateTime]="pullData.currentState[resourceType].loadedDateTime"
+          [loadTime]="pullData.currentState[resourceType].loadTime"
+          [loading]="pullData.currentState[resourceType].loading"
+          [resources]="pullData.currentState[resourceType].uniqueResources"
           [progressValue]="pullData.currentState[resourceType].progressValue"
           [failedRequests]="pullData.currentState[resourceType].failedRequests"
           [pullDataObservationCodes]="pullDataObservationCodes">

@@ -30,7 +30,7 @@
             <span>{{loadingMessage}}</span>
           </span>
           <ng-template #loadedTemplate>
-            Data loaded on {{loadedDateTime | date: 'short'}} in {{loadTime}} seconds
+            <span *ngIf="externalLoadedDateTime && externalLoadTime || loadedDateTime && loadTime">Data loaded on {{externalLoadedDateTime || loadedDateTime | date: 'short'}} in {{externalLoadTime || loadTime}} seconds</span>
             <span *ngIf="loadingStatistics?.length">&nbsp;(click to view/hide details)</span>
           </ng-template>
         </mat-panel-description>
@@ -61,7 +61,6 @@
   <button mat-mini-fab
           color="basic"
           type="button" mat-icon-button
-          *ngIf="context === 'browse' || context==='select'"
           (click)="columnDescriptionsService.openColumnsDialog(resourceTypeColumns || resourceType, context)"
           matTooltip="Configure table">
     <mat-icon svgIcon="settings"></mat-icon>

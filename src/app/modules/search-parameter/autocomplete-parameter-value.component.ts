@@ -27,6 +27,7 @@ import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import Bundle = fhir.Bundle;
 import Resource = fhir.Resource;
 import Coding = fhir.Coding;
+import { CartService } from '../../shared/cart/cart.service';
 
 /**
  * data type used for this control
@@ -116,7 +117,8 @@ export class AutocompleteParameterValueComponent
     private httpClient: HttpClient,
     private liveAnnouncer: LiveAnnouncer,
     private fhirBackend: FhirBackendService,
-    private researchStudy: ResearchStudyService
+    private researchStudy: ResearchStudyService,
+    private cart: CartService
   ) {
     super();
     if (ngControl != null) {
@@ -777,13 +779,15 @@ export class AutocompleteParameterValueComponent
    * @private
    */
   private getDbgapEvResearchStudyParam(): string {
-    if (!this.researchStudy.currentState.myStudyIds.length) {
+    const selectedStudyIds = (this.cart.getListItems('ResearchStudy') as Resource[])?.map(({id}) => id)
+      || this.researchStudy.currentState?.myStudyIds || [];
+    if (!selectedStudyIds.length) {
       return '';
     }
-    if (this.researchStudy.currentState.myStudyIds.length === 1) {
-      return `study_id:${this.researchStudy.currentState.myStudyIds[0]}*`;
+    if (selectedStudyIds.length === 1) {
+      return `study_id:${selectedStudyIds[0]}*`;
     }
-    return `study_id:(${this.researchStudy.currentState.myStudyIds
+    return `study_id:(${selectedStudyIds
       .map((id) => id + '*')
       .join(' OR ')})`;
   }

@@ -248,6 +248,8 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Output() selectionChange = this.selectedResources.changed;
   filtersForm: UntypedFormGroup = new UntypedFormBuilder().group({});
   dataSource = new TableVirtualScrollDataSource<TableRow>([]);
+  @Input('loadTime') externalLoadTime: number;
+  @Input('loadedDateTime') externalLoadedDateTime: number;
   loadTime = 0;
   startTime: number;
   loadedDateTime: number;

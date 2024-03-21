@@ -7,7 +7,9 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Added
 - An input field to set "max recent Observations per Patient to check" for
   EvidenceVariables.
-- a "Patient Id" column to the EvidenceVariable table.
+- "Id", "Status", "Publisher", and "Patient Id" columns to the EvidenceVariable
+  table.
+- The option to show only unique EvidenceVariables.
 ### Fixed
 - Removing a resource type tab in the pull data step did not stop the loading
   process on this tab or clear the already loaded data.
