@@ -20,11 +20,24 @@
   margin-left: -20px;
 }
 
-.no-sort-header-container {
+.header-container {
   display: flex;
   align-items: center;
   letter-spacing: normal;
   outline: 0;
+
+  &.header-container_sort {
+    margin-left: -18px;
+    &.col-with-action {
+      margin-left: 24px;
+    }
+  }
+
+  &.header-container_no-sort {
+    &.col-with-action {
+      margin-left: 42px;
+    }
+  }
 }
 
 td.mat-cell, th.mat-header-cell, td.mat-footer-cell {

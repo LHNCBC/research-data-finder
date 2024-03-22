@@ -123,8 +123,9 @@
                     [matColumnDef]="column.element">
         <ng-container *ngIf="isSortable(column); else noSort">
           <th mat-header-cell *matHeaderCellDef [attr.role]="'none'">
-            <div style="display: flex;">
+            <div class="header-container header-container_sort" [class.col-with-action]="i === 0 && rowActionTemplate">
               <span mat-sort-header
+                    arrowPosition="before"
                     aria-label=""
                     role="columnheader"
                     matTooltip='click on header to sort by this column'>
@@ -158,7 +159,7 @@
         </ng-container>
         <ng-template #noSort>
           <th mat-header-cell *matHeaderCellDef [attr.role]="'none'">
-            <div class="no-sort-header-container">
+            <div class="header-container header-container_no-sort" [class.col-with-action]="i === 0 && rowActionTemplate">
               <span role="columnheader">
                 {{column.displayName}}
               </span>
