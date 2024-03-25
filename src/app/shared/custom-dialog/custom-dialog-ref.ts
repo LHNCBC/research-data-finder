@@ -14,12 +14,16 @@ export type CustomDialogContent = TemplateRef<any> | Type<any> | string;
 export class CustomDialogRef<T = any> {
   private afterClosed = new Subject<T>();
   afterClosed$ = this.afterClosed.asObservable();
+  // The identifier of the HTML element with the "dialogTitle" attribute,
+  // used as the value for "aria-labelledby".
+  titleId: string;
 
   constructor(
     public overlay: OverlayRef,
     public content: CustomDialogContent,
     public data: T
-  ) {}
+  ) {
+  }
 
   close(data?: T): void {
     this.overlay.dispose();

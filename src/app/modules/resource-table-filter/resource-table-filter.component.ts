@@ -33,9 +33,9 @@ export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
   searchResultsElm: HTMLElement;
 
   readonly INSTRUCTIONS = [
-    'Filter by text.',
-    'Select one or more to filter by.',
-    'Type a range filter.'
+    'Filter by text',
+    'Select one or more to filter by',
+    'Type a range filter'
   ];
   readonly TOOLTIPS = [
     'Type here.',
