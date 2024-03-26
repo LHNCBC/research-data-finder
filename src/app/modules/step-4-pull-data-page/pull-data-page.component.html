@@ -32,28 +32,41 @@
           <mat-label>Limit per patient<span *ngIf='resourceType === "Observation"'>&nbsp;per test</span></mat-label>
           <input matInput [formControl]="perPatientFormControls[resourceType]" type="number" min="1">
         </mat-form-field>
-        <mat-form-field class="number-field max-recent-observations"
-                        *ngIf="isMaxObservationToCheckVisible(resourceType)">
-          <mat-label>Max recent Observations per Patient to check</mat-label>
-          <input matInput [formControl]="maxObservationToCheck[resourceType]"
-                 type="number" min="1">
-          <mat-error
-              *ngIf="maxObservationToCheck[resourceType].hasError('required')">
-            This field is Required.
-          </mat-error>
-          <mat-error
-              *ngIf="maxObservationToCheck[resourceType].hasError('max')">
-            Maximum number allowed: {{MAX_PAGE_SIZE}}.
-          </mat-error>
-          <mat-error
-              *ngIf="maxObservationToCheck[resourceType].hasError('min')">
-            Minimum number allowed: 1.
-          </mat-error>
-          <mat-error
-              *ngIf="maxObservationToCheck[resourceType].hasError('pattern')">
-            Only integers allowed.
-          </mat-error>
-        </mat-form-field>
+        <ng-container *ngIf="isMaxObservationToCheckVisible(resourceType)">
+          <mat-form-field class="number-field max-recent-observations">
+            <mat-label>Max recent Observations per Patient to check</mat-label>
+            <input matInput [formControl]="maxObservationToCheck[resourceType]"
+                   type="number" min="1">
+            <mat-error
+                *ngIf="maxObservationToCheck[resourceType].hasError('required')">
+              This field is Required.
+            </mat-error>
+            <mat-error
+                *ngIf="maxObservationToCheck[resourceType].hasError('max')">
+              Maximum number allowed: {{MAX_PAGE_SIZE}}.
+            </mat-error>
+            <mat-error
+                *ngIf="maxObservationToCheck[resourceType].hasError('min')">
+              Minimum number allowed: 1.
+            </mat-error>
+            <mat-error
+                *ngIf="maxObservationToCheck[resourceType].hasError('pattern')">
+              Only integers allowed.
+            </mat-error>
+          </mat-form-field>
+          <button *ngIf="resourceType === 'EvidenceVariable'"
+                  aria-label="info for the previous input field"
+                  type="button" mat-mini-fab class="mini-fab-16"
+                  color="basic"
+                  #tooltip="matTooltip"
+                  (click)="onInfoIconClick($event, tooltip)"
+                  (keydown.enter)="onInfoIconClick($event, tooltip)"
+                  (keydown.space)="onInfoIconClick($event, tooltip)"
+                  matTooltip="EvidenceVariables for the cohort are determined by looking through the cohorts' Observations."
+                  matTooltipPosition='above'>
+            <mat-icon svgIcon='info'></mat-icon>
+          </button>
+        </ng-container>
       </div>
       <div class="h-box for-selected-codes">
         <button mat-stroked-button

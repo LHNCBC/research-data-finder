@@ -29,6 +29,7 @@ import { saveAs } from 'file-saver';
 // See https://csv.js.org/stringify/distributions/browser_esm/
 import { stringify } from 'csv-stringify/browser/esm/sync';
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
+import { MatTooltip } from '@angular/material/tooltip';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -133,8 +134,9 @@ export class PullDataPageComponent
               resourceType !== 'Patient'
             ) {
               const defaultCount =
-                resourceType === 'EvidenceVariable' ||
-                resourceType === 'Observation'
+                resourceType === 'EvidenceVariable'
+                ? 10
+                : resourceType === 'Observation'
                   ? 1
                   : 1000;
               this.perPatientFormControls[
@@ -544,5 +546,15 @@ export class PullDataPageComponent
    */
   toggleFullscreen(): void {
     this.fullscreen = !this.fullscreen;
+  }
+
+  /**
+   * Toggles tooltip.
+   * @param event the click event
+   * @param tooltip MatTooltip object
+   */
+  onInfoIconClick(event: any, tooltip: MatTooltip): void {
+    tooltip.toggle();
+    this.liveAnnouncer.announce(tooltip.message);
   }
 }
