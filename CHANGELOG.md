@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.17.2] - 2024-03-29
+### Changed
+- Use shared navigation links from lforms-app.
+
 ## [6.17.1] - 2024-03-01
 ### Fixed
 - Issues with tooltips, reading column headers and filter dialogs by a screen
