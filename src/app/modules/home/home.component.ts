@@ -101,5 +101,11 @@ export class HomeComponent implements AfterViewInit {
     // Display shared header/footer after Angular page loads.
     document.getElementById('sharedHeader').style.display = 'block';
     document.getElementById('sharedFooter').style.display = 'block';
+    // Create a script tag to load shared nav links.
+    // Angular removes any <script> tag in component templates for security reasons.
+    const s = document.createElement('script');
+    // TODO: update to https://lhcforms.nlm.nih.gov/
+    s.src = 'http://127.0.0.1:8110/shared/loadSharedNavLinks.min.js';
+    document.body.appendChild(s);
   }
 }
