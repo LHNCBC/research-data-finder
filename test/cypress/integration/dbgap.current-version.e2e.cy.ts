@@ -3,7 +3,6 @@ import {
   MatStepperHarness,
   MatStepperNextHarness
 } from '@angular/material/stepper/testing';
-import {MatExpansionPanelHarness} from '@angular/material/expansion/testing';
 import {getHarness} from '@jscutlery/cypress-harness';
 
 describe('Research Data Finder (dbGap alpha version cart-based approach)', () => {
@@ -72,18 +71,10 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
   });
 
   it('should not allow empty Advanced Setting fields', () => {
-    settingsStep
-      .select()
-      .then(() => settingsStep.getHarness(MatExpansionPanelHarness))
-      .then((advancedSettings) => {
-        advancedSettings.expand();
-      });
+    cy.get('app-settings-page mat-expansion-panel-header').click();
 
-    [
-      ['server URL', 'serviceBaseUrl'],
-      ['Request per batch', 'maxRequestsPerBatch'],
-      ['Maximum active requests', 'maxActiveRequests']
-    ].forEach(([displayName, controlName]) => {
+    ['serviceBaseUrl', 'maxRequestsPerBatch', 'maxActiveRequests']
+    .forEach((controlName) => {
       let value;
       cy.get(
         `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`

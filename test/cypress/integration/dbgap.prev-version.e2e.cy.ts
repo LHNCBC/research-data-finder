@@ -3,7 +3,6 @@ import {
   MatStepperHarness,
   MatStepperNextHarness
 } from '@angular/material/stepper/testing';
-import { MatExpansionPanelHarness } from '@angular/material/expansion/testing';
 import { getHarness } from '@jscutlery/cypress-harness';
 
 describe('Research Data Finder (dbGap)', () => {
@@ -78,48 +77,14 @@ describe('Research Data Finder (dbGap)', () => {
     });
   });
 
-  describe('in Settings step', () => {
-    before((done) => {
-      settingsStep
-        .select()
-        .then(() => settingsStep.getHarness(MatExpansionPanelHarness))
-        .then((advancedSettings) => {
-          advancedSettings.expand();
-          done();
-        });
-    });
+  it('should not allow empty Advanced Setting fields', () => {
+    cy.get('app-settings-page mat-expansion-panel-header').click();
 
-    [
-      ['server URL', 'serviceBaseUrl'],
-      ['Request per batch', 'maxRequestsPerBatch'],
-      ['Maximum active requests', 'maxActiveRequests']
-    ].forEach(([displayName, controlName]) => {
-      it(`should not allow empty "${displayName}"`, () => {
-        let value;
-        cy.get(
-          `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
-        )
-          .as('inputField')
-          .then((el) => {
-            value = el.val();
-          });
-
-        cy.get('@inputField')
-          .focus()
-          .clear()
-          .blur()
-          .then(() => nextPageBtn.click())
-          .then(() => settingsStep.isSelected())
-          .then((isSelected) => expect(isSelected).to.be.true)
-          .then(() => cy.get('@inputField').type(value))
-          .blur();
-      });
-    });
-
-    it('should not allow a non-existent URL similar to dbGap', () => {
+    ['serviceBaseUrl', 'maxRequestsPerBatch', 'maxActiveRequests']
+    .forEach((controlName) => {
       let value;
       cy.get(
-        'input[formControlName="serviceBaseUrl"],[formControlName="serviceBaseUrl"] input'
+        `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
       )
         .as('inputField')
         .then((el) => {
@@ -129,19 +94,61 @@ describe('Research Data Finder (dbGap)', () => {
       cy.get('@inputField')
         .focus()
         .clear()
-        .type('https://dbgap-api.ncbi.nlm.nih.gov/fhir/something')
-        .blur();
-
-      cy.get('app-fhir-server-select.loading')
-        .should('exist')
-        .get('app-fhir-server-select.loading', {timeout: 20000})
-        .should('not.exist')
+        .blur()
         .then(() => nextPageBtn.click())
         .then(() => settingsStep.isSelected())
         .then((isSelected) => expect(isSelected).to.be.true)
-        .then(() => cy.get('@inputField').focus().clear().type(value).blur());
+        .then(() => cy.get('@inputField').type(value).blur());
     });
+  });
 
+  it('should not allow a non-existent URL similar to dbGap', () => {
+    let value;
+    cy.get(
+      'input[formControlName="serviceBaseUrl"],[formControlName="serviceBaseUrl"] input'
+    )
+      .as('inputField')
+      .then((el) => {
+        value = el.val();
+      });
+
+    cy.get('@inputField')
+      .focus()
+      .clear()
+      .type('https://dbgap-api.ncbi.nlm.nih.gov/fhir/something')
+      .blur();
+
+    cy.get('app-fhir-server-select.loading')
+      .should('exist')
+      .get('app-fhir-server-select.loading', {timeout: 20000})
+      .should('not.exist')
+      .then(() => nextPageBtn.click())
+      .then(() => settingsStep.isSelected())
+      .then((isSelected) => expect(isSelected).to.be.true)
+      .then(() => cy.get('@inputField').focus().clear().type(value).blur());
+
+    cy.get('app-fhir-server-select.loading')
+      .should('exist')
+      .get('app-fhir-server-select.loading', {timeout: 20000})
+      .should('not.exist');
+
+    // Update steps data after reinitialization
+    cy.then(() => getHarness(MatStepperHarness))
+      .then((result: MatStepperHarness) => {
+        stepper = result;
+        return stepper.getSteps();
+      })
+      .then((stepsArr) => {
+        stepsArray = stepsArr;
+        [
+          settingsStep,
+          selectAnAreaOfInterestStep,
+          defineCohortStep,
+          viewCohortStep,
+          pullDataStep
+        ] = stepsArray;
+        expect(stepsArray.length).to.equal(5);
+      });
   });
 
   it('should not allow skipping the Define cohort step', (done) => {
@@ -160,9 +167,9 @@ describe('Research Data Finder (dbGap)', () => {
       .then(() => defineCohortStep.isSelected())
       .then((isSelected) => {
         expect(isSelected).to.equal(true);
-        settingsStep.select();
-        done();
-      });
+        return settingsStep.select();
+      })
+      .then(() => done())
   });
 
   it('should allow to proceed to the Select Research Studies step', (done) => {
