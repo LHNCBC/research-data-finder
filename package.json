@@ -75,7 +75,7 @@
     "ng-mocks": "^14.3.3",
     "prettier": "2.2.1",
     "read-excel-file": "^5.2.9",
-    "source-map-explorer": "^2.5.2",
+    "source-map-explorer": "^2.5.3",
     "ts-loader": "^9.4.1",
     "tslint": "~6.1.0",
     "tslint-config-prettier": "^1.18.0",
