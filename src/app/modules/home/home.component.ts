@@ -104,7 +104,7 @@ export class HomeComponent implements AfterViewInit {
     // Create a script tag to load shared nav links.
     // Angular removes any <script> tag in component templates for security reasons.
     const s = document.createElement('script');
-    s.src = 'https://lhcforms.nlm.nih.gov/shared/loadSharedNavLinks.min.js';
+    s.src = 'https://lhcforms.nlm.nih.gov/shared/loadSharedNavLinks.js';
     document.body.appendChild(s);
   }
 }
