@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.17.5] - 2024-04-16
+### Changed
+- Updated Cypress to version 13.
+
 ## [6.17.4] - 2024-04-15
 ### Added
 - An input field to set "max recent Observations per Patient to check" for
