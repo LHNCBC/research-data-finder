@@ -13,7 +13,8 @@ export class CustomDialogComponent implements OnInit {
   content: CustomDialogContent;
   context;
 
-  constructor(private dialogRef: CustomDialogRef) {}
+  constructor(public dialogRef: CustomDialogRef) {
+  }
 
   ngOnInit(): void {
     this.content = this.dialogRef.content;

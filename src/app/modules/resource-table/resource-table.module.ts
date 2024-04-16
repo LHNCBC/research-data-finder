@@ -16,7 +16,12 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSortModule } from '@angular/material/sort';
-import { EllipsisTextModule } from '../../shared/ellipsis-text/ellipsis-text.module';
+import {
+  EllipsisTextModule
+} from '../../shared/ellipsis-text/ellipsis-text.module';
+import {
+  ResourceTableFilterModule
+} from '../resource-table-filter/resource-table-filter.module';
 
 @NgModule({
   declarations: [ResourceTableComponent],
@@ -40,7 +45,8 @@ import { EllipsisTextModule } from '../../shared/ellipsis-text/ellipsis-text.mod
     MatExpansionModule,
     ScrollingModule,
     MatSortModule,
-    EllipsisTextModule
+    EllipsisTextModule,
+    ResourceTableFilterModule
   ]
 })
 export class ResourceTableModule {}

@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [6.17.1] - 2024-02-20
+## [6.17.4] - 2024-04-15
 ### Added
 - An input field to set "max recent Observations per Patient to check" for
   EvidenceVariables.
@@ -15,6 +15,21 @@ This project follows [Semantic Versioning](http://semver.org/).
   process on this tab or clear the already loaded data.
 - Removed duplicate requests for EvidenceVariable.
 
+## [6.17.3] - 2024-04-11
+### Fixed
+- loadSharedNavLinks.js link from lforms-app.
+
+## [6.17.2] - 2024-03-29
+### Changed
+- Use shared navigation links from lforms-app.
+
+## [6.17.1] - 2024-03-01
+### Fixed
+- Issues with tooltips, reading column headers and filter dialogs by a screen
+  reader. Also, for sighted users, a column description will be displayed when
+  they hover over the info button, and for screen reader users it will be read
+  when they click on the button.
+- Removed a separate column without a heading for the "Add record to cart" button.
 
 ## [6.17.0] - 2024-02-20
 ### Changed

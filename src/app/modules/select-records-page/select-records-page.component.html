@@ -56,6 +56,12 @@
                   type="button"
                   mat-mini-fab class="mini-fab-32" color="basic"
                   (click)="resourceTable.selectedResources.isSelected(row.resource) ? addRecordsToCart(resourceType, resourceTable.selectedResources.selected) : addRecordsToCart(resourceType, [row.resource])"
+                  [attr.aria-label]="
+                        resourceTable.selectedResources.selected.length > 1
+                         && resourceTable.selectedResources.isSelected(row.resource)
+                          ? 'Add selected records to the cart'
+                          : 'Add record to cart'
+                      "
                   [matTooltip]="
                         resourceTable.selectedResources.selected.length > 1
                          && resourceTable.selectedResources.isSelected(row.resource)
@@ -85,7 +91,8 @@
                       color="basic"
                       type="button" mat-icon-button
                       (click)="reloadFromServer(resourceType)"
-                      matTooltip="Reload records from server">
+                      aria-label="Reload records from server">
+                matTooltip="Reload records from server">
                 <mat-icon svgIcon="refresh"></mat-icon>
               </button>
             </ng-template>
@@ -160,6 +167,12 @@
                   type="button"
                   mat-mini-fab class="mini-fab-32" color="basic"
                   (click)="variableTable.selectedResources.isSelected(row.resource) ? addRecordsToCart(resourceType, variableTable.selectedResources.selected) : addRecordsToCart(resourceType, [row.resource])"
+                  [attr.aria-label]="
+                    variableTable.selectedResources.selected.length > 1
+                     && variableTable.selectedResources.isSelected(row.resource)
+                      ? 'Add selected records to the cart'
+                      : 'Add record to cart'
+                  "
                   [matTooltip]="
                     variableTable.selectedResources.selected.length > 1
                      && variableTable.selectedResources.isSelected(row.resource)

@@ -8,18 +8,28 @@ import {
 import { SettingsService } from './shared/settings-service/settings.service';
 import { AppRoutingModule } from './app-routing.module';
 import { HomeModule } from './modules/home/home.module';
-import { RasTokenCallbackModule } from './modules/ras-token-callback/ras-token-callback.module';
+import {
+  RasTokenCallbackModule
+} from './modules/ras-token-callback/ras-token-callback.module';
 import { LaunchModule } from './modules/launch/launch.module';
 import { AnnouncerModule } from './shared/announcer/announcer.module';
 import {
   MAT_TOOLTIP_DEFAULT_OPTIONS,
   MAT_TOOLTIP_DEFAULT_OPTIONS_FACTORY
-} from "@angular/material/tooltip";
-import {Oauth2TokenCallbackModule} from "./modules/oauth2-token-callback/oauth2-token-callback.module";
-import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
-import {ToastrModule} from "ngx-toastr";
-import {HTTP_INTERCEPTORS} from "@angular/common/http";
-import {ToastrInterceptor} from "./shared/http-interceptors/toastr-interceptor";
+} from '@angular/material/tooltip';
+import {
+  Oauth2TokenCallbackModule
+} from './modules/oauth2-token-callback/oauth2-token-callback.module';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import {
+  ToastrInterceptor
+} from './shared/http-interceptors/toastr-interceptor';
+import {
+  AriaDescriberService
+} from './shared/aria-tweaks/aria-describer.service';
+import { AriaDescriber } from '@angular/cdk/a11y';
 
 const appearance: MatFormFieldDefaultOptions = {
   appearance: 'outline'
@@ -64,6 +74,11 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
       useFactory: initializeApp,
       deps: [SettingsService],
       multi: true
+    },
+    AriaDescriberService,
+    {
+      provide: AriaDescriber,
+      useExisting: AriaDescriberService
     }
   ],
   bootstrap: [AppComponent]
