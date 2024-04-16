@@ -3,6 +3,18 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.17.4] - 2024-04-15
+### Added
+- An input field to set "max recent Observations per Patient to check" for
+  EvidenceVariables.
+- "Id", "Status", "Publisher", and "Patient Id" columns to the EvidenceVariable
+  table.
+- The option to show only unique EvidenceVariables.
+### Fixed
+- Removing a resource type tab in the pull data step did not stop the loading
+  process on this tab or clear the already loaded data.
+- Removed duplicate requests for EvidenceVariable.
+
 ## [6.17.3] - 2024-04-11
 ### Fixed
 - loadSharedNavLinks.js link from lforms-app.

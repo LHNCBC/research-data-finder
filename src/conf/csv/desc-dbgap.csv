@@ -1,6 +1,9 @@
 EvidenceVariable,,,,,,,
+,id,column,Id,show,string,,
 ,name,column,Name,show,string,,"Computationally friendly name of the evidence variable"
 ,name,"search parameter",name,show,string,,"Computationally friendly name of the evidence variable"
+,status,column,Status,show,code,,"The current status of the evidence variable: draft | active | retired | unknown"
+,publisher,column,Publisher,show,string,,"Name of the publisher (organization or individual)"
 ,description,column,Description,show,string,,"The description of the evidence variable"
 ,description,"search parameter",description,show,string,,"The description of the evidence variable"
 ResearchStudy,,,,,,,
