@@ -32,15 +32,41 @@
           <mat-label>Limit per patient<span *ngIf='resourceType === "Observation"'>&nbsp;per test</span></mat-label>
           <input matInput [formControl]="perPatientFormControls[resourceType]" type="number" min="1">
         </mat-form-field>
-        <mat-form-field class="number-field max-recent-observations"
-                        *ngIf="resourceType === 'Observation' && !isObsCodesSelected">
-          <mat-label>Max recent Observations per Patient to check</mat-label>
-          <input matInput [formControl]="maxObservationToCheck" type="number" min="1">
-          <mat-error *ngIf="maxObservationToCheck.hasError('required')">This field is Required.</mat-error>
-          <mat-error *ngIf="maxObservationToCheck.hasError('max')">Maximum number allowed: {{MAX_PAGE_SIZE}}.</mat-error>
-          <mat-error *ngIf="maxObservationToCheck.hasError('min')">Minimum number allowed: 1.</mat-error>
-          <mat-error *ngIf="maxObservationToCheck.hasError('pattern')">Only integers allowed.</mat-error>
-        </mat-form-field>
+        <ng-container *ngIf="isMaxObservationToCheckVisible(resourceType)">
+          <mat-form-field class="number-field max-recent-observations">
+            <mat-label>Max recent Observations per Patient to check</mat-label>
+            <input matInput [formControl]="maxObservationToCheck[resourceType]"
+                   type="number" min="1">
+            <mat-error
+                *ngIf="maxObservationToCheck[resourceType].hasError('required')">
+              This field is Required.
+            </mat-error>
+            <mat-error
+                *ngIf="maxObservationToCheck[resourceType].hasError('max')">
+              Maximum number allowed: {{MAX_PAGE_SIZE}}.
+            </mat-error>
+            <mat-error
+                *ngIf="maxObservationToCheck[resourceType].hasError('min')">
+              Minimum number allowed: 1.
+            </mat-error>
+            <mat-error
+                *ngIf="maxObservationToCheck[resourceType].hasError('pattern')">
+              Only integers allowed.
+            </mat-error>
+          </mat-form-field>
+          <button *ngIf="resourceType === 'EvidenceVariable'"
+                  aria-label="info for the previous input field"
+                  type="button" mat-mini-fab class="mini-fab-16"
+                  color="basic"
+                  #tooltip="matTooltip"
+                  (click)="onInfoIconClick($event, tooltip)"
+                  (keydown.enter)="onInfoIconClick($event, tooltip)"
+                  (keydown.space)="onInfoIconClick($event, tooltip)"
+                  matTooltip="EvidenceVariables for the cohort are determined by looking through the cohort's Observations."
+                  matTooltipPosition='above'>
+            <mat-icon svgIcon='info'></mat-icon>
+          </button>
+        </ng-container>
       </div>
       <div class="h-box for-selected-codes">
         <button mat-stroked-button
@@ -58,19 +84,45 @@
         </app-search-parameter-group>
       </div>
       <div class="spacer"></div>
-      <div class="h-box" *ngIf="resourceType === 'Observation'">
-        <mat-checkbox [(ngModel)]="isVariablePatientTable"
-                      [disabled]="!canConvertToVariablePatientTable || !pullData.getHasLoadedData('Observation')">
-          Show as table with variable names as columns (only available when there is just one result per test per patient)
-        </mat-checkbox>
-      </div>
-      <div *ngIf="resourceType === 'Observation'" class="spacer"></div>
-      <app-resource-table *ngIf="(resourceType !== 'Observation' || !isVariablePatientTable) && pullData.resourceStream[resourceType]"
+      <ng-container [ngSwitch]="resourceType">
+        <ng-container *ngSwitchCase="'Observation'">
+          <div class="h-box" >
+            <mat-checkbox [(ngModel)]="isVariablePatientTable"
+                          [disabled]="!canConvertToVariablePatientTable || !pullData.getHasLoadedData('Observation')">
+              Show as table with variable names as columns (only available when there is just one result per test per patient)
+            </mat-checkbox>
+          </div>
+          <div class="spacer"></div>
+        </ng-container>
+        <ng-container *ngSwitchCase="'EvidenceVariable'">
+          <div class="h-box">
+            <mat-checkbox [(ngModel)]="showOnlyUniqueEV">
+              Show only unique EvidenceVariables
+            </mat-checkbox>
+          </div>
+          <div class="spacer"></div>
+        </ng-container>
+      </ng-container>
+      <app-resource-table *ngIf="(resourceType !== 'Observation' || !isVariablePatientTable) && (resourceType !== 'EvidenceVariable' || !showOnlyUniqueEV) && pullData.resourceStream[resourceType]"
           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'pull-data') | async"
           context="pull-data"
           resourceType="{{resourceType}}"
+          [loadedDateTime]="pullData.currentState[resourceType].loadedDateTime"
+          [loadTime]="pullData.currentState[resourceType].loadTime"
           [loading]="pullData.currentState[resourceType].loading"
           [resources]="pullData.currentState[resourceType].resources"
+          [progressValue]="pullData.currentState[resourceType].progressValue"
+          [failedRequests]="pullData.currentState[resourceType].failedRequests"
+          [pullDataObservationCodes]="pullDataObservationCodes">
+      </app-resource-table>
+      <app-resource-table *ngIf="resourceType === 'EvidenceVariable' && showOnlyUniqueEV && pullData.resourceStream[resourceType]"
+          [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'pull-data-EV') | async"
+          context="pull-data-EV"
+          resourceType="{{resourceType}}"
+          [loadedDateTime]="pullData.currentState[resourceType].loadedDateTime"
+          [loadTime]="pullData.currentState[resourceType].loadTime"
+          [loading]="pullData.currentState[resourceType].loading"
+          [resources]="pullData.currentState[resourceType].uniqueResources"
           [progressValue]="pullData.currentState[resourceType].progressValue"
           [failedRequests]="pullData.currentState[resourceType].failedRequests"
           [pullDataObservationCodes]="pullDataObservationCodes">

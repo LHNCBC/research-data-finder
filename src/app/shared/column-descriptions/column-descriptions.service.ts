@@ -163,7 +163,7 @@ export class ColumnDescriptionsService {
           context,
           visibleColumns.map((c) => c.element)
         );
-        this.visibilityChanged[resourceType + '-' + context].next();
+        this.visibilityChanged[resourceType + '-' + context]?.next();
       });
   }
 
