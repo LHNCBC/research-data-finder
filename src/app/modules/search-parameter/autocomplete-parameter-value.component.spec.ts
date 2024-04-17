@@ -164,7 +164,7 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(true);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchItemsOnFhirServer('someValue', 20, resolve, reject);
+    component.searchItemsOnFhirServer('someValue', 20, false, resolve, reject);
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:text=someValue')
       .flush(bundleOfObservationsWithCategories);
@@ -183,7 +183,7 @@ describe('AutoCompleteTestValueComponent', () => {
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
 
-    component.searchItemsOnFhirServer('someValue', 20, resolve, reject);
+    component.searchItemsOnFhirServer('someValue', 20, false, resolve, reject);
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:text=someValue')
       .flush(bundleOfObservationsWithCategories);
@@ -202,7 +202,7 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'missingModifier').and.returnValue(false);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchItemsOnFhirServer('', 20, resolve, reject);
+    component.searchItemsOnFhirServer('', 20, false, resolve, reject);
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:not=zzz')
       .flush(bundleOfObservationsWithCategories);
@@ -221,7 +221,7 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'missingModifier').and.returnValue(true);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchItemsOnFhirServer('', 20, resolve, reject);
+    component.searchItemsOnFhirServer('', 20, false, resolve, reject);
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:missing=false')
       .flush(bundleOfObservationsWithCategories);

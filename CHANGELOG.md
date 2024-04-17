@@ -7,6 +7,10 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Fixed
 - An issue with updating the current value of autocompleter when changing the
   search parameter name (without breaking the loading of saved criteria).
+- Added loading possible search parameter values for value sets with the required
+  binding strength from the FHIR server. This allows us to display only existing
+  values and fixes the fallback used to load values from the server when we can't
+  get them from spec definitions.
 
 ## [6.17.5] - 2024-04-16
 ### Changed

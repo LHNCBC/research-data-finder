@@ -142,6 +142,8 @@ export class AutocompleteParameterValueComponent
     AutocompleteParameterValueComponent.idPrefix +
     ++AutocompleteParameterValueComponent.idIndex;
   @Input() options: Lookup[] = [];
+  // Mapping code to display text (used when server doesn't return "display")
+  code2display: { [code: string]: string };
   @Input() placeholder = '';
   @Input() resourceType: string;
   @Input() observationCodes: string[];
@@ -151,6 +153,9 @@ export class AutocompleteParameterValueComponent
   // FHIRPath expression to extract autocomplete option, defaults to searchParameter
   @Input() expression: string;
   @Input() usePrefetch = false;
+  // Whether to use client search (we use client search for required value sets,
+  // since :text may not work)
+  @Input() clientSearch = false;
 
   EVIDENCEVARIABLE = 'EvidenceVariable';
   dbgapLoincOnly = false;
@@ -362,7 +367,7 @@ export class AutocompleteParameterValueComponent
         search: (fieldVal, count) => {
           return {
             then: (resolve, reject) => {
-              this.searchItemsOnFhirServer(fieldVal, count, resolve, reject);
+              this.searchItemsOnFhirServer(fieldVal, count, this.clientSearch, resolve, reject);
             }
           };
         }
@@ -378,15 +383,21 @@ export class AutocompleteParameterValueComponent
    * Search for autocomplete items on the FHIR server.
    * @param filterText - filter text
    * @param count - number of items to be found
+   * @param clientSearch - whether to use client search
    * @param resolve - success callback
    * @param reject - error callback
    */
   searchItemsOnFhirServer(
     filterText: string,
     count: number,
+    clientSearch: boolean,
     resolve: Function,
     reject: Function
   ) {
+    this.code2display = this.options?.reduce((acc, item) => {
+      acc[item.code] = item.display;
+      return acc;
+    }, {}) || {};
     const url = `$fhir/${this.resourceType}`;
     const params = {
       ...(this.observationCodes
@@ -395,17 +406,7 @@ export class AutocompleteParameterValueComponent
       _elements: this.getFhirName()
     };
 
-    if (
-      filterText &&
-      !(
-        // DocumentReference.contenttype does not support querying codes by ':text'.
-        // We will return the whole list with ':not=zzz' and filter in client.
-        (
-          this.resourceType === 'DocumentReference' &&
-          this.searchParameter === 'contenttype'
-        )
-      )
-    ) {
+    if (!clientSearch && filterText) {
       params[`${this.searchParameter}:text`] = filterText;
     } else {
       if (this.fhirBackend.features.missingModifier) {
@@ -434,6 +435,7 @@ export class AutocompleteParameterValueComponent
       })
       .pipe(
         expand((response: Bundle) => {
+          const prevProcCodesCount = Object.keys(processedCodes).length;
           const newItems = this.getAutocompleteItems(
             response,
             filterText,
@@ -443,8 +445,9 @@ export class AutocompleteParameterValueComponent
           contains.push(...newItems);
           const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
           if (nextPageUrl && contains.length < count) {
-            if (!newItems.length) {
-              // If the request did not return new items, then we need
+            //  We have to check that there are no new processed codes to avoid unnecessary requests.
+            if (prevProcCodesCount === Object.keys(processedCodes).length) {
+              // If the request did not return new codes, then we need
               // to go to the next page.
               // Otherwise, it will be an infinite recursion.
               // You can reproduce this problem on https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1
@@ -452,15 +455,17 @@ export class AutocompleteParameterValueComponent
               // field and click the 'See more items' link.
               return this.httpClient.get(nextPageUrl);
             }
-            this.liveAnnouncer.announce('New items added to list.');
-            // Update list before calling server for next query.
-            resolve({
-              resourceType: 'ValueSet',
-              expansion: {
-                total: Number.isInteger(total) ? total : null,
-                contains
-              }
-            });
+            if (newItems.length) {
+              this.liveAnnouncer.announce('New items added to list.');
+              // Update list before calling server for next query.
+              resolve({
+                resourceType: 'ValueSet',
+                expansion: {
+                  total: Number.isInteger(total) ? total : null,
+                  contains
+                }
+              });
+            }
             const newParams = { ...params };
             newParams[`${this.searchParameter}:not`] = this.fhirBackend.features
               .hasNotModifierIssue
@@ -776,19 +781,15 @@ export class AutocompleteParameterValueComponent
       acc.push(
         ...codings.filter((coding) => {
           const matched =
-            // Encounter.class (https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1) have
-            // a strange `coding` value {code: 'ambulatory'} and normal `coding`
-            // value {code: 'AMB', display: 'ambulatory'}.
-            coding.display &&
             // Additional filter for options list.
-            reDisplayValue.test(coding.display) &&
+            coding.display ? reDisplayValue.test(coding.display) : reDisplayValue.test(coding.code) &&
             !processedCodes[coding.code] &&
             selectedCodes.indexOf(coding.code) === -1;
 
           processedCodes[coding.code] = true;
 
           return matched;
-        })
+        }).map(c => c.display ? c : {...c, display: this.code2display[c.code] || c.code })
       );
       return acc;
     }, []);
