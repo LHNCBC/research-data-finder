@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.17.6] - 2024-04-17
+### Fixed
+- An issue with updating the current value of autocompleter when changing the
+  search parameter name (without breaking the loading of saved criteria).
+
 ## [6.17.5] - 2024-04-16
 ### Changed
 - Updated Cypress to version 13.

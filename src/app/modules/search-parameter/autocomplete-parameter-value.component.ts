@@ -5,6 +5,7 @@ import {
   HostBinding,
   HostListener,
   Input,
+  OnChanges,
   OnDestroy,
   Optional,
   Self,
@@ -55,6 +56,7 @@ export class AutocompleteParameterValueComponent
   extends BaseControlValueAccessor<AutocompleteParameterValue>
   implements
     OnDestroy,
+    OnChanges,
     AfterViewInit,
     MatFormFieldControl<AutocompleteParameterValue> {
   get value(): AutocompleteParameterValue {
@@ -234,6 +236,17 @@ export class AutocompleteParameterValueComponent
     }
   }
 
+  /**
+   * A callback method that is invoked immediately after the default change
+   * detector has checked data-bound properties if at least one has changed,
+   * and before the view and content children are checked.
+   */
+  ngOnChanges(): void {
+    if (this.acInstance) {
+      this.setupAutocomplete();
+    }
+  }
+
   ngAfterViewInit(): void {
     this.setupAutocomplete();
   }
@@ -259,11 +272,7 @@ export class AutocompleteParameterValueComponent
         ? this.getAutocomplete_EV()
         : this.getAutocomplete();
 
-    // Fill autocomplete with data (if currentData was set in writeValue).
-    this.currentData.items.forEach((item, index) => {
-      this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
-      this.acInstance.addToSelectedArea(item);
-    });
+    this.updateAutocomplete();
 
     this.listSelectionsObserver = () => {
       const coding = this.acInstance.getSelectedCodes();
@@ -279,6 +288,18 @@ export class AutocompleteParameterValueComponent
       this.inputId,
       this.listSelectionsObserver
     );
+  }
+
+  /**
+   * Fill component with this.currentData.
+   */
+  private updateAutocomplete(): void {
+    // Fill autocomplete with data (if currentData was set in writeValue).
+    this.acInstance.clearStoredSelection();
+    this.currentData.items.forEach((item, index) => {
+      this.acInstance.storeSelectedItem(item, this.currentData.codes[index]);
+      this.acInstance.addToSelectedArea(item);
+    });
   }
 
   /**
@@ -801,7 +822,7 @@ export class AutocompleteParameterValueComponent
       items: []
     };
     if (this.acInstance) {
-      this.setupAutocomplete();
+      this.updateAutocomplete();
     }
   }
 
