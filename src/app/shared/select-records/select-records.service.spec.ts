@@ -18,7 +18,7 @@ import {
   CACHE_NAME,
   FhirBackendService
 } from '../fhir-backend/fhir-backend.service';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
 import {
   CustomRxjsOperatorsService
 } from '../custom-rxjs-operators/custom-rxjs-operators.service';

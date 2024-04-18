@@ -2,9 +2,9 @@ import { BrowserModule } from '@angular/platform-browser';
 import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import {
-  MAT_FORM_FIELD_DEFAULT_OPTIONS,
-  MatFormFieldDefaultOptions
-} from '@angular/material/form-field';
+  MAT_LEGACY_FORM_FIELD_DEFAULT_OPTIONS as MAT_FORM_FIELD_DEFAULT_OPTIONS,
+  MatLegacyFormFieldDefaultOptions as MatFormFieldDefaultOptions
+} from '@angular/material/legacy-form-field';
 import { SettingsService } from './shared/settings-service/settings.service';
 import { AppRoutingModule } from './app-routing.module';
 import { HomeModule } from './modules/home/home.module';
@@ -14,9 +14,9 @@ import {
 import { LaunchModule } from './modules/launch/launch.module';
 import { AnnouncerModule } from './shared/announcer/announcer.module';
 import {
-  MAT_TOOLTIP_DEFAULT_OPTIONS,
-  MAT_TOOLTIP_DEFAULT_OPTIONS_FACTORY
-} from '@angular/material/tooltip';
+  MAT_LEGACY_TOOLTIP_DEFAULT_OPTIONS as MAT_TOOLTIP_DEFAULT_OPTIONS,
+  MAT_LEGACY_TOOLTIP_DEFAULT_OPTIONS_FACTORY as MAT_TOOLTIP_DEFAULT_OPTIONS_FACTORY
+} from '@angular/material/legacy-tooltip';
 import {
   Oauth2TokenCallbackModule
 } from './modules/oauth2-token-callback/oauth2-token-callback.module';
