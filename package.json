@@ -72,7 +72,7 @@
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "~1.5.0",
     "mock-xmlhttprequest": "^8.2.0",
-    "ng-mocks": "^14.3.3",
+    "ng-mocks": "^14.12.2",
     "prettier": "2.2.1",
     "read-excel-file": "^5.2.9",
     "source-map-explorer": "^2.5.3",
