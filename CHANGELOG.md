@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.17.6] - 2024-04-19
+### Changed
+- Updated Angular to version 17.
+- Updated Angular Material to version 16.
+### Fixed
+- Styles for autocomplete fields in the cart.
+
 ## [6.17.5] - 2024-04-16
 ### Changed
 - Updated Cypress to version 13.
