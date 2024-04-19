@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.18.0] - 2024-04-19
+### Changed
+- Use autocomplete-lhc progress bar for search fields.
+
 ## [6.17.5] - 2024-04-16
 ### Changed
 - Updated Cypress to version 13.
