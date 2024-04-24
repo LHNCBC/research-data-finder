@@ -488,7 +488,8 @@ export class ObservationCodeLookupComponent
         },
         useResultCache: false,
         maxSelect: '*',
-        matchListValue: true
+        matchListValue: true,
+        showLoadingIndicator: false
       }
     ));
   }
@@ -587,7 +588,8 @@ export class ObservationCodeLookupComponent
         useResultCache: false,
         maxSelect: '*',
         matchListValue: true,
-        showListOnFocusIfEmpty: true
+        showListOnFocusIfEmpty: true,
+        showLoadingIndicator: false
       }
     );
   }

@@ -349,7 +349,8 @@ export class AutocompleteParameterValueComponent
       useResultCache: false,
       maxSelect: '*',
       matchListValue: true,
-      showListOnFocusIfEmpty: this.searchParameter !== 'code'
+      showListOnFocusIfEmpty: this.searchParameter !== 'code',
+      showLoadingIndicator: false
     });
   }
 
@@ -550,7 +551,8 @@ export class AutocompleteParameterValueComponent
       useResultCache: false,
       maxSelect: '*',
       matchListValue: true,
-      showListOnFocusIfEmpty: true
+      showListOnFocusIfEmpty: true,
+      showLoadingIndicator: false
     });
     return acInstance;
   }
@@ -655,7 +657,8 @@ export class AutocompleteParameterValueComponent
       useResultCache: false,
       maxSelect: '*',
       matchListValue: true,
-      showListOnFocusIfEmpty: true
+      showListOnFocusIfEmpty: true,
+      showLoadingIndicator: false
     });
     return acInstance;
   }
