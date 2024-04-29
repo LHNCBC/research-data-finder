@@ -1,6 +1,6 @@
 import { Component, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ResourceTableComponent } from './resource-table/resource-table.component';
-import { MatTabGroup } from '@angular/material/tabs';
+import { MatLegacyTabGroup as MatTabGroup } from '@angular/material/legacy-tabs';
 import { getPluralFormOfResourceType } from '../shared/utils';
 import { saveAs } from 'file-saver';
 

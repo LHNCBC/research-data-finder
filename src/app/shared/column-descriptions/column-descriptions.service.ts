@@ -5,7 +5,7 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../fhir-backend/fhir-backend.service';
-import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog, MatLegacyDialogConfig as MatDialogConfig } from '@angular/material/legacy-dialog';
 import { SelectColumnsComponent } from '../../modules/select-columns/select-columns.component';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { capitalize } from '../utils';

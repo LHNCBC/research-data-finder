@@ -13,7 +13,7 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { MatFormFieldControl } from '@angular/material/form-field';
+import { MatLegacyFormFieldControl as MatFormFieldControl } from '@angular/material/legacy-form-field';
 import Def from 'autocomplete-lhc';
 import { find } from 'lodash-es';
 

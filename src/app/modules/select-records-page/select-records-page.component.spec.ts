@@ -16,17 +16,17 @@ import observationsByCodePhv00492021 from 'src/test/test-fixtures/observations-b
 import observationsByCodePhv00492022 from 'src/test/test-fixtures/observations-by-code-phv00492022.v1.p1.json';
 import observationsByCodePhv00492024 from 'src/test/test-fixtures/observations-by-code-phv00492024.v1.p1.json';
 import observationsByCodePhv00492025 from 'src/test/test-fixtures/observations-by-code-phv00492025.v1.p1.json';
-import { MatTabGroupHarness } from '@angular/material/tabs/testing';
+import { MatLegacyTabGroupHarness as MatTabGroupHarness } from '@angular/material/legacy-tabs/testing';
 import { HttpParams, HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatTableHarness } from '@angular/material/table/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
 import { CartComponent } from '../cart/cart.component';
 import { CohortService } from '../../shared/cohort/cohort.service';
-import { MatRadioButtonHarness } from '@angular/material/radio/testing';
+import { MatLegacyRadioButtonHarness as MatRadioButtonHarness } from '@angular/material/legacy-radio/testing';
 import tenPatientBundle
   from '../step-2-define-cohort-page/test-fixtures/patients-10.json';
-import { MatMenuHarness } from '@angular/material/menu/testing';
+import { MatLegacyMenuHarness as MatMenuHarness } from '@angular/material/legacy-menu/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import observations from './test-fixtures/observations.json';
 import { CartService } from '../../shared/cart/cart.service';
