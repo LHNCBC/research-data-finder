@@ -88,7 +88,7 @@ export class ObservationTestValueUnitComponent
   currentData = '';
 
   // Autocompleter instance
-  acInstance: Def.Autocompleter.Search;
+  acInstance: Def.Autocompleter.Prefetch;
   // Callback to handle changes
   listSelectionsObserver: (eventData: any) => void;
 
