@@ -15,12 +15,18 @@ import { AbstractControl, NgControl, UntypedFormControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { EMPTY, of, Subject, Subscription } from 'rxjs';
+import { EMPTY, Observable, of, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { escapeStringForRegExp } from '../../shared/utils';
-import { catchError, expand } from 'rxjs/operators';
+import {
+  catchError,
+  expand,
+  map,
+  switchMap,
+  tap
+} from 'rxjs/operators';
 import { AutocompleteParameterValue } from '../../types/autocomplete-parameter-value';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { ResearchStudyService } from '../../shared/research-study/research-study.service';
@@ -29,6 +35,7 @@ import Bundle = fhir.Bundle;
 import Resource = fhir.Resource;
 import Coding = fhir.Coding;
 import { CartService } from '../../shared/cart/cart.service';
+import { HIDE_ERRORS } from '../../shared/http-interceptors/toastr-interceptor';
 
 /**
  * data type used for this control
@@ -37,6 +44,10 @@ export interface Lookup {
   code: string;
   display: string;
 }
+
+// The number of possible search parameter values for which we can request all
+// possible values from server and use client search instead of ":text".
+const CLIENT_SEARCH_LENGTH = 20;
 
 /**
  * Component for search parameter value as autocomplete multi-select
@@ -153,9 +164,12 @@ export class AutocompleteParameterValueComponent
   // FHIRPath expression to extract autocomplete option, defaults to searchParameter
   @Input() expression: string;
   @Input() usePrefetch = false;
-  // Whether to use client search (we use client search for required value sets,
-  // since :text may not work)
-  @Input() clientSearch = false;
+  // Whether to use client search after getting possible values from the server.
+  // We use client search for small required sets of values or where the "display"
+  // value could be skipped since ":text" won't work in that case.
+  useClientSearch: boolean;
+  // Description of the current search parameter extracted from spec definitions
+  searchParamDesc: any;
 
   EVIDENCEVARIABLE = 'EvidenceVariable';
   dbgapLoincOnly = false;
@@ -361,13 +375,20 @@ export class AutocompleteParameterValueComponent
    * Set up Autocompleter search options.
    */
   setupAutocompleteSearch(): any {
+    const currentDefinitions = this.fhirBackend.getCurrentDefinitions();
+    // Get search parameter description from specification
+    this.searchParamDesc = currentDefinitions.resources[this.resourceType].searchParameters.find(i => i.element === this.searchParameter);
+    // At initialization, we don't yet know whether to use client search
+    this.useClientSearch = undefined;
+
     return new Def.Autocompleter.Search(this.inputId, null, {
       suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
       fhir: {
         search: (fieldVal, count) => {
           return {
             then: (resolve, reject) => {
-              this.searchItemsOnFhirServer(fieldVal, count, this.clientSearch, resolve, reject);
+              this.subscription?.unsubscribe();
+              this.subscription = this.searchItemsOnFhirServer(fieldVal, count, resolve, reject).subscribe();
             }
           };
         }
@@ -380,134 +401,204 @@ export class AutocompleteParameterValueComponent
   }
 
   /**
+   * Checks if client search is needed.
+   * We use client search for small required sets of values or where the "display"
+   * value could be skipped since ":text" won't work in that case.
+   */
+  isClientSearchNeeded(): Observable<boolean> {
+    if (this.useClientSearch === undefined) {
+      let obs: Observable<boolean>;
+      const currentDefinitions = this.fhirBackend.getCurrentDefinitions();
+      const valueSet = this.searchParamDesc.required
+        ? currentDefinitions.valueSets[this.searchParamDesc.valueSet]
+        : null;
+
+      if (this.searchParamDesc.required && valueSet) {
+        if (typeof valueSet === 'string') {
+          obs = this.httpClient.get(`$fhir/ValueSet/$expand`, {
+            params: {
+              url: valueSet
+            },
+            // "/ValueSet/$expand" may not be implemented
+            context: new HttpContext().set(HIDE_ERRORS, true)
+          }).pipe(
+            map((vs: any) => vs?.expansion?.total <= CLIENT_SEARCH_LENGTH),
+            catchError(() => {
+              return this.checkIfValuesHaveNoDisplay();
+            })
+          );
+        } else {
+          obs = of(valueSet.length <= CLIENT_SEARCH_LENGTH)
+        }
+      } else {
+        obs = this.checkIfValuesHaveNoDisplay();
+      }
+      return obs.pipe(
+        tap((useClientSearch) => {
+          this.useClientSearch = useClientSearch;
+        })
+      );
+    } else {
+      return of(this.useClientSearch);
+    }
+  }
+
+  /**
+   * Checks if values have no display. We only check the first page of resource
+   * bundle.
+   */
+  checkIfValuesHaveNoDisplay(): Observable<boolean> {
+    const url = `$fhir/${this.resourceType}`;
+    const params = {
+      _elements: this.getFhirName()
+    };
+
+    if (this.fhirBackend.features.missingModifier) {
+      params[`${this.searchParameter}:missing`] = false;
+    } else {
+      // if the :missing modifier is not allowed, :not=zzz is used instead
+      params[`${this.searchParameter}:not`] = 'zzz';
+    }
+
+    return this.httpClient.get(url, { params }).pipe(
+      map((response: Bundle) => {
+        const codingsGetter = this.getCodingsGetter();
+        return (response.entry || []).find((entry) => {
+          const codings = codingsGetter(entry.resource);
+          return codings.length && codings.find(coding => coding.display === undefined);
+        }) !== undefined;
+      })
+    );
+  }
+
+  /**
    * Search for autocomplete items on the FHIR server.
    * @param filterText - filter text
    * @param count - number of items to be found
-   * @param clientSearch - whether to use client search
    * @param resolve - success callback
    * @param reject - error callback
    */
   searchItemsOnFhirServer(
     filterText: string,
     count: number,
-    clientSearch: boolean,
     resolve: Function,
     reject: Function
   ) {
-    this.code2display = this.options?.reduce((acc, item) => {
-      acc[item.code] = item.display;
-      return acc;
-    }, {}) || {};
-    const url = `$fhir/${this.resourceType}`;
-    const params = {
-      ...(this.observationCodes
-        ? { 'combo-code': this.observationCodes.join(',') }
-        : {}),
-      _elements: this.getFhirName()
-    };
+    return this.isClientSearchNeeded().pipe(
+      switchMap((useClientSearch) => {
+        this.code2display = this.options?.reduce((acc, item) => {
+          acc[item.code] = item.display;
+          return acc;
+        }, {}) || {};
+        const url = `$fhir/${this.resourceType}`;
+        const params = {
+          ...(this.observationCodes
+            ? { 'combo-code': this.observationCodes.join(',') }
+            : {}),
+          _elements: this.getFhirName()
+        };
 
-    if (!clientSearch && filterText) {
-      params[`${this.searchParameter}:text`] = filterText;
-    } else {
-      if (this.fhirBackend.features.missingModifier) {
-        params[`${this.searchParameter}:missing`] = false;
-      } else {
-        // if the :missing modifier is not allowed, :not=zzz is used instead
-        params[`${this.searchParameter}:not`] = 'zzz';
-      }
-    }
-
-    // Hash of processed codes, used to exclude repeated codes
-    const processedCodes = {};
-    // Array of result items for autocompleter
-    const contains: ValueSetExpansionContains[] = [];
-    // Total amount of items
-    let total = null;
-    // Already selected codes
-    const selectedCodes = this.acInstance.getSelectedCodes();
-
-    this.loading = true;
-    this.subscription?.unsubscribe();
-
-    const obs = this.httpClient
-      .get(url, {
-        params
-      })
-      .pipe(
-        expand((response: Bundle) => {
-          const prevProcCodesCount = Object.keys(processedCodes).length;
-          const newItems = this.getAutocompleteItems(
-            response,
-            filterText,
-            processedCodes,
-            selectedCodes
-          );
-          contains.push(...newItems);
-          const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
-          if (nextPageUrl && contains.length < count) {
-            //  We have to check that there are no new processed codes to avoid unnecessary requests.
-            if (prevProcCodesCount === Object.keys(processedCodes).length) {
-              // If the request did not return new codes, then we need
-              // to go to the next page.
-              // Otherwise, it will be an infinite recursion.
-              // You can reproduce this problem on https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1
-              // if you comment next line and enter 'c' in the ResearchStudy.keyword
-              // field and click the 'See more items' link.
-              return this.httpClient.get(nextPageUrl);
-            }
-            if (newItems.length) {
-              this.liveAnnouncer.announce('New items added to list.');
-              // Update list before calling server for next query.
-              resolve({
-                resourceType: 'ValueSet',
-                expansion: {
-                  total: Number.isInteger(total) ? total : null,
-                  contains
-                }
-              });
-            }
-            const newParams = { ...params };
-            newParams[`${this.searchParameter}:not`] = this.fhirBackend.features
-              .hasNotModifierIssue
-              ? // Pass a single ":not" parameter, which is currently working
-                // correctly on the HAPI FHIR server.
-                Object.keys(processedCodes).join(',')
-              : // Pass each code as a separate ":not" parameter, which is
-                // currently causing performance issues on the HAPI FHIR server.
-                Object.keys(processedCodes);
-            return this.httpClient.get(url, {
-              params: newParams
-            });
+        if (!useClientSearch && filterText) {
+          params[`${this.searchParameter}:text`] = filterText;
+        } else {
+          if (this.fhirBackend.features.missingModifier) {
+            params[`${this.searchParameter}:missing`] = false;
           } else {
-            if (!nextPageUrl) {
-              total = contains.length;
-            } else if (response.total) {
-              total = response.total;
-            }
-            if (contains.length > count) {
-              contains.length = count;
-            }
-            this.loading = false;
-            this.liveAnnouncer.announce('Finished loading list.');
-            resolve({
-              resourceType: 'ValueSet',
-              expansion: {
-                total: Number.isInteger(total) ? total : null,
-                contains
-              }
-            });
-            // Emit a complete notification
-            return EMPTY;
+            // if the :missing modifier is not allowed, :not=zzz is used instead
+            params[`${this.searchParameter}:not`] = 'zzz';
           }
-        }),
-        catchError((error) => {
-          this.loading = false;
-          reject(error);
-          return of(contains);
-        })
-      );
+        }
 
-    this.subscription = obs.subscribe();
+        // Hash of processed codes, used to exclude repeated codes
+        const processedCodes = {};
+        // Array of result items for autocompleter
+        const contains: ValueSetExpansionContains[] = [];
+        // Total amount of items
+        let total = null;
+        // Already selected codes
+        const selectedCodes = this.acInstance.getSelectedCodes();
+
+        this.loading = true;
+
+        return this.httpClient
+          .get(url, {
+            params
+          })
+          .pipe(
+            expand((response: Bundle) => {
+              const prevProcCodesCount = Object.keys(processedCodes).length;
+              const newItems = this.getAutocompleteItems(
+                response,
+                filterText,
+                processedCodes,
+                selectedCodes
+              );
+              contains.push(...newItems);
+              const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
+              if (nextPageUrl && contains.length < count) {
+                //  We have to check that there are no new processed codes to avoid unnecessary requests.
+                if (prevProcCodesCount === Object.keys(processedCodes).length) {
+                  // If the request did not return new codes, then we need
+                  // to go to the next page.
+                  // Otherwise, it will be an infinite recursion.
+                  // You can reproduce this problem on https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1
+                  // if you comment next line and enter 'c' in the ResearchStudy.keyword
+                  // field and click the 'See more items' link.
+                  return this.httpClient.get(nextPageUrl);
+                }
+                if (newItems.length) {
+                  this.liveAnnouncer.announce('New items added to list.');
+                  // Update list before calling server for next query.
+                  resolve({
+                    resourceType: 'ValueSet',
+                    expansion: {
+                      total: Number.isInteger(total) ? total : null,
+                      contains
+                    }
+                  });
+                }
+                const newParams = { ...params };
+                newParams[`${this.searchParameter}:not`] = this.fhirBackend.features
+                  .hasNotModifierIssue
+                  ? // Pass a single ":not" parameter, which is currently working
+                    // correctly on the HAPI FHIR server.
+                  Object.keys(processedCodes).join(',')
+                  : // Pass each code as a separate ":not" parameter, which is
+                    // currently causing performance issues on the HAPI FHIR server.
+                  Object.keys(processedCodes);
+                return this.httpClient.get(url, {
+                  params: newParams
+                });
+              } else {
+                if (!nextPageUrl) {
+                  total = contains.length;
+                } else if (response.total) {
+                  total = response.total;
+                }
+                if (contains.length > count) {
+                  contains.length = count;
+                }
+                this.loading = false;
+                this.liveAnnouncer.announce('Finished loading list.');
+                resolve({
+                  resourceType: 'ValueSet',
+                  expansion: {
+                    total: Number.isInteger(total) ? total : null,
+                    contains
+                  }
+                });
+                // Emit a complete notification
+                return EMPTY;
+              }
+            }),
+            catchError((error) => {
+              this.loading = false;
+              reject(error);
+              return of(contains);
+            })
+          );
+      })
+    )
   }
 
   /**
