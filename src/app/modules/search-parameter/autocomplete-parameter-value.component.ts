@@ -47,7 +47,7 @@ export interface Lookup {
 
 // The number of possible search parameter values for which we can request all
 // possible values from server and use client search instead of ":text".
-const CLIENT_SEARCH_LENGTH = 20;
+const CLIENT_SEARCH_LENGTH = 100;
 
 /**
  * Component for search parameter value as autocomplete multi-select
