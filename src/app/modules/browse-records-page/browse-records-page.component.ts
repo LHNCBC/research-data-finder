@@ -6,7 +6,7 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { filter, map, startWith } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
-import { MatTabChangeEvent } from '@angular/material/tabs';
+import { MatLegacyTabChangeEvent as MatTabChangeEvent } from '@angular/material/legacy-tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';

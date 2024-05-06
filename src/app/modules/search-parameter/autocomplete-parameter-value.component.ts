@@ -14,7 +14,7 @@ import {
 import { AbstractControl, NgControl, UntypedFormControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
-import { MatFormFieldControl } from '@angular/material/form-field';
+import { MatLegacyFormFieldControl as MatFormFieldControl } from '@angular/material/legacy-form-field';
 import { EMPTY, Observable, of, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { escapeStringForRegExp } from '../../shared/utils';
@@ -396,7 +396,8 @@ export class AutocompleteParameterValueComponent
       useResultCache: false,
       maxSelect: '*',
       matchListValue: true,
-      showListOnFocusIfEmpty: this.searchParameter !== 'code'
+      showListOnFocusIfEmpty: this.searchParameter !== 'code',
+      showLoadingIndicator: false
     });
   }
 
@@ -667,7 +668,8 @@ export class AutocompleteParameterValueComponent
       useResultCache: false,
       maxSelect: '*',
       matchListValue: true,
-      showListOnFocusIfEmpty: true
+      showListOnFocusIfEmpty: true,
+      showLoadingIndicator: false
     });
     return acInstance;
   }
@@ -772,7 +774,8 @@ export class AutocompleteParameterValueComponent
       useResultCache: false,
       maxSelect: '*',
       matchListValue: true,
-      showListOnFocusIfEmpty: true
+      showListOnFocusIfEmpty: true,
+      showLoadingIndicator: false
     });
     return acInstance;
   }

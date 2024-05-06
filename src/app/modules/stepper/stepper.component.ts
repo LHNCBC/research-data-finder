@@ -34,7 +34,7 @@ import { SettingsPageComponent } from '../step-0-settings-page/settings-page.com
 import Patient = fhir.Patient;
 import { first } from 'rxjs/operators';
 import { CartService } from '../../shared/cart/cart.service';
-import {MatDialog} from "@angular/material/dialog";
+import {MatLegacyDialog as MatDialog} from "@angular/material/legacy-dialog";
 import {AlertDialogComponent} from "../../shared/alert-dialog/alert-dialog.component";
 
 // Ordered list of steps (should be the same as in the template)

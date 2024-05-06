@@ -85,20 +85,20 @@
         "serve": {
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
-            "browserTarget": "fhir-obs-viewer:build",
+            "buildTarget": "fhir-obs-viewer:build",
             "port": 8100,
             "proxyConfig": "src/proxy.conf.json"
           },
           "configurations": {
             "production": {
-              "browserTarget": "fhir-obs-viewer:build:production"
+              "buildTarget": "fhir-obs-viewer:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-builders/custom-webpack:extract-i18n",
           "options": {
-            "browserTarget": "fhir-obs-viewer:build"
+            "buildTarget": "fhir-obs-viewer:build"
           }
         },
         "test": {

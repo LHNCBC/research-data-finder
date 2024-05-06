@@ -29,7 +29,7 @@ import { saveAs } from 'file-saver';
 // See https://csv.js.org/stringify/distributions/browser_esm/
 import { stringify } from 'csv-stringify/browser/esm/sync';
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
-import { MatTooltip } from '@angular/material/tooltip';
+import { MatLegacyTooltip as MatTooltip } from '@angular/material/legacy-tooltip';
 
 /**
  * The main component for pulling Patient-related resources data

@@ -10,7 +10,7 @@ import { SelectColumnsComponent } from '../select-columns/select-columns.compone
 import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
 import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.component';
 import { MatStepperModule } from '@angular/material/stepper';
-import { MatButtonModule } from '@angular/material/button';
+import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
 import { MatIcon } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
@@ -26,7 +26,7 @@ import { SelectOptions } from '../step-1-select-an-area-of-interest/select-an-ar
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpClientModule } from '@angular/common/http';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
-import {MatDialogModule} from "@angular/material/dialog";
+import {MatLegacyDialogModule as MatDialogModule} from "@angular/material/legacy-dialog";
 
 @Component({
   selector: 'app-select-an-area-of-interest',

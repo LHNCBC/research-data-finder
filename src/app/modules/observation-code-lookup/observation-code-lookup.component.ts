@@ -15,7 +15,7 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
-import { MatFormFieldControl } from '@angular/material/form-field';
+import { MatLegacyFormFieldControl as MatFormFieldControl } from '@angular/material/legacy-form-field';
 import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
 import { EMPTY, forkJoin, of, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -488,7 +488,8 @@ export class ObservationCodeLookupComponent
         },
         useResultCache: false,
         maxSelect: '*',
-        matchListValue: true
+        matchListValue: true,
+        showLoadingIndicator: false
       }
     ));
   }
@@ -587,7 +588,8 @@ export class ObservationCodeLookupComponent
         useResultCache: false,
         maxSelect: '*',
         matchListValue: true,
-        showListOnFocusIfEmpty: true
+        showListOnFocusIfEmpty: true,
+        showLoadingIndicator: false
       }
     );
   }
