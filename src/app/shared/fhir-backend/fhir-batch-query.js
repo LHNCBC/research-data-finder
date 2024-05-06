@@ -424,7 +424,7 @@ class FhirBatchQuery extends EventTarget {
    */
   checkNotModifierIssueAndMaxHasAllowed(options) {
     return this.getWithCache('Observation?_count=1', options).then((response) => {
-      const obs = response.data.entry?.[0].resource;
+      const obs = response.data.entry?.[0]?.resource;
       const firstCode = obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
       const patientRef = obs?.subject?.reference;
       return firstCode && patientRef

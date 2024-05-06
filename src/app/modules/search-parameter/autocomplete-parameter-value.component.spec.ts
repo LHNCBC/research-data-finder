@@ -124,6 +124,38 @@ const bundleOfObservationsWithCategories = {
   ]
 };
 
+const bundleOfObservationsWithoutDisplayForCategories = {
+  link: [{ relation: 'next', url: 'nextPageUrl' }],
+  entry: [
+    {
+      resource: {
+        category: [
+          {
+            coding: [
+              {
+                code: 'someCode1',
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      resource: {
+        category: [
+          {
+            coding: [
+              {
+                code: 'someCode2',
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+};
+
 const emptyBundle = {};
 
 describe('AutoCompleteTestValueComponent', () => {
@@ -164,7 +196,11 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(true);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchItemsOnFhirServer('someValue', 20, resolve, reject);
+    component.searchParamDesc = {required: false};
+    component.searchItemsOnFhirServer('someValue', 20, resolve, reject).subscribe();
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:not=zzz')
+      .flush(bundleOfObservationsWithCategories);
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:text=someValue')
       .flush(bundleOfObservationsWithCategories);
@@ -183,7 +219,11 @@ describe('AutoCompleteTestValueComponent', () => {
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
 
-    component.searchItemsOnFhirServer('someValue', 20, resolve, reject);
+    component.searchParamDesc = {required: false};
+    component.searchItemsOnFhirServer('someValue', 20, resolve, reject).subscribe();
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:not=zzz')
+      .flush(bundleOfObservationsWithCategories);
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:text=someValue')
       .flush(bundleOfObservationsWithCategories);
@@ -202,7 +242,11 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'missingModifier').and.returnValue(false);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchItemsOnFhirServer('', 20, resolve, reject);
+    component.searchParamDesc = {required: false};
+    component.searchItemsOnFhirServer('', 20, resolve, reject).subscribe();
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:not=zzz')
+      .flush(bundleOfObservationsWithCategories);
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:not=zzz')
       .flush(bundleOfObservationsWithCategories);
@@ -221,7 +265,11 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'missingModifier').and.returnValue(true);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchItemsOnFhirServer('', 20, resolve, reject);
+    component.searchParamDesc = {required: false};
+    component.searchItemsOnFhirServer('', 20, resolve, reject).subscribe();
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false')
+      .flush(bundleOfObservationsWithCategories);
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:missing=false')
       .flush(bundleOfObservationsWithCategories);
@@ -229,6 +277,45 @@ describe('AutoCompleteTestValueComponent', () => {
       .expectOne(
         '$fhir/Observation?_elements=category&category:missing=false&category:not=someCode1,someCode2'
       )
+      .flush(emptyBundle);
+    mockHttp.verify();
+    expect(resolve).toHaveBeenCalled();
+    expect(reject).not.toHaveBeenCalled();
+  });
+
+  it('should use client search after getting possible values from the server if the list of possible values is small', () => {
+    spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(true);
+    spyOnProperty(features, 'missingModifier').and.returnValue(true);
+    const resolve = jasmine.createSpy();
+    const reject = jasmine.createSpy();
+    component.searchParamDesc = {required: true, valueSet: 'http://hl7.org/fhir/ValueSet/observation-category'};
+    component.searchItemsOnFhirServer('someValue', 20, resolve, reject).subscribe();
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false')
+      .flush(bundleOfObservationsWithCategories);
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false&category:not=someCode1,someCode2')
+      .flush(emptyBundle);
+    mockHttp.verify();
+    expect(resolve).toHaveBeenCalled();
+    expect(reject).not.toHaveBeenCalled();
+  });
+
+  it('should use client search after getting possible values from the server if the list of possible values has values without display', () => {
+    spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(true);
+    spyOnProperty(features, 'missingModifier').and.returnValue(true);
+    const resolve = jasmine.createSpy();
+    const reject = jasmine.createSpy();
+    component.searchParamDesc = {required: false};
+    component.searchItemsOnFhirServer('someValue', 20, resolve, reject).subscribe();
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false')
+      .flush(bundleOfObservationsWithoutDisplayForCategories);
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false')
+      .flush(bundleOfObservationsWithoutDisplayForCategories);
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false&category:not=someCode1,someCode2')
       .flush(emptyBundle);
     mockHttp.verify();
     expect(resolve).toHaveBeenCalled();

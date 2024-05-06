@@ -3,6 +3,15 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [6.17.8] - 2024-05-06
+### Fixed
+- An issue with updating the current value of autocompleter when changing the
+  search parameter name (without breaking the loading of saved criteria).
+- Added loading possible search parameter values for value sets with the required
+  binding strength from the FHIR server. This allows us to display only existing
+  values and fixes the fallback used to load values from the server when we can't
+  get them from spec definitions.
+
 ## [6.17.7] - 2024-04-29
 ### Changed
 - Updated Angular to version 17.
