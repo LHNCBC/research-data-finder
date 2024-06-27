@@ -410,11 +410,11 @@ export class AutocompleteParameterValueComponent
     if (this.useClientSearch === undefined) {
       let obs: Observable<boolean>;
       const currentDefinitions = this.fhirBackend.getCurrentDefinitions();
-      const valueSet = this.searchParamDesc.required
+      const valueSet = this.searchParamDesc?.required
         ? currentDefinitions.valueSets[this.searchParamDesc.valueSet]
         : null;
 
-      if (this.searchParamDesc.required && valueSet) {
+      if (this.searchParamDesc?.required && valueSet) {
         if (typeof valueSet === 'string') {
           obs = this.httpClient.get(`$fhir/ValueSet/$expand`, {
             params: {

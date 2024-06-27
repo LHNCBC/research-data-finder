@@ -196,7 +196,6 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(true);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchParamDesc = {required: false};
     component.searchItemsOnFhirServer('someValue', 20, resolve, reject).subscribe();
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:not=zzz')
@@ -219,7 +218,6 @@ describe('AutoCompleteTestValueComponent', () => {
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
 
-    component.searchParamDesc = {required: false};
     component.searchItemsOnFhirServer('someValue', 20, resolve, reject).subscribe();
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:not=zzz')
@@ -242,7 +240,6 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'missingModifier').and.returnValue(false);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchParamDesc = {required: false};
     component.searchItemsOnFhirServer('', 20, resolve, reject).subscribe();
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:not=zzz')
@@ -265,7 +262,6 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'missingModifier').and.returnValue(true);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchParamDesc = {required: false};
     component.searchItemsOnFhirServer('', 20, resolve, reject).subscribe();
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:missing=false')
@@ -306,7 +302,6 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'missingModifier').and.returnValue(true);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchParamDesc = {required: false};
     component.searchItemsOnFhirServer('someValue', 20, resolve, reject).subscribe();
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:missing=false')
