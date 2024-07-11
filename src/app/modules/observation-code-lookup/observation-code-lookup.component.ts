@@ -155,9 +155,6 @@ export class ObservationCodeLookupComponent
     return false;
   }
 
-  // Mapping from code to datatype
-  code2Type: { [key: string]: string } = {};
-
   /**
    * This properties currently unused but required by MatFormFieldControl:
    */
@@ -252,25 +249,13 @@ export class ObservationCodeLookupComponent
     }
     this.updateAutocomplete();
 
-    // Restore mapping from code to datatype from preselected data,
-    // if restricted by datatype
-    if (this.currentData.datatype !== ANY_DATATYPE) {
-      this.currentData.coding.forEach((code) => {
-        if (!this.code2Type[code.system + '|' + code.code]) {
-          this.code2Type[
-            code.system + '|' + code.code
-          ] = this.currentData.datatype;
-        }
-      });
-    }
-
     const acInstance = this.acInstance;
     this.listSelectionsObserver = (eventData) => {
-      const coding = acInstance.getSelectedCodes();
+      const data = acInstance.getSelectedCodes();
       const items = acInstance.getSelectedItems();
       let datatype = '';
-      if (coding.length > 0) {
-        datatype = this.code2Type[coding[0].system + '|' + coding[0].code];
+      if (data.length > 0) {
+        datatype = data[0].datatype;
         if (!eventData.removed) {
           acInstance.domCache.set('elemVal', eventData.val_typed_in);
           acInstance.useSearchFn(
@@ -280,10 +265,15 @@ export class ObservationCodeLookupComponent
         }
       }
       this.currentData = {
-        coding,
+        coding: data.map(i => ({
+          code: i.code,
+          system: i.system
+        })),
         // If there is no restriction by datatype, then do not reset the datatype
         datatype:
           this.currentData.datatype === ANY_DATATYPE ? ANY_DATATYPE : datatype,
+        defaultUnit: data[0]?.unitCode,
+        defaultUnitSystem: data[0]?.unitSystem,
         items
       };
       this.onChange(this.currentData);
@@ -637,7 +627,7 @@ export class ObservationCodeLookupComponent
   ): ValueSetExpansionContains[] {
     return (bundle.entry || []).reduce((acc, entry) => {
       const observation = entry.resource as Observation;
-      const datatype = this.getValueDataType(observation);
+      const {datatype, unitCode, unitSystem} = this.getValueDataTypeAndUnit(observation);
       acc.push(
         ...(observation.code.coding
           ?.filter((coding) => {
@@ -646,6 +636,10 @@ export class ObservationCodeLookupComponent
               if (
                 (!this.currentData.datatype ||
                   this.currentData.datatype === ANY_DATATYPE ||
+                  // TODO: maybe we have to compare units here too:
+                  //    unitCode === this.currentData.defaultUnit
+                  //    unitSystem === this.currentData.defaultUnitSystem
+                  //    (!) also we need to check commensurable units
                   datatype === this.currentData.datatype) &&
                 selectedCodes.indexOf(coding.code) === -1 &&
                 (isMatchToFieldVal.test(coding.code) ||
@@ -658,13 +652,12 @@ export class ObservationCodeLookupComponent
             return matched;
           })
           .map((coding) => {
-            this.code2Type[coding.system + '|' + coding.code] = datatype;
             return {
               // Autocompleter's function "storeSelectedItem" has only two
               // parameters: "itemText" and "code"
               // That is why we store "code" and "system" in the "code" field,
               // which doesn't match the ValueSet spec.
-              code: { code: coding.code, system: coding.system },
+              code: { code: coding.code, system: coding.system, datatype, unitCode, unitSystem },
               display: coding.display || coding.code
             };
           }) || [])
@@ -674,22 +667,32 @@ export class ObservationCodeLookupComponent
   }
 
   /**
-   * Returns the [x] part of the property name value[x]
+   * Returns the data type (the [x] part of the property name value[x]) of the
+   * value and in addition, for a data type equal to Quantity, returns the unit
+   * code and system of units.
    * @param observation - Observation resource data
    */
-  getValueDataType(observation: any): string {
-    let valueType = '';
+  getValueDataTypeAndUnit(observation: any):  {
+    datatype: string, unitCode: string, unitSystem: string
+  } {
+    let datatype = '';
+    let unitCode: string;
+    let unitSystem: string;
     [observation, ...(observation.component || [])].some((obj) => {
       return Object.keys(obj).some((key) => {
         const valueFound = ObservationCodeLookupComponent.reValueKey.test(key);
         if (valueFound) {
-          valueType = RegExp.$1;
+          datatype = RegExp.$1;
+          if (datatype === 'Quantity') {
+            unitCode = obj[key].code;
+            unitSystem = obj[key].system;
+          }
         }
         return valueFound;
       });
     });
 
-    return valueType;
+    return {datatype, unitCode, unitSystem};
   }
 
   /**

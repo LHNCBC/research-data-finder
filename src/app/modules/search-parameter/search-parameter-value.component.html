@@ -53,20 +53,15 @@
     </mat-form-field>
     <mat-form-field *ngIf="typeDescriptions[selectedDatatype].unit" class="unit">
       <mat-label>{{unitLabelText}}</mat-label>
-      <ng-container [ngSwitch]="unitList?.length > 0 ? 1 : unitList?.length === 0 ? 2 : 3">
+      <ng-container [ngSwitch]="unitList?.length > 0 ? 1 : 2">
         <app-autocomplete
           *ngSwitchCase="1"
           [matchListValue]="false"
           [options]="unitList"
           formControlName="testValueUnit"></app-autocomplete>
-        <input matInput type="text" readonly *ngSwitchCase="2"
+        <input matInput type="text" readonly
+               *ngSwitchDefault
                value="{{form.get('testValueUnit').value || 'Unknown unit'}}">
-        <app-observation-test-value-units
-          *ngSwitchDefault
-          formControlName="testValueUnit"
-          [loincCodes]="loincCodes"
-          placeholder="unit code">
-        </app-observation-test-value-units>
       </ng-container>
     </mat-form-field>
     <button type="button" mat-icon-button aria-label="Add the other end of the range"

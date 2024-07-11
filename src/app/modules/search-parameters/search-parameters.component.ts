@@ -26,8 +26,7 @@ import {
 } from '../../../query-builder/public-api';
 import { Observable, Subscription } from 'rxjs';
 import {
-  AutocompleteComponent,
-  AutocompleteOption
+  AutocompleteComponent
 } from '../autocomplete/autocomplete.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
@@ -35,9 +34,13 @@ import { MatLegacyButton as MatButton } from '@angular/material/legacy-button';
 import { Criterion, ResourceTypeCriteria } from '../../types/search-parameters';
 import { CODETEXT } from '../../shared/query-params/query-params.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
-import { getFocusableChildren } from '../../shared/utils';
+import {
+  getCommnsurableUnits,
+  getFocusableChildren
+} from '../../shared/utils';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { without } from 'lodash-es';
+import { AutocompleteOption } from '../../types/autocompleteOption';
 
 const OPERATOR_ADDING_MESSAGE =
   ' A radio group for selecting an AND/OR operator to combine criteria has appeared above the criteria.';
@@ -78,7 +81,7 @@ export class SearchParametersComponent
   @Input() excludeResources: string[];
   selectedSearchParameterNamesMap = new Map<ResourceTypeCriteria, string[]>();
   observationDataType: string;
-  observationCodes: string[] = [];
+  observationUnits: AutocompleteOption[] = [];
   observationLoincCodes: string[] = [];
   subscriptions: Subscription[] = [];
 
@@ -314,8 +317,10 @@ export class SearchParametersComponent
     selectedObservationCodes: SelectedObservationCodes
   ): void {
     this.observationDataType = selectedObservationCodes?.datatype;
-    this.observationCodes =
-      selectedObservationCodes?.coding.map((c) => c.code) || [];
+    this.observationUnits = getCommnsurableUnits(
+      selectedObservationCodes?.defaultUnit,
+      selectedObservationCodes?.defaultUnitSystem
+    );
     this.observationLoincCodes =
       selectedObservationCodes?.coding
         .filter((c) => c.system === 'http://loinc.org')

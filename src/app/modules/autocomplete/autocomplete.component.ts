@@ -1,34 +1,17 @@
 import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  HostListener,
-  Input,
-  OnDestroy,
-  Optional,
-  Self,
-  ViewChild
+  AfterViewInit, Component, ElementRef, HostListener, Input, OnChanges,
+  OnDestroy, Optional, Self, SimpleChanges, ViewChild
 } from '@angular/core';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
+import { AbstractControl, NgControl, UntypedFormControl } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { MatLegacyFormFieldControl as MatFormFieldControl } from '@angular/material/legacy-form-field';
+import {
+  MatLegacyFormFieldControl as MatFormFieldControl
+} from '@angular/material/legacy-form-field';
 import Def from 'autocomplete-lhc';
 import { find } from 'lodash-es';
-
-/**
- * Autocomplete option can have display name, value and description.
- * In simple cases, when the name is equal to the value and there is no
- * description, it can be a string or only have a name property.
- */
-export type AutocompleteOption =
-  | {
-      name: string;
-      value?: string;
-      desc?: string;
-    }
-  | string;
+import { AutocompleteOption } from '../../types/autocompleteOption';
 
 /**
  * Component for selecting values from a list of options using autocomplete-lhc.
@@ -46,7 +29,7 @@ export type AutocompleteOption =
 })
 export class AutocompleteComponent
   extends BaseControlValueAccessor<string>
-  implements AfterViewInit, MatFormFieldControl<string>, OnDestroy {
+  implements AfterViewInit, MatFormFieldControl<string>, OnDestroy, OnChanges {
   get value(): string {
     return this.currentData;
   }
@@ -167,10 +150,22 @@ export class AutocompleteComponent
     this.setupAutocomplete();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.acInstance && changes['options']) {
+      this.setupAutocomplete();
+    }
+  }
   /**
    * Performs cleanup when a component instance is destroyed.
    */
   ngOnDestroy(): void {
+    this.destroyAutocomplete();
+  }
+
+  /**
+   * Destroy the autocompleter
+   */
+  destroyAutocomplete(): void {
     if (this.acInstance) {
       this.acInstance.destroy();
       Def.Autocompleter.Event.removeCallback(
@@ -196,6 +191,7 @@ export class AutocompleteComponent
    * Set up Autocomplete prefetch options.
    */
   setupAutocomplete(): void {
+    this.destroyAutocomplete();
     this.acInstance = new Def.Autocompleter.Prefetch(
       this.inputId,
       this.options.map((o) => AutocompleteComponent.getOptionText(o)),

@@ -3,6 +3,10 @@
  * Please add future utility methods here (as top-level exports)
  */
 
+import fhirpath from 'fhirpath';
+import { sortBy } from 'lodash-es';
+import { AutocompleteOption } from '../types/autocompleteOption';
+
 /**
  * Capitalize the first char and return the string
  */
@@ -190,4 +194,33 @@ export function getRecordName(resourceType: string): string {
  */
 export function getPluralFormOfRecordName(resourceType: string): string {
   return getPluralFormOfResourceType(getRecordName(resourceType));
+}
+
+export const UCUM_CODE_SYSTEM = 'http://unitsofmeasure.org';
+
+/**
+ * Returns list of commensurable units for autocomplete-lhc.
+ * @param unitCode - unit code
+ * @param unitSystem - unit system
+ */
+export function getCommnsurableUnits(unitCode: string, unitSystem: string)
+  : AutocompleteOption[] {
+  let isFromList = false;
+  const unitList = unitSystem === UCUM_CODE_SYSTEM
+    ? (fhirpath as any).ucumUtils
+      .commensurablesList(unitCode)[0]
+      // TODO: Filter units by category in the UCUM library
+      ?.filter(i=>i.category_ === 'Clinical')
+      ?.map((i) => {
+        if (i.csCode_ === unitCode) {
+          isFromList = true;
+        }
+        return {
+          name: i.name_ || i.csCode_,
+          value: UCUM_CODE_SYSTEM + '|' + escapeFhirSearchParameter(i.csCode_)
+        };
+      })
+    : [];
+
+  return isFromList ? sortBy(unitList, 'name') : []
 }

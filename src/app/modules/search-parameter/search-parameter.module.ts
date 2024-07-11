@@ -13,7 +13,6 @@ import {
 import { MatLegacySelectModule as MatSelectModule } from '@angular/material/legacy-select';
 import { AutocompleteParameterValueComponent } from './autocomplete-parameter-value.component';
 import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
-import { ObservationTestValueUnitComponent } from './observation-test-value-unit/observation-test-value-unit.component';
 import { MatLegacyProgressSpinnerModule as MatProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
 import { FormControlCollectorModule } from '../../shared/error-manager/form-control-collector.module';
 import { TabToSelectModule } from '../../shared/tab-to-select/tab-to-select.module';
@@ -28,8 +27,7 @@ import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/lega
     SearchParameterComponent,
     DatesFromToComponent,
     AutocompleteParameterValueComponent,
-    SearchParameterValueComponent,
-    ObservationTestValueUnitComponent
+    SearchParameterValueComponent
   ],
   exports: [SearchParameterComponent, SearchParameterValueComponent],
   imports: [

@@ -20,11 +20,11 @@ import {
   OBSERVATION_VALUE
 } from '../../shared/query-params/query-params.service';
 import {
-  AutocompleteComponent,
-  AutocompleteOption
+  AutocompleteComponent
 } from '../autocomplete/autocomplete.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import NON_REQUIRED_BINDING_LISTS from '../../../../non-required-binding-lists.json';
+import { AutocompleteOption } from '../../types/autocompleteOption';
 
 /**
  * Component for editing one resource search parameter
@@ -44,6 +44,7 @@ export class SearchParameterComponent
   // options to avoid duplicate criteria.
   @Input() selectedSearchParameterNames: string[] = [];
   @Input() observationDataType: string;
+  @Input() observationUnits: AutocompleteOption[];
   @Input() observationCodes: string[];
   @Input() observationLoincCodes: string[];
   @Input() isPullData = false;
