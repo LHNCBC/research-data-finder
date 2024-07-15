@@ -6,8 +6,9 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [7.0.0] - 2024-07-11
 ### Added
 - Passing a unit system when filtering by observation values. Previously saved
-  criteria work as they worked before, but editing them is not fully supported
-  because they do not contain units of measurement.
+  criteria work as they worked before (the issue of not being able to pass the 
+  unit system for an observation value persists because they do not contain
+  units of measurement).
 
 ## [6.17.9] - 2024-06-27
 ### Fixed

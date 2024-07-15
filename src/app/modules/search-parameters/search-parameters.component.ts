@@ -35,7 +35,7 @@ import { Criterion, ResourceTypeCriteria } from '../../types/search-parameters';
 import { CODETEXT } from '../../shared/query-params/query-params.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import {
-  getCommnsurableUnits,
+  getCommensurableUnits,
   getFocusableChildren
 } from '../../shared/utils';
 import { CohortService } from '../../shared/cohort/cohort.service';
@@ -317,7 +317,7 @@ export class SearchParametersComponent
     selectedObservationCodes: SelectedObservationCodes
   ): void {
     this.observationDataType = selectedObservationCodes?.datatype;
-    this.observationUnits = getCommnsurableUnits(
+    this.observationUnits = getCommensurableUnits(
       selectedObservationCodes?.defaultUnit,
       selectedObservationCodes?.defaultUnitSystem
     );

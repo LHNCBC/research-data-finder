@@ -203,7 +203,7 @@ export const UCUM_CODE_SYSTEM = 'http://unitsofmeasure.org';
  * @param unitCode - unit code
  * @param unitSystem - unit system
  */
-export function getCommnsurableUnits(unitCode: string, unitSystem: string)
+export function getCommensurableUnits(unitCode: string, unitSystem: string)
   : AutocompleteOption[] {
   let isFromList = false;
   const unitList = unitSystem === UCUM_CODE_SYSTEM
