@@ -203,24 +203,35 @@ export const UCUM_CODE_SYSTEM = 'http://unitsofmeasure.org';
  * @param unitCode - unit code
  * @param unitSystem - unit system
  */
-export function getCommensurableUnits(unitCode: string, unitSystem: string)
+export function getCommensurableUnitOptions(unitCode: string, unitSystem: string)
   : AutocompleteOption[] {
   let isFromList = false;
-  const unitList = unitSystem === UCUM_CODE_SYSTEM
+  const unitList = getCommensurableUnitList(unitCode, unitSystem)
+    .map((i) => {
+      if (i.csCode_ === unitCode) {
+        isFromList = true;
+      }
+      return {
+        name: i.name_ || i.csCode_,
+        value: (isFromList && !unitSystem ? '' : UCUM_CODE_SYSTEM + '|') + escapeFhirSearchParameter(i.csCode_)
+      };
+    });
+
+  return isFromList ? sortBy(unitList, 'name') : []
+}
+
+/**
+ * Returns list of commensurable units from UCUM library.
+ * @param unitCode - unit code
+ * @param unitSystem - unit system
+ * @return {any[]}
+ */
+export function getCommensurableUnitList(unitCode: string, unitSystem: string)
+  : any[] {
+  return !unitSystem || unitSystem === UCUM_CODE_SYSTEM
     ? (fhirpath as any).ucumUtils
       .commensurablesList(unitCode)[0]
       // TODO: Filter units by category in the UCUM library
-      ?.filter(i=>i.category_ === 'Clinical')
-      ?.map((i) => {
-        if (i.csCode_ === unitCode) {
-          isFromList = true;
-        }
-        return {
-          name: i.name_ || i.csCode_,
-          value: UCUM_CODE_SYSTEM + '|' + escapeFhirSearchParameter(i.csCode_)
-        };
-      })
+      ?.filter(i=>i.category_ === 'Clinical') || []
     : [];
-
-  return isFromList ? sortBy(unitList, 'name') : []
 }

@@ -40,7 +40,9 @@ class TestHostComponent {
   selectedObservationCodes = new UntypedFormControl({
     coding: [{code: '3137-7', system: 'http://loinc.org'}],
     items: ['Height cm'],
-    datatype: 'Quantity'
+    datatype: 'Quantity',
+    defaultUnit: 'cm',
+    defaultUnitSystem: 'http://unitsofmeasure.org'
   });
 }
 

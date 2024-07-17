@@ -23,7 +23,8 @@ import { catchError, expand, tap } from 'rxjs/operators';
 import {
   modifyStringForSynonyms,
   generateSynonymLookup,
-  escapeStringForRegExp
+  escapeStringForRegExp,
+  getCommensurableUnitList
 } from '../../shared/utils';
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
@@ -89,6 +90,13 @@ export class ObservationCodeLookupComponent
     coding: [],
     items: []
   };
+
+  /**
+   * Index of commensurable units.
+   * This is an object whose keys are unit codes commensurate with the unit code
+   * of the this.currentData value, and all of whose values are true.
+   */
+  commensurableUnits: {[key:string]: true};
 
   /**
    * Implemented as part of MatFormFieldControl.
@@ -216,6 +224,7 @@ export class ObservationCodeLookupComponent
       coding: [],
       items: []
     };
+    this.updateCommensurableUnits();
     if (this.acInstance) {
       this.updateAutocomplete();
     }
@@ -276,6 +285,7 @@ export class ObservationCodeLookupComponent
         defaultUnitSystem: data[0]?.unitSystem,
         items
       };
+      this.updateCommensurableUnits();
       this.onChange(this.currentData);
     };
     Def.Autocompleter.Event.observeListSelections(
@@ -283,6 +293,21 @@ export class ObservationCodeLookupComponent
       this.listSelectionsObserver
     );
   }
+
+  /**
+   * Updates the index of commensurable units, which is used to filter the
+   * dropdown list items after selecting first item.
+   * See methods: getAutocompleteItems, isCurrentDataHasSameDataType.
+   */
+  updateCommensurableUnits() {
+    this.commensurableUnits = getCommensurableUnitList(
+      this.currentData.defaultUnit, this.currentData.defaultUnitSystem
+    ).reduce((acc, item) => {
+      acc[item.csCode_] = true;
+      return acc;
+    }, {});
+  }
+
 
   /**
    * Set up the autocompleter to extract data from observations.
@@ -636,11 +661,7 @@ export class ObservationCodeLookupComponent
               if (
                 (!this.currentData.datatype ||
                   this.currentData.datatype === ANY_DATATYPE ||
-                  // TODO: maybe we have to compare units here too:
-                  //    unitCode === this.currentData.defaultUnit
-                  //    unitSystem === this.currentData.defaultUnitSystem
-                  //    (!) also we need to check commensurable units
-                  datatype === this.currentData.datatype) &&
+                  this.isCurrentDataHasSameDataType(datatype, unitCode, unitSystem)) &&
                 selectedCodes.indexOf(coding.code) === -1 &&
                 (isMatchToFieldVal.test(coding.code) ||
                   isMatchToFieldVal.test(coding.display))
@@ -664,6 +685,29 @@ export class ObservationCodeLookupComponent
       );
       return acc;
     }, []);
+  }
+
+  /**
+   * Checks whether the passed data type and unit are compatible with the
+   * current data type and unit.
+   * @param {string} datatype - data type.
+   * @param {string|undefined} unitCode - unit code.
+   * @param {string|undefined} unitSystem - unit system.
+   * @return {boolean}
+   */
+  isCurrentDataHasSameDataType(datatype: string, unitCode: string, unitSystem: string): boolean {
+    if (this.currentData.datatype !== datatype) {
+      return false;
+    }
+    if (!this.currentData.defaultUnitSystem || this.currentData.defaultUnitSystem === unitSystem) {
+      if (unitCode === this.currentData.defaultUnit) {
+        return true;
+      } else {
+        return this.commensurableUnits[unitCode];
+      }
+    } else {
+      return false;
+    }
   }
 
   /**

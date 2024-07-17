@@ -10,7 +10,7 @@ import Observation = fhir.Observation;
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import {
   escapeFhirSearchParameter,
-  getCommensurableUnits
+  getCommensurableUnitOptions
 } from '../utils';
 import { AutocompleteOption } from '../../types/autocompleteOption';
 
@@ -137,13 +137,13 @@ export class CartService {
           this.variableUnits[id] = [];
 
           if (unitCode) {
-            this.variableUnits[id] = getCommensurableUnits(unitCode, unitSystem);
+            this.variableUnits[id] = getCommensurableUnitOptions(unitCode, unitSystem);
             this.variableData[id].value = {
               observationDataType: datatype,
               testValuePrefix: '',
               testValueModifier: '',
               testValue: '',
-              testValueUnit: (unitSystem ?? '') + '|' + escapeFhirSearchParameter(unitCode)
+              testValueUnit: (unitSystem ? unitSystem + '|' : '') + escapeFhirSearchParameter(unitCode)
             };
           }
         }
