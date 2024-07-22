@@ -297,7 +297,7 @@ export class ObservationCodeLookupComponent
   /**
    * Updates the index of commensurable units, which is used to filter the
    * dropdown list items after selecting first item.
-   * See methods: getAutocompleteItems, isCurrentDataHasSameDataType.
+   * See methods: getAutocompleteItems, hasSameDataTypeAsCurrentData.
    */
   updateCommensurableUnits() {
     this.commensurableUnits = getCommensurableUnitList(
@@ -661,7 +661,7 @@ export class ObservationCodeLookupComponent
               if (
                 (!this.currentData.datatype ||
                   this.currentData.datatype === ANY_DATATYPE ||
-                  this.isCurrentDataHasSameDataType(datatype, unitCode, unitSystem)) &&
+                  this.hasSameDataTypeAsCurrentData(datatype, unitCode, unitSystem)) &&
                 selectedCodes.indexOf(coding.code) === -1 &&
                 (isMatchToFieldVal.test(coding.code) ||
                   isMatchToFieldVal.test(coding.display))
@@ -688,14 +688,15 @@ export class ObservationCodeLookupComponent
   }
 
   /**
-   * Checks whether the passed data type and unit are compatible with the
-   * current data type and unit.
+   * Checks whether the passed data type is the same as the current data type,
+   * and if the data type is "Quantity", then the passed unit is compatible with
+   * the current data unit.
    * @param {string} datatype - data type.
    * @param {string|undefined} unitCode - unit code.
    * @param {string|undefined} unitSystem - unit system.
    * @return {boolean}
    */
-  isCurrentDataHasSameDataType(datatype: string, unitCode: string, unitSystem: string): boolean {
+  hasSameDataTypeAsCurrentData(datatype: string, unitCode: string, unitSystem: string): boolean {
     if (this.currentData.datatype !== datatype) {
       return false;
     }
