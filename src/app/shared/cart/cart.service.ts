@@ -6,11 +6,13 @@ import Bundle = fhir.Bundle;
 import {
   SearchParameterValue
 } from '../../modules/search-parameter/search-parameter-value.component';
-import fhirpath from 'fhirpath';
-import { sortBy } from 'lodash-es';
-import { AutocompleteOption } from '../../modules/autocomplete/autocomplete.component';
 import Observation = fhir.Observation;
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import {
+  escapeFhirSearchParameter,
+  getCommensurableUnitOptions
+} from '../utils';
+import { AutocompleteOption } from '../../types/autocompleteOption';
 
 // List item, this can be a record or a group (array) of records
 export type ListItem = Resource | Resource[];
@@ -131,26 +133,17 @@ export class CartService {
 
         if (datatype === 'Quantity') {
           const unitCode = observation[prop].code || '';
+          const unitSystem = observation[prop].system || '';
           this.variableUnits[id] = [];
 
           if (unitCode) {
-            let isFromList = false;
-            // TODO: ucumUtils is not added to index.d.ts of fhirpath.js
-            const unitList = (fhirpath as any).ucumUtils
-              .commensurablesList(unitCode)[0]
-              ?.map((i) => {
-                if (i.csCode_ === unitCode) {
-                  isFromList = true;
-                }
-                return { name: i.name_ || i.csCode_, value: i.csCode_ };
-              });
-            this.variableUnits[id] = isFromList ? sortBy(unitList, 'name') : [];
+            this.variableUnits[id] = getCommensurableUnitOptions(unitCode, unitSystem);
             this.variableData[id].value = {
               observationDataType: datatype,
               testValuePrefix: '',
               testValueModifier: '',
               testValue: '',
-              testValueUnit: unitCode
+              testValueUnit: (unitSystem ? unitSystem + '|' : '') + escapeFhirSearchParameter(unitCode)
             };
           }
         }
@@ -184,6 +177,8 @@ export class CartService {
       [].concat(...listItems).map((record) => this.getResourceId(record))
     ).forEach((id) => {
       items.byId.delete(id);
+      delete this.variableData[id];
+      delete this.variableUnits[id];
     });
 
     // Update list

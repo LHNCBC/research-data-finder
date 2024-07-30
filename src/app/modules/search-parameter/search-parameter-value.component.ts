@@ -14,8 +14,8 @@ import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
-import { AutocompleteOption } from '../autocomplete/autocomplete.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { AutocompleteOption } from '../../types/autocompleteOption';
 
 /**
  * data type used for this control

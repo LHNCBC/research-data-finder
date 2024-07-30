@@ -6,6 +6,9 @@ export interface SelectedObservationCodes {
   items: string[];
   // Datatype of the selected Observation codes
   datatype: string;
+  // Default unit
+  defaultUnit?: string;
+  defaultUnitSystem?: string;
 }
 
 // Code defined by a terminology system

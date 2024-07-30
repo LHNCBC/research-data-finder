@@ -213,7 +213,7 @@ export class QueryParamsService {
     const unit = value.testValueUnit;
     return testValue.trim()
       ? `${prefix}${encodeURIComponent(
-          testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
+          testValue + (unit ? '|' + (unit.includes('|') ? unit: '|' + unit) : '')
         )}`
       : '';
   }
@@ -232,7 +232,7 @@ export class QueryParamsService {
     const unit = value.testValueUnit;
     return testValue.trim()
       ? `${prefix}${encodeURIComponent(
-          testValue + (unit ? '||' + escapeFhirSearchParameter(unit) : '')
+        testValue + (unit ? '|' + (/(?<!\\)\|/.test(unit) ? unit: '|' + unit) : '')
         )}`
       : '';
   }
