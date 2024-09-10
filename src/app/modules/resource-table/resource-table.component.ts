@@ -23,6 +23,7 @@ import {
 import { ColumnDescription } from '../../types/column.description';
 import { distinctUntilChanged, sample, tap } from 'rxjs/operators';
 import {
+  dispatchWindowResize,
   escapeStringForRegExp,
   getPluralFormOfRecordName, getPluralFormOfResourceType
 } from '../../shared/utils';
@@ -42,7 +43,7 @@ import { FilterType } from '../../types/filter-type';
 import { CustomDialog } from '../../shared/custom-dialog/custom-dialog.service';
 import Resource = fhir.Resource;
 import { MatExpansionPanel } from '@angular/material/expansion';
-import { MatLegacyTooltip as MatTooltip } from '@angular/material/legacy-tooltip';
+import { MatTooltip } from '@angular/material/tooltip';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { isEqual, pickBy } from 'lodash-es';
 import { saveAs } from 'file-saver';
@@ -641,6 +642,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
    */
   toggleFullscreen(): void {
     this.fullscreen = !this.fullscreen;
+    setTimeout(() => {
+      dispatchWindowResize();
+    }, 200);
   }
 
   /**

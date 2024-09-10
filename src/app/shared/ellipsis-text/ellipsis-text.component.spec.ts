@@ -4,7 +4,7 @@ import { EllipsisTextComponent } from './ellipsis-text.component';
 import { EllipsisTextModule } from './ellipsis-text.module';
 import { Component, ViewChild } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { MatLegacyTooltip as MatTooltip } from '@angular/material/legacy-tooltip';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   template: ` <div style="width: 100px">

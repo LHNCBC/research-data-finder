@@ -15,7 +15,7 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
 import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
-import { MatLegacyFormFieldControl as MatFormFieldControl } from '@angular/material/legacy-form-field';
+import { MatFormFieldControl } from '@angular/material/form-field';
 import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
 import { EMPTY, forkJoin, of, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -138,15 +138,25 @@ export class ObservationCodeLookupComponent
    */
   @Input() isPullData = false;
 
+  // The current error state is used to check if it has changed.
+  currentErrorState = false;
+
   /**
    * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
    */
   get errorState(): boolean {
     const formControl = this.ngControl?.control as UntypedFormControl;
-    return (
-      this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
-      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
-    );
+    if (formControl) {
+      const newErrorState = (
+        this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
+        (this.errorStateMatcher.isErrorState(formControl, null))
+      );
+      if (this.currentErrorState !== newErrorState) {
+        this.currentErrorState = newErrorState;
+        setTimeout(() => this.stateChanges.next());
+      }
+    }
+    return this.currentErrorState;
   }
 
   /**

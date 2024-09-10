@@ -6,13 +6,13 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { filter, map, startWith } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
-import { MatLegacyTabChangeEvent as MatTabChangeEvent } from '@angular/material/legacy-tabs';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
 import Resource = fhir.Resource;
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';
-import { getPluralFormOfRecordName } from '../../shared/utils';
+import { dispatchWindowResize, getPluralFormOfRecordName } from '../../shared/utils';
 import { ResourceTableParentComponent } from '../resource-table-parent.component';
 import { HttpContext } from '@angular/common/http';
 
@@ -94,24 +94,7 @@ export class BrowseRecordsPageComponent
     this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
       startWith(this.getCurrentResourceType()),
       map(() => {
-        // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
-        // displaying an empty table when the active tab is changed.
-        // This event runs _changeListener in ViewportRuler which run checkViewportSize
-        // in CdkVirtualScrollViewport.
-        // See code for details:
-        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
-        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
-        if (typeof Event === 'function') {
-          // fire resize event for modern browsers
-          window.dispatchEvent(new Event('resize'));
-        } else {
-          // for IE and other old browsers
-          // causes deprecation warning on modern browsers
-          const evt = window.document.createEvent('UIEvents');
-          // @ts-ignore
-          evt.initUIEvent('resize', true, false, window, 0);
-          window.dispatchEvent(evt);
-        }
+        dispatchWindowResize();
         return this.getCurrentResourceType();
       })
     );

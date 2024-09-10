@@ -1,21 +1,9 @@
 .resource-type {
   width: 210px;
 }
-.search-parameter-group {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  & app-search-parameter-group {
-    flex: 1 1;
-  }
 
-  & .mat-icon-button:not(:hover) mat-icon {
-    opacity: .4;
-  }
-
-  & button {
-     margin-top: 0.4em;
-  }
+.h-box {
+  align-items: center;
 }
 
 query-builder {
@@ -23,7 +11,11 @@ query-builder {
 }
 
 .remove-btn {
-  margin: 9px 6px 9px 6px;
+  margin: 5px 6px 5px 6px;
+}
+
+.record-type-header, .group-header {
+  margin: 16px 0;
 }
 
 .group-header {
@@ -51,10 +43,10 @@ query-builder {
       padding-left: 30px;
 
       & > .q-connector::before {
-        top: -11px;
+        top: -8px;
         left: -9px;
         width: 14px;
-        height: 37px;
+        height: 29px;
       }
 
       & > .q-connector.q-ruleset::before {
@@ -84,21 +76,21 @@ query-builder {
       padding: 0;
 
       &.q-connector::before {
-        height: 33px;
+        height: 28px;
       }
 
       &.q-connector::after {
-        top: 34px;
-        height: calc(100% - 33px);
+        top: 30px;
+        height: calc(100% - 29px);
       }
 
       .condition-label {
-        top: 19px;
+        top: 14px;
       }
 
     }
 
-    .mat-form-field-subscript-wrapper {
+    .mat-mdc-form-field-subscript-wrapper {
       display: none;
     }
 
@@ -132,11 +124,25 @@ query-builder {
 
 mat-radio-group.q-switch-group {
   mat-radio-button {
-    ::ng-deep .mat-radio-container,
-    ::ng-deep .mat-radio-label-content {
-      font-size: 14px;
-      line-height: 28px;
-      font-weight: normal;
+    ::ng-deep .mdc-radio {
+      padding: 3px;
+
+      .mat-mdc-radio-touch-target {
+        height: 30px;
+        width: 30px;
+      }
+      .mdc-radio__native-control {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        height: 30px;
+        width: 30px;
+      }
+    }
+    ::ng-deep .mdc-label {
+      cursor: pointer;
+      line-height: 26px;
+      color: #3f51b5;
     }
 
     text-align: center;
@@ -146,7 +152,8 @@ mat-radio-group.q-switch-group {
     border-style: solid;
     background: white;
     color: #3f51b5;
-    padding: 0 8px;
+    padding: 1px 8px;
+    display: inline-block;
   }
 
   mat-radio-button:first-child {

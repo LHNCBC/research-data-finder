@@ -64,7 +64,8 @@
                value="{{form.get('testValueUnit').value || 'Unknown unit'}}">
       </ng-container>
     </mat-form-field>
-    <button type="button" mat-icon-button aria-label="Add the other end of the range"
+    <button type="button" aria-label="Add the other end of the range"
+            mat-mini-fab class="mini-fab-32" color="basic"
             *ngIf="showAddLineButton" matTooltip="Add the other end of the range"
             (click)="addLine()">
       <mat-icon svgIcon="add"></mat-icon>
@@ -73,7 +74,7 @@
 
   <div class="test-value" *ngIf="hasSecondLine">
     <button type="button" aria-label="Remove this end of the range"
-            mat-mini-fab class="mini-fab-32" color="basic"
+            mat-mini-fab class="mini-fab-32 remove-btn" color="basic"
             matTooltip="Remove this end of the range"
             (click)="resetSecondLine(); checkToShowAddButton(prefixControlValue)">
       <mat-icon svgIcon="clear"></mat-icon>

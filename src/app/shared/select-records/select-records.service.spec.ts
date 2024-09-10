@@ -6,7 +6,6 @@ import observationsThirdPage
   from './test-fixtures/observations-third-page.json';
 import { SelectRecordsService } from './select-records.service';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 import { HttpContext, HttpParams, HttpRequest } from '@angular/common/http';
 import variables from 'src/test/test-fixtures/variables-4.json';
 import studies from 'src/test/test-fixtures/research-studies.json';
@@ -18,7 +17,7 @@ import {
   CACHE_NAME,
   FhirBackendService
 } from '../fhir-backend/fhir-backend.service';
-import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import {
   CustomRxjsOperatorsService
 } from '../custom-rxjs-operators/custom-rxjs-operators.service';
@@ -43,7 +42,7 @@ describe('SelectRecordsService', () => {
   beforeEach(async () => {
     await configureTestingModule(
       {
-        imports: [RouterTestingModule, MatDialogModule]
+        imports: [MatDialogModule]
       },
       options
     );

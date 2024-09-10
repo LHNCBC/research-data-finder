@@ -16,18 +16,17 @@ import observationsByCodePhv00492021 from 'src/test/test-fixtures/observations-b
 import observationsByCodePhv00492022 from 'src/test/test-fixtures/observations-by-code-phv00492022.v1.p1.json';
 import observationsByCodePhv00492024 from 'src/test/test-fixtures/observations-by-code-phv00492024.v1.p1.json';
 import observationsByCodePhv00492025 from 'src/test/test-fixtures/observations-by-code-phv00492025.v1.p1.json';
-import { MatLegacyTabGroupHarness as MatTabGroupHarness } from '@angular/material/legacy-tabs/testing';
+import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { HttpParams, HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { CartComponent } from '../cart/cart.component';
 import { CohortService } from '../../shared/cohort/cohort.service';
-import { MatLegacyRadioButtonHarness as MatRadioButtonHarness } from '@angular/material/legacy-radio/testing';
+import { MatRadioButtonHarness } from '@angular/material/radio/testing';
 import tenPatientBundle
   from '../step-2-define-cohort-page/test-fixtures/patients-10.json';
-import { MatLegacyMenuHarness as MatMenuHarness } from '@angular/material/legacy-menu/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { MatMenuHarness } from '@angular/material/menu/testing';
 import observations from './test-fixtures/observations.json';
 import { CartService } from '../../shared/cart/cart.service';
 import {
@@ -70,7 +69,7 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     await configureTestingModule(
       {
         declarations: [SelectRecordsPageComponent],
-        imports: [SelectRecordsPageModule, RouterTestingModule]
+        imports: [SelectRecordsPageModule]
       },
       {
         features: {
@@ -189,7 +188,7 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     await secondAddButton.click();
 
     const studyCartEl = fixture.debugElement
-      .query(By.css('.mat-tab-body-active'))
+      .query(By.css('.mat-mdc-tab-body-active'))
       .query(By.directive(CartComponent));
     const studyCart = studyCartEl.componentInstance;
 
@@ -221,7 +220,7 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     await selectTab('Studies');
     const removeButton = await loader.getHarness(
       MatButtonHarness.with({
-        selector: '.mat-tab-body-active app-cart .list-toolbar__icon button'
+        selector: '.mat-mdc-tab-body-active app-cart .list-toolbar__icon button'
       })
     );
     // Remove the study from the cart
@@ -267,7 +266,7 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
     await firstAddButton.click();
 
     const variableCartEl = fixture.debugElement
-      .query(By.css('.mat-tab-body-active'))
+      .query(By.css('.mat-mdc-tab-body-active'))
       .query(By.directive(CartComponent));
     const variableCart = variableCartEl.componentInstance;
     expect(variableCart.listItems.length).toEqual(rows.length);
@@ -454,7 +453,7 @@ describe('SelectRecordsPageComponent (when there are no studies for the user)', 
     await configureTestingModule(
       {
         declarations: [SelectRecordsPageComponent],
-        imports: [SelectRecordsPageModule, RouterTestingModule]
+        imports: [SelectRecordsPageModule]
       },
       {
         features: {

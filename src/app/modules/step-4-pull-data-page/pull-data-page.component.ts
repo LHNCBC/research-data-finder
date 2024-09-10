@@ -17,7 +17,7 @@ import { FormControl, UntypedFormControl, Validators } from '@angular/forms';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
-import { getPluralFormOfResourceType } from '../../shared/utils';
+import { dispatchWindowResize, getPluralFormOfResourceType } from '../../shared/utils';
 import { ResourceTableParentComponent } from '../resource-table-parent.component';
 import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
@@ -29,7 +29,7 @@ import { saveAs } from 'file-saver';
 // See https://csv.js.org/stringify/distributions/browser_esm/
 import { stringify } from 'csv-stringify/browser/esm/sync';
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
-import { MatLegacyTooltip as MatTooltip } from '@angular/material/legacy-tooltip';
+import { MatTooltip } from '@angular/material/tooltip';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -196,24 +196,7 @@ export class PullDataPageComponent
     this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
       startWith(this.getCurrentResourceType()),
       map(() => {
-        // Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
-        // displaying an empty table when the active tab is changed.
-        // This event runs _changeListener in ViewportRuler which run checkViewportSize
-        // in CdkVirtualScrollViewport.
-        // See code for details:
-        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
-        // https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
-        if (typeof Event === 'function') {
-          // fire resize event for modern browsers
-          window.dispatchEvent(new Event('resize'));
-        } else {
-          // for IE and other old browsers
-          // causes deprecation warning on modern browsers
-          const evt = window.document.createEvent('UIEvents');
-          // @ts-ignore
-          evt.initUIEvent('resize', true, false, window, 0);
-          window.dispatchEvent(evt);
-        }
+        dispatchWindowResize();
         return this.getCurrentResourceType();
       })
     );

@@ -4,7 +4,9 @@
   {{ hasStudyTab() ? 'Study selection limits list of variables.' : '' }}
 </p>
 
-<mat-tab-group dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
+<mat-tab-group dynamicHeight
+               (selectedTabChange)="selectedTabChange($event)"
+               mat-stretch-tabs="false" mat-align-tabs="start">
   <mat-tab *ngFor="let resourceType of visibleResourceTypes" [label]="resourceType | pluralFormOfRecordName">
     <div class="v-box tab-content">
       <app-resource-table *ngIf="resourceType === 'ResearchStudy' && selectRecords.currentState[resourceType]"
@@ -21,7 +23,7 @@
         <ng-template #buttonPrefix>
           <button mat-mini-fab
                   color="basic"
-                  type="button" mat-icon-button
+                  type="button"
                   (click)="reloadFromServer(resourceType)"
                   matTooltip="Reload records from server">
             <mat-icon svgIcon="refresh"></mat-icon>
@@ -89,7 +91,6 @@
               <mat-checkbox [(ngModel)]="recTypeLoinc"
                             (change)="hasLoinc=true;loadFirstPage(resourceType)">Show one row per LOINC code</mat-checkbox>
             </div>
-            <div class="spacer"></div>
           </div>
         </ng-template>
         <ng-template #header>

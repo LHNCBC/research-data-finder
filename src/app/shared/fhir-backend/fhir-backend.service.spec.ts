@@ -14,10 +14,10 @@ import { of } from 'rxjs';
 import { SettingsService } from '../settings-service/settings.service';
 import { FhirService } from '../fhir-service/fhir.service';
 import {
-  MatLegacyDialog as MatDialog,
-  MatLegacyDialogModule as MatDialogModule,
-  MatLegacyDialogRef as MatDialogRef
-} from '@angular/material/legacy-dialog';
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef
+} from '@angular/material/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
 import queryResponseCache from './query-response-cache';

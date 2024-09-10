@@ -61,7 +61,7 @@
 
   <button mat-mini-fab
           color="basic"
-          type="button" mat-icon-button
+          type="button"
           (click)="columnDescriptionsService.openColumnsDialog(resourceTypeColumns || resourceType, context)"
           aria-label="Configure table"
           matTooltip="Configure table">
@@ -201,9 +201,9 @@
         </td>
       </ng-container>
 
-      <tr class="mat-row" *matNoDataRow>
+      <tr class="mat-mdc-row" *matNoDataRow>
         <ng-container *ngIf="!loading">
-          <td class="mat-cell" [attr.colspan]="(columnDescriptions?.length || 0) + 1">
+          <td class="mat-mdc-cell" [attr.colspan]="(columnDescriptions?.length || 0) + 1">
             <ng-container *ngIf="hasFilters(); else noFiltersBlock">
               There are no records for the selected filters.
               <span id="clearFilters"

@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
@@ -40,7 +40,7 @@
     "file-saver": "^2.0.5",
     "json5": "^2.2.3",
     "lodash-es": "^4.17.21",
-    "ng-table-virtual-scroll": "~1.5.0",
+    "ng-table-virtual-scroll": "~1.6.1",
     "ngx-toastr": "^15.2.2",
     "rxjs": "~6.6.0",
     "tslib": "^2.4.0",
@@ -53,7 +53,7 @@
     "@angular/compiler-cli": "^17.3.5",
     "@cypress/schematic": "^1.6.0",
     "@cypress/webpack-preprocessor": "^5.15.5",
-    "@jscutlery/cypress-harness": "^0.6.0",
+    "@jscutlery/cypress-harness": "^0.7.12",
     "@types/fhir": "^3.0.2",
     "@types/hapi": "^18.0.8",
     "@types/jasmine": "~3.6.0",

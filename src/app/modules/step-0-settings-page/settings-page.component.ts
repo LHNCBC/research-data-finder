@@ -14,7 +14,7 @@ import { fromEvent, Observable, Subject } from 'rxjs';
 import { filter, map, take, takeUntil } from 'rxjs/operators';
 import { setUrlParam } from '../../shared/utils';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import {
   AlertDialogComponent
 } from '../../shared/alert-dialog/alert-dialog.component';

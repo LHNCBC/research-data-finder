@@ -14,7 +14,7 @@ import { CohortService, MAX_PAGE_SIZE } from '../../shared/cohort/cohort.service
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import { HttpContext } from '@angular/common/http';
 import { BrowseRecordsPageComponent } from '../browse-records-page/browse-records-page.component';
-import { MatLegacyTabGroup as MatTabGroup } from '@angular/material/legacy-tabs';
+import { MatTabGroup } from '@angular/material/tabs';
 import {
   SearchParametersComponent
 } from '../search-parameters/search-parameters.component';

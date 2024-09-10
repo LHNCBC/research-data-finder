@@ -12,11 +12,10 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import researchStudies from 'src/test/test-fixtures/research-studies.json';
 import threeVariables from 'src/test/test-fixtures/variables-3.json';
 import fourVariables from 'src/test/test-fixtures/variables-4.json';
-import { MatLegacyTabGroupHarness as MatTabGroupHarness } from '@angular/material/legacy-tabs/testing';
+import { MatTabGroupHarness } from '@angular/material/tabs/testing';
 import { HttpParams, HttpRequest } from '@angular/common/http';
 import { By } from '@angular/platform-browser';
-import { RouterTestingModule } from '@angular/router/testing';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 
 describe('BrowseRecordsPageComponent', () => {
@@ -29,7 +28,7 @@ describe('BrowseRecordsPageComponent', () => {
     await configureTestingModule(
       {
         declarations: [BrowseRecordsPageComponent],
-        imports: [BrowseRecordsPageModule, RouterTestingModule]
+        imports: [BrowseRecordsPageModule]
       },
       {
         features: {

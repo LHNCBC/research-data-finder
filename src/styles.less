@@ -3,6 +3,14 @@
 body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
+
+  // Hide everything else if any element is expanded to the full browser window
+  &:has(.fullscreen) :not(:has(.fullscreen)):not(.fullscreen, .fullscreen *, .cdk-overlay-container, .cdk-overlay-container *, #searchResults, #searchResults *) {
+    display: none;
+  }
+  &:has(.fullscreen) :has(.fullscreen){
+    height: 0;
+  }
 }
 
 .v-box {
@@ -61,8 +69,12 @@ body {
 /*
  Temporary solution: Showing icon properly beside of text in mat-stroked-button
  */
-button.mat-stroked-button .mat-icon {
-  margin-top: -3px;
+button[mat-stroked-button] {
+  line-height: normal;
+  .mat-icon {
+    height: 24px;
+    width: 24px;
+  }
 }
 
 /*
@@ -71,14 +83,14 @@ button.mat-stroked-button .mat-icon {
 @import "~autocomplete-lhc/source/auto_completion.css";
 .autocomp_selected {
   padding: 0;
-  line-height: normal;
+  line-height: 22px;
   width: 100%;
   border-radius: unset;
   border: 0;
   white-space: normal;
 }
 
-.autocomp_selected input {
+.autocomp_selected input, .ansList.ac_multiple {
   border-width: 0;
   font: inherit;
   outline-style: none;
@@ -100,6 +112,7 @@ button.mat-stroked-button .mat-icon {
  */
 .ansList.ac_multiple, .ansList.ac_multiple:focus {
   width: calc(100% - 14px);
+  line-height: 22px;
 }
 
 // Remove original error state - we use MatFormField to show an error state
@@ -301,7 +314,7 @@ mat-step-header[aria-selected=true] {
 }
 
 // Replaces the default maximum menu panel width of 280px
-.cdk-overlay-pane .mat-menu-panel {
+.cdk-overlay-pane .mat-mdc-menu-panel {
   max-width: 400px;
 }
 

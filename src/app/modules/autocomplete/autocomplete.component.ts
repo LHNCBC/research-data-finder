@@ -6,9 +6,7 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { AbstractControl, NgControl, UntypedFormControl } from '@angular/forms';
 import { Subject } from 'rxjs';
-import {
-  MatLegacyFormFieldControl as MatFormFieldControl
-} from '@angular/material/legacy-form-field';
+import { MatFormFieldControl } from '@angular/material/form-field';
 import Def from 'autocomplete-lhc';
 import { find } from 'lodash-es';
 import { AutocompleteOption } from '../../types/autocompleteOption';
@@ -48,15 +46,25 @@ export class AutocompleteComponent
     return this.focused || !this.empty;
   }
 
+  // The current error state is used to check if it has changed.
+  currentErrorState = false;
+
   /**
    * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
    */
   get errorState(): boolean {
     const formControl = this.ngControl?.control as UntypedFormControl;
-    return (
-      this.inputField?.nativeElement.className.indexOf('invalid') >= 0 ||
-      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
-    );
+    if (formControl) {
+      const newErrorState = (
+        this.inputField?.nativeElement.className.indexOf('invalid') >= 0 ||
+        (this.errorStateMatcher.isErrorState(formControl, null))
+      );
+      if (this.currentErrorState !== newErrorState) {
+        this.currentErrorState = newErrorState;
+        setTimeout(() => this.stateChanges.next());
+      }
+    }
+    return this.currentErrorState;
   }
 
   /**
