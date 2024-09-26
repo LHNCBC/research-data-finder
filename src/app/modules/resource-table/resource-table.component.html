@@ -14,6 +14,7 @@
   <mat-accordion>
     <mat-expansion-panel hideToggle #panel>
       <mat-expansion-panel-header
+          [class.default-cursor]="!loadingStatistics.length"
           (click)="!loadingStatistics.length && panel.toggle()"
           (keydown.enter)="!loadingStatistics.length && panel.toggle()"
           (keydown.space)="!loadingStatistics.length && panel.toggle()">
