@@ -126,9 +126,9 @@
     <div class="condition-label" *ngIf="parentRuleSet?.rules?.length > 1">{{parentRuleSet.condition}}</div>
     <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"
                           (ngModelChange)="onChangeSearchParameter($event, parentRuleSet)"
-                          [observationDataType]="observationDataType"
-                          [observationUnits]="observationUnits"
-                          [observationLoincCodes]="observationLoincCodes"
+                          [observationDataType]="selectedCodesData.get(parentRuleSet)?.dataType"
+                          [observationUnits]="selectedCodesData.get(parentRuleSet)?.observationUnits"
+                          [observationLoincCodes]="selectedCodesData.get(parentRuleSet)?.loincCodes"
                           [selectedSearchParameterNames]="selectedSearchParameterNamesMap.get(parentRuleSet)">
     </app-search-parameter>
   </ng-container>

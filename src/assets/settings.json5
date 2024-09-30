@@ -140,9 +140,9 @@
           sortObservationsByDate: true,
           sortObservationsByAgeAtEvent: false,
           lastnLookup: true,
-          interpretation: false,
+          interpretation: true,
           hasNotModifierIssue: true,
-          maxHasAllowed: 1
+          maxHasAllowed: 2
         }
       }
     },
@@ -308,7 +308,7 @@
           lastnLookup: false,
           interpretation: true,
           hasNotModifierIssue: false,
-          maxHasAllowed: 1
+          maxHasAllowed: 2
         }
       }
     }

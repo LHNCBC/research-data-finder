@@ -426,16 +426,19 @@ class FhirBatchQuery extends EventTarget {
     return this.getWithCache('Observation?_count=1', options).then((response) => {
       const obs = response.data.entry?.[0]?.resource;
       const firstCode = obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
-      const patientRef = obs?.subject?.reference;
-      return firstCode && patientRef
+      const patientRef1 = obs?.subject?.reference;
+      return firstCode
         ? this.getWithCache(
-          `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_count=1`,
+          `Observation?code:not=${firstCode}&_count=1`,
           options
         ).then((oneCodeResp) => {
+          const oneCodeRespObs = oneCodeResp.data.entry?.[0].resource;
           const secondCode =
-            oneCodeResp.data.entry?.[0].resource.code.coding?.[0].system +
+            oneCodeRespObs?.code.coding?.[0].system +
             '%7C' +
-            oneCodeResp.data.entry?.[0].resource.code.coding?.[0].code;
+            oneCodeRespObs?.code.coding?.[0].code;
+          const patientRef2 = oneCodeRespObs?.subject?.reference;
+          const patientRefs = [...new Set([patientRef1, patientRef2])].join(',');
 
           // If a query with two "_has" takes too long, treat that as two "_has"
           // in one query are not supported.
@@ -446,14 +449,12 @@ class FhirBatchQuery extends EventTarget {
 
           return secondCode
             ? Promise.allSettled([
-              typeof oneCodeResp.data.total === 'number'
-                ? Promise.resolve(oneCodeResp)
-                : this.getWithCache(
-                  `Observation?code:not=${firstCode}&subject=${patientRef}&_total=accurate&_summary=count`,
-                  options
-                ),
               this.getWithCache(
-                `Observation?code:not=${firstCode},${secondCode}&subject=${patientRef}&_total=accurate&_summary=count`,
+                `Observation?code:not=${firstCode}&subject=${patientRefs}&_total=accurate&_summary=count`,
+                options
+              ),
+              this.getWithCache(
+                `Observation?code:not=${firstCode},${secondCode}&subject=${patientRefs}&_total=accurate&_summary=count`,
                 options
               ),
               this.getWithCache(
@@ -465,7 +466,7 @@ class FhirBatchQuery extends EventTarget {
                 hasNotModifierIssue: summaryOneCodeResp.status === 'fulfilled' && summaryTwoCodeResp.status === 'fulfilled'
                   ? summaryTwoCodeResp.value.data.total < summaryOneCodeResp.value.data.total
                   : false,
-                maxHasAllowed: summaryHasResp.status === 'fulfilled' && summaryHasResp.value.data.total > 0 ? 2 : 1
+                maxHasAllowed: summaryHasResp.status === 'fulfilled' && summaryHasResp.value.data.total >= 0 ? 2 : 1
               }
             })
             : Promise.reject();
