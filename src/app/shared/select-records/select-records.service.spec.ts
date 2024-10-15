@@ -61,7 +61,7 @@ describe('SelectRecordsService', () => {
       [],
       {},
       { display_name: 'somename' },
-      { active: 'dispay_name', direction: 'desc' },
+      { active: 'dispay_name', direction: 'asc' },
       0
     );
     service.currentState['Variable'].resourceStream.subscribe(() => {});
@@ -195,7 +195,7 @@ describe('SelectRecordsService', () => {
       options.features = {
         hasNotModifierIssue: true
       };
-      const sort: Sort = {active: 'code', direction: 'asc'};
+      const sort: Sort = {active: 'code', direction: 'desc'};
       spyOn(service, 'sortObservationsByVariableColumn').and.callThrough();
       loadFirstPageOfObservations(sort);
       expect(service.sortObservationsByVariableColumn).toHaveBeenCalledOnceWith(
@@ -225,7 +225,7 @@ describe('SelectRecordsService', () => {
       options.features = {
         hasNotModifierIssue: true
       };
-      const sort: Sort = {active: 'code', direction: 'asc'};
+      const sort: Sort = {active: 'code', direction: 'desc'};
       spyOn(service, 'sortObservationsByVariableColumn').and.callThrough();
       loadFirstPageOfObservations(sort);
       expect(service.sortObservationsByVariableColumn).toHaveBeenCalledOnceWith(

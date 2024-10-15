@@ -82,7 +82,7 @@
                                [class.table-container-with-prefix]="!!prefixTemplate"
                                [class.empty-table]="dataSource.data.length === 0"
                                (scroll)="onScroll()">
-    <table mat-table matSort matSortDisableClear matSortStart='desc'
+    <table mat-table matSort matSortDisableClear matSortStart='asc'
            [dataSource]="dataSource"
            [matSortActive]="sort?.active" [matSortDirection]="sort?.direction"
            class="cell-text-no-wrap"

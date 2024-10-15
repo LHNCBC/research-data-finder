@@ -3,6 +3,7 @@ import { ColumnDescription } from '../../types/column.description';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 
 /**
  * Component for selecting columns displayed in resource table
@@ -24,7 +25,8 @@ export class SelectColumnsComponent {
 
   constructor(
     private dialogRef: MatDialogRef<SelectColumnsComponent>,
-    @Inject(MAT_DIALOG_DATA) data
+    @Inject(MAT_DIALOG_DATA) data,
+    private liveAnnouncer: LiveAnnouncer
   ) {
     this.resourceType = data.resourceType;
     this.columns = data.columns;
@@ -76,5 +78,14 @@ export class SelectColumnsComponent {
    */
   clearSelection(): void {
     this.columns.forEach((x) => (x.visible = false));
+  }
+
+  /**
+   * Marks all columns as invisible to show only the default columns and
+   * announce this to the user.
+   */
+  clearSelectionWithAnnouncement() {
+    this.clearSelection();
+    this.liveAnnouncer.announce('All columns have been deselected.');
   }
 }

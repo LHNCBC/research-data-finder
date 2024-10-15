@@ -693,7 +693,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-    const isAsc = this.sort.direction === 'desc';
+    const isAsc = this.sort.direction === 'asc';
     const allColumns = this.columnDescriptionsService.getAvailableColumns(
       this.resourceTypeColumns || this.resourceType,
       this.context
@@ -925,8 +925,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       message = `The data was sorted by ${
         sortingColumnDescription.displayName
       } in ${
-        // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-        this.sort.direction === 'desc' ? 'ascending' : 'descending'
+        this.sort.direction === 'asc' ? 'ascending' : 'descending'
       } order.`;
     }
 
