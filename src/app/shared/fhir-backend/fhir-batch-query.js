@@ -425,7 +425,8 @@ class FhirBatchQuery extends EventTarget {
   checkNotModifierIssueAndMaxHasAllowed(options) {
     return this.getWithCache('Observation?_count=1', options).then((response) => {
       const obs = response.data.entry?.[0]?.resource;
-      const firstCode = obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code;
+      const firstCode = obs?.code.coding?.[0].code ?
+        obs?.code.coding?.[0].system + '%7C' + obs?.code.coding?.[0].code : null;
       const patientRef1 = obs?.subject?.reference;
       return firstCode
         ? this.getWithCache(
@@ -433,12 +434,12 @@ class FhirBatchQuery extends EventTarget {
           options
         ).then((oneCodeResp) => {
           const oneCodeRespObs = oneCodeResp.data.entry?.[0].resource;
-          const secondCode =
-            oneCodeRespObs?.code.coding?.[0].system +
-            '%7C' +
-            oneCodeRespObs?.code.coding?.[0].code;
+          const secondCode = oneCodeRespObs?.code.coding?.[0].code ?
+            oneCodeRespObs?.code.coding?.[0].system + '%7C' +
+            oneCodeRespObs?.code.coding?.[0].code : null;
           const patientRef2 = oneCodeRespObs?.subject?.reference;
-          const patientRefs = [...new Set([patientRef1, patientRef2])].join(',');
+          const patientRefs = patientRef1 && patientRef2 ?
+            [...new Set([patientRef1, patientRef2])].join(',') : '';
 
           // If a query with two "_has" takes too long, treat that as two "_has"
           // in one query are not supported.
