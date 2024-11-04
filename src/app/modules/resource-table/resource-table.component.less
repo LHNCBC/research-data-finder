@@ -40,8 +40,10 @@
   }
 }
 
-td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
-  padding-right: 10px;
+th.mat-mdc-header-cell:first-of-type,
+td.mat-mdc-cell:first-of-type,
+td.mat-mdc-footer-cell:first-of-type {
+  padding-left: 24px;
 }
 
 .cell-text-wrap {
@@ -64,7 +66,7 @@ td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
     table {
       height: 100%;
 
-      tr.mat-no-data-row {
+      tr.mat-mdc-no-data-row {
         height: 100%;
       }
     }
@@ -72,12 +74,12 @@ td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
 }
 
 .cell-text-no-wrap {
-  tr.mat-no-data-row {
-    td.mat-cell {
+  tr.mat-mdc-no-data-row {
+    td.mat-mdc-cell {
       text-align: center;
     }
   }
-  td.mat-cell {
+  td.mat-mdc-cell {
     padding-top: 0;
     padding-bottom: 0;
     vertical-align: middle;
@@ -98,36 +100,36 @@ td.mat-cell, th.mat-header-cell, td.mat-footer-cell {
     }
   }
 
-  td.mat-cell.mat-column-title {
+  td.mat-mdc-cell.mat-column-title {
     max-width: 400px;
   }
 
-  td.mat-cell.mat-column-NumAnalyses,
-  td.mat-cell.mat-column-NumDocuments,
-  td.mat-cell.mat-column-NumMolecularDatasets,
-  td.mat-cell.mat-column-NumPhenotypeDatasets,
-  td.mat-cell.mat-column-NumSamples,
-  td.mat-cell.mat-column-NumSubjects,
-  td.mat-cell.mat-column-NumSubStudies,
-  td.mat-cell.mat-column-NumVariables {
+  td.mat-mdc-cell.mat-column-NumAnalyses,
+  td.mat-mdc-cell.mat-column-NumDocuments,
+  td.mat-mdc-cell.mat-column-NumMolecularDatasets,
+  td.mat-mdc-cell.mat-column-NumPhenotypeDatasets,
+  td.mat-mdc-cell.mat-column-NumSamples,
+  td.mat-mdc-cell.mat-column-NumSubjects,
+  td.mat-mdc-cell.mat-column-NumSubStudies,
+  td.mat-mdc-cell.mat-column-NumVariables {
     padding-left: 30px;
   }
 
-  th.mat-header-cell:not(.cell-with-icon) {
+  th.mat-mdc-header-cell:not(.cell-with-icon) {
     white-space: nowrap;
   }
 }
 
-.mat-header-cell {
+.mat-mdc-header-cell {
   font-weight: bold;
-  color: black;
-  span {
-    text-align: right;
-  }
 }
 
-th button[mat-icon-button] {
+th button[mat-icon-button], td mat-checkbox {
   margin-left: -12px;
+}
+
+th:has(button[mat-icon-button]), td:has(mat-checkbox) {
+  padding-right: 0;
 }
 
 th button:not(.clear-btn) {
@@ -155,7 +157,7 @@ tr.highlight {
   background: #eee;
 }
 
-.clear-btn.mat-button-disabled ::ng-deep svg {
+.clear-btn:disabled ::ng-deep svg {
   fill: rgba(0, 0, 0, 0.54);
 }
 
@@ -172,6 +174,14 @@ tr.highlight {
   }
 }
 
+:host ::ng-deep {
+  .mat-sort-header-position-before .mat-sort-header-arrow,
+  [dir=rtl] .mat-sort-header-arrow {
+    // MatTable shows sort order icons in reverse
+    transform: scale(1, -1) !important;
+  }
+}
+
 :host.fullscreen {
   position: fixed;
   left: 0;
@@ -179,7 +189,6 @@ tr.highlight {
   top: 0;
   bottom: 0;
   padding: 0 5px 0 5px;
-  z-index: 101;
   background-color: white;
 
   .table-container {

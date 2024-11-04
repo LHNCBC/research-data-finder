@@ -3,11 +3,10 @@ import { AutocompleteParameterValueComponent } from './autocomplete-parameter-va
 import { Component, ViewChild } from '@angular/core';
 import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
-import { MatLegacyProgressSpinnerModule as MatProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { RouterTestingModule } from '@angular/router/testing';
 import { configureTestingModule } from 'src/test/helpers';
 import { HttpTestingController } from '@angular/common/http/testing';
 
@@ -17,8 +16,7 @@ const imports = [
   MatFormFieldModule,
   SharedModule,
   MatProgressSpinnerModule,
-  NoopAnimationsModule,
-  RouterTestingModule
+  NoopAnimationsModule
 ];
 
 @Component({

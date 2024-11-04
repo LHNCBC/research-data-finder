@@ -30,7 +30,7 @@ import { FhirService } from '../fhir-service/fhir.service';
 import { Router } from '@angular/router';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { RasTokenService } from '../ras-token/ras-token.service';
-import { MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
 import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';

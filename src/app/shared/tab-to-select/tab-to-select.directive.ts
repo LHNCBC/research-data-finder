@@ -1,5 +1,5 @@
 import { Directive, HostListener, Optional } from '@angular/core';
-import { MatLegacyAutocompleteTrigger as MatAutocompleteTrigger } from '@angular/material/legacy-autocomplete';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 
 /**
  * When applied to a mat-autocomplete control, user can hit TAB key to select

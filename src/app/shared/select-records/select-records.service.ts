@@ -305,9 +305,7 @@ export class SelectRecordsService {
           ? {
               of:
                 dataFields[sort.active] +
-                ':' +
-                // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-                (sort.direction === 'asc' ? 'desc' : 'asc')
+                ':' + sort.direction
             }
           : {})
       }
@@ -787,7 +785,7 @@ export class SelectRecordsService {
 
     if (sort) {
       // MatTable shows sort order icons in reverse (see comment to PR on LF-1905).
-      const isAsc = sort.direction === 'desc';
+      const isAsc = sort.direction === 'asc';
       const allColumns = this.columnDescriptionsService.getAvailableColumns(
         'Variable',
         'browse'

@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.0.1] - 2024-09-09
+### Fixed
+- An issue where part of a table was not visible when scrolling after it was
+  expanded to full screen.
+- Removed deprecated RouterTestingModule.
+- Replaced legacy Angular Material components.
+
 ## [7.0.0] - 2024-07-11
 ### Added
 - Passing a unit system when filtering by observation values. Previously saved

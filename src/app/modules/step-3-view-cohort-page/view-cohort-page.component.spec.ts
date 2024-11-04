@@ -8,8 +8,7 @@ import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import { RouterTestingModule } from '@angular/router/testing';
-import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 
 describe('ViewCohortComponent', () => {
   let component: ViewCohortPageComponent;
@@ -29,7 +28,6 @@ describe('ViewCohortComponent', () => {
         BrowserAnimationsModule,
         MatExpansionModule,
         HttpClientModule,
-        RouterTestingModule,
         MatDialogModule
       ],
       providers: [

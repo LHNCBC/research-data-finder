@@ -2,14 +2,13 @@ import { TestBed } from '@angular/core/testing';
 
 import { PullDataService } from './pull-data.service';
 import { SharedModule } from '../shared.module';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('PullDataService', () => {
   let service: PullDataService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [SharedModule, RouterTestingModule]
+      imports: [SharedModule]
     });
     service = TestBed.inject(PullDataService);
   });

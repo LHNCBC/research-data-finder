@@ -3,14 +3,13 @@ import { QueryParamsService } from './query-params.service';
 import { SharedModule } from '../shared.module';
 import { SearchParameter } from '../../types/search.parameter';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('QueryParamsService', () => {
   let service: QueryParamsService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [SharedModule, RouterTestingModule],
+      imports: [SharedModule],
       providers: [FhirBackendService]
     });
     service = TestBed.inject(QueryParamsService);

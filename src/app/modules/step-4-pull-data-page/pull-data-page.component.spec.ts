@@ -16,7 +16,6 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
-import { RouterTestingModule } from '@angular/router/testing';
 import { configureTestingModule } from 'src/test/helpers';
 
 /**
@@ -66,8 +65,7 @@ describe('PullDataForCohortComponent', () => {
           PullDataPageModule,
           SharedModule,
           HttpClientTestingModule,
-          MatIconTestingModule,
-          RouterTestingModule
+          MatIconTestingModule
         ]
       },
       { serverUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4' }
@@ -267,8 +265,7 @@ describe('PullDataForCohortComponent', () => {
         PullDataPageModule,
         SharedModule,
         HttpClientTestingModule,
-        MatIconTestingModule,
-        RouterTestingModule
+        MatIconTestingModule
       ]
     });
     cohort = TestBed.inject(CohortService);

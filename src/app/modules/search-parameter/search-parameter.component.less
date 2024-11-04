@@ -18,6 +18,7 @@ app-dates-from-to {
 
 .parameter-name {
   flex: 1 1;
+  min-width: 200px;
 }
 
 .parameter-value {
@@ -31,4 +32,8 @@ mat-radio-group {
 
 app-observation-code-lookup {
   width: 100%;
+}
+
+:host ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
 }

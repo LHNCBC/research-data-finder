@@ -14,7 +14,7 @@ import {
 import { AbstractControl, NgControl, UntypedFormControl } from '@angular/forms';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import Def from 'autocomplete-lhc';
-import { MatLegacyFormFieldControl as MatFormFieldControl } from '@angular/material/legacy-form-field';
+import { MatFormFieldControl } from '@angular/material/form-field';
 import { EMPTY, Observable, of, Subject, Subscription } from 'rxjs';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { escapeStringForRegExp } from '../../shared/utils';
@@ -88,15 +88,25 @@ export class AutocompleteParameterValueComponent
     return this.focused || !this.empty;
   }
 
+  // The current error state is used to check if it has changed.
+  currentErrorState = false;
+
   /**
    * Whether the control is in an error state (Implemented as part of MatFormFieldControl)
    */
   get errorState(): boolean {
     const formControl = this.ngControl?.control as UntypedFormControl;
-    return (
-      this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
-      (formControl && this.errorStateMatcher.isErrorState(formControl, null))
-    );
+    if (formControl) {
+      const newErrorState = (
+        this.input?.nativeElement.className.indexOf('invalid') >= 0 ||
+        (this.errorStateMatcher.isErrorState(formControl, null))
+      );
+      if (this.currentErrorState !== newErrorState) {
+        this.currentErrorState = newErrorState;
+        setTimeout(() => this.stateChanges.next());
+      }
+    }
+    return this.currentErrorState;
   }
 
   /**
@@ -485,6 +495,9 @@ export class AutocompleteParameterValueComponent
     resolve: Function,
     reject: Function
   ) {
+
+    this.loading = true;
+
     return this.isClientSearchNeeded().pipe(
       switchMap((useClientSearch) => {
         this.code2display = this.options?.reduce((acc, item) => {
@@ -518,8 +531,6 @@ export class AutocompleteParameterValueComponent
         let total = null;
         // Already selected codes
         const selectedCodes = this.acInstance.getSelectedCodes();
-
-        this.loading = true;
 
         return this.httpClient
           .get(url, {

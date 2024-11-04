@@ -2,14 +2,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SelectAnAreaOfInterestComponent } from './select-an-area-of-interest.component';
 import { MockComponent, MockDirective } from 'ng-mocks';
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
-import { MatLegacyRadioButton as MatRadioButton, MatLegacyRadioGroup as MatRadioGroup } from '@angular/material/legacy-radio';
+import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
 import { of } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import { MatLegacyCheckbox as MatCheckbox } from '@angular/material/legacy-checkbox';
+import { MatCheckbox } from '@angular/material/checkbox';
 import { configureTestingModule } from 'src/test/helpers';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('SelectAnAreaOfInterestComponent', () => {
   let component: SelectAnAreaOfInterestComponent;
@@ -26,7 +25,7 @@ describe('SelectAnAreaOfInterestComponent', () => {
           MockComponent(MatCheckbox),
           MockComponent(ResourceTableComponent)
         ],
-        imports: [ReactiveFormsModule, RouterTestingModule],
+        imports: [ReactiveFormsModule],
         providers: [
           {
             provide: ColumnDescriptionsService,

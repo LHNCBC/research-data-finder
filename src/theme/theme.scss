@@ -1,170 +1,105 @@
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
 @use '@angular/material' as mat;
-@use 'sass:math';
-@use '../../node_modules/@angular/material/core/theming/theming';
-@use '../../node_modules/@angular/material/core/style/private';
-@use '../../node_modules/@angular/material/core/typography/typography';
-@use '../../node_modules/@angular/material/core/typography/typography-utils';
-@import './variables';
-
-// Used to make instances of the _mat-form-field-label-floating mixin negligibly different,
-// and prevent Google's CSS Optimizer from collapsing the declarations. This is needed because some
-// of the selectors contain pseudo-classes not recognized in all browsers. If a browser encounters
-// an unknown pseudo-class it will discard the entire rule set.
-$outline-dedupe: 0;
-
-// Applies a floating label above the form field control itself.
-// See source code here:
-// https://github.com/angular/components/blob/14.2.x/src/material/form-field/_form-field-outline-theme.scss
-@mixin _label-floating($font-scale, $infix-padding, $infix-margin-top) {
-  transform: translateY(-$infix-margin-top - $infix-padding + $outline-dedupe) scale($font-scale);
-  width: math.div(100%, $font-scale) + $outline-dedupe;
-
-  $outline-dedupe: $outline-dedupe + 0.00001 !global;
-}
-
-// To make form fields more compact we should override "mat-form-field-outline-typography" mixin
-// to change local variable "$infix-padding" value
-// See source code here:
-// https://github.com/angular/components/blob/14.2.x/src/material/form-field/_form-field-outline-theme.scss
-@mixin outline-typography($config-or-theme) {
-  $config: typography.private-typography-to-2014-config(
-                  theming.get-typography-config($config-or-theme));
-  // The unit-less line-height from the font config.
-  $line-height: typography-utils.line-height($config, input);
-  // The amount to scale the font for the floating label and subscript.
-  $subscript-font-scale: 0.75;
-  // The padding above and below the infix.
-  $infix-padding: $form-field-infix-padding;
-  // The margin applied to the form-field-infix to reserve space for the floating label.
-  $infix-margin-top:
-          $subscript-font-scale * typography-utils.private-coerce-unitless-to-em($line-height);
-  // The space between the bottom of the .mat-form-field-flex area and the subscript wrapper.
-  // Mocks show half of the text size, but this margin is applied to an element with the subscript
-  // text font size, so we need to divide by the scale factor to make it half of the original text
-  // size.
-  $subscript-margin-top: math.div(0.5em, $subscript-font-scale);
-  // The padding applied to the form-field-wrapper to reserve space for the subscript, since it's
-  // absolutely positioned. This is a combination of the subscript's margin and line-height, but we
-  // need to multiply by the subscript font scale factor since the wrapper has a larger font size.
-  $wrapper-padding-bottom: ($subscript-margin-top + $line-height) * $subscript-font-scale;
-  // The amount we offset the label from the input text in the outline appearance.
-  $outline-appearance-label-offset: -0.25em;
-
-  .mat-form-field-appearance-outline {
-    .mat-form-field-infix {
-      padding: $infix-padding 0 $infix-padding 0;
-    }
-
-    .mat-form-field-label {
-      top: $infix-margin-top + $infix-padding;
-      margin-top: $outline-appearance-label-offset;
-    }
-
-    &.mat-form-field-can-float {
-      &.mat-form-field-should-float .mat-form-field-label,
-      .mat-input-server:focus + .mat-form-field-label-wrapper .mat-form-field-label {
-        @include _label-floating(
-                        $subscript-font-scale, $infix-padding + $outline-appearance-label-offset,
-                        $infix-margin-top);
-      }
-
-      // Server-side rendered matInput with a label attribute but label not shown
-      // (used as a pure CSS stand-in for mat-form-field-should-float).
-      .mat-input-server[label]:not(:label-shown) + .mat-form-field-label-wrapper
-      .mat-form-field-label {
-        @include _label-floating(
-                        $subscript-font-scale, $infix-padding + $outline-appearance-label-offset,
-                        $infix-margin-top);
-      }
-    }
-  }
-}
+// Plus imports for other components in your app.
 
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
-// TODO(v15): As of v15 mat.legacy-core no longer includes default typography styles.
-//  The following line adds:
-//    1. Default typography styles for all components
-//    2. Styles for typography hierarchy classes (e.g. .mat-headline-1)
-//  If you specify typography styles for the components you use elsewhere, you should delete this line.
-//  If you don't need the default component typographies but still want the hierarchy styles,
-//  you can delete this line and instead use:
-//    `@include mat.legacy-typography-hierarchy(mat.define-legacy-typography-config());`
-@include mat.all-legacy-component-typographies();
-@include mat.legacy-core();
+@include mat.core();
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
-$app-primary: mat.define-palette(mat.$indigo-palette);
-$app-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+$theme-primary: mat.define-palette(mat.$indigo-palette);
+$theme-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
 
 // The warn palette is optional (defaults to red).
-$app-warn: mat.define-palette(mat.$red-palette);
+$theme-warn: mat.define-palette(mat.$red-palette);
 
 // Create the theme object. A theme consists of configurations for individual
-// theming systems such as `color` or `typography`.
-$app-theme: mat.define-light-theme((
-  color: (
-    primary: $app-primary,
-    accent: $app-accent,
-    warn: $app-warn,
-  ),
-  typography: mat.define-legacy-typography-config()
+// theming systems such as "color" or "typography".
+$theme: mat.define-light-theme((
+        color: (
+                primary: $theme-primary,
+                accent: $theme-accent,
+                warn: $theme-warn,
+        ),
+        typography: mat.define-typography-config(
+          $font-family: "Roboto,Helvetica Neue,sans-serif",
+          $button: mat.define-typography-level(
+            $font-size: 16px,
+            $line-height: 1,
+            $letter-spacing: normal
+          )
+        )
 ));
+
+.content {
+  @include mat.private-form-field-density(-4);
+}
 
 // Include theme styles for core and each component used in your app.
 // Alternatively, you can import and @include the theme mixins for each component
 // that you are using.
-@include mat.all-legacy-component-themes($app-theme);
-@include outline-typography($app-theme);
+@include mat.all-component-themes($theme);
 
-// Override some stepper styles
-.mat-tab-group.mat-primary {
-  .mat-tab-label {
+// Override some styles for tab groups
+.mat-mdc-tab-group.mat-primary {
+  .mat-mdc-tab-header {
+    border-bottom: 1px solid rgba(0,0,0,.12);
+    margin: 0 -4px;
+  }
+  .mat-mdc-tab-labels {
+    padding-top: 4px;
+  }
+
+  .mdc-tab {
     opacity: 1 !important;
+    background-color: rgba(197, 202, 233, 0.1);
+    box-shadow: 0 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
 
-    &.mat-tab-label-active {
+    margin-left: 4px;
+
+    &, &.mat-mdc-tab .mdc-tab__ripple::before, .mat-mdc-tab-ripple {
+      border-top-left-radius: 5px 5px;
+      border-top-right-radius: 5px 5px;
+    }
+
+    &.mdc-tab--active {
       color: #3f51b5;
       background-color: rgba(197, 202, 233, 0.3);
     }
   }
 
-  .mat-tab-label {
-    background-color: rgba(197, 202, 233, 0.1);
-  }
-
-  .mat-tab-label.cdk-keyboard-focused:not(.mat-tab-disabled) {
-    background-color: rgba(197, 202, 233, 0.5);
+  .mat-mdc-tab-body-wrapper {
+    box-shadow: 0 3px 3px -2px rgba(0, 0, 0, 0.2), 0px 3px 4px 0px rgba(0, 0, 0, 0.14), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
   }
 }
 
-.mat-stroked-button {
-  color: #3f51b5;
-
+.mat-mdc-outlined-button {
   &.mat-primary {
-    color: #3f51b5;
     font-weight: bold;
   }
-}
 
-.mat-mini-fab:not(.mat-button-disabled) {
-  .mat-button-wrapper {
-    .mat-icon {
-      svg {
-        fill: #3f51b5
-      }
+  &:not(:disabled) .mdc-button__label,
+  &:not(:disabled) .mat-icon {
+    color: #3f51b5;
+  }
+}
+.mat-mdc-mini-fab {
+  &:not(:disabled) .mat-icon {
+    svg {
+      fill: #3f51b5
     }
   }
 
   &.mini-fab-16 {
     width: 16px;
     height: 16px;
-
-    .mat-button-wrapper {
-      padding: 0;
-      line-height: 1;
+    .mat-mdc-button-touch-target {
+      height: 20px;
+      width: 20px;
     }
   }
 

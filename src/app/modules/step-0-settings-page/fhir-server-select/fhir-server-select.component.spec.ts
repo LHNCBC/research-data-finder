@@ -1,10 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { FhirServerSelectComponent } from './fhir-server-select.component';
-import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientModule } from '@angular/common/http';
-import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
-import { MatLegacyProgressSpinnerModule as MatProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 describe('FhirServerSelectComponent', () => {
   let component: FhirServerSelectComponent;
@@ -13,7 +12,7 @@ describe('FhirServerSelectComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [FhirServerSelectComponent],
-      imports: [RouterTestingModule, HttpClientModule, MatDialogModule, MatProgressSpinnerModule]
+      imports: [HttpClientModule, MatDialogModule, MatProgressSpinnerModule]
     }).compileComponents();
   });
 

@@ -30,7 +30,7 @@ import {
 } from '../autocomplete/autocomplete.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
-import { MatLegacyButton as MatButton } from '@angular/material/legacy-button';
+import { MatButton } from '@angular/material/button';
 import { Criterion, ResourceTypeCriteria } from '../../types/search-parameters';
 import { CODETEXT } from '../../shared/query-params/query-params.service';
 import { SelectedObservationCodes } from '../../types/selected-observation-codes';

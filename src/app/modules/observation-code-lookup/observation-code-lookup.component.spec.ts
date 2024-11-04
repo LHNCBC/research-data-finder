@@ -4,7 +4,7 @@ import { ObservationCodeLookupModule } from './observation-code-lookup.module';
 import { Component, ViewChild } from '@angular/core';
 import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
 import { FhirBatchQuery } from '../../shared/fhir-backend/fhir-batch-query';
 import observations from './test-fixtures/observations.json';

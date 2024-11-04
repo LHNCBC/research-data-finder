@@ -14,6 +14,7 @@
   <mat-accordion>
     <mat-expansion-panel hideToggle #panel>
       <mat-expansion-panel-header
+          [class.default-cursor]="!loadingStatistics.length"
           (click)="!loadingStatistics.length && panel.toggle()"
           (keydown.enter)="!loadingStatistics.length && panel.toggle()"
           (keydown.space)="!loadingStatistics.length && panel.toggle()">
@@ -61,7 +62,7 @@
 
   <button mat-mini-fab
           color="basic"
-          type="button" mat-icon-button
+          type="button"
           (click)="columnDescriptionsService.openColumnsDialog(resourceTypeColumns || resourceType, context)"
           aria-label="Configure table"
           matTooltip="Configure table">
@@ -81,7 +82,7 @@
                                [class.table-container-with-prefix]="!!prefixTemplate"
                                [class.empty-table]="dataSource.data.length === 0"
                                (scroll)="onScroll()">
-    <table mat-table matSort matSortDisableClear matSortStart='desc'
+    <table mat-table matSort matSortDisableClear matSortStart='asc'
            [dataSource]="dataSource"
            [matSortActive]="sort?.active" [matSortDirection]="sort?.direction"
            class="cell-text-no-wrap"
@@ -201,9 +202,9 @@
         </td>
       </ng-container>
 
-      <tr class="mat-row" *matNoDataRow>
+      <tr class="mat-mdc-row" *matNoDataRow>
         <ng-container *ngIf="!loading">
-          <td class="mat-cell" [attr.colspan]="(columnDescriptions?.length || 0) + 1">
+          <td class="mat-mdc-cell" [attr.colspan]="(columnDescriptions?.length || 0) + 1">
             <ng-container *ngIf="hasFilters(); else noFiltersBlock">
               There are no records for the selected filters.
               <span id="clearFilters"
