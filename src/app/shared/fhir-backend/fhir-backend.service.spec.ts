@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { CACHE_NAME, FhirBackendService } from './fhir-backend.service';
 import { FhirBackendModule } from './fhir-backend.module';
 import { FhirBatchQuery, HTTP_ABORT, PRIORITIES, OAUTH2_REQUIRED } from './fhir-batch-query';
-import { newServer } from 'mock-xmlhttprequest';
+import { MockXhrServer, newServer } from 'mock-xmlhttprequest';
 import {
   HttpClient,
   HttpClientModule,
@@ -21,7 +21,6 @@ import {
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
 import queryResponseCache from './query-response-cache';
-import MockXhrServer from 'mock-xmlhttprequest/dist/types/MockXhrServer';
 import { RasTokenService } from '../ras-token/ras-token.service';
 import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
 
