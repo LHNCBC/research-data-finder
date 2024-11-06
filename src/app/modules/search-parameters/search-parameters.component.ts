@@ -80,9 +80,9 @@ export class SearchParametersComponent
   resourceTypes$: Observable<AutocompleteOption[]>;
   @Input() excludeResources: string[];
   selectedSearchParameterNamesMap = new Map<ResourceTypeCriteria, string[]>();
-  observationDataType: string;
-  observationUnits: AutocompleteOption[] = [];
-  observationLoincCodes: string[] = [];
+  selectedCodesData = new Map<ResourceTypeCriteria, {
+    dataType: string, observationUnits: AutocompleteOption[], loincCodes: string[]
+  }>()
   subscriptions: Subscription[] = [];
 
   constructor(
@@ -93,7 +93,7 @@ export class SearchParametersComponent
   ) {
     super();
 
-    this.resourceTypes$ = fhirBackend.currentDefinitions$.pipe(
+    this.resourceTypes$ = this.fhirBackend.currentDefinitions$.pipe(
       map((definitions) =>
         this.excludeResources?.length
           ? without(Object.keys(definitions.resources), ...this.excludeResources)
@@ -102,7 +102,7 @@ export class SearchParametersComponent
     );
 
     this.subscriptions.push(
-      fhirBackend.currentDefinitions$.subscribe((definitions) => {
+      this.fhirBackend.currentDefinitions$.subscribe((definitions) => {
         // Clear search parameters on server change
         const config = {
           allowEmptyRulesets: true,
@@ -165,7 +165,10 @@ export class SearchParametersComponent
             parent.rules = parent.rules.filter((r) => r !== rule);
             if ('resourceType' in parent) {
               if (((rule as unknown) as Criterion).field.element === CODETEXT) {
-                this.updateSelectedObservationCodes(null);
+                this.updateSelectedObservationCodes(
+                  (parent as unknown) as ResourceTypeCriteria,
+                  null
+                );
               }
               this.updateSelectedSearchParameterNames(
                 (parent as unknown) as ResourceTypeCriteria
@@ -304,27 +307,32 @@ export class SearchParametersComponent
     parentRuleSet: ResourceTypeCriteria
   ): void {
     if (newValue.element === CODETEXT) {
-      this.updateSelectedObservationCodes(newValue.selectedObservationCodes);
+      this.updateSelectedObservationCodes(parentRuleSet, newValue.selectedObservationCodes);
     }
     this.updateSelectedSearchParameterNames(parentRuleSet);
   }
 
   /**
    * Updates selected observation codes and data type of the observation value.
+   * @param parentRuleSet - resource type criteria
    * @param selectedObservationCodes - selected observation codes.
    */
   updateSelectedObservationCodes(
+    parentRuleSet: ResourceTypeCriteria,
     selectedObservationCodes: SelectedObservationCodes
   ): void {
-    this.observationDataType = selectedObservationCodes?.datatype;
-    this.observationUnits = getCommensurableUnitOptions(
-      selectedObservationCodes?.defaultUnit,
-      selectedObservationCodes?.defaultUnitSystem
+    this.selectedCodesData.set(
+      parentRuleSet, {
+        dataType: selectedObservationCodes?.datatype,
+        observationUnits: getCommensurableUnitOptions(
+          selectedObservationCodes?.defaultUnit,
+          selectedObservationCodes?.defaultUnitSystem
+        ),
+        loincCodes: selectedObservationCodes?.coding
+          .filter((c) => c.system === 'http://loinc.org')
+          .map((c) => c.code) || []
+      }
     );
-    this.observationLoincCodes =
-      selectedObservationCodes?.coding
-        .filter((c) => c.system === 'http://loinc.org')
-        .map((c) => c.code) || [];
   }
 
   /**

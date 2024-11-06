@@ -3,6 +3,16 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.0.3] - 2024-11-06
+### Fixed
+- Checking for an issue with the "not" modifier during initialization might not
+  work correctly. The problem appears when a patient for the very first
+  Observation in the list only has Observations with the same single code.
+- Updating the selected observation codes and data type when changing a variable
+  name was performed for all variable values in the advanced criteria, even if
+  they were not connected. This resulted in incorrect display of units of
+  measurement for variable values.
+
 ## [7.0.2] - 2024-10-23
 ### Changed
 - Updated Angular Material to version 17.
