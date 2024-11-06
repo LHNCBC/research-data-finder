@@ -11,7 +11,6 @@ import {
   verifyOutstandingRequests
 } from 'src/test/helpers';
 import { SharedModule } from '../shared.module';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('CartService', () => {
   let mockHttp: HttpTestingController;
@@ -19,7 +18,7 @@ describe('CartService', () => {
 
   beforeEach(async () => {
     await configureTestingModule({
-      imports: [SharedModule, HttpClientTestingModule, RouterTestingModule]
+      imports: [SharedModule, HttpClientTestingModule]
     });
     mockHttp = TestBed.inject(HttpTestingController);
     service = TestBed.inject(CartService);

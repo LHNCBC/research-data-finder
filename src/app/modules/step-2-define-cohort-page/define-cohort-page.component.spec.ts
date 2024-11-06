@@ -9,7 +9,6 @@ import tenObservationBundle from './test-fixtures/observations-10.json';
 import examplePatient from './test-fixtures/example-patient.json';
 import { last } from 'rxjs/operators';
 import { CohortService } from '../../shared/cohort/cohort.service';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('DefineCohortComponent', () => {
   let component: DefineCohortPageComponent;
@@ -22,8 +21,7 @@ describe('DefineCohortComponent', () => {
       declarations: [DefineCohortPageComponent],
       imports: [
         DefineCohortPageModule,
-        MatIconTestingModule,
-        RouterTestingModule
+        MatIconTestingModule
       ]
     });
     mockHttp = TestBed.inject(HttpTestingController);

@@ -11,7 +11,9 @@
   <mat-error *ngIf="maxPatientsNumber.hasError('pattern')">Only integers allowed.</mat-error>
 </mat-form-field>
 
-<mat-tab-group #tabGroup dynamicHeight class="mat-elevation-z1" (selectedTabChange)="selectedTabChange($event)">
+<mat-tab-group #tabGroup dynamicHeight
+               (selectedTabChange)="selectedTabChange($event)"
+               mat-stretch-tabs="false" mat-align-tabs="start">
   <mat-tab *ngFor="let resourceType of visibleResourceTypes"
            #tab
            [disabled]="
@@ -89,7 +91,7 @@
             <ng-template #buttonPrefix *ngIf="!showOnlyStudiesWithSubjects">
               <button mat-mini-fab
                       color="basic"
-                      type="button" mat-icon-button
+                      type="button"
                       (click)="reloadFromServer(resourceType)"
                       aria-label="Reload records from server">
                 matTooltip="Reload records from server">
@@ -100,6 +102,7 @@
               <mat-accordion>
                 <mat-expansion-panel hideToggle #panel>
                   <mat-expansion-panel-header
+                      class="default-cursor"
                       (click)="panel.toggle()"
                       (keydown.enter)="panel.toggle()"
                       (keydown.space)="panel.toggle()">
@@ -183,8 +186,8 @@
                           class="mat-icon-22"></mat-icon>
               </button>
             </ng-template>
-            <ng-template #prefix>
-              <div class="v-box" *ngIf="resourceType === 'Variable'">
+            <ng-template #prefix *ngIf="resourceType === 'Variable'">
+              <div class="v-box">
                 <div class="h-box">
                   <mat-checkbox [(ngModel)]="hasLoinc"
                                 [disabled]="recTypeLoinc"
@@ -193,13 +196,13 @@
                   <mat-checkbox [(ngModel)]="recTypeLoinc"
                                 (change)="hasLoinc=true;loadFirstPage(resourceType)">Show one row per LOINC code</mat-checkbox>
                 </div>
-                <div class="spacer"></div>
               </div>
             </ng-template>
             <ng-template #header>
               <mat-accordion>
                 <mat-expansion-panel hideToggle #panel>
                   <mat-expansion-panel-header
+                      class="default-cursor"
                       (click)="panel.toggle()"
                       (keydown.enter)="panel.toggle()"
                       (keydown.space)="panel.toggle()">

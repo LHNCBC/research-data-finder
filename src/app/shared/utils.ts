@@ -235,3 +235,27 @@ export function getCommensurableUnitList(unitCode: string, unitSystem: string)
       ?.filter(i=>i.category_ === 'Clinical') || []
     : [];
 }
+
+/**
+ * Dispatches a window resize event.
+ * Dispatching a resize event fixes the issue with <cdk-virtual-scroll-viewport>
+ * displaying an empty table when the active tab is changed.
+ * This event runs _changeListener in ViewportRuler which run checkViewportSize
+ * in CdkVirtualScrollViewport.
+ * See code for details:
+ * https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/viewport-ruler.ts#L55
+ * https://github.com/angular/components/blob/12.2.3/src/cdk/scrolling/virtual-scroll-viewport.ts#L184
+ */
+export function dispatchWindowResize(): void {
+  if (typeof Event === 'function') {
+    // fire resize event for modern browsers
+    window.dispatchEvent(new Event('resize'));
+  } else {
+    // for IE and other old browsers
+    // causes deprecation warning on modern browsers
+    const evt = window.document.createEvent('UIEvents');
+    // @ts-ignore
+    evt.initUIEvent('resize', true, false, window, 0);
+    window.dispatchEvent(evt);
+  }
+}

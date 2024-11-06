@@ -131,7 +131,7 @@ describe('Research Data Finder (baseR4)', () => {
     cy.get('mat-form-field.parameter-name app-autocomplete input')
       .type('variable name')
       .blur();
-    cy.get('#code-selector-1').type('Height cm');
+    cy.get('#code-selector-1').focus().type('Height cm');
     cy.get('#completionOptions').should('be.visible');
     cy.get('#completionOptions > ul > li:first-child').click();
   });

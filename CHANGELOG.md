@@ -3,7 +3,7 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
-## [7.0.1] - 2024-09-27
+## [7.0.3] - 2024-11-06
 ### Fixed
 - Checking for an issue with the "not" modifier during initialization might not
   work correctly. The problem appears when a patient for the very first
@@ -12,6 +12,17 @@ This project follows [Semantic Versioning](http://semver.org/).
   name was performed for all variable values in the advanced criteria, even if
   they were not connected. This resulted in incorrect display of units of
   measurement for variable values.
+
+## [7.0.2] - 2024-10-23
+### Changed
+- Updated Angular Material to version 17.
+
+## [7.0.1] - 2024-09-09
+### Fixed
+- An issue where part of a table was not visible when scrolling after it was
+  expanded to full screen.
+- Removed deprecated RouterTestingModule.
+- Replaced legacy Angular Material components.
 
 ## [7.0.0] - 2024-07-11
 ### Added

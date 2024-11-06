@@ -325,7 +325,7 @@ describe('ResourceTableComponent', () => {
   it('should sort number column as numbers', () => {
     fillTableWithSomeResources(someResourceColumns);
     component.sortData({
-      direction: 'asc',
+      direction: 'desc',
       active: 'customElement'
     });
     const index50 = component.dataSource.data.findIndex(

@@ -18,7 +18,6 @@ import {
   configureTestingModule,
   verifyOutstandingRequests
 } from 'src/test/helpers';
-import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 describe('CohortService', () => {
@@ -27,7 +26,7 @@ describe('CohortService', () => {
 
   beforeEach(async () => {
     await configureTestingModule({
-      imports: [SharedModule, HttpClientTestingModule, RouterTestingModule]
+      imports: [SharedModule, HttpClientTestingModule]
     }, {
       features: {
         maxHasAllowed: 1

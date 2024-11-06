@@ -5,7 +5,6 @@ import { configureTestingModule } from 'src/test/helpers';
 import { Component, ViewChild } from '@angular/core';
 import { CartModule } from './cart.module';
 import Resource = fhir.Resource;
-import { RouterTestingModule } from '@angular/router/testing';
 
 @Component({
   template: `<app-cart [resourceType]="resourceType" [listItems]="records">
@@ -26,7 +25,7 @@ describe('CartComponent', () => {
   beforeEach(async () => {
     await configureTestingModule({
       declarations: [TestHostComponent],
-      imports: [CartModule, RouterTestingModule]
+      imports: [CartModule]
     });
   });
 

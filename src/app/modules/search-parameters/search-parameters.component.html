@@ -27,10 +27,12 @@
               [(ngModel)]="ruleset.resourceType"
               (ngModelChange)="focusOnAddCriterionBtn()"></app-autocomplete>
         </mat-form-field>
-        <p *ngIf="ruleset.resourceType && ruleset.resourceType !== 'Patient'">Select Patients which have
+        <p *ngIf="ruleset.resourceType && ruleset.resourceType !== 'Patient'"
+           class="record-type-header">Select Patients which have
           {{getIndefiniteArticle(ruleset.resourceType)}}
           <b>{{ruleset.resourceType}}</b> record that meets the criteria below</p>
-        <p *ngIf="ruleset.resourceType === 'Patient'">Select <b>Patients</b> which meet the criteria below</p>
+        <p *ngIf="ruleset.resourceType === 'Patient'"
+           class="record-type-header">Select <b>Patients</b> which meet the criteria below</p>
       </div>
     </div>
     <!-- Prefix for the subgroup -->

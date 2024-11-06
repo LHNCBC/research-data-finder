@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { ColumnDescriptionsService } from './column-descriptions.service';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import {
   ConnectionStatus,
   FhirBackendService
