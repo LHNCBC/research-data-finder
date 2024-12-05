@@ -131,7 +131,8 @@
         "cypress-e2e": {
           "builder": "@cypress/schematic:cypress",
           "options": {
-            "devServerTarget": "fhir-obs-viewer:serve"
+            "devServerTarget": "fhir-obs-viewer:serve",
+            "browser": "chrome"
           },
           "configurations": {
             "production": {
