@@ -35,10 +35,10 @@
           Settings
         </button>
         <div class='spacer'></div>
-        <!-- We can't use the matStepperNext directive, but we may need to treat
-         this button as the "next button" in e2e tests. To do this, the
-         mat-stepper-next class has been added. Also, MatStepperNextHarness uses
-         this class. -->
+        <!-- We can't use the matStepperNext directive because clicking on the
+         button may log us into dbGap, but we may need to treat this button as
+         the "next button" in e2e tests. To do this, the mat-stepper-next class
+         has been added. Also, MatStepperNextHarness uses this class. -->
         <button mat-stroked-button color="primary" class="mat-stepper-next"
                 (click)="onSelectAnActionNext(selectAnActionComponent.createCohortMode.value)"
                 type="button"
@@ -101,8 +101,9 @@
         </button>
         <input type='file' id="hiddenFileInput3" #hiddenFileInput3 style='display: none;' (change)='loadCohort($event)'>
         <div class="spacer"></div>
-        <!-- We can't use the matStepperNext directive, but we may need to treat
-         this button as the "next button" in e2e tests. To do this, the
+        <!-- We can't use the matStepperNext directive because clicking on the
+         button doesn't necessarily trigger the next step, but we may need to
+         treat this button as the "next button" in e2e tests. To do this, the
          mat-stepper-next class has been added. Also, MatStepperNextHarness uses
          this class. -->
         <button mat-stroked-button color="primary" class="mat-stepper-next"
@@ -151,10 +152,11 @@
         </button>
         <input type='file' id='hiddenFileInput' #hiddenFileInput style='display: none;' (change)='loadCohort($event)'>
         <div class="spacer"></div>
-        <!-- We can't use the matStepperNext directive, but we may need to treat
-         this button as the "next button" in e2e tests. To do this, the
-         mat-stepper-next class has been added. Also, MatStepperNextHarness uses
-         this class. -->
+        <!-- We can't use the matStepperNext directive because clicking on the
+             button doesn't necessarily trigger the next step, but we may need to
+             treat this button as the "next button" in e2e tests. To do this, the
+             mat-stepper-next class has been added. Also, MatStepperNextHarness uses
+             this class. -->
         <button mat-stroked-button color="primary" class="mat-stepper-next"
                 (click)="searchForPatients()">
           Search for Patients

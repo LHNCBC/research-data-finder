@@ -6,6 +6,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 ## [7.0.4] - 2024-12-05
 ### Fixed
 - Improved stability of e2e tests.
+- Fixed escaping of FHIR search parameter strings: added backslash escaping.
 
 ## [7.0.3] - 2024-11-06
 ### Fixed

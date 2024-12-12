@@ -19,7 +19,7 @@ export function capitalize(str: string): string {
  * (see https://www.hl7.org/fhir/search.html#escaping)
  */
 export function escapeFhirSearchParameter(str: string): string {
-  return str.replace(/[$,|]/g, '\\$&');
+  return str.replace(/[$,|\\]/g, '\\$&');
 }
 
 /**
