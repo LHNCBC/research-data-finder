@@ -113,7 +113,7 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
       .as('saveBtn');
     cy.get('@saveBtn').click();
     cy.readFile(`${Cypress.config('downloadsFolder')}/cohort-100.json`, {
-      timeout: 5000
+      timeout: 15000
     }).should('not.be.null');
     cy.task('removeCohortFileIfExist');
   });

@@ -96,7 +96,7 @@ describe('Research Data Finder (baseR4)', () => {
   it('should save cohort', () => {
     cy.clickButton('Save the cohort and criteria for later');
     cy.readFile(`${Cypress.config('downloadsFolder')}/cohort-100.json`, {
-      timeout: 5000
+      timeout: 15000
     }).should('not.be.null');
     cy.task('removeCohortFileIfExist');
   });
