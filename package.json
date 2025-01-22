@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "7.0.3",
+  "version": "7.0.4",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
@@ -53,7 +53,6 @@
     "@angular/compiler-cli": "^17.3.5",
     "@cypress/schematic": "^1.6.0",
     "@cypress/webpack-preprocessor": "^5.15.5",
-    "@jscutlery/cypress-harness": "^0.7.12",
     "@types/fhir": "^3.0.2",
     "@types/hapi": "^18.0.8",
     "@types/jasmine": "~3.6.0",

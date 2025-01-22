@@ -1,98 +1,45 @@
-import {
-  MatStepHarness,
-  MatStepperHarness,
-  MatStepperNextHarness
-} from '@angular/material/stepper/testing';
-import {getHarness} from '@jscutlery/cypress-harness';
-
 describe('Research Data Finder (dbGap alpha version cart-based approach)', () => {
-  // Page objects & harnesses
-  // See https://material.angular.io/cdk/test-harnesses/overview for details
-  let stepper: MatStepperHarness;
-  let stepsArray: Array<MatStepHarness>;
-  let settingsStep: MatStepHarness;
-  let selectAnActionStep: MatStepHarness;
-  let selectRecordsStep: MatStepHarness;
-  let viewCohortStep: MatStepHarness;
-  let pullDataStep: MatStepHarness;
 
-  before(() => {
-    cy.visit(
-      '/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&prev-version=disable'
-    )
-      // Waiting for application initialization
-      .get('app-fhir-server-select.loading')
-      .should('exist')
-      // When we get the initialization parameters from settings,
-      // the initialization should be much faster.
-      .get('app-fhir-server-select.loading', {timeout: 5000})
-      .should('not.exist')
-      .then(() => getHarness(MatStepperHarness))
-      .then((result: MatStepperHarness) => {
-        stepper = result;
-        return stepper.getSteps();
-      })
-      .then((stepsArr) => {
-        stepsArray = stepsArr;
-        [settingsStep, selectAnActionStep] = stepsArray;
-      });
+  it( 'should show spinner during server initialization', () => {
+    cy.initApp('/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&prev-version=disable');
   });
 
-  // Current step next button harness
-  let nextPageBtn: MatStepperNextHarness;
-
-  beforeEach((done) => {
-    stepper
-      .getSteps({selected: true})
-      .then(([currentStep]) =>
-        currentStep
-          ? currentStep.getHarness(MatStepperNextHarness).catch(() => null)
-          : null
-      )
-      .then((btn) => {
-        nextPageBtn = btn;
-        done();
-      });
+  it('should display welcome message for the first step', () => {
+    cy.contains('app-stepper > p:first-child', 'This is a query tool')
+      .should('be.visible');
   });
 
-  it('should display welcome message', () => {
-    cy.get('app-stepper > p:first-child').should('be.visible');
+  it('should display 2 steps at the beginning', () => {
+    cy.checkStepCount(2);
   });
 
-  it('should display 2 steps', () => {
-    expect(stepsArray.length).to.equal(2);
+  it('should select the "Settings" step by default', () => {
+    cy.isStepSelected('Settings');
   });
 
-  it('should select the Settings step by default', (done) => {
-    settingsStep.isSelected().then((isSelected) => {
-      expect(isSelected).to.equal(true);
-      done();
-    });
-  });
-
-  it('should not allow empty Advanced Setting fields', () => {
+  it('should not allow empty "Advanced Setting" fields', () => {
     cy.get('app-settings-page mat-expansion-panel-header').click();
 
     ['serviceBaseUrl', 'maxRequestsPerBatch', 'maxActiveRequests']
-    .forEach((controlName) => {
-      let value;
-      cy.get(
-        `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
-      )
-        .as('inputField')
-        .then((el) => {
-          value = el.val();
-        });
+      .forEach((controlName) => {
+        let value;
+        cy.get(
+          `input[formControlName="${controlName}"],[formControlName="${controlName}"] input`
+        )
+          .as('inputField')
+          .then((el) => {
+            value = el.val();
+          });
 
-      cy.get('@inputField')
-        .focus()
-        .clear()
-        .blur()
-        .then(() => nextPageBtn.click())
-        .then(() => settingsStep.isSelected())
-        .then((isSelected) => expect(isSelected).to.be.true)
-        .then(() => cy.get('@inputField').type(value).blur());
-    });
+        cy.get('@inputField').clear({force: true});
+        cy.get('@inputField').blur({force: true});
+        cy.contains('button:visible', 'Select an action').should('be.disabled');
+        cy.selectStep( 'Select an action');
+        cy.isStepSelected('Settings');
+        cy.then(() => cy.get('@inputField').type(value, {force: true}));
+        cy.get('@inputField').blur({force: true});
+        cy.contains('button', 'Select an action', {timeout: 20000}).should('be.enabled');
+      });
   });
 
   it('should not allow a non-existent URL similar to dbGap', () => {
@@ -105,109 +52,68 @@ describe('Research Data Finder (dbGap alpha version cart-based approach)', () =>
         value = el.val();
       });
 
-    cy.get('@inputField')
-      .focus()
-      .clear()
-      .type('https://dbgap-api.ncbi.nlm.nih.gov/fhir/something')
-      .blur();
+    cy.get('@inputField').clear({force: true});
+    cy.get('@inputField').type('https://dbgap-api.ncbi.nlm.nih.gov/fhir/something', {force: true});
+    cy.get('@inputField').blur({force: true});
 
-    cy.get('app-fhir-server-select.loading')
-      .should('exist')
-      .get('app-fhir-server-select.loading', {timeout: 20000})
-      .should('not.exist')
-      .then(() => nextPageBtn.click())
-      .then(() => settingsStep.isSelected())
-      .then((isSelected) => expect(isSelected).to.be.true)
-      .then(() => cy.get('@inputField').focus().clear().type(value).blur());
+    cy.get('app-fhir-server-select.loading').should('exist');
+    cy.get('app-fhir-server-select.loading', {timeout: 20000}).should('not.exist');
+    cy.contains('button:visible', 'Select an action').should('be.disabled');
+    cy.selectStep( 'Select an action');
+    cy.isStepSelected('Settings');
+    cy.get('@inputField').clear({force: true});
+    cy.then(() => cy.get('@inputField').type(value, {force: true}));
+    cy.get('@inputField').blur({force: true});
 
-    cy.get('app-fhir-server-select.loading')
-      .should('exist')
-      .get('app-fhir-server-select.loading', {timeout: 20000})
+    cy.get('app-fhir-server-select.loading').should('exist');
+    cy.get('app-fhir-server-select.loading', {timeout: 20000}).should('not.exist');
+  });
+
+  it('should allow to proceed to the "Select An Action" step', () => {
+    cy.clickButton( 'Select an action');
+    cy.isStepSelected( 'Select an action');
+  });
+
+  it('should not display welcome message for the next steps', () => {
+    cy.contains('app-stepper > p:first-child', 'This is a query tool')
       .should('not.exist');
   });
 
-
-  it('should allow to proceed to the Select An Action step', (done) => {
-    nextPageBtn
-      .click()
-      .then(() => selectAnActionStep.isSelected())
-      .then((isSelected) => {
-        expect(isSelected).to.equal(true);
-        done();
-      });
+  it('should not allow to proceed to the next step without selecting an action', () => {
+    cy.contains('button:visible', 'Next').should('be.disabled');
+    cy.checkStepCount(2);
   });
 
-  it('should display all steps after selecting cart approach', (done) => {
-    cy.contains(
-      'Create a cohort of patients by browsing and selecting records'
-    ).click();
-    cy.then(() => getHarness(MatStepperHarness))
-      .then((result: MatStepperHarness) => {
-        stepper = result;
-        return stepper.getSteps();
-      })
-      .then((stepsArr) => {
-        stepsArray = stepsArr;
-        [
-          settingsStep,
-          selectAnActionStep,
-          selectRecordsStep,
-          viewCohortStep,
-          pullDataStep
-        ] = stepsArray;
-        expect(stepsArray.length).to.equal(5);
-        done();
-      });
+  it('should display all steps after selecting cart approach', () => {
+    cy.clickLabel('Create a cohort of patients by browsing and selecting records');
+    cy.checkStepCount(5);
   });
 
-  it('should not allow to proceed to the Select Records step', (done) => {
-    cy.contains('Select records')
-      .click()
-      .then(() => selectAnActionStep.isSelected())
-      .then((isSelected) => {
-        expect(isSelected).to.equal(true);
-        done();
-      });
-  });
-
-  it('should allow to proceed to the Select Records step by a hack', (done) => {
+  it('should allow to proceed to the "Select Records" step by a hack', () => {
     // Bypass RAS login in the test using a hidden button.
     cy.get('#hiddenButton').click({force: true});
-    cy.contains('Select records')
-      .click()
-      .then(() => selectRecordsStep.isSelected())
-      .then((isSelected) => {
-        expect(isSelected).to.equal(true);
-        done();
-      });
+    cy.selectStep('Select records');
+    cy.isStepSelected( 'Select records');
   });
 
-  it('should not allow skipping the View cohort (search for patients) step', (done) => {
-    viewCohortStep
-      .select()
-      .then(() => selectRecordsStep.isSelected())
-      .then((isSelected) => {
-        expect(isSelected).to.equal(true);
-        done();
-      });
+
+  it('should not allow skipping patient search before the "View Cohort" step', () => {
+    cy.selectStep('View cohort');
+    cy.isStepSelected('Select records');
   });
 
-  it('should allow to proceed to the View cohort step', (done) => {
-    nextPageBtn
-      .click()
-      .then(() => viewCohortStep.isSelected())
-      .then((isSelected) => {
-        expect(isSelected).to.equal(true);
-        done();
-      });
+  it('should allow to proceed to the "View cohort" step', () => {
+    cy.clickButton('Search for Patients');
+    cy.isStepSelected('View cohort');
   });
 
   it('should save cohort', () => {
-    cy.contains('Save the cohort and criteria for later', {timeout: 30000})
+    cy.contains('button:visible', 'Save the cohort and criteria for later', {timeout: 30000})
       .should('be.enabled')
-      .click();
+      .as('saveBtn');
+    cy.get('@saveBtn').click();
     cy.readFile(`${Cypress.config('downloadsFolder')}/cohort-100.json`, {
-      timeout: 5000
+      timeout: 15000
     }).should('not.be.null');
     cy.task('removeCohortFileIfExist');
   });

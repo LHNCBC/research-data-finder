@@ -18,6 +18,11 @@ module.exports = function (config) {
         // the possible options are listed at https://jasmine.github.io/api/edge/Configuration.html
         // for example, you can disable the random execution with `random: false`
         // or set a specific seed with `seed: 4321`
+
+        // Components in unit tests can't be isolated because they use shared
+        // libraries: "autocomplete-lhc", "mock-xmlhttprequest", "fhir-batch-query".
+        // To make the unit tests stable, I disabled their random execution.
+        random: false
       },
       clearContext: false // leave Jasmine Spec Runner output visible in browser
     },

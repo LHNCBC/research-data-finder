@@ -12,7 +12,9 @@ describe('utils.escapeFhirSearchParameter returns expected value for certain inp
   [
     ['xxx$xxx$xxx', 'xxx\\$xxx\\$xxx'],
     ['a,b,c', 'a\\,b\\,c'],
-    ['a|b|c', 'a\\|b\\|c']
+    ['a|b|c', 'a\\|b\\|c'],
+    ['a\\b\\c', 'a\\\\b\\\\c'],
+    ['$,|\\', '\\$\\,\\|\\\\'],
   ].forEach(([input, output]) => {
     it(`${input}  -->  ${output}`, () => {
       expect(escapeFhirSearchParameter(input)).toBe(output);
