@@ -88,7 +88,8 @@
            class="cell-text-no-wrap"
            [class.highlightable]="highlightSelection"
            (matSortChange)="sortData($event)"
-           [attr.aria-rowcount]="dataSource.data.length+1">
+           [attr.aria-rowcount]="dataSource.data.length+1"
+           [trackBy]="trackFn">
       <!-- Select checkbox column -->
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef class="cell-with-icon" width="28">

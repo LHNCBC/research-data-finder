@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.0.5] - 2025-01-23
+### Fixed
+- An issue with skipping clicks on variables while list is loading.
+
 ## [7.0.4] - 2024-12-05
 ### Fixed
 - Improved stability of e2e tests.
