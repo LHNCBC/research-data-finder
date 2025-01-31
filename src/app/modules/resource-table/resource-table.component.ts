@@ -995,4 +995,15 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       getPluralFormOfResourceType(this.resourceType).toLowerCase() + '.csv'
     );
   }
+
+  /**
+   * Returns a row ID that uniquely identifies rows to track how the data
+   * changes with each update.
+   * @param index - row index
+   * @param row - table row
+   * @return unique row ID
+   */
+  trackFn(index: number, row: TableRow) {
+    return row.resource.id;
+  }
 }
