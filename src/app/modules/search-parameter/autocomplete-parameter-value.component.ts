@@ -154,10 +154,19 @@ export class AutocompleteParameterValueComponent
 
   static idPrefix = 'autocomplete-test-value-';
   static idIndex = 0;
-  static codeTextFieldMapping = {
-    MedicationDispense: 'medicationCodeableConcept',
-    MedicationRequest: 'medicationCodeableConcept'
-  };
+
+  /**
+   * Returns the name of the resource field that matches the search parameter
+   * 'code' for the current resource type.
+   */
+  getCodeTextField() {
+    const fieldName = this.fhirBackend.currentVersion === 'R4' ?
+      'medicationCodeableConcept' : 'medication.concept';
+    return {
+      MedicationDispense: fieldName,
+      MedicationRequest: fieldName
+    }[this.resourceType] || this.searchParameter;
+  }
 
   inputId =
     AutocompleteParameterValueComponent.idPrefix +
@@ -371,7 +380,9 @@ export class AutocompleteParameterValueComponent
    */
   setupAutocompletePrefetch(): any {
     return new Def.Autocompleter.Prefetch(
-      this.inputId,
+      // We can't use the input element's id here, because it might not be
+      // in DOM if the component is in an inactive tab.
+      this.input.nativeElement,
       this.options.map((o) => o.display),
       {
         maxSelect: '*',
@@ -391,7 +402,10 @@ export class AutocompleteParameterValueComponent
     // At initialization, we don't yet know whether to use client search
     this.useClientSearch = undefined;
 
-    return new Def.Autocompleter.Search(this.inputId, null, {
+    return new Def.Autocompleter.Search(
+      // We can't use the input element's id here, because it might not be
+      // in DOM if the component is in an inactive tab.
+      this.input.nativeElement, null, {
       suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
       fhir: {
         search: (fieldVal, count) => {
@@ -617,7 +631,10 @@ export class AutocompleteParameterValueComponent
    * Set up Autocompleter search options for DbGap variable API search.
    */
   setupAutocomplete_EV_DbgapVariableApi(): any {
-    const acInstance = new Def.Autocompleter.Search(this.inputId, null, {
+    const acInstance = new Def.Autocompleter.Search(
+      // We can't use the input element's id here, because it might not be
+      // in DOM if the component is in an inactive tab.
+      this.input.nativeElement, null, {
       suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
       fhir: {
         search: (fieldVal, count) => {
@@ -689,7 +706,10 @@ export class AutocompleteParameterValueComponent
    * Set up Autocompleter search options.
    */
   setupAutocompleteSearch_EV(): any {
-    const acInstance = new Def.Autocompleter.Search(this.inputId, null, {
+    const acInstance = new Def.Autocompleter.Search(
+      // We can't use the input element's id here, because it might not be
+      // in DOM if the component is in an inactive tab.
+      this.input.nativeElement, null, {
       suggestionMode: Def.Autocompleter.NO_COMPLETION_SUGGESTIONS,
       fhir: {
         search: (fieldVal, count) => {
@@ -887,7 +907,10 @@ export class AutocompleteParameterValueComponent
         ...codings.filter((coding) => {
           const matched =
             // Additional filter for options list.
-            coding.display ? reDisplayValue.test(coding.display) : reDisplayValue.test(coding.code) &&
+            (coding.display ?
+                reDisplayValue.test(coding.display)
+                : reDisplayValue.test(coding.code)
+            ) &&
             !processedCodes[coding.code] &&
             selectedCodes.indexOf(coding.code) === -1;
 
@@ -901,7 +924,7 @@ export class AutocompleteParameterValueComponent
   }
 
   /**
-   * Get 'q' params value for DbGap varaible API query.
+   * Get 'q' params value for DbGap variable API query.
    * e.g. study_id:phs002410*, study_id:(phs002410*%20OR%20phs002409*)
    * @private
    */
@@ -937,11 +960,7 @@ export class AutocompleteParameterValueComponent
    */
   getFhirName(): string {
     if (this.searchParameter === 'code') {
-      return (
-        AutocompleteParameterValueComponent.codeTextFieldMapping[
-          this.resourceType
-        ] || this.searchParameter
-      );
+      return this.getCodeTextField();
     }
     return this.columnName || this.searchParameter;
   }
@@ -953,10 +972,7 @@ export class AutocompleteParameterValueComponent
   getCodingsGetter(): (resource: Resource) => Coding[] {
     let propertyName;
     if (this.searchParameter === 'code') {
-      propertyName =
-        AutocompleteParameterValueComponent.codeTextFieldMapping[
-          this.resourceType
-        ] || this.searchParameter;
+      propertyName = this.getCodeTextField();
     } else {
       propertyName = this.expression || this.searchParameter;
     }

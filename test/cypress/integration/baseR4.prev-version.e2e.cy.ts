@@ -44,7 +44,8 @@ describe('Research Data Finder (baseR4)', () => {
       'mat-form-field.parameter-name app-autocomplete input',
       'contenttype'
     );
-    cy.get('#autocomplete-test-value-1').focus();
+    // added ".search_field" to wait until autocomplete-lhc to be initialized
+    cy.get('#autocomplete-test-value-1.search_field').focus();
     cy.get('#completionOptions').should('be.visible');
     cy.get('#completionOptions > ul > li').should('not.be.empty');
     cy.get('button.remove-btn').eq(0).click();
@@ -61,7 +62,8 @@ describe('Research Data Finder (baseR4)', () => {
       'mat-form-field.parameter-name app-autocomplete input',
       'type'
     );
-    cy.get('#autocomplete-test-value-2').focus();
+    // added ".search_field" to wait until autocomplete-lhc to be initialized
+    cy.get('#autocomplete-test-value-2.search_field').focus();
     cy.get('#completionOptions').should('be.visible');
     cy.get('#completionOptions > ul > li').should('not.be.empty');
     cy.get('button.remove-btn').eq(0).click();

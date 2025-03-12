@@ -378,7 +378,8 @@ export class ObservationCodeLookupComponent
                     // Total amount of items
                     let total = null;
                     // Already selected codes
-                    const selectedCodes = acInstance.getSelectedCodes();
+                    const selectedCodes = acInstance.getSelectedCodes()
+                      .map(c => (c.system ?? '') + '|' + c.code);
 
                     this.loading = true;
                     this.subscriptionForLoading?.unsubscribe();
@@ -667,16 +668,17 @@ export class ObservationCodeLookupComponent
         ...(observation.code.coding
           ?.filter((coding) => {
             let matched = false;
-            if (coding.code && !processedCodes[coding.code]) {
+            const hashedCoding = (coding.system ?? '') + '|' + coding.code;
+            if (coding.code && !processedCodes[hashedCoding]) {
+              processedCodes[hashedCoding] = true;
               if (
                 (!this.currentData.datatype ||
                   this.currentData.datatype === ANY_DATATYPE ||
                   this.hasSameDataTypeAsCurrentData(datatype, unitCode, unitSystem)) &&
-                selectedCodes.indexOf(coding.code) === -1 &&
+                selectedCodes.indexOf(hashedCoding) === -1 &&
                 (isMatchToFieldVal.test(coding.code) ||
                   isMatchToFieldVal.test(coding.display))
               ) {
-                processedCodes[coding.code] = true;
                 matched = true;
               }
             }

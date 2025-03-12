@@ -16,6 +16,11 @@ import { SettingsService } from '../settings-service/settings.service';
 import { ColumnDescription } from '../../types/column.description';
 import Resource = fhir.Resource;
 
+interface CodeableReference {
+  reference?: Reference;
+  concept?: CodeableConcept;
+}
+
 // Cell value retrieval context
 interface Context {
   // Property path to value starting with resourceType.
@@ -156,6 +161,7 @@ export class ColumnValuesService {
       CodeableConceptCode: this.getCodeableConceptCode,
       string: this.identity,
       Reference: this.getReferenceAsText,
+      CodeableReference: this.getCodeableReferenceAsText,
       Period: this.getPeriodAsText,
       dateTime: this.identity,
       canonical: this.identity,
@@ -331,6 +337,27 @@ export class ColumnValuesService {
     }
 
     return null;
+  }
+
+  /**
+   * Returns a textual representation of "CodeableReference" value
+   * see https://www.hl7.org/fhir/references.html#CodeableReference
+   * @param v - value of type "CodeableReference"
+   * @param context - context in which we get the cell value
+   */
+  getCodeableReferenceAsText(v: CodeableReference, context: Context = {}): string {
+    if (v.reference) {
+      return this.getReferenceAsText(v.reference);
+    } else if (v.concept) {
+      if (context.fullPath) {
+        return this.getCodeableConceptAsText(v.concept, {
+          ...context,
+          fullPath: context.fullPath + '.concept'
+        });
+      } else {
+        return this.getCodeableConceptAsText(v.concept, context);
+      }
+    }
   }
 
   /**

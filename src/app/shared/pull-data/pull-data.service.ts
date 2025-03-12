@@ -29,6 +29,9 @@ import {
 } from '../fhir-backend/fhir-backend.service';
 import BundleEntry = fhir.BundleEntry;
 import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
+import {
+  AutocompleteParameterValue
+} from '../../types/autocomplete-parameter-value';
 
 type PatientMixin = { patientData?: Patient };
 
@@ -72,50 +75,69 @@ export class PullDataService {
     };
   }
 
-  defaultObservationCodes$ = this.cohort.criteria$.pipe(
-    map((criteria) =>
-      this.combineObservationCodes(this.getObservationCodesFrom(criteria))
-    )
-  );
+  
   /**
-   * Combines the elements of the SelectedObservationCodes array into a single
-   * SelectedObservationCodes object.
-   */
-  combineObservationCodes(
-    observationCodeArray: SelectedObservationCodes[]
-  ): SelectedObservationCodes {
-    const codeCounts = observationCodeArray.reduce((res, observationCodeItem) => {
-      observationCodeItem.items.forEach(item => {
-        res[item] = res[item] ? res[item] + 1 : 1;
-      });
-      return res;
-    }, {});
-    return observationCodeArray.reduce(
-      (result, cc) => {
-        cc.items.forEach((item, index) => {
-          result.items.push(codeCounts[item] > 1
-            ? `${item} | ${cc.coding[index].code}` + (cc.coding[index].system ? ` | ${cc.coding[index].system}` : '')
-            : item);
-          result.coding.push(cc.coding[index]);
-        });
-        return result;
-      },
-      {
-        coding: [],
-        datatype: 'any',
-        items: []
-      }
-    );
-  }
-
-  /**
-   * Returns selected observation codes from specified criteria
+   * Returns the selected resource codes from the specified criteria. Used to
+   * combine all codes for use in the pull data step as default values for code
+   * filter fields.
    * @param criteria - criteria tree
+   * @param state - this parameter does not need to be passed, it is used for
+   * intermediate storage of data during a recursive function call.
    */
-  private getObservationCodesFrom(
-    criteria: Criteria | ResourceTypeCriteria
-  ): SelectedObservationCodes[] {
-    let codeFieldValues: SelectedObservationCodes[] = [];
+  getCodesFromCriteria(
+    criteria: Criteria | ResourceTypeCriteria,
+    state: {
+      renameSameItemNames: boolean,
+      Observation: {
+        existingObservationCodes: {[itemHash: string]: boolean},
+        name2indexes:{[item: string]: number[]}
+        result: SelectedObservationCodes
+      },
+      MedicationDispense: {
+        existingCodes: {[itemHash: string]: boolean},
+        name2indexes:{[item: string]: number[]}
+        result: AutocompleteParameterValue
+      },
+      MedicationRequest: {
+        existingCodes: {[itemHash: string]: boolean},
+        name2indexes:{[item: string]: number[]}
+        result: AutocompleteParameterValue
+      }
+    } = {
+      renameSameItemNames: true,
+      Observation: {
+        existingObservationCodes: {},
+        name2indexes: {},
+        result: {
+          coding: [],
+          items: [],
+          datatype: 'any'
+        }
+      },
+      MedicationDispense: {
+        existingCodes: {},
+        name2indexes: {},
+        result: {
+          codes: [],
+          items: [],
+        }
+      },
+      MedicationRequest: {
+        existingCodes: {},
+        name2indexes: {},
+        result: {
+          codes: [],
+          items: [],
+        }
+      }
+    }
+  ): {
+    Observation: SelectedObservationCodes,
+    MedicationDispense: AutocompleteParameterValue,
+    MedicationRequest: AutocompleteParameterValue
+  } {
+    const renameSameItemNames = state.renameSameItemNames;
+    state.renameSameItemNames = false;
     if ('resourceType' in criteria) {
       if (criteria.resourceType === 'Observation') {
         const foundRule = (criteria as ResourceTypeCriteria).rules.find(
@@ -124,20 +146,94 @@ export class PullDataService {
             rule.field.selectedObservationCodes
         );
         if (foundRule) {
-          codeFieldValues.push(foundRule.field.selectedObservationCodes);
+          const items = foundRule.field.selectedObservationCodes.items;
+          const codings = foundRule.field.selectedObservationCodes.coding;
+          items.forEach((item, index) => {
+            const coding = codings[index];
+            const itemHash = `${item} | ${coding.code}` + (coding.system ? ` | ${coding.system}` : '');
+            if (!state.Observation.existingObservationCodes[itemHash]) {
+              state.Observation.existingObservationCodes[itemHash] = true;
+              if(state.Observation.name2indexes[item]) {
+                state.Observation.name2indexes[item].push(state.Observation.result.items.length);
+              } else {
+                state.Observation.name2indexes[item] = [state.Observation.result.items.length];
+              }
+              state.Observation.result.items.push(item);
+              state.Observation.result.coding.push(coding);
+            }
+          });
+        }
+      } else if (criteria.resourceType === 'MedicationDispense' ||
+        criteria.resourceType === 'MedicationRequest') {
+        const resourceType = criteria.resourceType;
+        const foundRule = (criteria as ResourceTypeCriteria).rules.find(
+          (rule) =>
+            rule.field.element === 'code' &&
+            rule.field.value
+        );
+        if (foundRule) {
+          const autocompleteValue = foundRule.field.value as AutocompleteParameterValue;
+          const items = autocompleteValue.items;
+          const codes = autocompleteValue.codes;
+          items.forEach((item, index) => {
+            const itemHash = `${item} | ${codes[index]}`;
+            if (!state[resourceType].existingCodes[itemHash]) {
+              state[resourceType].existingCodes[itemHash] = true;
+              if(state[resourceType].name2indexes[item]) {
+                state[resourceType].name2indexes[item].push(state[resourceType].result.items.length);
+              } else {
+                state[resourceType].name2indexes[item] = [state[resourceType].result.items.length];
+              }
+              state[resourceType].result.items.push(item);
+              state[resourceType].result.codes.push(codes[index]);
+            }
+          });
         }
       }
     } else {
       const length = criteria.rules.length;
       for (let i = 0; i < length; ++i) {
-        codeFieldValues = codeFieldValues.concat(
-          this.getObservationCodesFrom(criteria.rules[i])
-        );
+        this.getCodesFromCriteria(criteria.rules[i], state);
       }
     }
 
-    return codeFieldValues;
+    if (renameSameItemNames) {
+      Object.keys(state)
+        .filter(key => state[key]?.name2indexes instanceof Object)
+        .forEach(resourceType => {
+          if (resourceType === 'Observation') {
+            Object.entries(state.Observation.name2indexes)
+              .forEach(([item, indexes]) => {
+                if(indexes.length > 1) {
+                  indexes.forEach(i => {
+                    const coding = state.Observation.result.coding[i];
+                    state.Observation.result.items[i] =
+                      `${item} | ${coding.code}` +
+                      (coding.system ? ` | ${coding.system}` : '');
+                  });
+                }
+              });
+          } else {
+            Object.entries(state[resourceType].name2indexes)
+              .forEach(([item, indexes]: [string, number[]]) => {
+                if(indexes.length > 1) {
+                  indexes.forEach(i => {
+                    const code = state[resourceType].result.codes[i];
+                    state[resourceType].result.items[i] = `${item} | ${code}`;
+                  });
+                }
+              });
+          }
+        });
+    }
+
+    return {
+      Observation: state.Observation.result,
+      MedicationDispense: state.MedicationDispense.result,
+      MedicationRequest: state.MedicationRequest.result
+    };
   }
+
 
   /**
    * Resets all loaded data.

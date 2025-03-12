@@ -129,8 +129,8 @@ export class CohortService {
    * Sets the cohort criteria
    */
   setCriteria(criteria: Criteria): void {
-    this.criteria = criteria;
-    this.criteria$.next(criteria);
+    this.criteria = {...criteria};
+    this.criteria$.next(this.criteria);
   }
 
   /**

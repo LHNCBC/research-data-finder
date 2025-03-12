@@ -30,6 +30,10 @@ import { saveAs } from 'file-saver';
 import { stringify } from 'csv-stringify/browser/esm/sync';
 import { TableVirtualScrollDataSource } from 'ng-table-virtual-scroll';
 import { MatTooltip } from '@angular/material/tooltip';
+import {
+  AutocompleteParameterValue
+} from '../../types/autocomplete-parameter-value';
+import { Criteria } from '../../types/search-parameters';
 
 /**
  * The main component for pulling Patient-related resources data
@@ -48,7 +52,8 @@ export class PullDataPageComponent
   MAX_PAGE_SIZE = MAX_PAGE_SIZE;
   // Default observation codes for the "Pull data for the cohort" step
   @Input()
-  defaultObservationCodes: SelectedObservationCodes;
+  cohortCriteria: Criteria;
+  defaultCodes: {[resourceType: string]: SelectedObservationCodes | AutocompleteParameterValue};
 
   // Array of visible resource type names
   visibleResourceTypes: string[];
@@ -208,29 +213,64 @@ export class PullDataPageComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.defaultObservationCodes) {
-      this.updateObservationCodesWithDefaults();
+    if (changes.cohortCriteria && this.cohortCriteria) {
+      this.defaultCodes = this.pullData.getCodesFromCriteria(this.cohortCriteria);
+      this.updateAllCodeFiltersWithDefaults();
     }
   }
 
   /**
-   * Sets the default observation codes to the appropriate autocomplete field.
+   * Updates all code filter fields with the default codes.
    * @private
    */
-  private updateObservationCodesWithDefaults(): void {
-    if (this.defaultObservationCodes) {
-      this.isObsCodesSelected = this.defaultObservationCodes.items.length > 0;
-      this.parameterGroups['Observation'].setValue({
-        resourceType: 'Observation',
-        parameters: [
-          {
-            element: 'code text',
-            selectedObservationCodes: this.defaultObservationCodes
-          }
-        ]
+  private updateAllCodeFiltersWithDefaults(): void {
+    if (this.defaultCodes) {
+      this.isObsCodesSelected = this.defaultCodes.Observation?.items.length > 0;
+      Object.keys(this.defaultCodes).forEach(resourceType => {
+        if (this.parameterGroups[resourceType]) {
+          this.updateCodeFilterWithDefaults(resourceType);
+        }
       });
     }
   }
+
+  /**
+   * Updates the code filter field for the specified resource type with the
+   * default codes.
+   * @param resourceType - resource type.
+   * @private
+   */
+  private updateCodeFilterWithDefaults(resourceType: string): void {
+    const defaultCodes = this.defaultCodes?.[resourceType];
+    if (resourceType === 'Observation') {
+      this.isObsCodesSelected = defaultCodes?.items.length > 0;
+    }
+    if (defaultCodes) {
+      if (resourceType === 'Observation') {
+        this.parameterGroups['Observation'].setValue({
+          resourceType: 'Observation',
+          parameters: [
+            {
+              element: 'code text',
+              selectedObservationCodes: this.defaultCodes.Observation as
+                SelectedObservationCodes
+            }
+          ]
+        });
+      } else {
+        this.parameterGroups[resourceType].setValue({
+          resourceType,
+          parameters: [
+            {
+              element: 'code',
+              value: this.defaultCodes[resourceType]
+            }
+          ]
+        });
+      }
+    }
+  }
+
 
   /**
    * Whether to show code selection after Load button.
@@ -238,7 +278,7 @@ export class PullDataPageComponent
   showCodeSelection(resourceType: string): boolean {
     // TODO: waiting feedback from Clem whether we will show code selection for all
     // resource types with a "code text" search parameter.
-    return resourceType === 'Observation';
+    return resourceType === 'Observation' || this.defaultCodes && Object.hasOwnProperty.call(this.defaultCodes, resourceType);
     // return this.codeTextResourceTypes.includes(resourceType);
   }
 
@@ -252,10 +292,7 @@ export class PullDataPageComponent
     );
     this.visibleResourceTypes.push(resourceType);
     this.tabGroup.selectedIndex = this.visibleResourceTypes.length - 1;
-    if (resourceType === 'Observation') {
-      // Update the default observation codes for the newly created Observation tab.
-      this.updateObservationCodesWithDefaults();
-    }
+    this.updateCodeFilterWithDefaults(resourceType);
   }
 
   /**

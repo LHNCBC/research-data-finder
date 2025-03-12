@@ -71,8 +71,13 @@ export class QueryParamsService {
       // Include patients with active field not defined when searching active patients
       return '&active:not=false';
     }
+
     if (this.getUseLookupParamValue(selectedParameter)) {
-      return `&${selectedParameter.element}=${value.value.codes.join(',')}`;
+      if (value.value) {
+        return `&${selectedParameter.element}=${value.value.codes.join(',')}`;
+      } else {
+        return '';
+      }
     }
     if (
       selectedParameter.type === 'Quantity' ||

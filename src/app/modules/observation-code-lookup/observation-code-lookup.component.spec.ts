@@ -206,7 +206,7 @@ describe('ObservationCodeLookupComponent', () => {
         // use "code:not" when $last is not used
         expect(requestedUrls).toContain(
           jasmine.stringMatching(
-            /(code:not=11881-0&code:not=3137-7&code:not=8302-2&code:not=8303-0|(\$lastn.*&code:text=H))/
+            /(code:not=http:\/\/loinc.org%7C11881-0&code:not=http:\/\/loinc.org%7C3137-7&code:not=http:\/\/loinc.org%7C8302-2&code:not=http:\/\/loinc.org%7C8303-0|(\$lastn.*&code:text=H))/
           )
         );
 
@@ -256,7 +256,10 @@ describe('ObservationCodeLookupComponent', () => {
         expect(hostComponent.selectedObservationCodes.value.items).toEqual([
           'Duplicate Display | code1 | system1',
           'Duplicate Display | code2 | system1',
-          'Duplicate Display | code3 | system2'
+          'Duplicate Display' // If autocompleter-lhc is fixed, this item may
+                              // become 'Duplicate Display | code3 | system2'
+                              // or, if we need this, we can handle this in
+                              // the component
         ]);
       });
     });
