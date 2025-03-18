@@ -256,10 +256,9 @@ describe('ObservationCodeLookupComponent', () => {
         expect(hostComponent.selectedObservationCodes.value.items).toEqual([
           'Duplicate Display | code1 | system1',
           'Duplicate Display | code2 | system1',
-          'Duplicate Display' // If autocompleter-lhc is fixed, this item may
-                              // become 'Duplicate Display | code3 | system2'
-                              // or, if we need this, we can handle this in
-                              // the component
+          'Duplicate Display' // This text could be
+                              // 'Duplicate Display | code3 | system2'
+                              // if we had not excluded the selected codes.
         ]);
       });
     });

@@ -11,8 +11,11 @@ This project follows [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Autocomplete for the "code" search parameter for MedicationDispense and
   MedicationRequest resources for R5 servers.
-- Autocomplete for the "Observation.code" search parameter to use the "system"
+- Autocomplete for the code search parameters to use the "system"
   along with the "code" in the "code:not" query parameters.
+- For autocomplete items of the code search parameters with the same display and
+  different code + code system combination, append code + code system to the
+  display so distinct items are shown to the user.
 
 ## [7.0.5] - 2025-01-23
 ### Fixed

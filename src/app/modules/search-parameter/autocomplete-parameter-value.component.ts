@@ -560,6 +560,7 @@ export class AutocompleteParameterValueComponent
                 selectedCodes
               );
               contains.push(...newItems);
+              this.appendCodeSystemToDuplicateDisplay(contains);
               const nextPageUrl = this.fhirBackend.getNextPageUrl(response);
               if (nextPageUrl && contains.length < count) {
                 //  We have to check that there are no new processed codes to avoid unnecessary requests.
@@ -899,7 +900,12 @@ export class AutocompleteParameterValueComponent
       : /.*/;
     const codingsGetter = this.getCodingsGetter();
     return (bundle.entry || []).reduce((acc, entry) => {
-      const codings = codingsGetter(entry.resource);
+      const codings = codingsGetter(entry.resource).map((coding) => {
+        return {
+          display: coding.display,
+          code: (coding.system ? coding.system + '|' : '') + coding.code
+        };
+      });
       if (!codings.length) {
         return acc;
       }
@@ -922,6 +928,29 @@ export class AutocompleteParameterValueComponent
       return acc;
     }, []);
   }
+
+
+  /**
+   * For autocomplete items with the same display and different code + code system
+   * combination, append code + code system to the display so distinct items are
+   * shown to the user.
+   * @param contains the array of items for the autocomplete
+   */
+  appendCodeSystemToDuplicateDisplay(contains: any[]): void {
+    // an array of displays that have more than one appearance.
+    const duplicateDisplays = contains
+      .filter(
+        (item, index, arr) =>
+          arr.findIndex((x) => x.display === item.display) !== index
+      )
+      .map((item) => item.display);
+    contains.forEach((item) => {
+      if (duplicateDisplays.includes(item.display)) {
+        item.display = `${item.display} | ${item.code.split('|').reverse().join(' | ')}`;
+      }
+    });
+  }
+
 
   /**
    * Get 'q' params value for DbGap variable API query.

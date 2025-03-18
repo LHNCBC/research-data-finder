@@ -98,6 +98,7 @@ const bundleOfObservationsWithCategories = {
             coding: [
               {
                 code: 'someCode1',
+                system: 'someSystem1',
                 display: 'someValue1'
               }
             ]
@@ -112,6 +113,7 @@ const bundleOfObservationsWithCategories = {
             coding: [
               {
                 code: 'someCode2',
+                system: 'someSystem2',
                 display: 'someValue2'
               }
             ]
@@ -132,6 +134,7 @@ const bundleOfObservationsWithoutDisplayForCategories = {
             coding: [
               {
                 code: 'someCode1',
+                system: 'someSystem1'
               }
             ]
           }
@@ -144,7 +147,7 @@ const bundleOfObservationsWithoutDisplayForCategories = {
           {
             coding: [
               {
-                code: 'someCode2',
+                code: 'someCode2'
               }
             ]
           }
@@ -203,7 +206,7 @@ describe('AutoCompleteTestValueComponent', () => {
       .flush(bundleOfObservationsWithCategories);
     mockHttp
       .expectOne(
-        '$fhir/Observation?_elements=category&category:text=someValue&category:not=someCode1,someCode2'
+        '$fhir/Observation?_elements=category&category:text=someValue&category:not=someSystem1%7CsomeCode1,someSystem2%7CsomeCode2'
       )
       .flush(emptyBundle);
     mockHttp.verify();
@@ -225,7 +228,7 @@ describe('AutoCompleteTestValueComponent', () => {
       .flush(bundleOfObservationsWithCategories);
     mockHttp
       .expectOne(
-        '$fhir/Observation?_elements=category&category:text=someValue&category:not=someCode1&category:not=someCode2'
+        '$fhir/Observation?_elements=category&category:text=someValue&category:not=someSystem1%7CsomeCode1&category:not=someSystem2%7CsomeCode2'
       )
       .flush(emptyBundle);
     mockHttp.verify();
@@ -247,7 +250,7 @@ describe('AutoCompleteTestValueComponent', () => {
       .flush(bundleOfObservationsWithCategories);
     mockHttp
       .expectOne(
-        '$fhir/Observation?_elements=category&category:not=someCode1,someCode2'
+        '$fhir/Observation?_elements=category&category:not=someSystem1%7CsomeCode1,someSystem2%7CsomeCode2'
       )
       .flush(emptyBundle);
     mockHttp.verify();
@@ -269,7 +272,7 @@ describe('AutoCompleteTestValueComponent', () => {
       .flush(bundleOfObservationsWithCategories);
     mockHttp
       .expectOne(
-        '$fhir/Observation?_elements=category&category:missing=false&category:not=someCode1,someCode2'
+        '$fhir/Observation?_elements=category&category:missing=false&category:not=someSystem1%7CsomeCode1,someSystem2%7CsomeCode2'
       )
       .flush(emptyBundle);
     mockHttp.verify();
@@ -288,7 +291,7 @@ describe('AutoCompleteTestValueComponent', () => {
       .expectOne('$fhir/Observation?_elements=category&category:missing=false')
       .flush(bundleOfObservationsWithCategories);
     mockHttp
-      .expectOne('$fhir/Observation?_elements=category&category:missing=false&category:not=someCode1,someCode2')
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false&category:not=someSystem1%7CsomeCode1,someSystem2%7CsomeCode2')
       .flush(emptyBundle);
     mockHttp.verify();
     expect(resolve).toHaveBeenCalled();
@@ -308,10 +311,79 @@ describe('AutoCompleteTestValueComponent', () => {
       .expectOne('$fhir/Observation?_elements=category&category:missing=false')
       .flush(bundleOfObservationsWithoutDisplayForCategories);
     mockHttp
-      .expectOne('$fhir/Observation?_elements=category&category:missing=false&category:not=someCode1,someCode2')
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false&category:not=someSystem1%7CsomeCode1,someCode2')
       .flush(emptyBundle);
     mockHttp.verify();
     expect(resolve).toHaveBeenCalled();
+    expect(reject).not.toHaveBeenCalled();
+  });
+
+  const bundleWithTheSameDisplayTexts = {
+    link: [{ relation: 'next', url: 'nextPageUrl' }],
+    entry: [
+      {
+        resource: {
+          category: [
+            {
+              coding: [
+                {
+                  code: 'someCode1',
+                  system: 'someSystem1',
+                  display: 'someValue1'
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        resource: {
+          category: [
+            {
+              coding: [
+                {
+                  code: 'someCode2',
+                  system: 'someSystem2',
+                  display: 'someValue1'
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  };
+
+  it('should append code and system to duplicate display texts', () => {
+    spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(true);
+    spyOnProperty(features, 'missingModifier').and.returnValue(true);
+    const resolve = jasmine.createSpy();
+    const reject = jasmine.createSpy();
+    component.searchParamDesc = {required: true, valueSet: 'http://hl7.org/fhir/ValueSet/observation-category'};
+    component.searchItemsOnFhirServer('someValue', 20, resolve, reject).subscribe();
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false')
+      .flush(bundleWithTheSameDisplayTexts);
+    mockHttp
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false&category:not=someSystem1%7CsomeCode1,someSystem2%7CsomeCode2')
+      .flush(emptyBundle);
+    mockHttp.verify();
+    expect(resolve).toHaveBeenCalledWith(
+      {
+        "resourceType": "ValueSet",
+        "expansion": {
+          "total": 2,
+          "contains": [
+            jasmine.objectContaining({
+              "display": "someValue1 | someCode1 | someSystem1"
+            }),
+            jasmine.objectContaining({
+              "display": "someValue1 | someCode2 | someSystem2"
+            })
+          ]
+        }
+      }
+    );
     expect(reject).not.toHaveBeenCalled();
   });
 });
