@@ -51,6 +51,38 @@ interface PullDataState {
   loadTime: number;
 }
 
+// Storage of intermediate data when recursively calling
+// the "getCodesFromCriteria" function.
+type GetCodesFromCriteriaState = {
+  // State object for Observation resource type.
+  Observation: {
+    // A map of existing observation codes
+    existingObservationCodes: { [itemHash: string]: boolean };
+    // A map of item names to their indexes in the result array.
+    name2indexes: { [item: string]: number[] };
+    // The result object containing selected observation codes.
+    result: SelectedObservationCodes;
+  },
+  // State object for MedicationDispense resource type.
+  MedicationDispense: {
+    // A map of existing medication dispense codes.
+    existingCodes: { [itemHash: string]: boolean };
+    // A map of item names to their indexes in the result array.
+    name2indexes: { [item: string]: number[] };
+    // The result object containing selected medication dispense codes.
+    result: AutocompleteParameterValue
+  },
+  // State object for MedicationRequest resource type.
+  MedicationRequest: {
+    // A map of existing medication request codes.
+    existingCodes: { [itemHash: string]: boolean },
+    // A map of item names to their indexes in the result array.
+    name2indexes: { [item: string]: number[] }
+    // The result object containing selected medication request codes.
+    result: AutocompleteParameterValue
+  }
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -86,58 +118,47 @@ export class PullDataService {
    */
   getCodesFromCriteria(
     criteria: Criteria | ResourceTypeCriteria,
-    state: {
-      renameSameItemNames: boolean,
-      Observation: {
-        existingObservationCodes: {[itemHash: string]: boolean},
-        name2indexes:{[item: string]: number[]}
-        result: SelectedObservationCodes
-      },
-      MedicationDispense: {
-        existingCodes: {[itemHash: string]: boolean},
-        name2indexes:{[item: string]: number[]}
-        result: AutocompleteParameterValue
-      },
-      MedicationRequest: {
-        existingCodes: {[itemHash: string]: boolean},
-        name2indexes:{[item: string]: number[]}
-        result: AutocompleteParameterValue
-      }
-    } = {
-      renameSameItemNames: true,
-      Observation: {
-        existingObservationCodes: {},
-        name2indexes: {},
-        result: {
-          coding: [],
-          items: [],
-          datatype: 'any'
-        }
-      },
-      MedicationDispense: {
-        existingCodes: {},
-        name2indexes: {},
-        result: {
-          codes: [],
-          items: [],
-        }
-      },
-      MedicationRequest: {
-        existingCodes: {},
-        name2indexes: {},
-        result: {
-          codes: [],
-          items: [],
-        }
-      }
-    }
+    state: GetCodesFromCriteriaState = null
   ): {
     Observation: SelectedObservationCodes,
     MedicationDispense: AutocompleteParameterValue,
     MedicationRequest: AutocompleteParameterValue
   } {
-    const renameSameItemNames = state.renameSameItemNames;
-    state.renameSameItemNames = false;
+    // Rename items with the same name in the top function call of a recursive
+    // call stack.
+    const renameSameItemNames = !state;
+
+    if (!state) {
+      // If the state object is not passed, create a new one.
+      state = {
+        Observation: {
+          existingObservationCodes: {},
+          name2indexes: {},
+          result: {
+            coding: [],
+            items: [],
+            datatype: 'any'
+          }
+        },
+        MedicationDispense: {
+          existingCodes: {},
+          name2indexes: {},
+          result: {
+            codes: [],
+            items: [],
+          }
+        },
+        MedicationRequest: {
+          existingCodes: {},
+          name2indexes: {},
+          result: {
+            codes: [],
+            items: [],
+          }
+        }
+      };
+    }
+
     if ('resourceType' in criteria) {
       if (criteria.resourceType === 'Observation') {
         const foundRule = (criteria as ResourceTypeCriteria).rules.find(
