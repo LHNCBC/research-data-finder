@@ -114,7 +114,7 @@ MedicationDispense,,,,,,,
 ,location,"search parameter",location,show,reference,,"Returns dispense for a given location"
 ,location,column,Location,hide,Reference,,"Where the dispense occurred"
 ,medication,"search parameter",medication,show,reference,,"Returns dispenses of this medicine resource"
-,medication,column,Medication,hide,CodeableReference,,"What medication was supplied"
+,medication,column,Medication,show,CodeableReference,,"What medication was supplied"
 ,note,column,Note,hide,Annotation,,"Information about the dispense"
 ,notPerformedReason,column,"Not Performed Reason",hide,CodeableReference,,"Why a dispense was not performed"
 ,partOf,column,"Part Of",hide,Reference,,"Event that dispense is part of"

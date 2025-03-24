@@ -203,7 +203,7 @@
             *ngIf="isVisible(Step.PULL_DATA_FOR_THE_COHORT)">
     <div class="v-box">
       <app-pull-data-page #pullDataPageComponent
-                          [defaultObservationCodes]="pullData.defaultObservationCodes$ | async">
+                          [cohortCriteria]="cohort.criteria$ | async">
       </app-pull-data-page>
       <div class="spacer"></div>
       <div class="h-box">

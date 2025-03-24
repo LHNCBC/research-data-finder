@@ -3,6 +3,20 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.1.0] - 2025-03-12
+### Added
+- Support for R5 CodeableReference values in tables.
+- Support for filtering MedicationDispense and MedicationRequest resources by
+  code in the Pull data step.
+### Fixed
+- Autocomplete for the "code" search parameter for MedicationDispense and
+  MedicationRequest resources for R5 servers.
+- Autocomplete for the code search parameters to use the "system"
+  along with the "code" in the "code:not" query parameters.
+- For autocomplete items of the code search parameters with the same display and
+  different code + code system combination, append code + code system to the
+  display so distinct items are shown to the user.
+
 ## [7.0.5] - 2025-01-23
 ### Fixed
 - An issue with skipping clicks on variables while list is loading.

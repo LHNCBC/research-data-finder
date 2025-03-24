@@ -56,4 +56,27 @@ describe('Research Data Finder (baseR4)', () => {
     cy.isStepSelected('Pull data for the cohort');
   });
 
+  it('should allow to add the MedicationDispense tab and load resources filtered by medications', () => {
+    cy.clickButton('Add a new resource tab');
+    cy.clickButton('MedicationDispense');
+  });
+
+  it('should allow to select a medication code to filter MedicationDispenses', () => {
+    cy.get('#autocomplete-test-value-1.search_field').type('metformin', {force: true});
+    cy.get('#completionOptions').should('be.visible');
+    cy.get('#completionOptions > ul > li').should('not.be.empty');
+    cy.get('#completionOptions > ul > li').first().click();
+  });
+
+  it('should load MedicationDispense table', () => {
+    cy.clickButton('Load MedicationDispenses');
+    cy.get('app-resource-table[context="pull-data"]').should('exist');
+  });
+
+  it('should show the Medication column in MedicationDispense table', () => {
+    cy.get('app-resource-table[context="pull-data"] thead', { timeout: 10000 })
+      .contains('Medication')
+      .should('exist');
+  });
+
 });
