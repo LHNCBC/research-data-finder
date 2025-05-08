@@ -11,6 +11,7 @@ import { FhirServerSelectComponent } from './fhir-server-select/fhir-server-sele
 import { MatButtonModule } from '@angular/material/button';
 import { AppRoutingModule } from '../../app-routing.module';
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
+import { MatIcon } from '@angular/material/icon';
 
 @NgModule({
   declarations: [
@@ -29,7 +30,8 @@ import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
     MatButtonModule,
     AppRoutingModule,
     FormsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatIcon
   ]
 })
 export class SettingsPageModule {}

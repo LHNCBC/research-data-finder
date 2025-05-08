@@ -408,8 +408,10 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
    * Get the object to be saved, either to a file or to sessionStorage.
    */
   getSavedObject(): any {
+    const scrubberID = this.fhirBackend.fhirClient.getScrubberIDHeader();
     const result: any = {
       version: pkg.version,
+      ...(scrubberID ? {scrubberID} : {}),
       serviceBaseUrl: this.fhirBackend.serviceBaseUrl,
       isCartCriteria: !!this.selectRecordsComponent,
       maxPatientCount: this.cohort.maxPatientCount,
@@ -475,6 +477,7 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
   ): void {
     const {
       version,
+      scrubberID,
       serviceBaseUrl,
       isCartCriteria,
       maxPatientCount,
@@ -539,14 +542,39 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         researchStudies
       );
     }
-    if (data) {
+    const currentScrubberID = this.fhirBackend.fhirClient.getScrubberIDHeader();
+    if (data && (!currentScrubberID && !scrubberID || currentScrubberID === scrubberID)) {
       // Set patient table data, if it was saved.
       this.loadPatientsData(data, fromResearchStudyStep, isCartApproach);
       this.cohort.loadingStatistics = filename
         ? [[`Data loaded from file ${filename}.`]]
         : [[`Data reloaded from session storage.`]];
+    } else {
+      this.resetStepsStartingWithCurrent();
     }
   }
+
+  /**
+   * Resets current and following steps.
+   */
+  resetStepsStartingWithCurrent(): void {
+    const steps = this.stepper.steps;
+    const selectedIndex = this.stepper.selectedIndex;
+    for (let i = selectedIndex; i < steps.length; i++) {
+      steps.get(i).reset();
+    }
+    this.redrawStepper();
+  }
+
+  /**
+   * Hack for manually redrawing MatStepper.
+   */
+  redrawStepper(): void {
+    const inc = this.stepper.selectedIndex > 0 ? -1 : 1;
+    this.stepper.selectedIndex = this.stepper.selectedIndex + inc;
+    this.stepper.selectedIndex = this.stepper.selectedIndex - inc;
+  }
+
 
   /**
    * Re-populate the patient table

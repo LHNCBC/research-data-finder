@@ -1,0 +1,20 @@
+<div mat-dialog-content>
+  <mat-form-field class="scrubber-id-value" subscriptSizing="dynamic">
+    <mat-label>ScrubberID</mat-label>
+    <input type="text" matInput cdkFocusInitial
+           [formControl]="scrubberId"
+           autocomplete="off"
+           placeholder="{{'Type the ScrubberID value'}}"
+           (keydown.escape)="hasCancelButton && cancel()"
+           (keydown.enter)="apply()">
+    <mat-hint align="start">
+      To request data from this server you need a ScrubberID provided by an authorized data manager.
+    </mat-hint>
+  </mat-form-field>
+</div>
+<div mat-dialog-actions class="h-box">
+  <div class="flex"></div>
+  <button mat-raised-button *ngIf="hasCancelButton" (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="apply()">OK</button>
+</div>
+

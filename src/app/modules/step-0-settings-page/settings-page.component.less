@@ -1,3 +1,26 @@
 .number-field {
   width: 200px;
 }
+
+.message {
+  display: flex;
+  align-items: center;
+  padding: 0.5em 0 0.5em;
+  font-weight: bold;
+
+  mat-spinner, mat-icon {
+    margin-right: 1em;
+  }
+
+  &__connecting {
+    color: #000;
+  }
+
+  &__error {
+    color: #f44336;
+  }
+
+  &__ready {
+    color: #009000;
+  }
+}

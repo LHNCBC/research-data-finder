@@ -97,6 +97,21 @@ export class HomeComponent implements AfterViewInit {
     this.liveAnnouncer.announce('Logged out from SMART on FHIR connection.');
   }
 
+  /**
+   * Handles a click on the "Change ScrubberID" link - opens a dialog to select
+   * ScrubberID.
+   */
+  onChangeScrubberID(): void {
+    this.fhirBackend.selectScrubberId(true).then((scrubberID) => {
+      if (scrubberID !== false) {
+        // If the "Cancel" button was not pressed, apply changes
+        this.fhirBackend.fhirClient.setScrubberIDHeader(scrubberID);
+        // Reset interface
+        this.returnToSettingsPage();
+      }
+    });
+  }
+
   ngAfterViewInit(): void {
     // Display shared header/footer after Angular page loads.
     document.getElementById('sharedHeader').style.display = 'block';

@@ -39,6 +39,9 @@ import fhirpath from 'fhirpath';
 import Resource = fhir.Resource;
 import Bundle = fhir.Bundle;
 import {Oauth2TokenService} from "../oauth2-token/oauth2-token.service";
+import {
+  ScrubberIdDialogComponent
+} from '../scrubber-id-dialog/scrubber-id-dialog.component';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -123,7 +126,7 @@ export class FhirBackendService implements HttpBackend {
     }
   }
   get serviceBaseUrl(): string {
-    return this.fhirClient.getServiceBaseUrl();
+    return this.fhirClient?.getServiceBaseUrl();
   }
 
   /**
@@ -213,7 +216,7 @@ export class FhirBackendService implements HttpBackend {
 
   // Version name e.g. "R4"
   get currentVersion(): string {
-    return this.fhirClient.getVersionName();
+    return this.fhirClient?.getVersionName();
   }
 
   // FHIRPath model
@@ -258,8 +261,7 @@ export class FhirBackendService implements HttpBackend {
   init(): Promise<void> {
     this.isCacheEnabled = sessionStorage.getItem('isCacheEnabled') !== 'false';
     this._isSmartOnFhir = getUrlParam('isSmart') === 'true';
-    const defaultServer = 'https://lforms-fhir.nlm.nih.gov/baseR5';
-    const serviceBaseUrl = getUrlParam('server') || defaultServer;
+    const serviceBaseUrl = this.settings.getDefaultServerUrl();
     this.fhirClient = new FhirBatchQuery({
       serviceBaseUrl
     });
@@ -346,6 +348,21 @@ export class FhirBackendService implements HttpBackend {
   }
 
   /**
+   * Opens a dialog to select ScrubberID.
+   * @param hasCancelButton - whether to allow the Cancel button.
+   * @returns a promise that is resolved when the dialog is finished closing.
+   */
+  selectScrubberId(hasCancelButton: boolean): Promise<string|false> {
+     return this.dialog.open(ScrubberIdDialogComponent, {
+        data : {
+          scrubberId: this.fhirClient.getScrubberIDHeader(),
+          hasCancelButton
+        },
+        disableClose: true
+      }).afterClosed().toPromise();
+  }
+
+  /**
    * Initialize/reinitialize FhirBatchQuery instance
    * @param serviceBaseUrl - new FHIR REST API Service Base URL
    */
@@ -354,41 +371,53 @@ export class FhirBackendService implements HttpBackend {
     serviceBaseUrl ||= this.serviceBaseUrl;
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
-    return this.checkSmartOnFhirEnabled(serviceBaseUrl)
-      .then(() => {
-        // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
-        return this.isSmartOnFhirEnabled && this.isSmartOnFhir
-          ? this.initializeSmartOnFhirConnection()
-          : Promise.resolve();
-      })
-      .then(() => {
-        const isDbgap = this.isDbgap(serviceBaseUrl);
-        const isRasLoggedIn = this.injector.get(RasTokenService).rasTokenValidated;
-        const isOauth2LoggedIn = this.injector.get(Oauth2TokenService).oauth2TokenValidated;
-        // Set authorization header.
-        let authorizationHeader;
-        const dbgapTstToken =
-          isDbgap && sessionStorage.getItem('dbgapTstToken');
-        if (dbgapTstToken) {
-          authorizationHeader = 'Bearer ' + dbgapTstToken
-        } else if (isOauth2LoggedIn) {
-          authorizationHeader = 'Bearer ' + sessionStorage.getItem('oauth2AccessToken');
-        } else {
-          authorizationHeader = (this.smartConnectionSuccess &&
-              this.fhirService.getSmartConnection().getAuthorizationHeader()) ||
-            null;
-        }
-        this.fhirClient.setAuthorizationHeader(authorizationHeader);
 
-        const initializeContext =
-          isRasLoggedIn || isOauth2LoggedIn || this.smartConnectionSuccess
-            ? 'after-login'
-            : isDbgap && !isRasLoggedIn && !this.isPreviousVersion
-              ? 'dbgap-pre-login'
-              : '';
+    let scrubberIdPromise =
+      this.settings.get('scrubber', serviceBaseUrl) === true ?
+        this.selectScrubberId(!this.settings.get('focusOnServer', serviceBaseUrl))
+        : Promise.resolve(null);
+    return scrubberIdPromise.then((scrubberID) => {
+      if (scrubberID !== false) {
+        // If the "Cancel" button was not pressed, apply changes
+        this.fhirClient.setScrubberIDHeader(scrubberID);
+      }
 
-        this.makeInitializationCalls(serviceBaseUrl, initializeContext);
-      });
+      return this.checkSmartOnFhirEnabled(serviceBaseUrl)
+        .then(() => {
+          // Set up SMART connection when it redirects back with a SMART-valid server and "isSmart=true".
+          return this.isSmartOnFhirEnabled && this.isSmartOnFhir
+            ? this.initializeSmartOnFhirConnection()
+            : Promise.resolve();
+        })
+        .then(() => {
+          const isDbgap = this.isDbgap(serviceBaseUrl);
+          const isRasLoggedIn = this.injector.get(RasTokenService).rasTokenValidated;
+          const isOauth2LoggedIn = this.injector.get(Oauth2TokenService).oauth2TokenValidated;
+          // Set authorization header.
+          let authorizationHeader;
+          const dbgapTstToken =
+            isDbgap && sessionStorage.getItem('dbgapTstToken');
+          if (dbgapTstToken) {
+            authorizationHeader = 'Bearer ' + dbgapTstToken
+          } else if (isOauth2LoggedIn) {
+            authorizationHeader = 'Bearer ' + sessionStorage.getItem('oauth2AccessToken');
+          } else {
+            authorizationHeader = (this.smartConnectionSuccess &&
+                this.fhirService.getSmartConnection().getAuthorizationHeader()) ||
+              null;
+          }
+          this.fhirClient.setAuthorizationHeader(authorizationHeader);
+
+          const initializeContext =
+            isRasLoggedIn || isOauth2LoggedIn || this.smartConnectionSuccess
+              ? 'after-login'
+              : isDbgap && !isRasLoggedIn && !this.isPreviousVersion
+                ? 'dbgap-pre-login'
+                : '';
+
+          this.makeInitializationCalls(serviceBaseUrl, initializeContext);
+        });
+    });
   }
 
   /**

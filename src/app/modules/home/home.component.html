@@ -40,6 +40,14 @@
            aria-label="Log out from SMART on FHIR"
            (keydown.enter)="onSmartLogout()"
            (click)="onSmartLogout()">Log out</div>
+      <div class="logout"
+           tabIndex="0"
+           *ngIf="fhirBackend.settings.get('scrubber')"
+           matTooltip="Change ScrubberID"
+           role="link"
+           aria-label="Change Scrubber ID"
+           (keydown.enter)="onChangeScrubberID()"
+           (click)="onChangeScrubberID()">Change ScrubberID</div>
       <div id="version">Version: <a target="_blank"
                                     tabIndex="0"
                                     (keyup.enter)="$event.currentTarget.click()"

@@ -192,4 +192,30 @@ export class SettingsPageComponent implements OnDestroy {
       })
     );
   }
+
+  // Connection error messages
+  errorMessages = {
+    smartConnectionFailure: 'SMART on FHIR connection failed.',
+    unsupportedVersion: 'Unsupported FHIR version.',
+    basicAuthFailed: 'Basic authentication failed.',
+    oauth2Required: 'Authorization required. Please click the "login" button ' +
+      'to login.',
+    wrongUrl: 'Please specify a valid FHIR server URL. ' +
+      'See <a target="_blank" rel="noopener noreferrer" ' +
+      'href="https://www.hl7.org/fhir/http.html#root">' +
+      'FHIR REST API Service Base URL</a> for details.',
+    wrongUrlWhenFocusOnServer: 'Unable to connect to the pre-selected FHIR ' +
+      'server.'
+  };
+
+  /**
+   * Returns an array of keys for connection error messages.
+   */
+  getErrors(): string[] {
+    const ctrl = this.settingsFormGroup.controls['serviceBaseUrl'];
+    return ctrl.errors ? Object.keys(ctrl.errors) : [];
+  }
+
+  // Enum of possible connection statuses
+  protected readonly ConnectionStatus = ConnectionStatus;
 }
