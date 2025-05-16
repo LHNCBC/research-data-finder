@@ -350,12 +350,13 @@ export class FhirBackendService implements HttpBackend {
   /**
    * Opens a dialog to select ScrubberID.
    * @param hasCancelButton - whether to allow the Cancel button.
+   * @param serviceBaseUrl - FHIR REST API Service Base URL.
    * @returns a promise that is resolved when the dialog is finished closing.
    */
-  selectScrubberId(hasCancelButton: boolean): Promise<string|false> {
+  selectScrubberId(hasCancelButton: boolean, serviceBaseUrl: string = null): Promise<string|false> {
      return this.dialog.open(ScrubberIdDialogComponent, {
         data : {
-          scrubberId: this.fhirClient.getScrubberIDHeader(),
+          scrubberId: this.fhirClient.getScrubberIDHeader(serviceBaseUrl),
           hasCancelButton
         },
         disableClose: true
@@ -374,12 +375,12 @@ export class FhirBackendService implements HttpBackend {
 
     let scrubberIdPromise =
       this.settings.get('scrubber', serviceBaseUrl) === true ?
-        this.selectScrubberId(!this.settings.get('focusOnServer', serviceBaseUrl))
+        this.selectScrubberId(this.settings.get('allowChangeServer', serviceBaseUrl), serviceBaseUrl)
         : Promise.resolve(null);
     return scrubberIdPromise.then((scrubberID) => {
       if (scrubberID !== false) {
         // If the "Cancel" button was not pressed, apply changes
-        this.fhirClient.setScrubberIDHeader(scrubberID);
+        this.fhirClient.setScrubberIDHeader(scrubberID, serviceBaseUrl);
       }
 
       return this.checkSmartOnFhirEnabled(serviceBaseUrl)

@@ -1,28 +1,5 @@
 <form [formGroup]="settingsFormGroup" class="v-box">
-  @if (fhirBackend.settings.get('focusOnServer')) {
-    <p class="message message__connecting" *ngIf="(fhirBackend.initialized | async) === ConnectionStatus.Pending">
-      <mat-spinner [diameter]="24"></mat-spinner>
-      <span>
-        Connecting to the pre-selected FHIR server...
-      </span>
-    </p>
-    <p class="message message__ready" *ngIf="(fhirBackend.initialized | async) === ConnectionStatus.Ready">
-      <mat-icon svgIcon="check"></mat-icon>
-      <span>
-        The FHIR server has been pre-selected. Changing the pre-selected FHIR server is not allowed.
-      </span>
-    </p>
-    @if(settingsFormGroup.controls['serviceBaseUrl'].errors) {
-      <ng-container *ngFor="let error of getErrors()">
-        <p class="message message__error">
-          <mat-icon svgIcon="cancel"></mat-icon>
-          <span>
-            {{errorMessages[error+'WhenFocusOnServer'] || errorMessages[error]}}
-          </span>
-        </p>
-      </ng-container>
-    }
-  } @else {
+  @if (fhirBackend.settings.get('allowChangeServer')) {
     <p class="info">
       <span class="info-icon" aria-hidden="true"></span>
       <span>
@@ -55,6 +32,29 @@
       }
     </mat-form-field>
     <div class="spacer"></div>
+  } @else {
+    <p class="message message__connecting" *ngIf="(fhirBackend.initialized | async) === ConnectionStatus.Pending">
+      <mat-spinner [diameter]="24"></mat-spinner>
+      <span>
+        Connecting to the pre-selected FHIR server...
+      </span>
+    </p>
+    <p class="message message__ready" *ngIf="(fhirBackend.initialized | async) === ConnectionStatus.Ready">
+      <mat-icon svgIcon="check"></mat-icon>
+      <span>
+        The FHIR server has been pre-selected. Changing the pre-selected FHIR server is not allowed.
+      </span>
+    </p>
+    @if(settingsFormGroup.controls['serviceBaseUrl'].errors) {
+      <ng-container *ngFor="let error of getErrors()">
+        <p class="message message__error">
+          <mat-icon svgIcon="cancel"></mat-icon>
+          <span>
+            {{errorMessages[error+'WhenFocusOnServer'] || errorMessages[error]}}
+          </span>
+        </p>
+      </ng-container>
+    }
   }
 
   <mat-expansion-panel class="section mat-elevation-z">

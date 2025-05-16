@@ -242,7 +242,8 @@ describe('FhirBackendService', () => {
       service.isSmartOnFhirEnabled = true;
       spyOn(service, 'checkSmartOnFhirEnabled').and.resolveTo(false);
       await service.initializeFhirBatchQuery('http://some-scrubber-server');
-      expect(service.fhirClient.setScrubberIDHeader).toHaveBeenCalledOnceWith('123')
+      expect(service.fhirClient.setScrubberIDHeader)
+        .toHaveBeenCalledOnceWith('123', 'http://some-scrubber-server');
     });
 
   });

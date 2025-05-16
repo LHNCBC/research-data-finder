@@ -4,8 +4,10 @@
 {
   // Default settings for all servers
   default: {
-    // Use this particular FHIR server URL and do not allow it to change
-    // focusOnServer: 'https://lforms-fhir.nlm.nih.gov/baseR5',
+    // Whether the user is allowed to change the FHIR server URL:
+    // If set to true, the user can change the server URL.
+    // If set to false, the "defaultServer" URL will be used.
+    allowChangeServer: true,
 
     // The default FHIR server URL is initially displayed when the application
     // is first used.

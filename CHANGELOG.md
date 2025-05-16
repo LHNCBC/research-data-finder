@@ -11,8 +11,8 @@ This project follows [Semantic Versioning](http://semver.org/).
     dialog, storing `scrubberID` in a cohort and criteria file to correctly
     loading that file, and using the "Scrubber-Id" header in requests to the
     specified FHIR server.
-  * `default.focusOnServer` - use this particular FHIR server URL and do not
-    allow it to change.
+  * `default.allowChangeServer` - specifies whether the user is allowed
+     to change the FHIR server URL.
   * `default.defaultServer` - the default FHIR server URL is initially displayed
     when the application is first used (previously it was hardcoded). 
  

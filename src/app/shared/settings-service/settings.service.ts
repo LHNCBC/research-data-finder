@@ -159,7 +159,7 @@ export class SettingsService {
    * the "Settings" step.
    */
   getDefaultServerUrl() {
-    return this.config?.default?.focusOnServer || getUrlParam('server') ||
+    return this.config?.default?.allowChangeServer && getUrlParam('server') ||
       this.config?.default?.defaultServer;
   }
 
