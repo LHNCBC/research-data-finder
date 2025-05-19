@@ -50,7 +50,7 @@
         <p class="message message__error">
           <mat-icon svgIcon="cancel"></mat-icon>
           <span>
-            {{errorMessages[error+'WhenFocusOnServer'] || errorMessages[error]}}
+            {{errorMessagesWhenFocusOnServer[error] || errorMessages[error]}}
           </span>
         </p>
       </ng-container>
