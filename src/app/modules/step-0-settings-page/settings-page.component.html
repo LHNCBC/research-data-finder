@@ -14,22 +14,14 @@
       <mat-hint *ngIf="fhirBackend.smartConnectionSuccess" align="end">
         SMART on FHIR connection succeeded.
       </mat-hint>
-      @if (basicAuthSuccessMessage) {
-        <mat-hint align="start">
-          {{basicAuthSuccessMessage}}
-        </mat-hint>
-      } @else if (settingsFormGroup.controls['serviceBaseUrl'].errors) {
-        <mat-error>
-          <ng-container *ngFor="let error of getErrors()">
-            {{errorMessages[error]}}<br>
-          </ng-container>
-        </mat-error>
-      } @else {
-        <mat-hint align="start">
-          See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a>
-          for details.
-        </mat-hint>
-      }
+      <mat-hint align="start" *ngIf="basicAuthSuccessMessage">
+        {{basicAuthSuccessMessage}}
+      </mat-hint>
+      <mat-hint align="start" *ngIf="!basicAuthSuccessMessage && !settingsFormGroup.controls['serviceBaseUrl'].errors">
+        See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
+        details.
+      </mat-hint>
+      <mat-error *ngFor="let error of getErrors()" [innerHTML]="errorMessages[error]"></mat-error>
     </mat-form-field>
     <div class="spacer"></div>
   } @else {
