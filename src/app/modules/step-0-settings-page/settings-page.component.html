@@ -34,7 +34,7 @@
     <p class="message message__ready" *ngIf="(fhirBackend.initialized | async) === ConnectionStatus.Ready">
       <mat-icon svgIcon="check"></mat-icon>
       <span>
-        The FHIR server has been pre-selected. Changing the pre-selected FHIR server is not allowed.
+        Successfully connected to the data server.
       </span>
     </p>
     @if(settingsFormGroup.controls['serviceBaseUrl'].errors) {
