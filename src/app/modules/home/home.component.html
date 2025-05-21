@@ -45,9 +45,9 @@
            *ngIf="fhirBackend.settings.get('scrubber')"
            matTooltip="Change ScrubberID"
            role="link"
-           aria-label="Change Scrubber ID"
+           [attr.aria-label]="getScrubberIdLinkText()"
            (keydown.enter)="onChangeScrubberID()"
-           (click)="onChangeScrubberID()">Change ScrubberID</div>
+           (click)="onChangeScrubberID()">{{getScrubberIdLinkText()}}</div>
       <div id="version">Version: <a target="_blank"
                                     tabIndex="0"
                                     (keyup.enter)="$event.currentTarget.click()"
