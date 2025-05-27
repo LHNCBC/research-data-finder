@@ -23,6 +23,9 @@ import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
 import queryResponseCache from './query-response-cache';
 import { RasTokenService } from '../ras-token/ras-token.service';
 import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
+import {
+  ScrubberIdDialogComponent
+} from '../scrubber-id-dialog/scrubber-id-dialog.component';
 
 describe('FhirBackendService', () => {
   let service: FhirBackendService;
@@ -85,7 +88,12 @@ describe('FhirBackendService', () => {
       spyOn(service.settings, 'getDbgapUrlPattern').and.returnValue(
         '^https://dbgap-api.ncbi.nlm.nih.gov/fhir'
       );
+      spyOn(service.settings, 'getDefaultServerUrl').and.returnValue(
+        'https://lforms-fhir.nlm.nih.gov/baseR5'
+      );
       spyOn(service, 'isDbgap').and.returnValue(false);
+      matDialog = TestBed.inject(MatDialog);
+      dialogOpenSpy = spyOn(matDialog, 'open');
       service.cacheEnabled = true;
       await service.init();
       service.fhirClient._features = {batch: true, interpretation: true};
@@ -220,6 +228,24 @@ describe('FhirBackendService', () => {
         FhirBatchQuery.prototype.setAuthorizationHeader
       ).toHaveBeenCalledOnceWith(authorizationHeader);
     });
+
+    it('should set the "Scrubber-Id" header when the corresponding "scrubber" option is enabled', async () => {
+      spyOn(service.settings, 'get').and.callFake((prop, serviceBaseUrl) => {
+        return prop == 'scrubber' ? true : null;
+      });
+      spyOn(service.fhirClient, 'setScrubberIDHeader');
+      dialogOpenSpy.and.returnValue({
+          afterClosed: () => {
+            return of('123');
+          }
+        } as MatDialogRef<ScrubberIdDialogComponent>);
+      service.isSmartOnFhirEnabled = true;
+      spyOn(service, 'checkSmartOnFhirEnabled').and.resolveTo(false);
+      await service.initializeFhirBatchQuery('http://some-scrubber-server');
+      expect(service.fhirClient.setScrubberIDHeader)
+        .toHaveBeenCalledOnceWith('123', 'http://some-scrubber-server');
+    });
+
   });
 
   describe('dbGaP', () => {

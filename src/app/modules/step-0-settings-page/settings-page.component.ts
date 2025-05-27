@@ -19,6 +19,25 @@ import {
   AlertDialogComponent
 } from '../../shared/alert-dialog/alert-dialog.component';
 
+
+/**
+ * Enum representing possible error codes for the FHIR Service Base URL validation.
+ * Used to identify specific connection or configuration issues.
+ */
+export enum ServiceBaseUrlErrors {
+  /** Indicates a failure to connect using SMART on FHIR protocol. */
+  smartConnectionFailure = 'smartConnectionFailure',
+  /** Indicates the FHIR server version is unsupported. */
+  unsupportedVersion = 'unsupportedVersion',
+  /** Indicates that basic authentication has failed. */
+  basicAuthFailed = 'basicAuthFailed',
+  /** Indicates that OAuth2 authorization is required. */
+  oauth2Required = 'oauth2Required',
+  /** Indicates the provided FHIR server URL is invalid. */
+  wrongUrl = 'wrongUrl'
+}
+
+
 /**
  * Settings page component for defining general parameters such as FHIR REST API Service Base URL.
  */
@@ -167,22 +186,22 @@ export class SettingsPageComponent implements OnDestroy {
         if (status === ConnectionStatus.Error) {
           if (this.fhirBackend.isSmartOnFhir) {
             this.liveAnnouncer.announce('SMART on FHIR connection failed.');
-            return { smartConnectionFailure: true };
+            return { [ServiceBaseUrlErrors.smartConnectionFailure]: true };
           } else {
             this.liveAnnouncer.announce(
               'Please specify a valid FHIR server URL.'
             );
-            return { wrongUrl: true };
+            return { [ServiceBaseUrlErrors.wrongUrl]: true };
           }
         } else if (status === ConnectionStatus.UnsupportedVersion) {
           this.liveAnnouncer.announce('Unsupported FHIR version.');
-          return { unsupportedVersion: true };
+          return { [ServiceBaseUrlErrors.unsupportedVersion]: true };
         } else if (status === ConnectionStatus.BasicAuthFailed) {
           this.liveAnnouncer.announce('Basic authentication failed.');
-          return { basicAuthFailed: true };
+          return { [ServiceBaseUrlErrors.basicAuthFailed]: true };
         } else if (status === ConnectionStatus.Oauth2Required) {
           this.liveAnnouncer.announce('Authorization required.');
-          return { oauth2Required: true };
+          return { [ServiceBaseUrlErrors.oauth2Required]: true };
         } else {
           if (status === ConnectionStatus.Ready) {
             this.liveAnnouncer.announce('Initialization complete.');
@@ -192,4 +211,47 @@ export class SettingsPageComponent implements OnDestroy {
       })
     );
   }
+
+
+  /**
+   * Maps error codes from `ServiceBaseUrlErrors` to user-friendly error messages
+   * displayed on the settings page when validating the FHIR Service Base URL.
+   * Each key corresponds to a specific error code, and the value is the message
+   * shown to the user to help resolve connection or configuration issues.
+   */
+  errorMessages = {
+    [ServiceBaseUrlErrors.smartConnectionFailure]: 'SMART on FHIR connection' +
+      ' failed.',
+    [ServiceBaseUrlErrors.unsupportedVersion]: 'Unsupported FHIR version.',
+    [ServiceBaseUrlErrors.basicAuthFailed]: 'Basic authentication failed.',
+    [ServiceBaseUrlErrors.oauth2Required]: 'Authorization required. Please' +
+      ' click the "login" button to login.',
+    [ServiceBaseUrlErrors.wrongUrl]: 'Please specify a valid FHIR server' +
+      ' URL. See <a target="_blank" rel="noopener noreferrer" ' +
+      'href="https://www.hl7.org/fhir/http.html#root">' +
+      'FHIR REST API Service Base URL</a> for details.'
+  };
+
+
+  // Partially overrides the mapping of error codes from `ServiceBaseUrlErrors`
+  // to user-friendly error messages when we focus on a specific server.
+  errorMessagesWhenFocusOnServer = {
+    // Maps the `wrongUrl` error code to a user-friendly error message
+    // specifically shown when the server input field is focused and the
+    // pre-selected FHIR server cannot be reached.
+    [ServiceBaseUrlErrors.wrongUrl]: 'Unable to connect to the pre-selected' +
+      ' FHIR server.'
+  };
+
+
+  /**
+   * Returns an array of keys for connection error messages.
+   */
+  getErrors(): string[] {
+    const ctrl = this.settingsFormGroup.controls['serviceBaseUrl'];
+    return ctrl.errors ? Object.keys(ctrl.errors) : [];
+  }
+
+  // Enum of possible connection statuses
+  protected readonly ConnectionStatus = ConnectionStatus;
 }

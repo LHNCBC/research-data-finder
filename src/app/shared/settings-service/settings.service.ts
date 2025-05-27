@@ -10,7 +10,7 @@ import { Config } from '../../types/settings';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import { get as getPropertyByPath } from 'lodash-es';
 import json5 from 'json5';
-import { csvStringToArray } from '../utils';
+import { csvStringToArray, getUrlParam } from '../utils';
 
 @Injectable({
   providedIn: 'root'
@@ -153,4 +153,14 @@ export class SettingsService {
   getDbgapUrlPattern(): string {
     return this.config.customization.dbgap.urlPattern;
   }
+
+  /**
+   * Returns the value used to initialize the "FHIR server" field in
+   * the "Settings" step.
+   */
+  getDefaultServerUrl() {
+    return this.config?.default?.allowChangeServer && getUrlParam('server') ||
+      this.config?.default?.defaultServer;
+  }
+
 }

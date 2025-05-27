@@ -68,11 +68,13 @@ export class HomeComponent implements AfterViewInit {
   }
 
   private returnToSettingsPage(): void {
-    this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
+    if (this.stepperComponent.stepper.selectedIndex !== Step.SETTINGS) {
+      this.stepperComponent.stepper.selectedIndex = Step.SETTINGS;
+      this.liveAnnouncer.announce('Returning to settings page.');
+    }
     this.stepperComponent.selectAnActionComponent?.createCohortMode.setValue(
       CreateCohortMode.UNSELECTED
     );
-    this.liveAnnouncer.announce('Logged out. Returning to settings page.');
   }
 
   /**
@@ -80,6 +82,7 @@ export class HomeComponent implements AfterViewInit {
    */
   onOauth2Logout(): void {
     this.oauth2Token.logout();
+    this.liveAnnouncer.announce('Logged out.');
     this.returnToSettingsPage();
     // Show "Authorization required" error message below server input.
     this.fhirBackend.initialized.next(ConnectionStatus.Oauth2Required);
@@ -88,6 +91,7 @@ export class HomeComponent implements AfterViewInit {
 
   onRasLogout(): void {
     this.rasToken.logout();
+    this.liveAnnouncer.announce('Logged out.');
     this.returnToSettingsPage();
   }
 
@@ -95,6 +99,21 @@ export class HomeComponent implements AfterViewInit {
     window.history.pushState({}, '', setUrlParam('isSmart', 'false'));
     this.fhirBackend.isSmartOnFhir = false;
     this.liveAnnouncer.announce('Logged out from SMART on FHIR connection.');
+  }
+
+  /**
+   * Handles a click on the "Change ScrubberID" link - opens a dialog to select
+   * ScrubberID.
+   */
+  onChangeScrubberID(): void {
+    this.fhirBackend.selectScrubberId(true).then((scrubberID) => {
+      if (scrubberID !== false) {
+        // If the "Cancel" button was not pressed, apply changes
+        this.fhirBackend.fhirClient.setScrubberIDHeader(scrubberID);
+        // Reset interface
+        this.returnToSettingsPage();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -106,5 +125,15 @@ export class HomeComponent implements AfterViewInit {
     const s = document.createElement('script');
     s.src = 'https://lhcforms.nlm.nih.gov/shared/loadSharedNavLinks.js';
     document.body.appendChild(s);
+  }
+
+  /**
+   * Returns the display text for the ScrubberID link.
+   *
+   * @returns {string} The link text showing the current ScrubberID or a prompt to select one.
+   */
+  getScrubberIdLinkText(): string {
+    const scrubberID = this.fhirBackend.fhirClient.getScrubberIDHeader();
+    return scrubberID ? 'ScrubberID: ' + scrubberID : 'Select ScrubberID';
   }
 }

@@ -4,6 +4,15 @@
 {
   // Default settings for all servers
   default: {
+    // Whether the user is allowed to change the FHIR server URL:
+    // If set to true, the user can change the server URL.
+    // If set to false, the "defaultServer" URL will be used.
+    allowChangeServer: true,
+
+    // The default FHIR server URL is initially displayed when the application
+    // is first used.
+    defaultServer: 'https://lforms-fhir.nlm.nih.gov/baseR5',
+
     maxRequestsPerBatch: 10,
     maxActiveRequests: 6,
 
@@ -294,6 +303,9 @@
 
     'https://lforms-fhir.nlm.nih.gov/baseR5': {
       definitionsFile: 'desc-https-lforms-fhir-nlm-nih-gov-baseR5.csv',
+      // This server URL needs the "scrubberID" header
+      // scrubber: true,
+
       // Predefined initialization results
       serverDescription: {
         version: 'R5',

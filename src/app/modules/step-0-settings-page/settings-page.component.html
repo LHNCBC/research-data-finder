@@ -1,45 +1,54 @@
 <form [formGroup]="settingsFormGroup" class="v-box">
-  <p class="info">
-    <span class="info-icon" aria-hidden="true"></span>
-    <span>
-      Select the FHIR server you wish to search. You may also enter the
-      <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">base URL</a>
-      for your own FHIR server.
-    </span>
-  </p>
-  <mat-form-field>
-    <mat-label>FHIR server</mat-label>
-    <app-fhir-server-select placeholder="URL" formControlName="serviceBaseUrl"></app-fhir-server-select>
-    <mat-hint *ngIf="fhirBackend.smartConnectionSuccess" align="end">
-      SMART on FHIR connection succeeded.
-    </mat-hint>
-    <mat-hint align="start" *ngIf="basicAuthSuccessMessage">
-      {{basicAuthSuccessMessage}}
-    </mat-hint>
-    <mat-hint align="start" *ngIf="!basicAuthSuccessMessage && !settingsFormGroup.controls['serviceBaseUrl'].errors">
-      See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
-      details.
-    </mat-hint>
-    <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('smartConnectionFailure')">
-      SMART on FHIR connection failed.
-    </mat-error>
-    <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('unsupportedVersion')">
-      Unsupported FHIR version.
-    </mat-error>
-    <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('basicAuthFailed')">
-      Basic authentication failed.
-    </mat-error>
-    <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('oauth2Required')">
-      Authorization required. Please click the "login" button to login.
-    </mat-error>
-    <mat-error *ngIf="settingsFormGroup.controls['serviceBaseUrl'].hasError('wrongUrl')">
-      Please specify a valid FHIR server URL.
-      See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
-      details.
-    </mat-error>
-  </mat-form-field>
+  @if (fhirBackend.settings.get('allowChangeServer')) {
+    <p class="info">
+      <span class="info-icon" aria-hidden="true"></span>
+      <span>
+        Select the FHIR server you wish to search. You may also enter the
+        <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">base URL</a>
+        for your own FHIR server.
+      </span>
+    </p>
+    <mat-form-field>
+      <mat-label>FHIR server</mat-label>
+      <app-fhir-server-select placeholder="URL" formControlName="serviceBaseUrl"></app-fhir-server-select>
+      <mat-hint *ngIf="fhirBackend.smartConnectionSuccess" align="end">
+        SMART on FHIR connection succeeded.
+      </mat-hint>
+      <mat-hint align="start" *ngIf="basicAuthSuccessMessage">
+        {{basicAuthSuccessMessage}}
+      </mat-hint>
+      <mat-hint align="start" *ngIf="!basicAuthSuccessMessage && !settingsFormGroup.controls['serviceBaseUrl'].errors">
+        See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
+        details.
+      </mat-hint>
+      <mat-error *ngFor="let error of getErrors()" [innerHTML]="errorMessages[error]"></mat-error>
+    </mat-form-field>
+    <div class="spacer"></div>
+  } @else {
+    <p class="message message__connecting" *ngIf="(fhirBackend.initialized | async) === ConnectionStatus.Pending">
+      <mat-spinner [diameter]="24"></mat-spinner>
+      <span>
+        Connecting to the pre-selected FHIR server...
+      </span>
+    </p>
+    <p class="message message__ready" *ngIf="(fhirBackend.initialized | async) === ConnectionStatus.Ready">
+      <mat-icon svgIcon="check"></mat-icon>
+      <span>
+        Successfully connected to the data server.
+      </span>
+    </p>
+    @if(settingsFormGroup.controls['serviceBaseUrl'].errors) {
+      <ng-container *ngFor="let error of getErrors()">
+        <p class="message message__error">
+          <mat-icon svgIcon="cancel"></mat-icon>
+          <span>
+            {{errorMessagesWhenFocusOnServer[error] || errorMessages[error]}}
+          </span>
+        </p>
+      </ng-container>
+    }
+  }
 
-  <div class="spacer"></div>
   <mat-expansion-panel class="section mat-elevation-z">
     <mat-expansion-panel-header>
       <mat-panel-title>
@@ -49,7 +58,7 @@
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
       <div class="v-box">
-        <mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
           <mat-label>NCBI E-utilities API Key</mat-label>
           <input matInput placeholder="API Key" formControlName="apiKey"
                  (change)="updateFhirBackendSetting('apiKey')">
@@ -69,7 +78,7 @@
             </mat-hint>
           </mat-form-field>
           <div class="spacer" *ngIf='fhirBackend.features.batch'></div>
-          <mat-form-field class="number-field">
+          <mat-form-field class="number-field" subscriptSizing="dynamic">
             <mat-label>Maximum active requests</mat-label>
             <input matInput type="number" min="1" formControlName="maxActiveRequests"
                    (change)="updateFhirBackendSetting('maxActiveRequests')">

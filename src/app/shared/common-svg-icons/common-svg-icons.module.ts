@@ -15,6 +15,7 @@ const icons = [
   'keyboard_arrow_left',
   'keyboard_double_arrow_down_black',
   'cancel',
+  'check',
   'clear',
   'clear_all_black',
   'add',

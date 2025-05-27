@@ -3,6 +3,19 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.2.0] - 2025-05-07
+### Added
+- Three new configuration options for `settings.json5`: 
+  * `customization.<server URL>.scrubber` - can be set to `true` to enable
+    integration with a scrubber server, which includes the scrubberID selection
+    dialog, storing `scrubberID` in a cohort and criteria file to correctly
+    loading that file, and using the "Scrubber-Id" header in requests to the
+    specified FHIR server.
+  * `default.allowChangeServer` - specifies whether the user is allowed
+     to change the FHIR server URL.
+  * `default.defaultServer` - the default FHIR server URL is initially displayed
+    when the application is first used (previously it was hardcoded). 
+ 
 ## [7.1.0] - 2025-03-12
 ### Added
 - Support for R5 CodeableReference values in tables.

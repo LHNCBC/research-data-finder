@@ -63,6 +63,7 @@ class FhirBatchQuery extends EventTarget {
     super();
     this._serviceBaseUrl = serviceBaseUrl;
     this._authorizationHeader = null;
+    this._scrubberID = {};
     this._pending = [];
     this._batchTimeoutId = null;
     this._batchTimeout = batchTimeout || globalThis.sessionStorage?.getItem('batchTimeout') || 20;
@@ -102,6 +103,25 @@ class FhirBatchQuery extends EventTarget {
    */
   setAuthorizationHeader(value) {
     this._authorizationHeader = value;
+  }
+
+  /**
+   * Returns the scrubber ID header value.
+   * @param {string|null} [serviceBaseUrl] - the FHIR REST API Service Base URL
+   * @return {string|undefined} - the scrubber ID.
+   */
+  getScrubberIDHeader(serviceBaseUrl = null) {
+    return this._scrubberID[serviceBaseUrl || this._serviceBaseUrl];
+  }
+
+  /**
+   * Sets the scrubber ID header value.
+   * @param {string} value - the scrubber ID.
+   * @param {string|null} [serviceBaseUrl] - the FHIR REST API Service Base URL
+   */
+  setScrubberIDHeader(value, serviceBaseUrl = null) {
+    this._scrubberID[serviceBaseUrl || this._serviceBaseUrl] = value;
+    FhirBatchQuery.clearCache();
   }
 
   /**
@@ -826,6 +846,11 @@ class FhirBatchQuery extends EventTarget {
 
       if (this._authorizationHeader) {
         oReq.setRequestHeader('Authorization', this._authorizationHeader);
+      }
+
+      const scrubberId = this.getScrubberIDHeader()
+      if (scrubberId) {
+        oReq.setRequestHeader('Scrubber-Id', scrubberId);
       }
 
       if (this.withCredentials) {
