@@ -595,11 +595,13 @@ class FhirBatchQuery extends EventTarget {
    * @param {number} priority - request priority, the number by which requests
    *   in the queue are sorted, a request with a higher priority is executed
    *   first.
+   * @param {string} method - HTTP method, e.g. 'GET', 'POST', default is 'GET'.
+   * @param {string|null} body - request body, if method is 'POST', null otherwise.
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *                   status is HTTP status number,
    *                   data is Object constructed from a JSON response
    */
-  get(url, { combine = true, retryCount = 3, signal = null, priority = PRIORITIES.NORMAL } = {}) {
+  get(url, { combine = true, retryCount = 3, signal = null, priority = PRIORITIES.NORMAL, method = 'GET', body = null } = {}) {
     return new Promise((resolve, reject) => {
       let fullUrl = this.getFullUrl(url);
 
@@ -620,12 +622,12 @@ class FhirBatchQuery extends EventTarget {
         '^' + escapeStringForRegExp(this._serviceBaseUrl) + '\\/[^?]+'
       ) : null;
 
-      let body, contentType, method;
+      let contentType;
       // Maximum URL length is 2048, but we can add some parameters later
       // (in the "_request" function).
       // '.../$lastn/_search' is not a valid operation. We can wrap it in
       // a batch request instead (see "_postPending" function).
-      if ( fullUrl.length > 1900 && fullUrl.indexOf('/$lastn') === -1
+      if ( method !== 'POST' && fullUrl.length > 1900 && fullUrl.indexOf('/$lastn') === -1
         && serviceBaseUrlWithEndpoint?.test(fullUrl) ) {
         contentType = 'application/x-www-form-urlencoded';
         method = 'POST';
@@ -1078,6 +1080,11 @@ class FhirBatchQuery extends EventTarget {
    *   false by default.
    * @param {boolean} [options.cacheAbort] - whether to cache abort response,
    *   false by default.
+ *   @param {string} [options.method] - HTTP method, e.g. 'GET', 'POST', default is 'GET'.
+   * @param {string|null} [options.body] - request body, if method is 'POST', null otherwise.
+   * @param {number} [options.priority] - request priority, the number by which
+   *   requests in the queue are sorted, a request with a higher priority is
+   *   executed first, default is PRIORITIES.NORMAL.
    * @return {Promise} resolves/rejects with Object {status, data}, where
    *   status is HTTP status number, data is Object constructed from a JSON
    *   response.
@@ -1095,7 +1102,10 @@ class FhirBatchQuery extends EventTarget {
 
     return new Promise((resolve, reject) => {
       const fullUrl = this.getFullUrl(url);
-      queryResponseCache.get(fullUrl, options).then((cachedResponse) => {
+      const cacheKey = fullUrl + (options.method === 'POST' ?
+        '|' + JSON.stringify(body, (_, i) => typeof i === 'bigint' ? i.toString(): i)
+        : '');
+      queryResponseCache.get(cacheKey, options).then((cachedResponse) => {
         if (cachedResponse) {
           console.log('Using cached data');
           if (cachedResponse.status >= 200 && cachedResponse.status < 300) {
@@ -1106,14 +1116,14 @@ class FhirBatchQuery extends EventTarget {
         } else {
           this.get(fullUrl, options).then(
             (response) => {
-              queryResponseCache.add(fullUrl, response, options).then(() => {
+              queryResponseCache.add(cacheKey, response, options).then(() => {
                 resolve(response);
               });
             },
             (errorResponse) => {
               ((options.cacheAbort && errorResponse.status === HTTP_ABORT) ||
                 (options.cacheErrors && !NOCACHESTATUSES.includes(errorResponse.status))
-                  ? queryResponseCache.add(fullUrl, errorResponse, options)
+                  ? queryResponseCache.add(cacheKey, errorResponse, options)
                   : Promise.resolve()
               ).then(() => {
                 reject(errorResponse);

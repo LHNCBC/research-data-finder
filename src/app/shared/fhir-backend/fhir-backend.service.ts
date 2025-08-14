@@ -270,28 +270,25 @@ export class FhirBackendService implements HttpBackend {
   patchFhirpathJs(): void {
     const originalFetchWithCache = fhirpath['util'].fetchWithCache;
     fhirpath['util'].fetchWithCache =
-      (url: string, options: { [key: string]: string }) => {
-      let request;
+      (url: string, fetchOptions: { [key: string]: string }) => {
+      let request: Promise<{ data: any }>;
       if (url.startsWith(this.serviceBaseUrl)) {
-        if (options?.method?.toUpperCase() === 'POST') {
-          // TODO: add cache for POST requests?
-          request = this.fhirClient._request({
+        const endpointRegExp = new RegExp(
+          `^${escapeStringForRegExp(this.serviceBaseUrl)}\\/[^?]+`);
+        const fhirClientOptions =
+          fetchOptions?.method?.toUpperCase() === 'POST' ? {
             method: 'POST',
-            url,
-            body: options.body,
-          }).then(({ data }) => data);
-        } else {
-          const endpointRegExp = new RegExp(
-            `^${escapeStringForRegExp(this.serviceBaseUrl)}\\/[^?]+`);
-          const combine = this.fhirClient.getFeatures().batch &&
-            endpointRegExp.test(url);
-          request = this.isCacheEnabled
-            ? this.fhirClient.getWithCache(url, { combine })
-            : this.fhirClient.get(url, { combine });
-          }
+            body: fetchOptions.body
+          } : {
+            combine: this.fhirClient.getFeatures().batch &&
+              endpointRegExp.test(url)
+          };
+        request = this.isCacheEnabled
+          ? this.fhirClient.getWithCache(url, fhirClientOptions)
+          : this.fhirClient.get(url, fhirClientOptions);
       }
       return request ? request.then(({ data }) => data)
-        : originalFetchWithCache(url, options);
+        : originalFetchWithCache(url, fetchOptions);
     };
   }
 
