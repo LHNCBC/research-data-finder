@@ -3,6 +3,8 @@
  */
 import { Injectable } from '@angular/core';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
+import { SettingsService } from '../settings-service/settings.service';
+import { ColumnDescription } from '../../types/column.description';
 import Identifier = fhir.Identifier;
 import CodeableConcept = fhir.CodeableConcept;
 import Coding = fhir.Coding;
@@ -12,8 +14,6 @@ import ContactPoint = fhir.ContactPoint;
 import Quantity = fhir.Quantity;
 import HumanName = fhir.HumanName;
 import Address = fhir.Address;
-import { SettingsService } from '../settings-service/settings.service';
-import { ColumnDescription } from '../../types/column.description';
 import Resource = fhir.Resource;
 
 interface CodeableReference {
@@ -23,6 +23,10 @@ interface CodeableReference {
 
 // Cell value retrieval context
 interface Context {
+  // The row data for which the value is retrieved.
+  row?: Resource;
+  // Column description for which the value is retrieved.
+  column?: ColumnDescription;
   // Property path to value starting with resourceType.
   fullPath?: string;
   // Coding system for filtering data in resource cell.
@@ -64,6 +68,8 @@ export class ColumnValuesService {
       const output = this.valueToStrings(
         this.fhirBackend.getEvaluator(fullPath)(row),
         type,
+        row,
+        column,
         fullPath,
         pullDataObservationCodes
       );
@@ -81,12 +87,16 @@ export class ColumnValuesService {
    * or throws an exception (for unsupported types).
    * @param value - value
    * @param type - type of value
+   * @param row - data for a row of table (entry in the bundle)
+   * @param column - column description
    * @param fullPath - property path to value started with resourceType
    * @param pullDataObservationCodes a map of selected Observation codes at "pull data" step
    */
   valueToStrings(
     value: Array<any>,
     type: string,
+    row: Resource,
+    column: ColumnDescription,
     fullPath: string,
     pullDataObservationCodes: Map<string, string> = undefined
   ): string[] {
@@ -108,11 +118,15 @@ export class ColumnValuesService {
               item,
               pullDataObservationCodes
                 ? {
+                    row,
+                    column,
                     fullPath,
                     preferredCodeSystem,
                     pullDataObservationCodes
                   }
                 : {
+                    row,
+                    column,
                     fullPath,
                     preferredCodeSystem
                   }
@@ -134,8 +148,8 @@ export class ColumnValuesService {
             singleValueFn.apply(this, [
               item,
               pullDataObservationCodes
-                ? { fullPath, pullDataObservationCodes }
-                : { fullPath }
+                ? { row, column, fullPath, pullDataObservationCodes }
+                : { row, column, fullPath }
             ])
           )
           // remove empty strings
@@ -255,7 +269,7 @@ export class ColumnValuesService {
    */
   getCodeableConceptAsText(v: CodeableConcept, context: Context = {}): string {
     const { fullPath, preferredCodeSystem } = context;
-    let coding = v.coding || [];
+    let coding = v?.coding || [];
 
     if (preferredCodeSystem) {
       const preferredCodings = coding.filter(
@@ -264,7 +278,7 @@ export class ColumnValuesService {
       if (preferredCodings.length) {
         coding = preferredCodings;
       }
-    } else if (v.text) {
+    } else if (v?.text) {
       return v.text;
     }
 
@@ -305,8 +319,9 @@ export class ColumnValuesService {
    * Returns a textual representation of "Reference" value
    * see https://www.hl7.org/fhir/references.html#Reference
    * @param v - value of type "Reference"
+   * @param context - context in which we get the cell value
    */
-  getReferenceAsText(v: Reference): string {
+  getReferenceAsText(v: Reference, context: Context): string {
     // Organization reference may have an acronym in the "reference" property,
     // for example:
     // {reference: "Organization/NLM", type: "Organization", display: "National Library of Medicine"}
@@ -331,6 +346,17 @@ export class ColumnValuesService {
     if (v.display) {
       return v.display;
     } else if (v.reference) {
+      if (v.reference.startsWith('#') && context?.column?.types?.includes('CodeableConcept')) {
+        // TODO: Temporary solution only for references to contained resources.
+        //  Get the text for the CodeableConcept that the reference points to.
+        //  Ideally we need to resolve() the reference to get the resource.
+        //  But asynchronous cell values is not supported in
+        //  the ResourceTableComponent.
+        const codeableConcept = this.fhirBackend.getEvaluator(
+          'contained.where(id=%id).code'
+        )(context.row, {id: v.reference.substring(1)});
+        return this.getCodeableConceptAsText(codeableConcept[0]);
+      }
       return v.reference;
     } else if (v.identifier) {
       return this.getIdentifierAsText(v.identifier);
@@ -347,7 +373,7 @@ export class ColumnValuesService {
    */
   getCodeableReferenceAsText(v: CodeableReference, context: Context = {}): string {
     if (v.reference) {
-      return this.getReferenceAsText(v.reference);
+      return this.getReferenceAsText(v.reference, context);
     } else if (v.concept) {
       if (context.fullPath) {
         return this.getCodeableConceptAsText(v.concept, {

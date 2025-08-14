@@ -16,7 +16,9 @@ import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
-import { SearchParameterComponent } from '../search-parameter/search-parameter.component';
+import {
+  SearchParameterComponent
+} from '../search-parameter/search-parameter.component';
 import { SearchCondition } from '../../types/search.condition';
 import { Observable } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
@@ -28,7 +30,7 @@ import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { ErrorManager } from '../../shared/error-manager/error-manager.service';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { escapeStringForRegExp } from '../../shared/utils';
+import { cartesian, escapeStringForRegExp } from '../../shared/utils';
 import { SearchParameter } from '../../types/search.parameter';
 
 /**
@@ -166,15 +168,37 @@ export class SearchParameterGroupComponent
   }
 
   /**
-   * Get and group search conditions for a resource type.
+   * Returns grouped search conditions for the selected resource type.
+   * - Collects criteria from child components.
+   * - If any criteria are arrays, computes all combinations (cartesian product).
+   * - Each combination is joined and returned as a SearchCondition.
+   * - Otherwise, returns a single SearchCondition.
    */
-  getConditions(): SearchCondition {
-    const conditions = this.searchParameterComponents
-      .map((c) => c.getCriteria())
-      .join('');
+  getConditions(): SearchCondition | SearchCondition[] {
+    // Collect combined (array) and other (single) conditions
+    const combined: string[][] = [];
+    const others: string[] = [];
+    this.searchParameterComponents.forEach(comp => {
+      const cond = comp.getCriteria();
+      if (Array.isArray(cond)) {
+        combined.push(cond);
+      } else if (cond) {
+        others.push(cond);
+      }
+    });
+
+    // If there are combined conditions, compute all combinations
+    if (combined.length > 0) {
+      return cartesian(combined).map(comb => ({
+        resourceType: this.resourceType.value,
+        criteria: comb.concat(others).join('')
+      }));
+    }
+
+    // Otherwise, return a single SearchCondition
     return {
       resourceType: this.resourceType.value,
-      criteria: conditions
+      criteria: others.join('')
     };
   }
 

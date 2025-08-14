@@ -30,7 +30,10 @@ import { HttpOptions } from '../../types/http-options';
 import {
   CACHE_INFO,
   CACHE_NAME,
-  FhirBackendService, NO_CACHE, REQUEST_PRIORITY, RequestPriorities
+  FhirBackendService,
+  NO_CACHE,
+  REQUEST_PRIORITY,
+  RequestPriorities
 } from '../fhir-backend/fhir-backend.service';
 import { PullDataService } from '../pull-data/pull-data.service';
 import { CohortService } from '../cohort/cohort.service';
@@ -49,7 +52,6 @@ import { ColumnValuesService } from '../column-values/column-values.service';
 import Resource = fhir.Resource;
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
-import ResearchStudy = fhir.ResearchStudy;
 
 interface SelectRecordState {
   // Indicates that data is loading
@@ -609,15 +611,8 @@ export class SelectRecordsService {
             _count: 50
           };
 
-    const studies =
-      (this.currentState['ResearchStudy']
-        ?.resources as ResearchStudy[])?.reduce((acc, study) => {
-        acc[study.id] = study;
-        return acc;
-      }, {}) || {};
-
     state.resourceStream = this.http.get(url, { params: reqParams }).pipe(
-      this.filterObservationsByCode(state, studies),
+      this.filterObservationsByCode(state),
       this.convertObservationToVariableRecords(state, obsFilterParams, sort),
       catchError(() => {
         // Do not retry after an error
@@ -656,11 +651,9 @@ export class SelectRecordsService {
    * - if there are no new codes, load the next page of subjects to search for
    *   other codes on the next run of loadVariablesFromObservations().
    * @param state - current state
-   * @param studies - studies available to the user
    */
   filterObservationsByCode(
-    state: SelectRecordState,
-    studies: { [id: string]: ResearchStudy }
+    state: SelectRecordState
   ): UnaryFunction<Observable<Bundle>, Observable<Observation[]>> {
     return pipe(
       concatMap((data: Bundle) => {
@@ -668,7 +661,7 @@ export class SelectRecordsService {
           const obs: Observation = entry.resource as Observation;
           const coding = obs.code.coding?.[0];
           const codeAndSystem = coding
-            ? coding.system + '|' + coding.code
+            ? (coding.system ? coding.system : '') + '|' + coding.code
             : null;
           const isNew =
             codeAndSystem &&

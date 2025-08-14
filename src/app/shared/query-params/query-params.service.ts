@@ -3,10 +3,11 @@ import { SearchParameter } from '../../types/search.parameter';
 import { escapeFhirSearchParameter } from '../utils';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import { ObservationCoding } from '../../types/selected-observation-codes';
+import { isEqual } from 'lodash-es';
 
 export const CODETEXT = 'code text';
 export const OBSERVATION_VALUE = 'observation value';
-export const CODETYPES = ['code', 'CodeableConcept', 'Coding'];
+export const CODETYPES = ['code', 'CodeableConcept', 'Coding', 'Reference'];
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +30,7 @@ export class QueryParamsService {
     }
     const selectedParameter = this.definitions.resources[
       resourceType
-    ]?.searchParameters.find((p) => p.element === value?.element);
+    ]?.searchParameters.find((p) => isEqual(p.element, value?.element));
     // If it is not a search parameter
     // (e.g. element === '_has:ResearchSubject:individual:study'),
     // use the default template
@@ -74,7 +75,11 @@ export class QueryParamsService {
 
     if (this.getUseLookupParamValue(selectedParameter)) {
       if (value.value) {
-        return `&${selectedParameter.element}=${value.value.codes.join(',')}`;
+        return (
+          '&' + selectedParameter.element +
+          (selectedParameter.type === 'Reference' ? '.code' : '') +
+          '=' + value.value.codes.join(',')
+        );
       } else {
         return '';
       }
@@ -246,6 +251,10 @@ export class QueryParamsService {
    * Whether to use lookup control for search parameter value.
    */
   getUseLookupParamValue(selectedParameter: any): boolean {
-    return CODETYPES.includes(selectedParameter.type);
+    return Array.isArray(selectedParameter.type) ?
+      // For combined search parameters, all corresponding parameters should be
+      // listed in the CODETYPES to use the AutocompleteParameterValueComponent.
+      (selectedParameter.type as Array<string>).every(type => CODETYPES.includes(type))
+      : CODETYPES.includes(selectedParameter.type);
   }
 }

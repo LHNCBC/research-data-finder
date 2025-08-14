@@ -1,7 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { CACHE_NAME, FhirBackendService } from './fhir-backend.service';
 import { FhirBackendModule } from './fhir-backend.module';
-import { FhirBatchQuery, HTTP_ABORT, PRIORITIES, OAUTH2_REQUIRED } from './fhir-batch-query';
+import {
+  FhirBatchQuery,
+  HTTP_ABORT,
+  OAUTH2_REQUIRED,
+  PRIORITIES
+} from './fhir-batch-query';
 import { MockXhrServer, newServer } from 'mock-xmlhttprequest';
 import {
   HttpClient,
@@ -18,7 +23,7 @@ import {
   MatDialogModule,
   MatDialogRef
 } from '@angular/material/dialog';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
 import queryResponseCache from './query-response-cache';
 import { RasTokenService } from '../ras-token/ras-token.service';
@@ -230,7 +235,7 @@ describe('FhirBackendService', () => {
     });
 
     it('should set the "Scrubber-Id" header when the corresponding "scrubber" option is enabled', async () => {
-      spyOn(service.settings, 'get').and.callFake((prop, serviceBaseUrl) => {
+      spyOn(service.settings, 'get').and.callFake((prop/*, serviceBaseUrl*/) => {
         return prop == 'scrubber' ? true : null;
       });
       spyOn(service.fhirClient, 'setScrubberIDHeader');
@@ -251,7 +256,7 @@ describe('FhirBackendService', () => {
   describe('dbGaP', () => {
     beforeEach(async () => {
       TestBed.configureTestingModule({
-        imports: [FhirBackendModule, MatDialogModule, BrowserAnimationsModule]
+        imports: [FhirBackendModule, MatDialogModule, NoopAnimationsModule]
       });
       spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
       spyOn(FhirBatchQuery.prototype, 'get').and.resolveTo(
@@ -338,7 +343,7 @@ describe('FhirBackendService', () => {
   describe('caching', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [FhirBackendModule, MatDialogModule, BrowserAnimationsModule]
+        imports: [FhirBackendModule, MatDialogModule, NoopAnimationsModule]
       });
       spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
       spyOn(FhirBatchQuery.prototype, 'getVersionName').and.returnValue('R4');
@@ -484,7 +489,7 @@ describe('FhirBatchQuery', () => {
     Promise.allSettled([
       fhirBatchQuery.get('someUrl3', { combine: false }),
       fhirBatchQuery.get('someUrl4', { combine: false })
-    ]).then((responses) => {
+    ]).then((/*responses*/) => {
       expect(fhirBatchQuery.dispatchEvent).toHaveBeenCalledOnceWith(
         jasmine.objectContaining({ type: 'single-request-failure' })
       );
@@ -547,7 +552,7 @@ describe('FhirBatchQuery', () => {
       status: 200,
       body: '{ "fhirVersion": "4.0.1" }'
     });
-    server.get(/http:\/\/some-server-url\/[Observation|ResearchStudy].*/, {
+    server.get(/http:\/\/some-server-url\/(Observation|ResearchStudy).*/, {
       status: 200,
       body: JSON.stringify({ entry: [] })
     });

@@ -1,7 +1,7 @@
 const definitionsIndex = require('../definitions/index.json');
 // An object used to cache responses to HTTP requests
 const queryResponseCache = require('./query-response-cache.js');
-
+const { escapeStringForRegExp } = require('../utils');
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
 const HTTP_ABORT = 0;
 // The value of property status in the rejection object when the FHIR version is not supported by RDF
@@ -616,12 +616,17 @@ class FhirBatchQuery extends EventTarget {
         fullUrl = urlObj.toString();
       }
 
+      const serviceBaseUrlWithEndpoint = this._serviceBaseUrl ? new RegExp(
+        '^' + escapeStringForRegExp(this._serviceBaseUrl) + '\\/[^?]+'
+      ) : null;
+
       let body, contentType, method;
       // Maximum URL length is 2048, but we can add some parameters later
       // (in the "_request" function).
       // '.../$lastn/_search' is not a valid operation. We can wrap it in
       // a batch request instead (see "_postPending" function).
-      if (fullUrl.length > 1900 && fullUrl.indexOf('/$lastn') === -1) {
+      if ( fullUrl.length > 1900 && fullUrl.indexOf('/$lastn') === -1
+        && serviceBaseUrlWithEndpoint?.test(fullUrl) ) {
         contentType = 'application/x-www-form-urlencoded';
         method = 'POST';
         [fullUrl, body] = fullUrl.split('?');
@@ -912,6 +917,9 @@ class FhirBatchQuery extends EventTarget {
     }
 
     const requests = this.getNextRequestsToPerform();
+    const serviceBaseUrlWithEndpoint = this._serviceBaseUrl ? new RegExp(
+      '^' + escapeStringForRegExp(this._serviceBaseUrl) + '\\/[^?]+'
+    ) : null;
 
     if (
       requests.length > 1 ||
@@ -919,7 +927,8 @@ class FhirBatchQuery extends EventTarget {
       // a batch query.
       // Maximum URL length is 2048, but we can add some parameters later
       // (in the "_request" function).
-      (requests.length === 1 && requests[0].url.length > 1900)
+      (requests.length === 1 && requests[0].url.length > 1900 &&
+        serviceBaseUrlWithEndpoint?.test(requests[0].url))
     ) {
       // A controller object that allows aborting of the batch request if all
       // requests are aborted

@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "7.2.0",
+  "version": "7.3.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --poll=2000",
@@ -36,7 +36,7 @@
     "autocomplete-lhc": "^19.2.2",
     "csv-stringify": "^6.4.0",
     "fhirclient": "^2.5.2",
-    "fhirpath": "^3.5.0",
+    "fhirpath": "^4.5.1",
     "file-saver": "^2.0.5",
     "json5": "^2.2.3",
     "lodash-es": "^4.17.21",

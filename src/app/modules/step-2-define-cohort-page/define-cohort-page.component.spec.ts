@@ -521,6 +521,7 @@ describe('DefineCohortComponent', () => {
             fullUrl: 'https://lforms-fhir.nlm.nih.gov/baseR4/Observation/ev999',
             resource: {
               id: 'ev999',
+              resourceType: 'Observation',
               subject: { reference: 'Patient/p-999', display: 'HAO XIE' }
             }
           }

@@ -27,6 +27,23 @@ function createCsvRow(row) {
 }
 
 /**
+ * Searches for an item in the array from a specified index that matches
+ * the predicate, stopping if the stopCondition returns true for an item.
+ * @param {Array} arr - array to search.
+ * @param {number} fromIndex - index to start searching from.
+ * @param {Function} predicate - function to match the desired item.
+ * @param {Function} stopCondition - function to determine when to stop searching.
+ * @returns {*} The found item or undefined.
+ */
+function findUntil(arr, fromIndex, predicate, stopCondition) {
+  for (let i = fromIndex; i < arr.length; i++) {
+    if (stopCondition(arr[i])) break;
+    if (predicate(arr[i])) return arr[i];
+  }
+  return undefined;
+}
+
+/**
  * Returns an object which maps service base URLs to CSV data extracted from XLSX files.
  * @returns {Promise<Object>}
  */
@@ -53,14 +70,31 @@ async function prepareCsvData() {
 
         const urlIndex = rows.findIndex((row) => row[0] === marker);
         const urls = rows[urlIndex][1].split(',');
-        const desc = rows
-          .slice(urlIndex + dataOffset)
-          .filter(([, , type, , hideShow, , ,]) =>
-            // Skip hidden search parameters and disabled columns
-            type === 'search parameter'
-              ? hideShow !== 'hide'
-              : hideShow !== 'disable'
-          );
+        const dataRows = rows.slice(urlIndex + dataOffset);
+        let currentResourceIndex;
+        const desc = dataRows.filter(([rt, element, type, , hideShow], i) => {
+          if (rt) {
+            // Store the index of the current resource type row
+            currentResourceIndex = i;
+            return true;
+          }
+          return type === 'search parameter'
+            // Skip hidden search parameters that do not have corresponding
+            // combined search parameters
+            ? hideShow !== 'hide' ||
+              findUntil(
+                dataRows,
+                currentResourceIndex + 1,
+                ([, e, t, , h]) => {
+                  const elements = e?.split(',');
+                  return elements?.length > 1 && t === 'search parameter' &&
+                    h !== 'hide' && elements?.includes(element);
+                },
+                ([rt]) => rt
+              )
+            // Skip disable columns
+            : hideShow !== 'disable';
+        });
         urls.forEach((url) => {
           url2desc[url] = (url2desc[url] || []).concat(desc);
         });

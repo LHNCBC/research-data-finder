@@ -5,14 +5,6 @@
  */
 const fs = require('fs');
 
-/**
- * Returns the input string value with the first letter converted to uppercase
- * @param {string} str - input string
- * @return {string}
- */
-function capitalize(str) {
-  return str && str.charAt(0).toUpperCase() + str.substring(1);
-}
 
 /**
  * Extracts search parameter description for specified resource type from a description of the search parameter
@@ -34,6 +26,7 @@ function getDescription(resourceType, description) {
   }
   return result.trim();
 }
+
 
 /**
  * Extract search parameters configuration from JSON FHIR Definitions (part of FHIR specification)
@@ -71,6 +64,7 @@ function getSearchParametersConfig(
       : null
   };
 
+
   /**
    * @typedef TypeDescriptionHash
    * @type {Object}
@@ -96,6 +90,7 @@ function getSearchParametersConfig(
     return typeDesc;
   }
 
+
   /**
    * Finds value set and stores it in the webpack loader result object
    * @param {Object} resultConfig - webpack loader result object
@@ -118,6 +113,7 @@ function getSearchParametersConfig(
       resultConfig.valueSetByPath[path] = valueSetUrl;
     }
   }
+
 
   /**
    * Returns type description of resource property by path specified by an array of property names
@@ -181,6 +177,7 @@ function getSearchParametersConfig(
     }
   }
 
+
   /**
    * Gets ValueSet or CodeSystem items array from concept array, with filtering by
    * includeCodes, and converting a CodeSystem tree of concepts to the flat list.
@@ -217,6 +214,7 @@ function getSearchParametersConfig(
         : acc;
     }, []);
   }
+
 
   /**
    * Gets an array of all ValueSet or CodeSystem items by URL.
@@ -380,7 +378,7 @@ function getSearchParametersConfig(
             // Extract the type of value and property path from this expression
             if (/(.*)\.as\(([^)]*)\)$/.test(expression)) {
               typeFromExpression = RegExp.$2;
-              path = RegExp.$1 + capitalize(typeFromExpression);
+              path = RegExp.$1;
             } else if (
               /(.*)\.where\(resolve\(\) is ([^)]*)\)$/.test(expression)
             ) {
@@ -388,7 +386,7 @@ function getSearchParametersConfig(
               path = RegExp.$1;
             } else if (/^\((.*) as ([^)]*)\)$/.test(expression)) {
               typeFromExpression = RegExp.$2;
-              path = RegExp.$1 + capitalize(typeFromExpression);
+              path = RegExp.$1;
             } else if (/^\((.*) is ([^)]*)\)$/.test(expression)) {
               typeFromExpression = RegExp.$2;
               path = RegExp.$1;
@@ -407,6 +405,7 @@ function getSearchParametersConfig(
           name: item.resource.name,
           type:
             (item.resource.type === 'token' ||
+              // debugger ?
             item.resource.type === 'reference' ||
             item.resource.type === 'quantity'
               ? typeFromExpression
@@ -424,6 +423,7 @@ function getSearchParametersConfig(
       });
   }
 
+
   /**
    * Determines resource property path by simple FHIRPath expression
    * @param {string} resourceType - resource type
@@ -435,6 +435,7 @@ function getSearchParametersConfig(
     const searchValue = new RegExp(`^${resourceType}\\.`);
     return path.replace(searchValue, '');
   }
+
 
   /**
    * Returns an array of column descriptions for the specified resource type

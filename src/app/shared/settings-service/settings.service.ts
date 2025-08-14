@@ -8,7 +8,7 @@ import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Config } from '../../types/settings';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
-import { get as getPropertyByPath } from 'lodash-es';
+import { cloneDeep, get as getPropertyByPath } from 'lodash-es';
 import json5 from 'json5';
 import { csvStringToArray, getUrlParam } from '../utils';
 
@@ -74,10 +74,10 @@ export class SettingsService {
                 [
                   resourceType,
                   element,
-                  type,
+                  rowType,
                   displayName,
                   hideShow,
-                  types,
+                  type,
                   expression,
                   description
                 ]
@@ -87,27 +87,33 @@ export class SettingsService {
                     columnDescriptions: [],
                     searchParameters: []
                   };
-                } else if (type === 'search parameter') {
+                } else if (rowType === 'search parameter') {
+                  // Each search parameter described in the CSV file can be
+                  // a combination of several corresponding specification
+                  // parameters separated by commas.
+                  const elements = element.split(',');
+                  const types = type.split(',')
                   const param: any = {
-                    element,
+                    element : elements.length > 1 ? elements : element,
                     displayName,
-                    description
+                    description,
+                    visible: hideShow === 'show'
                   };
-                  if (types) {
-                    param.type = types;
+                  if (type) {
+                    param.type = types.length > 1 ? types : type;
                   }
                   resourceDescription.searchParameters.push(param);
-                } else if (type === 'column') {
+                } else if (rowType === 'column') {
                   resourceDescription.columnDescriptions.push({
                     element,
                     displayName,
-                    types: types.split(','),
+                    types: type.split(','),
                     expression,
                     displayByDefault: hideShow === 'show',
                     description
                   });
                 } else {
-                  throw new Error(`Unexpected description type "${type}"`);
+                  throw new Error(`Unexpected description type "${rowType}"`);
                 }
 
                 return definitions;
@@ -115,11 +121,11 @@ export class SettingsService {
               {}
             );
 
-            return this.csvFile2resourceDefinitions[filename];
+            return cloneDeep(this.csvFile2resourceDefinitions[filename]);
           })
         );
     } else {
-      return of(this.csvFile2resourceDefinitions[filename]);
+      return of(cloneDeep(this.csvFile2resourceDefinitions[filename]));
     }
   }
 
