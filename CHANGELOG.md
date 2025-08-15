@@ -15,10 +15,10 @@ This project follows [Semantic Versioning](http://semver.org/).
   component when the code system is not specified in the previously found
   resources. Previously, we did not specify the code system, which could lead to
   the exclusion of records that have the same code but a different system.
-- Hid some duplicate search parameters that can be used indirectly. For example,
-  we have search parameters "variable name" and "variable value", but we don't
-  need to display to the user all the variety of parameters code-value-*,
-  combo-code-value-*, etc.
+- Hid some duplicate search parameters (in the default configuration for R4
+  servers) that can be used indirectly. For example, we have search parameters
+  "variable name" and "variable value", but we don't need to display to the user
+  all the variety of parameters code-value-*, combo-code-value-*, etc.
  
 ## [7.2.0] - 2025-05-07
 ### Added
