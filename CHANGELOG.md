@@ -3,6 +3,20 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.2.1] - 2025-08-20
+### Changed
+- The drop-down list of available servers has been moved to the configuration
+  file to avoid rebuilding the project to change it.
+### Fixed
+- Caching of initialization requests to take into account the ScrubberID
+  value.
+- Updating settings.json5 when building the app, it no longer removes references
+  to CSV files from the settings section for URLs that are not in XLSX files.
+  This is useful for adding configurations for proxy servers that have the same
+  settings as existing configurations.
+- Reinitialization of the connection to the FHIR server when ScrubberID changes
+  to ensure that it works.
+
 ## [7.2.0] - 2025-05-07
 ### Added
 - Three new configuration options for `settings.json5`: 

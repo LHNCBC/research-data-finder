@@ -5,7 +5,8 @@
 import {
   AfterViewInit,
   Component,
-  ElementRef, HostBinding,
+  ElementRef,
+  HostBinding,
   HostListener,
   Input,
   OnDestroy,
@@ -18,10 +19,13 @@ import { BaseControlValueAccessor } from '../../base-control-value-accessor';
 import { AbstractControl, NgControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import Def from 'autocomplete-lhc';
-import {ConnectionStatus, FhirBackendService} from '../../../shared/fhir-backend/fhir-backend.service';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../../shared/fhir-backend/fhir-backend.service';
 import { setUrlParam } from '../../../shared/utils';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import {map} from "rxjs/operators";
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-fhir-server-select',
@@ -38,34 +42,6 @@ export class FhirServerSelectComponent
   extends BaseControlValueAccessor<string>
   implements AfterViewInit, OnDestroy, MatFormFieldControl<string> {
   inputId = 'serverBaseUrl';
-
-  options = [
-    {
-      description: 'FHIR Tools project FHIR R5 server (fake data)',
-      url: 'https://lforms-fhir.nlm.nih.gov/baseR5'
-    },
-    {
-      description: 'FHIR Tools project FHIR R4 server (fake data)',
-      url: 'https://lforms-fhir.nlm.nih.gov/baseR4'
-    },
-    {
-      description: 'dbGaP',
-      url: 'https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1'
-    },
-    {
-      description: 'https://r4.smarthealthit.org Provider Standalone Launch',
-      url:
-        'https://launch.smarthealthit.org/v/r4/sim/eyJoIjoiMSIsImoiOiIxIn0/fhir'
-    },
-    {
-      description: 'Google Health API',
-      url: 'https://healthcare.googleapis.com/v1/projects/lhncbc-fhir-tools/locations/us-east4/datasets/lforms-fhir-data/fhirStores/R4-2/fhir'
-    },
-    {
-      description: 'immport (HAPI FHIR R5) server',
-      url: 'https://fhir.immport.org/fhir'
-    }
-  ];
 
   @Input() placeholder = '';
 
@@ -258,12 +234,13 @@ export class FhirServerSelectComponent
    * Set up Autocompleter prefetch options and adds a selection event listener.
    */
   setupAutocomplete(): void {
+    const options = this.fhirBackend.settings.get('serverListOptions');
     const testInputId = this.inputId;
     this.acInstance = new Def.Autocompleter.Prefetch(
       testInputId,
-      this.options.map((o) => o.url),
+      options.map((o) => o.url),
       {
-        formattedListItems: this.options.map(
+        formattedListItems: options.map(
           (o) =>
             ` <span style="color: rgba(0, 0, 0, 0.38);"> — ${o.description}</span>`
         )

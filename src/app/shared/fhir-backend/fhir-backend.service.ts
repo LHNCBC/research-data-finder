@@ -13,12 +13,12 @@ import {
 } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer, ReplaySubject } from 'rxjs';
 import {
+  BASIC_AUTH_REQUIRED,
   FhirBatchQuery,
   HTTP_ABORT,
-  UNSUPPORTED_VERSION,
-  BASIC_AUTH_REQUIRED,
   OAUTH2_REQUIRED,
-  PRIORITIES as FhirBatchQueryPriorities
+  PRIORITIES as FhirBatchQueryPriorities,
+  UNSUPPORTED_VERSION
 } from './fhir-batch-query.js';
 import definitionsIndex from '../definitions/index.json';
 import { FhirServerFeatures } from '../../types/fhir-server-features';
@@ -36,12 +36,12 @@ import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
 import fhirpath from 'fhirpath';
-import Resource = fhir.Resource;
-import Bundle = fhir.Bundle;
-import {Oauth2TokenService} from "../oauth2-token/oauth2-token.service";
+import { Oauth2TokenService } from '../oauth2-token/oauth2-token.service';
 import {
   ScrubberIdDialogComponent
 } from '../scrubber-id-dialog/scrubber-id-dialog.component';
+import Resource = fhir.Resource;
+import Bundle = fhir.Bundle;
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -373,10 +373,12 @@ export class FhirBackendService implements HttpBackend {
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
 
+    const needScrubberId = this.settings.get('scrubber', serviceBaseUrl) === true;
+    const currentScrubberID = this.fhirClient.getScrubberIDHeader(serviceBaseUrl) || null;
     let scrubberIdPromise =
-      this.settings.get('scrubber', serviceBaseUrl) === true ?
+      needScrubberId && !currentScrubberID  ?
         this.selectScrubberId(this.settings.get('allowChangeServer', serviceBaseUrl), serviceBaseUrl)
-        : Promise.resolve(null);
+        : Promise.resolve(currentScrubberID);
     return scrubberIdPromise.then((scrubberID) => {
       if (scrubberID !== false) {
         // If the "Cancel" button was not pressed, apply changes

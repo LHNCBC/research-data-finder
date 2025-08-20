@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SettingsPageComponent } from './settings-page.component';
 import { SettingsPageModule } from './settings-page.module';
 import { SharedModule } from '../../shared/shared.module';
-import {configureTestingModule} from "../../../test/helpers";
+import { configureTestingModule } from 'src/test/helpers';
 
 describe('SettingsComponent', () => {
   let component: SettingsPageComponent;

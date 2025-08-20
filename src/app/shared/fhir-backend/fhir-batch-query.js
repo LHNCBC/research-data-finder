@@ -156,7 +156,9 @@ class FhirBatchQuery extends EventTarget {
    * @returns {string}
    */
   getInitCacheName(useInitContext = true) {
-    return 'init-' + (useInitContext && this.initContext ? this.initContext + '-' : '') + this._serviceBaseUrl;
+    const scrubberId = this.getScrubberIDHeader();
+    return 'init-' + (useInitContext && this.initContext ? this.initContext + '-' : '') +
+      (scrubberId ? scrubberId + '-' : '') + this._serviceBaseUrl;
   }
 
   /**
