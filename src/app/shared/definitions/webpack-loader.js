@@ -405,7 +405,6 @@ function getSearchParametersConfig(
           name: item.resource.name,
           type:
             (item.resource.type === 'token' ||
-              // debugger ?
             item.resource.type === 'reference' ||
             item.resource.type === 'quantity'
               ? typeFromExpression
