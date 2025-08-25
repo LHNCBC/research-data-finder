@@ -12,18 +12,19 @@ import {
   BaseControlValueAccessor,
   createControlValueAccessorProviders
 } from '../base-control-value-accessor';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import {
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
 import { isEqual } from 'lodash-es';
 import {
-  QueryParamsService,
   CODETEXT,
-  OBSERVATION_VALUE
+  OBSERVATION_VALUE,
+  QueryParamsService
 } from '../../shared/query-params/query-params.service';
-import {
-  AutocompleteComponent
-} from '../autocomplete/autocomplete.component';
+import { AutocompleteComponent } from '../autocomplete/autocomplete.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import NON_REQUIRED_BINDING_LISTS from '../../../../non-required-binding-lists.json';
+import NON_REQUIRED_BINDING_LISTS
+  from '../../../../non-required-binding-lists.json';
 import { AutocompleteOption } from '../../types/autocompleteOption';
 
 /**
@@ -208,7 +209,7 @@ export class SearchParameterComponent
    * @param value New value to be written to the model.
    */
   writeValue(value: SearchParameter): void {
-    const param = this.parameters.find((p) => p.element === value?.element);
+    const param = this.parameters.find((p) => isEqual(p.element,value?.element));
     this.parameterName.setValue(param?.displayName || '');
     if (this.isPullData) {
       this.parameterName.disable({ emitEvent: false });
@@ -224,9 +225,21 @@ export class SearchParameterComponent
   }
 
   /**
-   * get string of url segment describing the search criteria that will be used to search in server.
+   * Generates the search criteria URL segment(s) for querying the server.
+   * If the search parameter element is an array, returns an array of criteria
+   * strings, each corresponding to an element. Otherwise, returns a single
+   * criteria string.
+   *
+   * @returns The search criteria as a string or array of strings.
    */
-  getCriteria(): string {
+  getCriteria(): string | string[] {
+    if (Array.isArray(this.value.element)) {
+      return this.value.element.map(element =>
+        this.queryParams.getQueryParam(this.resourceType, {
+          ...this.value, element
+        })
+      );
+    }
     return this.queryParams.getQueryParam(this.resourceType, this.value);
   }
 
@@ -246,10 +259,11 @@ export class SearchParameterComponent
       // Skip already selected search parameters
       .filter(
         (p) =>
-          p.element === this.value.element ||
-          !this.selectedSearchParameterNames ||
-          this.selectedSearchParameterNames.indexOf(p.element) === -1
-      )
+          p.visible && (
+            isEqual(p.element, this.value.element) ||
+            !this.selectedSearchParameterNames ||
+            this.selectedSearchParameterNames.indexOf(p.element) === -1
+          ))
       .map((searchParameter) => ({
         name: searchParameter.displayName,
         value: searchParameter.displayName,

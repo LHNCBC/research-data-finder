@@ -14,7 +14,7 @@ class QueryResponseCache {
 
   /**
    * Stores the response data for a URL in the persistent or temporary cache.
-   * @param {string} url - URL
+   * @param {string} key - some key, for a GET request it can be just a full URL
    * @param {{data: any, status: number}} responseData - response data
    * @param {Object} [options] - additional options:
    * @param {string} [options.cacheName] - cache name for persistent data storage
@@ -24,7 +24,7 @@ class QueryResponseCache {
    *   entry can be in the cache before expiring.
    * @returns Promise<void>
    */
-  add(url, responseData, options) {
+  add(key, responseData, options) {
     responseData = {
       ...responseData,
       _cacheInfo_: {
@@ -34,52 +34,52 @@ class QueryResponseCache {
     };
     if (options.cacheName) {
       if (this.isCachesSupported) {
-        return caches.open(options.cacheName).then((c) => c.put(url, new Response(JSON.stringify(responseData))));
+        return caches.open(options.cacheName).then((c) => c.put(key, new Response(JSON.stringify(responseData))));
       } else {
         const cache = (this.fakeWindowCaches[options.cacheName] = this.fakeWindowCaches[options.cacheName] || {});
-        cache[url] = responseData;
+        cache[key] = responseData;
         return Promise.resolve();
       }
     } else {
-      this.temporaryCache[url] = responseData;
+      this.temporaryCache[key] = responseData;
       return Promise.resolve();
     }
   }
 
   /**
    * Returns the cached response data for the URL.
-   * @param {string} url - URL
+   * @param {string} key - some key, for a GET request it can be just a full URL
    * @param {Object} [options] - additional options:
    * @param {string} [options.cacheName] - cache name for persistent data storage
    *   between sessions, if not specified, gets response data from the temporary
    *   cache that will disappear when the page is reloaded.
    * @returns {Promise<{data: any, status: number}|undefined>}
    */
-  get(url, options) {
+  get(key, options) {
     let tempCachePromise;
     if (options.cacheName) {
       if (this.isCachesSupported) {
         return caches.open(options.cacheName).then((cache) => {
           return cache
-            .match(url)
+            .match(key)
             .then((response) => response?.json())
             .then((responseData) => {
               return QueryResponseCache.isExpired(responseData)
-                ? cache.delete(url).then(() => undefined)
+                ? cache.delete(key).then(() => undefined)
                 : responseData;
             });
         });
       }
-      tempCachePromise = Promise.resolve(this.fakeWindowCaches[options.cacheName]?.[url]);
+      tempCachePromise = Promise.resolve(this.fakeWindowCaches[options.cacheName]?.[key]);
     } else {
-      tempCachePromise = Promise.resolve(this.temporaryCache[url]);
+      tempCachePromise = Promise.resolve(this.temporaryCache[key]);
     }
     return tempCachePromise.then((responseData) => {
       if (QueryResponseCache.isExpired(responseData)) {
         if (options.cacheName) {
-          delete this.fakeWindowCaches[options.cacheName][url];
+          delete this.fakeWindowCaches[options.cacheName][key];
         } else {
-          delete this.temporaryCache[url];
+          delete this.temporaryCache[key];
         }
         return undefined;
       }
@@ -89,18 +89,18 @@ class QueryResponseCache {
 
   /**
    * Whether cached response data exists for the URL and has not expired.
-   * @param {string} url - URL
+   * @param {string} key - some key, for a GET request it can be just a full URL
    * @param {string} [cacheName] - cache name for persistent data storage
    *   between sessions, if not specified, gets response data from the temporary
    *   cache that will disappear when the page is reloaded.
    * @returns {Promise<boolean>}
    */
-  hasNotExpiredData(url, cacheName) {
+  hasNotExpiredData(key, cacheName) {
     return (cacheName
       ? this.isCachesSupported
-        ? caches.open(cacheName).then((cache) => cache.match(url).then((response) => response?.json()))
-        : Promise.resolve(this.fakeWindowCaches[cacheName]?.[url])
-      : Promise.resolve(this.temporaryCache[url])
+        ? caches.open(cacheName).then((cache) => cache.match(key).then((response) => response?.json()))
+        : Promise.resolve(this.fakeWindowCaches[cacheName]?.[key])
+      : Promise.resolve(this.temporaryCache[key])
     ).then((responseData) => {
       return !!responseData && !QueryResponseCache.isExpired(responseData);
     });

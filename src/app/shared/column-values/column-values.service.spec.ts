@@ -1,6 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { ColumnValuesService } from './column-values.service';
 import { configureTestingModule } from 'src/test/helpers';
+import { ColumnDescription } from '../../types/column.description';
+import Resource = fhir.Resource;
 
 describe('ColumnValuesService', () => {
   let service: ColumnValuesService;
@@ -209,10 +211,10 @@ describe('ColumnValuesService', () => {
     }
   ].forEach(({ value, type, fullPath, result }) => {
     it(`should convert a value of ${type} to string`, () => {
-      expect(service.valueToStrings([value], type, fullPath)).toEqual([result]);
+      expect(service.valueToStrings([value], type, {} as Resource, {} as ColumnDescription, fullPath)).toEqual([result]);
     });
     it(`should convert an array of ${type} to strings`, () => {
-      expect(service.valueToStrings([value, value], type, fullPath)).toEqual([
+      expect(service.valueToStrings([value, value], type, {} as Resource, {} as ColumnDescription, fullPath)).toEqual([
         result,
         result
       ]);
@@ -239,6 +241,8 @@ describe('ColumnValuesService', () => {
           }
         ],
         'CodeableConcept',
+        {} as Resource,
+        {} as ColumnDescription,
         '',
         new Map([['value2', 'displayX']])
       )
@@ -265,6 +269,8 @@ describe('ColumnValuesService', () => {
           }
         ],
         'CodeableConcept',
+        {} as Resource,
+        {} as ColumnDescription,
         ''
       )
     ).toEqual(['display1']);
@@ -290,6 +296,8 @@ describe('ColumnValuesService', () => {
           }
         ],
         'CodeableConceptCode',
+        {} as Resource,
+        {} as ColumnDescription,
         '',
         undefined
       )
@@ -326,6 +334,8 @@ describe('ColumnValuesService', () => {
           }
         ],
         'CodeableConcept',
+        {} as Resource,
+        {} as ColumnDescription,
         'ResearchStudy.condition'
       )
     ).toEqual(['value2']);

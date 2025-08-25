@@ -10,8 +10,8 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { fromEvent, Observable, Subject } from 'rxjs';
-import { filter, map, take, takeUntil } from 'rxjs/operators';
+import { fromEvent, Observable, ReplaySubject, Subject } from 'rxjs';
+import { delayWhen, filter, map, take, takeUntil } from 'rxjs/operators';
 import { setUrlParam } from '../../shared/utils';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -47,7 +47,16 @@ export enum ServiceBaseUrlErrors {
   styleUrls: ['./settings-page.component.less']
 })
 export class SettingsPageComponent implements OnDestroy {
+  /**
+   * Reactive form group for the settings page.
+   * Contains controls for FHIR REST API configuration and related parameters.
+   */
   settingsFormGroup: UntypedFormGroup;
+  /**
+   * Subject that emits when the settings form group is ready for use.
+   * Used to notify validators that initialization is complete.
+   */
+  ready = new ReplaySubject();
   // Subject to emit a destroy event
   destroy = new Subject();
   // Reference to the dialog about problems with batch requests
@@ -77,6 +86,7 @@ export class SettingsPageComponent implements OnDestroy {
       ],
       cacheDisabled: [!this.fhirBackend.cacheEnabled]
     });
+
     this.settingsFormGroup
       .get('serviceBaseUrl')
       .statusChanges.pipe(filter((s) => s === 'VALID'))
@@ -91,6 +101,7 @@ export class SettingsPageComponent implements OnDestroy {
           );
         }
       });
+    this.ready.next();
 
     fromEvent(this.fhirBackend.fhirClient, 'batch-issue')
       .pipe(takeUntil(this.destroy))
@@ -143,9 +154,8 @@ export class SettingsPageComponent implements OnDestroy {
    * @param value - parameter value
    */
   updateFhirBackendSetting(name: string, value?: any): void {
-    const newValue =
-      value !== undefined ? value : this.settingsFormGroup.get(name).value;
-    this.fhirBackend[name] = newValue;
+    this.fhirBackend[name] = value !== undefined ? value
+      : this.settingsFormGroup.get(name).value;
   }
 
   /**
@@ -161,6 +171,8 @@ export class SettingsPageComponent implements OnDestroy {
 
     // Wait for response to validate server
     return this.fhirBackend.initialized.pipe(
+      // Delay validation until this.settingsFormGroup is ready
+      delayWhen(() => this.ready.asObservable()),
       filter((status) => status !== ConnectionStatus.Pending),
       takeUntil(this.destroy),
       take(1),

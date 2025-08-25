@@ -13,27 +13,33 @@ import {
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 // see docs at http://lhncbc.github.io/autocomplete-lhc/docs.html
 import Def from 'autocomplete-lhc';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
-import { SelectedObservationCodes } from '../../types/selected-observation-codes';
+import {
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
+import {
+  SelectedObservationCodes
+} from '../../types/selected-observation-codes';
 import { MatFormFieldControl } from '@angular/material/form-field';
-import { AbstractControl, UntypedFormControl, NgControl } from '@angular/forms';
+import { AbstractControl, NgControl, UntypedFormControl } from '@angular/forms';
 import { EMPTY, forkJoin, of, Subject, Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, expand, tap } from 'rxjs/operators';
 import {
-  modifyStringForSynonyms,
-  generateSynonymLookup,
   escapeStringForRegExp,
-  getCommensurableUnitList
+  generateSynonymLookup,
+  getCommensurableUnitList,
+  modifyStringForSynonyms
 } from '../../shared/utils';
-import Bundle = fhir.Bundle;
-import Observation = fhir.Observation;
-import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 import { ErrorStateMatcher } from '@angular/material/core';
 import WORDSYNONYMS from '../../../../word-synonyms.json';
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { CartService } from '../../shared/cart/cart.service';
-import { SelectRecordsService } from '../../shared/select-records/select-records.service';
+import {
+  SelectRecordsService
+} from '../../shared/select-records/select-records.service';
+import Bundle = fhir.Bundle;
+import Observation = fhir.Observation;
+import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
 
 // This value should be used as the "datatype" field value for the form control
 // value if we don't have a "variable value" criterion (in the "Pull data for
@@ -665,10 +671,10 @@ export class ObservationCodeLookupComponent
       const observation = entry.resource as Observation;
       const {datatype, unitCode, unitSystem} = this.getValueDataTypeAndUnit(observation);
       acc.push(
-        ...(observation.code.coding
+        ...(observation.code?.coding
           ?.filter((coding) => {
             let matched = false;
-            const hashedCoding = (coding.system ? coding.system + '|' : '') + coding.code;
+            const hashedCoding = (coding.system ? coding.system : '') + '|' + coding.code;
             if (coding.code && !processedCodes[hashedCoding]) {
               processedCodes[hashedCoding] = true;
               if (

@@ -3,6 +3,23 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.3.0] - 2025-08-25
+### Added
+- Updated fhirpath to version 4.5.1, which includes support for the resolve()
+  function.
+- Support for Reference data type search parameters and combined search
+  parameters such as autocomplete "medication name" which actually uses two
+  search parameters "code" and "medication". Currently, supported for R4 servers.
+### Changed
+- Add use of empty code system for "code:not" search parameter for autocomplete
+  component when the code system is not specified in the previously found
+  resources. Previously, we did not specify the code system, which could lead to
+  the exclusion of records that have the same code but a different system.
+- Hid some duplicate search parameters (in the default configuration for R4
+  servers) that can be used indirectly. For example, we have search parameters
+  "variable name" and "variable value", but we don't need to display to the user
+  all the variety of parameters code-value-*, combo-code-value-*, etc.
+ 
 ## [7.2.1] - 2025-08-20
 ### Changed
 - The drop-down list of available servers has been moved to the configuration

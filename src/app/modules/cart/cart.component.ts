@@ -7,15 +7,21 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import Resource = fhir.Resource;
 import { getPluralFormOfRecordName } from '../../shared/utils';
 import { ColumnDescription } from '../../types/column.description';
-import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import { ColumnValuesService } from '../../shared/column-values/column-values.service';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
+import {
+  ColumnDescriptionsService
+} from '../../shared/column-descriptions/column-descriptions.service';
+import {
+  ColumnValuesService
+} from '../../shared/column-values/column-values.service';
+import {
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
 import { Subscription } from 'rxjs';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import Resource = fhir.Resource;
 
 type ListCells = { [key: string]: string };
 
@@ -93,10 +99,10 @@ export class CartComponent implements OnInit, OnChanges {
         [].concat(...this.listItems).forEach((record: Resource) => {
           if (!this.cells[record.id]) {
             this.cells[record.id] = allColumns.reduce((desc, columnDesc) => {
-              const cellText = this.getCellStrings(record, columnDesc).join(
-                '; '
-              );
-              desc[columnDesc.element] = cellText;
+              // For each column description, get string values to display in
+              // a cell of a resource table
+              desc[columnDesc.element] = this.columnValuesService
+                .getCellStrings(record, columnDesc).join('; ');
               return desc;
             }, {} as ListCells);
           }
@@ -117,28 +123,6 @@ export class CartComponent implements OnInit, OnChanges {
     this.removeRecord.next({ resourceType, listItem });
   }
 
-  /**
-   * Returns string values to display in a cell
-   * @param row - data for a row of table (entry in the bundle)
-   * @param column - column description
-   */
-  getCellStrings(row: Resource, column: ColumnDescription): string[] {
-    const expression = column.expression || column.element.replace('[x]', '');
-    const fullPath = expression ? this.resourceType + '.' + expression : '';
-
-    for (const type of column.types) {
-      const output = this.columnValuesService.valueToStrings(
-        this.fhirBackend.getEvaluator(fullPath)(row),
-        type,
-        fullPath
-      );
-
-      if (output && output.length) {
-        return output;
-      }
-    }
-    return [];
-  }
 
   /**
    * Whether to display records in a tree view.

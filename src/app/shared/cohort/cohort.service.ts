@@ -34,20 +34,20 @@ import {
   switchMap,
   take
 } from 'rxjs/operators';
-import Resource = fhir.Resource;
 import {
   CODETEXT,
   OBSERVATION_VALUE,
   QueryParamsService
 } from '../query-params/query-params.service';
-import { uniqBy, cloneDeep, chunk } from 'lodash-es';
-import Bundle = fhir.Bundle;
+import { chunk, cloneDeep, uniqBy } from 'lodash-es';
 import { HttpClient } from '@angular/common/http';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
-import Patient = fhir.Patient;
 import {
   CustomRxjsOperatorsService
 } from '../custom-rxjs-operators/custom-rxjs-operators.service';
+import Resource = fhir.Resource;
+import Bundle = fhir.Bundle;
+import Patient = fhir.Patient;
 
 // Patient resource type name
 const PATIENT_RESOURCE_TYPE = 'Patient';
@@ -840,6 +840,8 @@ export class CohortService {
         return null;
       }
 
+      let condition = criteria.condition;
+      let resourceType = criteria.resourceType;
       let rules;
 
       // Combine code and value criteria for Observation when we have one code
@@ -875,12 +877,84 @@ export class CohortService {
 
       rules = cloneDeep(rules || criteria.rules);
 
+      // Processing combined search parameters.
+      const {combinedRules, otherRules} = rules.reduce((obj, rule) => {
+        if (Array.isArray(rule.field.element)) {
+          // If the element is an array, it means that it is a combined search
+          // parameter.
+          if (condition === 'or') {
+            // If criteria are ORed, we can simply split combined criteria into
+            // separate rules without significant changes in the criteria
+            // structure.
+            rule.field.element.forEach((element) => {
+              obj.otherRules({
+                ...rule,
+                field: {
+                  ...rule.field,
+                  element
+                }
+              });
+            });
+          } else {
+            obj.combinedRules.push(rule);
+          }
+        } else {
+          obj.otherRules.push(rule);
+        }
+        return obj;
+      }, {
+        combinedRules: [], otherRules: []
+      });
+
+      if (combinedRules.length) {
+        // If we have combined search parameters, we need to split them into
+        // separate rules.
+        if (otherRules.length === 0 && combinedRules.length === 1) {
+          // If we have only one criterion with the combined search parameter,
+          // use the OR operator
+          condition = 'or';
+          rules = combinedRules[0].field.element.map((element) => ({
+            ...combinedRules[0],
+            field: {
+              ...combinedRules[0].field,
+              element
+            }
+          }));
+
+        } else {
+          rules = combinedRules.reduce((obj, rule) => {
+            // If the field is an array, it means that it is a combined search parameter
+            // and we need to split it into separate rules.
+            const res = {
+              condition: 'or',
+              rules: []
+            }
+            rule.field.element.forEach((element) => {
+              res.rules.push({
+                condition: 'and',
+                resourceType,
+                rules: [{
+                  ...rule,
+                  field: {
+                    ...rule.field,
+                    element
+                  }
+                }, ...otherRules]
+              });
+            });
+            obj.push(res);
+            return obj;
+          }, []);
+          resourceType = null;
+        }
+      }
+
       // We need a copy of the object in order not to visualize our changes
       return {
         // if we have only one criterion with the OR operator, replace the
         // operator with AND
-        condition: criteria.rules.length === 1 ? 'and' : criteria.condition,
-        resourceType: criteria.resourceType,
+        condition: rules.length === 1 ? 'and' : condition,
+        ...(resourceType ? { resourceType } : {}),
         rules
       };
     } else {
@@ -936,7 +1010,9 @@ export class CohortService {
   getPatientIdFromResource(resource: Resource): string {
     return resource.resourceType === PATIENT_RESOURCE_TYPE
       ? resource.id
-      : /^Patient\/(.*)/.test((resource as any).subject.reference) && RegExp.$1;
+      // TODO: In the future we might want to use the resolve() function from
+      //  fhirpath.js instead of RegExp.
+      : ((resource as any).subject?.reference).match(/(^|\/)Patient\/(.*)/)?.[2];
   }
 
   /**
@@ -1193,7 +1269,10 @@ export class CohortService {
       ),
       // Expand the BundleEntries array into separate resources
       map((response: Bundle) => {
-        const resources = (response?.entry || []).map((i) => i.resource);
+        const resources = (response?.entry || [])
+          .map((i) => i.resource)
+          // Filter out OperationOutcome resources for https://server.fire.ly/r4
+          .filter(i => i.resourceType === queryResourceType);
         // Update the number of resources in processing
         currentState.numberOfProcessingResources$.next(
           currentState.numberOfProcessingResources$.value + resources.length

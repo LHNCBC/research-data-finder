@@ -12,18 +12,31 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { Observable, Subscription } from 'rxjs';
-import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import {
+  ColumnDescriptionsService
+} from '../../shared/column-descriptions/column-descriptions.service';
 import { FormControl, UntypedFormControl, Validators } from '@angular/forms';
-import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
-import { SelectedObservationCodes } from '../../types/selected-observation-codes';
+import {
+  SearchParameterGroupComponent
+} from '../search-parameter-group/search-parameter-group.component';
+import {
+  SelectedObservationCodes
+} from '../../types/selected-observation-codes';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
-import { dispatchWindowResize, getPluralFormOfResourceType } from '../../shared/utils';
-import { ResourceTableParentComponent } from '../resource-table-parent.component';
+import {
+  dispatchWindowResize,
+  getPluralFormOfResourceType
+} from '../../shared/utils';
+import {
+  ResourceTableParentComponent
+} from '../resource-table-parent.component';
 import { SearchParameterGroup } from '../../types/search-parameter-group';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { CohortService, MAX_PAGE_SIZE } from '../../shared/cohort/cohort.service';
+import {
+  CohortService,
+  MAX_PAGE_SIZE
+} from '../../shared/cohort/cohort.service';
 import { TableRow } from '../resource-table/resource-table.component';
-import Observation = fhir.Observation;
 import { saveAs } from 'file-saver';
 // Use ECMAScript module distributions of csv-stringify package for our browser app.
 // See https://csv.js.org/stringify/distributions/browser_esm/
@@ -34,6 +47,7 @@ import {
   AutocompleteParameterValue
 } from '../../types/autocomplete-parameter-value';
 import { Criteria } from '../../types/search-parameters';
+import Observation = fhir.Observation;
 
 /**
  * The main component for pulling Patient-related resources data
@@ -258,11 +272,32 @@ export class PullDataPageComponent
           ]
         });
       } else {
+        // Selects the most appropriate search parameter element for the given resource type.
+        // - Filters the search parameters for those whose `element` property matches the word "code".
+        // - Sorts the filtered parameters to prioritize:
+        //   1. Parameters where `element` is an array (descending by array length).
+        //   2. If both are arrays, sorts by descending length of the `element` array.
+        //   3. If both are not arrays, sorts by descending length of the `element` string.
+        // - Picks the first (best) match, or defaults to `'code'` if none found.
+        const element = this.fhirBackend.getCurrentDefinitions()
+          .resources[resourceType]?.searchParameters.filter(p => /\bcode\b/.test(p.element))
+          .sort((a, b) => {
+            const aIsArray = Array.isArray(a.element) ? 1 : 0;
+            const bIsArray = Array.isArray(b.element) ? 1 : 0;
+
+            if (aIsArray !== bIsArray) {
+              return bIsArray - aIsArray;
+            } else if (aIsArray === 1) {
+              return b.element.length - a.element.length;
+            } else {
+              return b.length - a.length;
+            }
+          })[0]?.element || 'code';
         this.parameterGroups[resourceType].setValue({
           resourceType,
           parameters: [
             {
-              element: 'code',
+              element,
               value: this.defaultCodes[resourceType]
             }
           ]
@@ -367,12 +402,12 @@ export class PullDataPageComponent
       });
     }
 
+    const conditions = parameterGroup.getConditions();
     this.loadSubscription[resourceType] = this.pullData
       .loadResources(
         resourceType,
         this.perPatientFormControls[resourceType]?.value || 1000,
-        // TODO: simplify by using observationParameterGroup
-        parameterGroup.getConditions().criteria,
+        Array.isArray(conditions) ? conditions.map(c => c.criteria) : conditions.criteria,
         this.maxObservationToCheck[resourceType]?.value
       )
       .subscribe();

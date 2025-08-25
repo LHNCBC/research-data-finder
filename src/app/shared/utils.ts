@@ -259,3 +259,22 @@ export function dispatchWindowResize(): void {
     window.dispatchEvent(evt);
   }
 }
+
+/**
+ * Computes the cartesian product of an array of string arrays.
+ * Each result is an array containing one element from each input array.
+ *
+ * @param {string[][]} arrays - An array of string arrays to combine.
+ * @returns {string[][]} The cartesian product as an array of arrays.
+ *
+ * @example
+ * cartesian([['&a=1', '&a=2'], ['&b=1', '&b=2']]);
+ * // Returns: [['&a=1', '&b=1'], ['&a=1', '&b=2'], ['&a=2', '&b=1'], ['&a=2', '&b=2']]
+ */
+export function cartesian(arrays: string[][]): string[][] {
+  return arrays.reduce(
+    (acc, curr) =>
+      acc.flatMap(a => curr.map(b => [...a, b])),
+    [[]] as string[][]
+  );
+}

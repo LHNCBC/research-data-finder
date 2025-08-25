@@ -60,17 +60,20 @@ describe('SearchParameterComponent', () => {
               searchParameters: [
                 {
                   element: 'code text',
-                  displayName: 'Some name'
+                  displayName: 'Some name',
+                  visible: true
                 },
                 {
                   element: 'value-quantity',
                   displayName: 'value quantity',
-                  type: 'Quantity'
+                  type: 'Quantity',
+                  visible: true
                 },
                 {
                   element: 'already-selected',
                   displayName: 'already selected',
-                  type: 'string'
+                  type: 'string',
+                  visible: true
                 }
               ]
             }

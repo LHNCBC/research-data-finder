@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AutocompleteParameterValueComponent } from './autocomplete-parameter-value.component';
+import {
+  AutocompleteParameterValueComponent
+} from './autocomplete-parameter-value.component';
 import { Component, ViewChild } from '@angular/core';
-import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
@@ -27,8 +29,6 @@ const imports = [
       placeholder="Type and select one or more"
       resourceType="Observation"
       searchParameter="category"
-      usePrefetch="true"
-      [options]="options"
     >
     </app-autocomplete-parameter-value>
   </mat-form-field>`
@@ -40,10 +40,6 @@ class TestHostComponent {
     codes: [{ code: 'PHY' }, { code: 'PHR' }],
     items: ['Physician', 'Pharmacy']
   });
-  options = [
-    { code: 'PHY', display: 'Physician' },
-    { code: 'PHR', display: 'Pharmacy' }
-  ];
 }
 
 describe('AutoCompleteTestValueComponent', () => {
@@ -93,6 +89,7 @@ const bundleOfObservationsWithCategories = {
   entry: [
     {
       resource: {
+        resourceType: 'Observation',
         category: [
           {
             coding: [
@@ -108,6 +105,7 @@ const bundleOfObservationsWithCategories = {
     },
     {
       resource: {
+        resourceType: 'Observation',
         category: [
           {
             coding: [
@@ -129,6 +127,7 @@ const bundleOfObservationsWithoutDisplayForCategories = {
   entry: [
     {
       resource: {
+        resourceType: 'Observation',
         category: [
           {
             coding: [
@@ -143,6 +142,7 @@ const bundleOfObservationsWithoutDisplayForCategories = {
     },
     {
       resource: {
+        resourceType: 'Observation',
         category: [
           {
             coding: [
@@ -311,7 +311,7 @@ describe('AutoCompleteTestValueComponent', () => {
       .expectOne('$fhir/Observation?_elements=category&category:missing=false')
       .flush(bundleOfObservationsWithoutDisplayForCategories);
     mockHttp
-      .expectOne('$fhir/Observation?_elements=category&category:missing=false&category:not=someSystem1%7CsomeCode1,someCode2')
+      .expectOne('$fhir/Observation?_elements=category&category:missing=false&category:not=someSystem1%7CsomeCode1,%7CsomeCode2')
       .flush(emptyBundle);
     mockHttp.verify();
     expect(resolve).toHaveBeenCalled();
@@ -385,5 +385,203 @@ describe('AutoCompleteTestValueComponent', () => {
       }
     );
     expect(reject).not.toHaveBeenCalled();
+  });
+});
+
+
+@Component({
+  template: ` <mat-form-field class="flex">
+    <mat-label>Search parameter value</mat-label>
+    <app-autocomplete-parameter-value
+      [options]="options"
+      [formControl]="parameterValue"
+      placeholder="Select one or more"
+      [resourceType]="resourceType"
+      [searchParameter]="searchParameter"
+      [columnName]="rootPropertyName"
+      [expression]="expression">
+    </app-autocomplete-parameter-value>
+  </mat-form-field>`
+})
+class TestHostComponent2 {
+  @ViewChild(AutocompleteParameterValueComponent)
+  component: AutocompleteParameterValueComponent;
+  options = undefined;
+  parameterValue = new UntypedFormControl('');
+  resourceType = 'MedicationDispense';
+  searchParameter = [
+    "code",
+    "medication"
+  ];
+  rootPropertyName = [
+      "medication",
+      "medication"
+  ];
+  expression = [
+      "(MedicationDispense.medication as CodeableConcept)",
+      "(MedicationDispense.medication as Reference)"
+  ];
+}
+
+describe('AutocompleteParameterValueComponent - searchItemsOnFhirServer with combined search parameters', () => {
+  let fixture: ComponentFixture<TestHostComponent2>;
+  let hostComponent: TestHostComponent2;
+  let component: AutocompleteParameterValueComponent;
+  let mockHttp: HttpTestingController;
+  let features = {
+    get hasNotModifierIssue() {
+      return undefined;
+    },
+    get missingModifier() {
+      return undefined;
+    }
+  };
+
+
+  beforeEach(async () => {
+    await configureTestingModule({
+      declarations: [TestHostComponent2, AutocompleteParameterValueComponent],
+      imports
+    }, {
+      features
+    });
+  });
+
+  beforeEach(async () => {
+    fixture = TestBed.createComponent(TestHostComponent2);
+    fixture.detectChanges();
+    hostComponent = fixture.componentInstance;
+    component = hostComponent.component;
+    mockHttp = TestBed.inject(HttpTestingController);
+  });
+
+  it('should aggregate autocomplete items for all combined search parameters', (done) => {
+    spyOnProperty(features, 'hasNotModifierIssue').and.returnValue(true);
+    spyOnProperty(features, 'missingModifier').and.returnValue(true);
+
+    const resolve = jasmine.createSpy('resolve');
+    const reject = jasmine.createSpy('reject');
+
+    const bundle1 = {
+      link: [{ relation: 'next', url: 'nextPageUrl' }],
+      entry: [{
+        resource: {
+          "resourceType": "MedicationDispense",
+          "medicationCodeableConcept": {
+            "coding": [
+              {
+                "system": "system-Alpha",
+                "code": "code-Alpha",
+                "display": "someValue - Alpha"
+              }
+            ]
+          }
+        }
+      }]
+    };
+    const bundle2 = {
+      link: [{ relation: 'next', url: 'nextPageUrl' }],
+      entry: [{
+        resource: {
+          "resourceType": "MedicationDispense",
+          "contained": [
+            {
+              "resourceType": "Medication",
+              "id": "containedMedicationResource",
+              "code": {
+                "coding": [
+                  {
+                    "system": "system-Beta",
+                    "code": "code-Beta",
+                    "display": "someValue - Beta"
+                  }
+                ]
+              }
+            }
+          ],
+          "status": "completed",
+          "medicationReference": {
+            "reference": "#containedMedicationResource"
+          }
+        }
+      }]
+    };
+
+    component.searchItemsOnFhirServer('someValue', 10, resolve, reject).subscribe();
+
+    // checkIfValuesHaveNoDisplay for the first param, which is of type CodeableConcept.
+    mockHttp.expectOne(req =>
+      req.url.endsWith('/MedicationDispense') &&
+      req.params.get('_elements') === 'medication' &&
+      req.params.get('code:missing') === 'false'
+    ).flush(bundle1);
+
+    // checkIfValuesHaveNoDisplay for the second param, which is of type Reference.
+    mockHttp.expectOne(req =>
+      req.url.endsWith('/MedicationDispense') &&
+      req.params.get('_elements') === 'contained,code,medication' &&
+      req.params.get('medication.code:missing') === 'false'
+    ).flush(bundle2);
+
+    // setTimeout is necessary because References are processed asynchronously
+    // in the resolve() function defined in fhirpath, which is called from
+    // getCodingsGetter.
+    setTimeout(() => {
+      // searchItemsOnFhirServer for the first param, which is of type CodeableConcept
+      mockHttp.expectOne(req =>
+        req.url.endsWith('/MedicationDispense') &&
+        req.params.get('_elements') === 'medication' &&
+        req.params.get('code:text') === 'someValue'
+      ).flush(bundle1);
+
+      // searchItemsOnFhirServer for the second param, which is of type Reference
+      mockHttp.expectOne(req =>
+        req.url.endsWith('/MedicationDispense') &&
+        req.params.get('_elements') === 'contained,code,medication' &&
+        req.params.get('medication.code:text') === 'someValue'
+      ).flush(bundle2);
+
+      // setTimeout is necessary because References are processed asynchronously
+      // in the resolve() function defined in fhirpath, which is called from
+      // getCodingsGetter.
+      setTimeout(()=> {
+        // loading the next page for the first param, which is of type CodeableConcept
+        mockHttp.expectOne(req =>
+          req.url.endsWith('/MedicationDispense') &&
+          req.params.get('_elements') === 'medication' &&
+          req.params.get('code:text') === 'someValue' &&
+          req.params.get('code:not') === 'system-Alpha|code-Alpha,system-Beta|code-Beta'
+        ).flush(emptyBundle);
+
+        // loading the next page for the second param, which is of type Reference
+        mockHttp.expectOne(req =>
+          req.url.endsWith('/MedicationDispense') &&
+          req.params.get('_elements') === 'contained,code,medication' &&
+          req.params.get('medication.code:text') === 'someValue' &&
+          req.params.get('medication.code:not') === 'system-Alpha|code-Alpha,system-Beta|code-Beta'
+        ).flush(emptyBundle);
+
+        setTimeout(() => {
+          expect(resolve).toHaveBeenCalledWith(jasmine.objectContaining({
+            resourceType: 'ValueSet',
+            expansion: jasmine.objectContaining({
+              contains: [
+                jasmine.objectContaining({
+                  code:    'system-Alpha|code-Alpha',
+                  display: 'someValue - Alpha'
+                }),
+                jasmine.objectContaining({
+                  code:    'system-Beta|code-Beta',
+                  display: 'someValue - Beta'
+                })
+              ]
+            })
+          }));
+          expect(reject).not.toHaveBeenCalled();
+          done();
+        }, 0);
+      }, 0)
+    }, 0);
+
   });
 });

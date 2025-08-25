@@ -18,20 +18,25 @@ import {
 } from 'rxjs/operators';
 import { forkJoin, fromEvent, Observable, of } from 'rxjs';
 import { chunk, differenceBy, uniqBy } from 'lodash-es';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { ColumnValuesService } from '../column-values/column-values.service';
+import {
+  FhirBackendService,
+  NO_CACHE,
+  REQUEST_PRIORITY,
+  RequestPriorities
+} from '../fhir-backend/fhir-backend.service';
+import {
+  CustomRxjsOperatorsService
+} from '../custom-rxjs-operators/custom-rxjs-operators.service';
+import {
+  AutocompleteParameterValue
+} from '../../types/autocomplete-parameter-value';
 import Patient = fhir.Patient;
 import Resource = fhir.Resource;
 import Bundle = fhir.Bundle;
 import Observation = fhir.Observation;
-import { HttpClient, HttpContext } from '@angular/common/http';
-import { ColumnValuesService } from '../column-values/column-values.service';
-import {
-  FhirBackendService, NO_CACHE, REQUEST_PRIORITY, RequestPriorities
-} from '../fhir-backend/fhir-backend.service';
 import BundleEntry = fhir.BundleEntry;
-import { CustomRxjsOperatorsService } from '../custom-rxjs-operators/custom-rxjs-operators.service';
-import {
-  AutocompleteParameterValue
-} from '../../types/autocomplete-parameter-value';
 
 type PatientMixin = { patientData?: Patient };
 
@@ -51,36 +56,36 @@ interface PullDataState {
   loadTime: number;
 }
 
-// Storage of intermediate data when recursively calling
-// the "getCodesFromCriteria" function.
+/**
+ * State object used for storing intermediate data when recursively calling
+ * the "getCodesFromCriteria" function.
+ *
+ * - The `Observation` property is used for the Observation resource type and
+ *   has a structure specific to selected observation codes.
+ * - Other resource types (e.g., MedicationDispense, MedicationRequest) use
+ *   the index signature and store selected codes.
+ */
 type GetCodesFromCriteriaState = {
   // State object for Observation resource type.
   Observation: {
     // A map of existing observation codes
-    existingObservationCodes: { [itemHash: string]: boolean };
+    existingObservationCodes: { [itemHash: string]: boolean; };
     // A map of item names to their indexes in the result array.
-    name2indexes: { [item: string]: number[] };
+    name2indexes: { [item: string]: number[]; };
     // The result object containing selected observation codes.
     result: SelectedObservationCodes;
-  },
-  // State object for MedicationDispense resource type.
-  MedicationDispense: {
-    // A map of existing medication dispense codes.
-    existingCodes: { [itemHash: string]: boolean };
-    // A map of item names to their indexes in the result array.
-    name2indexes: { [item: string]: number[] };
-    // The result object containing selected medication dispense codes.
-    result: AutocompleteParameterValue
-  },
-  // State object for MedicationRequest resource type.
-  MedicationRequest: {
-    // A map of existing medication request codes.
-    existingCodes: { [itemHash: string]: boolean },
-    // A map of item names to their indexes in the result array.
-    name2indexes: { [item: string]: number[] }
-    // The result object containing selected medication request codes.
-    result: AutocompleteParameterValue
   }
+} & {
+  // State object for other resource types
+  // (e.g., MedicationDispense, MedicationRequest).
+  [resourceType in ('MedicationDispense' | 'MedicationRequest')]: {
+    // A map of existing (e.g. medication) codes.
+    existingCodes: { [itemHash: string]: boolean; };
+    // A map of item names to their indexes in the result array.
+    name2indexes: { [item: string]: number[]; };
+    // The result object containing selected (e.g. medication) codes.
+    result: AutocompleteParameterValue;
+  };
 };
 
 @Injectable({
@@ -115,6 +120,10 @@ export class PullDataService {
    * @param criteria - criteria tree
    * @param state - this parameter does not need to be passed, it is used for
    * intermediate storage of data during a recursive function call.
+   * @return an object with selected codes for each resource type.
+   *   If no codes are selected for a resource type, the corresponding property
+   *   must still be present to display the corresponding autocomplete component
+   *   in the Pull data step.
    */
   getCodesFromCriteria(
     criteria: Criteria | ResourceTypeCriteria,
@@ -189,7 +198,11 @@ export class PullDataService {
         const resourceType = criteria.resourceType;
         const foundRule = (criteria as ResourceTypeCriteria).rules.find(
           (rule) =>
-            rule.field.element === 'code' &&
+            (
+              Array.isArray(rule.field.element) ?
+                rule.field.element.indexOf('code') !== -1
+                : rule.field.element === 'code' || rule.field.element === CODETEXT
+            ) &&
             rule.field.value
         );
         if (foundRule) {
@@ -278,14 +291,16 @@ export class PullDataService {
    * @param resourceType - resource type
    * @param perPatientCount - numbers of resources to show per patient
    *   (for Observation resource type - per patient per test)
-   * @param criteria - additional url parameter string
+   * @param criteria - additional url parameter string, or array of such strings.
+   *   If this is an array, the function will load resources for each
+   *   item separately and combine the results (they are ORed).
    * @param maxObservationToCheck - number of recent Observations per Patient to
    *   load when no code is specified in the criteria.
    */
   loadResources(
     resourceType: string,
     perPatientCount: number,
-    criteria: string,
+    criteria: string | string[],
     maxObservationToCheck: number = 1000
   ): Observable<Resource[]> {
     const currentState: PullDataState = {
@@ -317,10 +332,19 @@ export class PullDataService {
     let sortParam = '';
 
     if (resourceTypeParam === 'Observation') {
-      criteria = criteria.replace(/&combo-code=([^&]*)/g, (_, $1) => {
-        observationCodes.push(...$1.split(','));
-        return '';
-      });
+      if (typeof criteria === 'string') {
+        criteria = criteria.replace(/&combo-code=([^&]*)/g, (_, $1) => {
+          observationCodes.push(...$1.split(','));
+          return '';
+        });
+      } else {
+        // Currently we don't support combined search parameters for Observation
+        // in the pull data step, so criteria should be a string.
+        throw new Error(
+          'Combined search parameters are not supported for Observation ' +
+          'in the Pull data step.'
+        );
+      }
 
       const sortFields = observationCodes.length ? [] : ['code'];
       if (this.fhirBackend.features.sortObservationsByDate) {
@@ -365,7 +389,7 @@ export class PullDataService {
             // Create separate requests for each Observation code
             requests = observationCodes.map((code) => {
               return this.http.get(
-                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${count}&combo-code=${code}`,
+                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria as string}${sortParam}&_count=${count}&combo-code=${code}`,
                 PullDataService.commonHttpOptions
               );
             });
@@ -376,18 +400,26 @@ export class PullDataService {
                   // maxObservationToCheck of recent Observations.
                   maxObservationToCheck
                 : perPatientCount;
-            requests = [
+            requests = [].concat(criteria).map((c)=>
               this.http.get(
-                `$fhir/${resourceTypeParam}?${linkToPatient}${criteria}${sortParam}&_count=${count}`,
+                `$fhir/${resourceTypeParam}?${linkToPatient}${c}${sortParam}&_count=${count}`,
                 PullDataService.commonHttpOptions
-              )
-            ];
+              ));
           }
 
           return requests.map((req) =>
             req.pipe(
               this.customRxjs.takeBundleOf(count),
               concatMap((bundle: Bundle) => {
+                if (bundle?.entry) {
+                  // Filter out OperationOutcome resources for https://server.fire.ly/r4
+                  bundle = {
+                    ...bundle,
+                    entry: bundle.entry.filter(
+                      entry => entry.resource?.resourceType === resourceTypeParam
+                    )
+                  }
+                }
                 if (resourceType === 'EvidenceVariable') {
                   return this.loadEvidenceVariables(
                     bundle,

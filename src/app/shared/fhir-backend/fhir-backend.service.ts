@@ -36,6 +36,7 @@ import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
 import fhirpath from 'fhirpath';
+import { Context, Options } from '../../../../node_modules/fhirpath';
 import { Oauth2TokenService } from '../oauth2-token/oauth2-token.service';
 import {
   ScrubberIdDialogComponent
@@ -223,7 +224,10 @@ export class FhirBackendService implements HttpBackend {
   fhirPathModel: any;
 
   // FHIRPath compiled expressions
-  compiledExpressions: { [expression: string]: (row: Resource) => any };
+  compiledExpressions: {
+    [expression: string]:
+      (row: Resource, envVars?: Context, additionalOptions?: Options) => any
+  };
 
   /**
    * The name of the patient reference search parameter for the ResearchSubject.
@@ -251,7 +255,43 @@ export class FhirBackendService implements HttpBackend {
     private injector: Injector,
     private liveAnnouncer: LiveAnnouncer,
     private dialog: MatDialog
-  ) {}
+  ) {
+    // Patch fhirpath.js to use the FHIRBatchQuery for the same serverBaseUrl
+    this.patchFhirpathJs();
+  }
+
+
+  /**
+   * Patches the FHIRPath library's fetchWithCache function to route requests
+   * through the FhirBatchQuery client for URLs starting with the service base
+   * URL. For other URLs, falls back to the original fetchWithCache
+   * implementation.
+   */
+  patchFhirpathJs(): void {
+    const originalFetchWithCache = fhirpath['util'].fetchWithCache;
+    fhirpath['util'].fetchWithCache =
+      (url: string, fetchOptions: { [key: string]: string }) => {
+      let request: Promise<{ data: any }>;
+      if (url.startsWith(this.serviceBaseUrl)) {
+        const endpointRegExp = new RegExp(
+          `^${escapeStringForRegExp(this.serviceBaseUrl)}\\/[^?]+`);
+        const fhirClientOptions =
+          fetchOptions?.method?.toUpperCase() === 'POST' ? {
+            method: 'POST',
+            body: fetchOptions.body
+          } : {
+            combine: this.fhirClient.getFeatures().batch &&
+              endpointRegExp.test(url)
+          };
+        request = this.isCacheEnabled
+          ? this.fhirClient.getWithCache(url, fhirClientOptions)
+          : this.fhirClient.get(url, fhirClientOptions);
+      }
+      return request ? request.then(({ data }) => data)
+        : originalFetchWithCache(url, fetchOptions);
+    };
+  }
+
 
   /**
    * Creates and initializes an instance of FhirBackendService.
@@ -401,7 +441,7 @@ export class FhirBackendService implements HttpBackend {
           const dbgapTstToken =
             isDbgap && sessionStorage.getItem('dbgapTstToken');
           if (dbgapTstToken) {
-            authorizationHeader = 'Bearer ' + dbgapTstToken
+            authorizationHeader = 'Bearer ' + dbgapTstToken;
           } else if (isOauth2LoggedIn) {
             authorizationHeader = 'Bearer ' + sessionStorage.getItem('oauth2AccessToken');
           } else {
@@ -780,23 +820,46 @@ export class FhirBackendService implements HttpBackend {
     };
 
     Object.keys(this.currentDefinitions.resources).forEach((resourceType) => {
+      // Array of current parameter definitions to be updated
       const currentParameters = this.currentDefinitions.resources[resourceType]
         .searchParameters;
+      // Array of parameter definitions from the specification
       const specParameters =
         definitions.resources[resourceType]?.searchParameters;
       if (specParameters) {
+        // For each parameter, finds corresponding spec parameters by splitting
+        // the element string. If multiple elements are present, merges their
+        // properties as arrays. Otherwise, merges properties from the single
+        // corresponding spec parameter.
         currentParameters.forEach((parameter) => {
-          const specParameter = find(specParameters, {
-            element: parameter.element
-          });
-          if (specParameter) {
-            Object.assign(parameter, {
-              rootPropertyName: specParameter.rootPropertyName,
-              expression: specParameter.expression,
-              // path: specParameter.path,
-              valueSet: specParameter.valueSet,
-              required: specParameter.required
+          if (Array.isArray(parameter.element)) {
+            const correspondingSpecParams = parameter.element.map(
+              (element) => find(specParameters, { element })
+            );
+            if (correspondingSpecParams.some((p) => p)) {
+              Object.assign(parameter, {
+                rootPropertyName: correspondingSpecParams.map(p => p?.rootPropertyName),
+                expression: correspondingSpecParams.map(p => p?.expression),
+                // path: specParameters.map(p => p?.path),
+                valueSet: correspondingSpecParams.map(p => p?.valueSet),
+                required: correspondingSpecParams.map(p => p?.required),
+                type: parameter.element.map((element) =>
+                  find(currentParameters, {element})?.type)
+              });
+            }
+          } else {
+            const correspondingSpecParam = find(specParameters, {
+              element: parameter.element
             });
+            if (correspondingSpecParam) {
+              Object.assign(parameter, {
+                rootPropertyName: correspondingSpecParam.rootPropertyName,
+                expression: correspondingSpecParam.expression,
+                // path: correspondingSpecParam.path,
+                valueSet: correspondingSpecParam.valueSet,
+                required: correspondingSpecParam.required
+              });
+            }
           }
         });
       }
@@ -845,13 +908,23 @@ export class FhirBackendService implements HttpBackend {
 
   /**
    * Returns a function for evaluating the passed FHIRPath expression using
-   * current FHIRPath model.
-   * @param expression - FHIRPath expression
+   * the current FHIRPath model.
+   * If the expression is not already compiled, it compiles and caches it.
+   *
+   * @param expression - FHIRPath expression to compile and evaluate.
+   * @returns A function that takes a FHIR Resource and returns the evaluation result.
    */
-  getEvaluator(expression: string): (row: Resource) => any {
+  getEvaluator(expression: string): (row: Resource, envVars?: Context, additionalOptions?: Options) => any {
     let compiledExpression = this.compiledExpressions[expression];
     if (!compiledExpression) {
-      compiledExpression = fhirpath.compile(expression, this.fhirPathModel);
+      compiledExpression = fhirpath.compile(
+        expression,
+        this.fhirPathModel,
+        {
+          terminologyUrl: this.serviceBaseUrl,
+          async: true
+        }
+      );
       this.compiledExpressions[expression] = compiledExpression;
     }
     return compiledExpression;
