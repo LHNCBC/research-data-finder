@@ -1,14 +1,16 @@
 /**
  * This file contains helper functions for unit tests.
  */
-import { TestModuleMetadata, TestBed } from '@angular/core/testing';
+import { TestBed, TestModuleMetadata } from '@angular/core/testing';
 import { SharedModule } from '../app/shared/shared.module';
 import {
   ConnectionStatus,
   FhirBackendService
 } from '../app/shared/fhir-backend/fhir-backend.service';
 import { FhirBatchQuery } from '../app/shared/fhir-backend/fhir-batch-query';
-import { SettingsService } from '../app/shared/settings-service/settings.service';
+import {
+  SettingsService
+} from '../app/shared/settings-service/settings.service';
 import { filter, take } from 'rxjs/operators';
 import {
   HttpClientTestingModule,
@@ -69,6 +71,9 @@ export async function configureTestingModule(
   spyOnProperty(fhirBackend, 'serviceBaseUrl').and.returnValue(
     options.serverUrl || 'someDefaultURL'
   );
+
+  // Mock the scrubber ID selection to return null
+  spyOn(fhirBackend, 'selectScrubberId').and.resolveTo(null);
 
   const settingsService = TestBed.inject(SettingsService);
   const mockHttp = TestBed.inject(HttpTestingController);

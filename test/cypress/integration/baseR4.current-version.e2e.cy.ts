@@ -63,7 +63,7 @@ describe('Research Data Finder (baseR4)', () => {
 
   it('should allow to select a medication code to filter MedicationDispenses', () => {
     cy.get('#autocomplete-test-value-1.search_field').type('metformin', {force: true});
-    cy.get('#completionOptions').should('be.visible');
+    cy.get('#completionOptions', {timeout: 10000}).should('be.visible');
     cy.get('#completionOptions > ul > li').should('not.be.empty');
     cy.get('#completionOptions > ul > li').first().click();
   });

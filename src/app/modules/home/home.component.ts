@@ -1,12 +1,17 @@
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import pkg from '../../../../package.json';
-import { setUrlParam, removeUrlParam } from '../../shared/utils';
+import { removeUrlParam, setUrlParam } from '../../shared/utils';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
-import { StepperComponent, Step } from '../stepper/stepper.component';
+import { Step, StepperComponent } from '../stepper/stepper.component';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
-import {ConnectionStatus, FhirBackendService} from '../../shared/fhir-backend/fhir-backend.service';
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import {Oauth2TokenService} from "../../shared/oauth2-token/oauth2-token.service";
+import {
+  Oauth2TokenService
+} from '../../shared/oauth2-token/oauth2-token.service';
 
 @Component({
   selector: 'app-home',
@@ -107,11 +112,14 @@ export class HomeComponent implements AfterViewInit {
    */
   onChangeScrubberID(): void {
     this.fhirBackend.selectScrubberId(true).then((scrubberID) => {
-      if (scrubberID !== false) {
+      if (scrubberID !== false && scrubberID !== this.fhirBackend.fhirClient.getScrubberIDHeader()) {
         // If the "Cancel" button was not pressed, apply changes
         this.fhirBackend.fhirClient.setScrubberIDHeader(scrubberID);
         // Reset interface
         this.returnToSettingsPage();
+        // Reinitialize the FHIR client to ensure the latest ScrubberID works.
+        this.fhirBackend.fhirClient._serviceBaseUrl = '';
+        this.stepperComponent.settingsPageComponent.settingsFormGroup.get('serviceBaseUrl').updateValueAndValidity();
       }
     });
   }
