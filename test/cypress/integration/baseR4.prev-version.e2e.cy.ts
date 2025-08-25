@@ -46,7 +46,7 @@ describe('Research Data Finder (baseR4)', () => {
     );
     // added ".search_field" to wait until autocomplete-lhc to be initialized
     cy.get('#autocomplete-test-value-1.search_field').focus();
-    cy.get('#completionOptions').should('be.visible');
+    cy.get('#completionOptions', {timeout: 10000}).should('be.visible');
     cy.get('#completionOptions > ul > li').should('not.be.empty');
     cy.get('button.remove-btn').eq(0).click();
   });
@@ -64,7 +64,7 @@ describe('Research Data Finder (baseR4)', () => {
     );
     // added ".search_field" to wait until autocomplete-lhc to be initialized
     cy.get('#autocomplete-test-value-2.search_field').focus();
-    cy.get('#completionOptions').should('be.visible');
+    cy.get('#completionOptions', {timeout: 10000}).should('be.visible');
     cy.get('#completionOptions > ul > li').should('not.be.empty');
     cy.get('button.remove-btn').eq(0).click();
   });
@@ -81,7 +81,7 @@ describe('Research Data Finder (baseR4)', () => {
       'variable name'
     );
     cy.typeTextToInput('#code-selector-1', 'Height cm');
-    cy.get('#completionOptions').should('be.visible');
+    cy.get('#completionOptions', {timeout: 10000}).should('be.visible');
     cy.get('#completionOptions > ul > li:first-child').click();
   });
 

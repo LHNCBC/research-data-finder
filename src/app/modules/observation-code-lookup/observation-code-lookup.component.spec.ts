@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ObservationCodeLookupComponent } from './observation-code-lookup.component';
+import {
+  ObservationCodeLookupComponent
+} from './observation-code-lookup.component';
 import { ObservationCodeLookupModule } from './observation-code-lookup.module';
 import { Component, ViewChild } from '@angular/core';
-import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { SharedModule } from '../../shared/shared.module';
@@ -17,9 +19,14 @@ import {
   verifyOutstandingRequests
 } from 'src/test/helpers';
 import { CohortService } from '../../shared/cohort/cohort.service';
-import {ConnectionStatus, FhirBackendService} from "../../shared/fhir-backend/fhir-backend.service";
-import {SettingsService} from "../../shared/settings-service/settings.service";
-import {filter, take} from "rxjs/operators";
+import {
+  ConnectionStatus,
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
+import {
+  SettingsService
+} from '../../shared/settings-service/settings.service';
+import { filter, take } from 'rxjs/operators';
 
 @Component({
   template: `
@@ -151,6 +158,10 @@ describe('ObservationCodeLookupComponent', () => {
           hasNotModifierIssue: false,
           hasAvailableStudy: false
         });
+
+        // Mock the scrubber ID selection to return null
+        spyOn(fhirBackend, 'selectScrubberId').and.resolveTo(null);
+
         settingsService.loadJsonConfig().subscribe(() => {
           fhirBackend.init();
         });

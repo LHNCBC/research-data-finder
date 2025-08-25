@@ -413,10 +413,12 @@ export class FhirBackendService implements HttpBackend {
     // Cleanup definitions before initialize
     this.currentDefinitions = null;
 
+    const needScrubberId = this.settings.get('scrubber', serviceBaseUrl) === true;
+    const currentScrubberID = this.fhirClient.getScrubberIDHeader(serviceBaseUrl) || null;
     let scrubberIdPromise =
-      this.settings.get('scrubber', serviceBaseUrl) === true ?
+      needScrubberId && !currentScrubberID  ?
         this.selectScrubberId(this.settings.get('allowChangeServer', serviceBaseUrl), serviceBaseUrl)
-        : Promise.resolve(null);
+        : Promise.resolve(currentScrubberID);
     return scrubberIdPromise.then((scrubberID) => {
       if (scrubberID !== false) {
         // If the "Cancel" button was not pressed, apply changes

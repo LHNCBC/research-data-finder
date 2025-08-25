@@ -152,13 +152,18 @@ function updateAppSettings(url2desc) {
   });
   Object.keys(settings.customization).forEach((url) => {
     if (!updateSettingsObj.customization[url]) {
-      updateSettingsObj.customization[url] = {};
+      // This is needed to keep the customizations for the URLs that are not in
+      // XLSX files.
+      updateSettingsObj.customization[url] = undefined;
+    } else {
+      // This is needed to keep the customizations for the URLs that are in XLSX
+      // files, only the link to the CSV file should be updated.
+      Object.keys(settings.customization[url]).forEach((key) => {
+        if (key !== definitionsFilePropName) {
+          updateSettingsObj.customization[url][key] = undefined;
+        }
+      });
     }
-    Object.keys(settings.customization[url]).forEach((key) => {
-      if (key !== definitionsFilePropName) {
-        updateSettingsObj.customization[url][key] = undefined;
-      }
-    });
   });
 
   const settingsWriter = json5Writer.load(settingsJsonString);
