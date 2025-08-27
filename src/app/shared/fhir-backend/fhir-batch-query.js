@@ -581,6 +581,24 @@ class FhirBatchQuery extends EventTarget {
     return this._apiKey;
   }
 
+  /**
+   * Sets the maximum page size for FHIR resource requests.
+   * This value is used to limit the number in the _count parameter.
+   * @param {number} val - The maximum page size to set.
+   */
+  setMaxPageSize(val) {
+    this._maxPageSize = val;
+  }
+
+  /**
+   * Gets the maximum page size for FHIR resource requests.
+   * This value is used to limit the number in the _count parameter.
+   * @returns {number}
+   */
+  getMaxPageSize() {
+    return this._maxPageSize;
+  }
+
   static clearCache() {
     queryResponseCache.clearAll();
   }
@@ -607,17 +625,16 @@ class FhirBatchQuery extends EventTarget {
     return new Promise((resolve, reject) => {
       let fullUrl = this.getFullUrl(url);
 
-      // TODO: Temporary solution for the issue with "_count=1" on dbGap servers.
-      //   Currently, a query for observations with "_count=1" times out and
-      //   returns an error.
-      if (
-        /^https:\/\/dbgap-api.ncbi.nlm.nih.gov\/fhir.*Observation\?.*_count=1(&|$)/.test(
-          fullUrl
-        )
-      ) {
+      // If the request contains _count larger than the maximum page size,
+      // reduce it to the maximum page size.
+      const maxPageSize = this.getMaxPageSize();
+      if (maxPageSize && /[?&]_count=\d+(&|$)/.test(fullUrl)) {
         let urlObj = new URL(fullUrl);
-        urlObj.searchParams.delete('_count');
-        fullUrl = urlObj.toString();
+        const reqCount = parseInt(urlObj.searchParams.get('_count'));
+        if (reqCount > maxPageSize) {
+          urlObj.searchParams.set('_count', maxPageSize);
+          fullUrl = urlObj.toString();
+        }
       }
 
       const serviceBaseUrlWithEndpoint = this._serviceBaseUrl ? new RegExp(
