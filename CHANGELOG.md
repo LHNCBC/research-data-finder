@@ -10,6 +10,11 @@ This project follows [Semantic Versioning](http://semver.org/).
     in the Pull Data step.
   - `contextColumns.<context>.DomainResource` to specify context columns for all
     resource tables.
+- "Text" column for all resources containing a text summary of the
+  resource, for human interpretation (DomainResource.text.`div`).
+- "Composition" resource (for R4 configuration).
+### Changed 
+- Allowed bigger tooltips.
 ### Fixed
 - An issue with the unexpected "Unknown unit" in the criteria.
 - An issue with incorrect data loading percentage in the pull data step when
