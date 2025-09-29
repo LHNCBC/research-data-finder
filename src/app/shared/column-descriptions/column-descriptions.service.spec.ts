@@ -21,6 +21,7 @@ describe('ColumnDescriptionsService', () => {
           provide: FhirBackendService,
           useValue: {
             initialized: new BehaviorSubject(ConnectionStatus.Ready),
+            currentVersion: 'R4',
             serviceBaseUrl: 'someUrl',
             getCurrentDefinitions: () => ({
               resources: {

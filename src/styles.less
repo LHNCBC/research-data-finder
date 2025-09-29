@@ -255,9 +255,14 @@ input.search_field.invalid {
 }
 
 // Tooltip styles
-.mat-tooltip-panel .mat-tooltip {
+.mat-mdc-tooltip-panel .mat-mdc-tooltip .mdc-tooltip__surface {
   font-size: 14px;
   max-width: unset;
+}
+
+.mat-mdc-tooltip-panel .tooltipForEllipsis.mat-mdc-tooltip .mdc-tooltip__surface {
+  max-height: 50vh;
+  white-space: pre-line;
 }
 
 // Autocomplete dropdown list

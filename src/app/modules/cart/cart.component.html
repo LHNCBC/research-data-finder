@@ -83,7 +83,7 @@
               </div>
               <div class="cell cell-{{resourceType}}-{{column.element}}"
                      *ngFor="let column of columnDescriptions" role="cell">
-                <app-ellipsis-text>{{ getCellText(listItem, column.element) }}</app-ellipsis-text>
+                <app-ellipsis-text [text]="getCellText(listItem, column.element)"></app-ellipsis-text>
               </div>
               <ng-container *ngIf="resourceTypeColumns === 'Variable'" [ngSwitch]="!cart.getVariableType(listItem)">
                 <div class="cell cell-Variable-constraint h-box" *ngSwitchCase="true" role="cell">
@@ -147,7 +147,7 @@
                 </div>
                 <div *ngFor="let column of columnDescriptions; let index = index"
                        class="cell cell-{{resourceType}}-{{column.element}} cell-index-{{index}}"  role="cell">
-                  <app-ellipsis-text>{{ getCellText(innerItem, column.element) }}</app-ellipsis-text>
+                  <app-ellipsis-text [text]="getCellText(innerItem, column.element)"></app-ellipsis-text>
                 </div>
 
                 <div class="cell cell-Variable-constraint" role="cell"></div>

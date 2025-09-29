@@ -8,7 +8,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   template: ` <div style="width: 100px">
-    <app-ellipsis-text>{{ text }}</app-ellipsis-text>
+    <app-ellipsis-text [text]="text"></app-ellipsis-text>
   </div>`
 })
 class TestHostComponent {

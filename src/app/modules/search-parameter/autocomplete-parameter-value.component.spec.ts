@@ -285,7 +285,11 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'missingModifier').and.returnValue(true);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchParamDesc = {required: true, valueSet: 'http://hl7.org/fhir/ValueSet/observation-category'};
+    component.searchParamDesc = {
+      required: true,
+      valueSet: 'http://hl7.org/fhir/ValueSet/observation-category',
+      type: ['CodeableConcept']
+    };
     component.searchItemsOnFhirServer('someValue', 20, resolve, reject).subscribe();
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:missing=false')
@@ -359,7 +363,11 @@ describe('AutoCompleteTestValueComponent', () => {
     spyOnProperty(features, 'missingModifier').and.returnValue(true);
     const resolve = jasmine.createSpy();
     const reject = jasmine.createSpy();
-    component.searchParamDesc = {required: true, valueSet: 'http://hl7.org/fhir/ValueSet/observation-category'};
+    component.searchParamDesc = {
+      required: true,
+      valueSet: 'http://hl7.org/fhir/ValueSet/observation-category',
+      type: ['CodeableConcept']
+    };
     component.searchItemsOnFhirServer('someValue', 20, resolve, reject).subscribe();
     mockHttp
       .expectOne('$fhir/Observation?_elements=category&category:missing=false')

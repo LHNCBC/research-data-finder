@@ -198,7 +198,8 @@
                   *ngTemplateOutlet="template; context: {templateContext, row}"></ng-container>
             </ng-container>
             <app-ellipsis-text
-                [class.has-a-preceding-button]="rowActionTemplate">{{row.cells[column.element]}}</app-ellipsis-text>
+                [text]="row.cells[column.element]"
+                [class.has-a-preceding-button]="rowActionTemplate"></app-ellipsis-text>
           </div>
         </td>
       </ng-container>

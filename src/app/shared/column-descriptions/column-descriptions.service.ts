@@ -6,11 +6,14 @@ import {
   FhirBackendService
 } from '../fhir-backend/fhir-backend.service';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import { SelectColumnsComponent } from '../../modules/select-columns/select-columns.component';
+import {
+  SelectColumnsComponent
+} from '../../modules/select-columns/select-columns.component';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { capitalize } from '../utils';
 import { ColumnValuesService } from '../column-values/column-values.service';
 import { SettingsService } from '../settings-service/settings.service';
+import webpackOptions from '../definitions/webpack-options.json';
 
 @Injectable({
   providedIn: 'root'
@@ -217,11 +220,15 @@ export class ColumnDescriptionsService {
     const columnDescriptions = (
       currentDefinitions.resources[resourceType]?.columnDescriptions || []
     ).concat(
-      (context &&
-        (context === 'select' || context === 'browse'
+      (context === 'select' || context === 'browse'
           ? this.settings.get(`contextColumns.select_or_browse.${resourceType}`)
-          : this.settings.get(`contextColumns.${context}.${resourceType}`))) ||
-        []
+          : this.settings.get(`contextColumns.${context}.${resourceType}`)) ||
+        [],
+      (webpackOptions[this.fhirBackend.currentVersion].resourceTypes.includes(resourceType) &&
+        (context === 'select' || context === 'browse'
+          ? this.settings.get(`contextColumns.select_or_browse.DomainResource`)
+          : this.settings.get(`contextColumns.${context}.DomainResource`))) ||
+      []
     );
     const visibleColumnNames = this.getVisibleColumnNames(
       resourceType,

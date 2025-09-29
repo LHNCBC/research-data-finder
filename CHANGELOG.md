@@ -3,6 +3,20 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.5.0] - 2025-09-29
+### Added
+- New configuration options for `settings.json5`:
+  - `defaultPullDataCount` for the default number of resources per patient to load
+    in the Pull Data step.
+  - `contextColumns.<context>.DomainResource` to specify context columns for all
+    resource tables.
+### Fixed
+- An issue with the unexpected "Unknown unit" in the criteria.
+- An issue with incorrect data loading percentage in the pull data step when
+  using combined search parameters.
+- An issue with autocompletion of search parameters of the "code" data type,
+  which should not have a coding system.
+
 ## [7.4.0] - 2025-08-26
 ### Added
 - a new configuration options for `settings.json5` to limit maximum page size
@@ -27,7 +41,7 @@ This project follows [Semantic Versioning](http://semver.org/).
   servers) that can be used indirectly. For example, we have search parameters
   "variable name" and "variable value", but we don't need to display to the user
   all the variety of parameters code-value-*, combo-code-value-*, etc.
- 
+
 ## [7.2.1] - 2025-08-20
 ### Changed
 - The drop-down list of available servers has been moved to the configuration
@@ -44,7 +58,7 @@ This project follows [Semantic Versioning](http://semver.org/).
 
 ## [7.2.0] - 2025-05-07
 ### Added
-- Three new configuration options for `settings.json5`: 
+- Three new configuration options for `settings.json5`:
   * `customization.<server URL>.scrubber` - can be set to `true` to enable
     integration with a scrubber server, which includes the scrubberID selection
     dialog, storing `scrubberID` in a cohort and criteria file to correctly
@@ -53,8 +67,8 @@ This project follows [Semantic Versioning](http://semver.org/).
   * `default.allowChangeServer` - specifies whether the user is allowed
      to change the FHIR server URL.
   * `default.defaultServer` - the default FHIR server URL is initially displayed
-    when the application is first used (previously it was hardcoded). 
- 
+    when the application is first used (previously it was hardcoded).
+
 ## [7.1.0] - 2025-03-12
 ### Added
 - Support for R5 CodeableReference values in tables.

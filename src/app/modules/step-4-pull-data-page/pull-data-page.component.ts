@@ -47,6 +47,9 @@ import {
   AutocompleteParameterValue
 } from '../../types/autocomplete-parameter-value';
 import { Criteria } from '../../types/search-parameters';
+import {
+  SettingsService
+} from '../../shared/settings-service/settings.service';
 import Observation = fhir.Observation;
 
 /**
@@ -114,11 +117,12 @@ export class PullDataPageComponent
     public columnDescriptions: ColumnDescriptionsService,
     public cohort: CohortService,
     public pullData: PullDataService,
-    private liveAnnouncer: LiveAnnouncer
+    private liveAnnouncer: LiveAnnouncer,
+    private settings: SettingsService
   ) {
     super();
     ['Observation', 'EvidenceVariable'].forEach((resourceType) => {
-      this.maxObservationToCheck[resourceType] = new FormControl<number>(1000, [
+      this.maxObservationToCheck[resourceType] = new FormControl<number>(this.settings.get('defaultPullDataCount'), [
         Validators.required,
         Validators.min(1),
         Validators.max(MAX_PAGE_SIZE),
@@ -157,7 +161,7 @@ export class PullDataPageComponent
                 ? 10
                 : resourceType === 'Observation'
                   ? 1
-                  : 1000;
+                  : this.settings.get('defaultPullDataCount');
               this.perPatientFormControls[
                 resourceType
               ] = new UntypedFormControl(defaultCount, [
@@ -406,7 +410,7 @@ export class PullDataPageComponent
     this.loadSubscription[resourceType] = this.pullData
       .loadResources(
         resourceType,
-        this.perPatientFormControls[resourceType]?.value || 1000,
+        this.perPatientFormControls[resourceType]?.value || this.settings.get('defaultPullDataCount'),
         Array.isArray(conditions) ? conditions.map(c => c.criteria) : conditions.criteria,
         this.maxObservationToCheck[resourceType]?.value
       )
@@ -455,7 +459,7 @@ export class PullDataPageComponent
     restoreStatus.forEach((x) => {
       if (x.resourceType === 'Observation' || x.resourceType === 'EvidenceVariable') {
         hasObservationTab = true;
-        this.maxObservationToCheck[x.resourceType].setValue(x.maxObservationToCheck || 1000);
+        this.maxObservationToCheck[x.resourceType].setValue(x.maxObservationToCheck || this.settings.get('defaultPullDataCount'));
       } else {
         this.addTab(x.resourceType);
       }
