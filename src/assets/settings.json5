@@ -9,6 +9,12 @@
     // If set to false, the "defaultServer" URL will be used.
     allowChangeServer: true,
 
+    // Maximum number of resources to return in one "page" of data.
+    // This value limits the maximum value of the "_count" parameter.
+    // Note that the server may choose to ignore the "_count" parameter.
+    // Also, the server may impose its own maximum page size.
+    // maxPageSize: 10,
+
     // The default FHIR server URL is initially displayed when the application
     // is first used.
     defaultServer: 'https://lforms-fhir.nlm.nih.gov/baseR5',

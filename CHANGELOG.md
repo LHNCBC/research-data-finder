@@ -3,6 +3,14 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.4.0] - 2025-08-26
+### Added
+- a new configuration options for `settings.json5` to limit maximum page size
+  (the maximum value of the "_count" parameter).
+### Changed
+- Removed temporary solution for the issue with "Observation?_count=1" on dbGap
+  servers.
+
 ## [7.3.0] - 2025-08-25
 ### Added
 - Updated fhirpath to version 4.5.1, which includes support for the resolve()

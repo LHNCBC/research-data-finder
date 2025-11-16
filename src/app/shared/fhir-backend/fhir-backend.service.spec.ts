@@ -251,6 +251,18 @@ describe('FhirBackendService', () => {
         .toHaveBeenCalledOnceWith('123', 'http://some-scrubber-server');
     });
 
+    it('should set the maximum page size when the corresponding "maxPageSize" option exists', async () => {
+      const testServer = 'http://some-scrubber-server';
+      spyOn(service.settings, 'get').and.callFake((prop, serviceBaseUrl) => {
+        return prop == 'maxPageSize' && serviceBaseUrl === testServer ? 10 : null;
+      });
+      spyOn(service.fhirClient, 'setMaxPageSize');
+      service.isSmartOnFhirEnabled = false;
+      spyOn(service, 'checkSmartOnFhirEnabled').and.resolveTo();
+      await service.initializeFhirBatchQuery(testServer);
+      expect(service.fhirClient.setMaxPageSize).toHaveBeenCalledOnceWith(10);
+    });
+
   });
 
   describe('dbGaP', () => {
@@ -539,6 +551,21 @@ describe('FhirBatchQuery', () => {
           url: 'http://some-server-url/someUrl2?_format=json'
         })
       ]);
+      done();
+    });
+  });
+
+  it('should limit the _count parameter to the value defined by getMaxPageSize()', (done) => {
+    server.get(/http:\/\/some-server-url\/someResource\?_count=3&_format=json/, {
+      // status: 200 is the default
+      body: '{ "message": "requested 3 resources" }'
+    });
+
+    spyOn(fhirBatchQuery, 'getMaxPageSize').and.returnValue(3);
+
+    fhirBatchQuery.getWithCache('someResource?_count=10').then(({status, data}) => {
+      expect(status).toBe(200);
+      expect(data?.message).toBe('requested 3 resources');
       done();
     });
   });

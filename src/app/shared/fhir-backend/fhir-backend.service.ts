@@ -414,6 +414,7 @@ export class FhirBackendService implements HttpBackend {
     this.currentDefinitions = null;
 
     const needScrubberId = this.settings.get('scrubber', serviceBaseUrl) === true;
+    this.fhirClient.setMaxPageSize(this.settings.get('maxPageSize', serviceBaseUrl));
     const currentScrubberID = this.fhirClient.getScrubberIDHeader(serviceBaseUrl) || null;
     let scrubberIdPromise =
       needScrubberId && !currentScrubberID  ?
