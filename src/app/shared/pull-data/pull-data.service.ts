@@ -443,8 +443,7 @@ export class PullDataService {
               tap(
                 this.updateProgressIndicator(
                   currentState,
-                  numberOfPatientsInRequest,
-                  observationCodes
+                  numberOfPatientsInRequest/requests.length
                 )
               )
             )
@@ -640,19 +639,16 @@ export class PullDataService {
    * Returns a function which updates progress indicator.
    * @param currentState - the current state of pulling data.
    * @param numberOfPatientsInRequest - number of patients in each request.
-   * @param observationCodes - selected observation codes.
    * @return a function
    */
   updateProgressIndicator(
     currentState: PullDataState,
-    numberOfPatientsInRequest: number,
-    observationCodes: string[]
+    numberOfPatientsInRequest: number
   ): () => void {
     return () => {
       currentState.progressValue +=
         (numberOfPatientsInRequest * 100) /
-        (this.cohort.currentState.patients.length *
-          (observationCodes.length || 1));
+        this.cohort.currentState.patients.length;
     };
   }
 }

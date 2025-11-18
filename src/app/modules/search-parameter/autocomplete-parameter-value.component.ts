@@ -1101,6 +1101,7 @@ export class AutocompleteParameterValueComponent
       ? new RegExp(`\\b${escapeStringForRegExp(filterText)}`, 'i')
       : /.*/;
     const getCodings = this.getCodingsGetter(index);
+    const type = this.getItemByIndex(this.searchParamDesc?.type, index);
     const prevCodesCount = Object.keys(processedCodes).length;
     return from(bundle.entry || []).pipe(
       mergeMap(entry => getCodings(entry.resource)),
@@ -1108,7 +1109,11 @@ export class AutocompleteParameterValueComponent
         codings = codings.map((coding) => {
           return {
             display: coding.display,
-            code: (coding.system ? coding.system : '') + '|' + coding.code
+            code:
+              (
+                // We expect the Reference to be resolved as CodeableConcept
+                (type === 'CodeableConcept' || type === 'Reference') ? (coding.system || '') + '|' : ''
+              ) + coding.code
           };
         }).filter((coding) => {
           const matched =

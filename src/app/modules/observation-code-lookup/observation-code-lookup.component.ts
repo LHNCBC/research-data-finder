@@ -289,10 +289,10 @@ export class ObservationCodeLookupComponent
           );
         }
       }
+      // Update the current data
       this.currentData = {
         coding: data.map(i => ({
-          code: i.code,
-          system: i.system
+          ...i
         })),
         // If there is no restriction by datatype, then do not reset the datatype
         datatype:

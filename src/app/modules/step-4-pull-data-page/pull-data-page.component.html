@@ -146,7 +146,7 @@
               <ng-container *ngFor="let column of variablePatientTableColumns" [matColumnDef]="column">
                 <th mat-header-cell *matHeaderCellDef>{{column}}</th>
                 <td mat-cell *matCellDef="let row">
-                  <app-ellipsis-text>{{row.cells[column]}}</app-ellipsis-text>
+                  <app-ellipsis-text [text]="row.cells[column]"></app-ellipsis-text>
                 </td>
               </ng-container>
               <tr mat-header-row *matHeaderRowDef="variablePatientTableColumns; sticky: true"></tr>

@@ -9,6 +9,9 @@
     // If set to false, the "defaultServer" URL will be used.
     allowChangeServer: true,
 
+    // Default number of resources per patient to load in the Pull Data step.
+    defaultPullDataCount: 1000,
+
     // Maximum number of resources to return in one "page" of data.
     // This value limits the maximum value of the "_count" parameter.
     // Note that the server may choose to ignore the "_count" parameter.
@@ -151,6 +154,32 @@
               "CodeableConceptCode"
             ]
           }
+        ],
+        DomainResource: [
+          {
+            dispayName: "Text",
+            description: "Text summary of the resource, for human interpretation",
+            element: "text",
+            expression: "text.`div`",
+            displayByDefault: false,
+            types: [
+              "string"
+            ]
+          }
+        ]
+      },
+      "": {
+        DomainResource: [
+          {
+            dispayName: "Text",
+            description: "Text summary of the resource, for human interpretation",
+            element: "text",
+            expression: "text.`div`",
+            displayByDefault: false,
+            types: [
+              "string"
+            ]
+          }
         ]
       }
     },
@@ -185,7 +214,7 @@
           lastnLookup: true,
           interpretation: true,
           hasNotModifierIssue: true,
-          maxHasAllowed: 2
+          maxHasAllowed: 1
         }
       }
     },
@@ -226,7 +255,7 @@
           lastnLookup: false,
           interpretation: false,
           hasNotModifierIssue: false,
-          maxHasAllowed: 2
+          maxHasAllowed: 1
         }
       },
       contextColumns: {
@@ -354,7 +383,7 @@
           lastnLookup: false,
           interpretation: false,
           hasNotModifierIssue: false,
-          maxHasAllowed: 2
+          maxHasAllowed: 1
         }
       }
     }

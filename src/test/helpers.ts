@@ -77,6 +77,17 @@ export async function configureTestingModule(
 
   const settingsService = TestBed.inject(SettingsService);
   const mockHttp = TestBed.inject(HttpTestingController);
+
+  // Mock defaultPullDataCount to 1000 to avoid issues with tests
+  const originalGet = settingsService.get.bind(settingsService);
+  spyOn(settingsService, 'get').and.callFake(function(prop, ...rest) {
+    if (prop === 'defaultPullDataCount') {
+      return 1000;
+    }
+    // Call the original
+    return originalGet(prop, ...rest);
+  });
+
   if (!options.skipInitApp) {
     settingsService.loadJsonConfig().subscribe(() => {
       fhirBackend.init();

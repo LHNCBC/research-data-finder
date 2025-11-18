@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 /**
  * Component for displaying text that can be truncated.
@@ -12,6 +12,8 @@ import { Component } from '@angular/core';
 })
 export class EllipsisTextComponent {
   constructor() {}
+
+  @Input() text: string;
 
   /**
    * Returns the text to display as a tooltip if the element's text
@@ -27,7 +29,7 @@ export class EllipsisTextComponent {
     // the ellipsis is displayed even if the difference is less than 0.5 pixels.
     return element.getBoundingClientRect().right <
       element.firstElementChild.firstElementChild.getBoundingClientRect().right
-      ? element.innerText
+      ? this.text
       : '';
   }
 }
