@@ -124,7 +124,7 @@
                     [matColumnDef]="column.element">
         <ng-container *ngIf="isSortable(column); else noSort">
           <th mat-header-cell *matHeaderCellDef [attr.role]="'none'">
-            <div class="header-container header-container_sort" [class.col-with-action]="i === 0 && rowActionTemplate">
+            <div [class]="'header-container header-container_sort' + (i === 0 && numberOfRowActions ? ' col-with-action-' + numberOfRowActions : '')">
               <span mat-sort-header
                     arrowPosition="before"
                     aria-label=""
@@ -160,7 +160,7 @@
         </ng-container>
         <ng-template #noSort>
           <th mat-header-cell *matHeaderCellDef [attr.role]="'none'">
-            <div class="header-container header-container_no-sort" [class.col-with-action]="i === 0 && rowActionTemplate">
+            <div [class]="'header-container header-container_no-sort' + (i === 0 && numberOfRowActions ? ' col-with-action-' + numberOfRowActions : '')">
               <span role="columnheader">
                 {{column.displayName}}
               </span>
@@ -193,9 +193,20 @@
 
         <td mat-cell *matCellDef="let row">
           <div class="h-box">
-            <ng-container *ngIf="i === 0 && rowActionTemplate as template">
-              <ng-container
-                  *ngTemplateOutlet="template; context: {templateContext, row}"></ng-container>
+            <ng-container *ngIf="i === 0">
+              <ng-container *ngIf="rowActionTemplate as template">
+                <ng-container
+                    *ngTemplateOutlet="template; context: {templateContext, row}"></ng-container>
+              </ng-container>
+
+              <button
+                  *ngIf="enableJsonPopup"
+                  type="button"
+                  mat-mini-fab class="mini-fab-32" color="basic"
+                  (click)="showRowJson(row)"
+                  matTooltip="Show row data in JSON format">
+                <mat-icon class="material-icons">article</mat-icon>
+              </button>
             </ng-container>
             <app-ellipsis-text
                 [text]="row.cells[column.element]"

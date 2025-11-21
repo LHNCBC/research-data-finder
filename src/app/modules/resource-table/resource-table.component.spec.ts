@@ -7,9 +7,13 @@ import { ColumnDescription } from '../../types/column.description';
 import { By } from '@angular/platform-browser';
 import { CdkScrollable } from '@angular/cdk/overlay';
 import { DebugElement, SimpleChange, SimpleChanges } from '@angular/core';
-import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import {
+  ColumnDescriptionsService
+} from '../../shared/column-descriptions/column-descriptions.service';
 import { SharedModule } from '../../shared/shared.module';
-import { SettingsService } from '../../shared/settings-service/settings.service';
+import {
+  SettingsService
+} from '../../shared/settings-service/settings.service';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import {
@@ -18,6 +22,7 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import fhirpath from 'fhirpath';
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
+import createSpyObj = jasmine.createSpyObj;
 
 class Page {
   private fixture: ComponentFixture<ResourceTableComponent>;
@@ -356,11 +361,35 @@ describe('ResourceTableComponent', () => {
   it('should split column of values into columns of values and units in export', async () => {
     fillTableWithObservationResources(observationColumns);
     expect(component.dataSource.filteredData.length).toEqual(50);
-    const csvText = (await component.getBlob().text()).split('\n');
+    const csvText = (await component.getCsvBlob().text()).split('\n');
     expect(csvText.length).toBe(51);
     expect(csvText[0]).toBe('Id,Value,Unit');
     for (let i = 0; i < 50; i++) {
       expect(csvText[i + 1]).toBe([i, i, 'ug/mL'].join(','));
     }
+  });
+
+  it('should allow exporting the bundle of resources in JSON format', async () => {
+    fillTableWithObservationResources(observationColumns);
+    expect(component.dataSource.filteredData.length).toEqual(50);
+    const obj = JSON.parse(await component.getJsonBlob().text());
+    expect(obj.resourceType).toBe('Bundle');
+    expect(obj.entry.length).toBe(50);
+    for (let i = 0; i < 50; i++) {
+      expect(obj.entry[i].resource.id).toBe(i.toString());
+    }
+  });
+
+  it('should show a resource in JSON format', async () => {
+    fillTableWithObservationResources(observationColumns);
+    expect(component.dataSource.filteredData.length).toEqual(50);
+    const document = createSpyObj('Document',
+      ['open', 'write', 'close']);
+    spyOn(window, 'open').and.returnValue({ document } as any);
+    component.showRowJson(component.dataSource.filteredData[5]);
+    expect(document.open).toHaveBeenCalledOnceWith();
+    expect(document.write).toHaveBeenCalledOnceWith(
+      jasmine.stringMatching('<title>Observation/5</title>'));
+    expect(document.close).toHaveBeenCalledOnceWith();
   });
 });

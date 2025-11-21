@@ -217,6 +217,12 @@
           Configure table
         </button>
         <div class="spacer"></div>
+        <button mat-stroked-button (click)="pullDataPageComponent.downloadJson()"
+                [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
+          <mat-icon svgIcon="file_download"></mat-icon>
+          Download (in JSON format)
+        </button>
+        <div class="spacer"></div>
         <button mat-stroked-button (click)="pullDataPageComponent.downloadCsv()"
                 [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
           <mat-icon svgIcon="file_download"></mat-icon>

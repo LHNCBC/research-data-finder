@@ -113,7 +113,8 @@
           [resources]="pullData.currentState[resourceType].resources"
           [progressValue]="pullData.currentState[resourceType].progressValue"
           [failedRequests]="pullData.currentState[resourceType].failedRequests"
-          [pullDataObservationCodes]="pullDataObservationCodes">
+          [pullDataObservationCodes]="pullDataObservationCodes"
+          enableJsonPopup="true">
       </app-resource-table>
       <app-resource-table *ngIf="resourceType === 'EvidenceVariable' && showOnlyUniqueEV && pullData.resourceStream[resourceType]"
           [columnDescriptions]="columnDescriptions.getVisibleColumns(resourceType, 'pull-data-EV') | async"
@@ -125,7 +126,8 @@
           [resources]="pullData.currentState[resourceType].uniqueResources"
           [progressValue]="pullData.currentState[resourceType].progressValue"
           [failedRequests]="pullData.currentState[resourceType].failedRequests"
-          [pullDataObservationCodes]="pullDataObservationCodes">
+          [pullDataObservationCodes]="pullDataObservationCodes"
+          enableJsonPopup="true">
       </app-resource-table>
       <div *ngIf="resourceType === 'Observation' && isVariablePatientTable && variablePatientTableColumns.length > 200">
         The table is too large to render in the page, but you can use the Download button to download the data as CSV and then view it in a spreadsheet program.

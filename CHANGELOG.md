@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.6.0] - 2025-11-21
+### Added
+- the ability to display and download raw FHIR resources in the Pull Data step.
+
 ## [7.5.0] - 2025-09-29
 ### Added
 - New configuration options for `settings.json5`:

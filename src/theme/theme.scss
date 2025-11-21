@@ -89,6 +89,7 @@ $theme: mat.define-light-theme((
 }
 .mat-mdc-mini-fab {
   &:not(:disabled) .mat-icon {
+    color: #3f51b5;
     svg {
       fill: #3f51b5
     }
