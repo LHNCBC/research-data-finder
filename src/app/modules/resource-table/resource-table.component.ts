@@ -26,6 +26,7 @@ import { ColumnDescription } from '../../types/column.description';
 import { distinctUntilChanged, sample, tap } from 'rxjs/operators';
 import {
   dispatchWindowResize,
+  escapeHtml,
   escapeStringForRegExp,
   getPluralFormOfRecordName,
   getPluralFormOfResourceType
@@ -869,7 +870,7 @@ export class ResourceTableComponent implements OnInit, AfterContentInit, OnChang
     <script>hljs.highlightAll();</script>
   </head>
   <body>
-    <pre><code class="language-json">${jsonString}</code></pre>
+    <pre><code class="language-json">${escapeHtml(jsonString)}</code></pre>
   </body>
 </html>`);
     wnd.document.close();

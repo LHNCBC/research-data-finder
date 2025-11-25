@@ -14,6 +14,19 @@ export function capitalize(str: string): string {
   return str && str.charAt(0).toUpperCase() + str.substring(1);
 }
 
+
+/**
+ * Escapes special HTML characters in a string to prevent XSS attacks.
+ * Replaces &, <, >, ", and ' with their corresponding HTML entities.
+ *
+ * @param str - The input string to escape.
+ * @returns The escaped string safe for HTML insertion.
+ */
+export function escapeHtml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 /**
  * Escapes a FHIR search parameter string
  * (see https://www.hl7.org/fhir/search.html#escaping)
