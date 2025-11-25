@@ -58,7 +58,7 @@ import { CustomDialog } from '../../shared/custom-dialog/custom-dialog.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { isEqual, pickBy } from 'lodash-es';
+import { isEqual, omit, pickBy } from 'lodash-es';
 import { saveAs } from 'file-saver';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import Resource = fhir.Resource;
@@ -825,7 +825,9 @@ export class ResourceTableComponent implements OnInit, AfterContentInit, OnChang
       resourceType: 'Bundle',
       type: 'collection',
       total: rowsToDownload.length,
-      entry: rowsToDownload.map((row) => ({ resource: row.resource }))
+      entry: rowsToDownload.map((row) => ({
+        resource: omit(row.resource, 'patientData')
+      }))
     };
     return new Blob([JSON.stringify(bundle, null, 2)], {
       type: 'text/plain;charset=utf-8',
@@ -843,7 +845,7 @@ export class ResourceTableComponent implements OnInit, AfterContentInit, OnChang
    *  JSON.
    */
   showRowJson(row: TableRow) {
-    const jsonString = JSON.stringify(row.resource, null, 2);
+    const jsonString = JSON.stringify(omit(row.resource, 'patientData'), null, 2);
     const width = window.screen.width * 0.8; //600;
     const height = window.screen.height * 0.8;//400;
     const left = (window.screen.width / 2) - (width / 2);
