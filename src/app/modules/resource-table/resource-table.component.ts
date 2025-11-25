@@ -1091,6 +1091,16 @@ export class ResourceTableComponent implements OnInit, AfterContentInit, OnChang
   }
 
   /**
+   * Runs downloading the table row data in JSON format.
+   */
+  downloadJson() {
+    saveAs(
+      this.getJsonBlob(),
+      getPluralFormOfResourceType(this.resourceType).toLowerCase() + '.json'
+    );
+  }
+
+  /**
    * Runs downloading the table row data in CSV format.
    */
   downloadCsv() {

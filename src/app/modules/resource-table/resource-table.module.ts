@@ -22,6 +22,7 @@ import {
 import {
   ResourceTableFilterModule
 } from '../resource-table-filter/resource-table-filter.module';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 
 @NgModule({
   declarations: [ResourceTableComponent],
@@ -46,7 +47,10 @@ import {
     ScrollingModule,
     MatSortModule,
     EllipsisTextModule,
-    ResourceTableFilterModule
+    ResourceTableFilterModule,
+    MatMenu,
+    MatMenuItem,
+    MatMenuTrigger
   ]
 })
 export class ResourceTableModule {}

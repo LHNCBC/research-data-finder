@@ -217,17 +217,33 @@
           Configure table
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button (click)="pullDataPageComponent.downloadJson()"
-                [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
-          <mat-icon svgIcon="file_download"></mat-icon>
-          Download (in JSON format)
-        </button>
-        <div class="spacer"></div>
-        <button mat-stroked-button (click)="pullDataPageComponent.downloadCsv()"
-                [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
-          <mat-icon svgIcon="file_download"></mat-icon>
-          Download (in CSV format)
-        </button>
+
+        @if ( pullDataPageComponent.isVariablePatientTable &&
+              (pullDataPageComponent.currentResourceType$ | async) === 'Observation' ) {
+          <button mat-stroked-button (click)="pullDataPageComponent.downloadCsv()"
+                  [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
+            <mat-icon svgIcon="file_download"></mat-icon>
+            Download (in CSV format)
+          </button>
+        } @else {
+          <button mat-stroked-button
+                  [matMenuTriggerFor]="menu"
+                  [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
+            <mat-icon svgIcon="file_download"></mat-icon>
+            Download
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item
+                    (click)="pullDataPageComponent.downloadJson()">
+              <span>Download in JSON format</span>
+            </button>
+            <button mat-menu-item
+                    (click)="pullDataPageComponent.downloadCsv()">
+              <span>Download in CSV format</span>
+            </button>
+          </mat-menu>
+        }
+
         <div class="spacer"></div>
       </div>
     </div>

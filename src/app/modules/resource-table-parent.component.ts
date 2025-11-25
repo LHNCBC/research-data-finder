@@ -3,8 +3,6 @@ import {
   ResourceTableComponent
 } from './resource-table/resource-table.component';
 import { MatTabGroup } from '@angular/material/tabs';
-import { getPluralFormOfResourceType } from '../shared/utils';
-import { saveAs } from 'file-saver';
 
 /**
  * Base class for components which has a list of ResourceTableComponent as children.
@@ -36,10 +34,7 @@ export abstract class ResourceTableParentComponent {
     const currentResourceTable = this.tables.find(
       (resourceTable) => resourceTable.resourceType === currentResourceType
     );
-    saveAs(
-      currentResourceTable.getCsvBlob(),
-      getPluralFormOfResourceType(currentResourceType).toLowerCase() + '.csv'
-    );
+    currentResourceTable.downloadCsv();
   }
 
   /**
@@ -50,10 +45,7 @@ export abstract class ResourceTableParentComponent {
     const currentResourceTable = this.tables.find(
       (resourceTable) => resourceTable.resourceType === currentResourceType
     );
-    saveAs(
-      currentResourceTable.getJsonBlob(),
-      getPluralFormOfResourceType(currentResourceType).toLowerCase() + '.json'
-    );
+    currentResourceTable.downloadJson();
   }
 
 }

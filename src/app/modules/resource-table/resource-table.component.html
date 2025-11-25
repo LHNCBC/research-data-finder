@@ -51,14 +51,35 @@
     <ng-container *ngTemplateOutlet="template; context: templateContext"></ng-container>
   </ng-container>
 
-  <button mat-mini-fab
-          color="basic"
-          [disabled]="loading || !(enableFiltering ? dataSource.filteredData : dataSource.data).length"
-          (click)="downloadCsv()"
-          aria-label="Download (in CSV format)"
-          matTooltip="Download (in CSV format)">
-    <mat-icon svgIcon="file_download"></mat-icon>
-  </button>
+  @if (enableJsonPopup) {
+    <button mat-mini-fab
+            color="basic"
+            [disabled]="loading || !(enableFiltering ? dataSource.filteredData : dataSource.data).length"
+            [matMenuTriggerFor]="menu"
+            aria-label="Download"
+            matTooltip="Download">
+      <mat-icon svgIcon="file_download"></mat-icon>
+    </button>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item
+              (click)="downloadJson()">
+        <span>Download in JSON format</span>
+      </button>
+      <button mat-menu-item
+              (click)="downloadCsv()">
+        <span>Download in CSV format</span>
+      </button>
+    </mat-menu>
+  } @else {
+    <button mat-mini-fab
+            color="basic"
+            [disabled]="loading || !(enableFiltering ? dataSource.filteredData : dataSource.data).length"
+            (click)="downloadCsv()"
+            aria-label="Download (in CSV format)"
+            matTooltip="Download (in CSV format)">
+      <mat-icon svgIcon="file_download"></mat-icon>
+    </button>
+  }
 
   <button mat-mini-fab
           color="basic"
