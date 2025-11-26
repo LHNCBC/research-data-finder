@@ -63,11 +63,11 @@
     <mat-menu #menu="matMenu">
       <button mat-menu-item
               (click)="downloadJson()">
-        <span>Download in JSON format</span>
+        <span>Download FHIR resources (JSON)</span>
       </button>
       <button mat-menu-item
               (click)="downloadCsv()">
-        <span>Download in CSV format</span>
+        <span>Download table data (CSV)</span>
       </button>
     </mat-menu>
   } @else {
@@ -75,8 +75,8 @@
             color="basic"
             [disabled]="loading || !(enableFiltering ? dataSource.filteredData : dataSource.data).length"
             (click)="downloadCsv()"
-            aria-label="Download (in CSV format)"
-            matTooltip="Download (in CSV format)">
+            aria-label="Download table data (CSV)"
+            matTooltip="Download table data (CSV)">
       <mat-icon svgIcon="file_download"></mat-icon>
     </button>
   }
@@ -225,7 +225,7 @@
                   type="button"
                   mat-mini-fab class="mini-fab-32" color="basic"
                   (click)="showRowJson(row)"
-                  matTooltip="Show row data in JSON format">
+                  matTooltip="Show FHIR resource (JSON)">
                 <mat-icon class="material-icons">article</mat-icon>
               </button>
             </ng-container>

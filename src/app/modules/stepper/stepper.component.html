@@ -129,7 +129,7 @@
         <button mat-stroked-button (click)="browseRecordsPageComponent.downloadCsv()"
                 [disabled]="!selectRecord.getHasLoadedData(browseRecordsPageComponent.currentResourceType$ | async)">
           <mat-icon svgIcon="file_download"></mat-icon>
-          Download (in CSV format)
+          Download table data (CSV)
         </button>
       </div>
     </div>
@@ -223,7 +223,7 @@
           <button mat-stroked-button (click)="pullDataPageComponent.downloadCsv()"
                   [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
             <mat-icon svgIcon="file_download"></mat-icon>
-            Download (in CSV format)
+            Download table data (CSV)
           </button>
         } @else {
           <button mat-stroked-button
@@ -235,11 +235,11 @@
           <mat-menu #menu="matMenu">
             <button mat-menu-item
                     (click)="pullDataPageComponent.downloadJson()">
-              <span>Download in JSON format</span>
+              <span>Download FHIR resources (JSON)</span>
             </button>
             <button mat-menu-item
                     (click)="pullDataPageComponent.downloadCsv()">
-              <span>Download in CSV format</span>
+              <span>Download table data (CSV)</span>
             </button>
           </mat-menu>
         }
