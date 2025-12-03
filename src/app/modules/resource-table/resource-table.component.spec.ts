@@ -23,6 +23,7 @@ import {
 import fhirpath from 'fhirpath';
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import createSpyObj = jasmine.createSpyObj;
+import { ToastrModule } from 'ngx-toastr';
 
 class Page {
   private fixture: ComponentFixture<ResourceTableComponent>;
@@ -104,13 +105,13 @@ describe('ResourceTableComponent', () => {
   };
 
   const spies = {
-    HttpClient: jasmine.createSpyObj('HttpClient', ['get']),
-    ColumnDescriptionsService: jasmine.createSpyObj(
+    HttpClient: createSpyObj('HttpClient', ['get']),
+    ColumnDescriptionsService: createSpyObj(
       'ColumnDescriptionsService',
       ['getAvailableColumns', 'setVisibleColumnNames', 'setColumnsWithData']
     ),
-    SettingsService: jasmine.createSpyObj('SettingsService', ['get']),
-    FhirBackendService: jasmine.createSpyObj(
+    SettingsService: createSpyObj('SettingsService', ['get']),
+    FhirBackendService: createSpyObj(
       'FhirBackendService',
       ['getEvaluator'],
       {
@@ -219,7 +220,8 @@ describe('ResourceTableComponent', () => {
         ResourceTableModule,
         SharedModule,
         MatIconTestingModule,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        ToastrModule.forRoot()
       ],
       providers: [
         { provide: HttpClient, useValue: spies.HttpClient },
@@ -380,16 +382,4 @@ describe('ResourceTableComponent', () => {
     }
   });
 
-  it('should show a resource in JSON format', async () => {
-    fillTableWithObservationResources(observationColumns);
-    expect(component.dataSource.filteredData.length).toEqual(50);
-    const document = createSpyObj('Document',
-      ['open', 'write', 'close']);
-    spyOn(window, 'open').and.returnValue({ document } as any);
-    component.showRowJson(component.dataSource.filteredData[5]);
-    expect(document.open).toHaveBeenCalledOnceWith();
-    expect(document.write).toHaveBeenCalledOnceWith(
-      jasmine.stringMatching('<title>Observation/5</title>'));
-    expect(document.close).toHaveBeenCalledOnceWith();
-  });
 });

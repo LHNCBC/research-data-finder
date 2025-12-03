@@ -7,6 +7,20 @@ import fhirpath from 'fhirpath';
 import { sortBy } from 'lodash-es';
 import { AutocompleteOption } from '../types/autocompleteOption';
 
+// Import highlight.js and register only those languages that we need
+import hljs from 'highlight.js/lib/core';
+import json from 'highlight.js/lib/languages/json';
+hljs.registerLanguage('json', json);
+
+/**
+ * Returns syntax-highlighted HTML to display JSON string.
+ * @param json - JSON string
+ * @returns highlighted HTML string
+ */
+export function highlightJsonHtml(json: string): string {
+  return hljs.highlight(json, {language: 'json'}).value;
+}
+
 /**
  * Capitalize the first char and return the string
  */

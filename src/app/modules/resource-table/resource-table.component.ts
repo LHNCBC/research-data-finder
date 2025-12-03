@@ -63,6 +63,11 @@ import { saveAs } from 'file-saver';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
 import Resource = fhir.Resource;
 import Observation = fhir.Observation;
+import {
+  FhirResourceContentComponent
+} from './fhir-resource-content/fhir-resource-content.component';
+import { MatDialog } from '@angular/material/dialog';
+import { ScrollStrategyOptions } from '@angular/cdk/overlay';
 
 type TableCells = { [key: string]: string };
 
@@ -90,7 +95,9 @@ export class ResourceTableComponent implements OnInit, AfterContentInit, OnChang
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
     private liveAnnouncer: LiveAnnouncer,
-    private dialog: CustomDialog
+    private dialog: CustomDialog,
+    private matDialog: MatDialog,
+    private scrollStrategyOptions: ScrollStrategyOptions
   ) {
     this.listFilterColumns = settings.get('listFilterColumns') || [];
 
@@ -836,46 +843,22 @@ export class ResourceTableComponent implements OnInit, AfterContentInit, OnChang
   }
 
   /**
-   * Opens a new browser window displaying the JSON representation of the given
-   * table row's resource. The JSON is pretty-printed and syntax-highlighted
-   * using highlight.js. The popup window is centered and sized to 80% of
-   * the screen's width and height.
+   * Opens a new dialog displaying the JSON representation of the given
+   * table row's resource.
    *
    * @param row - The table row whose resource should be displayed as formatted
    *  JSON.
    */
-  showRowJson(row: TableRow) {
-    const jsonString = JSON.stringify(omit(row.resource, 'patientData'), null, 2);
-    const width = window.screen.width * 0.8; //600;
-    const height = window.screen.height * 0.8;//400;
-    const left = (window.screen.width / 2) - (width / 2);
-    const top = (window.screen.height / 2) - (height / 2);
-    const wnd = window.open('', '_blank', `top=${top},left=${left},width=${width},height=${height},scrollbars=no,location=no`);
-    wnd.document.open();
-    wnd.document.write(`
-<html lang="en">
-  <head>
-    <title>${row.resource.resourceType + '/' + row.resource.id}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <style>
-      body, pre {
-        margin: 0;
-        padding: 0;
-      }
-      body pre code.hljs {
-        padding: 0;
-        width: 100%;
-        height: 100%;
-      }
-    </style>
-    <script>hljs.highlightAll();</script>
-  </head>
-  <body>
-    <pre><code class="language-json">${escapeHtml(jsonString)}</code></pre>
-  </body>
-</html>`);
-    wnd.document.close();
+  showFhirResource(row: TableRow): void {
+    this.matDialog.open(
+      FhirResourceContentComponent, {
+        hasBackdrop: false,
+        panelClass: 'resizable-dialog-panel',
+        scrollStrategy: this.scrollStrategyOptions.reposition(),
+        data: {
+          resource: omit(row.resource, 'patientData')
+        }
+      });
   }
 
   /**
