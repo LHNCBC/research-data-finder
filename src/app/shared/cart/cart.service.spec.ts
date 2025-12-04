@@ -1,10 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { CartService } from './cart.service';
-import {
-  HttpClientTestingModule,
-  HttpTestingController
-} from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import variableList from 'src/test/test-fixtures/variable-list.json';
 import {
   configureTestingModule,
@@ -18,7 +15,7 @@ describe('CartService', () => {
 
   beforeEach(async () => {
     await configureTestingModule({
-      imports: [SharedModule, HttpClientTestingModule]
+      imports: [SharedModule]
     });
     mockHttp = TestBed.inject(HttpTestingController);
     service = TestBed.inject(CartService);

@@ -9,10 +9,7 @@ import tenPatientBundle
   from '../../modules/step-2-define-cohort-page/test-fixtures/patients-10.json';
 import examplePatient
   from '../../modules/step-2-define-cohort-page/test-fixtures/example-patient.json';
-import {
-  HttpTestingController,
-  HttpClientTestingModule
-} from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { Criteria, ResourceTypeCriteria } from '../../types/search-parameters';
 import {
   configureTestingModule,
@@ -26,7 +23,7 @@ describe('CohortService', () => {
 
   beforeEach(async () => {
     await configureTestingModule({
-      imports: [SharedModule, HttpClientTestingModule]
+      imports: [SharedModule]
     }, {
       features: {
         maxHasAllowed: 1

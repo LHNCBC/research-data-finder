@@ -8,13 +8,7 @@ import {
   PRIORITIES
 } from './fhir-batch-query';
 import { MockXhrServer, newServer } from 'mock-xmlhttprequest';
-import {
-  HttpClient,
-  HttpClientModule,
-  HttpContext,
-  HttpResponse,
-  HttpXhrBackend
-} from '@angular/common/http';
+import { HttpClient, HttpContext, HttpResponse, HttpXhrBackend } from '@angular/common/http';
 import { of } from 'rxjs';
 import { SettingsService } from '../settings-service/settings.service';
 import { FhirService } from '../fhir-service/fhir.service';
@@ -70,7 +64,7 @@ describe('FhirBackendService', () => {
   describe('non-dbGaP', () => {
     beforeEach(async () => {
       TestBed.configureTestingModule({
-        imports: [FhirBackendModule, HttpClientModule, MatDialogModule]
+        imports: [FhirBackendModule, MatDialogModule]
       });
       spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
       spyOn(FhirBatchQuery.prototype, 'get').and.resolveTo(

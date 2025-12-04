@@ -24,7 +24,7 @@ import { ColumnDescriptionsService } from '../../shared/column-descriptions/colu
 import { ColumnDescription } from '../../types/column.description';
 import { SelectOptions } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
 import { MatDialogModule } from "@angular/material/dialog";
 
@@ -90,7 +90,6 @@ describe('StepperComponent', () => {
       ],
       imports: [
         CommonModule,
-        HttpClientModule,
         MatStepperModule,
         MatButtonModule,
         NoopAnimationsModule,
@@ -114,7 +113,8 @@ describe('StepperComponent', () => {
           useValue: {
             getVisibleColumns: () => of([])
           }
-        }
+        },
+        provideHttpClient(withInterceptorsFromDi())
       ]
     }).compileComponents();
   });
