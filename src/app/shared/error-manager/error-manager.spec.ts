@@ -7,7 +7,8 @@ import {By} from "@angular/platform-browser";
 @Component({
   selector: 'parent-component',
   template: '<child-component></child-component>',
-  providers: [ErrorManager]
+  providers: [ErrorManager],
+  standalone: false
 })
 class ParentComponent {
   constructor(public errorManager: ErrorManager) {
@@ -15,9 +16,10 @@ class ParentComponent {
 }
 
 @Component({
-  selector: 'child-component',
-  template: '',
-  providers: [ErrorManager]
+    selector: 'child-component',
+    template: '',
+    providers: [ErrorManager],
+    standalone: false
 })
 class ChildComponent {
   constructor(public errorManager: ErrorManager) {

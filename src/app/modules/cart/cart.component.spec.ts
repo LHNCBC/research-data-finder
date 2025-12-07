@@ -8,7 +8,8 @@ import Resource = fhir.Resource;
 
 @Component({
   template: `<app-cart [resourceType]="resourceType" [listItems]="records">
-  </app-cart>`
+  </app-cart>`,
+  standalone: false
 })
 class TestHostComponent {
   @ViewChild(CartComponent)

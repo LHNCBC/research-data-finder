@@ -34,7 +34,8 @@ import {ErrorManager} from "../../shared/error-manager/error-manager.service";
       provide: ErrorStateMatcher,
       useExisting: ErrorManager
     }
-  ]
+  ],
+  standalone: false
 })
 export class SelectRecordsPageComponent
   extends BrowseRecordsPageComponent

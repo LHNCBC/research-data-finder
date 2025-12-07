@@ -6,7 +6,8 @@ import {getUrlParam} from '../../shared/utils';
 
 @Component({
   selector: 'app-ras-token-callback',
-  templateUrl: 'ras-token-callback.component.html'
+  templateUrl: 'ras-token-callback.component.html',
+  standalone: false
 })
 export class RasTokenCallbackComponent implements OnInit {
   error = null;

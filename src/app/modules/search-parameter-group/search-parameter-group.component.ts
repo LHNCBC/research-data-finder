@@ -47,7 +47,8 @@ import { SearchParameter } from '../../types/search.parameter';
       provide: ErrorStateMatcher,
       useExisting: ErrorManager
     }
-  ]
+  ],
+  standalone: false
 })
 export class SearchParameterGroupComponent
   extends BaseControlValueAccessor<SearchParameterGroup>

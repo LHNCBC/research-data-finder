@@ -27,7 +27,6 @@ import Resource = fhir.Resource;
  */
 @Component({
   selector: 'app-fhir-resource-content',
-  standalone: true,
   imports: [
     MatDialogModule,
     DragDropModule,

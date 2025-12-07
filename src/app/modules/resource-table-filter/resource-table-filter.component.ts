@@ -16,7 +16,8 @@ import { CustomDialogRef } from '../../shared/custom-dialog/custom-dialog-ref';
 @Component({
   selector: 'app-resource-table-filter',
   templateUrl: './resource-table-filter.component.html',
-  styleUrls: ['./resource-table-filter.component.less']
+  styleUrls: ['./resource-table-filter.component.less'],
+  standalone: false
 })
 export class ResourceTableFilterComponent implements AfterViewInit, OnDestroy {
   static idPrefix = 'resource-table-filter-';

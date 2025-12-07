@@ -78,7 +78,8 @@ export enum Step {
 @Component({
   selector: 'app-stepper',
   templateUrl: './stepper.component.html',
-  styleUrls: ['./stepper.component.less']
+  styleUrls: ['./stepper.component.less'],
+  standalone: false
 })
 export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('stepper') public stepper: MatStepper;

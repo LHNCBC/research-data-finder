@@ -14,7 +14,8 @@ import {
 @Component({
   selector: 'app-select-an-action',
   templateUrl: './select-an-action.component.html',
-  styleUrls: ['./select-an-action.component.less']
+  styleUrls: ['./select-an-action.component.less'],
+  standalone: false
 })
 export class SelectAnActionComponent implements OnInit, OnDestroy {
   constructor(

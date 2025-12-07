@@ -87,7 +87,8 @@ export const VALIDATOR: any = {
   selector: 'query-builder',
   templateUrl: './query-builder.component.html',
   styleUrls: ['./query-builder.component.scss'],
-  providers: [CONTROL_VALUE_ACCESSOR, VALIDATOR]
+  providers: [CONTROL_VALUE_ACCESSOR, VALIDATOR],
+  standalone: false
 })
 export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, Validator {
   public fields: Field[];

@@ -61,7 +61,8 @@ import Observation = fhir.Observation;
   styleUrls: [
     './pull-data-page.component.less',
     '../resource-table/resource-table.component.less'
-  ]
+  ],
+  standalone: false
 })
 export class PullDataPageComponent
   extends ResourceTableParentComponent

@@ -8,7 +8,8 @@ import { CustomDialogRef } from './custom-dialog-ref';
   selector: '[dialogTitle]',
   host: {
     '[id]': 'id'
-  }
+  },
+  standalone: false
 })
 export class DialogTitleDirective {
   // Unique id for the dialog title.

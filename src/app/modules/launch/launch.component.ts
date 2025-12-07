@@ -10,7 +10,8 @@ import { getUrlParam } from '../../shared/utils';
 
 @Component({
   selector: 'app-launch',
-  templateUrl: './launch.component.html'
+  templateUrl: './launch.component.html',
+  standalone: false
 })
 export class LaunchComponent implements OnInit {
   constructor(

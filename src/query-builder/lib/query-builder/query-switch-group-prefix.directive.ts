@@ -10,7 +10,10 @@ import { Directive, TemplateRef } from '@angular/core';
  *     </ng-container>
  * </query-builder>
  */
-@Directive({selector: '[querySwitchGroupPrefix]'})
+@Directive({
+  selector: '[querySwitchGroupPrefix]',
+  standalone: false
+})
 export class QuerySwitchGroupPrefixDirective {
   constructor(public template: TemplateRef<any>) {}
 }

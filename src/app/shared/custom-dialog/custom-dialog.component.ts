@@ -6,7 +6,8 @@ import { CustomDialogRef, CustomDialogContent } from './custom-dialog-ref';
  */
 @Component({
   templateUrl: './custom-dialog.component.html',
-  styleUrls: ['./custom-dialog.component.less']
+  styleUrls: ['./custom-dialog.component.less'],
+  standalone: false
 })
 export class CustomDialogComponent implements OnInit {
   renderMethod: 'template' | 'component' | 'text' = 'component';

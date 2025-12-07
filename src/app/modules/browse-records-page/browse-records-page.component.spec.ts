@@ -115,6 +115,8 @@ describe('BrowseRecordsPageComponent', () => {
         );
       })
       .flush(fourVariables);
+    // TODO: In Angular 19, we need "resize" event to trigger rendering table here
+    window.dispatchEvent(new Event('resize'));
     fixture.detectChanges();
     expect(component.variableTable.runPreloadEvents).toHaveBeenCalledOnceWith();
     await expectNumberOfRecords(4);

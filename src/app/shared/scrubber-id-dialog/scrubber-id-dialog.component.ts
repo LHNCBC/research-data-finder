@@ -11,7 +11,8 @@ export interface ScrubberIdData {
 @Component({
   selector: 'app-scrubber-id-dialog',
   templateUrl: './scrubber-id-dialog.component.html',
-  styleUrl: './scrubber-id-dialog.component.less'
+  styleUrl: './scrubber-id-dialog.component.less',
+  standalone: false
 })
 export class ScrubberIdDialogComponent {
   hasCancelButton = false;

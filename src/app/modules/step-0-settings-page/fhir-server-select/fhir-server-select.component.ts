@@ -36,7 +36,8 @@ import { map } from 'rxjs/operators';
       provide: MatFormFieldControl,
       useExisting: FhirServerSelectComponent
     }
-  ]
+  ],
+  standalone: false
 })
 export class FhirServerSelectComponent
   extends BaseControlValueAccessor<string>

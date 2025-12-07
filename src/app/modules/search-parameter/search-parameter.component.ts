@@ -34,7 +34,8 @@ import { AutocompleteOption } from '../../types/autocompleteOption';
   selector: 'app-search-parameter',
   templateUrl: './search-parameter.component.html',
   styleUrls: ['./search-parameter.component.less'],
-  providers: createControlValueAccessorProviders(SearchParameterComponent)
+  providers: createControlValueAccessorProviders(SearchParameterComponent),
+  standalone: false
 })
 export class SearchParameterComponent
   extends BaseControlValueAccessor<SearchParameter>

@@ -13,6 +13,7 @@ import { AnnounceIfActiveService } from './announce-if-active.service';
       provide: LiveAnnouncer,
       useClass: AnnounceIfActiveService
     }
-  ]
+  ],
+  standalone: false
 })
 export class AnnounceIfActiveDirective {}

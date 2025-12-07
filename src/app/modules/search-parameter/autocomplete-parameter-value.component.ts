@@ -81,7 +81,8 @@ const CLIENT_SEARCH_LENGTH = 100;
       provide: MatFormFieldControl,
       useExisting: AutocompleteParameterValueComponent
     }
-  ]
+  ],
+  standalone: false
 })
 export class AutocompleteParameterValueComponent
   extends BaseControlValueAccessor<AutocompleteParameterValue>

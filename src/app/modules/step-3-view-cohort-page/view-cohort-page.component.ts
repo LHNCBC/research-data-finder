@@ -9,7 +9,8 @@ import { CohortService } from '../../shared/cohort/cohort.service';
 @Component({
   selector: 'app-view-cohort-page',
   templateUrl: './view-cohort-page.component.html',
-  styleUrls: ['./view-cohort-page.component.less']
+  styleUrls: ['./view-cohort-page.component.less'],
+  standalone: false
 })
 export class ViewCohortPageComponent implements OnInit {
   @ViewChild('resourceTableComponent')

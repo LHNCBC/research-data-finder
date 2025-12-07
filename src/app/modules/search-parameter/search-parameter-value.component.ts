@@ -40,7 +40,8 @@ export interface SearchParameterValue {
   selector: 'app-search-parameter-value',
   templateUrl: './search-parameter-value.component.html',
   styleUrls: ['./search-parameter-value.component.less'],
-  providers: createControlValueAccessorProviders(SearchParameterValueComponent)
+  providers: createControlValueAccessorProviders(SearchParameterValueComponent),
+  standalone: false
 })
 export class SearchParameterValueComponent
   extends BaseControlValueAccessor<SearchParameterValue>

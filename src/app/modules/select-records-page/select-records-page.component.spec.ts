@@ -108,7 +108,6 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
    * Load studies at the beginning
    */
   async function loadStudies(): Promise<void> {
-    component.ngAfterViewInit();
     await fixture.whenStable();
     fixture.detectChanges();
     mockHttp
@@ -167,6 +166,8 @@ describe('SelectRecordsPageComponent (when there are studies for the user)', () 
         );
       })
       .flush(query ? threeVariables : fourVariables);
+    // TODO: In Angular 19, we need "resize" event to trigger rendering table here
+    window.dispatchEvent(new Event('resize'));
     fixture.detectChanges();
     expect(component.variableTable.runPreloadEvents).toHaveBeenCalledOnceWith();
     await expectNumberOfRecords(query ? 3 : 4);
