@@ -58,7 +58,6 @@ import {
   ElementRef,
   forwardRef,
   HostBinding,
-  InjectFlags,
   Injector,
   Input,
   OnChanges,
@@ -232,7 +231,7 @@ export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, V
    */
   updateValidity(): void {
     // tslint:disable-next-line:no-bitwise
-    const ngControl = this.injector.get(NgControl, null, InjectFlags.Self | InjectFlags.Optional);
+    const ngControl = this.injector.get(NgControl, null, { self: true, optional: true });
     let formControl: UntypedFormControl;
     if (ngControl instanceof FormControlName) {
       formControl = this.injector.get(FormGroupDirective)

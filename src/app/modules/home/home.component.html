@@ -5,65 +5,70 @@
   <div id="siteNameBox">
     <span id=siteName>FHIR Research Data Finder</span><br>
     <span id=tagline>An <a
-      href="https://github.com/lhncbc/fhir-obs-viewer">open source</a> tool for
-      querying and pulling FHIR research data</span>
-    <div class="h-box buttons">
+    href="https://github.com/lhncbc/fhir-obs-viewer">open source</a> tool for
+  querying and pulling FHIR research data</span>
+  <div class="h-box buttons">
+    @if (oauth2Token.isOauth2Required && !oauth2Token.oauth2TokenValidated) {
       <div class="logout"
-           tabIndex="0"
-           *ngIf="oauth2Token.isOauth2Required && !oauth2Token.oauth2TokenValidated"
-           matTooltip="OAuth2 login"
-           role="link"
-           aria-label="OAuth2 login"
-           (keydown.enter)="onOauth2Login()"
-           (click)="onOauth2Login()">Login</div>
+        tabIndex="0"
+        matTooltip="OAuth2 login"
+        role="link"
+        aria-label="OAuth2 login"
+        (keydown.enter)="onOauth2Login()"
+      (click)="onOauth2Login()">Login</div>
+    }
+    @if (oauth2Token.oauth2TokenValidated) {
       <div class="logout"
-           tabIndex="0"
-           *ngIf="oauth2Token.oauth2TokenValidated"
-           matTooltip="OAuth2 log out"
-           role="link"
-           aria-label="OAuth2 log out"
-           (keydown.enter)="onOauth2Logout()"
-           (click)="onOauth2Logout()">Log out</div>
+        tabIndex="0"
+        matTooltip="OAuth2 log out"
+        role="link"
+        aria-label="OAuth2 log out"
+        (keydown.enter)="onOauth2Logout()"
+      (click)="onOauth2Logout()">Log out</div>
+    }
+    @if (rasToken.rasTokenValidated) {
       <div class="logout"
-           tabIndex="0"
-           *ngIf="rasToken.rasTokenValidated"
-           matTooltip="Log out from dbGaP"
-           role="link"
-           aria-label="Log out from dbGaP"
-           (keydown.enter)="onRasLogout()"
-           (click)="onRasLogout()">Log out</div>
+        tabIndex="0"
+        matTooltip="Log out from dbGaP"
+        role="link"
+        aria-label="Log out from dbGaP"
+        (keydown.enter)="onRasLogout()"
+      (click)="onRasLogout()">Log out</div>
+    }
+    @if (fhirBackend.smartConnectionSuccess) {
       <div class="logout"
-           tabIndex="0"
-           *ngIf="fhirBackend.smartConnectionSuccess"
-           matTooltip="Log out from SMART on FHIR"
-           role="link"
-           aria-label="Log out from SMART on FHIR"
-           (keydown.enter)="onSmartLogout()"
-           (click)="onSmartLogout()">Log out</div>
+        tabIndex="0"
+        matTooltip="Log out from SMART on FHIR"
+        role="link"
+        aria-label="Log out from SMART on FHIR"
+        (keydown.enter)="onSmartLogout()"
+      (click)="onSmartLogout()">Log out</div>
+    }
+    @if (fhirBackend.settings.get('scrubber')) {
       <div class="logout"
-           tabIndex="0"
-           *ngIf="fhirBackend.settings.get('scrubber')"
-           matTooltip="Change ScrubberID"
-           role="link"
-           [attr.aria-label]="getScrubberIdLinkText()"
-           (keydown.enter)="onChangeScrubberID()"
-           (click)="onChangeScrubberID()">{{getScrubberIdLinkText()}}</div>
-      <div id="version">Version: <a target="_blank"
-                                    tabIndex="0"
-                                    (keyup.enter)="$event.currentTarget.click()"
-                                    [matMenuTriggerFor]="menu">{{version + (fhirBackend.isPreviousVersion ? ' (previous UI)' : '') }}</a>
-      </div>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item
-                (click)="openChangelog()">View change log</button>
-        <button mat-menu-item
-                (click)="switchVersion()">Switch to
-          the {{fhirBackend.isPreviousVersion ? 'current' : 'previous' }}
-          UI version
-        </button>
-      </mat-menu>
-    </div>
+        tabIndex="0"
+        matTooltip="Change ScrubberID"
+        role="link"
+        [attr.aria-label]="getScrubberIdLinkText()"
+        (keydown.enter)="onChangeScrubberID()"
+      (click)="onChangeScrubberID()">{{getScrubberIdLinkText()}}</div>
+    }
+    <div id="version">Version: <a target="_blank"
+      tabIndex="0"
+      (keyup.enter)="$event.currentTarget.click()"
+    [matMenuTriggerFor]="menu">{{version + (fhirBackend.isPreviousVersion ? ' (previous UI)' : '') }}</a>
   </div>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item
+    (click)="openChangelog()">View change log</button>
+    <button mat-menu-item
+      (click)="switchVersion()">Switch to
+      the {{fhirBackend.isPreviousVersion ? 'current' : 'previous' }}
+      UI version
+    </button>
+  </mat-menu>
+</div>
+</div>
 </div>
 <!-- end page header -->
 

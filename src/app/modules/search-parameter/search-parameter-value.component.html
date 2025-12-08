@@ -1,40 +1,54 @@
 <form [formGroup]="form">
   <div class="test-value">
-    <mat-form-field *ngIf="!datatype" class="comparator">
-      <mat-label>Comparator</mat-label>
-      <mat-select [ngModel]="testValueComparator" [ngModelOptions]="{standalone: true}"
-                  (ngModelChange)="onComplexComparatorChange($event)">
-        <mat-optgroup label="numeric comparators">
-          <mat-option *ngFor="let option of typeDescriptions.Quantity.searchValPrefixes"
-                      (click)="setSelectedDatatype('Quantity')"
-                      [value]="'Quantity - ' + option[1]">{{option[0]}}</mat-option>
-        </mat-optgroup>
-        <mat-optgroup label="string comparators">
-          <mat-option *ngFor="let option of typeDescriptions.String.modifiers"
-                      (click)="setSelectedDatatype('String')"
-                      [value]="'String - ' + option[1]">{{option[0]}}</mat-option>
-        </mat-optgroup>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field *ngIf="datatype && typeDescriptions[datatype].searchValPrefixes" class="comparator">
-      <mat-label>Comparator</mat-label>
-      <mat-select formControlName="testValuePrefix">
-        <mat-option *ngFor="let option of typeDescriptions[datatype].searchValPrefixes"
-                    [value]="option[1]">{{option[0]}}</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field *ngIf="datatype && typeDescriptions[datatype].modifiers" class="comparator">
-      <mat-label>Comparator</mat-label>
-      <mat-select formControlName="testValueModifier">
-        <mat-option *ngFor="let option of typeDescriptions[datatype].modifiers"
-                    [value]="option[1]">{{option[0]}}</mat-option>
-      </mat-select>
-    </mat-form-field>
+    @if (!datatype) {
+      <mat-form-field class="comparator">
+        <mat-label>Comparator</mat-label>
+        <mat-select [ngModel]="testValueComparator" [ngModelOptions]="{standalone: true}"
+          (ngModelChange)="onComplexComparatorChange($event)">
+          <mat-optgroup label="numeric comparators">
+            @for (option of typeDescriptions.Quantity.searchValPrefixes; track option) {
+              <mat-option
+                (click)="setSelectedDatatype('Quantity')"
+              [value]="'Quantity - ' + option[1]">{{option[0]}}</mat-option>
+            }
+          </mat-optgroup>
+          <mat-optgroup label="string comparators">
+            @for (option of typeDescriptions.String.modifiers; track option) {
+              <mat-option
+                (click)="setSelectedDatatype('String')"
+              [value]="'String - ' + option[1]">{{option[0]}}</mat-option>
+            }
+          </mat-optgroup>
+        </mat-select>
+      </mat-form-field>
+    }
+    @if (datatype && typeDescriptions[datatype].searchValPrefixes) {
+      <mat-form-field class="comparator">
+        <mat-label>Comparator</mat-label>
+        <mat-select formControlName="testValuePrefix">
+          @for (option of typeDescriptions[datatype].searchValPrefixes; track option) {
+            <mat-option
+            [value]="option[1]">{{option[0]}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+    @if (datatype && typeDescriptions[datatype].modifiers) {
+      <mat-form-field class="comparator">
+        <mat-label>Comparator</mat-label>
+        <mat-select formControlName="testValueModifier">
+          @for (option of typeDescriptions[datatype].modifiers; track option) {
+            <mat-option
+            [value]="option[1]">{{option[0]}}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
     <mat-form-field class="value">
       <mat-label>{{valueLabelText}}</mat-label>
-      <ng-container [ngSwitch]="selectedDatatype">
-        <app-autocomplete-parameter-value
-            *ngSwitchCase="'CodeableConcept'"
+      @switch (selectedDatatype) {
+        @case ('CodeableConcept') {
+          <app-autocomplete-parameter-value
             formControlName="testValue"
             placeholder="{{valuePlaceholderText || 'Select one or more'}}"
             resourceType="Observation"
@@ -42,57 +56,71 @@
             columnName="value"
             expression="value"
             searchParameter="value-concept">
-        </app-autocomplete-parameter-value>
-        <input *ngSwitchCase="'Quantity'" type="number" step="any" matInput
-               formControlName="testValue"
-               autocomplete="off"
-               placeholder="{{valuePlaceholderText || 'Enter number value'}}">
-        <input *ngSwitchDefault type="text" matInput formControlName="testValue"
-               placeholder="{{valuePlaceholderText || 'Enter string value'}}">
-      </ng-container>
+          </app-autocomplete-parameter-value>
+        }
+        @case ('Quantity') {
+          <input type="number" step="any" matInput
+            formControlName="testValue"
+            autocomplete="off"
+            placeholder="{{valuePlaceholderText || 'Enter number value'}}">
+        }
+        @default {
+          <input type="text" matInput formControlName="testValue"
+            placeholder="{{valuePlaceholderText || 'Enter string value'}}">
+        }
+      }
     </mat-form-field>
-    <mat-form-field *ngIf="typeDescriptions[selectedDatatype].unit" class="unit">
-      <mat-label>{{unitLabelText}}</mat-label>
-      <ng-container [ngSwitch]="unitList?.length > 0 ? 1 : 2">
-        <app-autocomplete
-          *ngSwitchCase="1"
-          [matchListValue]="false"
-          [options]="unitList"
-          formControlName="testValueUnit"></app-autocomplete>
-        <input matInput type="text" readonly
-               *ngSwitchDefault
-               value="{{form.get('testValueUnit').value || 'Unknown unit'}}">
-      </ng-container>
-    </mat-form-field>
-    <button type="button" aria-label="Add the other end of the range"
-            mat-mini-fab class="mini-fab-32" color="basic"
-            *ngIf="showAddLineButton" matTooltip="Add the other end of the range"
-            (click)="addLine()">
-      <mat-icon svgIcon="add"></mat-icon>
-    </button>
+    @if (typeDescriptions[selectedDatatype].unit) {
+      <mat-form-field class="unit">
+        <mat-label>{{unitLabelText}}</mat-label>
+        @switch (unitList?.length > 0 ? 1 : 2) {
+          @case (1) {
+            <app-autocomplete
+              [matchListValue]="false"
+              [options]="unitList"
+            formControlName="testValueUnit"></app-autocomplete>
+          }
+          @default {
+            <input matInput type="text" readonly
+              value="{{form.get('testValueUnit').value || 'Unknown unit'}}">
+          }
+        }
+      </mat-form-field>
+    }
+    @if (showAddLineButton) {
+      <button type="button" aria-label="Add the other end of the range"
+        mat-mini-fab class="mini-fab-32" color="basic"
+        matTooltip="Add the other end of the range"
+        (click)="addLine()">
+        <mat-icon svgIcon="add"></mat-icon>
+      </button>
+    }
   </div>
 
-  <div class="test-value" *ngIf="hasSecondLine">
-    <button type="button" aria-label="Remove this end of the range"
-            mat-mini-fab class="mini-fab-32 remove-btn" color="basic"
-            matTooltip="Remove this end of the range"
-            (click)="resetSecondLine(); checkToShowAddButton(prefixControlValue)">
-      <mat-icon svgIcon="clear"></mat-icon>
-    </button>
-    <mat-form-field class="comparator">
-      <mat-label>Comparator</mat-label>
-      <mat-select formControlName="testValuePrefix2">
-        <mat-option
-            *ngFor="let option of rangeComparatorOptions[prefixControlValue]"
+  @if (hasSecondLine) {
+    <div class="test-value">
+      <button type="button" aria-label="Remove this end of the range"
+        mat-mini-fab class="mini-fab-32 remove-btn" color="basic"
+        matTooltip="Remove this end of the range"
+        (click)="resetSecondLine(); checkToShowAddButton(prefixControlValue)">
+        <mat-icon svgIcon="clear"></mat-icon>
+      </button>
+      <mat-form-field class="comparator">
+        <mat-label>Comparator</mat-label>
+        <mat-select formControlName="testValuePrefix2">
+          @for (option of rangeComparatorOptions[prefixControlValue]; track option) {
+            <mat-option
             [value]="option[1]">{{option[0]}}</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field class="value">
-      <mat-label>{{valueLabelText}}</mat-label>
-      <input type="number" step="any" matInput
-             formControlName="testValue2"
-             autocomplete="off"
-             placeholder="{{valuePlaceholderText || 'Enter number value'}}">
-    </mat-form-field>
-  </div>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="value">
+        <mat-label>{{valueLabelText}}</mat-label>
+        <input type="number" step="any" matInput
+          formControlName="testValue2"
+          autocomplete="off"
+          placeholder="{{valuePlaceholderText || 'Enter number value'}}">
+      </mat-form-field>
+    </div>
+  }
 </form>

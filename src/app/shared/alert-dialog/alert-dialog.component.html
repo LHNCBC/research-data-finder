@@ -3,6 +3,8 @@
   {{content}}
 </div>
 <div mat-dialog-actions>
-  <button *ngIf="hasCancelButton" mat-button [mat-dialog-close]="false">Cancel</button>
+  @if (hasCancelButton) {
+    <button mat-button [mat-dialog-close]="false">Cancel</button>
+  }
   <button mat-button [mat-dialog-close]="true" cdkFocusInitial>OK</button>
 </div>

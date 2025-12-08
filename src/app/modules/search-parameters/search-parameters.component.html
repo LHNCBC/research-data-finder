@@ -7,135 +7,167 @@
   <ng-container *querySwitchGroupPrefix="
      let ruleset; let addRule=addRule; let addRuleSet=addRuleSet;
      let parentRuleSet=parentRuleSet; let handleDataChange=handleDataChange; let removeRuleSet=removeRuleSet">
-    <div class="condition-label" *ngIf="parentRuleSet?.rules?.length > 1">{{parentRuleSet.condition}}</div>
+    @if (parentRuleSet?.rules?.length > 1) {
+      <div class="condition-label">{{parentRuleSet.condition}}</div>
+    }
     <!-- Prefix for the resource criteria -->
-    <div class="v-box" *ngIf="ruleset.hasOwnProperty('resourceType')">
-      <div class="h-box">
-        <button type="button"
-                [attr.aria-label]="'Remove criteria for the ' + (ruleset.resourceType || 'undefined') + ' resource'"
-                mat-mini-fab color="basic"
-                class="remove-btn mini-fab-32"
-                #removeResTypeBtn
-                (click)="focusOnPreviousElement(removeResTypeBtn._elementRef.nativeElement);removeRuleSet()">
-          <mat-icon svgIcon="clear"></mat-icon>
-        </button>
-        <mat-form-field class="resource-type" *ngIf="!ruleset.resourceType">
-          <mat-label>Record type</mat-label>
-          <app-autocomplete
-              required
-              [options]="resourceTypes$ | async"
-              [(ngModel)]="ruleset.resourceType"
+    @if (ruleset.hasOwnProperty('resourceType')) {
+      <div class="v-box">
+        <div class="h-box">
+          <button type="button"
+            [attr.aria-label]="'Remove criteria for the ' + (ruleset.resourceType || 'undefined') + ' resource'"
+            mat-mini-fab color="basic"
+            class="remove-btn mini-fab-32"
+            #removeResTypeBtn
+            (click)="focusOnPreviousElement(removeResTypeBtn._elementRef.nativeElement);removeRuleSet()">
+            <mat-icon svgIcon="clear"></mat-icon>
+          </button>
+          @if (!ruleset.resourceType) {
+            <mat-form-field class="resource-type">
+              <mat-label>Record type</mat-label>
+              <app-autocomplete
+                required
+                [options]="resourceTypes$ | async"
+                [(ngModel)]="ruleset.resourceType"
               (ngModelChange)="focusOnAddCriterionBtn()"></app-autocomplete>
-        </mat-form-field>
-        <p *ngIf="ruleset.resourceType && ruleset.resourceType !== 'Patient'"
-           class="record-type-header">Select Patients which have
-          {{getIndefiniteArticle(ruleset.resourceType)}}
-          <b>{{ruleset.resourceType}}</b> record that meets the criteria below</p>
-        <p *ngIf="ruleset.resourceType === 'Patient'"
-           class="record-type-header">Select <b>Patients</b> which meet the criteria below</p>
-      </div>
-    </div>
-    <!-- Prefix for the subgroup -->
-    <div class="v-box" *ngIf="removeRuleSet && !ruleset.hasOwnProperty('resourceType')">
-      <div class="h-box">
-        <button type="button"
+            </mat-form-field>
+          }
+          @if (ruleset.resourceType && ruleset.resourceType !== 'Patient') {
+            <p
+              class="record-type-header">Select Patients which have
+              {{getIndefiniteArticle(ruleset.resourceType)}}
+              <b>{{ruleset.resourceType}}</b> record that meets the criteria below</p>
+            }
+            @if (ruleset.resourceType === 'Patient') {
+              <p
+                class="record-type-header">Select <b>Patients</b> which meet the criteria below</p>
+              }
+            </div>
+          </div>
+        }
+        <!-- Prefix for the subgroup -->
+        @if (removeRuleSet && !ruleset.hasOwnProperty('resourceType')) {
+          <div class="v-box">
+            <div class="h-box">
+              <button type="button"
                 aria-label="Remove subgroup of criteria for resource types"
                 #removeSubgroupBtn
                 mat-mini-fab color="basic"
                 class="remove-btn mini-fab-32"
                 (click)="focusOnPreviousElement(removeSubgroupBtn._elementRef.nativeElement);removeRuleSet()">
-          <mat-icon svgIcon="clear"></mat-icon>
-        </button>
-        <p class="group-header">Subgroup of criteria for record types</p>
-      </div>
-    </div>
-  </ng-container>
-
-  <!-- Switch group box (AND/OR toggle) -->
-  <ng-container *querySwitchGroup="let ruleset; let changeCondition=onChange">
-    <ng-container *ngIf="ruleset?.rules?.length > 1">
-      <ng-container [ngSwitch]="ruleset.hasOwnProperty('resourceType')">
-        <div class="q-switch-group q-transition" *ngSwitchCase="true">
-          <div>
-            <label class="q-switch-label">AND</label>
+                <mat-icon svgIcon="clear"></mat-icon>
+              </button>
+              <p class="group-header">Subgroup of criteria for record types</p>
+            </div>
           </div>
-        </div>
-        <mat-radio-group *ngSwitchDefault [(ngModel)]="ruleset.condition" (ngModelChange)="changeCondition($event)"
-                         aria-label="Select an operator to combine criteria"
-                         class="q-switch-group">
-          <mat-radio-button value="and">AND</mat-radio-button>
-          <mat-radio-button value="or">OR</mat-radio-button>
-        </mat-radio-group>
+        }
       </ng-container>
-    </ng-container>
-  </ng-container>
 
-  <!-- Suffix for the tree container -->
+      <!-- Switch group box (AND/OR toggle) -->
+      <ng-container *querySwitchGroup="let ruleset; let changeCondition=onChange">
+        @if (ruleset?.rules?.length > 1) {
+          @switch (ruleset.hasOwnProperty('resourceType')) {
+            @case (true) {
+              <div class="q-switch-group q-transition">
+                <div>
+                  <label class="q-switch-label">AND</label>
+                </div>
+              </div>
+            }
+            @default {
+              <mat-radio-group [(ngModel)]="ruleset.condition" (ngModelChange)="changeCondition($event)"
+                aria-label="Select an operator to combine criteria"
+                class="q-switch-group">
+                <mat-radio-button value="and">AND</mat-radio-button>
+                <mat-radio-button value="or">OR</mat-radio-button>
+              </mat-radio-group>
+            }
+          }
+        }
+      </ng-container>
+
+      <!-- Suffix for the tree container -->
   <ng-container *queryTreeContainerSuffix="
      let ruleset; let addRule=addRule; let addRuleSet=addRuleSet;
      let handleDataChange=handleDataChange; let removeRuleSet=removeRuleSet">
-    <!-- Add buttons for the root block -->
-    <div class="v-box" *ngIf="!removeRuleSet">
-      <div class="spacer" *ngIf="ruleset.rules?.length"></div>
-      <div class="h-box">
-        <button type="button"
+        <!-- Add buttons for the root block -->
+        @if (!removeRuleSet) {
+          <div class="v-box">
+            @if (ruleset.rules?.length) {
+              <div class="spacer"></div>
+            }
+            <div class="h-box">
+              <button type="button"
                 (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button>
-          <mat-icon svgIcon="add"></mat-icon>Add criteria for a record type
-        </button>
-        <div class="spacer"></div>
-        <button type="button"
+                <mat-icon svgIcon="add"></mat-icon>Add criteria for a record type
+              </button>
+              <div class="spacer"></div>
+              <button type="button"
                 (click)="addRuleSet()" mat-stroked-button>
-          <mat-icon svgIcon="add"></mat-icon>Add a subgroup of record types and criteria
-        </button>
-      </div>
-    </div>
-    <!-- Add button for the resource criteria -->
-    <div class="v-box" *ngIf="ruleset.hasOwnProperty('resourceType')">
-      <div class="spacer" *ngIf="ruleset.resourceType && ruleset.rules.length"></div>
-      <div class="h-box">
-        <button type="button" *ngIf="ruleset.resourceType"
-                #addCriterionBtn
-                (click)="addRule()" mat-stroked-button>
-          <mat-icon svgIcon="add"></mat-icon>Add a criterion for the {{ruleset.resourceType}} record
-        </button>
-      </div>
-    </div>
-    <!-- Add button for the subgroup -->
-    <div class="v-box" *ngIf="removeRuleSet && !ruleset.hasOwnProperty('resourceType')">
-      <div class="spacer" *ngIf="ruleset.rules.length"></div>
-      <div class="h-box">
-        <button type="button"
+                <mat-icon svgIcon="add"></mat-icon>Add a subgroup of record types and criteria
+              </button>
+            </div>
+          </div>
+        }
+        <!-- Add button for the resource criteria -->
+        @if (ruleset.hasOwnProperty('resourceType')) {
+          <div class="v-box">
+            @if (ruleset.resourceType && ruleset.rules.length) {
+              <div class="spacer"></div>
+            }
+            <div class="h-box">
+              @if (ruleset.resourceType) {
+                <button type="button"
+                  #addCriterionBtn
+                  (click)="addRule()" mat-stroked-button>
+                  <mat-icon svgIcon="add"></mat-icon>Add a criterion for the {{ruleset.resourceType}} record
+                </button>
+              }
+            </div>
+          </div>
+        }
+        <!-- Add button for the subgroup -->
+        @if (removeRuleSet && !ruleset.hasOwnProperty('resourceType')) {
+          <div class="v-box">
+            @if (ruleset.rules.length) {
+              <div class="spacer"></div>
+            }
+            <div class="h-box">
+              <button type="button"
                 #addResourceTypeBtn
                 (click)="addResourceType(ruleset); handleDataChange();" mat-stroked-button>
-          <mat-icon svgIcon="add"></mat-icon>Add criteria for a record type
+                <mat-icon svgIcon="add"></mat-icon>Add criteria for a record type
+              </button>
+            </div>
+          </div>
+        }
+      </ng-container>
+
+      <ng-container *queryRemoveButton="let rule; let removeRule=removeRule">
+        <button type="button" aria-label="Remove search parameter"
+          class="remove-btn mini-fab-32"
+          mat-mini-fab color="basic"
+          #removeParamBtn
+          (click)="focusOnPreviousElement(removeParamBtn._elementRef.nativeElement);removeRule(rule)">
+          <mat-icon svgIcon="clear"></mat-icon>
         </button>
-      </div>
-    </div>
-  </ng-container>
+      </ng-container>
 
-  <ng-container *queryRemoveButton="let rule; let removeRule=removeRule">
-    <button type="button" aria-label="Remove search parameter"
-            class="remove-btn mini-fab-32"
-            mat-mini-fab color="basic"
-            #removeParamBtn
-            (click)="focusOnPreviousElement(removeParamBtn._elementRef.nativeElement);removeRule(rule)">
-      <mat-icon svgIcon="clear"></mat-icon>
-    </button>
-  </ng-container>
-
-  <!-- Search parameter name selector -->
-  <ng-container *queryField="let rule; let fields=fields;  let parentRuleSet=parentRuleSet; let onChange=onChange; let getFields = getFields">
-    <div class="condition-label" *ngIf="parentRuleSet?.rules?.length > 1">{{parentRuleSet.condition}}</div>
-    <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"
-                          (ngModelChange)="onChangeSearchParameter($event, parentRuleSet)"
-                          [observationDataType]="selectedCodesData.get(parentRuleSet)?.dataType"
-                          [observationUnits]="selectedCodesData.get(parentRuleSet)?.observationUnits"
-                          [observationLoincCodes]="selectedCodesData.get(parentRuleSet)?.loincCodes"
-                          [selectedSearchParameterNames]="selectedSearchParameterNamesMap.get(parentRuleSet)">
-    </app-search-parameter>
-  </ng-container>
-  <ng-container *queryOperator="let rule; let operators=operators; let onChange=onChange">
-  </ng-container>
-  <ng-container *queryInput="let rule; type: 'search-parameter'; let getDisabledState=getDisabledState">
-  </ng-container>
-</query-builder>
+      <!-- Search parameter name selector -->
+      <ng-container *queryField="let rule; let fields=fields;  let parentRuleSet=parentRuleSet; let onChange=onChange; let getFields = getFields">
+        @if (parentRuleSet?.rules?.length > 1) {
+          <div class="condition-label">{{parentRuleSet.condition}}</div>
+        }
+        <app-search-parameter [(ngModel)]="rule.field" [resourceType]="parentRuleSet.resourceType"
+          (ngModelChange)="onChangeSearchParameter($event, parentRuleSet)"
+          [observationDataType]="selectedCodesData.get(parentRuleSet)?.dataType"
+          [observationUnits]="selectedCodesData.get(parentRuleSet)?.observationUnits"
+          [observationLoincCodes]="selectedCodesData.get(parentRuleSet)?.loincCodes"
+          [selectedSearchParameterNames]="selectedSearchParameterNamesMap.get(parentRuleSet)">
+        </app-search-parameter>
+      </ng-container>
+      <ng-container *queryOperator="let rule; let operators=operators; let onChange=onChange">
+      </ng-container>
+      <ng-container *queryInput="let rule; type: 'search-parameter'; let getDisabledState=getDisabledState">
+      </ng-container>
+    </query-builder>

@@ -1,2 +1,6 @@
-<p *ngIf="!error">Loading...</p>
-<p *ngIf="error">{{error}}</p>
+@if (!error) {
+  <p>Loading...</p>
+}
+@if (error) {
+  <p>{{error}}</p>
+}

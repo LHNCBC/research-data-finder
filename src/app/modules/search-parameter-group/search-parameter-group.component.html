@@ -1,36 +1,48 @@
-<mat-form-field class='resource-type' *ngIf='!inputResourceType && !resourceType.disabled'>
-  <mat-label>Record type</mat-label>
-  <input type='text' #resourceTypeInput
-         aria-label='Record type'
-         matInput
-         [formControl]='resourceType'
-         tabToSelect
-         [matAutocomplete]='autocomplete'>
-  <mat-autocomplete #autocomplete='matAutocomplete' panelWidth='auto'>
-    <mat-option *ngFor='let option of filteredResourceTypes | async' [value]='option'>
-      {{option}}
-    </mat-option>
-  </mat-autocomplete>
-</mat-form-field>
-<p *ngIf='!inputResourceType && resourceType.disabled' class='resource-type-label'>{{resourceType.value}}</p>
+@if (!inputResourceType && !resourceType.disabled) {
+  <mat-form-field class='resource-type'>
+    <mat-label>Record type</mat-label>
+    <input type='text' #resourceTypeInput
+      aria-label='Record type'
+      matInput
+      [formControl]='resourceType'
+      tabToSelect
+      [matAutocomplete]='autocomplete'>
+    <mat-autocomplete #autocomplete='matAutocomplete' panelWidth='auto'>
+      @for (option of filteredResourceTypes | async; track option) {
+        <mat-option [value]='option'>
+          {{option}}
+        </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+}
+@if (!inputResourceType && resourceType.disabled) {
+  <p class='resource-type-label'>{{resourceType.value}}</p>
+}
 
-<div *ngFor='let item of parameterList.controls' class='search-parameter-row'>
-  <button *ngIf='allowAddRemoveButtons' type='button' mat-icon-button aria-label='Remove search parameter'
-          (click)='removeParameter(item)'>
-    <mat-icon svgIcon='clear'></mat-icon>
-  </button>
-  <app-search-parameter
+@for (item of parameterList.controls; track item) {
+  <div class='search-parameter-row'>
+    @if (allowAddRemoveButtons) {
+      <button type='button' mat-icon-button aria-label='Remove search parameter'
+        (click)='removeParameter(item)'>
+        <mat-icon svgIcon='clear'></mat-icon>
+      </button>
+    }
+    <app-search-parameter
       [formControl]="item"
       [selectedSearchParameterNames]="selectedSearchParameterNames"
       [resourceType]="resourceType.value"
-      [isPullData]="!allowAddRemoveButtons"></app-search-parameter>
-</div>
+    [isPullData]="!allowAddRemoveButtons"></app-search-parameter>
+  </div>
+}
 
-<button *ngIf="allowAddRemoveButtons && resourceType.disabled && maxNumberOfSearchParameters > parameterList.controls.length"
-        id='addSearchCriterion'
-        type='button'
-        (click)='addParameter()'
-        mat-stroked-button>
-  <mat-icon svgIcon='add'></mat-icon>
-  Add {{resourceType.value}} criterion
-</button>
+@if (allowAddRemoveButtons && resourceType.disabled && maxNumberOfSearchParameters > parameterList.controls.length) {
+  <button
+    id='addSearchCriterion'
+    type='button'
+    (click)='addParameter()'
+    mat-stroked-button>
+    <mat-icon svgIcon='add'></mat-icon>
+    Add {{resourceType.value}} criterion
+  </button>
+}

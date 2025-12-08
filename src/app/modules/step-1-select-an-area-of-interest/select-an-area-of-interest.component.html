@@ -12,16 +12,17 @@
     <mat-radio-button [value]="SelectOptions.showAllStudies">Show all research studies</mat-radio-button>
   </mat-radio-group>
 
-  <div class="v-box" *ngIf="showTable">
-    <div class="spacer"></div>
-
-    <app-resource-table #resourceTableComponent
+  @if (showTable) {
+    <div class="v-box">
+      <div class="spacer"></div>
+      <app-resource-table #resourceTableComponent
         [columnDescriptions]="columnDescriptions.getVisibleColumns('ResearchStudy') | async"
         [enableFiltering]="true" [enableSelection]="true"
         [loading]="researchStudy.currentState.loading"
         [resources]="researchStudyStream | async" [myStudyIds]='researchStudy.currentState.myStudyIds'
         [progressValue]="researchStudy.currentState.progressValue"
         checkboxTooltipText="Select this research study to pull data in the next step"
-        resourceType="ResearchStudy"></app-resource-table>
-  </div>
+      resourceType="ResearchStudy"></app-resource-table>
+    </div>
+  }
 </div>

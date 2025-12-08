@@ -1,11 +1,13 @@
 <input
-    type="text"
-    id="{{inputId}}"
-    class="mat-mdc-input-element mat-mdc-form-field-input-control mdc-text-field__input"
-    #input
-    [placeholder]="shouldLabelFloat ? placeholder : ''">
+  type="text"
+  id="{{inputId}}"
+  class="mat-mdc-input-element mat-mdc-form-field-input-control mdc-text-field__input"
+  #input
+  [placeholder]="shouldLabelFloat ? placeholder : ''">
 <mat-spinner [diameter]="30"></mat-spinner>
-<mat-checkbox id="smartOnFhir" *ngIf="fhirBackend.isSmartOnFhirEnabled"
-              [ngModel]="fhirBackend.isSmartOnFhir" (change)="onSmartOnFhirClick($event.checked)">
-  connect with SMART on FHIR
-</mat-checkbox>
+@if (fhirBackend.isSmartOnFhirEnabled) {
+  <mat-checkbox id="smartOnFhir"
+    [ngModel]="fhirBackend.isSmartOnFhir" (change)="onSmartOnFhirClick($event.checked)">
+    connect with SMART on FHIR
+  </mat-checkbox>
+}

@@ -1,13 +1,15 @@
 <div class="custom-dialog" cdkTrapFocus [cdkTrapFocusAutoCapture]="true"
-     role="dialog" aria-modal="true" [attr.aria-labelledby]="dialogRef.titleId">
-  <ng-container [ngSwitch]="renderMethod">
-    <div *ngSwitchCase="'text'" [innerHTML]="content"></div>
-    <ng-container *ngSwitchCase="'template'">
+  role="dialog" aria-modal="true" [attr.aria-labelledby]="dialogRef.titleId">
+  @switch (renderMethod) {
+    @case ('text') {
+      <div [innerHTML]="content"></div>
+    }
+    @case ('template') {
       <ng-container
-          *ngTemplateOutlet="content; context: context"></ng-container>
-    </ng-container>
-    <ng-container *ngSwitchCase="'component'">
+      *ngTemplateOutlet="content; context: context"></ng-container>
+    }
+    @case ('component') {
       <ng-container *ngComponentOutlet="content"></ng-container>
-    </ng-container>
-  </ng-container>
+    }
+  }
 </div>
