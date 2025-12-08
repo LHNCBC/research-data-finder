@@ -1,8 +1,8 @@
 import { Component, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { ResourceTableComponent } from './resource-table/resource-table.component';
+import {
+  ResourceTableComponent
+} from './resource-table/resource-table.component';
 import { MatTabGroup } from '@angular/material/tabs';
-import { getPluralFormOfResourceType } from '../shared/utils';
-import { saveAs } from 'file-saver';
 
 /**
  * Base class for components which has a list of ResourceTableComponent as children.
@@ -34,9 +34,18 @@ export abstract class ResourceTableParentComponent {
     const currentResourceTable = this.tables.find(
       (resourceTable) => resourceTable.resourceType === currentResourceType
     );
-    saveAs(
-      currentResourceTable.getBlob(),
-      getPluralFormOfResourceType(currentResourceType).toLowerCase() + '.csv'
-    );
+    currentResourceTable.downloadCsv();
   }
+
+  /**
+   * Initiates downloading of resourceTable data in JSON format.
+   */
+  downloadJson(): void {
+    const currentResourceType = this.getCurrentResourceType();
+    const currentResourceTable = this.tables.find(
+      (resourceTable) => resourceTable.resourceType === currentResourceType
+    );
+    currentResourceTable.downloadJson();
+  }
+
 }

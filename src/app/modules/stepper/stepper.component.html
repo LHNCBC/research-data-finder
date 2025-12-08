@@ -129,7 +129,7 @@
         <button mat-stroked-button (click)="browseRecordsPageComponent.downloadCsv()"
                 [disabled]="!selectRecord.getHasLoadedData(browseRecordsPageComponent.currentResourceType$ | async)">
           <mat-icon svgIcon="file_download"></mat-icon>
-          Download (in CSV format)
+          Download table data (CSV)
         </button>
       </div>
     </div>
@@ -217,11 +217,33 @@
           Configure table
         </button>
         <div class="spacer"></div>
-        <button mat-stroked-button (click)="pullDataPageComponent.downloadCsv()"
-                [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
-          <mat-icon svgIcon="file_download"></mat-icon>
-          Download (in CSV format)
-        </button>
+
+        @if ( pullDataPageComponent.isVariablePatientTable &&
+              (pullDataPageComponent.currentResourceType$ | async) === 'Observation' ) {
+          <button mat-stroked-button (click)="pullDataPageComponent.downloadCsv()"
+                  [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
+            <mat-icon svgIcon="file_download"></mat-icon>
+            Download table data (CSV)
+          </button>
+        } @else {
+          <button mat-stroked-button
+                  [matMenuTriggerFor]="menu"
+                  [disabled]="!pullData.getHasLoadedData(pullDataPageComponent.currentResourceType$ | async)">
+            <mat-icon svgIcon="file_download"></mat-icon>
+            Download
+          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item
+                    (click)="pullDataPageComponent.downloadJson()">
+              <span>Download FHIR resources (JSON)</span>
+            </button>
+            <button mat-menu-item
+                    (click)="pullDataPageComponent.downloadCsv()">
+              <span>Download table data (CSV)</span>
+            </button>
+          </mat-menu>
+        }
+
         <div class="spacer"></div>
       </div>
     </div>

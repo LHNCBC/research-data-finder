@@ -1,0 +1,30 @@
+<h2 mat-dialog-title class="dialog-title"
+    cdkDrag cdkDragRootElement=".cdk-overlay-pane"
+    cdkDragBoundary=".cdk-overlay-container"
+    cdkDragHandle>
+  <span class="dialog-title-text">{{title}}</span>
+  <span class="dialog-title-actions">
+    <button mat-icon-button
+            aria-label="Open in a new window"
+            matTooltip="Open in a new window"
+            (click)="openInNewWindow()">
+      <mat-icon>open_in_new</mat-icon>
+    </button>
+    <button mat-icon-button
+            aria-label="Copy JSON to clipboard and close"
+            matTooltip="Copy JSON to clipboard and close"
+            (click)="copyAndClose()">
+      <mat-icon>content_copy</mat-icon>
+    </button>
+    <button mat-icon-button
+            aria-label="Close"
+            matTooltip="Close"
+            mat-dialog-close>
+      <mat-icon>close</mat-icon>
+    </button>
+  </span>
+</h2>
+
+<mat-dialog-content>
+  <pre><code class="language-json" [innerHTML]="jsonHtml"></code></pre>
+</mat-dialog-content>

@@ -11,13 +11,23 @@ import {
   ConnectionStatus,
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
-import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import {
+  ColumnDescriptionsService
+} from '../../shared/column-descriptions/column-descriptions.service';
 import { Subject, Subscription } from 'rxjs';
 import { saveAs } from 'file-saver';
-import { SelectAnAreaOfInterestComponent } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
-import { DefineCohortPageComponent } from '../step-2-define-cohort-page/define-cohort-page.component';
-import { ViewCohortPageComponent } from '../step-3-view-cohort-page/view-cohort-page.component';
-import { PullDataPageComponent } from '../step-4-pull-data-page/pull-data-page.component';
+import {
+  SelectAnAreaOfInterestComponent
+} from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
+import {
+  DefineCohortPageComponent
+} from '../step-2-define-cohort-page/define-cohort-page.component';
+import {
+  ViewCohortPageComponent
+} from '../step-3-view-cohort-page/view-cohort-page.component';
+import {
+  PullDataPageComponent
+} from '../step-4-pull-data-page/pull-data-page.component';
 import {
   CohortService,
   CreateCohortMode
@@ -26,16 +36,26 @@ import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import pkg from '../../../../package.json';
 import { findLast } from 'lodash-es';
 import { getUrlParam } from '../../shared/utils';
-import { SelectRecordsService } from '../../shared/select-records/select-records.service';
+import {
+  SelectRecordsService
+} from '../../shared/select-records/select-records.service';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
-import { SelectRecordsPageComponent } from '../select-records-page/select-records-page.component';
-import { SelectAnActionComponent } from '../select-an-action/select-an-action.component';
-import { SettingsPageComponent } from '../step-0-settings-page/settings-page.component';
-import Patient = fhir.Patient;
+import {
+  SelectRecordsPageComponent
+} from '../select-records-page/select-records-page.component';
+import {
+  SelectAnActionComponent
+} from '../select-an-action/select-an-action.component';
+import {
+  SettingsPageComponent
+} from '../step-0-settings-page/settings-page.component';
 import { first } from 'rxjs/operators';
 import { CartService } from '../../shared/cart/cart.service';
-import {MatDialog} from "@angular/material/dialog";
-import {AlertDialogComponent} from "../../shared/alert-dialog/alert-dialog.component";
+import { MatDialog } from '@angular/material/dialog';
+import {
+  AlertDialogComponent
+} from '../../shared/alert-dialog/alert-dialog.component';
+import Patient = fhir.Patient;
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next
@@ -68,7 +88,14 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('selectAnActionStep') set _selectAnActionStep(step: MatStep) {
     this.selectAnActionStep = step;
     if (step) {
-      step.completed = false;
+      if (this.selectAnActionComponent?.createCohortMode) {
+        // This is necessary in case this setter is run after the subscriber
+        // from the _selectAnActionComponent setter.
+        const value = this.selectAnActionComponent.createCohortMode.value;
+        step.completed = !this.isRasLoginRequired(value);
+      } else {
+        step.completed = false;
+      }
     }
   }
   selectAnActionStep: MatStep;

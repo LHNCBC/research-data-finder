@@ -7,9 +7,13 @@ import { ColumnDescription } from '../../types/column.description';
 import { By } from '@angular/platform-browser';
 import { CdkScrollable } from '@angular/cdk/overlay';
 import { DebugElement, SimpleChange, SimpleChanges } from '@angular/core';
-import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
+import {
+  ColumnDescriptionsService
+} from '../../shared/column-descriptions/column-descriptions.service';
 import { SharedModule } from '../../shared/shared.module';
-import { SettingsService } from '../../shared/settings-service/settings.service';
+import {
+  SettingsService
+} from '../../shared/settings-service/settings.service';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import {
@@ -18,6 +22,8 @@ import {
 } from '../../shared/fhir-backend/fhir-backend.service';
 import fhirpath from 'fhirpath';
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
+import createSpyObj = jasmine.createSpyObj;
+import { ToastrModule } from 'ngx-toastr';
 
 class Page {
   private fixture: ComponentFixture<ResourceTableComponent>;
@@ -99,13 +105,13 @@ describe('ResourceTableComponent', () => {
   };
 
   const spies = {
-    HttpClient: jasmine.createSpyObj('HttpClient', ['get']),
-    ColumnDescriptionsService: jasmine.createSpyObj(
+    HttpClient: createSpyObj('HttpClient', ['get']),
+    ColumnDescriptionsService: createSpyObj(
       'ColumnDescriptionsService',
       ['getAvailableColumns', 'setVisibleColumnNames', 'setColumnsWithData']
     ),
-    SettingsService: jasmine.createSpyObj('SettingsService', ['get']),
-    FhirBackendService: jasmine.createSpyObj(
+    SettingsService: createSpyObj('SettingsService', ['get']),
+    FhirBackendService: createSpyObj(
       'FhirBackendService',
       ['getEvaluator'],
       {
@@ -214,7 +220,8 @@ describe('ResourceTableComponent', () => {
         ResourceTableModule,
         SharedModule,
         MatIconTestingModule,
-        NoopAnimationsModule
+        NoopAnimationsModule,
+        ToastrModule.forRoot()
       ],
       providers: [
         { provide: HttpClient, useValue: spies.HttpClient },
@@ -356,11 +363,23 @@ describe('ResourceTableComponent', () => {
   it('should split column of values into columns of values and units in export', async () => {
     fillTableWithObservationResources(observationColumns);
     expect(component.dataSource.filteredData.length).toEqual(50);
-    const csvText = (await component.getBlob().text()).split('\n');
+    const csvText = (await component.getCsvBlob().text()).split('\n');
     expect(csvText.length).toBe(51);
     expect(csvText[0]).toBe('Id,Value,Unit');
     for (let i = 0; i < 50; i++) {
       expect(csvText[i + 1]).toBe([i, i, 'ug/mL'].join(','));
     }
   });
+
+  it('should allow exporting the bundle of resources in JSON format', async () => {
+    fillTableWithObservationResources(observationColumns);
+    expect(component.dataSource.filteredData.length).toEqual(50);
+    const obj = JSON.parse(await component.getJsonBlob().text());
+    expect(obj.resourceType).toBe('Bundle');
+    expect(obj.entry.length).toBe(50);
+    for (let i = 0; i < 50; i++) {
+      expect(obj.entry[i].resource.id).toBe(i.toString());
+    }
+  });
+
 });

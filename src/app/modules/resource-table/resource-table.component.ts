@@ -1,4 +1,6 @@
 import {
+  AfterContentInit,
+  booleanAttribute,
   Component,
   ContentChild,
   EventEmitter,
@@ -24,31 +26,48 @@ import { ColumnDescription } from '../../types/column.description';
 import { distinctUntilChanged, sample, tap } from 'rxjs/operators';
 import {
   dispatchWindowResize,
+  escapeHtml,
   escapeStringForRegExp,
-  getPluralFormOfRecordName, getPluralFormOfResourceType
+  getPluralFormOfRecordName,
+  getPluralFormOfResourceType
 } from '../../shared/utils';
-import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import { ColumnValuesService } from '../../shared/column-values/column-values.service';
+import {
+  ColumnDescriptionsService
+} from '../../shared/column-descriptions/column-descriptions.service';
+import {
+  ColumnValuesService
+} from '../../shared/column-values/column-values.service';
 import { BehaviorSubject, interval, Observable, Subscription } from 'rxjs';
 import {
   TableItemSizeDirective,
   TableVirtualScrollDataSource
 } from 'ng-table-virtual-scroll';
-import { SettingsService } from '../../shared/settings-service/settings.service';
+import {
+  SettingsService
+} from '../../shared/settings-service/settings.service';
 import { Sort } from '@angular/material/sort';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { FhirBackendService } from '../../shared/fhir-backend/fhir-backend.service';
-import { ResourceTableFilterComponent } from '../resource-table-filter/resource-table-filter.component';
+import {
+  FhirBackendService
+} from '../../shared/fhir-backend/fhir-backend.service';
+import {
+  ResourceTableFilterComponent
+} from '../resource-table-filter/resource-table-filter.component';
 import { FilterType } from '../../types/filter-type';
 import { CustomDialog } from '../../shared/custom-dialog/custom-dialog.service';
-import Resource = fhir.Resource;
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { isEqual, pickBy } from 'lodash-es';
+import { isEqual, omit, pickBy } from 'lodash-es';
 import { saveAs } from 'file-saver';
-import Observation = fhir.Observation;
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
+import Resource = fhir.Resource;
+import Observation = fhir.Observation;
+import {
+  FhirResourceContentComponent
+} from './fhir-resource-content/fhir-resource-content.component';
+import { MatDialog } from '@angular/material/dialog';
+import { ScrollStrategyOptions } from '@angular/cdk/overlay';
 
 type TableCells = { [key: string]: string };
 
@@ -66,7 +85,7 @@ export interface TableRow {
   templateUrl: './resource-table.component.html',
   styleUrls: ['./resource-table.component.less']
 })
-export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
+export class ResourceTableComponent implements OnInit, AfterContentInit, OnChanges, OnDestroy {
   constructor(
     public fhirBackend: FhirBackendService,
     public rasToken: RasTokenService,
@@ -76,7 +95,9 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
     private columnValuesService: ColumnValuesService,
     private settings: SettingsService,
     private liveAnnouncer: LiveAnnouncer,
-    private dialog: CustomDialog
+    private dialog: CustomDialog,
+    private matDialog: MatDialog,
+    private scrollStrategyOptions: ScrollStrategyOptions
   ) {
     this.listFilterColumns = settings.get('listFilterColumns') || [];
 
@@ -200,7 +221,7 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() resources: Resource[];
   @Input() total: number;
 
-  // Used to get notifications from outside of the component about
+  // Used to get notifications from outside the component about
   // starting/stopping of the loading process.
   @Input('loading') isLoading: boolean;
 
@@ -268,6 +289,17 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   continuouslyLoading = false;
   // A timeout for reading "loading finished" message.
   continuouslyLoadingTimeout: any;
+
+  /**
+   * The number of row actions available in the resource table.
+   */
+  numberOfRowActions = 0;
+  /**
+   * Enables or disables the JSON popup feature for table rows.
+   * When set to true, an action is available to show a resource as formatted
+   * JSON.
+   */
+  @Input({ transform: booleanAttribute }) enableJsonPopup = false;
 
   /**
    * Whether it's a valid click event in accessibility sense.
@@ -342,6 +374,12 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnInit(): void {}
+
+  ngAfterContentInit() {
+    if (this.rowActionTemplate) {
+      this.numberOfRowActions += 1;
+    }
+  }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
@@ -482,6 +520,16 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
           '.cdk-keyboard-focused .mat-sort-header-container'
         )
       );
+    }
+
+    if (changes['enableJsonPopup']) {
+      if (changes['enableJsonPopup'].firstChange) {
+        if (changes['enableJsonPopup'].currentValue) {
+          this.numberOfRowActions += 1;
+        }
+      } else {
+        this.numberOfRowActions = changes['enableJsonPopup'].currentValue? +1 : -1;
+      }
     }
   }
 
@@ -712,9 +760,10 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Creates Blob for download table
+   * Creates Blob for download table in CSV format.
+   * @return Blob - CSV Blob
    */
-  getBlob(): Blob {
+  getCsvBlob(): Blob {
     const columnDescriptions = this.columnDescriptions;
     const header = columnDescriptions
       .map((columnDescription) => {
@@ -769,6 +818,47 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
       type: 'text/plain;charset=utf-8',
       endings: 'native'
     });
+  }
+
+  /**
+   * Creates Blob for download table in JSON format.
+   * @return Blob - JSON Blob
+   */
+  getJsonBlob(): Blob {
+    const rowsToDownload = this.enableFiltering
+      ? this.dataSource.filteredData
+      : this.dataSource.data;
+    const bundle: fhir.Bundle = {
+      resourceType: 'Bundle',
+      type: 'collection',
+      total: rowsToDownload.length,
+      entry: rowsToDownload.map((row) => ({
+        resource: omit(row.resource, 'patientData')
+      }))
+    };
+    return new Blob([JSON.stringify(bundle, null, 2)], {
+      type: 'text/plain;charset=utf-8',
+      endings: 'native'
+    })
+  }
+
+  /**
+   * Opens a new dialog displaying the JSON representation of the given
+   * table row's resource.
+   *
+   * @param row - The table row whose resource should be displayed as formatted
+   *  JSON.
+   */
+  showFhirResource(row: TableRow): void {
+    this.matDialog.open(
+      FhirResourceContentComponent, {
+        hasBackdrop: false,
+        panelClass: 'resizable-dialog-panel',
+        scrollStrategy: this.scrollStrategyOptions.reposition(),
+        data: {
+          resource: omit(row.resource, 'patientData')
+        }
+      });
   }
 
   /**
@@ -987,11 +1077,21 @@ export class ResourceTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Runs downloading the table row data in JSON format.
+   */
+  downloadJson() {
+    saveAs(
+      this.getJsonBlob(),
+      getPluralFormOfResourceType(this.resourceType).toLowerCase() + '.json'
+    );
+  }
+
+  /**
    * Runs downloading the table row data in CSV format.
    */
   downloadCsv() {
     saveAs(
-      this.getBlob(),
+      this.getCsvBlob(),
       getPluralFormOfResourceType(this.resourceType).toLowerCase() + '.csv'
     );
   }

@@ -51,14 +51,35 @@
     <ng-container *ngTemplateOutlet="template; context: templateContext"></ng-container>
   </ng-container>
 
-  <button mat-mini-fab
-          color="basic"
-          [disabled]="loading || !(enableFiltering ? dataSource.filteredData : dataSource.data).length"
-          (click)="downloadCsv()"
-          aria-label="Download (in CSV format)"
-          matTooltip="Download (in CSV format)">
-    <mat-icon svgIcon="file_download"></mat-icon>
-  </button>
+  @if (enableJsonPopup) {
+    <button mat-mini-fab
+            color="basic"
+            [disabled]="loading || !(enableFiltering ? dataSource.filteredData : dataSource.data).length"
+            [matMenuTriggerFor]="menu"
+            aria-label="Download"
+            matTooltip="Download">
+      <mat-icon svgIcon="file_download"></mat-icon>
+    </button>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item
+              (click)="downloadJson()">
+        <span>Download FHIR resources (JSON)</span>
+      </button>
+      <button mat-menu-item
+              (click)="downloadCsv()">
+        <span>Download table data (CSV)</span>
+      </button>
+    </mat-menu>
+  } @else {
+    <button mat-mini-fab
+            color="basic"
+            [disabled]="loading || !(enableFiltering ? dataSource.filteredData : dataSource.data).length"
+            (click)="downloadCsv()"
+            aria-label="Download table data (CSV)"
+            matTooltip="Download table data (CSV)">
+      <mat-icon svgIcon="file_download"></mat-icon>
+    </button>
+  }
 
   <button mat-mini-fab
           color="basic"
@@ -124,7 +145,7 @@
                     [matColumnDef]="column.element">
         <ng-container *ngIf="isSortable(column); else noSort">
           <th mat-header-cell *matHeaderCellDef [attr.role]="'none'">
-            <div class="header-container header-container_sort" [class.col-with-action]="i === 0 && rowActionTemplate">
+            <div [class]="'header-container header-container_sort' + (i === 0 && numberOfRowActions ? ' col-with-action-' + numberOfRowActions : '')">
               <span mat-sort-header
                     arrowPosition="before"
                     aria-label=""
@@ -160,7 +181,7 @@
         </ng-container>
         <ng-template #noSort>
           <th mat-header-cell *matHeaderCellDef [attr.role]="'none'">
-            <div class="header-container header-container_no-sort" [class.col-with-action]="i === 0 && rowActionTemplate">
+            <div [class]="'header-container header-container_no-sort' + (i === 0 && numberOfRowActions ? ' col-with-action-' + numberOfRowActions : '')">
               <span role="columnheader">
                 {{column.displayName}}
               </span>
@@ -193,9 +214,20 @@
 
         <td mat-cell *matCellDef="let row">
           <div class="h-box">
-            <ng-container *ngIf="i === 0 && rowActionTemplate as template">
-              <ng-container
-                  *ngTemplateOutlet="template; context: {templateContext, row}"></ng-container>
+            <ng-container *ngIf="i === 0">
+              <ng-container *ngIf="rowActionTemplate as template">
+                <ng-container
+                    *ngTemplateOutlet="template; context: {templateContext, row}"></ng-container>
+              </ng-container>
+
+              <button
+                  *ngIf="enableJsonPopup"
+                  type="button"
+                  mat-mini-fab class="mini-fab-32" color="basic"
+                  (click)="showFhirResource(row)"
+                  matTooltip="Show FHIR resource (JSON)">
+                <mat-icon class="material-icons">article</mat-icon>
+              </button>
             </ng-container>
             <app-ellipsis-text
                 [text]="row.cells[column.element]"

@@ -15,7 +15,7 @@ Composition,,,,,,,
 ,relatesTo,column,"Relates To",hide,BackboneElement,,"Relationships to other compositions/documents"
 ,section,"search parameter",section,show,CodeableConcept,,"Classification of section (recommended)"
 ,section-1-title,column,"Section 1 Title",show,string,section[0].title,"Label for section 1"
-,section-1-text,column,"Section 1 Text",show,string,section[0].text.`div`,"Text summary of section 1, for human interpretation"
+,section-1-text,column,"Section 1 Text",show,string,"section[0].text.`div`.select(iif(matches('^(<\\?xml [^>]*>|)<div( [^>]*|)>(.*)</div>$'), replaceMatches('^(<\\?xml [^>]*>|)<div( [^>]*|)>(.*)</div>$', '$3'), $this))","Text summary of section 1, for human interpretation"
 ,status,"search parameter",status,show,code,,"preliminary | final | amended | entered-in-error"
 ,status,column,Status,show,code,,"preliminary | final | amended | entered-in-error"
 ,subject,column,Subject,show,Reference,,"Who and/or what the composition is about"
