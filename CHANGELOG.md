@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.6.1] - 2025-12-08
+### Changed
+- Updated Angular and Angular Material to version 20.
+
 ## [7.6.0] - 2025-11-21
 ### Added
 - The ability to display and download raw FHIR resources in the Pull Data step.
