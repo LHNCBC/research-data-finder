@@ -57,7 +57,7 @@
   </mat-accordion>
 }
 
-@if (this.dataSource.data.length > 0 || context === 'browse' || context === 'select') {
+@if (dataSource.data.length > 0 || context === 'browse' || context === 'select') {
   <div class="container">
     <div class="buttons-container">
       @if (buttonPrefixTemplate; as template) {
@@ -137,7 +137,7 @@
               <button type="button" mat-icon-button
                 class="clear-btn"
                 (click)="clearSelection()"
-                [disabled]="!this.selectedResources.selected.length"
+                [disabled]="!selectedResources.selected.length"
                 matTooltip="Clear selection">
                 <mat-icon svgIcon="remove_done_black"></mat-icon>
               </button>
