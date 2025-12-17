@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ViewCohortPageComponent } from './view-cohort-page.component';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { of } from 'rxjs';
 import {
   ResourceTableComponent
@@ -31,7 +31,6 @@ describe('ViewCohortComponent', () => {
         CommonModule,
         NoopAnimationsModule,
         MatExpansionModule,
-        HttpClientModule,
         MatDialogModule
       ],
       providers: [
@@ -42,7 +41,8 @@ describe('ViewCohortComponent', () => {
             getVisibleColumns: () => of([]),
             destroy: () => {}
           }
-        }
+        },
+        provideHttpClient(withInterceptorsFromDi())
       ]
     }).compileComponents();
   });

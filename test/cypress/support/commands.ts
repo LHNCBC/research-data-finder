@@ -108,13 +108,12 @@ Cypress.Commands.add('clickLabel', (containedText) => {
 });
 
 Cypress.Commands.add('selectStep', (name) => {
-  return cy.get(`.mat-step-header[ng-reflect-label="${name}"]`).click();
+  return cy.contains('.mat-step-header .mat-step-text-label', name).click();
 });
 
 Cypress.Commands.add('isStepSelected', (name) => {
-  return cy.get(
-    `.mat-step-header[ng-reflect-label="${name}"][ng-reflect-selected="true"]`
-  ).should('exist');
+  return cy.get('.mat-step-header .mat-step-label-selected .mat-step-text-label')
+    .should('have.text', name);
 });
 
 Cypress.Commands.add('checkStepCount', (num) => {

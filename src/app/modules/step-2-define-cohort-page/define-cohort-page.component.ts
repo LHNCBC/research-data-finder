@@ -32,11 +32,10 @@ import {LiveAnnouncer} from "@angular/cdk/a11y";
   templateUrl: './define-cohort-page.component.html',
   styleUrls: ['./define-cohort-page.component.less'],
   providers: [
-    ...createControlValueAccessorAndValidatorProviders(
-      DefineCohortPageComponent
-    ),
+    ...createControlValueAccessorAndValidatorProviders(DefineCohortPageComponent),
     ErrorManager
-  ]
+  ],
+  standalone: false
 })
 export class DefineCohortPageComponent
   extends BaseControlValueAccessorAndValidator<any>

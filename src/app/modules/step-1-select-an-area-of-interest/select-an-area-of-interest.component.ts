@@ -18,7 +18,8 @@ export enum SelectOptions {
 @Component({
   selector: 'app-select-an-area-of-interest',
   templateUrl: './select-an-area-of-interest.component.html',
-  styleUrls: ['./select-an-area-of-interest.component.less']
+  styleUrls: ['./select-an-area-of-interest.component.less'],
+  standalone: false
 })
 export class SelectAnAreaOfInterestComponent implements OnInit, OnDestroy {
   // Publish enum for template

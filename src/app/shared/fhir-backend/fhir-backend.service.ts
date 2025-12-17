@@ -2,15 +2,8 @@
  * This file contains a service used to handle HTTP requests to the FHIR server.
  */
 import { Injectable, Injector } from '@angular/core';
-import {
-  HttpBackend,
-  HttpContextToken,
-  HttpErrorResponse,
-  HttpEvent,
-  HttpRequest,
-  HttpResponse,
-  HttpXhrBackend
-} from '@angular/common/http';
+import { HttpBackend, HttpContextToken, HttpErrorResponse, HttpEvent,
+  HttpRequest, HttpResponse, HttpXhrBackend } from '@angular/common/http';
 import { BehaviorSubject, Observable, Observer, ReplaySubject } from 'rxjs';
 import {
   BASIC_AUTH_REQUIRED,

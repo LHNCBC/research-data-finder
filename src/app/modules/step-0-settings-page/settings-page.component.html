@@ -11,41 +11,53 @@
     <mat-form-field>
       <mat-label>FHIR server</mat-label>
       <app-fhir-server-select placeholder="URL" formControlName="serviceBaseUrl"></app-fhir-server-select>
-      <mat-hint *ngIf="fhirBackend.smartConnectionSuccess" align="end">
-        SMART on FHIR connection succeeded.
-      </mat-hint>
-      <mat-hint align="start" *ngIf="basicAuthSuccessMessage">
-        {{basicAuthSuccessMessage}}
-      </mat-hint>
-      <mat-hint align="start" *ngIf="!basicAuthSuccessMessage && !settingsFormGroup.controls['serviceBaseUrl'].errors">
-        See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
-        details.
-      </mat-hint>
-      <mat-error *ngFor="let error of getErrors()" [innerHTML]="errorMessages[error]"></mat-error>
+      @if (fhirBackend.smartConnectionSuccess) {
+        <mat-hint align="end">
+          SMART on FHIR connection succeeded.
+        </mat-hint>
+      }
+      @if (basicAuthSuccessMessage) {
+        <mat-hint align="start">
+          {{basicAuthSuccessMessage}}
+        </mat-hint>
+      }
+      @if (!basicAuthSuccessMessage && !settingsFormGroup.controls['serviceBaseUrl'].errors) {
+        <mat-hint align="start">
+          See <a target="_blank" rel="noopener noreferrer" href="https://www.hl7.org/fhir/http.html#root">FHIR REST API Service Base URL</a> for
+          details.
+        </mat-hint>
+      }
+      @for (error of getErrors(); track error) {
+        <mat-error [innerHTML]="errorMessages[error]"></mat-error>
+      }
     </mat-form-field>
     <div class="spacer"></div>
   } @else {
-    <p class="message message__connecting" *ngIf="(fhirBackend.initialized | async) === ConnectionStatus.Pending">
-      <mat-spinner [diameter]="24"></mat-spinner>
-      <span>
-        Connecting to the pre-selected FHIR server...
-      </span>
-    </p>
-    <p class="message message__ready" *ngIf="(fhirBackend.initialized | async) === ConnectionStatus.Ready">
-      <mat-icon svgIcon="check"></mat-icon>
-      <span>
-        Successfully connected to the data server.
-      </span>
-    </p>
+    @if ((fhirBackend.initialized | async) === ConnectionStatus.Pending) {
+      <p class="message message__connecting">
+        <mat-spinner [diameter]="24"></mat-spinner>
+        <span>
+          Connecting to the pre-selected FHIR server...
+        </span>
+      </p>
+    }
+    @if ((fhirBackend.initialized | async) === ConnectionStatus.Ready) {
+      <p class="message message__ready">
+        <mat-icon svgIcon="check"></mat-icon>
+        <span>
+          Successfully connected to the data server.
+        </span>
+      </p>
+    }
     @if(settingsFormGroup.controls['serviceBaseUrl'].errors) {
-      <ng-container *ngFor="let error of getErrors()">
+      @for (error of getErrors(); track error) {
         <p class="message message__error">
           <mat-icon svgIcon="cancel"></mat-icon>
           <span>
             {{errorMessagesWhenFocusOnServer[error] || errorMessages[error]}}
           </span>
         </p>
-      </ng-container>
+      }
     }
   }
 
@@ -61,40 +73,44 @@
         <mat-form-field subscriptSizing="dynamic">
           <mat-label>NCBI E-utilities API Key</mat-label>
           <input matInput placeholder="API Key" formControlName="apiKey"
-                 (change)="updateFhirBackendSetting('apiKey')">
+            (change)="updateFhirBackendSetting('apiKey')">
           <mat-hint align="start">See <a target="_blank" rel="noopener noreferrer"
-                                         href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/">New
-            API Keys for the E-utilities article</a> for details
-          </mat-hint>
-        </mat-form-field>
-        <div class="spacer"></div>
-        <div class="h-box" style="align-items: flex-start">
-          <mat-form-field class="number-field" *ngIf='fhirBackend.features.batch' subscriptSizing="dynamic">
+            href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/">New
+          API Keys for the E-utilities article</a> for details
+        </mat-hint>
+      </mat-form-field>
+      <div class="spacer"></div>
+      <div class="h-box" style="align-items: flex-start">
+        @if (fhirBackend.features.batch) {
+          <mat-form-field class="number-field" subscriptSizing="dynamic">
             <mat-label>Requests per batch</mat-label>
             <input matInput type="number" min="1" formControlName="maxRequestsPerBatch"
-                   (change)="updateFhirBackendSetting('maxRequestsPerBatch')">
+              (change)="updateFhirBackendSetting('maxRequestsPerBatch')">
             <mat-hint align="start">Combine the specified number of HTTP requests to the FHIR server into a batch
               request
             </mat-hint>
           </mat-form-field>
-          <div class="spacer" *ngIf='fhirBackend.features.batch'></div>
-          <mat-form-field class="number-field" subscriptSizing="dynamic">
-            <mat-label>Maximum active requests</mat-label>
-            <input matInput type="number" min="1" formControlName="maxActiveRequests"
-                   (change)="updateFhirBackendSetting('maxActiveRequests')">
-            <mat-hint align="start">The maximum number of HTTP requests that can be active at the same time</mat-hint>
-          </mat-form-field>
-        </div>
-
-        <div class="spacer"></div>
-        <div class="h-box center-items">
-          <mat-checkbox formControlName="cacheDisabled"
-                        (change)="updateFhirBackendSetting('cacheEnabled', !$event.checked)">Disable caching of HTTP requests to the FHIR server</mat-checkbox>
+        }
+        @if (fhirBackend.features.batch) {
           <div class="spacer"></div>
-          <button mat-stroked-button (click)="fhirBackend.clearCache()">Clear cache data</button>
-        </div>
+        }
+        <mat-form-field class="number-field" subscriptSizing="dynamic">
+          <mat-label>Maximum active requests</mat-label>
+          <input matInput type="number" min="1" formControlName="maxActiveRequests"
+            (change)="updateFhirBackendSetting('maxActiveRequests')">
+          <mat-hint align="start">The maximum number of HTTP requests that can be active at the same time</mat-hint>
+        </mat-form-field>
       </div>
-    </ng-template>
-  </mat-expansion-panel>
+
+      <div class="spacer"></div>
+      <div class="h-box center-items">
+        <mat-checkbox formControlName="cacheDisabled"
+        (change)="updateFhirBackendSetting('cacheEnabled', !$event.checked)">Disable caching of HTTP requests to the FHIR server</mat-checkbox>
+        <div class="spacer"></div>
+        <button mat-stroked-button (click)="fhirBackend.clearCache()">Clear cache data</button>
+      </div>
+    </div>
+  </ng-template>
+</mat-expansion-panel>
 
 </form>

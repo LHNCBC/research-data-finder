@@ -1,10 +1,7 @@
 import {TestBed} from '@angular/core/testing';
 import {CustomRxjsOperatorsService} from './custom-rxjs-operators.service';
-import {
-  HttpClientTestingModule,
-  HttpTestingController
-} from '@angular/common/http/testing';
-import {HttpClient, HttpContext} from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpClient, HttpContext, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import {CACHE_NAME, FhirBackendService} from '../fhir-backend/fhir-backend.service';
 
 // Resource bundle pages used to mock responses
@@ -44,9 +41,13 @@ describe('CustomRxjsOperatorsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [{provide: FhirBackendService, useValue: mockFhirBackend}]
-    });
+    imports: [],
+    providers: [
+      { provide: FhirBackendService, useValue: mockFhirBackend },
+      provideHttpClient(withInterceptorsFromDi()),
+      provideHttpClientTesting()
+    ]
+});
     service = TestBed.inject(CustomRxjsOperatorsService);
     mockHttp = TestBed.inject(HttpTestingController);
     http = TestBed.inject(HttpClient);

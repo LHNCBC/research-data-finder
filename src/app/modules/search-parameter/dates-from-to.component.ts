@@ -20,7 +20,8 @@ export interface DatesFromTo {
   selector: 'app-dates-from-to',
   templateUrl: './dates-from-to.component.html',
   styleUrls: ['./dates-from-to.component.less'],
-  providers: createControlValueAccessorProviders(DatesFromToComponent)
+  providers: createControlValueAccessorProviders(DatesFromToComponent),
+  standalone: false
 })
 export class DatesFromToComponent
   extends BaseControlValueAccessor<DatesFromTo>

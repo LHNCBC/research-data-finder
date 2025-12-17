@@ -8,7 +8,8 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-ellipsis-text',
   templateUrl: './ellipsis-text.component.html',
-  styleUrls: ['./ellipsis-text.component.less']
+  styleUrls: ['./ellipsis-text.component.less'],
+  standalone: false
 })
 export class EllipsisTextComponent {
   constructor() {}

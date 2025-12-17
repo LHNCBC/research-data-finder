@@ -7,7 +7,8 @@ import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
  */
 @Directive({
   // tslint:disable-next-line:directive-selector
-  selector: '[tabToSelect]'
+  selector: '[tabToSelect]',
+  standalone: false
 })
 export class TabToSelectDirective {
   observable: any;

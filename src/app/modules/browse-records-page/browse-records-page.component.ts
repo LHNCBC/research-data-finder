@@ -22,7 +22,8 @@ import { HttpContext } from '@angular/common/http';
 @Component({
   selector: 'app-browse-records-page',
   templateUrl: './browse-records-page.component.html',
-  styleUrls: ['./browse-records-page.component.less']
+  styleUrls: ['./browse-records-page.component.less'],
+  standalone: false
 })
 export class BrowseRecordsPageComponent
   extends ResourceTableParentComponent

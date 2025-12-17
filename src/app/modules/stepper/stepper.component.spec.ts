@@ -24,13 +24,14 @@ import { ColumnDescriptionsService } from '../../shared/column-descriptions/colu
 import { ColumnDescription } from '../../types/column.description';
 import { SelectOptions } from '../step-1-select-an-area-of-interest/select-an-area-of-interest.component';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { CreateCohortMode } from '../../shared/cohort/cohort.service';
 import { MatDialogModule } from "@angular/material/dialog";
 
 @Component({
   selector: 'app-select-an-area-of-interest',
-  template: ''
+  template: '',
+  standalone: false
 })
 // tslint:disable-next-line:component-class-suffix
 class SelectAnAreaOfInterestComponentStub {
@@ -41,7 +42,8 @@ class SelectAnAreaOfInterestComponentStub {
 
 @Component({
   selector: 'app-select-an-action',
-  template: ''
+  template: '',
+  standalone: false
 })
 // tslint:disable-next-line:component-class-suffix
 class SelectAnActionComponentStub {
@@ -50,7 +52,8 @@ class SelectAnActionComponentStub {
 
 @Component({
   selector: 'app-settings-page',
-  template: ''
+  template: '',
+  standalone: false
 })
 // tslint:disable-next-line:component-class-suffix
 class SettingsPageComponentStub {
@@ -59,7 +62,8 @@ class SettingsPageComponentStub {
 
 @Component({
   selector: 'app-define-cohort-page',
-  template: ''
+  template: '',
+  standalone: false
 })
 // tslint:disable-next-line:component-class-suffix
 class DefineCohortPageComponentStub {
@@ -90,7 +94,6 @@ describe('StepperComponent', () => {
       ],
       imports: [
         CommonModule,
-        HttpClientModule,
         MatStepperModule,
         MatButtonModule,
         NoopAnimationsModule,
@@ -114,7 +117,8 @@ describe('StepperComponent', () => {
           useValue: {
             getVisibleColumns: () => of([])
           }
-        }
+        },
+        provideHttpClient(withInterceptorsFromDi())
       ]
     }).compileComponents();
   });

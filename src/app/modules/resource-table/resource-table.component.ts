@@ -26,7 +26,6 @@ import { ColumnDescription } from '../../types/column.description';
 import { distinctUntilChanged, sample, tap } from 'rxjs/operators';
 import {
   dispatchWindowResize,
-  escapeHtml,
   escapeStringForRegExp,
   getPluralFormOfRecordName,
   getPluralFormOfResourceType
@@ -83,7 +82,8 @@ export interface TableRow {
 @Component({
   selector: 'app-resource-table',
   templateUrl: './resource-table.component.html',
-  styleUrls: ['./resource-table.component.less']
+  styleUrls: ['./resource-table.component.less'],
+  standalone: false
 })
 export class ResourceTableComponent implements OnInit, AfterContentInit, OnChanges, OnDestroy {
   constructor(

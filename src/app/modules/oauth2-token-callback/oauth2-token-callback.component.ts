@@ -6,7 +6,8 @@ import {getUrlParam} from "../../shared/utils";
 
 @Component({
   selector: 'app-oauth2-token-callback',
-  templateUrl: 'oauth2-token-callback.component.html'
+  templateUrl: 'oauth2-token-callback.component.html',
+  standalone: false
 })
 export class Oauth2TokenCallbackComponent implements OnInit {
   error = null;

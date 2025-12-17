@@ -58,7 +58,8 @@ const ANY_DATATYPE = 'any';
       provide: MatFormFieldControl,
       useExisting: ObservationCodeLookupComponent
     }
-  ]
+  ],
+  standalone: false
 })
 export class ObservationCodeLookupComponent
   extends BaseControlValueAccessor<SelectedObservationCodes>

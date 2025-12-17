@@ -8,10 +8,7 @@ import observationsForPat269 from './test-fixtures/obs-pat-269.json';
 import encountersForSmart880378 from './test-fixtures/encounter-smart-880378.json';
 import researchStudies from 'src/test/test-fixtures/research-studies.json';
 import { chunk } from 'lodash-es';
-import {
-  HttpClientTestingModule,
-  HttpTestingController
-} from '@angular/common/http/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { SearchParameterGroupComponent } from '../search-parameter-group/search-parameter-group.component';
 import { CohortService } from '../../shared/cohort/cohort.service';
@@ -64,7 +61,6 @@ describe('PullDataForCohortComponent', () => {
         imports: [
           PullDataPageModule,
           SharedModule,
-          HttpClientTestingModule,
           MatIconTestingModule
         ]
       },
@@ -264,7 +260,6 @@ describe('PullDataForCohortComponent', () => {
       imports: [
         PullDataPageModule,
         SharedModule,
-        HttpClientTestingModule,
         MatIconTestingModule
       ]
     });

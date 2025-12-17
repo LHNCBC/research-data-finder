@@ -31,7 +31,8 @@ const imports = [
       searchParameter="category"
     >
     </app-autocomplete-parameter-value>
-  </mat-form-field>`
+  </mat-form-field>`,
+  standalone: false
 })
 class TestHostComponent {
   @ViewChild(AutocompleteParameterValueComponent)
@@ -409,7 +410,8 @@ describe('AutoCompleteTestValueComponent', () => {
       [columnName]="rootPropertyName"
       [expression]="expression">
     </app-autocomplete-parameter-value>
-  </mat-form-field>`
+  </mat-form-field>`,
+  standalone: false
 })
 class TestHostComponent2 {
   @ViewChild(AutocompleteParameterValueComponent)

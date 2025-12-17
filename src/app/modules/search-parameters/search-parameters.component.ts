@@ -59,7 +59,8 @@ const OPERATOR_ADDING_MESSAGE =
       provide: ErrorStateMatcher,
       useExisting: ErrorManager
     }
-  ]
+  ],
+  standalone: false
 })
 export class SearchParametersComponent
   extends BaseControlValueAccessor<SearchParameter[]>

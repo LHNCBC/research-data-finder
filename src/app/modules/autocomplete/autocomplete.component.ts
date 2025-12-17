@@ -23,7 +23,8 @@ import { AutocompleteOption } from '../../types/autocompleteOption';
       provide: MatFormFieldControl,
       useExisting: AutocompleteComponent
     }
-  ]
+  ],
+  standalone: false
 })
 export class AutocompleteComponent
   extends BaseControlValueAccessor<string>

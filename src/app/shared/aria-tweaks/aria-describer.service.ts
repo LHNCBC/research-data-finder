@@ -6,10 +6,10 @@
  * The service source code and its description can be found here:
  * https://github.com/angular/components/blob/main/src/cdk/a11y/aria-describer/aria-describer.ts
  */
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, DOCUMENT } from '@angular/core';
 import { AriaDescriber } from '@angular/cdk/a11y';
 import { Platform } from '@angular/cdk/platform';
-import { DOCUMENT } from '@angular/common';
+
 
 @Injectable()
 export class AriaDescriberService extends AriaDescriber {

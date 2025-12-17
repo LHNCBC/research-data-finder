@@ -11,7 +11,8 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 @Component({
   selector: 'app-select-columns',
   templateUrl: './select-columns.component.html',
-  styleUrls: ['./select-columns.component.less']
+  styleUrls: ['./select-columns.component.less'],
+  standalone: false
 })
 export class SelectColumnsComponent {
   resourceType: string;

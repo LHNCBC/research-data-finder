@@ -8,7 +8,8 @@ import { ErrorManager } from './error-manager.service';
  */
 @Directive({
   // tslint:disable-next-line:directive-selector
-  selector: '[formControl],[formControlName],[ngModel]'
+  selector: '[formControl],[formControlName],[ngModel]',
+  standalone: false
 })
 export class FormControlCollectorDirective implements OnInit, OnDestroy {
   constructor(

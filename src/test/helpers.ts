@@ -13,8 +13,7 @@ import {
 } from '../app/shared/settings-service/settings.service';
 import { filter, take } from 'rxjs/operators';
 import {
-  HttpClientTestingModule,
-  HttpTestingController
+  HttpTestingController, provideHttpClientTesting
 } from '@angular/common/http/testing';
 import { HttpRequest } from '@angular/common/http';
 
@@ -41,8 +40,10 @@ export async function configureTestingModule(
   } = {}
 ): Promise<void> {
   moduleDef.imports = (moduleDef.imports || []).concat(
-    SharedModule,
-    HttpClientTestingModule
+    SharedModule
+  );
+  moduleDef.providers = (moduleDef.providers || []).concat(
+    provideHttpClientTesting()
   );
   await TestBed.configureTestingModule(moduleDef).compileComponents();
   spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);

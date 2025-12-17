@@ -10,11 +10,13 @@
   </p>
 
   <ul>
-    <li *ngFor="let x of (columns$ | async)">
-      <mat-checkbox [(ngModel)]="x.visible">
-        {{x.displayName}}
-      </mat-checkbox>
-    </li>
+    @for (x of (columns$ | async); track x) {
+      <li>
+        <mat-checkbox [(ngModel)]="x.visible">
+          {{x.displayName}}
+        </mat-checkbox>
+      </li>
+    }
   </ul>
 </mat-dialog-content>
 <hr />

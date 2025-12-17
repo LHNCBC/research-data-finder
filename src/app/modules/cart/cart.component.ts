@@ -32,7 +32,8 @@ type ListCells = { [key: string]: string };
   selector: 'app-cart',
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.less'],
-  host: { class: 'mat-elevation-z4' }
+  host: { class: 'mat-elevation-z4' },
+  standalone: false
 })
 export class CartComponent implements OnInit, OnChanges {
   constructor(

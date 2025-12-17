@@ -6,28 +6,29 @@
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
-@include mat.core();
+@include mat.elevation-classes();
+@include mat.app-background();
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
-$theme-primary: mat.define-palette(mat.$indigo-palette);
-$theme-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
+$theme-primary: mat.m2-define-palette(mat.$m2-indigo-palette);
+$theme-accent: mat.m2-define-palette(mat.$m2-pink-palette, A200, A100, A400);
 
 // The warn palette is optional (defaults to red).
-$theme-warn: mat.define-palette(mat.$red-palette);
+$theme-warn: mat.m2-define-palette(mat.$m2-red-palette);
 
 // Create the theme object. A theme consists of configurations for individual
 // theming systems such as "color" or "typography".
-$theme: mat.define-light-theme((
+$theme: mat.m2-define-light-theme((
         color: (
                 primary: $theme-primary,
                 accent: $theme-accent,
                 warn: $theme-warn,
         ),
-        typography: mat.define-typography-config(
+        typography: mat.m2-define-typography-config(
           $font-family: "Roboto,Helvetica Neue,sans-serif",
-          $button: mat.define-typography-level(
+          $button: mat.m2-define-typography-level(
             $font-size: 16px,
             $line-height: 1,
             $letter-spacing: normal

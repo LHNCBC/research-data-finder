@@ -58,7 +58,6 @@ import {
   ElementRef,
   forwardRef,
   HostBinding,
-  InjectFlags,
   Injector,
   Input,
   OnChanges,
@@ -87,7 +86,8 @@ export const VALIDATOR: any = {
   selector: 'query-builder',
   templateUrl: './query-builder.component.html',
   styleUrls: ['./query-builder.component.scss'],
-  providers: [CONTROL_VALUE_ACCESSOR, VALIDATOR]
+  providers: [CONTROL_VALUE_ACCESSOR, VALIDATOR],
+  standalone: false
 })
 export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, Validator {
   public fields: Field[];
@@ -231,7 +231,7 @@ export class QueryBuilderComponent implements OnChanges, ControlValueAccessor, V
    */
   updateValidity(): void {
     // tslint:disable-next-line:no-bitwise
-    const ngControl = this.injector.get(NgControl, null, InjectFlags.Self | InjectFlags.Optional);
+    const ngControl = this.injector.get(NgControl, null, { self: true, optional: true });
     let formControl: UntypedFormControl;
     if (ngControl instanceof FormControlName) {
       formControl = this.injector.get(FormGroupDirective)

@@ -10,7 +10,8 @@ import { MatTabGroup } from '@angular/material/tabs';
  */
 @Component({
   selector: 'app-resource-table-parent',
-  template: ''
+  template: '',
+  standalone: false
 })
 export abstract class ResourceTableParentComponent {
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;

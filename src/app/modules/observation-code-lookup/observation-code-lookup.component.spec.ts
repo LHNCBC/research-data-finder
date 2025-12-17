@@ -38,7 +38,8 @@ import { filter, take } from 'rxjs/operators';
           placeholder="Type and select one or more"
       >
       </app-observation-code-lookup>
-    </mat-form-field>`
+    </mat-form-field>`,
+  standalone: false
 })
 class TestHostComponent {
   @ViewChild(ObservationCodeLookupComponent)

@@ -9,7 +9,8 @@ export interface AlertData {
 
 @Component({
   selector: 'app-alert-dialog',
-  templateUrl: 'alert-dialog.component.html'
+  templateUrl: 'alert-dialog.component.html',
+  standalone: false
 })
 export class AlertDialogComponent {
   header: string;

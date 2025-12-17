@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { NgModule, inject, provideAppInitializer } from '@angular/core';
 import { AppComponent } from './app.component';
 import {
   MAT_FORM_FIELD_DEFAULT_OPTIONS,
@@ -70,12 +70,10 @@ function initializeApp(settingsService: SettingsService): () => Promise<any> {
       provide: MAT_TOOLTIP_DEFAULT_OPTIONS,
       useValue: myCustomTooltipDefaults
     },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeApp,
-      deps: [SettingsService],
-      multi: true
-    },
+    provideAppInitializer(() => {
+        const initializerFn = (initializeApp)(inject(SettingsService));
+        return initializerFn();
+      }),
     AriaDescriberService,
     {
       provide: AriaDescriber,

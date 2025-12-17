@@ -6,7 +6,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { getPluralFormOfRecordName } from '../utils';
 
 @Pipe({
-  name: 'pluralFormOfRecordName'
+  name: 'pluralFormOfRecordName',
+  standalone: false
 })
 export class PluralFormOfRecordNamePipe implements PipeTransform {
   /**

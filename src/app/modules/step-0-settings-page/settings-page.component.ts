@@ -44,7 +44,8 @@ export enum ServiceBaseUrlErrors {
 @Component({
   selector: 'app-settings-page',
   templateUrl: './settings-page.component.html',
-  styleUrls: ['./settings-page.component.less']
+  styleUrls: ['./settings-page.component.less'],
+  standalone: false
 })
 export class SettingsPageComponent implements OnDestroy {
   /**
