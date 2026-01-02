@@ -108,6 +108,7 @@ describe('Research Data Finder (baseR4)', () => {
     cy.get('#hiddenFileInput').attachFile('cohort-to-upload.json');
     cy.contains('Cohort of 4 Patient resources').should('exist');
     // Verify that 4 rows are loaded in table, same as in upload file.
+    cy.clickButton('table_rows_narrow');
     cy.get('table tbody tr').should('have.length', 4);
   });
 

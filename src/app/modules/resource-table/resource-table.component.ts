@@ -201,6 +201,10 @@ export class ResourceTableComponent implements OnInit, AfterContentInit, OnChang
   @ContentChild('buttonPrefix') buttonPrefixTemplate: TemplateRef<any>;
   @ContentChild('header') headerTemplate: TemplateRef<any>;
   @ContentChild('rowAction') rowActionTemplate: TemplateRef<any>;
+  // Template for the summary section.
+  @ContentChild('summary') summaryTemplate: TemplateRef<any>;
+  // If a summary section template is provided, show the summary section by default.
+  @Input() showSummary = true;
   get templateContext(): any {
     return {};
   }
@@ -1105,5 +1109,12 @@ export class ResourceTableComponent implements OnInit, AfterContentInit, OnChang
    */
   trackFn(index: number, row: TableRow) {
     return row.resource.id;
+  }
+
+  /**
+   * Whether the summary section is visible.
+   */
+  isSummaryVisible(): boolean {
+    return this.summaryTemplate != null && this.showSummary;
   }
 }

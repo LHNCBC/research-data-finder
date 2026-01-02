@@ -9,5 +9,11 @@
     resourceType="Patient"
     [loading]="cohort.currentState.loading"
     [resources]="cohort.patientStream | async"
-    [loadingStatistics]="cohort.loadingStatistics">
+    [loadingStatistics]="cohort.loadingStatistics"
+    [showSummary]="showByDefault">
+  @if (distributions.length) {
+    <ng-template #summary>
+      <app-cohort-summary [patients]="cohort.currentState.patients" [distributions]="distributions"></app-cohort-summary>
+    </ng-template>
+  }
 </app-resource-table>

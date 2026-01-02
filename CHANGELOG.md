@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.7.0] - 2026-01-02
+### Added
+- Summary information in the "View Cohort" step.
+
 ## [7.6.1] - 2025-12-08
 ### Changed
 - Updated Angular and Angular Material to version 20.

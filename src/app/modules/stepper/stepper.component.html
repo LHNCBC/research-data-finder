@@ -197,15 +197,17 @@
             Save the cohort and criteria for later
           </button>
           <div class="spacer"></div>
-          <button mat-stroked-button>
+          <button mat-stroked-button (click)="searchForPatients()">
             <mat-icon svgIcon="refresh"></mat-icon>
             Reload
           </button>
-          <div class="spacer"></div>
-          <button mat-stroked-button (click)="columnDescriptions.openColumnsDialog('Patient')">
-            <mat-icon svgIcon="create"></mat-icon>
-            Configure table
-          </button>
+          @if (!viewCohortComponent?.resourceTableComponent?.isSummaryVisible()) {
+            <div class="spacer"></div>
+            <button mat-stroked-button (click)="columnDescriptions.openColumnsDialog('Patient')">
+              <mat-icon svgIcon="create"></mat-icon>
+              Configure table
+            </button>
+          }
           <div class="spacer"></div>
           <button mat-stroked-button color="primary" matStepperNext>
             Pull data for the cohort

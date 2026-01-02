@@ -1,0 +1,24 @@
+:host {
+  height: 100%;
+  .summary {
+    height: 100%;
+  }
+}
+
+.summary {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+
+  app-distribution {
+    flex: 1 1;
+    display: flex;
+
+    &:first-child, ~ app-distribution {
+      margin-left: 10px;
+    }
+    &:last-child {
+      margin-right: 10px;
+    }
+  }
+}

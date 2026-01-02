@@ -1,0 +1,81 @@
+:host {
+  height: 100%;
+  .distribution-section {
+    height: 100%;
+    .distribution-items {
+      overflow: auto;
+    }
+  }
+}
+
+.distribution-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1;
+  min-width: 200px;
+
+  h3 {
+    margin: 5px 0;
+    border-bottom: 1px solid #ccc;
+  }
+
+  &:first-child, ~ .distribution-section {
+    margin-left: 10px;
+  }
+  &:last-child {
+    margin-right: 10px;
+  }
+  .item {
+    margin-bottom: 10px;
+    .item-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+
+      .label {
+        font-weight: bold;
+        color: #333;
+      }
+
+      .count {
+        color: #666;
+      }
+    }
+
+    .bar-container {
+      width: 100%;
+      height: 32px;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+
+      .bar {
+        height: 100%;
+        background-color: #4A90E2;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        transition: width 0.3s ease;
+        position: relative;
+        min-width: 2px; /* Show even tiny bars */
+
+        .bar-label {
+          color: white;
+          font-weight: bold;
+          font-size: 12px;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+          padding: 1px 6px 0px 6px;
+        }
+
+        &.small-bar .bar-label {
+          position: absolute;
+          left: 100%;
+          color: #666;
+          text-shadow: none;
+        }
+      }
+    }
+  }
+}
