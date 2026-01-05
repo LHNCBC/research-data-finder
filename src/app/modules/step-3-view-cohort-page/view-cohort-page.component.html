@@ -11,7 +11,7 @@
     [resources]="cohort.patientStream | async"
     [loadingStatistics]="cohort.loadingStatistics"
     [showSummary]="showByDefault">
-  @if (distributions.length) {
+  @if (distributions?.length) {
     <ng-template #summary>
       <app-cohort-summary [patients]="cohort.currentState.patients" [distributions]="distributions"></app-cohort-summary>
     </ng-template>

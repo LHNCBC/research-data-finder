@@ -21,13 +21,12 @@ describe('ViewCohortComponent', () => {
   let component: ViewCohortPageComponent;
   let fixture: ComponentFixture<ViewCohortPageComponent>;
   let settingsService: SettingsService;
-  let settingsOverrides: { [key: string]: any } = {};
 
   const spies = [];
   spies.push(jasmine.createSpyObj('HttpClient', ['get']));
   spies[0].get.and.returnValue(of({}));
 
-  beforeEach(async () => {
+  async function setupTest(settingsOverrides: { [key: string]: any } = {}) {
     await configureTestingModule(
       {
         declarations: [ViewCohortPageComponent, MockComponent(ResourceTableComponent)],
@@ -46,20 +45,19 @@ describe('ViewCohortComponent', () => {
       },
       { settingsOverrides }
     );
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ViewCohortPageComponent);
     settingsService = TestBed.inject(SettingsService);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  });
+  }
 
-  it('should create', () => {
+  it('should create', async () => {
+    await setupTest();
     expect(component).toBeTruthy();
   });
 
-  it('should load distribution configurations from settings', () => {
+  it('should load distribution configurations from settings', async () => {
     const mockDistributions: DistributionConfig[] = [
       {
         id: 'gender',
@@ -68,25 +66,28 @@ describe('ViewCohortComponent', () => {
       }
     ];
 
-    settingsOverrides['cohortSummary.showByDefault'] = true;
-    settingsOverrides['cohortSummary.distributions'] = mockDistributions;
+    const settingsOverrides = {
+      'cohortSummary.showByDefault': true,
+      'cohortSummary.distributions': mockDistributions
+    };
 
-    const newComponent = new ViewCohortPageComponent({} as any, {} as any, settingsService);
+    await setupTest(settingsOverrides);
 
-    expect(newComponent.showByDefault).toEqual(true);
-    expect(newComponent.distributions).toEqual(mockDistributions);
+    expect(component.showByDefault).toEqual(true);
+    expect(component.distributions).toEqual(mockDistributions);
     expect(settingsService.get).toHaveBeenCalledWith('cohortSummary.showByDefault');
     expect(settingsService.get).toHaveBeenCalledWith('cohortSummary.distributions');
   });
 
-  it('should handle missing distribution configuration', () => {
-    settingsOverrides['cohortSummary.showByDefault'] = false;
-    settingsOverrides['cohortSummary.distributions'] = undefined;
+  it('should handle missing distribution configuration', async () => {
+    const settingsOverrides = {
+      'cohortSummary.showByDefault': undefined,
+      'cohortSummary.distributions': undefined
+    };
 
-    const newComponent = new ViewCohortPageComponent({} as any, {} as any, settingsService);
+    await setupTest(settingsOverrides);
 
-    expect(newComponent.showByDefault).toEqual(false);
-    expect(newComponent.distributions).toBeUndefined();
+    expect(component.showByDefault).toEqual(false);
+    expect(component.distributions).toBeUndefined();
   });
 });
-
