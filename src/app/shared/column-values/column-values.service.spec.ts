@@ -208,6 +208,139 @@ describe('ColumnValuesService', () => {
       },
       type: 'Address',
       result: 'home: 83637 Fake AIRPORT BLVD, CUMBERLAND, MD, 21502, US'
+    },
+    {
+      value: 42,
+      type: 'unsignedInt',
+      result: '42'
+    },
+    {
+      value: 0,
+      type: 'unsignedInt',
+      result: '0'
+    },
+    {
+      value: -42,
+      type: 'integer',
+      result: '-42'
+    },
+    {
+      value: 0,
+      type: 'integer',
+      result: '0'
+    },
+    {
+      value: { value: 5 },
+      type: 'Count',
+      result: '5'
+    },
+    {
+      value: { value: 100, unit: 'items' },
+      type: 'Count',
+      result: '100 items'
+    },
+    // CodeableReference with reference
+    {
+      value: {
+        reference: {
+          reference: 'Patient/123',
+          display: 'John Doe'
+        }
+      },
+      type: 'CodeableReference',
+      result: 'John Doe'
+    },
+    // CodeableReference with concept
+    {
+      value: {
+        concept: {
+          coding: [
+            {
+              code: 'test-code',
+              display: 'Test Concept'
+            }
+          ]
+        }
+      },
+      type: 'CodeableReference',
+      fullPath: 'Observation.code',
+      result: 'Test Concept'
+    },
+    // Reference with identifier
+    {
+      value: {
+        identifier: {
+          system: 'http://example.org',
+          value: 'ID-12345'
+        }
+      },
+      type: 'Reference',
+      result: 'ID-12345'
+    },
+    // Reference with only reference field
+    {
+      value: {
+        reference: 'Practitioner/123'
+      },
+      type: 'Reference',
+      result: 'Practitioner/123'
+    },
+    // Period with only start
+    {
+      value: { start: '2024-01-01T00:00:00Z' },
+      type: 'Period',
+      result: '2024-01-01T00:00:00Z–'
+    },
+    // Period with only end
+    {
+      value: { end: '2024-12-31T23:59:59Z' },
+      type: 'Period',
+      result: '–2024-12-31T23:59:59Z'
+    },
+    // HumanName with middle initial
+    {
+      value: {
+        family: 'Smith',
+        given: ['John', 'Q']
+      },
+      type: 'HumanName',
+      result: 'John Q. Smith'
+    },
+    // HumanName with only first name
+    {
+      value: {
+        given: ['Jane']
+      },
+      type: 'HumanName',
+      result: 'Jane'
+    },
+    // HumanName with only last name
+    {
+      value: {
+        family: 'Doe'
+      },
+      type: 'HumanName',
+      result: 'Doe'
+    },
+    // Address without use
+    {
+      value: {
+        line: ['123 Main St'],
+        city: 'Springfield',
+        state: 'IL',
+        postalCode: '62701',
+        country: 'US'
+      },
+      type: 'Address',
+      result: '123 Main St, Springfield, IL, 62701, US'
+    },
+    // CodeableConcept with text field
+    {
+      value: {
+        text: 'Custom text value'
+      },
+      type: 'CodeableConcept',
+      result: 'Custom text value'
     }
   ].forEach(({ value, type, fullPath, result }) => {
     it(`should convert a value of ${type} to string`, () => {
@@ -302,6 +435,58 @@ describe('ColumnValuesService', () => {
         undefined
       )
     ).toEqual(['value1']);
+  });
+
+  // Edge cases and null handling
+  it('should return empty array for null value', () => {
+    expect(service.valueToStrings(null, 'string', {} as Resource,
+      {} as ColumnDescription, '')).toEqual([]);
+  });
+
+  it('should return empty array for empty array value', () => {
+    expect(service.valueToStrings([], 'string', {} as Resource,
+      {} as ColumnDescription, '')).toEqual([]);
+  });
+
+  it('should filter out empty strings from results', () => {
+    expect(service.valueToStrings([null, undefined], 'Period',
+      {} as Resource, {} as ColumnDescription, '')).toEqual([]);
+  });
+
+  it('should handle HumanName with empty values', () => {
+    expect(service.valueToStrings([{}], 'HumanName', {} as Resource,
+      {} as ColumnDescription, '')).toEqual([]);
+  });
+
+  it('should handle Quantity with null value', () => {
+    expect(service.valueToStrings([{ value: null }], 'Quantity',
+      {} as Resource, {} as ColumnDescription, '')).toEqual([]);
+  });
+
+  it('should handle Money with null value', () => {
+    expect(service.valueToStrings(
+      [{ value: null, currency: 'USD' }], 'Money', {} as Resource,
+      {} as ColumnDescription, '')).toEqual([]);
+  });
+
+  it('should handle Period with no start or end', () => {
+    expect(service.valueToStrings([{}], 'Period', {} as Resource,
+      {} as ColumnDescription, '')).toEqual([]);
+  });
+
+  it('should handle CodeableConcept with empty coding array', () => {
+    expect(service.valueToStrings([{ coding: [] }], 'CodeableConcept',
+      {} as Resource, {} as ColumnDescription, '')).toEqual([]);
+  });
+
+  it('should handle Reference with no display, reference, or identifier', () => {
+    expect(service.valueToStrings([{}], 'Reference', {} as Resource,
+      {} as ColumnDescription, '')).toEqual([]);
+  });
+
+  it('should handle CodeableReference with no reference or concept', () => {
+    expect(service.valueToStrings([{}], 'CodeableReference',
+      {} as Resource, {} as ColumnDescription, '')).toEqual([]);
   });
 });
 
