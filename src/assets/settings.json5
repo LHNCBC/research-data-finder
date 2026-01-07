@@ -59,7 +59,6 @@
           id: 'state',
           title: 'Top 10 States',
           fhirPathExpression: 'address.first().state',
-          excludeNull: true,
           maxItems: 10
         }
       ]
