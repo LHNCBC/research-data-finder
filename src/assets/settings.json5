@@ -58,7 +58,7 @@
         {
           id: 'state',
           title: 'Top 10 States',
-          fhirPathExpression: 'address.first().state',
+          fhirPathExpression: "defineVariable('homeAddress', address.where(use = 'home')).select(iif(%homeAddress.exists(), %homeAddress, address)).state.first()",
           maxItems: 10
         }
       ]
