@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.6.3] - 2026-01-14
+### Changed
+- Added the columns "Age" and "State" to the patient table.
+
 ## [7.6.2] - 2026-01-13
 ### Fixed
 - Updated dependencies to address vulnerabilities.
