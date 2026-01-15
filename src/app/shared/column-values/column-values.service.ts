@@ -185,6 +185,7 @@ export class ColumnValuesService {
       Quantity: this.getQuantityAsText,
       decimal: this.identity,
       unsignedInt: this.identity,
+      integer: this.identity,
       Money: this.getMoneyAsText,
       boolean: this.identity,
       instant: this.identity,
@@ -392,7 +393,7 @@ export class ColumnValuesService {
    * @param v - value of type "Period"
    */
   getPeriodAsText(v: Period): string {
-    if (v.start || v.end) {
+    if (v?.start || v?.end) {
       return `${v.start || ''}–${v.end || ''}`;
     } else {
       return null;
