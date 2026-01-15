@@ -181,7 +181,10 @@ tr.highlight {
   .mat-sort-header-position-before .mat-sort-header-arrow,
   [dir=rtl] .mat-sort-header-arrow {
     // MatTable shows sort order icons in reverse
-    transform: scale(1, -1) !important;
+    margin: 0 6px 0 6px;
+    svg {
+      transform: rotate(180deg);
+    }
   }
 }
 
