@@ -36,7 +36,8 @@
             female: '♀️ Female',
             other: '⚧️ Other',
             unknown: '❓ Unknown'
-          }
+          },
+          showAllLabels: true
         },
         {
           id: 'age-categories',

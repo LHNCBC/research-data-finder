@@ -97,6 +97,18 @@ export interface DistributionConfig {
   labelMap?: Record<string, string>;
 
   /**
+   * Whether to show all labels from labelMap, even those with zero counts
+   * @default false
+   */
+  showAllLabels?: boolean;
+
+  /**
+   * Label to display when there is no data
+   * @default 'No data available'
+   */
+  noDataLabel?: string;
+
+  /**
    * Optional prefix to add to all labels
    * Example: '📊 ' would turn 'Male' into '📊 Male'
    */
@@ -230,6 +242,7 @@ export class CohortSummaryComponent implements OnChanges {
   private calculateDistribution(config: DistributionConfig): DistributionItem[] {
     const valueMap = new Map<string, number>();
     const compiledExpression = this.fhirBackend.getEvaluator(config.fhirPathExpression);
+    const noDataLabel = config.noDataLabel || 'No data available';
 
     // Process each patient
     this.patients.forEach((patient) => {
@@ -254,7 +267,7 @@ export class CohortSummaryComponent implements OnChanges {
         }
 
         // Convert to string for consistent key handling
-        const key = String(value ?? 'Unknown');
+        const key = String(value ?? noDataLabel);
 
         // Increment count for this value
         valueMap.set(key, (valueMap.get(key) || 0) + 1);
@@ -263,6 +276,15 @@ export class CohortSummaryComponent implements OnChanges {
         // Continue processing other patients
       }
     });
+
+    // If showAllLabels is true, ensure all labels from labelMap are included
+    if (config.showAllLabels) {
+      Object.keys(config.labelMap).forEach((key) => {
+        if (!valueMap.has(key)) {
+          valueMap.set(key, 0);
+        }
+      });
+    }
 
     // Convert map to array of DistributionItems
     let items: DistributionItem[] = Array.from(valueMap.entries()).map(([key, value]) => ({
@@ -294,9 +316,9 @@ export class CohortSummaryComponent implements OnChanges {
     value: any,
     strategy: GroupingStrategy,
     ranges?: Array<{ max: number; label: string }>
-  ): string {
+  ): string | null {
     if (value === null || value === undefined) {
-      return 'Unknown';
+      return null;
     }
 
     switch (strategy) {
@@ -305,7 +327,7 @@ export class CohortSummaryComponent implements OnChanges {
 
       case 'age-decades': {
         const age = Number(value);
-        if (isNaN(age) || age < 0) return 'Unknown';
+        if (isNaN(age) || age < 0) return null;
         const decade = Math.floor(age / 10);
         const start = decade * 10;
         return `${start} - ${start + 9}`;
@@ -313,7 +335,7 @@ export class CohortSummaryComponent implements OnChanges {
 
       case 'age-categories': {
         const age = Number(value);
-        if (isNaN(age) || age < 0) return 'Unknown';
+        if (isNaN(age) || age < 0) return null;
         if (age < 18) return 'Pediatric (0-17)';
         if (age < 65) return 'Adult (18-64)';
         return 'Senior (65+)';
@@ -326,7 +348,7 @@ export class CohortSummaryComponent implements OnChanges {
         }
 
         const num = Number(value);
-        if (isNaN(num) || num < 0) return 'Unknown';
+        if (isNaN(num) || num < 0) return null;
 
         for (const range of ranges) {
           if (num <= range.max) {
@@ -344,13 +366,13 @@ export class CohortSummaryComponent implements OnChanges {
 
       case 'date-year': {
         const date = new Date(value);
-        if (isNaN(date.getTime())) return 'Unknown';
+        if (isNaN(date.getTime())) return null;
         return String(date.getFullYear());
       }
 
       case 'date-month': {
         const date = new Date(value);
-        if (isNaN(date.getTime())) return 'Unknown';
+        if (isNaN(date.getTime())) return null;
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return monthNames[date.getMonth()];
       }
