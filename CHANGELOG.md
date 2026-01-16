@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.7.0] - 2026-01-15
+### Added
+- Summary information in the "View Cohort" step.
+
 ## [7.6.3] - 2026-01-14
 ### Changed
 - Added the columns "Age" and "State" to the patient table.

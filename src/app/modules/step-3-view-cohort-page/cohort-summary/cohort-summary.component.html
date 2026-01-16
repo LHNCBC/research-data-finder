@@ -1,0 +1,8 @@
+<div class="summary">
+  @for (distribution of distributions; track distribution.id) {
+    <app-distribution
+        [title]="distribution.title"
+        [items]="getDistributionItems(distribution.id)">
+    </app-distribution>
+  }
+</div>

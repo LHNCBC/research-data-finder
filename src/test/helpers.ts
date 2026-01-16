@@ -37,6 +37,7 @@ export async function configureTestingModule(
     serverUrl?: string;
     isSmartOnFhirEnabled?: boolean;
     skipInitApp?: boolean;
+    settingsOverrides?: { [key: string]: any };
   } = {}
 ): Promise<void> {
   moduleDef.imports = (moduleDef.imports || []).concat(
@@ -85,6 +86,10 @@ export async function configureTestingModule(
     if (prop === 'defaultPullDataCount') {
       return 1000;
     }
+    if (options.settingsOverrides && prop in options.settingsOverrides) {
+      return options.settingsOverrides[prop];
+    }
+
     // Call the original
     return originalGet(prop, ...rest);
   });

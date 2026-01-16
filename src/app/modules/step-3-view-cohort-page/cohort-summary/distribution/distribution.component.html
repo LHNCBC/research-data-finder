@@ -1,0 +1,18 @@
+<div class="distribution-section">
+  <h3>{{title}}</h3>
+  <div class="distribution-items">
+    @for (item of items; track item.key) {
+      <div class="item">
+        <div class="item-label">
+          <span class="label">{{item.key}}</span>
+          <span class="count">{{item.value}} {{item.value === 1 ? 'patient' : 'patients'}}</span>
+        </div>
+        <div class="bar-container">
+          <div class="bar" [style.width]="item.percentage + '%'">
+            <span class="bar-label">{{item.percentage}}%</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

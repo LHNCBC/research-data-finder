@@ -22,6 +22,49 @@
     // is first used.
     defaultServer: 'https://lforms-fhir.nlm.nih.gov/baseR5',
 
+    cohortSummary: {
+      // Whether to show the cohort summary by default
+      showByDefault: true,
+      // Definitions of distributions to show in the cohort summary.
+      distributions: [
+        {
+          id: 'gender',
+          title: 'Gender Distribution',
+          fhirPathExpression: 'gender',
+          labelMap: {
+            male: '♂️ Male',
+            female: '♀️ Female',
+            other: '⚧️ Other',
+            unknown: '❓ Unknown'
+          },
+          showAllLabels: true
+        },
+        {
+          id: 'age-categories',
+          title: 'Age Categories',
+          fhirPathExpression:
+          "iif(birthDate.exists(), defineVariable('referenceDate', iif(%context.deceasedDateTime.exists(), %context.deceasedDateTime, today())).select((%referenceDate.toString().substring(0,4).toInteger() - %context.birthDate.toString().substring(0,4).toInteger()) - iif(%referenceDate.toString().substring(5,10) < %context.birthDate.toString().substring(5,10),1,0)), {})",
+          grouping: 'age-ranges',
+          groupingRanges: [
+            { max: 0, label: 'Infants and Newborns (from birth to 1 year old)' },
+            { max: 2, label: 'Toddlers (1-2 years)' },
+            { max: 5, label: 'Preschoolers (3-5 years)' },
+            { max: 12, label: 'School-aged children (6-12 years)' },
+            { max: 17, label: 'Adolescent (13-17 years)' },
+            { max: 24, label: 'Young Adult (18-24 years)' },
+            { max: 64, label: 'Adult (25-64 years)' },
+            { max: 999, label: 'Senior (65+)' }
+          ]
+        },
+        {
+          id: 'state',
+          title: 'Top 10 States',
+          fhirPathExpression: "defineVariable('homeAddress', address.where(use = 'home')).select(iif(%homeAddress.exists(), %homeAddress, address)).state.first()",
+          maxItems: 10
+        }
+      ]
+    },
+
     serverListOptions: [
       {
         description: 'FHIR Tools project FHIR R5 server (fake data)',

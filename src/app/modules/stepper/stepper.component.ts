@@ -405,7 +405,9 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
           this.defineCohortComponent.searchForPatients();
         }
-        this.stepper.next();
+        if (this.defineCohortStep.isSelected()) {
+          this.stepper.next();
+        }
       } else {
         this.defineCohortComponent.showErrors();
       }
@@ -413,7 +415,9 @@ export class StepperComponent implements OnInit, AfterViewInit, OnDestroy {
       this.selectRecordsStep.completed = !this.selectRecordsComponent.hasErrors();
       if (this.selectRecordsStep.completed) {
         this.selectRecordsComponent.searchForPatients();
-        this.stepper.next();
+        if (this.selectRecordsStep.isSelected()) {
+          this.stepper.next();
+        }
       } else {
         this.selectRecordsComponent.showErrors();
       }
