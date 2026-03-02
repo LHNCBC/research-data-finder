@@ -22,6 +22,10 @@
     // is first used.
     defaultServer: 'https://lforms-fhir.nlm.nih.gov/baseR5',
 
+    // Whether to use the CapabilityStatement to limit allowed search
+    // parameters and resource types.
+    useCapabilityStatement: true,
+
     cohortSummary: {
       // Whether to show the cohort summary by default
       showByDefault: true,
@@ -266,6 +270,9 @@
       urlPattern: '^https://dbgap-api.ncbi.nlm.nih.gov/fhir',
       maxRequestsPerBatch: 50,
       maxActiveRequests: 1,
+      // This server has a non-standard CapabilityStatement, so we will not use
+      // it to limit search parameters and resource types.
+      useCapabilityStatement: false,
 
       // Coding system per resource per element for filtering data in
       // resource tables. If there is a coding with specified "system",

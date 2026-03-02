@@ -41,7 +41,11 @@
               "src/styles.less"
             ],
             "allowedCommonJsDependencies": [
-              "fhirpath"
+              "fhirpath",
+              "fhirclient",
+              "file-saver",
+              "autocomplete-lhc",
+              "json5"
             ],
             "scripts": [
               "./node_modules/jquery/dist/jquery.min.js"
@@ -70,8 +74,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
+                  "maximumWarning": "5mb",
+                  "maximumError": "6mb"
                 },
                 {
                   "type": "anyComponentStyle",

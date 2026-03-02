@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { EMPTY, Observable, pipe, UnaryFunction } from 'rxjs';
 import { expand, map, takeLast } from 'rxjs/operators';
-import Bundle = fhir.Bundle;
+import { Bundle } from 'fhir/r4';
 import { HttpOptions } from '../../types/http-options';
 import {FhirBackendService} from "../fhir-backend/fhir-backend.service";
 

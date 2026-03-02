@@ -50,7 +50,7 @@ import { Criteria } from '../../types/search-parameters';
 import {
   SettingsService
 } from '../../shared/settings-service/settings.service';
-import Observation = fhir.Observation;
+import { Observation } from 'fhir/r4';
 
 /**
  * The main component for pulling Patient-related resources data

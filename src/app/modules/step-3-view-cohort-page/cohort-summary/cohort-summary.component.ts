@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { DistributionItem } from './distribution/distribution.component';
-import Patient = fhir.Patient;
+import { Patient } from 'fhir/r4';
 import { DistributionComponent } from 'src/app/modules/step-3-view-cohort-page/cohort-summary/distribution/distribution.component';
 import {
   FhirBackendService

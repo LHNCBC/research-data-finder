@@ -45,9 +45,7 @@ import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import {
   CustomRxjsOperatorsService
 } from '../custom-rxjs-operators/custom-rxjs-operators.service';
-import Resource = fhir.Resource;
-import Bundle = fhir.Bundle;
-import Patient = fhir.Patient;
+import { Resource, Bundle, Patient } from 'fhir/r4';
 
 // Patient resource type name
 const PATIENT_RESOURCE_TYPE = 'Patient';

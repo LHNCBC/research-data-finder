@@ -12,12 +12,12 @@ import {
 import { MatIconButton } from '@angular/material/button';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MatIcon } from '@angular/material/icon';
-import { highlightJsonHtml } from '../../../shared/utils';
+import { highlightJsonHtml } from 'src/app/shared/utils';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ToastrService } from 'ngx-toastr';
 import { OverlayKeyboardDispatcher } from '@angular/cdk/overlay';
 import { DialogRef } from '@angular/cdk/dialog';
-import Resource = fhir.Resource;
+import { Resource } from 'fhir/r4';
 
 
 /**

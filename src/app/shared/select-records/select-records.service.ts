@@ -49,9 +49,7 @@ import {
 } from '../column-descriptions/column-descriptions.service';
 import { FilterType } from '../../types/filter-type';
 import { ColumnValuesService } from '../column-values/column-values.service';
-import Resource = fhir.Resource;
-import Bundle = fhir.Bundle;
-import Observation = fhir.Observation;
+import { Resource, Bundle, Observation } from 'fhir/r4';
 
 interface SelectRecordState {
   // Indicates that data is loading

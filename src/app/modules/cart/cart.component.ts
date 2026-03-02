@@ -21,7 +21,7 @@ import {
 import { Subscription } from 'rxjs';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import Resource = fhir.Resource;
+import { Resource } from 'fhir/r4';
 
 type ListCells = { [key: string]: string };
 

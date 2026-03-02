@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { expand, finalize, map, startWith } from 'rxjs/operators';
 import { EMPTY, Observable } from 'rxjs';
-import Bundle = fhir.Bundle;
+import { Resource, Bundle } from 'fhir/r4';
 import { HttpClient } from '@angular/common/http';
-import Resource = fhir.Resource;
 import {FhirBackendService} from "../fhir-backend/fhir-backend.service";
 
 interface ResearchStudyState {

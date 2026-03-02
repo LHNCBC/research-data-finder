@@ -163,6 +163,16 @@ describe('ObservationCodeLookupComponent', () => {
         // Mock the scrubber ID selection to return null
         spyOn(fhirBackend, 'selectScrubberId').and.resolveTo(null);
 
+        // Mock defaultPullDataCount to 1000 to avoid issues with tests
+        const originalGet = settingsService.get.bind(settingsService);
+        spyOn(settingsService, 'get').and.callFake(function(prop, ...rest) {
+          if (prop === 'useCapabilityStatement') {
+            return false;
+          }
+          // Call the original
+          return originalGet(prop, ...rest);
+        });
+
         settingsService.loadJsonConfig().subscribe(() => {
           fhirBackend.init();
         });
@@ -344,7 +354,7 @@ describe('ObservationCodeLookupComponent', () => {
 
   it('should use variables from CTSS in the pull data step if we have studies in the cart', () => {
     spyOn(cartService, 'getListItems').and.callFake((resourceType) => {
-      return resourceType === 'ResearchStudy' ? [{id: 'someStudyId'}] : [];
+      return resourceType === 'ResearchStudy' ? [{id: 'someStudyId', resourceType: 'Study'}] : [];
     });
     spyOn(component, 'setupAutocompleteInputToUseCTSS').and.callThrough();
     spyOn(component, 'setupAutocompleteInputToUseObservations').and.callThrough();

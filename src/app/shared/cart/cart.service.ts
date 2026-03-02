@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import Resource = fhir.Resource;
+import { Resource, Bundle, Observation } from 'fhir/r4';
 import { HttpClient } from '@angular/common/http';
-import Bundle = fhir.Bundle;
 import {
   SearchParameterValue
 } from '../../modules/search-parameter/search-parameter-value.component';
-import Observation = fhir.Observation;
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import {
   escapeFhirSearchParameter,

@@ -37,9 +37,7 @@ import { CartService } from '../../shared/cart/cart.service';
 import {
   SelectRecordsService
 } from '../../shared/select-records/select-records.service';
-import Bundle = fhir.Bundle;
-import Observation = fhir.Observation;
-import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
+import { Bundle, Observation, ValueSetExpansionContains } from 'fhir/r4';
 
 // This value should be used as the "datatype" field value for the form control
 // value if we don't have a "variable value" criterion (in the "Pull data for

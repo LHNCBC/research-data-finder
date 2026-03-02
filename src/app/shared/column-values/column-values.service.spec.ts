@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ColumnValuesService } from './column-values.service';
 import { configureTestingModule } from 'src/test/helpers';
 import { ColumnDescription } from '../../types/column.description';
-import Resource = fhir.Resource;
+import { Resource } from 'fhir/r4';
 
 describe('ColumnValuesService', () => {
   let service: ColumnValuesService;

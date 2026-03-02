@@ -7,7 +7,7 @@ import {
 import { combineLatest, Observable, Subscription } from 'rxjs';
 import { filter, finalize, startWith, tap } from 'rxjs/operators';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import Resource = fhir.Resource;
+import { Resource } from 'fhir/r4';
 import { ResearchStudyService } from '../../shared/research-study/research-study.service';
 
 export enum SelectOptions {

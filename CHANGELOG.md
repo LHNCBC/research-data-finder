@@ -3,6 +3,16 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.8.0] - 2026-02-27
+### Added
+- A new `useCapabilityStatement` configuration option in `settings.json5` that,
+  when enabled, uses the server's CapabilityStatement to filter resource types
+  and search parameters. Resource types not listed in the CapabilityStatement are
+  removed from definitions, and search parameters not supported by the server are
+  filtered out. Filtered items are reported to the browser console as warnings.
+  This is enabled by default but disabled for dbGaP servers which have a
+  non-standard CapabilityStatement.
+
 ## [7.7.0] - 2026-01-15
 ### Added
 - Summary information in the "View Cohort" step.

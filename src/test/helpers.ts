@@ -86,6 +86,9 @@ export async function configureTestingModule(
     if (prop === 'defaultPullDataCount') {
       return 1000;
     }
+    if (prop === 'useCapabilityStatement') {
+      return false;
+    }
     if (options.settingsOverrides && prop in options.settingsOverrides) {
       return options.settingsOverrides[prop];
     }

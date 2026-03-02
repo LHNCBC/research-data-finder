@@ -60,8 +60,7 @@ import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { isEqual, omit, pickBy } from 'lodash-es';
 import { saveAs } from 'file-saver';
 import { RasTokenService } from '../../shared/ras-token/ras-token.service';
-import Resource = fhir.Resource;
-import Observation = fhir.Observation;
+import { Resource, Observation, FhirResource, Bundle, Quantity } from 'fhir/r4';
 import {
   FhirResourceContentComponent
 } from './fhir-resource-content/fhir-resource-content.component';
@@ -73,7 +72,7 @@ type TableCells = { [key: string]: string };
 export interface TableRow {
   cells: TableCells;
   resource?: Resource;
-  valueQuantityData?: fhir.Quantity;
+  valueQuantityData?: Quantity;
 }
 
 /**
@@ -832,12 +831,12 @@ export class ResourceTableComponent implements OnInit, AfterContentInit, OnChang
     const rowsToDownload = this.enableFiltering
       ? this.dataSource.filteredData
       : this.dataSource.data;
-    const bundle: fhir.Bundle = {
+    const bundle: Bundle = {
       resourceType: 'Bundle',
       type: 'collection',
       total: rowsToDownload.length,
       entry: rowsToDownload.map((row) => ({
-        resource: omit(row.resource, 'patientData')
+        resource: omit(row.resource, 'patientData') as FhirResource
       }))
     };
     return new Blob([JSON.stringify(bundle, null, 2)], {
