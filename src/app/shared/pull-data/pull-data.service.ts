@@ -32,7 +32,8 @@ import {
 import {
   AutocompleteParameterValue
 } from '../../types/autocomplete-parameter-value';
-import { Patient, Resource, Bundle, Observation, BundleEntry } from 'fhir/r4';
+import { Patient, Resource, Bundle, Observation, BundleEntry, EvidenceVariable }
+  from 'fhir/r4';
 
 type PatientMixin = { patientData?: Patient };
 
@@ -528,7 +529,7 @@ export class PullDataService {
           }
           ++patientEvCount[patientRef];
           if (!evObservables[evUrl]) {
-            evObservables[evUrl] = this.http.get<fhir4.EvidenceVariable>(evUrl, PullDataService.commonHttpOptions)
+            evObservables[evUrl] = this.http.get<EvidenceVariable>(evUrl, PullDataService.commonHttpOptions)
               // Using `share()` may cause the request to be repeated,
               // see explanation here:
               // https://www.bitovi.com/blog/always-know-when-to-use-share-vs.-sharereplay
