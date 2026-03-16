@@ -55,7 +55,7 @@ import { MatDialog } from '@angular/material/dialog';
 import {
   AlertDialogComponent
 } from '../../shared/alert-dialog/alert-dialog.component';
-import Patient = fhir.Patient;
+import { Patient } from 'fhir/r4';
 
 // Ordered list of steps (should be the same as in the template)
 // The main purpose of this is to determine the name of the previous or next

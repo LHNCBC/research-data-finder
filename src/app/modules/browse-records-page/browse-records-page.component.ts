@@ -8,7 +8,7 @@ import { filter, map, startWith } from 'rxjs/operators';
 import { Observable, Subscription } from 'rxjs';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import Resource = fhir.Resource;
+import { Resource } from 'fhir/r4';
 import { ResourceTableComponent } from '../resource-table/resource-table.component';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { Sort } from '@angular/material/sort';

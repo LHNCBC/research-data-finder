@@ -142,6 +142,16 @@ class FhirBatchQuery extends EventTarget {
   }
 
   /**
+   * Returns an object describing the server capabilities
+   * (the response to the /metadata query).
+   * See [Resource CapabilityStatement - Content](https://hl7.org/fhir/capabilitystatement.html)
+   * @returns {null|Object}
+   */
+  getCapabilities() {
+    return this._capabilities;
+  }
+
+  /**
    * Return version name e.g. "R4"
    * @return {string}
    */
@@ -179,6 +189,10 @@ class FhirBatchQuery extends EventTarget {
 
   /**
    * Initialize/reinitialize FhirBatchQuery instance.
+   * @param {Object} options - initialization options.
+   * @param {boolean} options.useCapabilityStatement - whether to request from
+   *  the server the part of the CapabilityStatement that describes the search
+   *  parameters for resource types.
    * @param {string} [newServiceBaseUrl] - new FHIR REST API Service Base URL
    *                 (https://www.hl7.org/fhir/http.html#root)
    * @param {string} [context] - string describes an initialization context
@@ -191,7 +205,7 @@ class FhirBatchQuery extends EventTarget {
    *  features.
    * @return {Promise}
    */
-  initialize(newServiceBaseUrl, context = '', predefinedInitResult = null) {
+  initialize(options, newServiceBaseUrl, context = '', predefinedInitResult = null) {
     const serverUrlChanged = newServiceBaseUrl && newServiceBaseUrl !== this._serviceBaseUrl;
 
     if (serverUrlChanged) {
@@ -207,10 +221,10 @@ class FhirBatchQuery extends EventTarget {
       this.initContext = context;
     }
 
-    // const currentServiceBaseUrl = this._serviceBaseUrl;
-
     if (!this._initializationPromise) {
-      this._features = {isFormatSupported: true};
+      this._features = { isFormatSupported: true };
+      this._useCapabilityStatement = options?.useCapabilityStatement
+      this._capabilities = null;
       this._initializationPromise = this.makeInitializationCalls(predefinedInitResult);
     }
     return this._initializationPromise;
@@ -232,8 +246,8 @@ class FhirBatchQuery extends EventTarget {
     // retryCount=2, We should not try to resend the first request to the server many times - this could be the wrong URL
     const options = this.getCommonInitRequestOptions();
 
-    return this.checkMetadata()
-    .then(() => {
+    return this.checkMetadata().then((capabilities) => {
+      this._capabilities = capabilities;
       if (predefinedInitResult && predefinedInitResult.version === this._versionName) {
         this._features = predefinedInitResult.features;
         return Promise.resolve();
@@ -345,7 +359,10 @@ class FhirBatchQuery extends EventTarget {
     const options = this.getCommonInitRequestOptions();
     // useInitContext=false, The request is cached as the same name before and after login, so we don't make the request again after login.
     const options_noInitContext = this.getCommonInitRequestOptions(false);
-    const elementsParam = withElementsParam ? '?_elements=fhirVersion' : '';
+    const elementsParam = withElementsParam ? '?_elements=fhirVersion' +
+      (this._useCapabilityStatement ? ',rest.resource.type,rest.resource.searchParam'
+        : '')
+      : '';
     // Do not cache /metadata query that requires basic authentication.
     // Credentials must be re-entered if user closes and opens the browser.
     return (this.initContext === 'basic-auth'
@@ -364,6 +381,7 @@ class FhirBatchQuery extends EventTarget {
       if (this._features.isFormatSupported) {
         this.metaDataQuery += withElementsParam ? '&_format=json' : '?_format=json';
       }
+      return metadata.data;
     }, (metadata) => {
       // If initialization fails, do not cache initialization responses
       this.clearCacheByName(this.getInitCacheName());
@@ -389,7 +407,7 @@ class FhirBatchQuery extends EventTarget {
       return Promise.reject({
         error: 'Could not retrieve the FHIR server\'s metadata. Please make sure you are entering the base URL for a FHIR server.'
       });
-    })
+    });
   }
 
   /**

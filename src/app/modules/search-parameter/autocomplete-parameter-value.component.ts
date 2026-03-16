@@ -52,10 +52,7 @@ import {
 import { CartService } from '../../shared/cart/cart.service';
 import { HIDE_ERRORS } from '../../shared/http-interceptors/toastr-interceptor';
 import { isEqual } from 'lodash-es';
-import ValueSetExpansionContains = fhir.ValueSetExpansionContains;
-import Bundle = fhir.Bundle;
-import Resource = fhir.Resource;
-import Coding = fhir.Coding;
+import { ValueSetExpansionContains, Bundle, Resource, Coding} from 'fhir/r4';
 
 /**
  * data type used for this control

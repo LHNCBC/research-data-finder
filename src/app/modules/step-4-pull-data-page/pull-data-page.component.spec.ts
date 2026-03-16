@@ -14,6 +14,7 @@ import { SearchParameterGroupComponent } from '../search-parameter-group/search-
 import { CohortService } from '../../shared/cohort/cohort.service';
 import { PullDataService } from '../../shared/pull-data/pull-data.service';
 import { configureTestingModule } from 'src/test/helpers';
+import { Patient } from 'fhir/r4';
 
 /**
  * Checks if resources are loaded correctly.
@@ -105,9 +106,9 @@ describe('PullDataForCohortComponent', () => {
 
   it('should load Observations for cohort of Patients', async () => {
     const testData = [
-      { patient: { id: 'pat-106' }, observations: observationsForPat106 },
-      { patient: { id: 'pat-232' }, observations: observationsForPat232 },
-      { patient: { id: 'pat-269' }, observations: observationsForPat269 }
+      { patient: { id: 'pat-106', resourceType: 'Patient' } as Patient, observations: observationsForPat106 },
+      { patient: { id: 'pat-232', resourceType: 'Patient' } as Patient, observations: observationsForPat232 },
+      { patient: { id: 'pat-269', resourceType: 'Patient' } as Patient, observations: observationsForPat269 }
     ];
     cohort.currentState.patients = testData.map((item) => item.patient);
 
@@ -127,21 +128,21 @@ describe('PullDataForCohortComponent', () => {
   it('should skip duplicate when loading Observations for a cohort of Patients', async () => {
     const testData = [
       {
-        patient: { id: 'pat-106' },
+        patient: { id: 'pat-106' } as Patient,
         observations: {
           ...observationsForPat106,
           entry: observationsForPat106.entry.slice(0, 1)
         }
       },
       {
-        patient: { id: 'pat-232' },
+        patient: { id: 'pat-232' } as Patient,
         observations: {
           ...observationsForPat232,
           entry: observationsForPat232.entry.slice(0, 1)
         }
       },
       {
-        patient: { id: 'pat-269' },
+        patient: { id: 'pat-269'} as Patient,
         observations: {
           ...observationsForPat269,
           entry: observationsForPat269.entry.slice(0, 1)
@@ -170,7 +171,7 @@ describe('PullDataForCohortComponent', () => {
 
   it('should load Encounters with correct numbers per patient', async () => {
     const testData = [
-      { patient: { id: 'smart-880378' }, encounters: encountersForSmart880378 }
+      { patient: { id: 'smart-880378' } as Patient, encounters: encountersForSmart880378 }
     ];
     const arrayOfPatients = testData.map((item) => item.patient);
     const encountersPerPatient = 2;
@@ -207,9 +208,9 @@ describe('PullDataForCohortComponent', () => {
 
   it('should load Evidence Variables for cohort of Patients', async () => {
     const testData = [
-      { patient: { id: 'pat-106' }, observations: observationsForPat106 },
-      { patient: { id: 'pat-232' }, observations: observationsForPat232 },
-      { patient: { id: 'pat-269' }, observations: observationsForPat269 }
+      { patient: { id: 'pat-106' } as Patient, observations: observationsForPat106 },
+      { patient: { id: 'pat-232' } as Patient, observations: observationsForPat232 },
+      { patient: { id: 'pat-269' } as Patient, observations: observationsForPat269 }
     ];
     cohort.currentState.patients = testData.map((item) => item.patient);
 
@@ -280,7 +281,7 @@ describe('PullDataForCohortComponent', () => {
   it('should load all (non-unique) ResearchStudies', async () => {
     const arrayOfPatients = Array.from({ length: 30 }, (_, index) => ({
       id: 'smart-' + index
-    }));
+    } as Patient));
     cohort.currentState.patients = arrayOfPatients;
 
     component.addTab('ResearchStudy');

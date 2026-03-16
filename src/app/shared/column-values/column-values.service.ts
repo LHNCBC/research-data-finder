@@ -5,16 +5,8 @@ import { Injectable } from '@angular/core';
 import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 import { SettingsService } from '../settings-service/settings.service';
 import { ColumnDescription } from '../../types/column.description';
-import Identifier = fhir.Identifier;
-import CodeableConcept = fhir.CodeableConcept;
-import Coding = fhir.Coding;
-import Reference = fhir.Reference;
-import Period = fhir.Period;
-import ContactPoint = fhir.ContactPoint;
-import Quantity = fhir.Quantity;
-import HumanName = fhir.HumanName;
-import Address = fhir.Address;
-import Resource = fhir.Resource;
+import { Identifier, CodeableConcept, Coding, Reference, Period, ContactPoint,
+  Quantity, HumanName, Address, Resource } from 'fhir/r4';
 
 interface CodeableReference {
   reference?: Reference;

@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CohortSummaryComponent, DistributionConfig } from './cohort-summary.component';
 import { FhirBackendService } from 'src/app/shared/fhir-backend/fhir-backend.service';
 import { configureTestingModule } from 'src/test/helpers';
-import Patient = fhir.Patient;
+import { Patient } from 'fhir/r4';
 
 describe('CohortSummaryComponent', () => {
   let component: CohortSummaryComponent;

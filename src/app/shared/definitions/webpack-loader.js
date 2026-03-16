@@ -308,11 +308,11 @@ function getSearchParametersConfig(
         ...include
           .map((i) => {
             const items = getValueSet(i);
-            if (!items) {
-              console.log("Can't find:", i);
-            } else if (!(items instanceof Array)) {
-              console.log('No values for:', items);
-            }
+            // if (!items) {
+            //   console.log("Can't find:", i);
+            // } else if (!(items instanceof Array)) {
+            //   console.log('No values for:', items);
+            // }
 
             const excludes =
               (compose.exclude &&

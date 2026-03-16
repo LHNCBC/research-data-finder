@@ -4,7 +4,7 @@ import { CartComponent } from './cart.component';
 import { configureTestingModule } from 'src/test/helpers';
 import { Component, ViewChild } from '@angular/core';
 import { CartModule } from './cart.module';
-import Resource = fhir.Resource;
+import { Resource } from 'fhir/r4';
 
 @Component({
   template: `<app-cart [resourceType]="resourceType" [listItems]="records">

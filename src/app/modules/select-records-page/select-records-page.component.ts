@@ -5,7 +5,7 @@ import {
   FhirBackendService
 } from '../../shared/fhir-backend/fhir-backend.service';
 import { ColumnDescriptionsService } from '../../shared/column-descriptions/column-descriptions.service';
-import Resource = fhir.Resource;
+import { Resource } from 'fhir/r4';
 import { SelectRecordsService } from '../../shared/select-records/select-records.service';
 import { CartService, ListItem } from '../../shared/cart/cart.service';
 import { getPluralFormOfRecordName, getRecordName } from '../../shared/utils';

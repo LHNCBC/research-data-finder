@@ -104,6 +104,7 @@ describe('FhirBackendService', () => {
 
     it('should initialize FhirBatchQuery', () => {
       expect(FhirBatchQuery.prototype.initialize).toHaveBeenCalledOnceWith(
+        jasmine.any(Object),
         'https://lforms-fhir.nlm.nih.gov/baseR5',
         '',
         null
@@ -257,6 +258,113 @@ describe('FhirBackendService', () => {
       expect(service.fhirClient.setMaxPageSize).toHaveBeenCalledOnceWith(10);
     });
 
+  });
+
+  describe('useCapabilityStatement', () => {
+    const csvDefinitionsWithMultipleResources = {
+      Observation: {
+        columnDescriptions: [],
+        searchParameters: [
+          { element: 'code', type: 'token' },
+          { element: 'date', type: 'date' },
+          { element: 'unsupported-param', type: 'string' }
+        ]
+      },
+      Patient: {
+        columnDescriptions: [],
+        searchParameters: [
+          { element: 'name', type: 'string' }
+        ]
+      },
+      UnsupportedResource: {
+        columnDescriptions: [],
+        searchParameters: [
+          { element: 'some-param', type: 'string' }
+        ]
+      }
+    };
+    const capabilityStatement = {
+      rest: [{
+        resource: [
+          {
+            type: 'Observation',
+            searchParam: [
+              { name: 'code', type: 'token' },
+              { name: 'date', type: 'date' }
+            ]
+          },
+          {
+            type: 'Patient',
+            searchParam: [
+              { name: 'name', type: 'string' }
+            ]
+          }
+        ]
+      }]
+    };
+
+    beforeEach(async () => {
+      TestBed.configureTestingModule({
+        imports: [FhirBackendModule, MatDialogModule]
+      });
+      spyOn(FhirBatchQuery.prototype, 'initialize').and.resolveTo(null);
+      spyOn(FhirBatchQuery.prototype, 'get').and.resolveTo(
+        responseFromFhirBatchQuery
+      );
+      spyOn(FhirBatchQuery.prototype, 'getWithCache').and.resolveTo(
+        responseFromFhirBatchQueryCache
+      );
+      spyOn(FhirBatchQuery.prototype, 'getVersionName').and.returnValue('R4');
+      spyOn(FhirBatchQuery.prototype, 'getCapabilities').and.returnValue(capabilityStatement);
+      service = TestBed.inject(FhirBackendService);
+      httpClient = TestBed.inject(HttpClient);
+      defaultHttpXhrBackend = TestBed.inject(HttpXhrBackend);
+      spyOn(defaultHttpXhrBackend, 'handle').and.returnValue(
+        of(responseFromDefaultBackend)
+      );
+      service.settings = TestBed.inject(SettingsService);
+      spyOn(service.settings, 'loadCsvDefinitions').and.returnValue(
+        of(csvDefinitionsWithMultipleResources)
+      );
+      spyOn(service.settings, 'getDbgapUrlPattern').and.returnValue(
+        '^https://dbgap-api.ncbi.nlm.nih.gov/fhir'
+      );
+      spyOn(service.settings, 'getDefaultServerUrl').and.returnValue(
+        'https://lforms-fhir.nlm.nih.gov/baseR5'
+      );
+      spyOn(service.settings, 'get').and.callFake((prop) => {
+        if (prop === 'useCapabilityStatement') {
+          return true;
+        }
+        return null;
+      });
+      spyOn(service, 'isDbgap').and.returnValue(false);
+      matDialog = TestBed.inject(MatDialog);
+      dialogOpenSpy = spyOn(matDialog, 'open');
+      service.cacheEnabled = true;
+      await service.init();
+      service.fhirClient._features = { batch: true, interpretation: true };
+    });
+
+    it('should filter resource definitions by CapabilityStatement when useCapabilityStatement is true', (done) => {
+      service.currentDefinitions$.subscribe((definitions) => {
+        // UnsupportedResource should be filtered out entirely
+        expect(definitions.resources.UnsupportedResource).toBeUndefined();
+        // Patient should remain with its search parameter
+        expect(definitions.resources.Patient).toBeDefined();
+        expect(definitions.resources.Patient.searchParameters).toEqual([
+          jasmine.objectContaining({ element: 'name' })
+        ]);
+        // Observation should remain but 'unsupported-param' should be filtered out
+        expect(definitions.resources.Observation).toBeDefined();
+        const obsElements = definitions.resources.Observation.searchParameters
+          .map((sp) => sp.element);
+        expect(obsElements).toContain('code');
+        expect(obsElements).toContain('date');
+        expect(obsElements).not.toContain('unsupported-param');
+        done();
+      });
+    });
   });
 
   describe('dbGaP', () => {
@@ -642,4 +750,59 @@ describe('FhirBatchQuery', () => {
       done();
     });
   });
+
+
+  it('should include CapabilityStatement fields in metadata query when useCapabilityStatement is true', (done) => {
+    const capabilityStatementBody = {
+      fhirVersion: '4.0.1',
+      rest: [{
+        resource: [
+          {
+            type: 'Observation',
+            searchParam: [
+              { name: 'code', type: 'token' },
+              { name: 'date', type: 'date' }
+            ]
+          },
+          {
+            type: 'Patient',
+            searchParam: [
+              { name: 'name', type: 'string' }
+            ]
+          }
+        ]
+      }]
+    };
+    server.get(
+      /http:\/\/some-server-url\/metadata\?_elements=fhirVersion%2Crest\.resource\.type%2Crest\.resource\.searchParam&_format=json/,
+      {
+        status: 200,
+        body: JSON.stringify(capabilityStatementBody)
+      }
+    );
+    server.get(/http:\/\/some-server-url\/(Observation|ResearchStudy).*/, {
+      status: 200,
+      body: JSON.stringify({ entry: [] })
+    });
+    fhirBatchQuery.initialize({useCapabilityStatement: true}).then(() => {
+      const metaDataQueries = server.getRequestLog().filter(l => l.url.startsWith('http://some-server-url/metadata'));
+      expect(metaDataQueries).toEqual([
+        jasmine.objectContaining({
+          method: 'GET',
+          url: 'http://some-server-url/metadata?_elements=fhirVersion%2Crest.resource.type%2Crest.resource.searchParam&_format=json'
+        })
+      ]);
+      const capabilities = fhirBatchQuery.getCapabilities();
+      expect(capabilities).toBeTruthy();
+      expect(capabilities.rest[0].resource.length).toBe(2);
+      expect(capabilities.rest[0].resource[0].type).toBe('Observation');
+      expect(capabilities.rest[0].resource[0].searchParam).toEqual([
+        { name: 'code', type: 'token' },
+        { name: 'date', type: 'date' }
+      ]);
+      expect(capabilities.rest[0].resource[1].type).toBe('Patient');
+      done();
+    });
+  });
+
 });

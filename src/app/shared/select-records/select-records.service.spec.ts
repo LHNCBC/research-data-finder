@@ -12,7 +12,7 @@ import studies from 'src/test/test-fixtures/research-studies.json';
 import {
   configureTestingModule,
   verifyOutstandingRequests
-} from '../../../test/helpers';
+} from 'src/test/helpers';
 import {
   CACHE_NAME,
   FhirBackendService
@@ -23,7 +23,7 @@ import {
 } from '../custom-rxjs-operators/custom-rxjs-operators.service';
 import { Sort } from '@angular/material/sort';
 import { Subject } from 'rxjs';
-import Resource = fhir.Resource;
+import { Resource } from 'fhir/r4';
 
 describe('SelectRecordsService', () => {
   let service: SelectRecordsService;
@@ -133,7 +133,7 @@ describe('SelectRecordsService', () => {
               jasmine.objectContaining({code})
             ]
           }
-        }) as Resource
+        }) as unknown as Resource
       );
     }
 
@@ -335,7 +335,7 @@ describe('SelectRecordsService', () => {
 
       service.currentState['ResearchStudy'] = {
         loading: false,
-        resources: [{id: 'study-id-1'}, {id: 'study-id-2'}],
+        resources: [{id: 'study-id-1', resourceType: 'ResearchStudy'}, {id: 'study-id-2', resourceType: 'ResearchStudy'}],
         sortChanged: new Subject<Sort>()
       };
 

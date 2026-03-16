@@ -28,14 +28,12 @@ import { AlertDialogComponent } from '../alert-dialog/alert-dialog.component';
 import { CohortService, CreateCohortMode } from '../cohort/cohort.service';
 import fhirPathModelR4 from 'fhirpath/fhir-context/r4';
 import fhirPathModelR5 from 'fhirpath/fhir-context/r5';
-import fhirpath from 'fhirpath';
-import { Context, Options } from '../../../../node_modules/fhirpath';
+import fhirpath, { Context, Options } from 'fhirpath';
 import { Oauth2TokenService } from '../oauth2-token/oauth2-token.service';
 import {
   ScrubberIdDialogComponent
 } from '../scrubber-id-dialog/scrubber-id-dialog.component';
-import Resource = fhir.Resource;
-import Bundle = fhir.Bundle;
+import { Resource, Bundle } from 'fhir/r4';
 
 // RegExp to modify the URL of requests to the FHIR server.
 // If the URL starts with the substring "$fhir", it will be replaced
@@ -467,12 +465,13 @@ export class FhirBackendService implements HttpBackend {
     const serverUrlForSettings = serviceBaseUrl || this.serviceBaseUrl;
     const version: string = this.settings.get('serverDescription.version', serverUrlForSettings);
     const features: FhirServerFeatures = this.settings.get('serverDescription.features', serverUrlForSettings);
+    const useCapabilityStatement = this.settings.get('useCapabilityStatement', serverUrlForSettings);
     if (features && !features.maxHasAllowed) {
       // Set default value for maxHasAllowed if it is missed in the serverDescription in settings.json5.
       features.maxHasAllowed = 1;
     }
     this.fhirClient
-      .initialize(serviceBaseUrl, initializeContext, version && features ? {
+      .initialize({useCapabilityStatement}, serviceBaseUrl, initializeContext, version && features ? {
         version,
         features
       } : null)
@@ -485,6 +484,52 @@ export class FhirBackendService implements HttpBackend {
           // Load definitions of search parameters and columns from CSV file
           this.settings.loadCsvDefinitions().subscribe(
             (resourceDefinitions) => {
+              // Filter definitions according to the CapabilityStatement resource
+              // if this is enabled in the configuration.
+              if (useCapabilityStatement) {
+                // Retrieve CapabilityStatement from fhirClient
+                const capabilityStatement = this.fhirClient.getCapabilities();
+                // Filter searchParameters for each resourceType
+                const allowedResourceTypes = (capabilityStatement?.rest?.[0]?.resource || []).map((r: any) => r.type);
+                Object.keys(resourceDefinitions).forEach((resourceType) => {
+                  if (!allowedResourceTypes.includes(resourceType)) {
+                    console.warn(
+                      `Resource type '${resourceType}' is not allowed per CapabilityStatement.`
+                    );
+                    delete resourceDefinitions[resourceType];
+                    return;
+                  }
+                  const resourceEntry = (capabilityStatement.rest[0].resource || []).find(
+                    (r: any) => r.type === resourceType
+                  );
+                  if (resourceEntry && Array.isArray(resourceDefinitions[resourceType].searchParameters)) {
+                    const allowedElements = (resourceEntry.searchParam || []).map((sp: any) => sp.name);
+                    const originalParams = resourceDefinitions[resourceType].searchParameters;
+                    const allowedParams = [];
+                    const filteredOut = [];
+                    for (const param of originalParams) {
+                      if (
+                        param.element === 'code text' ||
+                        param.element === 'observation value' ||
+                        (Array.isArray(param.element)
+                          ? param.element.find((elem: string) => allowedElements.includes(elem))
+                          : allowedElements.includes(param.element))
+                      ) {
+                        allowedParams.push(param);
+                      } else {
+                        filteredOut.push(param);
+                      }
+                    }
+                    if (filteredOut.length > 0) {
+                      console.warn(
+                        `Search parameters for resource '${resourceType}' that are not allowed per CapabilityStatement:`,
+                        filteredOut.map(i => i.element).join(', ') + '.'
+                      );
+                    }
+                    resourceDefinitions[resourceType].searchParameters = allowedParams;
+                  }
+                });
+              }
               this.currentDefinitions = {resources: resourceDefinitions};
               // Below block should only be run for the first time opening the app.
               // Do not set advanced settings controls if sessionStorage has 'maxPerBatch' stored.
