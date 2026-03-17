@@ -6,7 +6,7 @@ import {
   OnDestroy,
   SimpleChanges
 } from '@angular/core';
-import { map, startWith } from 'rxjs/operators';
+import { map, shareReplay, startWith } from 'rxjs/operators';
 import {
   ConnectionStatus,
   FhirBackendService
@@ -218,11 +218,12 @@ export class PullDataPageComponent
 
   ngAfterViewInit(): void {
     this.currentResourceType$ = this.tabGroup.selectedTabChange.pipe(
-      startWith(this.getCurrentResourceType()),
       map(() => {
         dispatchWindowResize();
         return this.getCurrentResourceType();
-      })
+      }),
+      startWith(this.getCurrentResourceType()),
+      shareReplay({ bufferSize: 1, refCount: true })
     );
   }
 
@@ -331,8 +332,10 @@ export class PullDataPageComponent
       1
     );
     this.visibleResourceTypes.push(resourceType);
-    this.tabGroup.selectedIndex = this.visibleResourceTypes.length - 1;
     this.updateCodeFilterWithDefaults(resourceType);
+    setTimeout(() => {
+      this.tabGroup.selectedIndex = this.visibleResourceTypes.length - 1;
+    })
   }
 
   /**
