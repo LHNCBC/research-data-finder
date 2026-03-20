@@ -8,6 +8,7 @@ const childProcess = require('child_process');
 const {
   sanitizeUrlForFilename,
   getBaseDefinitionsCsvPath,
+  ensureDefaultDefinitionsCsvFiles,
   getSettingsInitialPath,
   getRdfVersion,
   generateDefinitionsCsv
@@ -195,6 +196,19 @@ test('getBaseDefinitionsCsvPath prefers bundled autoconfig CSV when present',
       }
     }
   });
+
+test('ensureDefaultDefinitionsCsvFiles copies missing R4/R5 defaults', () => {
+  const outputDir = createTempDir();
+  const existingR4Path = path.join(outputDir, 'desc-default-R4.csv');
+  fs.writeFileSync(existingR4Path, 'existing-r4-content');
+
+  const copiedPaths = ensureDefaultDefinitionsCsvFiles(outputDir);
+  const copiedNames = copiedPaths.map((filePath) => path.basename(filePath));
+
+  assert.deepEqual(copiedNames, ['desc-default-R5.csv']);
+  assert.equal(fs.readFileSync(existingR4Path, 'utf-8'), 'existing-r4-content');
+  assert.ok(fs.existsSync(path.join(outputDir, 'desc-default-R5.csv')));
+});
 
 
 test('generateDefinitionsCsv excludes unsupported combined params and forces' +

@@ -86,6 +86,33 @@ function getBaseDefinitionsCsvPath(versionName) {
 }
 
 /**
+ * Ensures the output directory contains default R4/R5 definitions CSV files.
+ * Missing files are copied from bundled/source template locations.
+ * @param {string} outputDir - Target output directory.
+ * @returns {string[]} Absolute paths of copied files.
+ */
+function ensureDefaultDefinitionsCsvFiles(outputDir) {
+  const copiedFiles = [];
+  const filesToEnsure = ['R4', 'R5'];
+
+  filesToEnsure.forEach((versionName) => {
+    const sourcePath = getBaseDefinitionsCsvPath(versionName);
+    const fileName = path.basename(sourcePath);
+    const targetPath = path.join(outputDir, fileName);
+    if (fs.existsSync(targetPath)) {
+      return;
+    }
+    if (!fs.existsSync(sourcePath)) {
+      throw new Error(`Base definitions CSV not found: ${sourcePath}`);
+    }
+    fs.copyFileSync(sourcePath, targetPath);
+    copiedFiles.push(targetPath);
+  });
+
+  return copiedFiles;
+}
+
+/**
  * Resolves the initial settings template path across bundled and source
  * layouts.
  * @returns {string} Path to `settings-initial.json5`.
@@ -476,6 +503,12 @@ program.command('init')
       if (!fs.existsSync(options.output)) {
         fs.mkdirSync(options.output, { recursive: true });
       }
+      const copiedDefaultCsvFiles = ensureDefaultDefinitionsCsvFiles(
+        options.output
+      );
+      copiedDefaultCsvFiles.forEach((copiedPath) => {
+        console.log(`Copied missing default definitions file: ${copiedPath}`);
+      });
 
       const definitionsResult = await generateDefinitionsCsv({
         url,
@@ -515,6 +548,7 @@ if (require.main === module) {
 module.exports = {
   sanitizeUrlForFilename,
   getBaseDefinitionsCsvPath,
+  ensureDefaultDefinitionsCsvFiles,
   getSettingsInitialPath,
   getRdfVersion,
   generateDefinitionsCsv
