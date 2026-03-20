@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { PullDataPageComponent } from './pull-data-page.component';
 import { PullDataPageModule } from './pull-data-page.module';
 import { SharedModule } from '../../shared/shared.module';
@@ -93,16 +93,16 @@ describe('PullDataForCohortComponent', () => {
     expect(component.unselectedResourceTypes.length).toBeGreaterThan(0);
   });
 
-  it('should add/remove tab', async () => {
-    fixture.detectChanges();
+  it('should add/remove Encounter tab', fakeAsync(() => {
     component.addTab('Encounter');
+    tick();
     fixture.detectChanges();
     expect(component.getCurrentResourceType()).toEqual('Encounter');
 
     component.removeTab('Encounter');
     fixture.detectChanges();
     expect(component.getCurrentResourceType()).toEqual('Observation');
-  });
+  }));
 
   it('should load Observations for cohort of Patients', async () => {
     const testData = [
@@ -195,16 +195,16 @@ describe('PullDataForCohortComponent', () => {
     expectResourcesToBeLoaded(pullData, 'Encounter', 2);
   });
 
-  it('should add/remove Patient tab', () => {
-    fixture.detectChanges();
+  it('should add/remove Patient tab', fakeAsync(() => {
     component.addTab('Patient');
+    tick();
     fixture.detectChanges();
     expect(component.getCurrentResourceType()).toEqual('Patient');
 
     component.removeTab('Patient');
     fixture.detectChanges();
     expect(component.getCurrentResourceType()).toEqual('Observation');
-  });
+  }));
 
   it('should load Evidence Variables for cohort of Patients', async () => {
     const testData = [

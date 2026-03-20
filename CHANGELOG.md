@@ -3,6 +3,10 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.8.1] - 2026-03-16
+### Fixed
+- An issue with the incorrect size of the added tab in the "Pull data" step.
+
 ## [7.8.0] - 2026-02-27
 ### Added
 - A new `useCapabilityStatement` configuration option in `settings.json5` that,
