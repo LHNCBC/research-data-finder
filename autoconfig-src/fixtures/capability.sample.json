@@ -1,0 +1,30 @@
+{
+  "resourceType": "CapabilityStatement",
+  "fhirVersion": "4.0.1",
+  "rest": [
+    {
+      "mode": "server",
+      "resource": [
+        {
+          "type": "Patient",
+          "searchParam": [
+            { "name": "active" },
+            { "name": "birthdate" },
+            { "name": "gender" },
+            { "name": "name" }
+          ]
+        },
+        {
+          "type": "Observation",
+          "searchParam": [
+            { "name": "code" },
+            { "name": "date" },
+            { "name": "status" },
+            { "name": "subject" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

@@ -6,6 +6,8 @@
 import fhirpath from 'fhirpath';
 import { sortBy } from 'lodash-es';
 import { AutocompleteOption } from '../types/autocompleteOption';
+import escapeStringForRegExp from './utils/escapeStringForRegExp.js';
+export { escapeStringForRegExp };
 
 // Import highlight.js and register only those languages that we need
 import hljs from 'highlight.js/lib/core';
@@ -57,12 +59,6 @@ export function encodeFhirSearchParameter(str): string {
   return encodeURIComponent(escapeFhirSearchParameter(str));
 }
 
-/**
- * Prepares a string for insertion into a regular expression
- */
-export function escapeStringForRegExp(str: string): string {
-  return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
-}
 
 /**
  * Converts a CSV string to an array of arrays of cell values, if possible,
@@ -83,6 +79,11 @@ export function csvStringToArray(csvString: string): string[][] | null {
       matches[2] !== undefined ? matches[2].replace(/""/g, '"') : matches[3]
     );
     lastIndex = re.lastIndex;
+  }
+  // Remove the last row if it's empty (happens when the CSV string ends with a newline character)
+  if (result[result.length - 1].length === 0 ||
+    result[result.length - 1].length === 1 && result[result.length - 1][0] === '') {
+    result.pop();
   }
   return lastIndex === csvString.length ? result : null;
 }

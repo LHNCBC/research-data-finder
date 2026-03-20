@@ -2,14 +2,29 @@ import { TestBed } from '@angular/core/testing';
 
 import { PullDataService } from './pull-data.service';
 import { SharedModule } from '../shared.module';
+import { FhirBackendService } from '../fhir-backend/fhir-backend.service';
 
 describe('PullDataService', () => {
   let service: PullDataService;
+  let fhirBackend: FhirBackendService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [SharedModule]
     });
+
+    fhirBackend = TestBed.inject(FhirBackendService);
+    spyOn(fhirBackend, 'getCurrentDefinitions').and.returnValue({
+      resources: {
+        MedicationDispense: {
+          searchParameters: [{ element: 'code' }]
+        },
+        MedicationRequest: {
+          searchParameters: [{ element: 'code' }]
+        }
+      }
+    } as any);
+
     service = TestBed.inject(PullDataService);
   });
 
@@ -143,6 +158,54 @@ describe('PullDataService', () => {
         MedicationRequest: {
           codes: [],
           items: []
+        }
+      });
+    });
+
+
+    it('should ignore medication code criteria when no medication code ' +
+      'search parameter exists', () => {
+      (fhirBackend.getCurrentDefinitions as jasmine.Spy).and.returnValue({
+        resources: {
+          MedicationDispense: {
+            searchParameters: [{ element: 'status' }]
+          },
+          MedicationRequest: {
+            searchParameters: [{ element: 'status' }]
+          }
+        }
+      } as any);
+
+      const criteria = {
+        condition: 'and',
+        rules: [
+          {
+            condition: 'and',
+            rules: [
+              {
+                field: {
+                  element: 'code',
+                  value: {
+                    codes: ['27250050000320'],
+                    items: ['METFORMIN TAB 500MG']
+                  }
+                }
+              }
+            ],
+            resourceType: 'MedicationDispense'
+          }
+        ]
+      } as any;
+
+      let result;
+      expect(() => {
+        result = service.getCodesFromCriteria(criteria);
+      }).not.toThrow();
+      expect(result).toEqual({
+        Observation: {
+          coding: [],
+          items: [],
+          datatype: 'any'
         }
       });
     });

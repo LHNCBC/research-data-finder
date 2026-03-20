@@ -1,0 +1,245 @@
+/**
+ * This file contains the runtime settings for the application.
+ */
+{
+  // Default settings for all servers
+  default: {
+    // Whether the user is allowed to change the FHIR server URL:
+    // If set to true, the user can change the server URL.
+    // If set to false, the "defaultServer" URL will be used.
+    //    allowChangeServer: false,
+    allowChangeServer: false,
+
+    // Default number of resources per patient to load in the Pull Data step.
+    defaultPullDataCount: 100,
+
+    // Maximum number of resources to return in one "page" of data.
+    // This value limits the maximum value of the "_count" parameter.
+    // Note that the server may choose to ignore the "_count" parameter.
+    // Also, the server may impose its own maximum page size.
+    //maxPageSize: 10,
+
+
+    // The default FHIR server URL is initially displayed when the application
+    // is first used.
+    defaultServer: '<place-default-server-url-here>',
+
+    scrubber: true,
+
+    // Predefined initialization results
+    serverDescription: {
+      version: 'R4',
+      features: {
+        isFormatSupported: true,
+        hasResearchStudy: false,
+        hasAvailableStudy: false,
+        missingModifier: false,
+        batch: true,
+        sortObservationsByDate: true,
+        sortObservationsByAgeAtEvent: false,
+        lastnLookup: true,
+        interpretation: true,
+        hasNotModifierIssue: true,
+        maxHasAllowed: 1
+      }
+    },
+
+    definitionsFile: '<place-default-definitions-file-name-here>.csv',
+
+
+    // Whether to use the CapabilityStatement to limit allowed search
+    // parameters and resource types.
+    useCapabilityStatement: true,
+
+    cohortSummary: {
+      // Whether to show the cohort summary by default
+      showByDefault: true,
+      // Definitions of distributions to show in the cohort summary.
+      distributions: [
+        {
+          id: 'gender',
+          title: 'Gender Distribution',
+          fhirPathExpression: 'gender',
+          labelMap: {
+            male: '♂️ Male',
+            female: '♀️ Female',
+            other: '⚧️ Other',
+            unknown: '❓ Unknown'
+          },
+          showAllLabels: true
+        },
+        {
+          id: 'age-categories',
+          title: 'Age Categories',
+          fhirPathExpression:
+          "iif(birthDate.exists(), defineVariable('referenceDate', iif(%context.deceasedDateTime.exists(), %context.deceasedDateTime, today())).select((%referenceDate.toString().substring(0,4).toInteger() - %context.birthDate.toString().substring(0,4).toInteger()) - iif(%referenceDate.toString().substring(5,10) < %context.birthDate.toString().substring(5,10),1,0)), {})",
+          grouping: 'age-ranges',
+          groupingRanges: [
+            { max: 0, label: 'Infants and Newborns (from birth to 1 year old)' },
+            { max: 2, label: 'Toddlers (1-2 years)' },
+            { max: 5, label: 'Preschoolers (3-5 years)' },
+            { max: 12, label: 'School-aged children (6-12 years)' },
+            { max: 17, label: 'Adolescent (13-17 years)' },
+            { max: 24, label: 'Young Adult (18-24 years)' },
+            { max: 64, label: 'Adult (25-64 years)' },
+            { max: 999, label: 'Senior (65+)' }
+          ]
+        },
+        {
+          id: 'state',
+          title: 'Top 10 States',
+          fhirPathExpression: "defineVariable('homeAddress', address.where(use = 'home')).select(iif(%homeAddress.exists(), %homeAddress, address)).state.first()",
+          maxItems: 10
+        }
+      ]
+    },
+
+    maxRequestsPerBatch: 1,
+    maxActiveRequests: 1,
+
+    // Sort orders by resource type.
+    // Columns without a sort order defined here will stay in the end.
+    columnSort: {
+      Patient: [
+        'name',
+        'active'
+      ],
+      ResearchStudy: [
+        'contextPatientId'
+      ],
+      Observation: [
+        'codeText',
+        'code'
+      ]
+    },
+
+    contextColumns: {
+      // Custom definition of the "Variable" table columns
+      // See src/app/types/column.description.ts for details
+      "select_or_browse": {
+        "Variable": [
+          {
+            displayName: "Variable Display Text",
+            element: "code",
+            displayByDefault: true,
+            types: [
+              "CodeableConcept"
+            ]
+          },
+          {
+            displayName: "Code",
+            element: "code_value",
+            expression: "code.coding.code",
+            displayByDefault: true,
+            types: [
+              "string"
+            ]
+          },
+          {
+            displayName: "Code system",
+            element: "code_system",
+            expression: "code.coding.system",
+            displayByDefault: true,
+            filterable: false,
+            types: [
+              "string"
+            ]
+          },
+          {
+            displayName: "Category",
+            element: "category",
+            displayByDefault: true,
+            types: [
+              "CodeableConcept"
+            ]
+          },
+          {
+            displayName: "Unit",
+            element: "valueQuantity.unit",
+            displayByDefault: true,
+            types: [
+              "string"
+            ]
+          }
+        ]
+      },
+      // Columns added to the resource table in the context of pulling data
+      "pull-data": {
+        "ResearchStudy": [
+          {
+            // See src/app/types/column.description.ts for details
+            displayName: "Patient Id",
+            element: "contextPatientId",
+            expression: "patientData.id",
+            displayByDefault: true,
+            types: [
+              "string"
+            ]
+          }
+        ],
+        "EvidenceVariable": {
+          // See src/app/types/column.description.ts for details
+          displayName: "Patient Id",
+          element: "contextPatientId",
+          expression: "patientData.id",
+          displayByDefault: true,
+          types: [
+            "string"
+          ]
+        },
+        "Observation": [
+          {
+            // See src/app/types/column.description.ts for details
+            displayName: "Code",
+            element: "code",
+            expression: "code",
+            displayByDefault: true,
+            types: [
+              "CodeableConceptCode"
+            ]
+          }
+        ],
+        DomainResource: [
+          {
+            dispayName: "Text",
+            description: "Text summary of the resource, for human interpretation",
+            element: "text",
+            expression: "text.`div`.select(iif(matches('^(<\\\\?xml [^>]*>|)<div( [^>]*|)>(.*)</div>$'), replaceMatches('^(<\\\\?xml [^>]*>|)<div( [^>]*|)>(.*)</div>$', '$3'), $this))",
+            displayByDefault: true,
+            types: [
+              "string"
+            ]
+          }
+        ]
+      },
+      "": {
+        DomainResource: [
+          {
+            dispayName: "Text",
+            description: "Text summary of the resource, for human interpretation",
+            element: "text",
+            expression: "text.`div`.select(iif(matches('^(<\\\\?xml [^>]*>|)<div( [^>]*|)>(.*)</div>$'), replaceMatches('^(<\\\\?xml [^>]*>|)<div( [^>]*|)>(.*)</div>$', '$3'), $this))",
+            displayByDefault: true,
+            types: [
+              "string"
+            ]
+          }
+        ]
+      }
+    },
+  },
+
+  // Default settings for R4 servers
+  default_R4: {
+    definitionsFile: 'desc-default-R4.csv',
+  },
+
+  // Default settings for R5 servers
+  default_R5: {
+    definitionsFile: 'desc-default-R5.csv',
+  },
+
+  // Settings for servers with the specified URL.
+  // You can override default settings here
+  "customization": {}
+}

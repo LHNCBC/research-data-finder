@@ -1,0 +1,18 @@
+{
+  "resourceType": "CapabilityStatement",
+  "fhirVersion": "4.0.1",
+  "rest": [
+    {
+      "mode": "server",
+      "resource": [
+        {
+          "type": "MedicationStatement",
+          "searchParam": [
+            { "name": "code" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

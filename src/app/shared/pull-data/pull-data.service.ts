@@ -64,7 +64,7 @@ interface PullDataState {
  */
 type GetCodesFromCriteriaState = {
   // State object for Observation resource type.
-  Observation: {
+  Observation?: {
     // A map of existing observation codes
     existingObservationCodes: { [itemHash: string]: boolean; };
     // A map of item names to their indexes in the result array.
@@ -75,7 +75,7 @@ type GetCodesFromCriteriaState = {
 } & {
   // State object for other resource types
   // (e.g., MedicationDispense, MedicationRequest).
-  [resourceType in ('MedicationDispense' | 'MedicationRequest')]: {
+  [resourceType in ('MedicationDispense' | 'MedicationRequest')]?: {
     // A map of existing (e.g. medication) codes.
     existingCodes: { [itemHash: string]: boolean; };
     // A map of item names to their indexes in the result array.
@@ -83,6 +83,15 @@ type GetCodesFromCriteriaState = {
     // The result object containing selected (e.g. medication) codes.
     result: AutocompleteParameterValue;
   };
+};
+
+/**
+ * Aggregated selected-code payloads keyed by FHIR resource type.
+ */
+type GetCodesFromCriteriaResult = {
+  Observation?: SelectedObservationCodes;
+  MedicationDispense?: AutocompleteParameterValue;
+  MedicationRequest?: AutocompleteParameterValue;
 };
 
 @Injectable({
@@ -125,11 +134,7 @@ export class PullDataService {
   getCodesFromCriteria(
     criteria: Criteria | ResourceTypeCriteria,
     state: GetCodesFromCriteriaState = null
-  ): {
-    Observation: SelectedObservationCodes,
-    MedicationDispense: AutocompleteParameterValue,
-    MedicationRequest: AutocompleteParameterValue
-  } {
+  ): GetCodesFromCriteriaResult {
     // Rename items with the same name in the top function call of a recursive
     // call stack.
     const renameSameItemNames = !state;
@@ -145,24 +150,23 @@ export class PullDataService {
             items: [],
             datatype: 'any'
           }
-        },
-        MedicationDispense: {
-          existingCodes: {},
-          name2indexes: {},
-          result: {
-            codes: [],
-            items: [],
-          }
-        },
-        MedicationRequest: {
-          existingCodes: {},
-          name2indexes: {},
-          result: {
-            codes: [],
-            items: [],
-          }
         }
       };
+      ['MedicationDispense', 'MedicationRequest'].forEach(resourceType => {
+        if (this.fhirBackend.getCurrentDefinitions()
+          .resources[resourceType]?.searchParameters
+          .some(p => /\bcode\b/.test(p.element))) {
+          state[resourceType] = {
+            existingCodes: {},
+            name2indexes: {},
+            result: {
+              codes: [],
+              items: [],
+            }
+          };
+        }
+      })
+
     }
 
     if ('resourceType' in criteria) {
@@ -193,32 +197,38 @@ export class PullDataService {
       } else if (criteria.resourceType === 'MedicationDispense' ||
         criteria.resourceType === 'MedicationRequest') {
         const resourceType = criteria.resourceType;
-        const foundRule = (criteria as ResourceTypeCriteria).rules.find(
-          (rule) =>
-            (
-              Array.isArray(rule.field.element) ?
-                rule.field.element.indexOf('code') !== -1
-                : rule.field.element === 'code' || rule.field.element === CODETEXT
-            ) &&
-            rule.field.value
-        );
-        if (foundRule) {
-          const autocompleteValue = foundRule.field.value as AutocompleteParameterValue;
-          const items = autocompleteValue.items;
-          const codes = autocompleteValue.codes;
-          items.forEach((item, index) => {
-            const itemHash = `${item} | ${codes[index]}`;
-            if (!state[resourceType].existingCodes[itemHash]) {
-              state[resourceType].existingCodes[itemHash] = true;
-              if(state[resourceType].name2indexes[item]) {
-                state[resourceType].name2indexes[item].push(state[resourceType].result.items.length);
-              } else {
-                state[resourceType].name2indexes[item] = [state[resourceType].result.items.length];
+        if (state[resourceType]) {
+          const foundRule = (criteria as ResourceTypeCriteria).rules.find(
+            (rule) =>
+              (
+                Array.isArray(rule.field.element) ?
+                  rule.field.element.indexOf('code') !== -1
+                  : rule.field.element === 'code' ||
+                    rule.field.element === CODETEXT
+              ) &&
+              rule.field.value
+          );
+          if (foundRule) {
+            const autocompleteValue = foundRule.field.value as
+              AutocompleteParameterValue;
+            const items = autocompleteValue.items;
+            const codes = autocompleteValue.codes;
+            items.forEach((item, index) => {
+              const itemHash = `${item} | ${codes[index]}`;
+              if (!state[resourceType].existingCodes[itemHash]) {
+                state[resourceType].existingCodes[itemHash] = true;
+                if(state[resourceType].name2indexes[item]) {
+                  state[resourceType].name2indexes[item]
+                    .push(state[resourceType].result.items.length);
+                } else {
+                  state[resourceType].name2indexes[item] =
+                    [state[resourceType].result.items.length];
+                }
+                state[resourceType].result.items.push(item);
+                state[resourceType].result.codes.push(codes[index]);
               }
-              state[resourceType].result.items.push(item);
-              state[resourceType].result.codes.push(codes[index]);
-            }
-          });
+            });
+          }
         }
       }
     } else {
@@ -258,11 +268,13 @@ export class PullDataService {
         });
     }
 
-    return {
-      Observation: state.Observation.result,
-      MedicationDispense: state.MedicationDispense.result,
-      MedicationRequest: state.MedicationRequest.result
-    };
+    return Object.keys(state).reduce((acc, resourceType) => {
+      const stateByType = state[resourceType];
+      if (stateByType?.result) {
+        acc[resourceType] = stateByType.result;
+      }
+      return acc;
+    }, {} as GetCodesFromCriteriaResult);
   }
 
 

@@ -405,6 +405,11 @@ function getSearchParametersConfig(
           name: item.resource.name,
           type:
             (item.resource.type === 'token' ||
+            // TODO:
+            //  This code changes type of search parameter from "reference" to
+            //  "Patient". Not sure why. Maybe this is unnecessary? If it is
+            //  necessary, can we store the type of the resource referenced by
+            //  the "reference" separately?
             item.resource.type === 'reference' ||
             item.resource.type === 'quantity'
               ? typeFromExpression

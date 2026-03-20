@@ -2,6 +2,7 @@
 
 # compiled output
 /public
+/autoconfig-build
 /tmp
 /out-tsc
 # Only exists if Bazel was run

@@ -1,0 +1,28 @@
+{
+  "resourceType": "Condition",
+  "id": "condition-1",
+  "clinicalStatus": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+        "code": "active",
+        "display": "Active"
+      }
+    ]
+  },
+  "code": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "44054006",
+        "display": "Diabetes mellitus type 2"
+      }
+    ],
+    "text": "Type 2 diabetes mellitus"
+  },
+  "subject": {
+    "reference": "Patient/patient-1"
+  },
+  "abatementDateTime": "2024-01-01"
+}
+

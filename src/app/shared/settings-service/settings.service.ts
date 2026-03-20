@@ -157,7 +157,7 @@ export class SettingsService {
    * Returns the URL pattern for dbGap from config.
    */
   getDbgapUrlPattern(): string {
-    return this.config.customization.dbgap.urlPattern;
+    return this.config.customization?.dbgap?.urlPattern;
   }
 
   /**
