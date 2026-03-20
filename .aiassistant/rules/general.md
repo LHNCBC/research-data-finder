@@ -44,6 +44,14 @@ apply: always
 - Treat JSDoc as part of the function declaration:
   two blank lines go above the JSDoc block, not between JSDoc and `function`.
 
+## AI chat file references (WebStorm)
+
+- In AI chat responses, use plain file references in `path:line` format.
+- Prefer project-relative paths, for example:
+  `src/app/shared/query-params/query-params.service.ts:19`.
+- Do not use Markdown links for local files, because WebStorm AI chat may not
+  open them reliably.
+
 ## CSV/autoconfig-specific guidance
 
 - Treat base CSV files under `src/conf/csv/` as source templates.
