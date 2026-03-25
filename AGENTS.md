@@ -1,42 +1,60 @@
-# AGENTS Guide for `fhir-obs-viewer`
+# AGENTS.md
 
-## Big Picture
-- This repo has two coupled deliverables: Angular UI in `src/` and a Node CLI in `autoconfig-src/`.
-- The UI is a step-based cohort workflow (settings -> action -> cohort -> pull data) centered in `src/app/modules/stepper/stepper.component.ts`.
-- FHIR I/O is centralized in `src/app/shared/fhir-backend/fhir-backend.service.ts`; it wraps `FhirBatchQuery`, tracks connection state, and handles SMART, OAuth2, and RAS transitions.
-- App startup depends on `SettingsService.loadJsonConfig()` via `provideAppInitializer` in `src/app/app.module.ts`; avoid bypassing this when adding early boot logic.
-- The autoconfig CLI (`autoconfig-src/autoconfig.js`) reuses the same `FhirBatchQuery` class as the UI for parity in server capability detection.
+## What this repo is
+- Two deliverables share logic: an Angular UI (`src/app/`) and a Node CLI
+  autoconfig tool (`autoconfig-src/`).
+- The UI queries FHIR servers to define cohorts, then pull cohort data.
+- The CLI generates server-specific `settings.json5` and definitions CSV files.
 
-## Architecture and Data Flow Patterns
-- Settings and per-server definitions are loaded separately: JSON5 config from `src/assets/settings.json5`, then CSV definitions from `src/conf/csv/` via `SettingsService.loadCsvDefinitions()`.
-- Definitions CSV rows drive both search parameter availability and table columns; row semantics are enforced in `autoconfig-src/definitions-generator.js`.
-- Search parameter inclusion combines capability checks and real data probes (`checkSearchParamHasData`), not capability alone.
-- Column filtering is opt-in (`--exclude-empty-columns`); default behavior keeps all columns for supported resources.
-- Combined search params (`code,medication`) and polymorphic paths (`abatement[x]`) are first-class cases; preserve existing handling in generator + tests/harness.
+## Big-picture architecture (read these first)
+- App startup: `src/app/app.module.ts` uses `provideAppInitializer` to load
+  `assets/settings.json5` through `SettingsService` before routes render.
+- Runtime flow centers on `FhirBackendService`
+  (`src/app/shared/fhir-backend/fhir-backend.service.ts`), which wraps
+  `FhirBatchQuery` (`src/app/shared/fhir-backend/fhir-batch-query.js`).
+- UI workflow is a wizard in `src/app/modules/stepper/stepper.component.ts`
+  (settings -> action -> cohort -> pull data) driven by backend connection
+  status and cohort mode.
+- Auth paths are route-based: SMART launch in `src/app/modules/launch/`,
+  OAuth2 callback in `src/app/modules/oauth2-token-callback/`, and RAS callback
+  in `src/app/modules/ras-token-callback/`.
+- The autoconfig CLI intentionally reuses browser query logic by importing
+  `FhirBatchQuery` from `src/` (`autoconfig-src/autoconfig.js`).
 
-## Build and Generation Workflow (Project-Specific)
-- `npm run build` builds Angular and then runs `npm run build-autoconfig` (see `package.json`).
-- `npm run build-autoconfig` runs `autoconfig-src/build-autoconfig.js` and prepares self-contained assets in `autoconfig-build/conf/`.
-- `npm run autoconfig -- init <url> --output ./output` runs bundled CLI (`autoconfig-build/autoconfig.js`) with `NODE_TLS_REJECT_UNAUTHORIZED=0`.
-- Webpack extra config (`webpack/extra-webpack.config.js`) updates CSV/settings from XLSX and injects custom loaders for definitions + `package.json` version imports.
-- `import pkg from '../../../../package.json'` works because `webpack/package-json-loader.js` strips JSON to `{ version }`.
+## Build/test workflows that matter
+- Install + dev server:
+  - `npm install`
+  - `npm start`
+- Fast UI checks: `npm run unit` and `npm run lint`.
+- Full test run: `npm test` (autoconfig + unit + Cypress).
+- Autoconfig-specific checks:
+  - `npm run test-autoconfig`
+  - `node autoconfig-src/autoconfig-harness.js` (offline fixture validation)
+- Build output:
+  - `npm run build` writes UI to `public/` and also runs build-autoconfig.
+  - `npm run build-autoconfig` bundles CLI into `autoconfig-build/`.
 
-## Testing and Validation Workflow
-- UI unit tests: `npm run unit`; lint: `npm run lint`; full suite: `npm test`.
-- Autoconfig unit tests: `npm run test-autoconfig` (`node --test autoconfig-src/autoconfig.test.js`).
-- Offline autoconfig behavior checks: `node autoconfig-src/autoconfig-harness.js` (writes fixture outputs under `autoconfig-src/fixtures/`).
-- If terminal `node`/`npm` is unavailable, run `source ./bashrc` from repo root, then retry.
+## Project-specific patterns and conventions
+- Do not edit generated artifacts in `public/` or `autoconfig-build/`; update
+  source under `src/` or `autoconfig-src/` and rebuild.
+- Definitions pipeline: XLSX -> CSV/settings happens in
+  `webpack/extra-webpack.config.js` during Angular build.
+- CSV templates in `src/conf/csv/` are source-of-truth; autoconfig copies them
+  into `autoconfig-build/conf/csv/` for a relocatable bundle.
+- Autoconfig filtering is dual-source by design: capability support plus live
+  data checks (`generateDefinitionsCsv` in `autoconfig-src/autoconfig.js`).
+- Preserve combined params (e.g. `code,medication`) and polymorphic `[x]`
+  column handling (`autoconfig-src/definitions-generator.js`).
+- Keep edits narrow and style-consistent (quote style, import style, async
+  patterns, line lengths near 80 where practical).
 
-## Conventions That Matter Here
-- Treat `src/conf/csv/*.csv` as source templates; do not hand-edit generated outputs in `public/` or `autoconfig-build/` unless explicitly requested.
-- Keep edits narrow and behavior-preserving; this codebase has many workflow flags tied to URL params (`server`, `prev-version`, `isSmart`, `ras`).
-- Preserve existing style: minimal dependencies, sparse comments, and two blank lines between declarations (including tests/JSDoc blocks).
-- For autoconfig changes, keep files under `autoconfig-build/` independent from paths outside that folder.
-- Use fixtures for deterministic tests; avoid introducing network dependence unless intentionally integration-level.
-
-## Key Integration Points
-- OAuth2 callback route: `src/app/modules/oauth2-token-callback/`; RAS callback route: `src/app/modules/ras-token-callback/`.
-- SMART launch flow route: `src/app/modules/launch/` triggered by `FhirBackendService.isSmartOnFhir`.
-- Shared FHIR definitions compilation: `src/app/shared/definitions/webpack-loader.js` with options in `src/app/shared/definitions/webpack-options.json`.
-- Autoconfig capability/data filtering core: `autoconfig-src/definitions-generator.js`; orchestration + CLI surface: `autoconfig-src/autoconfig.js`.
+## Integration points and gotchas
+- URL query params (`server`, `isSmart`, `prev-version`, `ras`) alter behavior;
+  many components read them via shared utils.
+- `ToastrInterceptor` (`src/app/shared/http-interceptors/toastr-interceptor.ts`)
+  displays HTTP errors unless request context sets `HIDE_ERRORS`.
+- `npm run autoconfig` runs the built bundle with
+  `NODE_TLS_REJECT_UNAUTHORIZED=0`; this is intentional for some FHIR endpoints.
+- If terminal `node`/`npm` is missing, source repo `bashrc` then rerun command:
+  `source ./bashrc`.
 
