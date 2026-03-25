@@ -16,7 +16,17 @@ const {
 const { parseCsvString, stringifyCsvRows } = require('./definitions-generator');
 
 
+/**
+ * Minimal FHIR client test double for predictable query responses.
+ */
 class FakeFhirClient {
+  /**
+   * Creates a fake client with canned query responses and optional feature flags.
+   * @param {Record<string, any>} [responses]
+   *   Map of query strings to mocked response payloads or thrown errors.
+   * @param {{features?: {isFormatSupported: boolean}}} [options]
+   *   Optional feature configuration returned by {@link getFeatures}.
+   */
   constructor(responses = {}, options = {}) {
     this.responses = responses;
     this.features = options.features || { isFormatSupported: false };
@@ -24,11 +34,23 @@ class FakeFhirClient {
   }
 
 
+  /**
+   * Returns the configured feature flags for this fake client.
+   * @returns {{isFormatSupported: boolean}}
+   *   Feature support indicators consumed by autoconfig logic.
+   */
   getFeatures() {
     return this.features;
   }
 
 
+  /**
+   * Resolves a mocked response for a query and records the query history.
+   * @param {string} query
+   *   Query string used to look up a canned response.
+   * @returns {Promise<any>}
+   *   Promise that resolves to the mocked response payload.
+   */
   async get(query) {
     this.queries.push(query);
     if (!(query in this.responses)) {
@@ -42,21 +64,62 @@ class FakeFhirClient {
   }
 }
 
+
+/**
+ * Writes JSON data to disk using pretty formatting.
+ * @param {string} filePath
+ *   Destination file path.
+ * @param {any} data
+ *   JSON-serializable value to write.
+ * @returns {void}
+ *   Does not return a value.
+ */
 function writeJson(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
 
+/**
+ * Writes CSV rows to disk using the project CSV serializer.
+ * @param {string} filePath
+ *   Destination file path.
+ * @param {string[][]} rows
+ *   Two-dimensional CSV row data.
+ * @returns {void}
+ *   Does not return a value.
+ */
 function writeCsv(filePath, rows) {
   fs.writeFileSync(filePath, stringifyCsvRows(rows));
 }
 
 
+/**
+ * Creates a temporary directory for an isolated test run.
+ * @returns {string}
+ *   Absolute path of the created temporary directory.
+ */
 function createTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'autoconfig-test-'));
 }
 
 
+/**
+ * Runs definition generation with temporary input files and fake client data.
+ * @param {{
+ *   rows: string[][],
+ *   capability?: Record<string, any>,
+ *   clientResponses?: Record<string, any>,
+ *   options?: Record<string, any>
+ * }} params
+ *   Generation inputs, capability payload, fake query responses, and options.
+ * @returns {Promise<{
+ *   result: {outputPath: string},
+ *   outputRows: string[][],
+ *   fhirClient: FakeFhirClient,
+ *   tempDir: string
+ * }>}
+ *   Output metadata, parsed CSV rows, fake client instance, and temp directory.
+ */
 async function runGenerate({
   rows,
   capability,
@@ -103,6 +166,7 @@ test('getSettingsInitialPath resolves the moved conf settings file', () => {
   );
   assert.ok(fs.existsSync(settingsPath));
 });
+
 
 test('sanitizeUrlForFilename normalizes URL-like strings', () => {
   assert.equal(
@@ -196,6 +260,7 @@ test('getBaseDefinitionsCsvPath prefers bundled autoconfig CSV when present',
       }
     }
   });
+
 
 test('ensureDefaultDefinitionsCsvFiles copies missing R4/R5 defaults', () => {
   const outputDir = createTempDir();

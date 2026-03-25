@@ -46,6 +46,7 @@ const EXCLUDED_OUTPUT_SEARCH_PARAM_TYPES = new Set(['reference', 'Patient',
 // Composite params are excluded from probing because they are ambiguous.
 const EXCLUDED_INPUT_SEARCH_PARAM_TYPES = new Set(['composite']);
 
+
 /**
  * Converts a URL-like string into a filename-safe slug.
  * Replaces runs of non-alphanumeric characters with dashes and trims edge
@@ -56,6 +57,7 @@ const EXCLUDED_INPUT_SEARCH_PARAM_TYPES = new Set(['composite']);
 function sanitizeUrlForFilename(url) {
   return url.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
+
 
 /**
  * Resolves the bundled base definitions CSV path for a given FHIR version.
@@ -85,6 +87,7 @@ function getBaseDefinitionsCsvPath(versionName) {
   );
 }
 
+
 /**
  * Ensures the output directory contains default R4/R5 definitions CSV files.
  * Missing files are copied from bundled/source template locations.
@@ -111,6 +114,7 @@ function ensureDefaultDefinitionsCsvFiles(outputDir) {
 
   return copiedFiles;
 }
+
 
 /**
  * Resolves the initial settings template path across bundled and source
@@ -189,6 +193,7 @@ async function loadCapabilityStatement(fhirClient, capabilityFile) {
   return response.data;
 }
 
+
 /**
  * Checks whether a resource type has at least one row on the server.
  * @param {FhirBatchQuery} fhirClient - FHIR client used for querying
@@ -209,6 +214,7 @@ async function checkResourceHasData(fhirClient, resourceType) {
     return false;
   }
 }
+
 
 /**
  * Checks whether a search parameter returns data and collects matching samples.
@@ -233,6 +239,7 @@ async function checkSearchParamHasData(fhirClient, resourceType, paramName) {
     return { hasData: false, resources: [] };
   }
 }
+
 
 /**
  * Loads a sample resource from fixtures or from the server.
@@ -264,6 +271,7 @@ async function loadSampleResource(resourceType, options, fhirClient) {
   }
 }
 
+
 /**
  * Returns the fhirpath context model for the requested FHIR version.
  * @param {string} versionName - FHIR version (`R4` or `R5`).
@@ -278,6 +286,7 @@ function getFhirModel(versionName) {
   }
   return undefined;
 }
+
 
 /**
  * Generates a filtered definitions CSV tailored to server capability and data.
@@ -537,6 +546,7 @@ program.command('init')
       process.exitCode = 1;
     }
   });
+
 
 // Parse CLI args only when executed directly, not when imported by tests.
 if (require.main === module) {
