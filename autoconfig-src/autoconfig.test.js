@@ -11,7 +11,8 @@ const {
   ensureDefaultDefinitionsCsvFiles,
   getSettingsInitialPath,
   getRdfVersion,
-  generateDefinitionsCsv
+  generateDefinitionsCsv,
+  applyScrubberSetting
 } = require('./autoconfig');
 const { parseCsvString, stringifyCsvRows } = require('./definitions-generator');
 
@@ -166,6 +167,40 @@ test('getSettingsInitialPath resolves the moved conf settings file', () => {
   );
   assert.ok(fs.existsSync(settingsPath));
 });
+
+
+test('applyScrubberSetting sets scrubber=false when scrubber ID is missing',
+  () => {
+    const updateSettingsObj = { default: { scrubber: undefined } };
+    let calledWith;
+    const fhirClient = {
+      setScrubberIDHeader(value) {
+        calledWith = value;
+      }
+    };
+
+    applyScrubberSetting('', updateSettingsObj, fhirClient);
+
+    assert.equal(updateSettingsObj.default.scrubber, false);
+    assert.equal(calledWith, undefined);
+  });
+
+
+test('applyScrubberSetting sets scrubber=true and forwards scrubber ID header',
+  () => {
+    const updateSettingsObj = { default: { scrubber: undefined } };
+    let calledWith;
+    const fhirClient = {
+      setScrubberIDHeader(value) {
+        calledWith = value;
+      }
+    };
+
+    applyScrubberSetting('my-scrubber-id', updateSettingsObj, fhirClient);
+
+    assert.equal(updateSettingsObj.default.scrubber, true);
+    assert.equal(calledWith, 'my-scrubber-id');
+  });
 
 
 test('sanitizeUrlForFilename normalizes URL-like strings', () => {

@@ -289,6 +289,24 @@ function getFhirModel(versionName) {
 
 
 /**
+ * Applies scrubber-related settings and client header behavior.
+ * @param {string|undefined} scrubberId - Optional scrubber header value.
+ * @param {object} updateSettingsObj - Mutable settings update payload.
+ * @param {FhirBatchQuery|null|undefined} fhirClient - FHIR client instance.
+ * @returns {void}
+ */
+function applyScrubberSetting(scrubberId, updateSettingsObj, fhirClient) {
+  if (scrubberId) {
+    console.log('Scrubber ID:', scrubberId);
+    fhirClient?.setScrubberIDHeader(scrubberId);
+    updateSettingsObj.default['scrubber'] = true;
+    return;
+  }
+  updateSettingsObj.default['scrubber'] = false;
+}
+
+
+/**
  * Generates a filtered definitions CSV tailored to server capability and data.
  * @param {object} params - Generation parameters.
  * @param {string} params.url - FHIR server base URL.
@@ -495,10 +513,7 @@ program.command('init')
     const fhirClient = new FhirBatchQuery({
       serviceBaseUrl: url, maxRequestsPerBatch: 1, maxActiveRequests: 1 });
 
-    if (options.scrubberId) {
-      console.log('Scrubber ID:', options.scrubberId);
-      fhirClient.setScrubberIDHeader(options.scrubberId);
-    }
+    applyScrubberSetting(options.scrubberId, updateSettingsObj, fhirClient);
 
     // Run initialization queries in the same way as we do in the web
     // application, and use the results to update settings.
@@ -561,5 +576,6 @@ module.exports = {
   ensureDefaultDefinitionsCsvFiles,
   getSettingsInitialPath,
   getRdfVersion,
-  generateDefinitionsCsv
+  generateDefinitionsCsv,
+  applyScrubberSetting
 };

@@ -23,6 +23,7 @@
     // is first used.
     defaultServer: '<place-default-server-url-here>',
 
+    // true if the server requires the "scrubberID" header, false otherwise.
     scrubber: true,
 
     // Predefined initialization results
