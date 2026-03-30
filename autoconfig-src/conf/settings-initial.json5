@@ -7,7 +7,6 @@
     // Whether the user is allowed to change the FHIR server URL:
     // If set to true, the user can change the server URL.
     // If set to false, the "defaultServer" URL will be used.
-    //    allowChangeServer: false,
     allowChangeServer: false,
 
     // Default number of resources per patient to load in the Pull Data step.
