@@ -673,7 +673,7 @@ describe('CohortService', () => {
           rules: [
             {
               field: {
-                element: 'code',
+                element: 'code text',
                 value: {
                   codes: ['276.3'],
                   items: ['ALKALOSIS']

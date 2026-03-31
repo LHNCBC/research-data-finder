@@ -3,6 +3,32 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.9.0] - 2026-03-20
+### Added
+- Autoconfig build and test tooling:
+  `npm run build-autoconfig`, `npm run test-autoconfig`, and `npm run autoconfig`.
+- A standalone `autoconfig-build/` output that includes bundled CLI code plus
+  runtime support files (`desc-default-R4.csv`, `desc-default-R5.csv`,
+  `settings-initial.json5`, and `build-info.json`).
+- Expanded autoconfig fixtures, offline harness scenarios, and unit tests for
+  capability filtering, column filtering, and bundled/source path resolution.
+
+### Changed
+- `npm run build` now also builds the autoconfig bundle, and `npm test` now
+  runs autoconfig tests before unit/e2e tests.
+- Refactored autoconfig CSV/capability filtering helpers and documentation for
+  bundled-runtime usage.
+- Updated default CSV/XLSX definition artifacts used for generated
+  configurations.
+
+### Fixed
+- Criteria query serialization for non-standard parameters now correctly handles
+  values provided as `codes[]`.
+- Pull Data code extraction now safely skips medication code collection when a
+  medication resource type has no code search parameter in current definitions.
+- dbGaP URL pattern handling now safely tolerates missing customization config.
+- CSV parsing now trims trailing empty rows caused by terminal newlines.
+
 ## [7.8.1] - 2026-03-16
 ### Fixed
 - An issue with the incorrect size of the added tab in the "Pull data" step.

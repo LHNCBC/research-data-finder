@@ -7,6 +7,14 @@ import { isEqual } from 'lodash-es';
 
 export const CODETEXT = 'code text';
 export const OBSERVATION_VALUE = 'observation value';
+
+// Search parameter types treated as code-like and handled through code lookup logic.
+// TODO:
+//  "Reference" is an invented search parameter type (some "reference" search
+//  parameters are marked as "Reference" - see "medication"), meaning that when
+//  we search, we assume that this "Reference" has "code" and use the ":text"
+//  modifier to search. This is a temporary solution applied for a specific
+//  server when we created a combined search parameter "medication name".
 export const CODETYPES = ['code', 'CodeableConcept', 'Coding', 'Reference'];
 
 @Injectable({
@@ -35,6 +43,9 @@ export class QueryParamsService {
     // (e.g. element === '_has:ResearchSubject:individual:study'),
     // use the default template
     if (!selectedParameter) {
+      if (Array.isArray(value?.value?.codes)) {
+        return `&${value.element}=${value.value.codes.join(',')}`;
+      }
       return `&${value.element}=${value.value}`;
     }
     if (selectedParameter.element === CODETEXT) {

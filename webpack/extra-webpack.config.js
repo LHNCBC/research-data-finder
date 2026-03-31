@@ -3,28 +3,13 @@ const fs = require('fs');
 const readXlsxFile = require('read-excel-file/node');
 const JSON5 = require('json5');
 const json5Writer = require('json5-writer');
+const { stringify } = require('csv-stringify/sync');
 
 const xlsxFolder = './src/conf/xlsx';
 const csvFolder = './src/conf/csv';
 const settingsPath = './src/assets/settings.json5';
 const definitionsFilePropName = 'definitionsFile';
 
-/**
- * Converts array of cell values to CSV row
- * @param {Array} row
- * @return {string}
- */
-function createCsvRow(row) {
-  return row
-    .map((cell) => {
-      if (/["\s,]/.test(cell)) {
-        return '"' + cell.replace(/"/g, '""') + '"';
-      } else {
-        return cell;
-      }
-    })
-    .join(',');
-}
 
 /**
  * Searches for an item in the array from a specified index that matches
@@ -139,7 +124,7 @@ function updateAppSettings(url2desc) {
 
     fs.writeFileSync(
       csvFolder + '/' + toFilename,
-      url2desc[url].map((row) => createCsvRow(row)).join('\n')
+      stringify(url2desc[url], { record_delimiter: '\n' })
     );
   }
 

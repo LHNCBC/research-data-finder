@@ -1,7 +1,7 @@
 const definitionsIndex = require('../definitions/index.json');
 // An object used to cache responses to HTTP requests
 const queryResponseCache = require('./query-response-cache.js');
-const { escapeStringForRegExp } = require('../utils');
+const escapeStringForRegExp = require('../utils/escapeStringForRegExp');
 // The value of property status in the rejection object when request is aborted due to clearPendingRequests execution
 const HTTP_ABORT = 0;
 // The value of property status in the rejection object when the FHIR version is not supported by RDF
@@ -189,8 +189,8 @@ class FhirBatchQuery extends EventTarget {
 
   /**
    * Initialize/reinitialize FhirBatchQuery instance.
-   * @param {Object} options - initialization options.
-   * @param {boolean} options.useCapabilityStatement - whether to request from
+   * @param {Object} [options] - initialization options.
+   * @param {boolean} [options.useCapabilityStatement] - whether to request from
    *  the server the part of the CapabilityStatement that describes the search
    *  parameters for resource types.
    * @param {string} [newServiceBaseUrl] - new FHIR REST API Service Base URL
@@ -198,7 +198,7 @@ class FhirBatchQuery extends EventTarget {
    * @param {string} [context] - string describes an initialization context
    *  which is used to distinguish between pre-login and post-login
    *  initialization requests.
-   * @param {Object|null} predefinedInitResult - null or predefined initialization
+   * @param {Object|null} [predefinedInitResult] - null or predefined initialization
    *  result from the configuration file:
    * @param {string} predefinedInitResult.version - version name e.g. "R4".
    * @param {Object} predefinedInitResult.features - object describing the server
@@ -340,7 +340,9 @@ class FhirBatchQuery extends EventTarget {
                     interpretation.value.data.entry?.length > 0,
                   ...hasNotModifierIssueAndMaxHasAllowed.value
                 });
-                console.log(this._features);
+                if (globalThis.process?.versions?.node) {
+                  console.log(this._features);
+                }
               }
             );
           }
@@ -810,7 +812,9 @@ class FhirBatchQuery extends EventTarget {
             reject({ status: HTTP_ABORT, error: 'Abort' });
           }
           const responseTime = new Date() - startAjaxTime;
-          console.log(`${logPrefix ? logPrefix + ' ' : ''}AJAX call returned in ${responseTime}`);
+          if (globalThis.process?.versions?.node) {
+            console.log(`${logPrefix ? logPrefix + ' ' : ''}${url} - response received in ${responseTime} ms.`);
+          }
           const status = oReq.status;
 
           if (this.isOK(status)) {
@@ -1144,7 +1148,9 @@ class FhirBatchQuery extends EventTarget {
         : '');
       queryResponseCache.get(cacheKey, options).then((cachedResponse) => {
         if (cachedResponse) {
-          console.log('Using cached data');
+          if (globalThis.process?.versions?.node) {
+            console.log(`${url} - using cached data.`);
+          }
           if (cachedResponse.status >= 200 && cachedResponse.status < 300) {
             resolve(cachedResponse);
           } else {

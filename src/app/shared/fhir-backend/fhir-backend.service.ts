@@ -935,7 +935,7 @@ export class FhirBackendService implements HttpBackend {
    */
   isDbgap(url): boolean {
     const urlPattern = this.settings.getDbgapUrlPattern();
-    return new RegExp(urlPattern).test(url);
+    return urlPattern ? new RegExp(urlPattern).test(url) : false;
   }
 
   /**

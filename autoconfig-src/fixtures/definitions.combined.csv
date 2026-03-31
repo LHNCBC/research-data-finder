@@ -1,0 +1,5 @@
+MedicationStatement,,,,,,,
+,code,search parameter,Code,hide,string,,
+,medication,search parameter,Medication,hide,string,,
+,"code,medication",search parameter,Code or Medication,hide,string,,
+

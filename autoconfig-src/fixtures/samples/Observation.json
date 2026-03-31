@@ -1,0 +1,24 @@
+{
+  "resourceType": "Observation",
+  "id": "obs-1",
+  "status": "final",
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "789-8",
+        "display": "Erythrocytes [#/volume] in Blood by Automated count"
+      }
+    ],
+    "text": "RBC"
+  },
+  "subject": {
+    "reference": "Patient/patient-1"
+  },
+  "effectiveDateTime": "2020-01-01",
+  "valueQuantity": {
+    "value": 4.2,
+    "unit": "10*6/uL"
+  }
+}
+

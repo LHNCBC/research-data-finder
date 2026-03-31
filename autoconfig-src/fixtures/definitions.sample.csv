@@ -1,0 +1,22 @@
+Observation,,,,,,,
+,code text,search parameter,variable name,show,,,The display text associated with the code of the observation type
+,observation value,search parameter,variable value,show,,,The value of the observation
+,codeText,column,Variable Name,show,CodeableConcept,code,Type of observation (code / type)
+,date,search parameter,date,show,date,,"Obtained date/time. If the obtained element is a period, a date that falls in the period"
+,effective[x],column,Effective,hide,"dateTime,Period,Timing,instant",,Clinically relevant time/time-period for observation
+,id,column,Id,show,string,,
+,status,column,Status,show,code,,registered | preliminary | final | amended +
+,status,search parameter,status,show,code,,The status of the observation
+,subject,column,Subject,show,Reference,,Who and/or what the observation is about
+,value[x],column,Value,show,"Quantity,CodeableConcept,string,boolean,integer,Range,Ratio,SampledData,time,dateTime,Period",,Actual result
+Patient,,,,,,,
+,active,search parameter,active,show,boolean,,Whether the patient record is active
+,active,column,Active,show,boolean,,Whether this patient's record is in active use
+,birthdate,search parameter,birthdate,show,date,,The patient's date of birth
+,birthDate,column,Birth Date,show,date,,The date of birth for the individual
+,age,column,Age,show,unsignedInt,"iif(birthDate.exists(), defineVariable('referenceDate', iif(%context.deceasedDateTime.exists(), %context.deceasedDateTime, today())).select((%referenceDate.toString().substring(0,4).toInteger() - %context.birthDate.toString().substring(0,4).toInteger()) - iif(%referenceDate.toString().substring(5,10) < %context.birthDate.toString().substring(5,10),1,0)), {})",The patient's age
+,gender,column,Gender,show,code,,male | female | other | unknown
+,gender,search parameter,gender,show,code,,Gender of the patient
+,id,column,Id,show,string,,
+,name,column,Name,show,HumanName,,A name associated with the patient
+,name,search parameter,name,show,string,,"A server defined search that may match any of the string fields in the HumanName, including family, give, prefix, suffix, suffix, and/or text"

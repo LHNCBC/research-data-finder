@@ -35,6 +35,12 @@ Try it out on the [demo page](https://lhcforms.nlm.nih.gov/fhir/research-data-fi
 
         npm run analyze-gzip
 
+## Autoconfig CLI
+
+The autoconfig tool for generating `settings.json5` and server-specific CSV
+definitions is documented in `autoconfig-src/README.md`.
+CSV schema details are documented in `src/conf/csv/README.md`.
+
 ## Connecting to a new server that requires OAuth2
 If you want to connect to your own OAuth2 server, you will need to
 have a server program which holds your client secret and handles OAuth
