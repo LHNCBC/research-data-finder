@@ -524,22 +524,23 @@ program.command('init')
         features: fhirClient.getFeatures()
       };
 
-      if (!fs.existsSync(options.output)) {
-        fs.mkdirSync(options.output, { recursive: true });
+      const csvOutputPath = path.join(options.output, 'csv');
+      if (!fs.existsSync(csvOutputPath)) {
+        fs.mkdirSync(csvOutputPath, { recursive: true });
       }
-      const copiedDefaultCsvFiles = ensureDefaultDefinitionsCsvFiles(
-        options.output
-      );
-      copiedDefaultCsvFiles.forEach((copiedPath) => {
-        console.log(`Copied missing default definitions file: ${copiedPath}`);
-      });
 
       const definitionsResult = await generateDefinitionsCsv({
         url,
         versionName: fhirClient.getVersionName(),
         fhirClient,
-        outputDir: options.output,
+        outputDir: csvOutputPath,
         options
+      });
+      const copiedDefaultCsvFiles = ensureDefaultDefinitionsCsvFiles(
+        csvOutputPath
+      );
+      copiedDefaultCsvFiles.forEach((copiedPath) => {
+        console.log(`Copied missing default definitions file: ${copiedPath}`);
       });
       updateSettingsObj.default['definitionsFile'] = definitionsResult
         .definitionsFileName;
@@ -548,7 +549,6 @@ program.command('init')
 
       const settingsWriter = json5Writer.load(settingsJsonString);
       settingsWriter.write(updateSettingsObj);
-      fs.accessSync(options.output);
       const settingsOutputPath = path.join(options.output, 'settings.json5');
       const settingsSource = settingsWriter.toSource();
       fs.writeFileSync(settingsOutputPath, settingsSource);

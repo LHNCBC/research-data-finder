@@ -8,13 +8,16 @@
 
 ## Big-picture architecture (read these first)
 - App startup: `src/app/app.module.ts` uses `provideAppInitializer` to load
-  `assets/settings.json5` through `SettingsService` before routes render.
+  `conf/settings.json5` through `SettingsService` before routes render.
+- `FhirBackendService.init()` is called from
+  `src/app/modules/home/home.component.ts` so token callback routes do not run
+  full backend initialization.
 - Runtime flow centers on `FhirBackendService`
   (`src/app/shared/fhir-backend/fhir-backend.service.ts`), which wraps
   `FhirBatchQuery` (`src/app/shared/fhir-backend/fhir-batch-query.js`).
 - UI workflow is a wizard in `src/app/modules/stepper/stepper.component.ts`
-  (settings -> action -> cohort -> pull data) driven by backend connection
-  status and cohort mode.
+  (settings -> action -> research-study/select-records/browse-public-data ->
+  cohort -> pull data) driven by backend connection status and cohort mode.
 - Auth paths are route-based: SMART launch in `src/app/modules/launch/`,
   OAuth2 callback in `src/app/modules/oauth2-token-callback/`, and RAS callback
   in `src/app/modules/ras-token-callback/`.
@@ -35,16 +38,26 @@
   - `npm run build-autoconfig` bundles CLI into `autoconfig-build/`.
 
 ## Project-specific patterns and conventions
-- Do not edit generated artifacts in `public/` or `autoconfig-build/`; update
-  source under `src/` or `autoconfig-src/` and rebuild.
+- Do not edit generated artifacts in `public/` or `autoconfig-build/`.
+- Avoid reading or searching within `.idea/` unless the user explicitly asks for it.
+- Focus discovery and edits on `src/`, `autoconfig-src/`, `test/`, and
+  `webpack/` by default.
 - Definitions pipeline: XLSX -> CSV/settings happens in
   `webpack/extra-webpack.config.js` during Angular build.
-- CSV templates in `src/conf/csv/` are source-of-truth; autoconfig copies them
-  into `autoconfig-build/conf/csv/` for a relocatable bundle.
+- XLSX files in `src/conf/xlsx/` are source-of-truth for definitions; build
+  generates `src/conf/csv/` and updates `src/conf/settings.json5`.
+- Autoconfig copies generated CSV templates into `autoconfig-build/conf/csv/`
+  for a relocatable bundle.
+- `autoconfig-src/build-autoconfig.js` also stages
+  `autoconfig-build/conf/settings-initial.json5` and
+  `autoconfig-build/conf/build-info.json`; `autoconfig-src/autoconfig.js`
+  prefers these bundled files at runtime.
 - Autoconfig filtering is dual-source by design: capability support plus live
   data checks (`generateDefinitionsCsv` in `autoconfig-src/autoconfig.js`).
 - Preserve combined params (e.g. `code,medication`) and polymorphic `[x]`
   column handling (`autoconfig-src/definitions-generator.js`).
+- Save generated planning prompts under `plans/` using
+  `plan-<camelCaseName>.prompt.md` filenames.
 - Keep edits narrow and style-consistent (quote style, import style, async
   patterns, line lengths near 80 where practical).
 

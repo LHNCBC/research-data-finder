@@ -104,8 +104,8 @@ export async function configureTestingModule(
 
   // Pass-through for settings file
   mockHttp
-    .expectOne(`assets/settings.json5`)
-    .flush(await fetch('assets/settings.json5').then((r) => r.text()));
+    .expectOne(`conf/settings.json5`)
+    .flush(await fetch('conf/settings.json5').then((r) => r.text()));
 
   // We can't expect a request before it is issued, so we give a chance to issue
   // a request
