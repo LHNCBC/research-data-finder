@@ -7,7 +7,7 @@ const { stringify } = require('csv-stringify/sync');
 
 const xlsxFolder = './src/conf/xlsx';
 const csvFolder = './src/conf/csv';
-const settingsPath = './src/assets/settings.json5';
+const settingsPath = './src/conf/settings.json5';
 const definitionsFilePropName = 'definitionsFile';
 
 

@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.9.1] - 2026-04-03
+### Changed
+- Moved `src/assets/settings.json5` to `src/conf/settings.json5` and updated all
+  code references accordingly.
+- Autoconfig `init` now consistently writes generated and copied definitions CSV
+  files into `output/csv/`, matching the expected folder layout.
+
 ## [7.9.0] - 2026-03-20
 ### Added
 - Autoconfig build and test tooling:

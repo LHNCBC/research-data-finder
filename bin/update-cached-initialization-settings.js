@@ -15,7 +15,7 @@ const JSON5 = require('json5');
 const json5Writer = require('json5-writer');
 const fs = require('fs');
 
-const settingsPath = './src/assets/settings.json5';
+const settingsPath = './src/conf/settings.json5';
 const settingsJsonString = fs.readFileSync(settingsPath).toString();
 const settings = JSON5.parse(settingsJsonString);
 const promises = [];

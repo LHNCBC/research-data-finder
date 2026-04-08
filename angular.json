@@ -29,6 +29,7 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
+              "src/conf/settings.json5",
               "src/conf/csv",
               {
                 "glob": "**/*",
@@ -115,6 +116,7 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
+              "src/conf/settings.json5",
               "src/conf/csv"
             ],
             "styles": [
