@@ -3,6 +3,17 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.9.2] - 2026-04-10
+### Changed
+- Autoconfig `init` now writes the path to the generated definitions CSV file
+  to the `customization.<server URL>.definitionsFile` parameter, instead of
+  updating the global default definition file – which would otherwise be
+  overridden by the `definitionsFile` parameter in `default_R4` and `default_R5`.
+- Updated `settings-initial.json5` template comments to show server-specific
+  `definitionsFile` configuration under `customization`.
+- Node-side query logging now includes HTTP status codes for received
+  responses, improving request diagnostics.
+
 ## [7.9.1] - 2026-04-03
 ### Changed
 - Moved `src/assets/settings.json5` to `src/conf/settings.json5` and updated all

@@ -44,9 +44,6 @@
       }
     },
 
-    definitionsFile: '<place-default-definitions-file-name-here>.csv',
-
-
     // Whether to use the CapabilityStatement to limit allowed search
     // parameters and resource types.
     useCapabilityStatement: true,
@@ -241,6 +238,10 @@
 
   // Settings for servers with the specified URL.
   // You can override default settings here
-  "customization": {}
+  "customization": {
+//    "<place-default-server-url-here>": {
+//      definitionsFile: '<place-default-definitions-file-name-here>.csv'
+//    },
+  }
 }
 

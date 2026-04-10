@@ -502,6 +502,12 @@ program.command('init')
           defaultSection[k] = undefined;
         });
         defaultSection['defaultServer'] = url;
+      } else if (key === 'customization') {
+        res[key] = {};
+        const customizationSection = res[key];
+        Object.keys(settings.customization).forEach((k) => {
+          customizationSection[k] = undefined;
+        });
       } else {
         res[key] = undefined;
       }
@@ -542,8 +548,9 @@ program.command('init')
       copiedDefaultCsvFiles.forEach((copiedPath) => {
         console.log(`Copied missing default definitions file: ${copiedPath}`);
       });
-      updateSettingsObj.default['definitionsFile'] = definitionsResult
-        .definitionsFileName;
+      updateSettingsObj.customization[url] = {
+        definitionsFile: definitionsResult.definitionsFileName
+      };
       console.log(`Definitions CSV written to: ${definitionsResult.outputPath}`);
       console.log(`Definitions rows: ${definitionsResult.rowCount}`);
 
