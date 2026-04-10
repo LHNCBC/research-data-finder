@@ -812,10 +812,11 @@ class FhirBatchQuery extends EventTarget {
             reject({ status: HTTP_ABORT, error: 'Abort' });
           }
           const responseTime = new Date() - startAjaxTime;
-          if (globalThis.process?.versions?.node) {
-            console.log(`${logPrefix ? logPrefix + ' ' : ''}${url} - response received in ${responseTime} ms.`);
-          }
           const status = oReq.status;
+
+          if (globalThis.process?.versions?.node) {
+            console.log(`${logPrefix ? logPrefix + ' ' : ''}${url} - HTTP ${status} - response received in ${responseTime} ms.`);
+          }
 
           if (this.isOK(status)) {
             this._lastSuccessTime = Date.now();
