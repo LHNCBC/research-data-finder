@@ -12,9 +12,12 @@ const {
   getSettingsInitialPath,
   getRdfVersion,
   generateDefinitionsCsv,
-  applyScrubberSetting
+  applyScrubberSetting,
+  buildSettingsUpdateObj,
+  setCustomizationDefinitionsFile
 } = require('./autoconfig');
 const { parseCsvString, stringifyCsvRows } = require('./definitions-generator');
+const { FhirBatchQuery } = require('../src/app/shared/fhir-backend/fhir-batch-query');
 
 
 /**
@@ -200,6 +203,58 @@ test('applyScrubberSetting sets scrubber=true and forwards scrubber ID header',
 
     assert.equal(updateSettingsObj.default.scrubber, true);
     assert.equal(calledWith, 'my-scrubber-id');
+  });
+
+
+test('buildSettingsUpdateObj keeps customization keys and sets defaultServer',
+  () => {
+    const settings = {
+      default: {
+        defaultServer: 'https://old.example',
+        definitionsFile: 'desc-default-R4.csv'
+      },
+      customization: {
+        'https://existing.example': { definitionsFile: 'existing.csv' }
+      },
+      auth: { enabled: true }
+    };
+
+    const updateObj = buildSettingsUpdateObj(settings,
+      'https://new.example/baseR4');
+
+    assert.equal(updateObj.default.defaultServer, 'https://new.example/baseR4');
+    assert.equal(updateObj.default.definitionsFile, undefined);
+    assert.equal(
+      updateObj.customization['https://existing.example'],
+      undefined
+    );
+    assert.equal(updateObj.auth, undefined);
+  });
+
+
+test('setCustomizationDefinitionsFile writes definitionsFile under the server ' +
+  'URL and preserves existing customization entries', () => {
+    const updateSettingsObj = {
+      customization: {
+        'https://existing.example': undefined
+      }
+    };
+
+    setCustomizationDefinitionsFile(
+      updateSettingsObj,
+      'https://new.example/baseR4',
+      'desc-new-example-baseR4.csv'
+    );
+
+    assert.equal(
+      updateSettingsObj.customization['https://new.example/baseR4']
+        .definitionsFile,
+      'desc-new-example-baseR4.csv'
+    );
+    assert.equal(
+      updateSettingsObj.customization['https://existing.example'],
+      undefined
+    );
   });
 
 
@@ -784,3 +839,68 @@ test('build-autoconfig writes bundle and support files', async () => {
     fs.rmSync(tempBuildDir, { recursive: true, force: true });
   }
 });
+
+
+test('FhirBatchQuery logs HTTP status for node-side requests', async () => {
+  const originalXmlHttpRequest = global.XMLHttpRequest;
+  const originalLog = console.log;
+  const logs = [];
+
+  class MockXMLHttpRequest {
+    constructor() {
+      this.readyState = 0;
+      this.status = 200;
+      this.responseText = JSON.stringify({ resourceType: 'Bundle', entry: [] });
+      this.responseHeaders = {};
+    }
+
+    open(method, url) {
+      this.method = method;
+      this.url = String(url);
+    }
+
+    setRequestHeader(name, value) {
+      this.responseHeaders[name] = value;
+    }
+
+    getAllResponseHeaders() {
+      return '';
+    }
+
+    getResponseHeader() {
+      return '';
+    }
+
+    send() {
+      this.readyState = 4;
+      setTimeout(() => this.onreadystatechange?.(), 0);
+    }
+
+    abort() {
+      this.status = 0;
+    }
+  }
+
+  try {
+    global.XMLHttpRequest = MockXMLHttpRequest;
+    console.log = (...args) => {
+      logs.push(args.join(' '));
+    };
+
+    const client = new FhirBatchQuery({ serviceBaseUrl: 'https://example.com' });
+    await client._request({
+      url: 'https://example.com/Patient?_count=1',
+      retryCount: 1,
+      combine: false,
+      logPrefix: 'Test'
+    });
+
+    assert.equal(logs.length, 1);
+    assert.match(logs[0], /Test .* - HTTP 200 - response received in \d+ ms\./);
+  } finally {
+    global.XMLHttpRequest = originalXmlHttpRequest;
+    console.log = originalLog;
+  }
+});
+
+

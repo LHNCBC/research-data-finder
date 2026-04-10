@@ -307,6 +307,54 @@ function applyScrubberSetting(scrubberId, updateSettingsObj, fhirClient) {
 
 
 /**
+ * Builds a minimal update object for json5-writer while preserving untouched
+ * settings via `undefined` placeholders.
+ * @param {object} settings - Parsed settings template.
+ * @param {string} url - Target default server URL.
+ * @returns {object} Mutable update object for json5-writer.
+ */
+function buildSettingsUpdateObj(settings, url) {
+  return Object.keys(settings).reduce((res, key) => {
+    if (key === 'default') {
+      res[key] = {};
+      const defaultSection = res[key];
+      Object.keys(settings.default).forEach((k) => {
+        defaultSection[k] = undefined;
+      });
+      defaultSection['defaultServer'] = url;
+    } else if (key === 'customization') {
+      res[key] = {};
+      const customizationSection = res[key];
+      Object.keys(settings.customization).forEach((k) => {
+        customizationSection[k] = undefined;
+      });
+    } else {
+      res[key] = undefined;
+    }
+    return res;
+  }, {});
+}
+
+
+/**
+ * Sets server-specific definitions file in the customization section.
+ * @param {object} updateSettingsObj - Mutable settings update payload.
+ * @param {string} url - FHIR server URL key inside `customization`.
+ * @param {string} definitionsFileName - Generated definitions CSV filename.
+ * @returns {void}
+ */
+function setCustomizationDefinitionsFile(
+  updateSettingsObj,
+  url,
+  definitionsFileName
+) {
+  updateSettingsObj.customization[url] = {
+    definitionsFile: definitionsFileName
+  };
+}
+
+
+/**
  * Generates a filtered definitions CSV tailored to server capability and data.
  * @param {object} params - Generation parameters.
  * @param {string} params.url - FHIR server base URL.
@@ -494,25 +542,7 @@ program.command('init')
     // json5-writer will remove any property that does not exist in
     // updateSettingsObj. To keep the previous property values, we need to pass
     // undefined as the value for those properties.
-    const updateSettingsObj = Object.keys(settings).reduce((res, key) => {
-      if (key === 'default') {
-        res[key] = {};
-        const defaultSection = res[key];
-        Object.keys(settings.default).forEach((k) => {
-          defaultSection[k] = undefined;
-        });
-        defaultSection['defaultServer'] = url;
-      } else if (key === 'customization') {
-        res[key] = {};
-        const customizationSection = res[key];
-        Object.keys(settings.customization).forEach((k) => {
-          customizationSection[k] = undefined;
-        });
-      } else {
-        res[key] = undefined;
-      }
-      return res;
-    }, {});
+    const updateSettingsObj = buildSettingsUpdateObj(settings, url);
 
     // Use the same class as in the web application to get the actual
     // initialization parameters.
@@ -548,9 +578,11 @@ program.command('init')
       copiedDefaultCsvFiles.forEach((copiedPath) => {
         console.log(`Copied missing default definitions file: ${copiedPath}`);
       });
-      updateSettingsObj.customization[url] = {
-        definitionsFile: definitionsResult.definitionsFileName
-      };
+      setCustomizationDefinitionsFile(
+        updateSettingsObj,
+        url,
+        definitionsResult.definitionsFileName
+      );
       console.log(`Definitions CSV written to: ${definitionsResult.outputPath}`);
       console.log(`Definitions rows: ${definitionsResult.rowCount}`);
 
@@ -584,5 +616,7 @@ module.exports = {
   getSettingsInitialPath,
   getRdfVersion,
   generateDefinitionsCsv,
-  applyScrubberSetting
+  applyScrubberSetting,
+  buildSettingsUpdateObj,
+  setCustomizationDefinitionsFile
 };
