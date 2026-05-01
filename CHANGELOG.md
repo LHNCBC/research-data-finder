@@ -3,6 +3,11 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.9.3] - 2026-05-01
+### Fixed
+- Excluded resource types without visible search parameters from the cohort
+  criteria.
+
 ## [7.9.2] - 2026-04-10
 ### Changed
 - Autoconfig `init` now writes the path to the generated definitions CSV file
