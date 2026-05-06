@@ -5,6 +5,9 @@ This project follows [Semantic Versioning](http://semver.org/).
 
 ## [7.9.3] - 2026-05-01
 ### Fixed
+- Fixed the incorrect input field size for autocomplete when the list of
+  available search parameters contains only one value.
+- Fixed the incorrect positioning of the "connect with SMART on FHIR" checkbox.
 - Excluded resource types without visible search parameters from the cohort
   criteria.
 

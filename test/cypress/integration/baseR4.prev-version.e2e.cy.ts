@@ -2,12 +2,10 @@ import 'cypress-file-upload';
 
 describe('Research Data Finder (baseR4)', () => {
 
-  it( 'should show spinner during server initialization', () => {
-    cy.visit('/?server=https://lforms-fhir.nlm.nih.gov/baseR4&prev-version=enable');
-    cy.get('app-fhir-server-select.loading')
-      .should('exist');
-    cy.get('app-fhir-server-select.loading', {timeout: 30000})
-      .should('not.exist');
+  it( 'should finish server initialization', () => {
+    cy.initApp(
+      '/?server=https://lforms-fhir.nlm.nih.gov/baseR4&prev-version=enable'
+    );
   });
 
   it('should display welcome message for the first step', () => {

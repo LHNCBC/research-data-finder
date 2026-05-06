@@ -90,5 +90,11 @@
     "write-excel-file": "^1.4.30",
     "xlsx": "^0.18.5",
     "xmlhttprequest": "^1.8.0"
+  },
+  "overrides": {
+    "expo-random": "11.2.0",
+    "@angular-builders/custom-webpack": {
+      "@angular-devkit/build-angular": "20.3.23"
+    }
   }
 }
