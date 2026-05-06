@@ -46,11 +46,16 @@ declare namespace Cypress {
   interface Chainable<Subject = any> {
     /**
      * Custom command to initialize the application at the specified URL.
-     * Also checks if spinner is displayed during initialization.
+     * Also waits until server initialization is complete.
      * @param url - application URL
      * @example cy.initApp('/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&prev-version=disable')
      */
     initApp(url: string): Chainable<Subject>;
+    /**
+     * Custom command to wait until the settings step can advance.
+     * @example cy.waitForServerInitialization()
+     */
+    waitForServerInitialization(): Chainable<Subject>;
     /**
      * Custom command to click on a visible button with the specified text content.
      * @param text - text or regular expression
@@ -93,10 +98,18 @@ declare namespace Cypress {
 
 Cypress.Commands.add('initApp', (url) => {
   cy.visit(url);
-  cy.get('app-fhir-server-select.loading')
-    .should('exist');
-  return cy.get('app-fhir-server-select.loading', {timeout: 30000})
-    .should('not.exist');
+  return cy.waitForServerInitialization();
+});
+
+Cypress.Commands.add('waitForServerInitialization', () => {
+  // The initial Pending state can finish before app-fhir-server-select is
+  // rendered inside the lazy settings step, so wait for the stable
+  // post-validation action for whichever workflow the server enables.
+  return cy.contains(
+    'button:visible',
+    /Select an action|Select Research Studies|Define cohort/,
+    {timeout: 30000}
+  ).should('be.enabled');
 });
 
 Cypress.Commands.add('clickButton', (containedText) => {

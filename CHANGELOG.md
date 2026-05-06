@@ -3,6 +3,12 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.9.3] - 2026-05-01
+### Fixed
+- Fixed the incorrect input field size for autocomplete when the list of
+  available search parameters contains only one value.
+- Fixed the incorrect positioning of the "connect with SMART on FHIR" checkbox.
+
 ## [7.9.2] - 2026-04-10
 ### Changed
 - Autoconfig `init` now writes the path to the generated definitions CSV file
