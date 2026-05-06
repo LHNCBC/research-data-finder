@@ -1,6 +1,6 @@
 describe('Research Data Finder (dbGap)', () => {
 
-  it( 'should show spinner during server initialization', () => {
+  it( 'should finish server initialization', () => {
     cy.initApp('/?server=https://dbgap-api.ncbi.nlm.nih.gov/fhir/x1&prev-version=enable');
   });
 
