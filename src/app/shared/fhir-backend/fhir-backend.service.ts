@@ -528,6 +528,13 @@ export class FhirBackendService implements HttpBackend {
                     }
                     resourceDefinitions[resourceType].searchParameters = allowedParams;
                   }
+
+                  if (!resourceDefinitions[resourceType].searchParameters?.length) {
+                    console.warn(
+                      `No visible search parameters are available for resource '${resourceType}'.`
+                    );
+                    delete resourceDefinitions[resourceType];
+                  }
                 });
               }
               this.currentDefinitions = {resources: resourceDefinitions};

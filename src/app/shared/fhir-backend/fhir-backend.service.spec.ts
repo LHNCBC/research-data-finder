@@ -281,6 +281,12 @@ describe('FhirBackendService', () => {
         searchParameters: [
           { element: 'some-param', type: 'string' }
         ]
+      },
+      Encounter: {
+        columnDescriptions: [],
+        searchParameters: [
+          { element: 'status', type: 'token' }
+        ]
       }
     };
     const capabilityStatement = {
@@ -297,6 +303,12 @@ describe('FhirBackendService', () => {
             type: 'Patient',
             searchParam: [
               { name: 'name', type: 'string' }
+            ]
+          },
+          {
+            type: 'Encounter',
+            searchParam: [
+              { name: 'identifier', type: 'token' }
             ]
           }
         ]
@@ -362,6 +374,13 @@ describe('FhirBackendService', () => {
         expect(obsElements).toContain('code');
         expect(obsElements).toContain('date');
         expect(obsElements).not.toContain('unsupported-param');
+        done();
+      });
+    });
+
+    it('should remove resources with no visible search parameters after CapabilityStatement filtering', (done) => {
+      service.currentDefinitions$.subscribe((definitions) => {
+        expect(definitions.resources.Encounter).toBeUndefined();
         done();
       });
     });

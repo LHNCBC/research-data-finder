@@ -157,7 +157,9 @@ function updateAppSettings(url2desc) {
 }
 
 module.exports = async (config) => {
-  updateAppSettings(await prepareCsvData());
+  if (process.env.SKIP_XLSX !== '1') {
+    updateAppSettings(await prepareCsvData());
+  }
 
   config.module.rules.push(
     {
