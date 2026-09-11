@@ -5,6 +5,6 @@
   ],
   "compilerOptions": {
     "sourceMap": true,
-    "types": ["cypress", "node", "cypress-file-upload"]
+    "types": ["cypress", "node"]
   }
 }

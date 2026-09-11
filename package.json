@@ -68,7 +68,6 @@
     "@types/node": "^24.13.2",
     "angular-eslint": "21.0.1",
     "cypress": "^15.21.1",
-    "cypress-file-upload": "^5.0.8",
     "cypress-pipe": "^2.0.1",
     "devextreme-exceljs-fork": "4.4.13",
     "esbuild": "^0.28.1",
