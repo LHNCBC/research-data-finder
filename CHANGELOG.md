@@ -3,6 +3,13 @@
 This log documents the significant changes for each release.
 This project follows [Semantic Versioning](http://semver.org/).
 
+## [7.9.7] - 2026-09-09
+### Changed
+- Replaced `xlsx` with `devextreme-exceljs-fork` 4.4.13 for updating the R4
+  configuration workbook. On September 9, 2026, its isolated resolved
+  78-package dependency tree had no reported `npm audit` advisories, and
+  `npm audit signatures` passed.
+
 ## [7.9.6] - 2026-07-10
 ### Fixed
 - Fixed the sticky Cart list header being overlapped by record remove buttons

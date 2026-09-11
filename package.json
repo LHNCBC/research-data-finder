@@ -1,6 +1,6 @@
 {
   "name": "fhir-obs-viewer",
-  "version": "7.9.6",
+  "version": "7.9.7",
   "scripts": {
     "ng": "ng",
     "sync-generated-assets": "node bin/sync-generated-assets.js",
@@ -15,12 +15,13 @@
     "analyze-gzip": "npm run sync-xlsx-config && ng build --configuration production --source-map && source-map-explorer public/main.* --gzip",
     "build": "npm run sync-xlsx-config && ng build --configuration production && npm run build-autoconfig",
     "unit": "ng test --watch=false",
-    "test": "npm run lint && npm run sync-xlsx-config && npm run test-autoconfig && npm run unit && npm run e2e",
+    "test": "npm run lint && npm run test-update-excel && npm run sync-xlsx-config && npm run test-autoconfig && npm run unit && npm run e2e",
     "lint": "ng lint",
     "e2e": "ng run fhir-obs-viewer:cypress-e2e",
     "cypress:open": "ng run fhir-obs-viewer:cypress-open",
     "prettier-fix": "prettier --write '**/*.ts'",
     "update-excel-config": "node bin/update-excel-configurations.js && npm run build",
+    "test-update-excel": "node --test bin/update-excel-configurations.test.js",
     "update-cached-lists": "node bin/update-non-required-binding-lists.js",
     "build-autoconfig": "node autoconfig-src/build-autoconfig.js",
     "test-autoconfig": "node --test autoconfig-src/autoconfig.test.js",
@@ -69,6 +70,7 @@
     "cypress": "^13.17.0",
     "cypress-file-upload": "^5.0.8",
     "cypress-pipe": "^2.0.1",
+    "devextreme-exceljs-fork": "4.4.13",
     "esbuild": "^0.28.1",
     "eslint": "^9.39.1",
     "jquery": "^3.7.1",
@@ -85,7 +87,6 @@
     "typescript-eslint": "8.46.4",
     "vitest": "^4.1.11",
     "write-excel-file": "^1.4.30",
-    "xlsx": "^0.18.5",
     "xmlhttprequest": "^1.8.0"
   },
   "overrides": {
