@@ -1,5 +1,3 @@
-import 'cypress-file-upload';
-
 describe('Research Data Finder (baseR4)', () => {
 
   it( 'should finish server initialization', () => {
@@ -101,14 +99,22 @@ describe('Research Data Finder (baseR4)', () => {
     cy.task('removeCohortFileIfExist');
   });
 
+
+  /**
+   * Loads a saved cohort using Cypress's native file-selection command.
+   */
   it('should load cohort', () => {
     cy.selectStep('Define cohort');
-    cy.get('#hiddenFileInput').attachFile('cohort-to-upload.json');
+    cy.get('#hiddenFileInput').selectFile(
+      'test/cypress/fixtures/cohort-to-upload.json',
+      {force: true}
+    );
     cy.contains('Cohort of 4 Patient resources').should('exist');
     // Verify that 4 rows are loaded in table, same as in upload file.
     cy.clickButton('table_rows_narrow');
     cy.get('table tbody tr').should('have.length', 4);
   });
+
 
   it('should allow to proceed to the "Pull data for the cohort" step', () => {
     cy.clickButton('Pull data for the cohort');
