@@ -7,6 +7,7 @@ export default defineConfig({
   fixturesFolder: 'test/cypress/fixtures',
   video: true,
   downloadsFolder: 'test/cypress/downloads',
+  allowCypressEnv: false,
   e2e: {
     testIsolation: false,
     // We've imported your old cypress plugins here.
